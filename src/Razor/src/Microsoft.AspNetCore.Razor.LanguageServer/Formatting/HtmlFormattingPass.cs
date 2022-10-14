@@ -78,7 +78,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var changes = htmlEdits.Select(e => e.AsTextChange(originalText));
                 changedText = originalText.WithChanges(changes);
                 // Create a new formatting context for the changed razor document.
-                changedContext = await context.WithTextAsync(changedText);
+                changedContext = await context.WithTextAsync(changedText, context.HostDocumentVersion);
 
                 _logger.LogTestOnly("After normalizedEdits:\r\n{changedText}", changedText);
             }

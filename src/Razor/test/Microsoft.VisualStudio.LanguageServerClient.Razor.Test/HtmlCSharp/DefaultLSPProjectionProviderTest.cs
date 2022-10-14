@@ -92,6 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 .ReturnsAsync(new ReinvocationResponse<RazorLanguageQueryResponse>("LanguageClient", response));
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
+#pragma warning disable CS0612 // Type or member is obsolete
             documentSynchronizer
                 .Setup(d => d.TrySynchronizeVirtualDocumentAsync(_documentSnapshot.Version, _htmlVirtualDocumentSnapshot, true, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
@@ -252,6 +253,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer
                 .Setup(d => d.TrySynchronizeVirtualDocumentAsync(_documentSnapshot.Version, _csharpVirtualDocumentSnapshot, true, It.IsAny<CancellationToken>()))
+#pragma warning restore CS0612 // Type or member is obsolete
                 .ReturnsAsync(false);
 
             var projectionProvider = new DefaultLSPProjectionProvider(requestInvoker.Object, documentSynchronizer.Object, TestRazorLogger.Instance, LoggerProvider);

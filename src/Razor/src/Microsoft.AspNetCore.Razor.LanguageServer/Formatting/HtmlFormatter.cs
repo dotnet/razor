@@ -32,9 +32,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var @params = new DocumentFormattingParams()
+            var @params = new VersionedDocumentFormattingParams()
             {
-                TextDocument = new TextDocumentIdentifier { Uri = FilePathNormalizer.Instance.Normalize(context.Uri) },
+                TextDocument = new VersionedTextDocumentIdentifier {
+                    Uri = FilePathNormalizer.Instance.Normalize(context.Uri),
+                    Version = context.HostDocumentVersion,
+                },
                 Options = context.Options
             };
 

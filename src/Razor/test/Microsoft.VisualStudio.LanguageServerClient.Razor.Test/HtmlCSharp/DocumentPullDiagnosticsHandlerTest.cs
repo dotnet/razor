@@ -201,9 +201,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             var diagnosticsProvider = GetDiagnosticsProvider(s_validDiagnostic_UnknownName_MappedRange, s_validDiagnostic_InvalidExpression_MappedRange);
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
+#pragma warning disable CS0612 // Type or member is obsolete
             documentSynchronizer
                 .Setup(d => d.TrySynchronizeVirtualDocumentAsync(It.IsAny<int>(), It.IsAny<CSharpVirtualDocumentSnapshot>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(false);
+#pragma warning restore CS0612 // Type or member is obsolete
 
             var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer.Object, diagnosticsProvider, _loggerProvider);
             var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
@@ -540,9 +542,11 @@ d.Severity != DiagnosticSeverity.Error;
         private static LSPDocumentSynchronizer CreateDocumentSynchronizer()
         {
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
+#pragma warning disable CS0612 // Type or member is obsolete
             documentSynchronizer
                 .Setup(d => d.TrySynchronizeVirtualDocumentAsync(It.IsAny<int>(), It.IsAny<CSharpVirtualDocumentSnapshot>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
+#pragma warning restore CS0612 // Type or member is obsolete
             return documentSynchronizer.Object;
         }
     }

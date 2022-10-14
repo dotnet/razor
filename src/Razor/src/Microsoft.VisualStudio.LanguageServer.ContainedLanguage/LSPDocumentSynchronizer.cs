@@ -2,13 +2,31 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using static Microsoft.VisualStudio.LanguageServer.ContainedLanguage.DefaultLSPDocumentSynchronizer;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
     internal abstract class LSPDocumentSynchronizer : LSPDocumentChangeListener
     {
+        public abstract Task<SynchronizedResult<TVirtualDocumentSnapshot>> TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
+            int requiredHostDocumentVersion,
+            Uri hostDocumentUri,
+            Uri virtualDocumentUri,
+            CancellationToken cancellationToken)
+            where TVirtualDocumentSnapshot : VirtualDocumentSnapshot;
+
+        public abstract Task<SynchronizedResult<TVirtualDocumentSnapshot>> TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
+            int requiredHostDocumentVersion,
+            Uri hostDocumentUri,
+            Uri virtualDocumentUri,
+            bool rejectOnNewerParallelRequest,
+            CancellationToken cancellationToken)
+            where TVirtualDocumentSnapshot : VirtualDocumentSnapshot;
+
+        [Obsolete]
         public abstract Task<bool> TrySynchronizeVirtualDocumentAsync(int requiredHostDocumentVersion, VirtualDocumentSnapshot virtualDocument, CancellationToken cancellationToken);
 
         /// <summary>
@@ -22,9 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         /// </param>
         /// <param name="cancellationToken"></param>
         /// <returns><c>true</c> if we were able to successfully synchronize; <c>false</c> otherwise.</returns>
-        public virtual Task<bool> TrySynchronizeVirtualDocumentAsync(int requiredHostDocumentVersion, VirtualDocumentSnapshot virtualDocument, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+        [Obsolete]
+        public abstract Task<bool> TrySynchronizeVirtualDocumentAsync(int requiredHostDocumentVersion, VirtualDocumentSnapshot virtualDocument, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken);
     }
 }

@@ -7,10 +7,14 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using EnvDTE;
+using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -31,12 +35,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     {
         private readonly ITextBuffer _textBuffer;
         private readonly EditorSettingsManager _editorSettingsManager;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
         public DefaultRazorLanguageServerCustomMessageTargetTest(ITestOutputHelper testOutput)
             : base(testOutput)
         {
             _textBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
             _editorSettingsManager = new DefaultEditorSettingsManager(Array.Empty<EditorSettingsChangedTrigger>());
+            _languageServerFeatureOptions = TestLanguageServerFeatureOptions.Instance;
         }
 
         [Fact]
@@ -48,7 +54,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager
                 .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
                 .Returns(false);
-            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
+            var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
+            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, documentSynchronizer.Object, TestLanguageServerFeatureOptions.Instance);
             var request = new UpdateBufferRequest()
             {
                 HostDocumentFilePath = "C:/path/to/file.razor",
@@ -71,7 +78,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     1337,
                     It.IsAny<object>()))
                 .Verifiable();
-            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
+            var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
+
+            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, documentSynchronizer.Object, TestLanguageServerFeatureOptions.Instance);
             var request = new UpdateBufferRequest()
             {
                 HostDocumentFilePath = "C:/path/to/file.razor",
@@ -97,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager, JoinableTaskContext, requestInvoker.Object,
-                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object);
+                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, _languageServerFeatureOptions);
 
             var request = new RazorDocumentRangeFormattingParams()
             {
@@ -131,11 +140,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 .Returns(false);
             var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
 
-            var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
+            var documentSynchronizer = GetDocumentSynchronizer();
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager, JoinableTaskContext, requestInvoker.Object,
-                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object);
+                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, _languageServerFeatureOptions);
 
             var request = new RazorDocumentRangeFormattingParams()
             {
@@ -186,11 +195,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ReinvocationResponse<TextEdit[]>("languageClient", new[] { expectedEdit }));
 
-            var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
+            var documentSynchronizer = GetDocumentSynchronizer(GetCSharpSnapshot(uri, hostDocumentSyncVersion: 1));
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object);
+                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, _languageServerFeatureOptions);
 
             var request = new RazorDocumentRangeFormattingParams()
             {
@@ -226,35 +235,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager
                 .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
                 .Returns(false);
-            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
-            var request = new CodeActionParams()
-            {
-                TextDocument = new TextDocumentIdentifier()
-                {
-                    Uri = new Uri("C:/path/to/file.razor")
-                }
-            };
-
-            // Act
-            var result = await target.ProvideCodeActionsAsync(request, DisposalToken);
-
-            // Assert
-            Assert.Null(result);
-        }
-
-        [Fact]
-        public async Task ProvideCodeActionsAsync_CannotLookupVirtualDocument_ReturnsNullAsync()
-        {
-            // Arrange
-            var testDocUri = new Uri("C:/path/to/file.razor");
-            LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, 0);
-
-            var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-            documentManager
-                .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
-                .Returns(true);
-            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
-            var request = new CodeActionParams()
+            var documentSynchronizer = GetDocumentSynchronizer();
+            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, documentSynchronizer, TestLanguageServerFeatureOptions.Instance);
+            var request = new DelegatedCodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
@@ -308,13 +291,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     It.IsAny<CancellationToken>()))
                 .Returns(expectedResults);
 
-            var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
+            var documentSynchronizer = GetDocumentSynchronizer(GetCSharpSnapshot());
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object);
+                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, _languageServerFeatureOptions);
 
-            var request = new CodeActionParams()
+            var request = new DelegatedCodeActionParams()
             {
                 TextDocument = new TextDocumentIdentifier()
                 {
@@ -373,7 +356,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager, JoinableTaskContext, requestInvoker.Object,
-                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object);
+                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, _languageServerFeatureOptions);
 
             var codeAction = new VSInternalCodeAction()
             {
@@ -397,7 +380,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager
                 .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
                 .Returns(false);
-            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
+            var documentSynchronizer = GetDocumentSynchronizer();
+            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, documentSynchronizer, TestLanguageServerFeatureOptions.Instance);
             var request = new ProvideSemanticTokensRangeParams(
                 textDocument: new TextDocumentIdentifier()
                 {
@@ -424,7 +408,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             documentManager
                 .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
                 .Returns(true);
-            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object);
+            var documentSynchronizer = GetDocumentSynchronizer();
+            var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, documentSynchronizer, TestLanguageServerFeatureOptions.Instance);
             var request = new ProvideSemanticTokensRangeParams(
                 textDocument: new TextDocumentIdentifier()
                 {
@@ -471,15 +456,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer
-                .Setup(r => r.TrySynchronizeVirtualDocumentAsync(
+                .Setup(r => r.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                     0,
-                    It.IsAny<CSharpVirtualDocumentSnapshot>(),
+                    It.IsAny<Uri>(),
+                    It.IsAny<Uri>(),
                     It.IsAny<CancellationToken>()))
-                .ReturnsAsync(true);
+                .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object);
+                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, _languageServerFeatureOptions);
             var request = new ProvideSemanticTokensRangeParams(
                 textDocument: new TextDocumentIdentifier()
                 {
@@ -494,6 +480,35 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             // Assert
             Assert.Equal(expectedResults, result);
+        }
+
+        private LSPDocumentSynchronizer GetDocumentSynchronizer(CSharpVirtualDocumentSnapshot csharpDoc = null, HtmlVirtualDocumentSnapshot htmlDoc = null)
+        {
+            var synchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
+            synchronizer.Setup(s => s.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(It.IsAny<int>(), It.IsAny<Uri>(), It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(csharpDoc is not null, csharpDoc));
+
+            synchronizer.Setup(s => s.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(It.IsAny<int>(), It.IsAny<Uri>(), It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<HtmlVirtualDocumentSnapshot>(htmlDoc is not null, htmlDoc));
+
+            return synchronizer.Object;
+        }
+
+        private CSharpVirtualDocumentSnapshot GetCSharpSnapshot(Uri uri = null, int hostDocumentSyncVersion = 1)
+        {
+            if (uri is null)
+            {
+                uri = new Uri("C:/thing.razor");
+            }
+
+            var textBuffer = new Mock<ITextBuffer>(MockBehavior.Strict);
+            var snapshot = new Mock<ITextSnapshot>(MockBehavior.Strict);
+            snapshot.Setup(s => s.TextBuffer)
+                .Returns(_textBuffer);
+
+            var csharpDoc = new CSharpVirtualDocumentSnapshot(uri, snapshot.Object, hostDocumentSyncVersion);
+
+            return csharpDoc;
         }
     }
 }

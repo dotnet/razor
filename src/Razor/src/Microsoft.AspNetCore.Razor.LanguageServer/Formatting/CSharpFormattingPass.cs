@@ -54,7 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 var changes = result.Edits.Select(e => e.AsTextChange(originalText)).ToArray();
                 changedText = changedText.WithChanges(changes);
-                changedContext = await context.WithTextAsync(changedText);
+                changedContext = await context.WithTextAsync(changedText, context.HostDocumentVersion);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -65,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 var csharpChanges = csharpEdits.Select(c => c.AsTextChange(changedText));
                 changedText = changedText.WithChanges(csharpChanges);
-                changedContext = await changedContext.WithTextAsync(changedText);
+                changedContext = await changedContext.WithTextAsync(changedText, context.HostDocumentVersion);
 
                 _logger.LogTestOnly("After FormatCSharpAsync:\r\n{changedText}", changedText);
             }

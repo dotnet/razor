@@ -124,7 +124,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             // Apply the format on type edits sent over by the client.
             var formattedText = ApplyChangesAndTrackChange(originalText, changes, out _, out var spanAfterFormatting);
-            var changedContext = await context.WithTextAsync(formattedText);
+            var changedContext = await context.WithTextAsync(formattedText, context.HostDocumentVersion);
             var rangeAfterFormatting = spanAfterFormatting.AsRange(formattedText);
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -132,7 +132,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // We make an optimistic attempt at fixing corner cases.
             var cleanupChanges = CleanupDocument(changedContext, rangeAfterFormatting);
             var cleanedText = formattedText.WithChanges(cleanupChanges);
-            changedContext = await changedContext.WithTextAsync(cleanedText);
+            changedContext = await changedContext.WithTextAsync(cleanedText, context.HostDocumentVersion);
 
             cancellationToken.ThrowIfCancellationRequested();
 

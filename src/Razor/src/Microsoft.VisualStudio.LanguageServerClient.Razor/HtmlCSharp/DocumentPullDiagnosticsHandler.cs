@@ -103,10 +103,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
+#pragma warning disable CS0612 // Type or member is obsolete
             var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
                 documentSnapshot.Version,
                 csharpDoc,
                 cancellationToken).ConfigureAwait(false);
+#pragma warning restore CS0612 // Type or member is obsolete
             if (!synchronized)
             {
                 _logger.LogInformation("Failed to synchronize document {csharpDocUri}.", csharpDoc.Uri);

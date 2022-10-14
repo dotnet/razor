@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 var changes = result.Edits.Select(e => e.AsTextChange(originalText)).ToArray();
                 changedText = changedText.WithChanges(changes);
-                changedContext = await context.WithTextAsync(changedText);
+                changedContext = await context.WithTextAsync(changedText, context.HostDocumentVersion);
 
                 cancellationToken.ThrowIfCancellationRequested();
             }
