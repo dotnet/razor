@@ -260,7 +260,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 
             if (!name.Span.IntersectsWith(absoluteIndex))
             {
-                logger.LogInformation("Tag name or attributes's span does not contain location's absolute index ({absoluteIndex}).", absoluteIndex);
+                logger.LogInformation("Tag name or attributes's span does not intersect with location's absolute index ({absoluteIndex}).", absoluteIndex);
                 return (null, null);
             }
 
