@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
@@ -290,6 +291,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             // Act
             var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
                 documentContext, 46, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), DisposalToken);
+
+            // Assert
+            Assert.NotNull(descriptor);
+            Assert.Equal("Component1TagHelper", descriptor!.Name);
+            Assert.NotNull(attributeDescriptor);
+            Assert.Equal("BoolVal", attributeDescriptor.GetPropertyName());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/razor-tooling/issues/6775")]
+        public async Task GetOriginTagHelperBindingAsync_TagHelper_PropertyAttributeEdge()
+        {
+
+            // Arrange
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Component1 bool-val$$="true"></Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
+
+            TestFileMarkupParser.GetPosition(content, out content, out var position);
+
+            SetupDocument(out var _, out var documentSnapshot, content);
+            var documentContext = CreateDocumentContext(new Uri(@"C:\file.razor"), documentSnapshot);
+
+            // Act
+            var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
+                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), DisposalToken);
 
             // Assert
             Assert.NotNull(descriptor);

@@ -258,7 +258,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 propertyName = minimizedAttribute.TagHelperAttributeInfo.Name;
             }
 
-            if (!name.Span.Contains(absoluteIndex))
+            if (!name.Span.IntersectsWith(absoluteIndex))
             {
                 logger.LogInformation("Tag name or attributes's span does not contain location's absolute index ({absoluteIndex}).", absoluteIndex);
                 return (null, null);
