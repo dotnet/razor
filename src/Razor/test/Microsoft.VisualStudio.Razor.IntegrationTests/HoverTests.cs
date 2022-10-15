@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             var hoverString = await TestServices.Editor.GetHoverStringAsync(position, ControlledHangMitigatingCancellationToken);
 
             // Assert
-            const string ExpectedResult = "Microsoft.AspNetCore.Components.Web.PageTitleEnables rendering an HTML <c><title></c> to a HeadOutlet component.";
+            const string ExpectedResult = "Microsoft.AspNetCore.Components.Web.PageTitleEnables rendering an HTML <title> to a HeadOutlet component.";
             Assert.Equal(ExpectedResult, hoverString);
         }
     }

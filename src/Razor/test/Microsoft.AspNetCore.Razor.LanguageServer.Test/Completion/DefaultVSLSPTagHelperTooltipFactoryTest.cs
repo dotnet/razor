@@ -116,6 +116,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         }
 
         [Fact]
+        public void CleanSummaryContent_ClassifiedTextElement_ClassifiesCBlocks()
+        {
+            // Arrange
+            var runs = new List<ClassifiedTextRun>();
+            var summary = @"code: <c>This is code</c> and <c>This is some other code</c>.";
+
+            // Act
+            CleanAndClassifySummaryContent(runs, summary);
+
+            // Assert
+
+            // Expected output:
+            //     code: This is code and This is some other code.
+            Assert.Collection(runs,
+                run => AssertExpectedClassification(run, "code: ", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "This is code", VSPredefinedClassificationTypeNames.Text, ClassifiedTextRunStyle.UseClassificationFont),
+                run => AssertExpectedClassification(run, " and ", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "This is some other code", VSPredefinedClassificationTypeNames.Text, ClassifiedTextRunStyle.UseClassificationFont),
+                run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Text));
+        }
+
+        [Fact]
         public void CleanSummaryContent_ClassifiedTextElement_ParasCreateNewLines()
         {
             // Arrange
