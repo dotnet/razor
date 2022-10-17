@@ -30,31 +30,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         [Fact]
         public async Task GetOriginTagHelperBindingAsync_TagHelper_Element()
         {
-            // Arrange
             var content = """
                 @addTagHelper *, TestAssembly
                 <te$$st1></test1>
                 """;
 
-            TestFileMarkupParser.GetPosition(content, out content, out var positioin);
-
-            var srcText = SourceText.From(content);
-            var codeDocument = CreateCodeDocument(content, isRazorFile: false, DefaultTagHelpers);
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(d => d.GetTextAsync() == Task.FromResult(srcText), MockBehavior.Strict);
-            Mock.Get(documentSnapshot)
-                .Setup(s => s.GetGeneratedOutputAsync())
-                .ReturnsAsync(codeDocument);
-
-            var documentContext = CreateDocumentContext(new Uri(@"C:\file.razor"), documentSnapshot);
-
-            // Act
-            var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentContext, positioin, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), DisposalToken);
-
-            // Assert
-            Assert.NotNull(descriptor);
-            Assert.Equal("Test1TagHelper", descriptor!.Name);
-            Assert.Null(attributeDescriptor);
+            await VerifyOriginTagHelperBindingAsync(content, "Test1TagHelper", attributeDescriptorPropertyName: null, isRazorFile: false);
         }
 
         [Fact]
@@ -334,11 +315,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
         }
 
         #region Helpers
-        private async Task VerifyOriginTagHelperBindingAsync(string content, string tagHelperDescriptorName = null, string attributeDescriptorPropertyName = null)
+        private async Task VerifyOriginTagHelperBindingAsync(string content, string tagHelperDescriptorName = null, string attributeDescriptorPropertyName = null, bool isRazorFile = true)
         {
             TestFileMarkupParser.GetPosition(content, out content, out var position);
 
-            SetupDocument(out var _, out var documentSnapshot, content);
+            SetupDocument(out _, out var documentSnapshot, content, isRazorFile);
             var documentContext = CreateDocumentContext(new Uri(@"C:\file.razor"), documentSnapshot);
 
             var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
@@ -379,10 +360,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             Assert.Equal(expectedRange, range);
         }
 
-        private void SetupDocument(out RazorCodeDocument codeDocument, out DocumentSnapshot documentSnapshot, string content)
+        private void SetupDocument(out RazorCodeDocument codeDocument, out DocumentSnapshot documentSnapshot, string content, bool isRazorFile = true)
         {
             var sourceText = SourceText.From(content);
-            codeDocument = CreateCodeDocument(content, "text.razor", DefaultTagHelpers);
+            codeDocument = CreateCodeDocument(content, isRazorFile, DefaultTagHelpers);
             var outDoc = codeDocument;
             documentSnapshot = Mock.Of<DocumentSnapshot>(
                 d => d.GetTextAsync() == Task.FromResult(sourceText),
