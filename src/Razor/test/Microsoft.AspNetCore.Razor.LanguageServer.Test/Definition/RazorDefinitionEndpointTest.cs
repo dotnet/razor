@@ -227,6 +227,38 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
             await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
         }
 
+        [Fact]
+        public async Task GetOriginTagHelperBindingAsync_TagHelper_MinimizedPropertyAttributeEdge1()
+        {
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Component1 $$bool-val></Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
+
+            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
+        }
+
+        [Fact]
+        public async Task GetOriginTagHelperBindingAsync_TagHelper_MinimizedPropertyAttributeEdge2()
+        {
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Component1 bool-val$$></Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
+
+            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/razor-tooling/issues/6775")]
         public async Task GetOriginTagHelperBindingAsync_TagHelper_PropertyAttributeEdge()
         {
