@@ -222,7 +222,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                         addRuleCompletions = true;
                     }
 
-                    if (addRuleCompletions)
+                    // If we think this completion should be added based on tag name, thats great, but lets also make sure the attributes are correct
+                    if (addRuleCompletions && TagHelperMatchingConventions.SatisfiesAttributes(completionContext.Attributes.ToList(), rule))
                     {
                         UpdateCompletions(prefix + rule.TagName, possibleDescriptor);
                     }
