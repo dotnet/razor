@@ -35,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 <te$$st1></test1>
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content, "Test1TagHelper", attributeDescriptorPropertyName: null, isRazorFile: false);
+            await VerifyOriginTagHelperBindingAsync(content, "Test1TagHelper", isRazorFile: false);
         }
 
         [Fact]
