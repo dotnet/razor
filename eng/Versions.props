@@ -160,7 +160,6 @@
     <!-- Temporary hack to workaround package restrictions for dev17 -->
     <MicrosoftInternalVisualStudioShellFrameworkPackageVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftInternalVisualStudioShellFrameworkPackageVersion>
     <MicrosoftIORedistPackageVersion>4.7.1</MicrosoftIORedistPackageVersion>
-
     <!-- Compiler Deps -->
     <BenchmarkDotNetVersion>0.13.0.1555</BenchmarkDotNetVersion>
     <DiffPlexVersion>1.5.0</DiffPlexVersion>
