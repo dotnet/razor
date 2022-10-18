@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Razor
     [Export(typeof(ProjectSnapshotChangeTrigger))]
     internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGenerator, IDisposable
     {
-        // Internal for testingz[s
+        // Internal for testing
         internal readonly Dictionary<string, UpdateItem> Updates;
 
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
