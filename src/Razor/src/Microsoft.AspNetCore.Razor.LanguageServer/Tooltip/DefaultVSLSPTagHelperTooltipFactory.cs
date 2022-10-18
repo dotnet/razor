@@ -191,7 +191,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 ClassifyTypeName(typeRuns, descriptionInfo.TypeName);
                 typeRuns.Add(s_dot);
                 typeRuns.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Identifier, descriptionInfo.PropertyName));
-
+                
                 // 2. Classify summary
                 var documentationRuns = new List<ClassifiedTextRun>();
                 TryClassifySummary(documentationRuns, descriptionInfo.Documentation);
@@ -236,7 +236,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 }
                 else
                 {
-                    runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, typeNamePart));
+                    runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.NamespaceName, typeNamePart));
                 }
             }
         }
@@ -292,7 +292,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             if (nullableType)
             {
                 // Classify the '?' symbol separately from the rest of the type since it's considered punctuation.
-                typeName = typeName.Substring(0, typeName.Length - 1);
+                typeName = typeName[..^1];
             }
 
             // Case 1: Type can be aliased as a C# built-in type (e.g. Boolean -> bool, Int32 -> int, etc.).
@@ -305,7 +305,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             {
                 runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Keyword, typeName));
             }
-            // Case 3: All other types.
+            // Case 3: If the type name starts with "I" followed by a capital letter it is most likely an interface
+            else if (typeName.StartsWith("I") && char.IsUpper(typeName[1]))
+            {
+                runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.InterfaceName, typeName));
+            }
+            // Case 4: All other types.
             else
             {
                 runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Type, typeName));
@@ -425,7 +430,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                     classifiedElementContainer.Add(new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement(classification.Documentation)));
                 }
             }
-
+            
             return new ContainerElement(ContainerElementStyle.Stacked, classifiedElementContainer);
         }
 
@@ -466,6 +471,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             public const string Type = "type";
 
             public const string WhiteSpace = "whitespace";
+
+            public const string NamespaceName = "namespace name";
+
+            public const string InterfaceName = "interface name";
         }
 
         private record DescriptionClassification(IReadOnlyList<ClassifiedTextRun> Type, IReadOnlyList<ClassifiedTextRun> Documentation);

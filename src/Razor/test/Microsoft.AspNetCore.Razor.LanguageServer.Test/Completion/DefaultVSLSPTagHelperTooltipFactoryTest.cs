@@ -27,7 +27,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         {
             // Arrange
             var runs = new List<ClassifiedTextRun>();
-            var summary = "Accepts <see cref=\"T:System.Collections.List{System.String}\" />s";
+            var summary = """Accepts <see cref="T:System.Collections.List{System.String}" />s""";
 
             // Act
             CleanAndClassifySummaryContent(runs, summary);
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         {
             // Arrange
             var runs = new List<ClassifiedTextRun>();
-            var summary = "Accepts <seealso cref=\"T:System.Collections.List{System.String}\" />s";
+            var summary = """Accepts <seealso cref="T:System.Collections.List{System.String}" />s""";
 
             // Act
             CleanAndClassifySummaryContent(runs, summary);
@@ -73,12 +73,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         {
             // Arrange
             var runs = new List<ClassifiedTextRun>();
-            var summary = @"
-            Hello
+            var summary = """
+                        Hello
 
-    World
-
-";
+                World
+                """;
 
             // Act
             CleanAndClassifySummaryContent(runs, summary);
@@ -98,7 +97,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         {
             // Arrange
             var runs = new List<ClassifiedTextRun>();
-            var summary = @"code: <code>This is code</code> and <code>This is some other code</code>.";
+            var summary = """code: <code>This is code</code> and <code>This is some other code</code>.""";
 
             // Act
             CleanAndClassifySummaryContent(runs, summary);
@@ -120,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         {
             // Arrange
             var runs = new List<ClassifiedTextRun>();
-            var summary = @"code: <c>This is code</c> and <c>This is some other code</c>.";
+            var summary = """code: <c>This is code</c> and <c>This is some other code</c>.""";
 
             // Act
             CleanAndClassifySummaryContent(runs, summary);
@@ -142,9 +141,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         {
             // Arrange
             var runs = new List<ClassifiedTextRun>();
-            var summary = @"Summary description:
-<para>Paragraph text.</para>
-End summary description.";
+            var summary = """
+                Summary description:
+                <para>Paragraph text.</para>
+                End summary description.
+                """;
 
             // Act
             CleanAndClassifySummaryContent(runs, summary);
@@ -155,13 +156,13 @@ End summary description.";
             //     code: This is code and This is some other code.
             Assert.Collection(runs, run => AssertExpectedClassification(
                 run,
-                "Summary description:" +
-                Environment.NewLine +
-                Environment.NewLine +
-                "Paragraph text." +
-                Environment.NewLine +
-                Environment.NewLine +
-                "End summary description.",
+                """
+                Summary description:
+
+                Paragraph text.
+
+                End summary description.
+                """,
                 VSPredefinedClassificationTypeNames.Text));
         }
 
@@ -189,7 +190,7 @@ End summary description.";
             {
                 new BoundElementDescriptionInfo(
                     "Microsoft.AspNetCore.SomeTagHelper",
-                    "<summary>Uses <see cref=\"T:System.Collections.List{System.Collections.List{System.String}}\" />s</summary>"),
+                    """<summary>Uses <see cref="T:System.Collections.List{System.Collections.List{System.String}}" />s</summary>"""),
             };
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
 
@@ -203,9 +204,9 @@ End summary description.";
             //     Microsoft.AspNetCore.SomeTagHelper
             //     Uses List<List<string>>s
             Assert.Collection(classifiedTextElement.Runs,
-                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "SomeTagHelper", VSPredefinedClassificationTypeNames.Type),
                 run => AssertExpectedClassification(run, Environment.NewLine, VSPredefinedClassificationTypeNames.WhiteSpace),
@@ -229,7 +230,7 @@ End summary description.";
             {
                 new BoundElementDescriptionInfo(
                     "Microsoft.AspNetCore.SomeTagHelper.SomeTagHelper",
-                    "<summary>Uses <see cref=\"T:A.B.C{C.B}\" />s</summary>"),
+                    """<summary>Uses <see cref="T:A.B.C{C.B}" />s</summary>"""),
             };
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
 
@@ -243,11 +244,11 @@ End summary description.";
             //     Microsoft.AspNetCore.SomeTagHelper.SomeTagHelper
             //     Uses C<B>s
             Assert.Collection(classifiedTextElement.Runs,
-                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "SomeTagHelper", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "SomeTagHelper", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "SomeTagHelper", VSPredefinedClassificationTypeNames.Type),
                 run => AssertExpectedClassification(run, Environment.NewLine, VSPredefinedClassificationTypeNames.WhiteSpace),
@@ -266,8 +267,17 @@ End summary description.";
             var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory();
             var associatedTagHelperInfos = new[]
             {
-                new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
-                new BoundElementDescriptionInfo("Microsoft.AspNetCore.OtherTagHelper", "<summary>\nAlso uses <see cref=\"T:System.Collections.List{System.String}\" />s\n\r\n\r\r</summary>"),
+                new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", """
+                <summary>
+                Uses <see cref="T:System.Collections.List{System.String}" />s
+                </summary>
+                """),
+                new BoundElementDescriptionInfo("Microsoft.AspNetCore.OtherTagHelper", """
+                <summary>
+                Also uses <see cref="T:System.Collections.List{System.String}" />s
+
+                </summary>
+                """),
             };
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
 
@@ -284,9 +294,9 @@ End summary description.";
             //     Microsoft.AspNetCore.OtherTagHelper
             //     Also uses List<string>s
             Assert.Collection(classifiedTextElement.Runs,
-                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "SomeTagHelper", VSPredefinedClassificationTypeNames.Type),
                 run => AssertExpectedClassification(run, Environment.NewLine, VSPredefinedClassificationTypeNames.WhiteSpace),
@@ -298,9 +308,9 @@ End summary description.";
                 run => AssertExpectedClassification(run, "s", VSPredefinedClassificationTypeNames.Text),
                 run => AssertExpectedClassification(run, Environment.NewLine, VSPredefinedClassificationTypeNames.WhiteSpace),
                 run => AssertExpectedClassification(run, Environment.NewLine, VSPredefinedClassificationTypeNames.WhiteSpace),
-                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "OtherTagHelper", VSPredefinedClassificationTypeNames.Type),
                 run => AssertExpectedClassification(run, Environment.NewLine, VSPredefinedClassificationTypeNames.WhiteSpace),
@@ -338,7 +348,7 @@ End summary description.";
                     returnTypeName: "System.String",
                     typeName: "Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName",
                     propertyName: "SomeProperty",
-                    documentation: "<summary>Uses <see cref=\"T:System.Collections.List{System.Collections.List{System.String}}\" />s</summary>")
+                    documentation: """<summary>Uses <see cref="T:System.Collections.List{System.Collections.List{System.String}}" />s</summary>""")
             };
             var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
 
@@ -354,11 +364,11 @@ End summary description.";
             Assert.Collection(classifiedTextElement.Runs,
                 run => AssertExpectedClassification(run, "string", VSPredefinedClassificationTypeNames.Keyword),
                 run => AssertExpectedClassification(run, " ", VSPredefinedClassificationTypeNames.WhiteSpace),
-                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "SomeTagHelpers", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "SomeTagHelpers", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "SomeTypeName", VSPredefinedClassificationTypeNames.Type),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
@@ -386,12 +396,16 @@ End summary description.";
                     returnTypeName: "System.String",
                     typeName: "Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName",
                     propertyName: "SomeProperty",
-                    documentation: "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
+                    documentation: """<summary>Uses <see cref="T:System.Collections.List{System.String}" />s</summary>"""),
                 new BoundAttributeDescriptionInfo(
                     propertyName: "AnotherProperty",
                     typeName: "Microsoft.AspNetCore.SomeTagHelpers.AnotherTypeName",
                     returnTypeName: "System.Boolean?",
-                    documentation: "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
+                    documentation: """
+                    <summary>
+                    Uses <see cref="T:System.Collections.List{System.String}" />s
+                    </summary>
+                    """),
             };
             var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
 
@@ -410,11 +424,11 @@ End summary description.";
             Assert.Collection(classifiedTextElement.Runs,
                 run => AssertExpectedClassification(run, "string", VSPredefinedClassificationTypeNames.Keyword),
                 run => AssertExpectedClassification(run, " ", VSPredefinedClassificationTypeNames.WhiteSpace),
-                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "SomeTagHelpers", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "SomeTagHelpers", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "SomeTypeName", VSPredefinedClassificationTypeNames.Type),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
@@ -431,11 +445,11 @@ End summary description.";
                 run => AssertExpectedClassification(run, "bool", VSPredefinedClassificationTypeNames.Keyword),
                 run => AssertExpectedClassification(run, "?", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, " ", VSPredefinedClassificationTypeNames.WhiteSpace),
-                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "SomeTagHelpers", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "SomeTagHelpers", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "AnotherTypeName", VSPredefinedClassificationTypeNames.Type),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
@@ -471,8 +485,17 @@ End summary description.";
             var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory();
             var associatedTagHelperInfos = new[]
             {
-                new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
-                new BoundElementDescriptionInfo("Microsoft.AspNetCore.OtherTagHelper", "<summary>\nAlso uses <see cref=\"T:System.Collections.List{System.String}\" />s\n\r\n\r\r</summary>"),
+                new BoundElementDescriptionInfo("Microsoft.AspNetCore.SomeTagHelper", """
+                <summary>
+                Uses <see cref="T:System.Collections.List{System.String}" />s
+                </summary>
+                """),
+                new BoundElementDescriptionInfo("Microsoft.AspNetCore.OtherTagHelper", """
+                <summary>
+                Also uses <see cref="T:System.Collections.List{System.String}" />s
+
+                </summary>
+                """),
             };
             var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
 
@@ -498,9 +521,9 @@ End summary description.";
             Assert.Equal(2, innerContainer.Count);
             Assert.Equal(ClassGlyph, innerContainer[0]);
             Assert.Collection(classifiedTextElement.Runs,
-                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "SomeTagHelper", VSPredefinedClassificationTypeNames.Type));
 
@@ -522,9 +545,9 @@ End summary description.";
             Assert.Equal(2, innerContainer.Count);
             Assert.Equal(ClassGlyph, innerContainer[0]);
             Assert.Collection(classifiedTextElement.Runs,
-                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "OtherTagHelper", VSPredefinedClassificationTypeNames.Type));
 
@@ -567,12 +590,16 @@ End summary description.";
                     returnTypeName: "System.String",
                     typeName: "Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName",
                     propertyName: "SomeProperty",
-                    documentation: "<summary>Uses <see cref=\"T:System.Collections.List{System.String}\" />s</summary>"),
+                    documentation: """<summary>Uses <see cref="T:System.Collections.List{System.String}" />s</summary>"""),
                 new BoundAttributeDescriptionInfo(
                     propertyName: "AnotherProperty",
                     typeName: "Microsoft.AspNetCore.SomeTagHelpers.AnotherTypeName",
                     returnTypeName: "System.Boolean?",
-                    documentation: "<summary>\nUses <see cref=\"T:System.Collections.List{System.String}\" />s\n</summary>"),
+                    documentation: """
+                    <summary>
+                    Uses <see cref="T:System.Collections.List{System.String}" />s
+                    </summary>
+                    """),
             };
             var attributeDescription = new AggregateBoundAttributeDescription(associatedAttributeDescriptions);
 
@@ -600,11 +627,11 @@ End summary description.";
             Assert.Collection(classifiedTextElement.Runs,
                 run => AssertExpectedClassification(run, "string", VSPredefinedClassificationTypeNames.Keyword),
                 run => AssertExpectedClassification(run, " ", VSPredefinedClassificationTypeNames.WhiteSpace),
-                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "SomeTagHelpers", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "SomeTagHelpers", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "SomeTypeName", VSPredefinedClassificationTypeNames.Type),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
@@ -631,11 +658,11 @@ End summary description.";
                 run => AssertExpectedClassification(run, "bool", VSPredefinedClassificationTypeNames.Keyword),
                 run => AssertExpectedClassification(run, "?", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, " ", VSPredefinedClassificationTypeNames.WhiteSpace),
-                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
-                run => AssertExpectedClassification(run, "SomeTagHelpers", VSPredefinedClassificationTypeNames.Text),
+                run => AssertExpectedClassification(run, "SomeTagHelpers", VSPredefinedClassificationTypeNames.NamespaceName),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "AnotherTypeName", VSPredefinedClassificationTypeNames.Type),
                 run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
@@ -652,6 +679,43 @@ End summary description.";
                 run => AssertExpectedClassification(run, "string", VSPredefinedClassificationTypeNames.Keyword),
                 run => AssertExpectedClassification(run, ">", VSPredefinedClassificationTypeNames.Punctuation),
                 run => AssertExpectedClassification(run, "s", VSPredefinedClassificationTypeNames.Text));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/razor-tooling/issues/6887")]
+        public void TryCreateTooltip_ClassifiedTextElement_InterfaceName()
+        {
+            // Arrange
+            var descriptionFactory = new DefaultVSLSPTagHelperTooltipFactory();
+            var associatedTagHelperInfos = new[]
+            {
+                new BoundElementDescriptionInfo(
+                    "Microsoft.AspNetCore.SomeTagHelper.SomeTagHelper",
+                    """<summary><see cref="Microsoft.AspNetCore.Razor.TagHelpers.ITagHelper" /> implementation targeting some element</summary>"""),
+            };
+            var elementDescription = new AggregateBoundElementDescription(associatedTagHelperInfos);
+
+            // Act
+            var result = descriptionFactory.TryCreateTooltip(elementDescription, out ClassifiedTextElement classifiedTextElement);
+
+            // Assert
+            Assert.True(result);
+
+            // Expected output:
+            //     Microsoft.AspNetCore.SomeTagHelper.SomeTagHelper
+            //     ITagHelper implementation targeting some element
+            Assert.Collection(classifiedTextElement.Runs,
+                run => AssertExpectedClassification(run, "Microsoft", VSPredefinedClassificationTypeNames.NamespaceName),
+                run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
+                run => AssertExpectedClassification(run, "AspNetCore", VSPredefinedClassificationTypeNames.NamespaceName),
+                run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
+                run => AssertExpectedClassification(run, "SomeTagHelper", VSPredefinedClassificationTypeNames.NamespaceName),
+                run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
+                run => AssertExpectedClassification(run, "SomeTagHelper", VSPredefinedClassificationTypeNames.Type),
+                run => AssertExpectedClassification(run, Environment.NewLine, VSPredefinedClassificationTypeNames.WhiteSpace),
+                run => AssertExpectedClassification(run, "TagHelpers", VSPredefinedClassificationTypeNames.NamespaceName),
+                run => AssertExpectedClassification(run, ".", VSPredefinedClassificationTypeNames.Punctuation),
+                run => AssertExpectedClassification(run, "ITagHelper", VSPredefinedClassificationTypeNames.InterfaceName),
+                run => AssertExpectedClassification(run, " implementation targeting some element", VSPredefinedClassificationTypeNames.Text));
         }
 
         internal static void AssertExpectedClassification(
