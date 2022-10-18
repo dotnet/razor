@@ -191,7 +191,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 ClassifyTypeName(typeRuns, descriptionInfo.TypeName);
                 typeRuns.Add(s_dot);
                 typeRuns.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Identifier, descriptionInfo.PropertyName));
-                
+
                 // 2. Classify summary
                 var documentationRuns = new List<ClassifiedTextRun>();
                 TryClassifySummary(documentationRuns, descriptionInfo.Documentation);
@@ -430,7 +430,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                     classifiedElementContainer.Add(new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement(classification.Documentation)));
                 }
             }
-            
+
             return new ContainerElement(ContainerElementStyle.Stacked, classifiedElementContainer);
         }
 
