@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -90,7 +90,7 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
 
     public override RazorDiagnosticCollection Diagnostics { get; }
 
-    public override string DocumentKind { get; }
+    public override string DocumentKind => _documentNode.DocumentKind;
 
     public override ItemCollection Items { get; }
 
