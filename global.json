@@ -3,9 +3,9 @@
     "dotnet": "7.0.100-rc.1.22431.12",
     "runtimes": {
       "dotnet": [
-        "2.1.11",
+        "2.1.30",
         "$(MicrosoftNETCoreBrowserDebugHostTransportPackageVersion)",
-        "3.1.0"
+        "3.1.30"
       ]
     },
     "vs": {
