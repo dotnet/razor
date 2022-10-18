@@ -31,10 +31,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Telemetry
         public void ReportEvent(string name, TelemetrySeverity severity, ImmutableDictionary<string, object> values)
         {
             var telemetryEvent = new TelemetryEvent(GetTelemetryName(name), severity);
-            foreach (var kvp in values)
+            foreach (var (propertyName, propertyValue) in values)
             {
-                var propertyName = kvp.Key;
-                var propertyValue = kvp.Value;
                 telemetryEvent.Properties.Add(GetPropertyName(propertyName), new TelemetryComplexProperty(propertyValue));
             }
 
