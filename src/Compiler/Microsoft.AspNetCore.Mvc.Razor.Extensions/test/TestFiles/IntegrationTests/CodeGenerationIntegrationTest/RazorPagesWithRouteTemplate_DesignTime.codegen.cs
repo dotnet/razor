@@ -28,6 +28,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
         ((System.Action)(() => {
+// language=Route
 #nullable restore
 #line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPagesWithRouteTemplate.cshtml"
 global::System.Object __typeHelper = "/About";
