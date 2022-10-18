@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Telemetry;
+using System.Linq;
+using System.Text;
+using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
 
@@ -22,22 +24,42 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Telemetry
 
         public void ReportEvent(string name, TelemetrySeverity severity)
         {
-            var telemetryEvent = new TelemetryEvent(name, severity);
+            var telemetryEvent = new TelemetryEvent(GetTelemetryName(name), severity);
             Report(telemetryEvent);
         }
+
+        public void ReportEvent(string name, TelemetrySeverity severity, ImmutableDictionary<string, object> values)
+        {
+            var telemetryEvent = new TelemetryEvent(GetTelemetryName(name), severity);
+            foreach (var kvp in values)
+            {
+                var propertyName = kvp.Key;
+                var propertyValue = kvp.Value;
+                telemetryEvent.Properties.Add(GetPropertyName(propertyName), new TelemetryComplexProperty(propertyValue));
+            }
+
+            Report(telemetryEvent);
+        }
+
+        private static string GetTelemetryName(string name) => "razor/" + name;
+        private static string GetPropertyName(string name) => "razor." + name;
 
         private void Report(TelemetryEvent telemetryEvent)
         {
             try
             {
+#if !DEBUG
                 foreach (var session in _telemetrySessions)
                 {
                     session.PostEvent(telemetryEvent);
                 }
-            }
-            catch (OutOfMemoryException)
-            {
-                // Do we want to failfast like Roslyn here?
+#else
+                // In debug we only log to normal logging. This makes it much easier to add and debug telemetry events
+                // before we're ready to send them to the cloud
+                var name = telemetryEvent.Name;
+                var propertyString = string.Join(",", telemetryEvent.Properties.Select(kvp => $"[ {kvp.Key}:{kvp.Value} ]"));
+                _logger.LogTrace("Telemetry Event: {name} \n Properties: {propertyString}\n", name, propertyString);
+#endif
             }
             catch (Exception e)
             {
