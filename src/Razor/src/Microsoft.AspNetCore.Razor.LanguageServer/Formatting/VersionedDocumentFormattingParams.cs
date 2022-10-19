@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
+[DataContract]
 internal class VersionedDocumentFormattingParams : DocumentFormattingParams
 {
     [DataMember(Name = "_vs_hostDocumentVersion")]

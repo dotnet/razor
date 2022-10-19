@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         /// <param name="parameters"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        /// <remarks>When operating on a document the <see cref="ITextBuffer"/> overload should be used, since it guarentees ordering.</remarks>
+        /// <remarks>When operating on a document the <see cref="ITextBuffer"/> overload should be used, since it guarantees ordering.</remarks>
         public abstract Task<ReinvokeResponse<TOut>> ReinvokeRequestOnServerAsync<TIn, TOut>(
             string method,
             string languageServerName,
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         /// <param name="parameters"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        /// <remarks>When operating on a document the <see cref="ITextBuffer"/> overload should be used, since it guarentees ordering.</remarks>
+        /// <remarks>When operating on a document the <see cref="ITextBuffer"/> overload should be used, since it guarantees ordering.</remarks>
         public abstract Task<ReinvokeResponse<TOut>> ReinvokeRequestOnServerAsync<TIn, TOut>(
             string method,
             string languageServerName,
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         /// <param name="parameters"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        /// <remarks>When operating on a document the <see cref="ITextBuffer"/> overload should be used, since it guarentees ordering.</remarks>
+        /// <remarks>When operating on a document the <see cref="ITextBuffer"/> overload should be used, since it guarantees ordering.</remarks>
         public abstract Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
             string method,
             string contentType,
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         /// <param name="parameters"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        /// <remarks>When operating on a document the <see cref="ITextBuffer"/> overload should be used, since it guarentees ordering.</remarks>
+        /// <remarks>When operating on a document the <see cref="ITextBuffer"/> overload should be used, since it guarantees ordering.</remarks>
         public abstract Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(
             string method,
             string contentType,

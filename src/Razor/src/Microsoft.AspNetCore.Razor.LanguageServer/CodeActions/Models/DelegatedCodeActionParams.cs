@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 
+[DataContract]
 internal class DelegatedCodeActionParams : CodeActionParams
 {
     [DataMember(Name = "_vs_hostDocumentVersion")]

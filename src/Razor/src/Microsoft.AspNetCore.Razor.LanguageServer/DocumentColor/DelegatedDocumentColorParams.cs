@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 
+[DataContract]
 internal class DelegatedDocumentColorParams : DocumentColorParams
 {
     [DataMember(Name = "_vs_requiredHostDocumentVersion")]
