@@ -524,7 +524,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return response;
             }
 
-            var languageServerName= RazorLSPConstants.HtmlLanguageServerName;
+            var languageServerName = RazorLSPConstants.HtmlLanguageServerName;
             var projectedUri = htmlDocument.Uri;
 
             // We call the Html language server to do the actual work here, now that we have the vitrual document that they know about
@@ -532,7 +532,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 wrapWithParams.Range,
                 wrapWithParams.TagName,
                 wrapWithParams.Options,
-                new VersionedTextDocumentIdentifier() { Uri = projectedUri });
+                new VersionedTextDocumentIdentifier() { Uri = projectedUri, });
 
             var textBuffer = htmlDocument.Snapshot.TextBuffer;
             var result = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalWrapWithTagParams, VSInternalWrapWithTagResponse>(

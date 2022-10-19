@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 onSynchronizedTask = documentContext.GetSynchronizationTaskAsync(requiredHostDocumentVersion, rejectOnNewerParallelRequest, cancellationToken);
             }
 
-            var onSynchronizedResult = await onSynchronizedTask;
+            var onSynchronizedResult = await onSynchronizedTask.ConfigureAwait(false);
 
             var virtualDocumentSnapshot = GetVirtualDocumentSnapshot<TVirtualDocumentSnapshot>(hostDocumentUri);
 
@@ -140,12 +140,12 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             if (!_documentManager.TryGetDocument(normalizedUri, out var documentSnapshot))
             {
-                throw new InvalidOperationException($"Unable to retrieve snapshot for document {normalizedUri} after syncronization");
+                throw new InvalidOperationException($"Unable to retrieve snapshot for document {normalizedUri} after synchronization");
             }
 
             if (!documentSnapshot.TryGetVirtualDocument<TVirtualDocumentSnapshot>(out var virtualDoc))
             {
-                throw new InvalidOperationException($"Unable to retrieve virtual document for {normalizedUri} after document syncronization");
+                throw new InvalidOperationException($"Unable to retrieve virtual document for {normalizedUri} after document synchronization");
             }
 
             return virtualDoc;

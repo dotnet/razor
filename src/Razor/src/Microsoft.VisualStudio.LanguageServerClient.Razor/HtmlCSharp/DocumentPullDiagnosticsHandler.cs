@@ -81,6 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             _logger.LogInformation("Starting request for {textDocumentUri}.", request.TextDocument.Uri);
+
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
                 _logger.LogInformation("Document {textDocumentUri} closed or deleted, clearing diagnostics.", request.TextDocument.Uri);

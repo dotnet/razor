@@ -38,6 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         /// <param name="cancellationToken"></param>
         /// <returns><c>true</c> if we were able to successfully synchronize; <c>false</c> otherwise.</returns>
         [Obsolete]
-        public abstract Task<bool> TrySynchronizeVirtualDocumentAsync(int requiredHostDocumentVersion, VirtualDocumentSnapshot virtualDocument, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken);
+        public virtual Task<bool> TrySynchronizeVirtualDocumentAsync(int requiredHostDocumentVersion, VirtualDocumentSnapshot virtualDocument, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

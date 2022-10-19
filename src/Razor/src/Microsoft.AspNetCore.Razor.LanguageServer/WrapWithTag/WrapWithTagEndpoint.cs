@@ -88,13 +88,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            request.TextDocument = new VersionedTextDocumentIdentifier
+            var versioned = new VersionedTextDocumentIdentifier
             {
                 Uri = request.TextDocument.Uri,
                 Version = documentContext.Version,
             };
-            var parameter = request;
-            var htmlResponse = await _languageServer.SendRequestAsync<WrapWithTagParams, WrapWithTagResponse>(
+            var parameter = new DelegatedWrapWithTagParams(versioned, request);
+
+            var htmlResponse = await _languageServer.SendRequestAsync<DelegatedWrapWithTagParams, WrapWithTagResponse>(
                 LanguageServerConstants.RazorWrapWithTagEndpoint,
                 parameter,
                 cancellationToken).ConfigureAwait(false);
