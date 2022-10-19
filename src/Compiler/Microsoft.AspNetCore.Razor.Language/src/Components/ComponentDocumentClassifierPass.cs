@@ -3,8 +3,10 @@
 
 #nullable disable
 
+using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
