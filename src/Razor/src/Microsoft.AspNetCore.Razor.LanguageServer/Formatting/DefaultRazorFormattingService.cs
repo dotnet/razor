@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -89,7 +88,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var uri = documentContext.Uri;
             var documentSnapshot = documentContext.Snapshot;
             var hostDocumentVersion = documentContext.Version;
-            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory, hostDocumentVersion);
+            using var context = FormattingContext.Create(uri, documentSnapshot, codeDocument, options, _workspaceFactory);
             var originalText = context.SourceText;
 
             var result = new FormattingResult(Array.Empty<TextEdit>());
@@ -175,7 +174,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var documentSnapshot = documentContext.Snapshot;
             var uri = documentContext.Identifier.Uri;
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-            using var context = FormattingContext.CreateForOnTypeFormatting(uri, documentSnapshot, codeDocument, options, _workspaceFactory, documentContext.Version, automaticallyAddUsings: automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
+            using var context = FormattingContext.CreateForOnTypeFormatting(uri, documentSnapshot, codeDocument, options, _workspaceFactory, automaticallyAddUsings: automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
             var result = new FormattingResult(formattedEdits, kind);
 
             foreach (var pass in _formattingPasses)

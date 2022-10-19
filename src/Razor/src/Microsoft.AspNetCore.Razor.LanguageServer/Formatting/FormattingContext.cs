@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private IReadOnlyList<RazorSourceDocument>? _importSources;
 
         private FormattingContext(AdhocWorkspaceFactory workspaceFactory, Uri uri, DocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
-            int hostDocumentVersion, bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
+            bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
         {
             _workspaceFactory = workspaceFactory;
             Uri = uri;
@@ -40,12 +40,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             AutomaticallyAddUsings = automaticallyAddUsings;
             HostDocumentIndex = hostDocumentIndex;
             TriggerCharacter = triggerCharacter;
-            HostDocumentVersion = hostDocumentVersion;
         }
 
         private FormattingContext(RazorProjectEngine engine, IReadOnlyList<RazorSourceDocument> importSources, AdhocWorkspaceFactory workspaceFactory, Uri uri, DocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
-            int hostDocumentVersion, bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
-            : this(workspaceFactory, uri, originalSnapshot, codeDocument, options, hostDocumentVersion, isFormatOnType, automaticallyAddUsings, hostDocumentIndex, triggerCharacter)
+            bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
+            : this(workspaceFactory, uri, originalSnapshot, codeDocument, options, isFormatOnType, automaticallyAddUsings, hostDocumentIndex, triggerCharacter)
         {
             _engine = engine;
             _importSources = importSources;
@@ -61,7 +60,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         public bool AutomaticallyAddUsings { get; }
         public int HostDocumentIndex { get; }
         public char TriggerCharacter { get; }
-        public int HostDocumentVersion { get; }
 
         public SourceText SourceText => CodeDocument.GetSourceText();
 
@@ -298,7 +296,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
         }
 
-        public async Task<FormattingContext> WithTextAsync(SourceText changedText, int hostDocumentVersion)
+        public async Task<FormattingContext> WithTextAsync(SourceText changedText)
         {
             if (changedText is null)
             {
@@ -324,7 +322,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 OriginalSnapshot,
                 codeDocument,
                 Options,
-                hostDocumentVersion,
                 IsFormatOnType,
                 AutomaticallyAddUsings,
                 HostDocumentIndex,
@@ -374,12 +371,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             RazorCodeDocument codeDocument,
             FormattingOptions options,
             AdhocWorkspaceFactory workspaceFactory,
-            int hostDocumentVersion,
             bool automaticallyAddUsings,
             int hostDocumentIndex,
             char triggerCharacter)
         {
-            return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, hostDocumentVersion, isFormatOnType: true, automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
+            return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, isFormatOnType: true, automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
         }
 
         public static FormattingContext Create(
@@ -387,10 +383,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             DocumentSnapshot originalSnapshot,
             RazorCodeDocument codeDocument,
             FormattingOptions options,
-            AdhocWorkspaceFactory workspaceFactory,
-            int hostDocumentVersion)
+            AdhocWorkspaceFactory workspaceFactory)
         {
-            return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, hostDocumentVersion, isFormatOnType: false, automaticallyAddUsings: false, hostDocumentIndex: 0, triggerCharacter: '\0');
+            return CreateCore(uri, originalSnapshot, codeDocument, options, workspaceFactory, isFormatOnType: false, automaticallyAddUsings: false, hostDocumentIndex: 0, triggerCharacter: '\0');
         }
 
         private static FormattingContext CreateCore(
@@ -399,7 +394,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             RazorCodeDocument codeDocument,
             FormattingOptions options,
             AdhocWorkspaceFactory workspaceFactory,
-            int hostDocumentVersion,
             bool isFormatOnType,
             bool automaticallyAddUsings,
             int hostDocumentIndex,
@@ -439,7 +433,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 originalSnapshot,
                 codeDocument,
                 options,
-                hostDocumentVersion,
                 isFormatOnType,
                 automaticallyAddUsings,
                 hostDocumentIndex,

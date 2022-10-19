@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             var position = request.Position;
 
             var workspaceFactory = requestContext.GetRequiredService<AdhocWorkspaceFactory>();
-            using (var formattingContext = FormattingContext.Create(uri, documentContext.Snapshot, codeDocument, request.Options, workspaceFactory, documentContext.Version))
+            using (var formattingContext = FormattingContext.Create(uri, documentContext.Snapshot, codeDocument, request.Options, workspaceFactory))
             {
                 for (var i = 0; i < applicableProviders.Count; i++)
                 {

@@ -32,11 +32,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(context));
             }
 
+            var documentVersion = await _documentVersionCache.TryGetDocumentVersionAsync(context.OriginalSnapshot, cancellationToken).ConfigureAwait(false);
+            if (documentVersion is null)
+            {
+                return Array.Empty<TextEdit>();
+            }
+
             var @params = new VersionedDocumentFormattingParams()
             {
                 TextDocument = new VersionedTextDocumentIdentifier {
                     Uri = FilePathNormalizer.Instance.Normalize(context.Uri),
-                    Version = context.HostDocumentVersion,
+                    Version = documentVersion.Value,
                 },
                 Options = context.Options
             };
