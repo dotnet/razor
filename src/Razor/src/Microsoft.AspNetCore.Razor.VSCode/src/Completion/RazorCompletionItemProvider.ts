@@ -80,10 +80,10 @@ export class RazorCompletionItemProvider
 
                 if (triggerCharacter === '@' &&
                     completionItem.commitCharacters) {
-                    // We remove `{` and '(' from the commit characters to prevent auto-completing the first completion item
-                    // with a curly brace when a user intended to type `@{}` or `@()`.
+                    // We remove `{`, '(', and '*' from the commit characters to prevent auto-completing the first
+                    // completion item with a curly brace when a user intended to type `@{}` or `@()`.
                     completionItem.commitCharacters = completionItem.commitCharacters.filter(
-                        commitChar => commitChar !== '{' && commitChar !== '(');
+                        commitChar => commitChar !== '{' && commitChar !== '(' && commitChar !== '*');
                 }
             }
 
