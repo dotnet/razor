@@ -81,7 +81,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
 
             _logger.LogInformation("Starting request for {textDocumentUri}.", request.TextDocument.Uri);
-
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
                 _logger.LogInformation("Document {textDocumentUri} closed or deleted, clearing diagnostics.", request.TextDocument.Uri);
@@ -97,21 +96,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return clearedDiagnosticReport;
             }
 
-            if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDoc))
-            {
-                _logger.LogWarning("Failed to find virtual C# document for {textDocumentUri}.", request.TextDocument.Uri);
-                return null;
-            }
-
-#pragma warning disable CS0612 // Type or member is obsolete
-            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
+            var (synchronized, csharpDoc)= await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                 documentSnapshot.Version,
-                csharpDoc,
+                request.TextDocument.Uri,
                 cancellationToken).ConfigureAwait(false);
-#pragma warning restore CS0612 // Type or member is obsolete
             if (!synchronized)
             {
-                _logger.LogInformation("Failed to synchronize document {csharpDocUri}.", csharpDoc.Uri);
+                _logger.LogInformation("Failed to synchronize document {hostDocument}.", request.TextDocument.Uri);
 
                 // Could not synchronize, report nothing changed
                 return new VSInternalDiagnosticReport[]

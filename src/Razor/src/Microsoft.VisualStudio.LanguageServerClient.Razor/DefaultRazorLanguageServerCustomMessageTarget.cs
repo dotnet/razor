@@ -308,13 +308,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 codeActionParams.TextDocument.Uri,
                 cancellationToken);
 
-            codeActionParams.TextDocument.Uri = csharpDoc.Uri;
-
-            if(csharpDoc is null)
+            if (csharpDoc is null)
             {
                 // Document could not synchronize
                 return null;
             }
+
+            codeActionParams.TextDocument.Uri = csharpDoc.Uri;
 
             var textBuffer = csharpDoc.Snapshot.TextBuffer;
             var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
@@ -387,11 +387,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var (synchronized, csharpDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                 (int)semanticTokensParams.RequiredHostDocumentVersion, semanticTokensParams.TextDocument.Uri, cancellationToken);
 
+            if (csharpDoc is null)
+            {
+                return null;
+            }
+
             if (!synchronized)
             {
                 // If we're unable to synchronize we won't produce useful results, but we have to indicate
                 // it's due to out of sync by providing the old version
-                return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
+                return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: -1);
             }
 
             semanticTokensParams.TextDocument.Uri = csharpDoc.Uri;
