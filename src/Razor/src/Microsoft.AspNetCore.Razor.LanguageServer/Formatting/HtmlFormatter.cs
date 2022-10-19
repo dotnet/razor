@@ -40,15 +40,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var @params = new VersionedDocumentFormattingParams()
             {
-                TextDocument = new VersionedTextDocumentIdentifier {
+                TextDocument = new TextDocumentIdentifier {
                     Uri = FilePathNormalizer.Instance.Normalize(context.Uri),
-                    Version = documentVersion.Value,
                 },
+                HostDocumentVersion = documentVersion.Value,
                 Options = context.Options
             };
 
             var result = await _server.SendRequestAsync<DocumentFormattingParams, RazorDocumentFormattingResponse?>(
-                Common.LanguageServerConstants.RazorDocumentFormattingEndpoint,
+                LanguageServerConstants.RazorDocumentFormattingEndpoint,
                 @params,
                 cancellationToken);
 
