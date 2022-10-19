@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
@@ -409,7 +408,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 // If we're unable to synchronize we won't produce useful results, but we have to indicate
                 // it's due to out of sync by providing the old version
                 return null;
-                //return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
             }
 
             semanticTokensParams.TextDocument.Uri = csharpDoc.Uri;

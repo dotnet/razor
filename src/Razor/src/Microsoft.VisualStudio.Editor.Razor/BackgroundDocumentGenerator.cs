@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     [Shared]
     [Export(typeof(ProjectSnapshotChangeTrigger))]
-    [Export(typeof(BackgroundDocumentGenerator))]
     internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     {
         // Internal for testing
@@ -30,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Razor
         private bool _solutionIsClosing;
 
         [ImportingConstructor]
-        public BackgroundDocumentGenerator(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            RazorDynamicFileInfoProvider infoProvider)
+        public BackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorDynamicFileInfoProvider infoProvider)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
@@ -96,10 +93,6 @@ namespace Microsoft.CodeAnalysis.Razor
             NotifyBackgroundWorkStarting?.Set();
         }
 
-       // public event EventHandler<BackgroundCompletedArg>? BackgroundCompleted;
-
-        public record BackgroundCompletedArg();
-
         private void OnCompletingBackgroundWork()
         {
             if (BlockBackgroundWorkCompleting is not null)
@@ -107,8 +100,6 @@ namespace Microsoft.CodeAnalysis.Razor
                 BlockBackgroundWorkCompleting.Wait();
                 BlockBackgroundWorkCompleting.Reset();
             }
-
-           // BackgroundCompleted?.Invoke(this, new BackgroundCompletedArg());
         }
 
         private void OnCompletedBackgroundWork()
