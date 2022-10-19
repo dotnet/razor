@@ -5,14 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
-using static Microsoft.VisualStudio.LanguageServer.ContainedLanguage.DefaultLSPDocumentSynchronizer;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
@@ -29,8 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         private readonly FileUriProvider _fileUriProvider;
 
         [ImportingConstructor]
-        public DefaultLSPDocumentSynchronizer(FileUriProvider fileUriProvider,
-            LSPDocumentManager documentManager)
+        public DefaultLSPDocumentSynchronizer(FileUriProvider fileUriProvider, LSPDocumentManager documentManager)
         {
             if (fileUriProvider is null)
             {
@@ -55,20 +52,17 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         public override Task<SynchronizedResult<TVirtualDocumentSnapshot>> TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
             int requiredHostDocumentVersion,
             Uri hostDocumentUri,
-            Uri virtualDocumentUri,
             CancellationToken cancellationToken)
             where TVirtualDocumentSnapshot : class
             => TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
                 requiredHostDocumentVersion,
                 hostDocumentUri,
-                virtualDocumentUri,
                 rejectOnNewerParallelRequest: true,
                 cancellationToken);
 
         public override async Task<SynchronizedResult<TVirtualDocumentSnapshot>> TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
             int requiredHostDocumentVersion,
             Uri hostDocumentUri,
-            Uri virtualDocumentUri,
             bool rejectOnNewerParallelRequest,
             CancellationToken cancellationToken)
             where TVirtualDocumentSnapshot : class
@@ -81,18 +75,18 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             Task<bool> onSynchronizedTask;
             lock (_documentContextLock)
             {
+                var preSyncedSnapshot = GetVirtualDocumentSnapshot<TVirtualDocumentSnapshot>(hostDocumentUri);
+                var virtualDocumentUri = preSyncedSnapshot.Uri;
                 if (!_virtualDocumentContexts.TryGetValue(virtualDocumentUri, out var documentContext))
                 {
-                    var removedDocumentSnapshot = GetVirtualDocumentSnapshot<TVirtualDocumentSnapshot>(hostDocumentUri);
                     // Document was deleted/removed in mid-synchronization
-                    return new SynchronizedResult<TVirtualDocumentSnapshot>(false, removedDocumentSnapshot);
+                    return new SynchronizedResult<TVirtualDocumentSnapshot>(false, preSyncedSnapshot);
                 }
 
                 if (requiredHostDocumentVersion == documentContext.SeenHostDocumentVersion)
                 {
-                    var synchronziedDocumentSnapshot = GetVirtualDocumentSnapshot<TVirtualDocumentSnapshot>(hostDocumentUri);
                     // Already synchronized
-                    return new SynchronizedResult<TVirtualDocumentSnapshot>(true, synchronziedDocumentSnapshot);
+                    return new SynchronizedResult<TVirtualDocumentSnapshot>(true, preSyncedSnapshot);
                 }
 
                 // Currently tracked synchronizing context is not sufficient, need to update a new one.

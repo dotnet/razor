@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using static Microsoft.VisualStudio.LanguageServer.ContainedLanguage.DefaultLSPDocumentSynchronizer;
@@ -14,14 +13,12 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         public abstract Task<SynchronizedResult<TVirtualDocumentSnapshot>> TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
             int requiredHostDocumentVersion,
             Uri hostDocumentUri,
-            Uri virtualDocumentUri,
             CancellationToken cancellationToken)
             where TVirtualDocumentSnapshot : VirtualDocumentSnapshot;
 
         public abstract Task<SynchronizedResult<TVirtualDocumentSnapshot>> TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
             int requiredHostDocumentVersion,
             Uri hostDocumentUri,
-            Uri virtualDocumentUri,
             bool rejectOnNewerParallelRequest,
             CancellationToken cancellationToken)
             where TVirtualDocumentSnapshot : VirtualDocumentSnapshot;
