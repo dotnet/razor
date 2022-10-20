@@ -131,7 +131,10 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         {
             File.Delete(_filePath);
 
-            await RazorLanguageServer.DisposeAsync();
+            var innerServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
+
+            await innerServer.ShutdownAsync();
+            await innerServer.ExitAsync();
         }
 
         private void EnsureServicesInitialized()
