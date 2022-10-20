@@ -15,5 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public required Range ProjectedRange { get; init; }
 
         public required FormattingOptions Options { get; init; }
+
+        public int HostDocumentVersion { get; set; }
     }
 }

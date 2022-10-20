@@ -112,6 +112,15 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 () => VersionCache!.TrackDocumentVersion(documentSnapshot, newVersion), CancellationToken.None).ConfigureAwait(false);
         }
 
+        [GlobalCleanup]
+        public async Task CleanupServerAsync()
+        {
+            var innerServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
+
+            await innerServer.ShutdownAsync();
+            await innerServer.ExitAsync();
+        }
+
         protected internal override void Builder(IServiceCollection collection)
         {
             collection.AddSingleton<RazorSemanticTokensInfoService, TestRazorSemanticTokensInfoService>();

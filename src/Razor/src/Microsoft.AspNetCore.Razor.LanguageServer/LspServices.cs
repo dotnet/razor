@@ -54,5 +54,9 @@ internal class LspServices : ILspServices
 
     public void Dispose()
     {
+        if (_serviceProvider is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
     }
 }
