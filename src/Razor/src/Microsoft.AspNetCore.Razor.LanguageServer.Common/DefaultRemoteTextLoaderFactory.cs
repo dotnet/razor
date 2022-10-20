@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 _filePath = filePath;
             }
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
 
                 TextAndVersion textAndVersion;
