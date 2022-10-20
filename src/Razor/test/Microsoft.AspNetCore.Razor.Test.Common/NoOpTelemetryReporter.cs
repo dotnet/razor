@@ -8,9 +8,9 @@ using System.Text;
 using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test.Common
+namespace Microsoft.CodeAnalysis.Razor.Test.Common
 {
-    internal class NoOpTelemetryReporter : ITelemetryReporter
+    public class NoOpTelemetryReporter : ITelemetryReporter
     {
         public static readonly NoOpTelemetryReporter Instance = new NoOpTelemetryReporter();
         public void ReportEvent(string name, TelemetrySeverity severity)

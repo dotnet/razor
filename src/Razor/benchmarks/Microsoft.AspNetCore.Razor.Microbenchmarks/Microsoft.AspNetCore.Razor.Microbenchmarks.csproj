@@ -33,7 +33,7 @@
     <Compile Include="..\..\test\Microsoft.CodeAnalysis.Razor.Workspaces.Test.Common\TestWorkspaceServices.cs">
       <Link>TestServices\%(FileName)%(Extension)</Link>
     </Compile>
-    <Compile Include="..\..\test\Microsoft.CodeAnalysis.Razor.Workspaces.Test.Common\NoOpTelemetryReporter.cs">
+    <Compile Include="..\..\test\Microsoft.AspNetCore.Razor.Test.Common\NoOpTelemetryReporter.cs">
       <Link>TestServices\%(FileName)%(Extension)</Link>
     </Compile>
 
