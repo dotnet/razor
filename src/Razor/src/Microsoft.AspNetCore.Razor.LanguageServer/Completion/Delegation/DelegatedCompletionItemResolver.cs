@@ -103,8 +103,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             if (resolvedCompletionItem.TextEdit is not null)
             {
                 var formattedTextEdit = await _formattingService.FormatSnippetAsync(
-                    hostDocumentUri,
-                    documentContext.Snapshot,
+                    documentContext,
                     RazorLanguageKind.CSharp,
                     new[] { resolvedCompletionItem.TextEdit },
                     formattingOptions,
@@ -116,8 +115,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
             if (resolvedCompletionItem.AdditionalTextEdits is not null)
             {
                 var formattedTextEdits = await _formattingService.FormatSnippetAsync(
-                    hostDocumentUri,
-                    documentContext.Snapshot,
+                    documentContext,
                     RazorLanguageKind.CSharp,
                     resolvedCompletionItem.AdditionalTextEdits,
                     formattingOptions,

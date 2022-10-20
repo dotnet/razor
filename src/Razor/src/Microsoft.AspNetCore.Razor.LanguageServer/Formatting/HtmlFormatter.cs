@@ -32,14 +32,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var @params = new DocumentFormattingParams()
+            var documentVersion = await _documentVersionCache.TryGetDocumentVersionAsync(context.OriginalSnapshot, cancellationToken).ConfigureAwait(false);
+            if (documentVersion is null)
             {
-                TextDocument = new TextDocumentIdentifier { Uri = FilePathNormalizer.Instance.Normalize(context.Uri) },
+                return Array.Empty<TextEdit>();
+            }
+
+            var @params = new VersionedDocumentFormattingParams()
+            {
+                TextDocument = new TextDocumentIdentifier {
+                    Uri = FilePathNormalizer.Instance.Normalize(context.Uri),
+                },
+                HostDocumentVersion = documentVersion.Value,
                 Options = context.Options
             };
 
             var result = await _server.SendRequestAsync<DocumentFormattingParams, RazorDocumentFormattingResponse?>(
-                Common.LanguageServerConstants.RazorDocumentFormattingEndpoint,
+                LanguageServerConstants.RazorDocumentFormattingEndpoint,
                 @params,
                 cancellationToken);
 

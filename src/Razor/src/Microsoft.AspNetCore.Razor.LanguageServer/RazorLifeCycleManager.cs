@@ -19,6 +19,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public async Task ExitAsync()
         {
             await _languageServer.ExitAsync();
+            var services = _languageServer.GetLspServices();
+            services.Dispose();
             _tcs.TrySetResult(0);
         }
 
