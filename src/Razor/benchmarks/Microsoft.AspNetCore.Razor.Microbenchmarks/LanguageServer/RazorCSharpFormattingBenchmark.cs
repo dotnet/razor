@@ -127,11 +127,9 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         }
 
         [GlobalCleanup]
-        public Task CleanupServerAsync()
+        public void CleanupServer()
         {
             File.Delete(_filePath);
-
-            return Task.CompletedTask;
         }
 
         private void EnsureServicesInitialized()

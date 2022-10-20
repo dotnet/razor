@@ -100,12 +100,6 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 () => VersionCache.TrackDocumentVersion(documentSnapshot, newVersion), cancellationToken).ConfigureAwait(false);
         }
 
-        [GlobalCleanup]
-        public Task CleanupServerAsync()
-        {
-            return Task.CompletedTask;
-        }
-
         protected internal override void Builder(IServiceCollection collection)
         {
             collection.AddSingleton<RazorSemanticTokensInfoService, TestRazorSemanticTokensInfoService>();

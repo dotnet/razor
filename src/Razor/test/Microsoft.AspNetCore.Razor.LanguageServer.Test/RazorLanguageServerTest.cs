@@ -36,8 +36,7 @@ public class RazorLanguageServerTest : TestBase
         // We turn this into a Set to handle cases like Completion where we have two handlers, only one of which will be registered
         // CLaSP will throw if two handlers register for the same method, so if THAT doesn't hold it's a CLaSP bug, not a Razor bug.
         var typeMethods = handlerTypes.Select(t => GetMethodFromType(t)).ToHashSet();
-        // The shutdown handler is outside of our assembly.
-        typeMethods.Add("shutdown");
+
         if (registeredMethods.Length != typeMethods.Count)
         {
             var unregisteredHandlers = typeMethods.Where(t => !registeredMethods.Any(m => m.MethodName == t));
