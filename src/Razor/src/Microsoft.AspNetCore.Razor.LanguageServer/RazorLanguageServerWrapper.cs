@@ -14,7 +14,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
+internal sealed class RazorLanguageServerWrapper : IDisposable
 {
     private readonly RazorLanguageServer _innerServer;
     private readonly object _disposeLock;
@@ -78,10 +78,8 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
         return _innerServer.GetRequiredService<T>();
     }
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
-        await _innerServer.DisposeAsync();
-
         lock (_disposeLock)
         {
             if (!_disposed)

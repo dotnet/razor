@@ -196,8 +196,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             if (_server is not null)
             {
                 // Server still hasn't shutdown, attempt an ungraceful shutdown.
-                await _server.DisposeAsync();
-
                 ServerShutdown();
             }
         }
