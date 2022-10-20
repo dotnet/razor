@@ -5,12 +5,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -165,7 +163,6 @@ namespace Microsoft.CodeAnalysis.Razor
                         }
 
                         var tagHelperResolutionResult = await _tagHelperResolver.GetTagHelpersAsync(workspaceProject, projectSnapshot, cancellationToken);
-
                         workspaceState = new ProjectWorkspaceState(tagHelperResolutionResult.Descriptors, csharpLanguageVersion);
                     }
                 }
