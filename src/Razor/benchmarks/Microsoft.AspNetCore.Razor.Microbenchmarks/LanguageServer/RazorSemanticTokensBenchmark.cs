@@ -101,9 +101,10 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         }
 
         [GlobalCleanup]
-        public async Task CleanupServerAsync()
+        public Task CleanupServerAsync()
         {
-            await RazorLanguageServer.DisposeAsync();
+            RazorLanguageServer.Dispose();
+            return Task.CompletedTask;
         }
 
         protected internal override void Builder(IServiceCollection collection)

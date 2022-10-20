@@ -75,7 +75,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return null;
             }
 
-            var edits = await _razorFormattingService.FormatAsync(request.TextDocument.Uri, documentContext.Snapshot, range: null, request.Options, cancellationToken);
+            var edits = await _razorFormattingService.FormatAsync(documentContext, range: null, request.Options, cancellationToken);
             return edits;
         }
     }

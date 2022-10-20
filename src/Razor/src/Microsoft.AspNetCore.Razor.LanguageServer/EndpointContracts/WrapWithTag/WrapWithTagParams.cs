@@ -40,3 +40,17 @@ internal class WrapWithTagParams
         TextDocument = textDocument;
     }
 }
+
+internal class DelegatedWrapWithTagParams : WrapWithTagParams
+{
+    public DelegatedWrapWithTagParams(VersionedTextDocumentIdentifier identifier, WrapWithTagParams parameters) : base(identifier)
+    {
+        TextDocument = identifier;
+        Range = parameters.Range;
+        TagName = parameters.TagName;
+        Options = parameters.Options;
+    }
+
+    [JsonProperty("_vs_textDocument")]
+    public new VersionedTextDocumentIdentifier TextDocument { get; set; }
+}

@@ -163,11 +163,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
             TextEdit[] mappedEdits;
             if (delegatedResponse.TextEditFormat == InsertTextFormat.Snippet)
             {
-                mappedEdits = await razorFormattingService.FormatSnippetAsync(documentContext.Identifier.Uri, documentContext.Snapshot, projection.LanguageKind, edits, originalRequest.Options, cancellationToken).ConfigureAwait(false);
+                mappedEdits = await razorFormattingService.FormatSnippetAsync(documentContext, projection.LanguageKind, edits, originalRequest.Options, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                mappedEdits = await razorFormattingService.FormatOnTypeAsync(documentContext.Identifier.Uri, documentContext.Snapshot, projection.LanguageKind, edits, originalRequest.Options, hostDocumentIndex: 0, triggerCharacter: '\0', cancellationToken).ConfigureAwait(false);
+                mappedEdits = await razorFormattingService.FormatOnTypeAsync(documentContext, projection.LanguageKind, edits, originalRequest.Options, hostDocumentIndex: 0, triggerCharacter: '\0', cancellationToken).ConfigureAwait(false);
             }
 
             if (mappedEdits.Length != 1)
