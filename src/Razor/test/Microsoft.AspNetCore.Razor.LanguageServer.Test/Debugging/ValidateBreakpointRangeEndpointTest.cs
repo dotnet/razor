@@ -62,8 +62,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 <div></div>
 
                 @{
-                    {|breakpoint:{|expected:var x = Goo;|}
-                    Goo;|}
+                    {|breakpoint:var x = Goo;
+                    {|expected:Goo;|}|}
                 }
                 """;
 
