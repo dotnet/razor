@@ -129,7 +129,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
         public async ValueTask DisposeAsync()
         {
             _testWorkspace.Dispose();
-            await _languageServer.DisposeAsync();
 
             _clientRpc.Dispose();
             _clientMessageFormatter.Dispose();
