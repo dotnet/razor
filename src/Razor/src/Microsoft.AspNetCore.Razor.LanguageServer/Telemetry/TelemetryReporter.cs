@@ -5,6 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using Microsoft.AspNetCore.Razor.Common;
 using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
@@ -28,7 +29,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Telemetry
             Report(telemetryEvent);
         }
 
-        public void ReportEvent(string name, TelemetrySeverity severity, ImmutableDictionary<string, object> values)
+        public void ReportEvent<T>(string name, TelemetrySeverity severity, ImmutableDictionary<string, T> values)
         {
             var telemetryEvent = new TelemetryEvent(GetTelemetryName(name), severity);
             foreach (var (propertyName, propertyValue) in values)

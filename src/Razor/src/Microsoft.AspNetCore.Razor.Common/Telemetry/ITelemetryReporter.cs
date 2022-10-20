@@ -9,6 +9,6 @@ namespace Microsoft.AspNetCore.Razor.Common.Telemetry
     internal interface ITelemetryReporter
     {
         void ReportEvent(string name, TelemetrySeverity severity);
-        void ReportEvent(string name, TelemetrySeverity severity, ImmutableDictionary<string, object> values);
+        void ReportEvent<T>(string name, TelemetrySeverity severity, ImmutableDictionary<string, T> values);
     }
 }

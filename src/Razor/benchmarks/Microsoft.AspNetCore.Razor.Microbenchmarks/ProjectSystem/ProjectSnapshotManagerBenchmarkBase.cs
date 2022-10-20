@@ -9,12 +9,14 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
+using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Test.Common;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json;
 
@@ -51,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
             }
 
             var tagHelpers = Path.Combine(root.FullName, "src", "Razor", "benchmarks", "Microsoft.AspNetCore.Razor.Microbenchmarks", "taghelpers.json");
-            TagHelperResolver = new StaticTagHelperResolver(ReadTagHelpers(tagHelpers));
+            TagHelperResolver = new StaticTagHelperResolver(ReadTagHelpers(tagHelpers), NoOpTelemetryReporter.Instance);
         }
 
         internal HostProject HostProject { get; }
@@ -119,7 +121,8 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks
         {
             private readonly IReadOnlyList<TagHelperDescriptor> _tagHelpers;
 
-            public StaticTagHelperResolver(IReadOnlyList<TagHelperDescriptor> tagHelpers)
+            public StaticTagHelperResolver(IReadOnlyList<TagHelperDescriptor> tagHelpers, ITelemetryReporter telemetryReporter)
+                : base(telemetryReporter)
             {
                 _tagHelpers = tagHelpers;
             }

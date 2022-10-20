@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 public sealed class DefaultTagHelperDescriptorProvider : RazorEngineFeatureBase, ITagHelperDescriptorProvider
 {
+    public string TelemetryName => nameof(DefaultTagHelperDescriptorProvider);
     public int Order { get; set; }
 
     public void Execute(TagHelperDescriptorProviderContext context)

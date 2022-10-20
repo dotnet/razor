@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -13,6 +13,8 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X;
 
 public sealed class ViewComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, ITagHelperDescriptorProvider
 {
+    public string TelemetryName => nameof(ViewComponentTagHelperDescriptorProvider);
+
     public int Order { get; set; }
 
     public void Execute(TagHelperDescriptorProviderContext context)

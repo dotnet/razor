@@ -7,13 +7,19 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Moq;
 
 namespace Microsoft.CodeAnalysis.Razor
 {
     internal class TestTagHelperResolver : TagHelperResolver
     {
+        public TestTagHelperResolver() : base(Mock.Of<ITelemetryReporter>(MockBehavior.Strict))
+        {
+        }
+
         public TaskCompletionSource<TagHelperResolutionResult> CompletionSource { get; set; }
 
         public List<TagHelperDescriptor> TagHelpers { get; set; } = new List<TagHelperDescriptor>();

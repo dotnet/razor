@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 
             var projectSnapshot = _projectManager.GetLoadedProject("Test.csproj");
 
-            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace)
+            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace, Mock.Of<ITelemetryReporter>(MockBehavior.Strict))
             {
                 OnResolveOutOfProcess = (f, p) =>
                 {
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 
             var projectSnapshot = _projectManager.GetLoadedProject("Test.csproj");
 
-            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace)
+            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace, Mock.Of<ITelemetryReporter>(MockBehavior.Strict))
             {
                 OnResolveInProcess = (p) =>
                 {
@@ -121,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             var projectSnapshot = _projectManager.GetLoadedProject("Test.csproj");
 
             var cancellationToken = new CancellationToken(canceled: true);
-            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace)
+            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace, Mock.Of<ITelemetryReporter>(MockBehavior.Strict))
             {
                 OnResolveInProcess = (p) =>
                 {
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         public void CalculateTagHelpersFromDelta_NewProject()
         {
             // Arrange
-            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace);
+            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace, Mock.Of<ITelemetryReporter>(MockBehavior.Strict));
             var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, Array.Empty<TagHelperDescriptor>());
 
             // Act
@@ -158,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         public void CalculateTagHelpersFromDelta_DeltaFailedToApplyToKnownProject()
         {
             // Arrange
-            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace);
+            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace, Mock.Of<ITelemetryReporter>(MockBehavior.Strict));
             var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, Array.Empty<TagHelperDescriptor>());
             resolver.PublicProduceTagHelpersFromDelta(Project1FilePath, lastResultId: -1, initialDelta);
             var newTagHelperSet = new[] { TagHelper1_Project1 };
@@ -175,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         public void CalculateTagHelpersFromDelta_NoopResult()
         {
             // Arrange
-            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace);
+            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace, Mock.Of<ITelemetryReporter>(MockBehavior.Strict));
             var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, Array.Empty<TagHelperDescriptor>());
             resolver.PublicProduceTagHelpersFromDelta(Project1FilePath, lastResultId: -1, initialDelta);
             var noopDelta = new TagHelperDeltaResult(Delta: true, initialDelta.ResultId, Array.Empty<TagHelperDescriptor>(), Array.Empty<TagHelperDescriptor>());
@@ -191,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         public void CalculateTagHelpersFromDelta_ReplacedTagHelpers()
         {
             // Arrange
-            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace);
+            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace, Mock.Of<ITelemetryReporter>(MockBehavior.Strict));
             var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, Array.Empty<TagHelperDescriptor>());
             resolver.PublicProduceTagHelpersFromDelta(Project1FilePath, lastResultId: -1, initialDelta);
             var changedDelta = new TagHelperDeltaResult(Delta: true, initialDelta.ResultId + 1, new[] { TagHelper2_Project2 }, new[] { TagHelper2_Project1 });
@@ -205,8 +206,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 
         private class TestTagHelperResolver : OOPTagHelperResolver
         {
-            public TestTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, ErrorReporter errorReporter, Workspace workspace)
-                : base(factory, errorReporter, workspace)
+            public TestTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, ErrorReporter errorReporter, Workspace workspace, ITelemetryReporter telemetryReporter)
+                : base(factory, errorReporter, workspace, telemetryReporter)
             {
             }
 

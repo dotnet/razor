@@ -26,25 +26,18 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly SemaphoreSlim _semaphore;
-        private readonly ITelemetryReporter _telemetryReporter;
         private ProjectSnapshotManagerBase _projectManager;
         private TagHelperResolver _tagHelperResolver;
         private bool _disposed;
 
         [ImportingConstructor]
-        public DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, ITelemetryReporter telemetryReporter)
+        public DefaultProjectWorkspaceStateGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (telemetryReporter is null)
-            {
-                throw new ArgumentNullException(nameof(telemetryReporter));
-            }
-
-            _telemetryReporter = telemetryReporter;
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
 
             _semaphore = new SemaphoreSlim(initialCount: 1);
@@ -171,13 +164,7 @@ namespace Microsoft.CodeAnalysis.Razor
                             csharpLanguageVersion = csharpParseOptions.LanguageVersion;
                         }
 
-                        var stopWatch = Stopwatch.StartNew();
                         var tagHelperResolutionResult = await _tagHelperResolver.GetTagHelpersAsync(workspaceProject, projectSnapshot, cancellationToken);
-                        stopWatch.Stop();
-                        _telemetryReporter.ReportEvent("TagHelpersTime", VisualStudio.Telemetry.TelemetrySeverity.Normal, new Dictionary<string, object>()
-                        {
-                            { "taghelpers.time.ms", stopWatch.ElapsedMilliseconds }
-                        }.ToImmutableDictionary());
 
                         workspaceState = new ProjectWorkspaceState(tagHelperResolutionResult.Descriptors, csharpLanguageVersion);
                     }
