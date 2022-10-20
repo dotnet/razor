@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 provider.Execute(context);
 
                 stopWatch.Stop();
-                var propertyName = $"razor.{provider.TelemetryName}.elapsedtimems";
+                var propertyName = $"razor.{provider.Name}.elapsedtimems";
                 Debug.Assert(!timingDictionary.ContainsKey(propertyName));
                 timingDictionary[propertyName] = stopWatch.ElapsedMilliseconds;
             }

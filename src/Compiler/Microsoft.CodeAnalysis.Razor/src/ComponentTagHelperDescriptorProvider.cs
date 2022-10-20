@@ -26,7 +26,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included)
             .WithMiscellaneousOptions(SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions & (~SymbolDisplayMiscellaneousOptions.UseSpecialTypes));
 
-    public string TelemetryName => nameof(ComponentTagHelperDescriptorProvider);
+    public string Name => nameof(ComponentTagHelperDescriptorProvider);
     public bool IncludeDocumentation { get; set; }
 
     public int Order { get; set; }

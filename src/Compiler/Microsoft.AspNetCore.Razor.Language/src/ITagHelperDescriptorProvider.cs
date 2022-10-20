@@ -7,7 +7,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public interface ITagHelperDescriptorProvider : IRazorEngineFeature
 {
-    string TelemetryName { get; }
+    string Name { get; }
     int Order { get; }
 
     void Execute(TagHelperDescriptorProviderContext context);

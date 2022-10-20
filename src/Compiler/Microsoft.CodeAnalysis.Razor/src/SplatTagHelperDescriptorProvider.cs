@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal class SplatTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 {
-    public string TelemetryName => nameof(SplatTagHelperDescriptorProvider);
+    public string Name => nameof(SplatTagHelperDescriptorProvider);
 
     // Order doesn't matter
     public int Order { get; set; }

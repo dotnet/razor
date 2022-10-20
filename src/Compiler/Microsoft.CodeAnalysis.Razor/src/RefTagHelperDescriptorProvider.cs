@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal class RefTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 {
-    public string TelemetryName => nameof(RefTagHelperDescriptorProvider);
+    public string Name => nameof(RefTagHelperDescriptorProvider);
 
     // Run after the component tag helper provider, because later we may want component-type-specific variants of this
     public int Order { get; set; } = 1000;
