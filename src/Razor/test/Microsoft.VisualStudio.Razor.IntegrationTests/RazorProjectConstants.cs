@@ -14,7 +14,8 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         internal static readonly string FetchDataRazorFile = Path.Combine(s_pagesDir, "FetchData.razor");
         internal static readonly string CounterRazorFile = Path.Combine(s_pagesDir, "Counter.razor");
         internal static readonly string IndexRazorFile = Path.Combine(s_pagesDir, "Index.razor");
-        internal static readonly string ModifiedIndexRazorFile = Path.Combine(s_pagesDir, "ModifiedIndex.razor");
+        // Temporarily don't use this because of a startup issue with creating new files
+        //internal static readonly string ModifiedIndexRazorFile = Path.Combine(s_pagesDir, "ModifiedIndex.razor");
         internal static readonly string SemanticTokensFile = Path.Combine(s_pagesDir, "SemanticTokens.razor");
         internal static readonly string MainLayoutFile = Path.Combine(s_sharedDir, "MainLayout.razor");
         internal static readonly string ErrorCshtmlFile = Path.Combine(s_pagesDir, "Error.cshtml");
