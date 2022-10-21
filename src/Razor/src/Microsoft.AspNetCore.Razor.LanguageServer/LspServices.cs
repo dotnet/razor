@@ -12,6 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 internal class LspServices : ILspServices
 {
     private readonly IServiceProvider _serviceProvider;
+    public bool IsDisposed = false;
 
     public LspServices(IServiceCollection serviceCollection)
     {
@@ -57,6 +58,7 @@ internal class LspServices : ILspServices
         if (_serviceProvider is IDisposable disposable)
         {
             disposable.Dispose();
+            IsDisposed = true;
         }
     }
 }
