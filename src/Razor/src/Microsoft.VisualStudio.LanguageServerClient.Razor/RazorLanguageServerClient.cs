@@ -40,9 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private readonly VisualStudioHostServicesProvider? _vsHostWorkspaceServicesProvider;
-        private readonly object _shutdownLock;
         private RazorLanguageServerWrapper? _server;
-        private IDisposable? _serverShutdownDisposable;
         private LogHubLoggerProvider? _loggerProvider;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
@@ -108,7 +106,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             _logHubLoggerProviderFactory = logHubLoggerProviderFactory;
             _languageServerFeatureOptions = languageServerFeatureOptions;
             _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider;
-            _shutdownLock = new object();
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
@@ -138,7 +135,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
-            await EnsureCleanedUpServerAsync(token).ConfigureAwait(false);
+            await EnsureCleanedUpServerAsync().ConfigureAwait(false);
 
             var traceLevel = GetVerbosity();
 
@@ -176,46 +173,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return result;
         }
 
-        private async Task EnsureCleanedUpServerAsync(CancellationToken token)
+        private async Task EnsureCleanedUpServerAsync()
         {
-            const int WaitForShutdownAttempts = 10;
-
             if (_server is null)
             {
                 // Server was already cleaned up
                 return;
             }
 
-            var attempts = 0;
-            while (_server is not null && ++attempts < WaitForShutdownAttempts)
-            {
-                // Server failed to shutdown, lets wait a little bit and check again.
-                await Task.Delay(100, token).ConfigureAwait(false);
-            }
-
             if (_server is not null)
             {
-                // Server still hasn't shutdown, attempt an ungraceful shutdown.
-                _server.Dispose();
-
-                ServerShutdown();
-            }
-        }
-
-        private void ServerShutdown()
-        {
-            lock (_shutdownLock)
-            {
-                if (_server is null)
-                {
-                    // Already shutdown
-                    return;
-                }
-
                 _projectConfigurationFilePathStore.Changed -= ProjectConfigurationFilePathStore_Changed;
-                _serverShutdownDisposable?.Dispose();
-                _serverShutdownDisposable = null;
-                _server = null;
+                // Server still hasn't shutdown, wait for it to shutdown
+                await _server.WaitForExitAsync().ConfigureAwait(false);
             }
         }
 

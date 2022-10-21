@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     _filePath = filePath;
                 }
 
-                public override Task<TextAndVersion> LoadTextAndVersionAsync(CodeAnalysisWorkspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+                public override Task<TextAndVersion> LoadTextAndVersionAsync(CodeAnalysisWorkspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
                 {
                     return Task.FromResult(TextAndVersion.Create(_sourceText, VersionStamp.Default, _filePath));
                 }

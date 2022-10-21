@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Serialization;
@@ -68,9 +69,24 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
 
     public Task WaitForExitAsync()
     {
-        var lifeCycleManager = GetRequiredService<RazorLifeCycleManager>();
-
-        return lifeCycleManager.WaitForExit;
+        var lspServices = _innerServer.GetLspServices();
+        if (lspServices is LspServices razorServices)
+        {
+            // If the LSP Server is already disposed it means the server has already exited.
+            if (razorServices.IsDisposed)
+            {
+                return Task.CompletedTask;
+            }
+            else
+            {
+                var lifeCycleManager = razorServices.GetRequiredService<RazorLifeCycleManager>();
+                return lifeCycleManager.WaitForExit;
+            }
+        }
+        else
+        {
+            throw new NotImplementedException($"LspServices should always be of type {nameof(LspServices)}.");
+        }
     }
 
     internal T GetRequiredService<T>() where T : notnull
