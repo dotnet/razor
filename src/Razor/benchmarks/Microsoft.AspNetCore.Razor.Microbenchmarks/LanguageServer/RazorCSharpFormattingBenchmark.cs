@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -117,7 +118,9 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 InsertSpaces = true
             };
 
-            var edits = await RazorFormattingService.FormatAsync(DocumentUri, DocumentSnapshot, range: null, options, CancellationToken.None);
+            var documentContext = new DocumentContext(DocumentUri, DocumentSnapshot, version: 1);
+
+            var edits = await RazorFormattingService.FormatAsync(documentContext, range: null, options, CancellationToken.None);
 
 #if DEBUG
             // For debugging purposes only.
@@ -127,11 +130,13 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         }
 
         [GlobalCleanup]
-        public async Task CleanupServerAsync()
+        public Task CleanupServerAsync()
         {
             File.Delete(_filePath);
 
-            await RazorLanguageServer.DisposeAsync();
+            RazorLanguageServer.Dispose();
+
+            return Task.CompletedTask;
         }
 
         private void EnsureServicesInitialized()

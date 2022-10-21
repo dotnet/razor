@@ -47,7 +47,7 @@ internal class RazorMapToDocumentEditsEndpoint : IRazorMapToDocumentEditsHandler
         var razorFormattingService = requestContext.GetRequiredService<RazorFormattingService>();
         if (request.TextEditKind == TextEditKind.FormatOnType)
         {
-            var mappedEdits = await razorFormattingService.FormatOnTypeAsync(request.RazorDocumentUri, documentContext.Snapshot, request.Kind, request.ProjectedTextEdits, request.FormattingOptions, hostDocumentIndex: 0, triggerCharacter: '\0', cancellationToken);
+            var mappedEdits = await razorFormattingService.FormatOnTypeAsync(documentContext, request.Kind, request.ProjectedTextEdits, request.FormattingOptions, hostDocumentIndex: 0, triggerCharacter: '\0', cancellationToken);
 
             return new RazorMapToDocumentEditsResponse()
             {
@@ -62,7 +62,7 @@ internal class RazorMapToDocumentEditsEndpoint : IRazorMapToDocumentEditsHandler
                 WrapCSharpSnippets(request.ProjectedTextEdits);
             }
 
-            var mappedEdits = await razorFormattingService.FormatSnippetAsync(request.RazorDocumentUri, documentContext.Snapshot, request.Kind, request.ProjectedTextEdits, request.FormattingOptions, cancellationToken);
+            var mappedEdits = await razorFormattingService.FormatSnippetAsync(documentContext, request.Kind, request.ProjectedTextEdits, request.FormattingOptions, cancellationToken);
 
             if (request.Kind == RazorLanguageKind.CSharp)
             {

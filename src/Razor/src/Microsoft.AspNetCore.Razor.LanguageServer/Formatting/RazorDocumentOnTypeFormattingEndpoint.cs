@@ -128,7 +128,7 @@ internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormatti
 
         Debug.Assert(request.Character.Length > 0);
 
-        var formattedEdits = await _razorFormattingService.FormatOnTypeAsync(request.TextDocument.Uri, documentContext.Snapshot, triggerCharacterKind, Array.Empty<TextEdit>(), request.Options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
+        var formattedEdits = await _razorFormattingService.FormatOnTypeAsync(documentContext, triggerCharacterKind, Array.Empty<TextEdit>(), request.Options, hostDocumentIndex, request.Character[0], cancellationToken).ConfigureAwait(false);
         if (formattedEdits.Length == 0)
         {
             requestContext.Logger.LogInformation("No formatting changes were necessary");

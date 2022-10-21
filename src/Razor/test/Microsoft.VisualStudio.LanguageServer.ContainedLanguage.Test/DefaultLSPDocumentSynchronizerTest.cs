@@ -31,18 +31,31 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             _virtualDocumentSnapshot = snapshot;
         }
 
+        private TrackingLSPDocumentManager GetDocumentManager(bool useDocumentManager = false, LSPDocumentSnapshot documentSnapshot = null)
+        {
+            var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+            if (useDocumentManager)
+            {
+                documentManager.Setup(m => m.TryGetDocument(It.IsAny<Uri>(), out documentSnapshot))
+                    .Returns(true);
+            }
+
+            return documentManager.Object;
+        }
+
         [Fact]
         public async Task TrySynchronizeVirtualDocumentAsync_RemovedDocument_ReturnsFalse()
         {
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 123, virtualDocumentSyncVersion: 123);
             var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider);
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager());
             NotifyLSPDocumentAdded(lspDocument, synchronizer);
             NotifyBufferVersionUpdated(_virtualDocumentTextBuffer, virtualDocument.HostDocumentSyncVersion.Value);
             NotifyLSPDocumentRemoved(lspDocument, synchronizer);
 
             // Act
+#pragma warning disable CS0612 // Type or member is obsolete
             var result = await synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, DisposalToken);
 
             // Assert
@@ -55,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 123, virtualDocumentSyncVersion: 123);
             var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider);
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager());
             NotifyLSPDocumentAdded(lspDocument, synchronizer);
             NotifyBufferVersionUpdated(_virtualDocumentTextBuffer, virtualDocument.HostDocumentSyncVersion.Value);
 
@@ -72,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
             var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
             };
@@ -97,7 +110,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
             var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
             };
@@ -125,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var (originalLSPDocument, originalVirtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
             var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, originalVirtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
             };
@@ -159,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
             var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
             };
@@ -190,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
             var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
             };
@@ -221,7 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
             var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
             };
@@ -252,7 +265,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
             var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
             };
@@ -276,7 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 123, virtualDocumentSyncVersion: 123);
             var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(10)
             };
@@ -290,7 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Assert
             Assert.False(result);
         }
-
+#pragma warning restore CS0612 // Type or member is obsolete
         private static void NotifyLSPDocumentAdded(LSPDocumentSnapshot lspDocument, DefaultLSPDocumentSynchronizer synchronizer)
         {
             synchronizer.Changed(old: null, @new: lspDocument, virtualOld: null, virtualNew: null, LSPDocumentChangeKind.Added);

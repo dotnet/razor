@@ -97,19 +97,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return clearedDiagnosticReport;
             }
 
-            if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDoc))
-            {
-                _logger.LogWarning("Failed to find virtual C# document for {textDocumentUri}.", request.TextDocument.Uri);
-                return null;
-            }
-
-            var synchronized = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync(
+            var (synchronized, csharpDoc)= await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                 documentSnapshot.Version,
-                csharpDoc,
+                request.TextDocument.Uri,
                 cancellationToken).ConfigureAwait(false);
             if (!synchronized)
             {
-                _logger.LogInformation("Failed to synchronize document {csharpDocUri}.", csharpDoc.Uri);
+                _logger.LogInformation("Failed to synchronize document {hostDocument}.", request.TextDocument.Uri);
 
                 // Could not synchronize, report nothing changed
                 return new VSInternalDiagnosticReport[]

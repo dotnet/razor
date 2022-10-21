@@ -21,10 +21,10 @@ public class RazorLanguageServerTest : TestBase
     }
 
     [Fact]
-    public async Task AllHandlersRegisteredAsync()
+    public void AllHandlersRegisteredAsync()
     {
         var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-        await using var server = RazorLanguageServerWrapper.Create(serverStream, serverStream, Logger);
+        using var server = RazorLanguageServerWrapper.Create(serverStream, serverStream, Logger);
 
         var innerServer = server.GetInnerLanguageServerForTesting();
         var handlerProvider = innerServer.GetTestAccessor().GetHandlerProvider();
