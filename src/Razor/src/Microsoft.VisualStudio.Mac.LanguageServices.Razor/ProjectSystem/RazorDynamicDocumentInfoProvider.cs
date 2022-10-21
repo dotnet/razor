@@ -96,7 +96,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
                     var innerDynamicFileInfo = _dynamicFileInfoProvider.GetDynamicFileInfoAsync(impactedEntry.Key.ProjectId, impactedEntry.Key.ProjectFilePath, impactedEntry.Key.FilePath, CancellationToken.None).Result;
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
-                    var newDocumentInfo = impactedEntry.Value.Current.WithTextLoader(innerDynamicFileInfo.TextLoader);
+
+                    // Update our DocumentInfo with the text loader and document services from the dynamic file
+                    var newDocumentInfo = innerDynamicFileInfo.ToUpdatedDocumentInfo(impactedEntry.Value.Current);
+
                     impactedEntry.Value.Current = newDocumentInfo;
                     Updated?.Invoke(newDocumentInfo);
                 }
