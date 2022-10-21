@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Extensions.Internal;
 
@@ -13,15 +12,14 @@ namespace Microsoft.CodeAnalysis.Razor
     internal static class TagHelperDescriptorCache
     {
         private static readonly MemoryCache<int, TagHelperDescriptor> s_cachedTagHelperDescriptors =
-            new MemoryCache<int, TagHelperDescriptor>(4500);
+            new(4500);
 
-        internal static bool TryGetDescriptor(int hashCode, out TagHelperDescriptor descriptor) =>
+        internal static bool TryGetDescriptor(int hashCode, [NotNullWhen(returnValue: true)] out TagHelperDescriptor? descriptor) =>
             s_cachedTagHelperDescriptors.TryGetValue(hashCode, out descriptor);
 
         internal static void Set(int hashCode, TagHelperDescriptor descriptor) =>
             s_cachedTagHelperDescriptors.Set(hashCode, descriptor);
 
-#nullable enable
         internal static int GetTagHelperDescriptorCacheId(TagHelperDescriptor descriptor)
         {
             var hash = HashCodeCombiner.Start();

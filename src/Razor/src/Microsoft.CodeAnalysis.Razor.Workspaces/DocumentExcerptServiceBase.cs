@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 RazorClassificationOptionsWrapper options,
                 CancellationToken cancellationToken);
 
-        protected TextSpan ChooseExcerptSpan(SourceText text, TextSpan span, ExcerptModeInternal mode)
+        protected static TextSpan ChooseExcerptSpan(SourceText text, TextSpan span, ExcerptModeInternal mode)
         {
             var startLine = text.Lines.GetLineFromPosition(span.Start);
             var endLine = text.Lines.GetLineFromPosition(span.End);
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Razor
             }
         }
 
-        protected SourceText GetTranslatedExcerptText(
+        protected static SourceText GetTranslatedExcerptText(
             SourceText razorDocumentText,
             ref TextSpan razorDocumentSpan,
             ref TextSpan excerptSpan,

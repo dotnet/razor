@@ -55,7 +55,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         internal static string ReduceMemberName(string content) => ReduceFullName(content, reduceWhenDotCount: 2);
 
         // Internal for testing
-        internal static bool TryExtractSummary(string documentation, [NotNullWhen(true)] out string? summary)
+        internal static bool TryExtractSummary(string? documentation, [NotNullWhen(true)] out string? summary)
         {
             const string SummaryStartTag = "<summary>";
             const string SummaryEndTag = "</summary>";
@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 return false;
             }
 
-            documentation = documentation.Trim(s_newLineChars.ToArray());
+            documentation = documentation!.Trim(s_newLineChars.ToArray());
 
             var summaryTagStart = documentation.IndexOf(SummaryStartTag, StringComparison.OrdinalIgnoreCase);
             var summaryTagEndStart = documentation.IndexOf(SummaryEndTag, StringComparison.OrdinalIgnoreCase);
