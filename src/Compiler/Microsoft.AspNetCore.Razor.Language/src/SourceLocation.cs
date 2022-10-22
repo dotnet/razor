@@ -77,7 +77,7 @@ public struct SourceLocation : IEquatable<SourceLocation>
     /// Creates a new instance of <see cref="SourceLocation"/> from the provided span.
     /// </summary>
     /// <param name="span">
-    /// The souce span. If <c>null</c>, <see cref="SourceLocation.Undefined"/> will be returned.
+    /// The source span. If <c>null</c>, <see cref="SourceLocation.Undefined"/> will be returned.
     /// </param>
     /// <remarks>A <see cref="SourceLocation"/> that corresponds to the beginning of the span.</remarks>
     public static SourceLocation FromSpan(SourceSpan? span)

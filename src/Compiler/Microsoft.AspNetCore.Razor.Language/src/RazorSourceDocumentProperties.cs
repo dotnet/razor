@@ -33,7 +33,7 @@ public sealed class RazorSourceDocumentProperties
     /// </param>
     public RazorSourceDocumentProperties(string filePath, string relativePath)
     {
-        // We don't do any magic or validation here since we don't need to do any I/O or interation
+        // We don't do any magic or validation here since we don't need to do any I/O or interaction
         // with the file system. We didn't validate anything in 2.0 so we don't want any compat risk.
         FilePath = filePath;
         RelativePath = relativePath;

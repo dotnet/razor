@@ -1866,7 +1866,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         }
         else
         {
-            // Setup the Span to be an async implicit expression (an implicit expresison that allows spaces).
+            // Setup the Span to be an async implicit expression (an implicit expression that allows spaces).
             // Spaces are allowed because of "@await Foo()".
             var implicitExpressionBody = ParseImplicitExpressionBody(async: true);
             builder.Add(SyntaxFactory.CSharpImplicitExpression(transition, implicitExpressionBody));

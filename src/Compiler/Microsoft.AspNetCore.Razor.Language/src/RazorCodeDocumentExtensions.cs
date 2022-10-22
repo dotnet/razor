@@ -286,7 +286,7 @@ public static class RazorCodeDocumentExtensions
 
         StringSegment relativePath = document.Source.RelativePath;
 
-        // If there are multiple @namespace directives in the heirarchy,
+        // If there are multiple @namespace directives in the hierarchy,
         // we want to pick the closest one to the current document.
         if (!string.IsNullOrEmpty(lastNamespaceContent))
         {
@@ -303,7 +303,7 @@ public static class RazorCodeDocumentExtensions
             }
             else
             {
-                // We know that the document containing the namespace directive is in the current document's heirarchy.
+                // We know that the document containing the namespace directive is in the current document's hierarchy.
                 // Let's compute the actual relative path that we'll use to compute the namespace suffix.
                 relativePath = sourceFilePath.Subsegment(directiveLocationDirectory.Length);
             }

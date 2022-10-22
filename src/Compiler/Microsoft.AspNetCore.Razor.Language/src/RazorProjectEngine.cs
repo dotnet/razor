@@ -105,7 +105,7 @@ public abstract class RazorProjectEngine
 
         var builder = new DefaultRazorProjectEngineBuilder(configuration, fileSystem);
 
-        // The intialization order is somewhat important.
+        // The initialization order is somewhat important.
         //
         // Defaults -> Extensions -> Additional customization
         //

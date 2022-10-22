@@ -24,17 +24,17 @@ public abstract class RazorCodeGenerationOptionsBuilder
 
     /// <summary>
     /// Gets or sets a value that indicates whether to suppress the default <c>#pragma checksum</c> directive in the
-    /// generated C# code. If <c>false</c> the checkum directive will be included, otherwise it will not be
+    /// generated C# code. If <c>false</c> the checksum directive will be included, otherwise it will not be
     /// generated. Defaults to <c>false</c>, meaning that the checksum will be included.
     /// </summary>
     /// <remarks>
-    /// The <c>#pragma checksum</c> is required to enable debugging and should only be supressed for testing
+    /// The <c>#pragma checksum</c> is required to enable debugging and should only be suppressed for testing
     /// purposes.
     /// </remarks>
     public abstract bool SuppressChecksum { get; set; }
 
     /// <summary>
-    /// Gets or setsa value that indicates whether to suppress the default metadata attributes in the generated
+    /// Gets or sets a value that indicates whether to suppress the default metadata attributes in the generated
     /// C# code. If <c>false</c> the default attributes will be included, otherwise they will not be generated.
     /// Defaults to <c>false</c> at run time, meaning that the attributes will be included. Defaults to
     /// <c>true</c> at design time, meaning that the attributes will not be included.
