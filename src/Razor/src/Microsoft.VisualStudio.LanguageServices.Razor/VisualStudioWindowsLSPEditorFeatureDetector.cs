@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         {
         }
 
-        public override bool IsLSPEditorAvailable(string documentMoniker, object? hierarchy)
+        public override bool IsLSPEditorAvailable(string? documentMoniker, object? hierarchy)
         {
             _logger.LogVerbose("Checking if LSP Editor is available");
             if (documentMoniker is null)
