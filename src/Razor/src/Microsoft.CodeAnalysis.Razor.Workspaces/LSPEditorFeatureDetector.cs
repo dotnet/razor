@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 {
     internal abstract class LSPEditorFeatureDetector
     {
-        public abstract bool IsLSPEditorAvailable(string documentMoniker, object? hierarchy);
+        public abstract bool IsLSPEditorAvailable(string? documentMoniker, object? hierarchy);
 
         public abstract bool IsLSPEditorAvailable();
 
