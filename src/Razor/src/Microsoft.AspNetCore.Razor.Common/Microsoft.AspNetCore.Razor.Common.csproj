@@ -18,6 +18,8 @@
 
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutablePackageVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsPackageVersion)" />
+    <PackageReference Include="System.Composition.AttributedModel" Version="6.0.0"/>
   </ItemGroup>
 
 </Project>

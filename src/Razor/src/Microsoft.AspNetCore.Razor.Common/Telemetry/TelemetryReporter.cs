@@ -9,18 +9,27 @@ using Microsoft.AspNetCore.Razor.Common;
 using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
+using System.Composition;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Telemetry
 {
+    [Shared]
+    [Export(typeof(ITelemetryReporter))]
     internal class TelemetryReporter : ITelemetryReporter
     {
         private readonly ImmutableArray<TelemetrySession> _telemetrySessions;
-        private readonly ILogger _logger;
+        private readonly ILogger? _logger;
 
-        public TelemetryReporter(ImmutableArray<TelemetrySession> telemetrySessions, ILoggerFactory loggerFactory)
+        [ImportingConstructor]
+        public TelemetryReporter([Import(AllowDefault = true)]ILoggerFactory? loggerFactory = null)
+            : this(ImmutableArray.Create(TelemetryService.DefaultSession), loggerFactory)
+        {
+        }
+
+        public TelemetryReporter(ImmutableArray<TelemetrySession> telemetrySessions, ILoggerFactory? loggerFactory)
         {
             _telemetrySessions = telemetrySessions;
-            _logger = loggerFactory.CreateLogger<TelemetryReporter>();
+            _logger = loggerFactory?.CreateLogger<TelemetryReporter>();
         }
 
         public void ReportEvent(string name, TelemetrySeverity severity)
@@ -57,14 +66,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Telemetry
                 // before we're ready to send them to the cloud
                 var name = telemetryEvent.Name;
                 var propertyString = string.Join(",", telemetryEvent.Properties.Select(kvp => $"[ {kvp.Key}:{kvp.Value} ]"));
-                _logger.LogTrace("Telemetry Event: {name} \n Properties: {propertyString}\n", name, propertyString);
+                _logger?.LogTrace("Telemetry Event: {name} \n Properties: {propertyString}\n", name, propertyString);
 #endif
             }
             catch (Exception e)
             {
                 // No need to do anything here. We failed to report telemetry
                 // which isn't good, but not catastrophic for a user
-                _logger.LogError(e, "Failed logging telemetry event");
+                _logger?.LogError(e, "Failed logging telemetry event");
             }
         }
     }
