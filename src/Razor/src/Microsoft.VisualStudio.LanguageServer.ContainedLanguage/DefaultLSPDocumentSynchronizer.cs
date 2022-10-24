@@ -5,8 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -44,9 +46,14 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             _documentManager = documentManager;
         }
 
-        internal record SynchronizedResult<TVirtualDocumentSnapshot>(bool Synchronized, TVirtualDocumentSnapshot VirtualSnapshot)
+        internal record SynchronizedResult<TVirtualDocumentSnapshot>(bool Synchronized, TVirtualDocumentSnapshot? VirtualSnapshot)
             where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
         {
+            public bool TryGetVirtualSnapshot([NotNullWhen(true)] out TVirtualDocumentSnapshot? virtualDocumentSnapshot)
+            {
+                virtualDocumentSnapshot = VirtualSnapshot;
+                return Synchronized;
+            }
         }
 
         public override Task<SynchronizedResult<TVirtualDocumentSnapshot>> TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
@@ -75,7 +82,11 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             Task<bool> onSynchronizedTask;
             lock (_documentContextLock)
             {
-                var preSyncedSnapshot = GetVirtualDocumentSnapshot<TVirtualDocumentSnapshot>(hostDocumentUri);
+                if (!TryGetVirtualDocumentSnapshot<TVirtualDocumentSnapshot>(hostDocumentUri, out var preSyncedSnapshot))
+                {
+                    return new SynchronizedResult<TVirtualDocumentSnapshot>(false, preSyncedSnapshot);
+                }
+
                 var virtualDocumentUri = preSyncedSnapshot.Uri;
                 if (!_virtualDocumentContexts.TryGetValue(virtualDocumentUri, out var documentContext))
                 {
@@ -94,8 +105,11 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
 
             var onSynchronizedResult = await onSynchronizedTask.ConfigureAwait(false);
-
-            var virtualDocumentSnapshot = GetVirtualDocumentSnapshot<TVirtualDocumentSnapshot>(hostDocumentUri);
+            TVirtualDocumentSnapshot? virtualDocumentSnapshot = null;
+            if (onSynchronizedResult)
+            {
+                onSynchronizedResult = TryGetVirtualDocumentSnapshot(hostDocumentUri, out virtualDocumentSnapshot);
+            }
 
             return new SynchronizedResult<TVirtualDocumentSnapshot>(onSynchronizedResult, virtualDocumentSnapshot);
         }
@@ -132,7 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
         }
 
-        private TVirtualDocumentSnapshot GetVirtualDocumentSnapshot<TVirtualDocumentSnapshot>(Uri hostDocumentUri)
+        private bool TryGetVirtualDocumentSnapshot<TVirtualDocumentSnapshot>(Uri hostDocumentUri, [NotNullWhen(true)] out TVirtualDocumentSnapshot? virtualDocumentSnapshot)
             where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
         {
             var normalizedString = hostDocumentUri.GetAbsoluteOrUNCPath();
@@ -140,15 +154,20 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             if (!_documentManager.TryGetDocument(normalizedUri, out var documentSnapshot))
             {
-                throw new InvalidOperationException($"Unable to retrieve snapshot for document {normalizedUri} after synchronization");
+                // Unable to retrieve snapshot for document {normalizedUri} after synchronization
+                virtualDocumentSnapshot = null;
+                return false;
             }
 
             if (!documentSnapshot.TryGetVirtualDocument<TVirtualDocumentSnapshot>(out var virtualDoc))
             {
-                throw new InvalidOperationException($"Unable to retrieve virtual document for {normalizedUri} after document synchronization");
+                // Unable to retrieve virtual document for {normalizedUri} after document synchronization
+                virtualDocumentSnapshot = null;
+                return false;
             }
 
-            return virtualDoc;
+            virtualDocumentSnapshot = virtualDoc;
+            return true;
         }
 
         private void VirtualDocumentBuffer_PostChanged(object sender, EventArgs e)

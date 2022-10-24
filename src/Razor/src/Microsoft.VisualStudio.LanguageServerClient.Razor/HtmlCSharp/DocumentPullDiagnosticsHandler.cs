@@ -97,11 +97,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return clearedDiagnosticReport;
             }
 
-            var (synchronized, csharpDoc)= await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+            var csharpResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                 documentSnapshot.Version,
                 request.TextDocument.Uri,
                 cancellationToken).ConfigureAwait(false);
-            if (!synchronized)
+            if (!csharpResult.TryGetVirtualSnapshot(out var csharpDoc))
             {
                 _logger.LogInformation("Failed to synchronize document {hostDocument}.", request.TextDocument.Uri);
 
