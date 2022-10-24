@@ -30,7 +30,7 @@ public abstract class RazorSourceDocument
     public abstract Encoding Encoding { get; }
 
     /// <summary>
-    /// Gets the file path of the orginal source document.
+    /// Gets the file path of the original source document.
     /// </summary>
     /// <remarks>
     /// The file path may be either an absolute path or project-relative path. An absolute path is required

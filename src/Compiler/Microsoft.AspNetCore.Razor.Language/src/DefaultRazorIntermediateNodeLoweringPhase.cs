@@ -2180,7 +2180,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             // Otherwise, there will be no source mapping when someone types an `@` leading to no intellisense.
             if (node.FirstAncestorOrSelf<SyntaxNode>(n => n is MarkupStartTagSyntax || n is MarkupEndTagSyntax) != null)
             {
-                // We don't care about implicit expresssion in attributes.
+                // We don't care about implicit expression in attributes.
                 return;
             }
 
