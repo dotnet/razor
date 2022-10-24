@@ -75,7 +75,7 @@
     <!-- Several packages from the editor are used for testing HTML support, and share the following version. -->
     <Tooling_HtmlEditorPackageVersion>16.10.57-preview1</Tooling_HtmlEditorPackageVersion>
     <!-- Several packages share the MS.CA.Testing version -->
-    <Tooling_MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.22109.1</Tooling_MicrosoftCodeAnalysisTestingVersion>
+    <Tooling_MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.22512.1</Tooling_MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.2.32330.158</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftVisualStudioPackagesVersion>17.3.133-preview</MicrosoftVisualStudioPackagesVersion>
     <RoslynPackageVersion>4.4.0-2.22424.2</RoslynPackageVersion>
