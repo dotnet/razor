@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
@@ -32,7 +33,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             Changed?.Invoke(this, new ProjectConfigurationFilePathChangedEventArgs(projectFilePath, configurationFilePath));
         }
 
-        public override bool TryGet(string projectFilePath, out string? configurationFilePath)
+        public override bool TryGet(string projectFilePath, [NotNullWhen(returnValue: true)] out string? configurationFilePath)
         {
             configurationFilePath = null;
             return false;

@@ -55,12 +55,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         internal static string ReduceMemberName(string content) => ReduceFullName(content, reduceWhenDotCount: 2);
 
         // Internal for testing
-        internal static bool TryExtractSummary(string documentation, [NotNullWhen(true)] out string? summary)
+        internal static bool TryExtractSummary(string? documentation, [NotNullWhen(returnValue: true)] out string? summary)
         {
             const string SummaryStartTag = "<summary>";
             const string SummaryEndTag = "</summary>";
 
-            if (string.IsNullOrEmpty(documentation))
+            if (documentation is null || documentation == string.Empty)
             {
                 summary = null;
                 return false;

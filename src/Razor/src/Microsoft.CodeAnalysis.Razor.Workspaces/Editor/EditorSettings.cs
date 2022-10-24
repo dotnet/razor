@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.Extensions.Internal;
 
@@ -27,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Razor.Editor
 
         public int IndentSize { get; }
 
-        public bool Equals(EditorSettings other)
+        public bool Equals(EditorSettings? other)
         {
             if (other is null)
             {
