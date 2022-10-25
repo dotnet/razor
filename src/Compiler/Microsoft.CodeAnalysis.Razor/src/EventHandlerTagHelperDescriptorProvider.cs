@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 {
+    public string Name => nameof(EventHandlerTagHelperDescriptorProvider);
     public int Order { get; set; }
 
     public RazorEngine Engine { get; set; }
