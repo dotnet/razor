@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.CodeAnalysis.Host;
