@@ -556,7 +556,7 @@
       "contentName": "source.cs",
       "patterns": [
         {
-          "include": "source.cs"
+          "include": "source.cs#class-or-struct-members"
         }
       ],
       "end": "(\\})",
