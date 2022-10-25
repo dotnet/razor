@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
@@ -15,9 +13,9 @@ namespace Microsoft.VisualStudio.Editor.Razor
             TagHelperDocumentContext documentContext,
             IEnumerable<string> existingCompletions,
             string currentTagName,
-            string currentAttributeName,
+            string? currentAttributeName,
             IEnumerable<KeyValuePair<string, string>> attributes,
-            string currentParentTagName,
+            string? currentParentTagName,
             bool currentParentIsTagHelper,
             Func<string, bool> inHTMLSchema)
         {
@@ -62,11 +60,11 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public string CurrentTagName { get; }
 
-        public string CurrentAttributeName { get; }
+        public string? CurrentAttributeName { get; }
 
         public IEnumerable<KeyValuePair<string, string>> Attributes { get; }
 
-        public string CurrentParentTagName { get; }
+        public string? CurrentParentTagName { get; }
 
         public bool CurrentParentIsTagHelper { get; }
 

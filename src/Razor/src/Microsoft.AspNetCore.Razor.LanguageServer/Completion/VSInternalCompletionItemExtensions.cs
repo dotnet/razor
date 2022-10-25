@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
             RazorCompletionItem razorCompletionItem,
             VSInternalClientCapabilities clientCapabilities)
         {
-            if (razorCompletionItem.CommitCharacters == null || razorCompletionItem.CommitCharacters.Count == 0)
+            if (razorCompletionItem.CommitCharacters is null || razorCompletionItem.CommitCharacters.Count == 0)
             {
                 return;
             }

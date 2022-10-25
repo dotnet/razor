@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Common.Telemetry;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.Razor;
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         public async ValueTask<TagHelperDeltaResult> GetTagHelpersDeltaCoreAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string? factoryTypeName, int lastResultId, CancellationToken cancellationToken)
         {
             var tagHelperResolutionResult = await GetTagHelpersCoreAsync(solutionInfo, projectHandle, factoryTypeName, cancellationToken).ConfigureAwait(false);
-            var currentTagHelpers = tagHelperResolutionResult.Descriptors;
+            var currentTagHelpers = tagHelperResolutionResult.Descriptors ?? Array.Empty<TagHelperDescriptor>();
             var deltaResult = _tagHelperDeltaProvider.GetTagHelpersDelta(projectHandle.FilePath, lastResultId, currentTagHelpers);
             return deltaResult;
         }

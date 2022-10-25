@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var editorSettingsManager = new Mock<EditorSettingsManager>(MockBehavior.Strict);
-            editorSettingsManager.SetupGet(m => m.Current).Returns((EditorSettings)null);
+            editorSettingsManager.SetupGet(m => m.Current).Returns(EditorSettings.Default);
             var manager = new DefaultWorkspaceEditorSettings(editorSettingsManager.Object);
             var called = false;
             manager.Changed += (caller, args) => called = true;

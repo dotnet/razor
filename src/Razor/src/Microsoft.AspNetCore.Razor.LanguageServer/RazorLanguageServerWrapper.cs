@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Serialization;
@@ -14,7 +15,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
+internal sealed class RazorLanguageServerWrapper : IDisposable
 {
     private readonly RazorLanguageServer _innerServer;
     private readonly object _disposeLock;
@@ -68,9 +69,24 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
 
     public Task WaitForExitAsync()
     {
-        var lifeCycleManager = GetRequiredService<RazorLifeCycleManager>();
-
-        return lifeCycleManager.WaitForExit;
+        var lspServices = _innerServer.GetLspServices();
+        if (lspServices is LspServices razorServices)
+        {
+            // If the LSP Server is already disposed it means the server has already exited.
+            if (razorServices.IsDisposed)
+            {
+                return Task.CompletedTask;
+            }
+            else
+            {
+                var lifeCycleManager = razorServices.GetRequiredService<RazorLifeCycleManager>();
+                return lifeCycleManager.WaitForExit;
+            }
+        }
+        else
+        {
+            throw new NotImplementedException($"LspServices should always be of type {nameof(LspServices)}.");
+        }
     }
 
     internal T GetRequiredService<T>() where T : notnull
@@ -78,10 +94,8 @@ internal sealed class RazorLanguageServerWrapper : IAsyncDisposable
         return _innerServer.GetRequiredService<T>();
     }
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
-        await _innerServer.DisposeAsync();
-
         lock (_disposeLock)
         {
             if (!_disposed)

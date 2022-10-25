@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag
         public VSInternalWrapWithTagParams(Range range,
                                            string tagName,
                                            FormattingOptions options,
-                                           TextDocumentIdentifier textDocument)
+                                           VersionedTextDocumentIdentifier textDocument)
         {
             Range = range;
             Options = options;
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag
         /// Gets or sets the identifier for the text document to be operate on.
         /// </summary>
         [DataMember(Name = "_vs_textDocument")]
-        public TextDocumentIdentifier TextDocument
+        public VersionedTextDocumentIdentifier TextDocument
         {
             get;
             set;

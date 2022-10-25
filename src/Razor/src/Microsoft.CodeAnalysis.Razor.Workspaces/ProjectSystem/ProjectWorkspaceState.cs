@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
     {
-        public static readonly ProjectWorkspaceState Default = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.Default);
+        public static readonly ProjectWorkspaceState Default = new(Array.Empty<TagHelperDescriptor>(), LanguageVersion.Default);
 
         public ProjectWorkspaceState(
             IReadOnlyCollection<TagHelperDescriptor> tagHelpers,
@@ -47,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return base.Equals(obj as ProjectWorkspaceState);
         }
 
-        public bool Equals(ProjectWorkspaceState other)
+        public bool Equals(ProjectWorkspaceState? other)
         {
             if (other is null)
             {

@@ -317,7 +317,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             }
         }
 
-        private static bool TryClassifySummary(List<ClassifiedTextRun> runs, string documentation)
+        private static bool TryClassifySummary(List<ClassifiedTextRun> runs, string? documentation)
         {
             if (!TryExtractSummary(documentation, out var summaryContent))
             {

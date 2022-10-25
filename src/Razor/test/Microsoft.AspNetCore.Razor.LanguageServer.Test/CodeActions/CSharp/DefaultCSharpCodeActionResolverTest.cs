@@ -212,8 +212,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             var razorFormattingService = Mock.Of<RazorFormattingService>(
                             rfs => rfs.FormatCodeActionAsync(
-                                documentUri,
-                                It.IsAny<DocumentSnapshot>(),
+                                It.Is<DocumentContext>(c => c.Uri == documentUri),
                                 RazorLanguageKind.CSharp,
                                 It.IsAny<TextEdit[]>(),
                                 It.IsAny<FormattingOptions>(),

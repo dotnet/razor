@@ -93,8 +93,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var documentSnapshot = documentContext.Snapshot;
-
             var documentChanged = resolvedCodeAction.Edit.DocumentChanges.Value.First();
             if (!documentChanged.TryGetFirst(out var textDocumentEdit))
             {
@@ -109,8 +107,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Remaps the text edits from the generated C# to the razor file,
             // as well as applying appropriate formatting.
             var formattedEdits = await _razorFormattingService.FormatCodeActionAsync(
-                csharpParams.RazorFileUri,
-                documentSnapshot,
+                documentContext,
                 RazorLanguageKind.CSharp,
                 csharpTextEdits,
                 s_defaultFormattingOptions,
