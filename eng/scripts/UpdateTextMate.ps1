@@ -1,12 +1,11 @@
-
-# We pull our tmLanguage.json files direct from the VS Code repo.
+# This script updates our *.tmLanguage.json files from the latest copies int eh VS Code repo.
 #
-# VS Code in turn pulls them from various repos, but rather than pull directly from them, by using
-# the VS Code repo we get the benefit of their testing, and their finding the best sources for the
-# various languages.
+# We pull these files from the VS Code repo, and VS Code in turn pulls them from various repos,
+# but rather than pull directly from them, by using the VS Code repo we get the benefit of their
+# testing, and their finding the best sources for the various languages.
 #
-# This script downloads the current files in the VS Code main branch and puts them in our repo
-# and updates the cgmanifest.json file to point to the commit we pulled them from.
+# We download the current files in the VS Code main branch and put them in our repo,
+# then update the cgmanifest.json file to point to the commit we pulled them from.
 
 # Need to run this first: Install-Module -Name PowerShellForGitHub
 Import-Module -Name PowerShellForGitHub
@@ -29,10 +28,10 @@ function DownloadTmLanguageJson {
     $content = Invoke-WebRequest -Uri $url
 
     # Copy to razor extension
-    $content.content | Out-File -FilePath "../src/Razor/src/Microsoft.VisualStudio.RazorExtension/EmbeddedGrammars/$fileName"
+    $content.content | Out-File -FilePath "../../src/Razor/src/Microsoft.VisualStudio.RazorExtension/EmbeddedGrammars/$fileName" -Encoding ascii
 
     # Copy to grammar tests
-    $content.content | Out-File -FilePath "../src/Razor/test/Microsoft.AspNetCore.Razor.VSCode.Grammar.Test/embeddedGrammars/$fileName"
+    $content.content | Out-File -FilePath "../../src/Razor/test/Microsoft.AspNetCore.Razor.VSCode.Grammar.Test/embeddedGrammars/$fileName" -Encoding ascii
 }
 
 # Find the current main branch SHA to download from
@@ -49,7 +48,7 @@ DownloadTmLanguageJson -sha $sha -lang "javascript" -filename "JavaScript.tmLang
 Write-Host "Updating cgmanifest.json"
 
 # Read in the current file
-$manifest = Get-Content -Path "../src/Razor/src/Microsoft.VisualStudio.RazorExtension/cgmanifest.json" | ConvertFrom-Json
+$manifest = Get-Content -Path "../../src/Razor/src/Microsoft.VisualStudio.RazorExtension/cgmanifest.json" | ConvertFrom-Json
 
 # Update commit hash and version URL
 $manifest.registrations[0].component.git.commitHash = $sha
@@ -57,4 +56,4 @@ $manifest.registrations[0].version = "https://github.com/microsoft/vscode/tree/$
 
 # Write the file back out again
 $jsonString = $manifest | ConvertTo-Json -Depth 10
-$jsonString | Set-Content -Path "../src/Razor/src/Microsoft.VisualStudio.RazorExtension/cgmanifest.json"
+$jsonString | Set-Content -Path "../../src/Razor/src/Microsoft.VisualStudio.RazorExtension/cgmanifest.json" -Encoding ascii
