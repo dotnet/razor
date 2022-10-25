@@ -189,7 +189,7 @@ Line:     private int currentCount = 0;
  - token from 11 to 12 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 12 to 15 (int) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.type.cs
  - token from 15 to 16 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 16 to 28 (currentCount) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, entity.name.variable.local.cs
+ - token from 16 to 28 (currentCount) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, entity.name.variable.field.cs
  - token from 28 to 29 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 29 to 30 (=) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.operator.assignment.cs
  - token from 30 to 31 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
@@ -252,17 +252,19 @@ Line:     public string? Goo { get; set; }
  - token from 0 to 4 (    ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 4 to 10 (public) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, storage.modifier.cs
  - token from 10 to 11 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 11 to 17 (string) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
- - token from 17 to 18 (?) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.operator.conditional.question-mark.cs
+ - token from 11 to 17 (string) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.type.cs
+ - token from 17 to 18 (?) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, punctuation.separator.question-mark.cs
  - token from 18 to 19 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 19 to 22 (Goo) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
+ - token from 19 to 22 (Goo) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, entity.name.variable.property.cs
  - token from 22 to 23 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 23 to 24 ({) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, punctuation.curlybrace.open.cs
  - token from 24 to 25 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 25 to 28 (get) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
- - token from 28 to 30 (; ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 30 to 33 (set) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
- - token from 33 to 35 (; ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
+ - token from 25 to 28 (get) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.other.get.cs
+ - token from 28 to 29 (;) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, punctuation.terminator.statement.cs
+ - token from 29 to 30 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
+ - token from 30 to 33 (set) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.other.set.cs
+ - token from 33 to 34 (;) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, punctuation.terminator.statement.cs
+ - token from 34 to 35 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 35 to 36 (}) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, punctuation.curlybrace.close.cs
 
 Line: 
@@ -270,25 +272,25 @@ Line:
 
 Line:     private int currentCount = 0;
  - token from 0 to 4 (    ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 4 to 11 (private) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
+ - token from 4 to 11 (private) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, storage.modifier.cs
  - token from 11 to 12 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 12 to 15 (int) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
+ - token from 12 to 15 (int) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.type.cs
  - token from 15 to 16 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 16 to 28 (currentCount) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
+ - token from 16 to 28 (currentCount) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, entity.name.variable.field.cs
  - token from 28 to 29 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 29 to 30 (=) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.operator.assignment.cs
  - token from 30 to 31 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 31 to 32 (0) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, constant.numeric.decimal.cs
- - token from 32 to 34 (;) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
+ - token from 32 to 33 (;) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, punctuation.terminator.statement.cs
 
 Line: 
  - token from 0 to 1 () with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
 
 Line:     private void IncrementCount()
  - token from 0 to 4 (    ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 4 to 11 (private) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
+ - token from 4 to 11 (private) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, storage.modifier.cs
  - token from 11 to 12 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 12 to 16 (void) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
+ - token from 12 to 16 (void) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.type.cs
  - token from 16 to 17 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 17 to 31 (IncrementCount) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, entity.name.function.cs
  - token from 31 to 32 (() with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, punctuation.parenthesis.open.cs
@@ -300,29 +302,29 @@ Line:     {
 
 Line:         var someString = \\"{ var ThisShouldNotBeCSharp = true; }\\";
  - token from 0 to 8 (        ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 8 to 11 (var) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
+ - token from 8 to 11 (var) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.other.var.cs
  - token from 11 to 12 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 12 to 22 (someString) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
+ - token from 12 to 22 (someString) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, entity.name.variable.local.cs
  - token from 22 to 23 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 23 to 24 (=) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.operator.assignment.cs
  - token from 24 to 25 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 25 to 26 (\\") with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, string.quoted.double.cs, punctuation.definition.string.begin.cs
  - token from 26 to 63 ({ var ThisShouldNotBeCSharp = true; }) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, string.quoted.double.cs
  - token from 63 to 64 (\\") with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, string.quoted.double.cs, punctuation.definition.string.end.cs
- - token from 64 to 66 (;) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
+ - token from 64 to 65 (;) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, punctuation.terminator.statement.cs
 
 Line:         currentCount++;
  - token from 0 to 8 (        ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 8 to 20 (currentCount) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
  - token from 20 to 22 (++) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.operator.increment.cs
- - token from 22 to 24 (;) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
+ - token from 22 to 23 (;) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, punctuation.terminator.statement.cs
 
 Line:     }
  - token from 0 to 4 (    ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 4 to 5 (}) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, punctuation.curlybrace.close.cs
 
 Line: }
- - token from 0 to 2 (}) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
+ - token from 0 to 1 (}) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, keyword.control.razor.directive.codeblock.close
 "
 `;
 
@@ -337,16 +339,16 @@ Line:     public string Goo { get; set; }
  - token from 0 to 4 (    ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 4 to 10 (public) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, storage.modifier.cs
  - token from 10 to 11 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 11 to 17 (string) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
+ - token from 11 to 17 (string) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.type.cs
  - token from 17 to 18 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 18 to 21 (Goo) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
+ - token from 18 to 21 (Goo) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, entity.name.variable.property.cs
  - token from 21 to 22 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 22 to 23 ({) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, punctuation.curlybrace.open.cs
  - token from 23 to 24 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 24 to 27 (get) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
+ - token from 24 to 27 (get) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.other.get.cs
  - token from 27 to 28 (;) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, punctuation.terminator.statement.cs
  - token from 28 to 29 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 29 to 32 (set) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, variable.other.readwrite.cs
+ - token from 29 to 32 (set) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.other.set.cs
  - token from 32 to 33 (;) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, punctuation.terminator.statement.cs
  - token from 33 to 34 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 34 to 35 (}) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, punctuation.curlybrace.close.cs
@@ -360,7 +362,7 @@ Line:     private int currentCount = 0;
  - token from 11 to 12 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 12 to 15 (int) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.type.cs
  - token from 15 to 16 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 16 to 28 (currentCount) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, entity.name.variable.local.cs
+ - token from 16 to 28 (currentCount) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, entity.name.variable.field.cs
  - token from 28 to 29 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 29 to 30 (=) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.operator.assignment.cs
  - token from 30 to 31 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
@@ -1357,7 +1359,7 @@ Line:     private int currentCount = 0;
  - token from 11 to 12 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 12 to 15 (int) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.type.cs
  - token from 15 to 16 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
- - token from 16 to 28 (currentCount) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, entity.name.variable.local.cs
+ - token from 16 to 28 (currentCount) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, entity.name.variable.field.cs
  - token from 28 to 29 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
  - token from 29 to 30 (=) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs, keyword.operator.assignment.cs
  - token from 30 to 31 ( ) with scopes text.aspnetcorerazor, meta.structure.razor.directive.codeblock, source.cs
