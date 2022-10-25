@@ -259,6 +259,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             Assert.Empty(response.Diagnostics);
         }
 
@@ -295,6 +296,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             Assert.Empty(response.Diagnostics);
         }
 
@@ -332,6 +334,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             Assert.Empty(response.Diagnostics);
         }
 
@@ -369,6 +372,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             Assert.Empty(response.Diagnostics);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
@@ -479,6 +483,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             Assert.Empty(response.Diagnostics);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
@@ -581,6 +586,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             Assert.Empty(response.Diagnostics);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
@@ -699,6 +705,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             Assert.Empty(response.Diagnostics);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
@@ -729,6 +736,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             Assert.Empty(response.Diagnostics);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
@@ -759,6 +767,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             Assert.Empty(response.Diagnostics);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
@@ -790,6 +799,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             Assert.Empty(response.Diagnostics);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
@@ -828,6 +838,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             Assert.Collection(response.Diagnostics,
                 d => Assert.Equal(new Range { Start = new Position(0, 1),End =  new Position(0, 2)}, d.Range),
                 d => Assert.Equal(new Range { Start = new Position(0, 55), End = new Position(0, 57)}, d.Range));
@@ -876,6 +887,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             Assert.Empty(response.Diagnostics);
             Assert.Equal(1337, response.HostDocumentVersion);
         }
@@ -931,6 +943,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             var d = Assert.Single(response.Diagnostics);
             Assert.Equal(HtmlErrorCodes.InvalidNestingErrorCode, d.Code);
             Assert.Equal(10, d.Range.Start.Line);
@@ -963,6 +976,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             var returnedDiagnostic = Assert.Single(response.Diagnostics);
             Assert.NotNull(returnedDiagnostic.Code);
             Assert.True(returnedDiagnostic.Code!.Value.TryGetSecond(out var str));
@@ -996,6 +1010,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             Assert.Empty(response.Diagnostics);
         }
 
@@ -1026,6 +1041,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             var diagnostic = Assert.Single(response.Diagnostics);
             Assert.NotNull(diagnostic.Code);
             Assert.True(diagnostic.Code!.Value.TryGetSecond(out var str));
@@ -1070,6 +1086,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             Assert.Empty(response.Diagnostics);
         }
 
@@ -1100,6 +1117,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics
             var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
 
             // Assert
+            Assert.NotNull(response.Diagnostics);
             Assert.Empty(response.Diagnostics);
         }
 

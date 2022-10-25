@@ -175,6 +175,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return emptyResult;
             }
 
+            var tagAttributes = completionContext.Attributes.ToList();
+
             var catchAllDescriptors = new HashSet<TagHelperDescriptor>();
             var prefix = completionContext.DocumentContext.Prefix ?? string.Empty;
             var possibleChildDescriptors = _tagHelperFactsService.GetTagHelpersGivenParent(completionContext.DocumentContext, completionContext.ContainingParentTagName);
@@ -222,7 +224,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                         addRuleCompletions = true;
                     }
 
-                    if (addRuleCompletions)
+                    // If we think this completion should be added based on tag name, thats great, but lets also make sure the attributes are correct
+                    if (addRuleCompletions && TagHelperMatchingConventions.SatisfiesAttributes(tagAttributes, rule))
                     {
                         UpdateCompletions(prefix + rule.TagName, possibleDescriptor);
                     }

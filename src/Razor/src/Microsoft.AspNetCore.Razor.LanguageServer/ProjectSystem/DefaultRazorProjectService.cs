@@ -497,8 +497,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                 _fromDocument = fromDocument ?? throw new ArgumentNullException(nameof(fromDocument));
             }
             public override async Task<TextAndVersion> LoadTextAndVersionAsync(
-               Workspace workspace,
-               DocumentId documentId,
+               Workspace? workspace,
+               DocumentId? documentId,
                CancellationToken cancellationToken)
             {
                 var sourceText = await _fromDocument.GetTextAsync();

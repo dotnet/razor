@@ -15,7 +15,7 @@ public abstract class RazorCompiledItem
 {
     /// <summary>
     /// Gets the identifier associated with the compiled item. The identifier is used programmatically to locate
-    /// a specific item of a specific kind and should be uniqure within the assembly.
+    /// a specific item of a specific kind and should be unique within the assembly.
     /// </summary>
     public abstract string Identifier { get; }
 

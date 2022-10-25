@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The first phase of intermediate node procesing is document classification. Passes in this phase should classify the
+/// The first phase of intermediate node processing is document classification. Passes in this phase should classify the
 /// document according to any relevant criteria (project configuration, file extension, directive) and modify
 /// the intermediate node document to suit the desired document shape. Document classifiers should also set
 /// <see cref="DocumentIntermediateNode.DocumentKind"/> to prevent other classifiers from running. If no classifier

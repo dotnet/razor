@@ -326,8 +326,8 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
         private static void AssertRazorCompletionItem(RazorCompletionItem item)
         {
-            Assert.Equal(item.DisplayText, SyntaxConstants.TextTagName);
-            Assert.Equal(item.InsertText, SyntaxConstants.TextTagName);
+            Assert.Equal(SyntaxConstants.TextTagName, item.DisplayText);
+            Assert.Equal(SyntaxConstants.TextTagName, item.InsertText);
             var completionDescription = item.GetMarkupTransitionCompletionDescription();
             Assert.Equal(CodeAnalysisResources.MarkupTransition_Description, completionDescription.Description);
         }

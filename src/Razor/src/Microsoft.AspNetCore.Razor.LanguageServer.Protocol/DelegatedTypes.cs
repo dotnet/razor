@@ -44,6 +44,6 @@ internal record DelegatedCompletionResolutionContext(
     object? OriginalCompletionListData);
 
 internal record DelegatedCompletionItemResolveParams(
-    TextDocumentIdentifier HostDocument,
+    VersionedTextDocumentIdentifier HostDocument,
     VSInternalCompletionItem CompletionItem,
     RazorLanguageKind OriginatingKind);

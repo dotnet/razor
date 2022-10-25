@@ -1337,6 +1337,70 @@ namespace Microsoft.VisualStudio.Editor.Razor
             AssertCompletionsAreEquivalent(expectedCompletions, completions);
         }
 
+        [Fact]
+        public void GetElementCompletions_MustSatisfyAttributeRules_WithAttributes()
+        {
+            // Arrange
+            var documentDescriptors = new[]
+            {
+                TagHelperDescriptorBuilder.Create("FormTagHelper", "TestAssembly")
+                    .TagMatchingRuleDescriptor(rule => rule
+                        .RequireTagName("form")
+                    .RequireAttributeDescriptor(builder =>
+                        {
+                            builder.Name = "asp-route-";
+                            builder.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                        }))
+                    .Build(),
+            };
+            var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>()
+            {
+                ["form"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0] }
+            });
+
+            var attributes = new Dictionary<string, string>
+            {
+                { "asp-route-id", "123" }
+            };
+
+            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "", containingParentTagName: "div", attributes: attributes);
+            var service = CreateTagHelperCompletionFactsService();
+
+            // Act
+            var completions = service.GetElementCompletions(completionContext);
+
+            // Assert
+            AssertCompletionsAreEquivalent(expectedCompletions, completions);
+        }
+
+        [Fact]
+        public void GetElementCompletions_MustSatisfyAttributeRules_NoAttributes()
+        {
+            // Arrange
+            var documentDescriptors = new[]
+            {
+                TagHelperDescriptorBuilder.Create("FormTagHelper", "TestAssembly")
+                    .TagMatchingRuleDescriptor(rule => rule
+                        .RequireTagName("form")
+                    .RequireAttributeDescriptor(builder =>
+                        {
+                            builder.Name = "asp-route-";
+                            builder.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                        }))
+                    .Build(),
+            };
+            var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>());
+
+            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "", containingParentTagName: "div");
+            var service = CreateTagHelperCompletionFactsService();
+
+            // Act
+            var completions = service.GetElementCompletions(completionContext);
+
+            // Assert
+            AssertCompletionsAreEquivalent(expectedCompletions, completions);
+        }
+
         private static LanguageServerTagHelperCompletionService CreateTagHelperCompletionFactsService()
         {
             var tagHelperFactsService = new DefaultTagHelperFactsService();
@@ -1375,14 +1439,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
             string containingTagName,
             string containingParentTagName = "body",
             bool containingParentIsTagHelper = false,
-            string tagHelperPrefix = "")
+            string tagHelperPrefix = "",
+            IEnumerable<KeyValuePair<string, string>> attributes = null)
         {
+            attributes ??= Enumerable.Empty<KeyValuePair<string, string>>();
+
             var documentContext = TagHelperDocumentContext.Create(tagHelperPrefix, descriptors);
             var completionContext = new ElementCompletionContext(
                 documentContext,
                 existingCompletions,
                 containingTagName,
-                attributes: Enumerable.Empty<KeyValuePair<string, string>>(),
+                attributes,
                 containingParentTagName: containingParentTagName,
                 containingParentIsTagHelper: containingParentIsTagHelper,
                 inHTMLSchema: (tag) => tag == "strong" || tag == "b" || tag == "bold" || tag == "li" || tag == "div");

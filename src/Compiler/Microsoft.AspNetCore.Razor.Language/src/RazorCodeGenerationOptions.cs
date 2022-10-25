@@ -86,11 +86,11 @@ public abstract class RazorCodeGenerationOptions
 
     /// <summary>
     /// Gets a value that indicates whether to suppress the default <c>#pragma checksum</c> directive in the
-    /// generated C# code. If <c>false</c> the checkum directive will be included, otherwise it will not be
+    /// generated C# code. If <c>false</c> the checksum directive will be included, otherwise it will not be
     /// generated. Defaults to <c>false</c>, meaning that the checksum will be included.
     /// </summary>
     /// <remarks>
-    /// The <c>#pragma checksum</c> is required to enable debugging and should only be supressed for testing
+    /// The <c>#pragma checksum</c> is required to enable debugging and should only be suppressed for testing
     /// purposes.
     /// </remarks>
     public abstract bool SuppressChecksum { get; }

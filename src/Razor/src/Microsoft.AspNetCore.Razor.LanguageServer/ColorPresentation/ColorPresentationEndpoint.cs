@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -32,9 +33,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation
 
         public async Task<ColorPresentation[]> HandleRequestAsync(ColorPresentationParams request, RazorRequestContext context, CancellationToken cancellationToken)
         {
+            var documentContext = context.DocumentContext;
+            if (documentContext is null)
+            {
+                return Array.Empty<ColorPresentation>();
+            }
+
+            var delegatedRequest = new DelegatedColorPresentationParams
+            {
+                RequiredHostDocumentVersion = documentContext.Version,
+                Color = request.Color, Range = request.Range,
+                TextDocument = request.TextDocument
+            };
+
             var colorPresentations = await _languageServer.SendRequestAsync<ColorPresentationParams, ColorPresentation[]>(
                 RazorLanguageServerCustomMessageTargets.RazorProvideHtmlColorPresentationEndpoint,
-                request,
+                delegatedRequest,
                 cancellationToken).ConfigureAwait(false);
 
             if (colorPresentations is null)

@@ -317,7 +317,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             }
         }
 
-        private static bool TryClassifySummary(List<ClassifiedTextRun> runs, string documentation)
+        private static bool TryClassifySummary(List<ClassifiedTextRun> runs, string? documentation)
         {
             if (!TryExtractSummary(documentation, out var summaryContent))
             {
@@ -372,7 +372,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                     ClassifyExistingTextRun(runs, currentTextRun);
 
                     // We've processed the existing string, now we can process the code block.
-                    var value = currentCodeMatch.Groups[1].Value;
+                    var value = currentCodeMatch.Groups[TagContentGroupName].Value;
                     if (value.Length != 0)
                     {
                         runs.Add(new ClassifiedTextRun(VSPredefinedClassificationTypeNames.Text, value.ToString(), ClassifiedTextRunStyle.UseClassificationFont));
@@ -386,7 +386,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                     ClassifyExistingTextRun(runs, currentTextRun);
 
                     // We've processed the existing string, now we can process the actual cref.
-                    var value = currentCrefMatch.Groups[2].Value;
+                    var value = currentCrefMatch.Groups[TagContentGroupName].Value;
                     var reducedValue = ReduceCrefValue(value);
                     reducedValue = reducedValue.Replace("{", "<").Replace("}", ">").Replace("`1", "<>");
                     ClassifyTypeName(runs, reducedValue);

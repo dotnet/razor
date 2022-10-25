@@ -79,10 +79,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
                 {
                     lock (_lock)
                     {
-                        if (_computedState is null)
-                        {
-                            _computedState = new ComputedStateTracker(this);
-                        }
+                        _computedState ??= new ComputedStateTracker(this);
                     }
                 }
 

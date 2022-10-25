@@ -41,9 +41,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
 
         public async Task<ColorInformation[]> HandleRequestAsync(DocumentColorParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
         {
+            var documentContext = requestContext.DocumentContext;
+            if (documentContext is null)
+            {
+                return Array.Empty<ColorInformation>();
+            }
+
+            var delegatedRequest = new DelegatedDocumentColorParams
+            {
+                RequiredHostDocumentVersion = documentContext.Version,
+                TextDocument = request.TextDocument
+            };
+
             var documentColors = await _languageServer.SendRequestAsync<DocumentColorParams, ColorInformation[]>(
                 RazorLanguageServerCustomMessageTargets.RazorProvideHtmlDocumentColorEndpoint,
-                request,
+                delegatedRequest,
                 cancellationToken).ConfigureAwait(false);
 
             if (documentColors is null)

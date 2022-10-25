@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Razor.Tooltip
 {
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Razor.Tooltip
             [typeof(decimal).FullName] = "decimal",
         };
 
-        public static bool TryGetSimpleName(string typeName, out string resolvedName)
+        public static bool TryGetSimpleName(string typeName, [NotNullWhen(returnValue: true)] out string? resolvedName)
         {
             if (typeName is null)
             {

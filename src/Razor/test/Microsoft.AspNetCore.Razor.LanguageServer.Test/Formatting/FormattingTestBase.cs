@@ -91,10 +91,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 InsertSpaces = insertSpaces,
             };
 
-            var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument, LoggerFactory);
+            var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument, documentSnapshot, LoggerFactory);
+            var documentContext = new DocumentContext(uri, documentSnapshot, version: 1);
 
             // Act
-            var edits = await formattingService.FormatAsync(uri, documentSnapshot, range, options, DisposalToken);
+            var edits = await formattingService.FormatAsync(documentContext, range, options, DisposalToken);
 
             // Assert
             var edited = ApplyEdits(source, edits);
@@ -131,15 +132,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
             var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
-            var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument, LoggerFactory);
+            var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument, documentSnapshot, LoggerFactory);
             var options = new FormattingOptions()
             {
                 TabSize = tabSize,
                 InsertSpaces = insertSpaces,
             };
+            var documentContext = new DocumentContext(uri, documentSnapshot, version: 1);
 
             // Act
-            var edits = await formattingService.FormatOnTypeAsync(uri, documentSnapshot, languageKind, Array.Empty<TextEdit>(), options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
+            var edits = await formattingService.FormatOnTypeAsync(documentContext, languageKind, Array.Empty<TextEdit>(), options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
 
             // Assert
             var edited = ApplyEdits(razorSourceText, edits);
@@ -198,15 +200,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new InvalidOperationException("Could not map from Razor document to generated document");
             }
 
-            var formattingService = TestRazorFormattingService.CreateWithFullSupport(codeDocument);
+            var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument);
             var options = new FormattingOptions()
             {
                 TabSize = tabSize,
                 InsertSpaces = insertSpaces,
             };
+            var documentContext = new DocumentContext(uri, documentSnapshot, version: 1);
 
             // Act
-            var edits = await formattingService.FormatCodeActionAsync(uri, documentSnapshot, languageKind, codeActionEdits, options, DisposalToken);
+            var edits = await formattingService.FormatCodeActionAsync(documentContext, languageKind, codeActionEdits, options, DisposalToken);
 
             // Assert
             var edited = ApplyEdits(razorSourceText, edits);

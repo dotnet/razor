@@ -43,6 +43,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
 
         public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (!FileKinds.IsComponent(context.SyntaxTree.Options.FileKind))
             {
                 // Directive attributes are only supported in components

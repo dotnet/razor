@@ -202,8 +202,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer
-                .Setup(d => d.TrySynchronizeVirtualDocumentAsync(It.IsAny<int>(), It.IsAny<CSharpVirtualDocumentSnapshot>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(false);
+                .Setup(d => d.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(It.IsAny<int>(), It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(Synchronized: false, VirtualSnapshot: null));
 
             var documentDiagnosticsHandler = new DocumentPullDiagnosticsHandler(requestInvoker, documentManager, documentSynchronizer.Object, diagnosticsProvider, _loggerProvider);
             var diagnosticRequest = new VSInternalDocumentDiagnosticsParams()
@@ -455,14 +455,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
         private LSPDocumentManager CreateDocumentManager(int hostDocumentVersion = 0)
         {
-            var testVirtualDocUri = new Uri("C:/path/to/file.razor.g.cs");
             var testVirtualDocument = new TestVirtualDocumentSnapshot(_uri, hostDocumentVersion);
-            var csharpTextBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
-            var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testVirtualDocUri, csharpTextBuffer.CurrentSnapshot, hostDocumentVersion);
+            var csharpVirtualDocument = GetCSharpVirtualDocumentSnapshot(hostDocumentVersion);
+
             LSPDocumentSnapshot documentSnapshot = new TestLSPDocumentSnapshot(_uri, hostDocumentVersion, testVirtualDocument, csharpVirtualDocument);
             var documentManager = new TestDocumentManager();
             documentManager.AddDocument(_uri, documentSnapshot);
             return documentManager;
+        }
+
+        private CSharpVirtualDocumentSnapshot GetCSharpVirtualDocumentSnapshot(int hostDocumentVersion = 0)
+        {
+            var testVirtualDocUri = new Uri("C:/path/to/file.razor.g.cs");
+            var csharpTextBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
+            var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testVirtualDocUri, csharpTextBuffer.CurrentSnapshot, hostDocumentVersion);
+
+            return csharpVirtualDocument;
         }
 
         private LSPDiagnosticsTranslator GetDiagnosticsProvider(params Range[] expectedRanges)
@@ -537,12 +545,12 @@ d.Severity != DiagnosticSeverity.Error;
             return diagnosticsProvider.Object;
         }
 
-        private static LSPDocumentSynchronizer CreateDocumentSynchronizer()
+        private LSPDocumentSynchronizer CreateDocumentSynchronizer()
         {
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
             documentSynchronizer
-                .Setup(d => d.TrySynchronizeVirtualDocumentAsync(It.IsAny<int>(), It.IsAny<CSharpVirtualDocumentSnapshot>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(true);
+                .Setup(d => d.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(It.IsAny<int>(), It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, GetCSharpVirtualDocumentSnapshot()));
             return documentSynchronizer.Object;
         }
     }

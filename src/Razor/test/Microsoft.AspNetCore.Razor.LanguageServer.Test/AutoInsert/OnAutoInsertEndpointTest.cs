@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
@@ -50,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     InsertSpaces = true
                 },
             };
-            var requestContext = CreateOnAutoInsertRequestContext(documentContext);
+            var requestContext = await CreateOnAutoInsertRequestContextAsync(documentContext);
 
             // Act
             var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
@@ -91,7 +90,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 },
             };
 
-            var requestContext = CreateOnAutoInsertRequestContext(documentContext);
+            var requestContext = await CreateOnAutoInsertRequestContextAsync(documentContext);
 
             // Act
             var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
@@ -134,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 },
             };
 
-            var requestContext = CreateOnAutoInsertRequestContext(documentContext);
+            var requestContext = await CreateOnAutoInsertRequestContextAsync(documentContext);
 
             // Act
             var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
@@ -270,7 +269,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     InsertSpaces = true
                 },
             };
-            var requestContext = CreateOnAutoInsertRequestContext(documentContext);
+            var requestContext = await CreateOnAutoInsertRequestContextAsync(documentContext);
 
             // Act
             var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
@@ -387,13 +386,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             await VerifyCSharpOnAutoInsertAsync(input, expected, character);
         }
 
-        private RazorRequestContext CreateOnAutoInsertRequestContext(DocumentContext? documentContext)
+        private async Task<RazorRequestContext> CreateOnAutoInsertRequestContextAsync(DocumentContext? documentContext)
         {
             var lspServices = new Mock<ILspServices>(MockBehavior.Strict);
             lspServices
                 .Setup(l => l.GetRequiredService<AdhocWorkspaceFactory>()).Returns(TestAdhocWorkspaceFactory.Instance);
+            var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync();
             lspServices
-                .Setup(l => l.GetRequiredService<RazorFormattingService>()).Returns(TestRazorFormattingService.CreateWithFullSupport());
+                .Setup(l => l.GetRequiredService<RazorFormattingService>())
+                .Returns(formattingService);
 
             var requestContext = CreateRazorRequestContext(documentContext, lspServices: lspServices.Object);
 
@@ -426,7 +427,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             };
             var documentContext = await DocumentContextFactory.TryCreateAsync(@params.TextDocument.Uri, DisposalToken);
 
-            var requestContext = CreateOnAutoInsertRequestContext(documentContext);
+            var requestContext = await CreateOnAutoInsertRequestContextAsync(documentContext);
 
             // Act
             var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
