@@ -73,11 +73,11 @@
 
 ## API Shims
 
-  - Microsoft.AspNetCore.Razor.Test.ComponentShim (`netstandard2.0`;`net472`)
-  - Microsoft.AspNetCore.Razor.Test.MvcShim (`net7.0`;`net472`)
-  - Microsoft.AspNetCore.Razor.Test.MvcShim.ClassLib (`netstandard2.0`)
-  - Microsoft.AspNetCore.Razor.Test.MvcShim.Version1_X (`net7.0`;`netstandard2.0`)
-  - Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X (`net7.0`;`netstandard2.0`)
+- Microsoft.AspNetCore.Razor.Test.ComponentShim (`netstandard2.0`;`net472`)
+- Microsoft.AspNetCore.Razor.Test.MvcShim (`net7.0`;`net472`)
+- Microsoft.AspNetCore.Razor.Test.MvcShim.ClassLib (`netstandard2.0`)
+- Microsoft.AspNetCore.Razor.Test.MvcShim.Version1_X (`net7.0`;`netstandard2.0`)
+- Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X (`net7.0`;`netstandard2.0`)
 
 ## Tooling Core
 
