@@ -60,8 +60,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             void Classifier_ClassificationChanged(object sender, ClassificationChangedEventArgs e)
             {
-                var classifications = GetClassifications(classifier, textView);
-
                 if (HasClassification(classifier, textView, expectedClassification, count))
                 {
                     semaphore.Release();
@@ -71,11 +69,24 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             static bool HasClassification(IClassifier classifier, ITextView textView, string expectedClassification, int count)
             {
                 var classifications = GetClassifications(classifier, textView);
-                return classifications.Where(
-                    c => c.ClassificationType.BaseTypes.Any(bT => bT is ILayeredClassificationType layered &&
-                        layered.Layer == ClassificationLayer.Semantic &&
-                        layered.Classification == expectedClassification)).Count() >= count;
+
+                var found = 0;
+                foreach (var c in classifications)
+                {
+                    if (ClassificationMatches(expectedClassification, c.ClassificationType) ||
+                        c.ClassificationType.BaseTypes.Any(t => ClassificationMatches(expectedClassification, t)))
+                    {
+                        found++;
+                    }
+                }
+
+                return found >= count;
             }
+
+            static bool ClassificationMatches(string expectedClassification, IClassificationType classificationType)
+                => classificationType is ILayeredClassificationType layered &&
+                    layered.Layer == ClassificationLayer.Semantic &&
+                    layered.Classification == expectedClassification;
         }
 
         public async Task VerifyGetClassificationsAsync(IEnumerable<ClassificationSpan> expectedClassifications, CancellationToken cancellationToken)
