@@ -62,8 +62,8 @@
 
 - Target Framework: `net472`
 - Projects:
-  - Microsoft.CodeAnalysis.Razor.OmniSharpPlugin
-  - Microsoft.CodeAnalysis.Razor.OmniSHarpPlugin.StrongNamed
+  - Microsoft.AspNetCore.Razor.OmniSharpPlugin
+  - Microsoft.AspNetCore.Razor.OmniSHarpPlugin.StrongNamed
 
 # Testing Layers
 
