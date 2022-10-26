@@ -40,37 +40,21 @@ public sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
 
     public LanguageVersion CSharpLanguageVersion { get; }
 
-    public override bool Equals(object obj)
-    {
-        return base.Equals(obj as ProjectWorkspaceState);
-    }
+    public override bool Equals(object? obj)
+        => Equals(obj as ProjectWorkspaceState);
 
     public bool Equals(ProjectWorkspaceState? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (!Enumerable.SequenceEqual(TagHelpers, other.TagHelpers))
-        {
-            return false;
-        }
-
-        if (CSharpLanguageVersion != other.CSharpLanguageVersion)
-        {
-            return false;
-        }
-
-        return true;
-    }
+        => other is not null &&
+           TagHelpers.SequenceEqual(other.TagHelpers) &&
+           CSharpLanguageVersion == other.CSharpLanguageVersion;
 
     public override int GetHashCode()
     {
         var hash = new HashCodeCombiner();
-        for (var i = 0; i < TagHelpers.Count; i++)
+
+        foreach (var tagHelper in TagHelpers)
         {
-            hash.Add(TagHelpers[i].GetHashCode());
+            hash.Add(tagHelper.GetHashCode());
         }
 
         hash.Add(CSharpLanguageVersion);

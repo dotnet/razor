@@ -59,7 +59,7 @@ internal class DefaultProjectSnapshot : ProjectSnapshot
                 _documents.Add(filePath, result);
             }
 
-            return result;
+            return result!;
         }
     }
 

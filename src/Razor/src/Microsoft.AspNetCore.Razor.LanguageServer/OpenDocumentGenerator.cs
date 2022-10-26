@@ -74,7 +74,7 @@ internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger, IDisposable
         _workQueue.Dispose();
     }
 
-    private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
+    private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         // Don't do any work if the solution is closing
         if (args.SolutionIsClosing)

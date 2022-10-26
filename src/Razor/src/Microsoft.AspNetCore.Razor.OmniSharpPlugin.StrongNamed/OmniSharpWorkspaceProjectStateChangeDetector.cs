@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
 
@@ -90,12 +91,12 @@ public class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectSna
         // thread. OmniSharp currently has an issue where they update the Solution on multiple different threads resulting
         // in change events dispatching through the Workspace on multiple different threads. This normalizes
         // that abnormality.
-        internal override void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
+        internal override void Workspace_WorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
         {
-            _ = Workspace_WorkspaceChangedAsync(sender, args, CancellationToken.None);
+            Workspace_WorkspaceChangedAsync(sender, args, CancellationToken.None).Forget();
         }
 
-        private async Task Workspace_WorkspaceChangedAsync(object sender, WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
+        private async Task Workspace_WorkspaceChangedAsync(object? sender, WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
         {
             try
             {

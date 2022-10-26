@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -93,24 +94,18 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     private void StartWorkTimer()
     {
         // Access to the timer is protected by the lock in Synchronize and in Timer_Tick
-        if (_workTimer is null)
-        {
-            // Timer will fire after a fixed delay, but only once.
-            _workTimer = new Timer(WorkTimer_Tick, state: null, dueTime: _publishDelay, period: Timeout.InfiniteTimeSpan);
-        }
+        // Timer will fire after a fixed delay, but only once.
+        _workTimer ??= new Timer(WorkTimer_Tick, state: null, dueTime: _publishDelay, period: Timeout.InfiniteTimeSpan);
     }
 
     private void StartDocumentClosedCheckTimer()
     {
-        if (_documentClosedTimer is null)
-        {
-            _documentClosedTimer = new Timer(DocumentClosedTimer_Tick, null, s_checkForDocumentClosedDelay, Timeout.InfiniteTimeSpan);
-        }
+        _documentClosedTimer ??= new Timer(DocumentClosedTimer_Tick, null, s_checkForDocumentClosedDelay, Timeout.InfiniteTimeSpan);
     }
 
-    private void DocumentClosedTimer_Tick(object state)
+    private void DocumentClosedTimer_Tick(object? state)
     {
-        _ = DocumentClosedTimer_TickAsync(CancellationToken.None);
+        DocumentClosedTimer_TickAsync(CancellationToken.None).Forget();
     }
 
     private async Task DocumentClosedTimer_TickAsync(CancellationToken cancellationToken)
@@ -206,9 +201,9 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         }
     }
 
-    private void WorkTimer_Tick(object state)
+    private void WorkTimer_Tick(object? state)
     {
-        _ = WorkTimer_TickAsync(CancellationToken.None);
+        WorkTimer_TickAsync(CancellationToken.None).Forget();
     }
 
     private async Task WorkTimer_TickAsync(CancellationToken cancellationToken)
@@ -232,9 +227,14 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
 
             lock (_work)
             {
+                // Suppress analyzer that suggests using DisposeAsync().
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
+
                 // Resetting the timer allows another batch of work to start.
                 _workTimer?.Dispose();
                 _workTimer = null;
+
+#pragma warning restore VSTHRD103 // Call async methods when in an async method
 
                 // If more work came in while we were running start the timer again.
                 if (_work.Count > 0)
@@ -247,9 +247,15 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         {
             lock (_work)
             {
+                // Suppress analyzer that suggests using DisposeAsync().
+
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
+
                 // Resetting the timer allows another batch of work to start.
                 _workTimer?.Dispose();
                 _workTimer = null;
+
+#pragma warning restore VSTHRD103 // Call async methods when in an async method
             }
 
             throw;

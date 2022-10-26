@@ -80,11 +80,11 @@ internal class FormattingDiagnosticValidationPass : FormattingPassBase
     {
         public static IEqualityComparer<RazorDiagnostic> Instance = new LocationIgnoringDiagnosticComparer();
 
-        public bool Equals(RazorDiagnostic x, RazorDiagnostic y)
+        public bool Equals(RazorDiagnostic? x, RazorDiagnostic? y)
             => x is not null &&
-                y is not null &&
-                x.Severity.Equals(y.Severity) &&
-                x.Id.Equals(y.Id);
+               y is not null &&
+               x.Severity.Equals(y.Severity) &&
+               x.Id.Equals(y.Id);
 
         public int GetHashCode(RazorDiagnostic obj)
             => obj.GetHashCode();

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>net7.0;net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
   </PropertyGroup>
 

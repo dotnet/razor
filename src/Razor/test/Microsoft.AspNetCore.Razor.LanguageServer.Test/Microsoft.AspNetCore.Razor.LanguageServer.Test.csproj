@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(DefaultNetCoreWindowsTargetFramework)</TargetFrameworks>
+    <TargetFramework>net7.0-windows</TargetFramework>
 
     <!-- To generate baselines, run tests with /p:GenerateBaselines=true -->
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>

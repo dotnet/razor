@@ -284,7 +284,9 @@ public static class ExportProviderCache
             var assemblyName = new AssemblyName(assemblyFullName);
             if (!string.IsNullOrEmpty(codeBasePath))
             {
+#pragma warning disable SYSLIB0044 // Type or member is obsolete
                 assemblyName.CodeBase = codeBasePath;
+#pragma warning restore SYSLIB0044 // Type or member is obsolete
             }
 
             return LoadAssembly(assemblyName);

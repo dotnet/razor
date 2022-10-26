@@ -1,11 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFrameworks>net7.0;net472</TargetFrameworks>
+    <IsShipping>false</IsShipping>
+
     <!-- To generate baselines, run tests with /p:GenerateBaselines=true -->
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
     <DefineConstants>$(DefineConstants);__RemoveThisBitTo__GENERATE_BASELINES</DefineConstants>
-    <TargetFrameworks>net6.0;netstandard2.0;net472</TargetFrameworks>
-    <IsShipping>false</IsShipping>
   </PropertyGroup>
 
   <ItemGroup>

@@ -95,20 +95,21 @@ internal class DesignTimeHelperResponseRewriter : DelegatedCompletionResponseRew
     {
         public static CompletionItemComparer Instance = new();
 
-        public bool Equals(CompletionItem x, CompletionItem y)
+        public bool Equals(CompletionItem? x, CompletionItem? y)
         {
-            if (x is null && y is null)
+            if (x is null)
             {
-                return true;
+                return y is null;
             }
-            else if (x is null || y is null)
+            else if (y is null)
             {
                 return false;
             }
 
-            return x.Label.Equals(y.Label, StringComparison.Ordinal);
+            return x.Label == y.Label;
         }
 
-        public int GetHashCode(CompletionItem obj) => obj?.Label?.GetHashCode() ?? 0;
+        public int GetHashCode(CompletionItem obj)
+            => obj?.Label?.GetHashCode() ?? 0;
     }
 }

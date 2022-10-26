@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
@@ -69,7 +70,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
             completionContext.CurrentParentIsTagHelper);
 
         var applicableDescriptors = applicableTagHelperBinding?.Descriptors ?? Enumerable.Empty<TagHelperDescriptor>();
-        var unprefixedTagName = completionContext.CurrentTagName.Substring(prefix.Length);
+        var unprefixedTagName = completionContext.CurrentTagName[prefix.Length..];
 
         if (!completionContext.InHTMLSchema(unprefixedTagName) &&
             applicableDescriptors.All(descriptor => descriptor.TagOutputHint is null))
@@ -365,37 +366,5 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
         }
 
         return filteredList;
-    }
-
-    private class ShortNameToFullyQualifiedComparer : IEqualityComparer<TagHelperDescriptor>
-    {
-        public static readonly ShortNameToFullyQualifiedComparer Instance = new();
-
-        public bool Equals(TagHelperDescriptor x, TagHelperDescriptor y)
-        {
-            if (object.ReferenceEquals(x, y))
-            {
-                return true;
-            }
-
-            if (x is null || y is null)
-            {
-                return false;
-            }
-
-            if (!string.Equals(x.Name, y.Name, StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            if (!string.Equals(x.AssemblyName, y.AssemblyName, StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public int GetHashCode(TagHelperDescriptor obj) => obj.Name.GetHashCode();
     }
 }

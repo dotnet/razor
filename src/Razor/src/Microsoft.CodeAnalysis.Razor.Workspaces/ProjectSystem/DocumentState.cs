@@ -382,6 +382,7 @@ internal class DocumentState
                     _ = outputTask.ContinueWith(
                         static (task, state) =>
                         {
+                            Assumes.NotNull(state);
                             var tcs = (TaskCompletionSource<(RazorCodeDocument, VersionStamp)>)state;
 
                             PropagateToTaskCompletionSource(task, tcs);
@@ -390,19 +391,19 @@ internal class DocumentState
                         CancellationToken.None,
                         TaskContinuationOptions.ExecuteSynchronously,
                         TaskScheduler.Default);
-                }
             }
+        }
 
-            return taskUnsafe;
+        return taskUnsafe;
 
-            static void PropagateToTaskCompletionSource(
-                Task<(RazorCodeDocument, VersionStamp)> targetTask,
-                TaskCompletionSource<(RazorCodeDocument, VersionStamp)> tcs)
+        static void PropagateToTaskCompletionSource(
+            Task<(RazorCodeDocument, VersionStamp)> targetTask,
+            TaskCompletionSource<(RazorCodeDocument, VersionStamp)> tcs)
+        {
+            if (targetTask.Status == TaskStatus.RanToCompletion)
             {
-                if (targetTask.Status == TaskStatus.RanToCompletion)
-                {
 #pragma warning disable VSTHRD103 // Call async methods when in an async method
-                    tcs.SetResult(targetTask.Result);
+                tcs.SetResult(targetTask.Result);
 #pragma warning restore VSTHRD103 // Call async methods when in an async method
                 }
                 else if (targetTask.Status == TaskStatus.Canceled)
@@ -412,6 +413,7 @@ internal class DocumentState
                 else if (targetTask.Status == TaskStatus.Faulted)
                 {
                     // Faulted tasks area always aggregate exceptions so we need to extract the "true" exception if it's available:
+                    Assumes.NotNull(targetTask.Exception);
                     var exception = targetTask.Exception.InnerException ?? targetTask.Exception;
                     tcs.SetException(exception);
                 }
@@ -542,7 +544,7 @@ internal class DocumentState
                 _inputVersion = inputVersion;
             }
 
-            public bool TryGetCachedOutput(out RazorCodeDocument codeDocument, out VersionStamp inputVersion)
+            public bool TryGetCachedOutput([NotNullWhen(true)] out RazorCodeDocument? codeDocument, out VersionStamp inputVersion)
             {
                 // The goal here is to capture a weak reference to the code document so if there's ever a sub-system that's still utilizing it
                 // our computed output maintains its cache.

@@ -21,19 +21,16 @@ internal class ProvideSemanticTokensResponse
 
     public long? HostDocumentSyncVersion { get; }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
-        if (obj is not ProvideSemanticTokensResponse other || other.HostDocumentSyncVersion != HostDocumentSyncVersion)
+        if (obj is not ProvideSemanticTokensResponse other ||
+            other.HostDocumentSyncVersion != HostDocumentSyncVersion)
         {
             return false;
         }
 
-        if (other.Tokens == Tokens || (other.Tokens is not null && Tokens is not null && other.Tokens.SequenceEqual(Tokens)))
-        {
-            return true;
-        }
-
-        return false;
+        return other.Tokens == Tokens ||
+              (other.Tokens is not null && Tokens is not null && other.Tokens.SequenceEqual(Tokens));
     }
 
     public override int GetHashCode()

@@ -2,10 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Extensions.Internal;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -80,34 +80,16 @@ internal sealed class RazorCompletionItem : IEquatable<RazorCompletionItem>
         }
     }
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as RazorCompletionItem);
-    }
+    public override bool Equals(object? obj)
+        => Equals(obj as RazorCompletionItem);
 
     public bool Equals(RazorCompletionItem? other)
     {
-        if (other is null)
-        {
-            return false;
-        }
-
-        if (!string.Equals(DisplayText, other.DisplayText, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        if (!string.Equals(InsertText, other.InsertText, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        if (Kind != other.Kind)
-        {
-            return false;
-        }
-
-        if (!Enumerable.SequenceEqual(Items, other.Items))
+        if (other is null ||
+            DisplayText != other.DisplayText ||
+            InsertText != other.InsertText ||
+            Kind != other.Kind ||
+            !Enumerable.SequenceEqual(Items, other.Items))
         {
             return false;
         }

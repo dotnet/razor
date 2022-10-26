@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal;
 
@@ -126,21 +127,22 @@ internal class StringCache
 
         public bool IsAlive => _weakRef.TryGetTarget(out _);
 
-        public bool TryGetTarget(out string target)
+        public bool TryGetTarget([NotNullWhen(true)] out string? target)
         {
             return _weakRef.TryGetTarget(out target);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            if (!(obj is Entry entry))
+            if (obj is not Entry entry)
             {
                 return false;
             }
 
             if (TryGetTarget(out var thisTarget) && entry.TryGetTarget(out var entryTarget))
             {
-                return thisTarget!.GetHashCode().Equals(entryTarget.GetHashCode()) && thisTarget!.Equals(entryTarget, StringComparison.Ordinal);
+                return thisTarget.GetHashCode().Equals(entryTarget.GetHashCode()) &&
+                       thisTarget == entryTarget;
             }
 
             // We lost the reference, but we need to check RefEquals to ensure that HashSet can successfully Remove items.
