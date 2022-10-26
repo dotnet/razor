@@ -62,10 +62,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions
 
             public override byte[] GetChecksum()
             {
-                if (_checksum is null)
-                {
-                    _checksum = _sourceText.GetChecksum().ToArray();
-                }
+                _checksum ??= _sourceText.GetChecksum().ToArray();
 
                 return _checksum;
             }

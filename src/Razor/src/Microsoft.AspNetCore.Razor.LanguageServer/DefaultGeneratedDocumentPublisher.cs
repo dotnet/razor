@@ -51,6 +51,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
+            if (projectManager is null)
+            {
+                throw new ArgumentNullException(nameof(projectManager));
+            }
+
             _projectSnapshotManager = projectManager;
             _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
         }

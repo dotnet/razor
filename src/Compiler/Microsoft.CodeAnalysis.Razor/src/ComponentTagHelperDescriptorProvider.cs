@@ -26,6 +26,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Included)
             .WithMiscellaneousOptions(SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions & (~SymbolDisplayMiscellaneousOptions.UseSpecialTypes));
 
+    public string Name => nameof(ComponentTagHelperDescriptorProvider);
     public bool IncludeDocumentation { get; set; }
 
     public int Order { get; set; }
@@ -328,7 +329,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             pb.Metadata[ComponentMetadata.Component.TypeParameterKey] = bool.TrueString;
             pb.Metadata[ComponentMetadata.Component.TypeParameterIsCascadingKey] = cascade.ToString();
 
-            // Type constraints (like "Image" or "Foo") are stored indepenently of
+            // Type constraints (like "Image" or "Foo") are stored independently of
             // things like constructor constraints and not null constraints in the
             // type parameter so we create a single string representation of all the constraints
             // here.

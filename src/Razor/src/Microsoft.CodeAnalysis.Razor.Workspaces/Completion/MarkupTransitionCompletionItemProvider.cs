@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
         private readonly HtmlFactsService _htmlFactsService;
 
-        private static RazorCompletionItem s_markupTransitionCompletionItem;
+        private static RazorCompletionItem? s_markupTransitionCompletionItem;
         public static RazorCompletionItem MarkupTransitionCompletionItem
         {
             get
@@ -83,8 +81,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             return completions;
         }
 
-        // Internal for testing
-        internal static bool AtMarkupTransitionCompletionPoint(RazorSyntaxNode owner)
+        private static bool AtMarkupTransitionCompletionPoint(RazorSyntaxNode owner)
         {
             /* Only provide IntelliSense for C# code blocks, of the form:
                 @{ }, @code{ }, @functions{ }, @if(true){ }

@@ -6,12 +6,17 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor
 {
     internal class DefaultTagHelperResolver : TagHelperResolver
     {
+        public DefaultTagHelperResolver(ITelemetryReporter telemetryReporter) : base(telemetryReporter)
+        {
+        }
+
         public override Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
         {
             if (workspaceProject is null)

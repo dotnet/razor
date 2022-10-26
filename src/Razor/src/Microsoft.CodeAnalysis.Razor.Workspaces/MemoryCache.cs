@@ -1,11 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Razor
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Razor
             _compactLock = new object();
         }
 
-        public bool TryGetValue(TKey key, out TValue result)
+        public bool TryGetValue(TKey key, [NotNullWhen(returnValue: true)] out TValue? result)
         {
             var entryFound = _dict.TryGetValue(key, out var value);
 
@@ -77,9 +76,9 @@ namespace Microsoft.CodeAnalysis.Razor
 
         protected class CacheEntry
         {
-            public TValue Value { get; set; }
+            public required TValue Value { get; init; }
 
-            public DateTime LastAccess { get; set; }
+            public required DateTime LastAccess { get; set; }
         }
     }
 }

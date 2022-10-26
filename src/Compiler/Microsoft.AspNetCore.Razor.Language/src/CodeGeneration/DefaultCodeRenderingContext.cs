@@ -90,7 +90,7 @@ internal class DefaultCodeRenderingContext : CodeRenderingContext
 
     public override RazorDiagnosticCollection Diagnostics { get; }
 
-    public override string DocumentKind { get; }
+    public override string DocumentKind => _documentNode.DocumentKind;
 
     public override ItemCollection Items { get; }
 

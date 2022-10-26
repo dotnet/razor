@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.Razor.Completion
 {
     /// <summary>
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         /// The default sort priority. Typically this means an LSP client will fall-back to sorting the completion item
         /// based off of the displayed label in the completion list.
         /// </summary>
-        public static string DefaultSortPriority => null;
+        public static string? DefaultSortPriority => null;
 
         /// <summary>
         /// A high sort priority. Displayed above <see cref="DefaultSortPriority"/> items.
