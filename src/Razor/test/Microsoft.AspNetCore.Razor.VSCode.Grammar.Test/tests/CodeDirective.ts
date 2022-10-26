@@ -45,6 +45,36 @@ export function RunCodeDirectiveSuite() {
 }`);
         });
 
+        it('Multi line with property', async () => {
+            await assertMatchesSnapshot(
+                `@code {
+    public string Goo { get; set; }
+
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        var someString = "{ var ThisShouldNotBeCSharp = true; }";
+        currentCount++;
+    }
+}`);
+        });
+
+        it('Multi line with nullable property', async () => {
+            await assertMatchesSnapshot(
+                `@code {
+    public string? Goo { get; set; }
+
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        var someString = "{ var ThisShouldNotBeCSharp = true; }";
+        currentCount++;
+    }
+}`);
+        });
+
         it('With Razor and markup', async () => {
             await assertMatchesSnapshot(
                 `@code {

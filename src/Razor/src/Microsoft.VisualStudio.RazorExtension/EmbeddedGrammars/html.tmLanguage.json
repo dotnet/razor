@@ -535,6 +535,9 @@
 					"captures": {
 						"1": {
 							"name": "punctuation.definition.entity.html"
+						},
+						"912": {
+							"name": "punctuation.definition.entity.html"
 						}
 					},
 					"comment": "Yes this is a bit ridiculous, there are quite a lot of these",
