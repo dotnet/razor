@@ -278,14 +278,14 @@ stages:
             artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
             artifactType: Container
             parallel: true
-        - task: PublishTestResults@2
-          displayName: Publish VSCode Test Results
-          inputs:
-            testResultsFormat: 'JUnit'
-            testResultsFiles: '*.xml'
-            searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)'
-          continueOnError: true
-          condition: always()
+       # - task: PublishTestResults@2
+       #   displayName: Publish VSCode Test Results
+       #   inputs:
+       #     testResultsFormat: 'JUnit'
+       #     testResultsFiles: '*.xml'
+       #     searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)'
+       #   continueOnError: true
+       #   condition: always()
         - task: PublishBuildArtifacts@1
           displayName: Publish VSIX Artifacts
           inputs:
