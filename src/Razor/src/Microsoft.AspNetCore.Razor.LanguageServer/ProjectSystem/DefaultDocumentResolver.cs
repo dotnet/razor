@@ -13,12 +13,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly ProjectResolver _projectResolver;
-        private readonly FilePathNormalizer _filePathNormalizer;
 
         public DefaultDocumentResolver(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            ProjectResolver projectResolver,
-            FilePathNormalizer filePathNormalizer)
+            ProjectResolver projectResolver)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
@@ -30,21 +28,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                 throw new ArgumentNullException(nameof(projectResolver));
             }
 
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
-            }
-
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _projectResolver = projectResolver;
-            _filePathNormalizer = filePathNormalizer;
         }
 
         public override bool TryResolveDocument(string documentFilePath, [NotNullWhen(true)] out DocumentSnapshot? document)
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            var normalizedPath = _filePathNormalizer.Normalize(documentFilePath);
+            var normalizedPath = FilePathNormalizer.Normalize(documentFilePath);
             if (!_projectResolver.TryResolveProject(normalizedPath, out var project))
             {
                 // Neither the potential project determined by file path,

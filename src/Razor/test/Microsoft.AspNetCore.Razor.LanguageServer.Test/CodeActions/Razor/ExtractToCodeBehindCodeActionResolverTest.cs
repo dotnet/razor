@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public async Task Handle_MissingFile()
         {
             // Arrange
-            var resolver = new ExtractToCodeBehindCodeActionResolver(_emptyDocumentContextFactory, FilePathNormalizer);
+            var resolver = new ExtractToCodeBehindCodeActionResolver(_emptyDocumentContextFactory);
             var data = JObject.FromObject(new ExtractToCodeBehindCodeActionParams()
             {
                 Uri = new Uri("c:/Test.razor"),
@@ -66,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument(contents);
             codeDocument.SetUnsupported();
 
-            var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), FilePathNormalizer);
+            var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
             var data = JObject.FromObject(new ExtractToCodeBehindCodeActionParams()
             {
                 Uri = new Uri("c:/Test.razor"),
@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument(contents);
             codeDocument.SetFileKind(FileKinds.Legacy);
 
-            var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), FilePathNormalizer);
+            var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
             var data = JObject.FromObject(new ExtractToCodeBehindCodeActionParams()
             {
                 Uri = new Uri("c:/Test.razor"),
@@ -120,7 +120,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument(contents);
             Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-            var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), FilePathNormalizer);
+            var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
             var actionParams = new ExtractToCodeBehindCodeActionParams
             {
                 Uri = documentPath,
@@ -169,7 +169,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument(contents);
             Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-            var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), FilePathNormalizer);
+            var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
             var actionParams = new ExtractToCodeBehindCodeActionParams
             {
                 Uri = documentPath,
@@ -218,7 +218,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeDocument = CreateCodeDocument(contents);
             Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
-            var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), FilePathNormalizer);
+            var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
             var actionParams = new ExtractToCodeBehindCodeActionParams
             {
                 Uri = documentPath,

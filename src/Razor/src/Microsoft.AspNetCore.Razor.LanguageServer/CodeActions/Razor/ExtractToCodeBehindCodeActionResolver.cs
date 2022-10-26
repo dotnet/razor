@@ -28,14 +28,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     internal class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
     {
         private readonly DocumentContextFactory _documentContextFactory;
-        private readonly FilePathNormalizer _filePathNormalizer;
 
-        public ExtractToCodeBehindCodeActionResolver(
-            DocumentContextFactory documentContextFactory,
-            FilePathNormalizer filePathNormalizer)
+        public ExtractToCodeBehindCodeActionResolver(DocumentContextFactory documentContextFactory)
         {
             _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
-            _filePathNormalizer = filePathNormalizer ?? throw new ArgumentNullException(nameof(filePathNormalizer));
         }
 
         public override string Action => LanguageServerConstants.CodeActions.ExtractToCodeBehindAction;
@@ -53,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return null;
             }
 
-            var path = _filePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
+            var path = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
 
             var documentContext = await _documentContextFactory.TryCreateAsync(actionParams.Uri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)

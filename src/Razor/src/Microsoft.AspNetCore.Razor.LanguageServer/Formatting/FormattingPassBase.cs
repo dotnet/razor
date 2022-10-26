@@ -5,7 +5,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -18,17 +17,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public FormattingPassBase(
             RazorDocumentMappingService documentMappingService,
-            FilePathNormalizer filePathNormalizer,
             ClientNotifierServiceBase server)
         {
             if (documentMappingService is null)
             {
                 throw new ArgumentNullException(nameof(documentMappingService));
-            }
-
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
             }
 
             if (server is null)

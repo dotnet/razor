@@ -26,14 +26,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult = Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(null);
 
         private readonly TagHelperFactsService _tagHelperFactsService;
-        private readonly FilePathNormalizer _filePathNormalizer;
 
-        public ComponentAccessibilityCodeActionProvider(
-            TagHelperFactsService tagHelperFactsService,
-            FilePathNormalizer filePathNormalizer)
+        public ComponentAccessibilityCodeActionProvider(TagHelperFactsService tagHelperFactsService)
         {
             _tagHelperFactsService = tagHelperFactsService ?? throw new ArgumentNullException(nameof(tagHelperFactsService));
-            _filePathNormalizer = filePathNormalizer ?? throw new ArgumentNullException(nameof(filePathNormalizer));
         }
 
         public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
@@ -99,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var path = context.Request.TextDocument.Uri.GetAbsoluteOrUNCPath();
-            path = _filePathNormalizer.Normalize(path);
+            path = FilePathNormalizer.Normalize(path);
             var newComponentPath = Path.Combine(Path.GetDirectoryName(path), $"{startTag.Name.Content}.razor");
             if (File.Exists(newComponentPath))
             {

@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
@@ -32,10 +31,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public CSharpOnTypeFormattingPass(
             RazorDocumentMappingService documentMappingService,
-            FilePathNormalizer filePathNormalizer,
             ClientNotifierServiceBase server,
             ILoggerFactory loggerFactory)
-            : base(documentMappingService, filePathNormalizer, server)
+            : base(documentMappingService, server)
         {
             if (loggerFactory is null)
             {

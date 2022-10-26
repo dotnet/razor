@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 IEnumerable<IProjectConfigurationFileChangeListener> listeners,
                 IReadOnlyList<string> existingConfigurationFiles)
-                : base(projectSnapshotManagerDispatcher, new FilePathNormalizer(), listeners, TestLanguageServerFeatureOptions.Instance)
+                : base(projectSnapshotManagerDispatcher, listeners, TestLanguageServerFeatureOptions.Instance)
             {
                 _cancellationTokenSource = cancellationTokenSource;
                 _existingConfigurationFiles = existingConfigurationFiles;

@@ -41,7 +41,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var @params = new VersionedDocumentFormattingParams()
             {
                 TextDocument = new TextDocumentIdentifier {
-                    Uri = FilePathNormalizer.Instance.Normalize(context.Uri),
+                    Uri = FilePathNormalizer.Normalize(context.Uri),
                 },
                 HostDocumentVersion = documentVersion.Value,
                 Options = context.Options
@@ -70,13 +70,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 Position = new Position(line, col),
                 Character = context.TriggerCharacter.ToString(),
-                TextDocument = new TextDocumentIdentifier { Uri = FilePathNormalizer.Instance.Normalize(context.Uri) },
+                TextDocument = new TextDocumentIdentifier { Uri = FilePathNormalizer.Normalize(context.Uri) },
                 Options = context.Options,
                 HostDocumentVersion = documentVersion.Value,
             };
 
             var result = await _server.SendRequestAsync<RazorDocumentOnTypeFormattingParams, RazorDocumentFormattingResponse?>(
-                Common.LanguageServerConstants.RazorDocumentOnTypeFormattingEndpoint,
+                LanguageServerConstants.RazorDocumentOnTypeFormattingEndpoint,
                 @params,
                 cancellationToken);
 

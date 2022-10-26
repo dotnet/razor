@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Text;
@@ -25,11 +24,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public HtmlFormattingPass(
             RazorDocumentMappingService documentMappingService,
-            FilePathNormalizer filePathNormalizer,
             ClientNotifierServiceBase server,
             DocumentVersionCache documentVersionCache,
             ILoggerFactory loggerFactory)
-            : base(documentMappingService, filePathNormalizer, server)
+            : base(documentMappingService, server)
         {
             if (loggerFactory is null)
             {
