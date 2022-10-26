@@ -84,6 +84,8 @@
     <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>$(RoslynPackageVersion)</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
   </PropertyGroup>
   <PropertyGroup Label="Manual">
+    <InputSimulatorPlusVersion>1.0.7</InputSimulatorPlusVersion>
+
     <!-- dotnet/runtime packages -->
     <MicrosoftExtensionsPackageVersion>6.0.0</MicrosoftExtensionsPackageVersion>
     <SystemCollectionsImmutablePackageVersion>6.0.0</SystemCollectionsImmutablePackageVersion>

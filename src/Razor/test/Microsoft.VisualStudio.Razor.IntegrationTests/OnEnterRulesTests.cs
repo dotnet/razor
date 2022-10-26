@@ -116,7 +116,7 @@ A
 
         // Act
         await TestServices.Editor.PlaceCaretAsync("@onclick='thing'", charsOffset: 1, ControlledHangMitigatingCancellationToken);
-        TestServices.Input.Send("{ENTER}");
+        await TestServices.Input.SendAsync(WindowsInput.Native.VirtualKeyCode.RETURN, ControlledHangMitigatingCancellationToken);
 
         // Assert
         await TestServices.Editor.VerifyTextContainsAsync(@"

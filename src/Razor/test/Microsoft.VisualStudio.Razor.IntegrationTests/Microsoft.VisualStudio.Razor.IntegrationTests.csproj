@@ -25,6 +25,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <PackageReference Include="InputSimulatorPlus" Version="$(InputSimulatorPlusVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" Version="$(MicrosoftVisualStudioExtensibilityTestingXunitVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator" Version="$(MicrosoftVisualStudioExtensibilityTestingSourceGeneratorVersion)" />
