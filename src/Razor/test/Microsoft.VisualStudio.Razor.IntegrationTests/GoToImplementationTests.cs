@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             // Open the file
             await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
 
-            await TestServices.Editor.PlaceCaretAsync("IncrementCount", charsOffset: -1, ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("IncrementCou", charsOffset: 1, ControlledHangMitigatingCancellationToken);
 
             // Act
             await TestServices.Editor.InvokeGoToImplementationAsync(ControlledHangMitigatingCancellationToken);
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
             // Change text to refer back to Program class
             await TestServices.Editor.SetTextAsync(@"<SurveyPrompt Title=""@nameof(Program)", ControlledHangMitigatingCancellationToken);
-            await TestServices.Editor.PlaceCaretAsync("Program", charsOffset: -1, ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("Progra", charsOffset: 1, ControlledHangMitigatingCancellationToken);
 
             // Act
             await TestServices.Editor.InvokeGoToImplementationAsync(ControlledHangMitigatingCancellationToken);
