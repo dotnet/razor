@@ -21,7 +21,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal readonly Dictionary<string, DelayedFileChangeNotification> PendingNotifications;
 
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IRazorFileChangeListener> _listeners;
         private readonly List<FileSystemWatcher> _watchers;
         private readonly object _pendingNotificationsLock = new();
@@ -33,17 +32,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public RazorFileChangeDetector(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            FilePathNormalizer filePathNormalizer,
             IEnumerable<IRazorFileChangeListener> listeners)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
             }
 
             if (listeners is null)
@@ -52,7 +45,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
             _watchers = new List<FileSystemWatcher>(s_razorFileExtensions.Count);
             PendingNotifications = new Dictionary<string, DelayedFileChangeNotification>(FilePathComparer.Instance);
@@ -76,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Dive through existing Razor files and fabricate "added" events so listeners can accurately listen to state changes for them.
 
-            workspaceDirectory = _filePathNormalizer.Normalize(workspaceDirectory);
+            workspaceDirectory = FilePathNormalizer.Normalize(workspaceDirectory);
 
             var existingRazorFiles = GetExistingRazorFiles(workspaceDirectory);
 

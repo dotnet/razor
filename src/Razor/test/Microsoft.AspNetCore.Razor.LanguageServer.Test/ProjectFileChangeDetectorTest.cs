@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 IEnumerable<IProjectFileChangeListener> listeners,
                 IReadOnlyList<string> existingprojectFiles)
-                : base(projectSnapshotManagerDispatcher, new FilePathNormalizer(), listeners)
+                : base(projectSnapshotManagerDispatcher, listeners)
             {
                 _cancellationTokenSource = cancellationTokenSource;
                 _existingProjectFiles = existingprojectFiles;

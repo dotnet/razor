@@ -14,23 +14,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         public static readonly IFallbackProjectEngineFactory FallbackProjectEngineFactory = new FallbackProjectEngineFactory();
 
-        private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
-        public RemoteProjectSnapshotProjectEngineFactory(FilePathNormalizer filePathNormalizer, IOptionsMonitor<RazorLSPOptions> optionsMonitor)
+        public RemoteProjectSnapshotProjectEngineFactory(IOptionsMonitor<RazorLSPOptions> optionsMonitor)
             : base(FallbackProjectEngineFactory, ProjectEngineFactories.Factories)
         {
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
-            }
-
             if (optionsMonitor is null)
             {
                 throw new ArgumentNullException(nameof(optionsMonitor));
             }
 
-            _filePathNormalizer = filePathNormalizer;
             _optionsMonitor = optionsMonitor;
         }
 
@@ -39,13 +32,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             RazorProjectFileSystem fileSystem,
             Action<RazorProjectEngineBuilder> configure)
         {
-            if (!(fileSystem is DefaultRazorProjectFileSystem defaultFileSystem))
+            if (fileSystem is not DefaultRazorProjectFileSystem defaultFileSystem)
             {
                 Debug.Fail("Unexpected file system.");
                 return null;
             }
 
-            var remoteFileSystem = new RemoteRazorProjectFileSystem(defaultFileSystem.Root, _filePathNormalizer);
+            var remoteFileSystem = new RemoteRazorProjectFileSystem(defaultFileSystem.Root);
             return base.Create(configuration, remoteFileSystem, Configure);
 
             void Configure(RazorProjectEngineBuilder builder)

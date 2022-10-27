@@ -16,22 +16,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         protected internal readonly HostProject MiscellaneousHostProject;
 
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly FilePathNormalizer _filePathNormalizer;
         private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
 
         public DefaultProjectResolver(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            FilePathNormalizer filePathNormalizer,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
             }
 
             if (projectSnapshotManagerAccessor is null)
@@ -40,7 +33,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             }
 
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _filePathNormalizer = filePathNormalizer;
             _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
 
             var miscellaneousProjectPath = Path.Combine(TempDirectory.Instance.DirectoryPath, "__MISC_RAZOR_PROJECT__");
@@ -56,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            var normalizedDocumentPath = _filePathNormalizer.Normalize(documentFilePath);
+            var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
             var projects = _projectSnapshotManagerAccessor.Instance.Projects;
             for (var i = 0; i < projects.Count; i++)
             {
@@ -73,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                     continue;
                 }
 
-                var projectDirectory = _filePathNormalizer.GetDirectory(projectSnapshot.FilePath);
+                var projectDirectory = FilePathNormalizer.GetDirectory(projectSnapshot.FilePath);
                 if (normalizedDocumentPath.StartsWith(projectDirectory, FilePathComparison.Instance) &&
                     (!enforceDocumentInProject || IsDocumentInProject(projectSnapshot, documentFilePath)))
                 {

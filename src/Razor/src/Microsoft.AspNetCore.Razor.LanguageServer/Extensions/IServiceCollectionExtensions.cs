@@ -160,7 +160,6 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<GeneratedDocumentPublisher, DefaultGeneratedDocumentPublisher>();
         services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<GeneratedDocumentPublisher>());
         services.AddSingleton<DocumentContextFactory, DefaultDocumentContextFactory>();
-        services.AddSingleton<FilePathNormalizer>();
 
         services.AddSingleton<DocumentVersionCache, DefaultDocumentVersionCache>();
         services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<DocumentVersionCache>());

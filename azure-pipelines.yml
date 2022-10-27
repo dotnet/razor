@@ -103,8 +103,8 @@ stages:
       # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
       ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
         enableMicrobuild: true
-        enablePublishBuildAssets: true
         enablePublishUsingPipelines: ${{ variables._PublishUsingPipelines }}
+
       jobs:
       - job: Windows
         timeoutInMinutes: 120
@@ -140,6 +140,7 @@ stages:
                     /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
                     /p:DotNetPublishBlobFeedUrl=$(_PublishBlobFeedUrl)
                     /p:DotNetPublishToBlobFeed=$(_DotNetPublishToBlobFeed)
+
         variables:
         - _DotNetPublishToBlobFeed: false
         - _PublishBlobFeedUrl: https://dotnetfeed.blob.core.windows.net/aspnet-aspnetcore-tooling/index.json
@@ -160,27 +161,36 @@ stages:
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
           - group: DotNet-Blob-Feed
           - group: DotNet-Symbol-Server-Pats
+
         steps:
         - task: NodeTool@0
           displayName: Install Node 10.x
           inputs:
             versionSpec: 10.x
+
         - powershell: npm install -g yarn
           displayName: Install yarn
           condition: succeeded()
+
         - task: NuGetCommand@2
           displayName: 'Clear NuGet caches'
           condition: succeeded()
           inputs:
             command: custom
             arguments: 'locals all -clear'
+
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - template: /eng/restore-internal-tools.yml
 
         - powershell: ./eng/scripts/InstallProcDump.ps1
           displayName: Install ProcDump
-        - powershell: ./eng/scripts/StartDumpCollectionForHangingBuilds.ps1 $(ProcDumpPath)procdump.exe artifacts/log/$(_BuildConfig) (Get-Date).AddMinutes(25) devenv, xunit.console, xunit.console.x86
+
+        - powershell: ./eng/scripts/StartDumpCollectionForHangingBuilds.ps1
+            $(ProcDumpPath)procdump.exe artifacts/log/$(_BuildConfig)
+            (Get-Date).AddMinutes(60)
+            devenv, xunit.console, xunit.console.x86
           displayName: Start background dump collection
+
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - task: PowerShell@2
             displayName: Setup Private Feeds Credentials
@@ -189,6 +199,7 @@ stages:
               arguments: -ConfigFile $(Build.SourcesDirectory)/NuGet.config -Password $Env:Token
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
+
         - script: eng\CIBuild.cmd
             -restore
             -build
@@ -204,6 +215,7 @@ stages:
           name: Build
           displayName: Build
           condition: succeeded()
+
         - task: PublishBuildArtifacts@1
           displayName: Upload Build BinLog
           condition: always()
@@ -213,6 +225,7 @@ stages:
               artifactName: $(Agent.Os)_$(Agent.JobName) BuildBinLog
               artifactType: Container
               parallel: true
+
         - script: eng\cibuild.cmd
             -configuration $(_BuildConfig)
             -msbuildEngine vs
@@ -229,6 +242,7 @@ stages:
           name: Build_Vsix
           displayName: Build and Deploy Vsix
           condition: succeeded()
+
         - task: PublishBuildArtifacts@1
           displayName: Upload Build VSIX BinLog
           condition: always()
@@ -238,8 +252,10 @@ stages:
               artifactName: $(Agent.Os)_$(Agent.JobName) BuildVSIXBinLog
               artifactType: Container
               parallel: true
+
         - powershell: eng\SetupVSHive.ps1
           displayName: Setup VS Hive
+
         - script: eng\CIBuild.cmd
             -configuration $(_BuildConfig)
             -prepareMachine
@@ -249,6 +265,7 @@ stages:
           name: Run_Tests
           displayName: Run Unit and Integration tests
           condition: succeeded()
+
         - task: PublishBuildArtifacts@1
           displayName: Upload Run tests BinLog
           condition: always()
@@ -258,10 +275,12 @@ stages:
               artifactName: $(Agent.Os)_$(Agent.JobName) RunTestsBinLog
               artifactType: Container
               parallel: true
+
         - powershell: ./eng/scripts/FinishDumpCollectionForHangingBuilds.ps1 artifacts/log/$(_BuildConfig)
           displayName: Finish background dump collection
           continueOnError: true
           condition: always()
+
         - powershell: |
             $version = $(node -p "require('./package.json').version" | Out-String).Trim()
             yarn install
@@ -271,6 +290,7 @@ stages:
           workingDirectory: $(Build.SourcesDirectory)/src/Razor/src/Microsoft.AspNetCore.Razor.VSCode.BlazorWasmDebuggingExtension
           failOnStderr: true
           condition: and(succeeded(), eq(variables['_BuildConfig'], 'Release'))
+
         - task: PublishBuildArtifacts@1
           displayName: Upload Test Results
           condition: always()
@@ -280,6 +300,7 @@ stages:
             artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
             artifactType: Container
             parallel: true
+
         # - task: PublishTestResults@2
         #   displayName: Publish VSCode Test Results
         #   inputs:
@@ -288,6 +309,7 @@ stages:
         #     searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)'
         #   continueOnError: true
         #   condition: always()
+
         - task: PublishBuildArtifacts@1
           displayName: Publish VSIX Artifacts
           inputs:
@@ -296,6 +318,7 @@ stages:
             ArtifactName: VSIX_$(Agent.Os)_$(_BuildConfig)
           continueOnError: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+
         - task: PublishBuildArtifacts@1
           displayName: Publish VS for Mac Artifacts
           inputs:
@@ -304,6 +327,7 @@ stages:
             ArtifactName: MPack_$(Agent.Os)_$(_BuildConfig)
           continueOnError: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+
         - task: PublishBuildArtifacts@1
           displayName: Publish package artifacts
           inputs:
@@ -312,6 +336,7 @@ stages:
             ArtifactName: Packages_$(Agent.Os)_$(_BuildConfig)
           continueOnError: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+
         - task: PublishBuildArtifacts@1
           displayName: Publish VS Code extension artifacts
           inputs:
@@ -412,8 +437,22 @@ stages:
             parallel: true
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  - stage: publishBuildAssets
+    displayName: Publish to Build Asset Registry
+    dependsOn: build
+    jobs:
+      # Publish to Build Asset Registry
+      - template: /eng/common/templates/job/publish-build-assets.yml
+        parameters:
+          publishUsingPipelines: true
+          pool:
+            name: NetCore1ESPool-Svc-Internal
+            demands: ImageOverride -equals windows.vs2022.amd64
+
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
+      validateDependsOn:
+        - publishBuildAssets
       publishingInfraVersion: 3
       enableSigningValidation: false
       enableNugetValidation: false

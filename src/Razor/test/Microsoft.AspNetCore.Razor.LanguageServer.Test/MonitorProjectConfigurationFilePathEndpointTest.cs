@@ -39,7 +39,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 .Throws<XunitException>();
             var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
                 LegacyDispatcher,
-                FilePathNormalizer,
                 directoryPathResolver.Object,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 TestLanguageServerFeatureOptions.Instance,
@@ -65,7 +64,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 .Throws<XunitException>();
             var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
                 LegacyDispatcher,
-                FilePathNormalizer,
                 directoryPathResolver.Object,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 TestLanguageServerFeatureOptions.Instance,
@@ -89,7 +87,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detector,
                 LegacyDispatcher,
-                FilePathNormalizer,
                 _directoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 LoggerFactory);
@@ -122,7 +119,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detector,
                 LegacyDispatcher,
-                FilePathNormalizer,
                 _directoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 LoggerFactory);
@@ -148,7 +144,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detector,
                 LegacyDispatcher,
-                FilePathNormalizer,
                 _directoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 LoggerFactory);
@@ -176,7 +171,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detector,
                 LegacyDispatcher,
-                FilePathNormalizer,
                 _directoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 LoggerFactory);
@@ -209,7 +203,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detector,
                 LegacyDispatcher,
-                FilePathNormalizer,
                 _directoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 LoggerFactory);
@@ -246,7 +239,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detectors[callCount++],
                 LegacyDispatcher,
-                FilePathNormalizer,
                 _directoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 LoggerFactory);
@@ -294,7 +286,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detectors[callCount++],
                 LegacyDispatcher,
-                FilePathNormalizer,
                 _directoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 LoggerFactory);
@@ -335,13 +326,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public TestMonitorProjectConfigurationFilePathEndpoint(
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-                FilePathNormalizer filePathNormalizer,
                 WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
                 IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-                ILoggerFactory loggerFactory) : this(
+                ILoggerFactory loggerFactory)
+                : this(
                     fileChangeDetectorFactory: null,
                     projectSnapshotManagerDispatcher,
-                    filePathNormalizer,
                     workspaceDirectoryPathResolver,
                     listeners,
                     loggerFactory)
@@ -351,13 +341,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             public TestMonitorProjectConfigurationFilePathEndpoint(
                 Func<IFileChangeDetector> fileChangeDetectorFactory,
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-                FilePathNormalizer filePathNormalizer,
                 WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
                 IEnumerable<IProjectConfigurationFileChangeListener> listeners,
                 ILoggerFactory loggerFactory)
                 : base(
                     projectSnapshotManagerDispatcher,
-                    filePathNormalizer,
                     workspaceDirectoryPathResolver,
                     listeners,
                     TestLanguageServerFeatureOptions.Instance,

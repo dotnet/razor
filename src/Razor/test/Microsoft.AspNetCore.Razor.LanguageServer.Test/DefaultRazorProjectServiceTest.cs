@@ -983,7 +983,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 Mock.Get(documentVersionCache).Setup(c => c.TrackDocumentVersion(It.IsAny<DocumentSnapshot>(), It.IsAny<int>())).Verifiable();
             }
 
-            var filePathNormalizer = new FilePathNormalizer();
             var accessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == projectSnapshotManager, MockBehavior.Strict);
             if (documentResolver is null)
             {
@@ -998,7 +997,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 documentResolver,
                 projectResolver,
                 documentVersionCache,
-                filePathNormalizer,
                 accessor,
                 LoggerFactory);
 
