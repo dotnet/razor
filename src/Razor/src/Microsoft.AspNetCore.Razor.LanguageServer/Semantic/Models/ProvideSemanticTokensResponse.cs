@@ -24,13 +24,13 @@ internal class ProvideSemanticTokensResponse
     public override bool Equals(object? obj)
     {
         if (obj is not ProvideSemanticTokensResponse other ||
-            other.HostDocumentSyncVersion != HostDocumentSyncVersion)
+            HostDocumentSyncVersion != other.HostDocumentSyncVersion)
         {
             return false;
         }
 
-        return other.Tokens == Tokens ||
-              (other.Tokens is not null && Tokens is not null && other.Tokens.SequenceEqual(Tokens));
+        return Tokens == other.Tokens ||
+              (Tokens is not null && other.Tokens is not null && Tokens.SequenceEqual(other.Tokens));
     }
 
     public override int GetHashCode()

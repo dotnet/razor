@@ -18,7 +18,7 @@ public sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
     public ProjectWorkspaceState(
         IReadOnlyCollection<TagHelperDescriptor> tagHelpers,
         LanguageVersion csharpLanguageVersion)
-        : this ((tagHelpers as IReadOnlyList<TagHelperDescriptor>) ?? tagHelpers.ToList(), csharpLanguageVersion)
+        : this((tagHelpers as IReadOnlyList<TagHelperDescriptor>) ?? tagHelpers.ToList(), csharpLanguageVersion)
     {
     }
 

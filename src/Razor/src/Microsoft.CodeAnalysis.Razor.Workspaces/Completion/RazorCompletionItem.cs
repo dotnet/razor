@@ -85,23 +85,26 @@ internal sealed class RazorCompletionItem : IEquatable<RazorCompletionItem>
 
     public bool Equals(RazorCompletionItem? other)
     {
-        if (other is null ||
-            DisplayText != other.DisplayText ||
-            InsertText != other.InsertText ||
-            Kind != other.Kind ||
-            !Enumerable.SequenceEqual(Items, other.Items))
-        {
-            return false;
-        }
+        return other is not null &&
+               DisplayText == other.DisplayText &&
+               InsertText == other.InsertText &&
+               Kind == other.Kind &&
+               BothNullOrEqual(_items, other._items) &&
+               BothNullOrEqual(CommitCharacters, other.CommitCharacters);
 
-        if ((CommitCharacters is null ^ other.CommitCharacters is null) ||
-            (CommitCharacters is not null && other.CommitCharacters is not null &&
-                !CommitCharacters.SequenceEqual(other.CommitCharacters)))
+        static bool BothNullOrEqual<T>(IEnumerable<T>? first, IEnumerable<T>? second)
         {
-            return false;
-        }
+            if (first is null)
+            {
+                return second is null;
+            }
+            else if (second is null)
+            {
+                return false;
+            }
 
-        return true;
+            return first.SequenceEqual(second);
+        }
     }
 
     public override int GetHashCode()
