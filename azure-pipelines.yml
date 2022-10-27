@@ -103,7 +103,6 @@ stages:
       # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
       ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
         enableMicrobuild: true
-        enablePublishBuildAssets: true
         enablePublishUsingPipelines: ${{ variables._PublishUsingPipelines }}
       jobs:
       - job: Windows
@@ -410,8 +409,22 @@ stages:
             parallel: true
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  - stage: publishBuildAssets
+    displayName: Publish to Build Asset Registry
+    dependsOn: build
+    jobs:
+      # Publish to Build Asset Registry
+      - template: /eng/common/templates/job/publish-build-assets.yml
+        parameters:
+          publishUsingPipelines: true
+          pool:
+            name: NetCore1ESPool-Svc-Internal
+            demands: ImageOverride -equals windows.vs2022.amd64
+
   - template: eng\common\templates\post-build\post-build.yml
     parameters:
+      validateDependsOn:
+        - publishBuildAssets
       publishingInfraVersion: 3
       enableSigningValidation: false
       enableNugetValidation: false
