@@ -24,7 +24,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
-using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
@@ -171,19 +170,19 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var htmlResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+            var (synchronized, htmlDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
                 request.HostDocumentVersion,
                 request.TextDocument.Uri,
                 cancellationToken);
 
-            if (!htmlResult.TryGetVirtualSnapshot(out var htmlDocument))
+            var languageServerName = RazorLSPConstants.HtmlLanguageServerName;
+            var projectedUri = htmlDocument.Uri;
+
+            if (!synchronized)
             {
                 Debug.Fail("RangeFormatting not synchronized.");
                 return response;
             }
-
-            var languageServerName = RazorLSPConstants.HtmlLanguageServerName;
-            var projectedUri = htmlDocument.Uri;
 
             var formattingParams = new DocumentFormattingParams()
             {
@@ -211,10 +210,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var hostDocumentUri = request.TextDocument.Uri;
 
             var languageServerName = RazorLSPConstants.HtmlLanguageServerName;
-            var htmlResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+            var (synchronized, htmlDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
                 request.HostDocumentVersion, hostDocumentUri, cancellationToken);
 
-            if (!htmlResult.TryGetVirtualSnapshot(out var htmlDocument))
+            if (!synchronized)
             {
                 return response;
             }
@@ -252,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var hostDocumentUri = new Uri(request.HostDocumentFilePath);
-            var csharpResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+            var (synchronized, csharpDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                 request.HostDocumentVersion,
                 hostDocumentUri,
                 cancellationToken);
@@ -260,7 +259,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             string languageServerName;
             Uri projectedUri;
 
-            if (!csharpResult.TryGetVirtualSnapshot(out var csharpDocument))
+            if (!synchronized)
             {
                 // Document could not be synchronized
                 return response;
@@ -436,13 +435,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(documentColorParams));
             }
 
-            var htmlResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+            var (synchronized, htmlDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
                 documentColorParams.RequiredHostDocumentVersion, documentColorParams.TextDocument.Uri, cancellationToken);
-
-            if (!htmlResult.TryGetVirtualSnapshot(out var htmlDoc))
-            {
-                return null;
-            }
 
             documentColorParams.TextDocument.Uri = htmlDoc.Uri;
             var htmlTextBuffer = htmlDoc.Snapshot.TextBuffer;
@@ -519,12 +513,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var response = new VSInternalWrapWithTagResponse(wrapWithParams.Range, Array.Empty<TextEdit>());
 
-            var htmlResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+            var (synchronized, htmlDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
                 wrapWithParams.TextDocument.Version,
                 wrapWithParams.TextDocument.Uri,
                 cancellationToken);
 
-            if (!htmlResult.TryGetVirtualSnapshot(out var htmlDocument))
+            if (!synchronized)
             {
                 Debug.Fail("Document was not synchronized");
                 return response;
@@ -603,10 +597,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var csharpRanges = new List<FoldingRange>();
             var csharpTask = Task.Run(async () =>
             {
-                var csharpResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                var (synchronized, csharpSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                     foldingRangeParams.HostDocumentVersion, foldingRangeParams.TextDocument.Uri, cancellationToken);
 
-                if (csharpResult.TryGetVirtualSnapshot(out var csharpSnapshot))
+                if (synchronized)
                 {
                     var csharpRequestParams = new FoldingRangeParams()
                     {
@@ -640,10 +634,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var htmlTask = Task.CompletedTask;
             htmlTask = Task.Run(async () =>
             {
-                var htmlResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+                var (synchronized, htmlDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
                     foldingRangeParams.HostDocumentVersion, foldingRangeParams.TextDocument.Uri, cancellationToken);
 
-                if (htmlResult.TryGetVirtualSnapshot(out var htmlDocument))
+                if (synchronized)
                 {
                     var htmlRequestParams = new FoldingRangeParams()
                     {
@@ -721,20 +715,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     hostDocumentVersion,
                     hostDocumentUri,
                     cancellationToken);
-                if (syncResult.TryGetVirtualSnapshot(out var virtualSnapshot))
+                languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
+                presentationParams.TextDocument = new TextDocumentIdentifier
                 {
-                    languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
-                    presentationParams.TextDocument = new TextDocumentIdentifier
-                    {
-                        Uri = virtualSnapshot.Uri,
-                    };
-                    document = virtualSnapshot;
-                }
-                else
-                {
-                    // Unable to synchronize
-                    return null;
-                }
+                    Uri = syncResult.VirtualSnapshot.Uri,
+                };
+                document = syncResult.VirtualSnapshot;
             }
             else if (kind == RazorLanguageKind.Html)
             {
@@ -742,20 +728,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     hostDocumentVersion,
                     hostDocumentUri,
                     cancellationToken);
-                if (syncResult.TryGetVirtualSnapshot(out var virtualSnapshot))
+                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
+                presentationParams.TextDocument = new TextDocumentIdentifier
                 {
-                    languageServerName = RazorLSPConstants.HtmlLanguageServerName;
-                    presentationParams.TextDocument = new TextDocumentIdentifier
-                    {
-                        Uri = virtualSnapshot.Uri,
-                    };
-                    document = virtualSnapshot;
-                }
-                else
-                {
-                    // Unable to synchronize
-                    return null;
-                }
+                    Uri = syncResult.VirtualSnapshot.Uri,
+                };
+                document = syncResult.VirtualSnapshot;
             }
             else
             {
@@ -782,45 +760,35 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var hostDocumentUri = request.HostDocument.Uri;
 
             string languageServerName;
-            Uri? projectedUri;
+            Uri projectedUri;
+            bool synchronized;
             VirtualDocumentSnapshot virtualDocumentSnapshot;
             if (request.ProjectedKind == RazorLanguageKind.Html)
             {
-                var htmlResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+                (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
                     request.HostDocument.Version,
                     request.HostDocument.Uri,
                     cancellationToken);
-                if (htmlResult.TryGetVirtualSnapshot(out var htmlSnapshot))
-                {
-                    languageServerName = RazorLSPConstants.HtmlLanguageServerName;
-                    projectedUri = htmlSnapshot.Uri;
-                    virtualDocumentSnapshot = htmlSnapshot;
-                }
-                else
-                {
-                    return null;
-                }
+                languageServerName = RazorLSPConstants.HtmlLanguageServerName;
+                projectedUri = virtualDocumentSnapshot.Uri;
             }
             else if (request.ProjectedKind == RazorLanguageKind.CSharp)
             {
-                var csharpResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                     request.HostDocument.Version,
                     hostDocumentUri,
                     cancellationToken);
-                if (csharpResult.TryGetVirtualSnapshot(out var csharpSnapshot))
-                {
-                    languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
-                    projectedUri = csharpSnapshot.Uri;
-                    virtualDocumentSnapshot = csharpSnapshot;
-                }
-                else
-                {
-                    return null;
-                }
+                languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
+                projectedUri = virtualDocumentSnapshot.Uri;
             }
             else
             {
                 Debug.Fail("Unexpected RazorLanguageKind. This shouldn't really happen in a real scenario.");
+                return null;
+            }
+
+            if (!synchronized)
+            {
                 return null;
             }
 
@@ -933,39 +901,33 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public override async Task<JToken?> ProvideResolvedCompletionItemAsync(DelegatedCompletionItemResolveParams request, CancellationToken cancellationToken)
         {
             string languageServerName;
-            VirtualDocumentSnapshot? virtualDocumentSnapshot;
+            bool synchronized;
+            VirtualDocumentSnapshot virtualDocumentSnapshot;
             if (request.OriginatingKind == RazorLanguageKind.Html)
             {
-                var htmlResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+                (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
                     request.HostDocument.Version,
                     request.HostDocument.Uri,
                     cancellationToken);
-                if (!htmlResult.TryGetVirtualSnapshot(out var htmlSnapshot))
-                {
-                    return null;
-                }
-
-                virtualDocumentSnapshot = htmlSnapshot;
                 languageServerName = RazorLSPConstants.HtmlLanguageServerName;
             }
             else if (request.OriginatingKind == RazorLanguageKind.CSharp)
             {
-                var csharpResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                     request.HostDocument.Version,
                     request.HostDocument.Uri,
                     cancellationToken);
-
-                if (!csharpResult.TryGetVirtualSnapshot(out var csharpSnapshot))
-                {
-                    return null;
-                }
-
-                virtualDocumentSnapshot = csharpSnapshot;
                 languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
             }
             else
             {
                 Debug.Fail("Unexpected RazorLanguageKind. This can't really happen in a real scenario.");
+                return null;
+            }
+
+            if (!synchronized)
+            {
+                // Document was not synchronized
                 return null;
             }
 
@@ -1120,41 +1082,34 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         {
             string languageServerName;
 
+            bool synchronized;
             VirtualDocumentSnapshot virtualDocumentSnapshot;
             if (request.ProjectedKind == RazorLanguageKind.Html)
             {
-                var htmlResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+                (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
                     request.HostDocument.Version,
                     request.HostDocument.Uri,
                     rejectOnNewerParallelRequest: false,
                     cancellationToken);
-
-                if (!htmlResult.TryGetVirtualSnapshot(out var htmlSnapshot))
-                {
-                    return null;
-                }
-
-                virtualDocumentSnapshot = htmlSnapshot;
                 languageServerName = RazorLSPConstants.HtmlLanguageServerName;
             }
             else if (request.ProjectedKind == RazorLanguageKind.CSharp)
             {
-                var csharpResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                     request.HostDocument.Version,
                     request.HostDocument.Uri,
                     rejectOnNewerParallelRequest: false,
                     cancellationToken);
-                if(!csharpResult.TryGetVirtualSnapshot(out var csharpSnapshot))
-                {
-                    return null;
-                }
-
-                virtualDocumentSnapshot = csharpSnapshot;
                 languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
             }
             else
             {
                 Debug.Fail("Unexpected RazorLanguageKind. This shouldn't really happen in a real scenario.");
+                return null;
+            }
+
+            if (!synchronized)
+            {
                 return null;
             }
 

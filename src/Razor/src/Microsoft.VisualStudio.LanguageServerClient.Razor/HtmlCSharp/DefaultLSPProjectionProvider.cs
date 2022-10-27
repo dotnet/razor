@@ -144,31 +144,24 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             }
             else
             {
+                bool synchronized;
                 if (languageResponse.Kind == RazorLanguageKind.CSharp)
                 {
-                    var csharpResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(documentSnapshot.Version, documentSnapshot.Uri, rejectOnNewerParallelRequest, cancellationToken).ConfigureAwait(false);
-                    if (!csharpResult.TryGetVirtualSnapshot(out var csharpSnapshot))
-                    {
-                        _logHubLogger?.LogInformation("Could not synchronize.");
-                        return null;
-                    }
-
-                    virtualDocument = csharpSnapshot;
+                    (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(documentSnapshot.Version, documentSnapshot.Uri, rejectOnNewerParallelRequest, cancellationToken).ConfigureAwait(false);
                 }
                 else if (languageResponse.Kind == RazorLanguageKind.Html)
                 {
-                    var htmlResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(documentSnapshot.Version, documentSnapshot.Uri, rejectOnNewerParallelRequest, cancellationToken).ConfigureAwait(false);
-                    if (!htmlResult.TryGetVirtualSnapshot(out var htmlSnapshot))
-                    {
-                        _logHubLogger?.LogInformation("Could not synchronize.");
-                        return null;
-                    }
-
-                    virtualDocument = htmlSnapshot;
+                    (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(documentSnapshot.Version, documentSnapshot.Uri, rejectOnNewerParallelRequest, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
                     _logHubLogger?.LogInformation("Could not find projection for {languageResponseKind:G}.", languageResponse.Kind);
+                    return null;
+                }
+
+                if (!synchronized)
+                {
+                    _logHubLogger?.LogInformation("Could not synchronize.");
                     return null;
                 }
             }

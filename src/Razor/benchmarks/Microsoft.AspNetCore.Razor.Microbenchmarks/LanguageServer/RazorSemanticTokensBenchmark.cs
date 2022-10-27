@@ -104,7 +104,6 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         public async Task CleanupServerAsync()
         {
             var innerServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-
             await innerServer.ShutdownAsync();
             await innerServer.ExitAsync();
         }
