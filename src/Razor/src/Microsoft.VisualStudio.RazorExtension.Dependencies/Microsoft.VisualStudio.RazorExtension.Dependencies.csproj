@@ -65,14 +65,12 @@
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.EditorFeatures.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.EditorFeatures.Text.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.ExternalAccess.Razor.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.InteractiveHost.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.Features.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.LanguageServer.Protocol.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.Remote.Workspaces.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.Workspaces.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServices.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll" />

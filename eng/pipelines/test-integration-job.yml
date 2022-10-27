@@ -69,6 +69,9 @@ steps:
         artifactType: Container
         parallel: true
 
+  - powershell: eng\SetupVSHive.ps1
+    displayName: Setup VS Hive
+
   - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
       -msbuildEngine vs
