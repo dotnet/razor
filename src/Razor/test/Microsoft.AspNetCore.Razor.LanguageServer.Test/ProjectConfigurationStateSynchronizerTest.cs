@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -403,7 +402,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         private ProjectConfigurationStateSynchronizer GetSynchronizer(RazorProjectService razorProjectService)
         {
-            var synchronizer = new ProjectConfigurationStateSynchronizer(Dispatcher, razorProjectService, FilePathNormalizer, LoggerFactory);
+            var synchronizer = new ProjectConfigurationStateSynchronizer(Dispatcher, razorProjectService, LoggerFactory);
             synchronizer.EnqueueDelay = 5;
 
             return synchronizer;

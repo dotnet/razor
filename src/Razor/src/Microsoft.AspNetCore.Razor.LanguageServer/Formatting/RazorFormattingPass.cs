@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -22,10 +21,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public RazorFormattingPass(
             RazorDocumentMappingService documentMappingService,
-            FilePathNormalizer filePathNormalizer,
             ClientNotifierServiceBase server,
             ILoggerFactory loggerFactory)
-            : base(documentMappingService, filePathNormalizer, server)
+            : base(documentMappingService, server)
         {
             if (loggerFactory is null)
             {

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -45,12 +44,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var passes = new List<IFormattingPass>()
             {
-                new HtmlFormattingPass(mappingService, FilePathNormalizer.Instance, client, versionCache, loggerFactory),
-                new CSharpFormattingPass(mappingService, FilePathNormalizer.Instance, client, loggerFactory),
-                new CSharpOnTypeFormattingPass(mappingService, FilePathNormalizer.Instance, client, loggerFactory),
-                new RazorFormattingPass(mappingService, FilePathNormalizer.Instance, client, loggerFactory),
-                new FormattingDiagnosticValidationPass(mappingService, FilePathNormalizer.Instance, client, loggerFactory),
-                new FormattingContentValidationPass(mappingService, FilePathNormalizer.Instance, client, loggerFactory),
+                new HtmlFormattingPass(mappingService, client, versionCache, loggerFactory),
+                new CSharpFormattingPass(mappingService, client, loggerFactory),
+                new CSharpOnTypeFormattingPass(mappingService, client, loggerFactory),
+                new RazorFormattingPass(mappingService, client, loggerFactory),
+                new FormattingDiagnosticValidationPass(mappingService, client, loggerFactory),
+                new FormattingContentValidationPass(mappingService, client, loggerFactory),
             };
 
             return new DefaultRazorFormattingService(passes, loggerFactory, TestAdhocWorkspaceFactory.Instance);

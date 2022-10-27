@@ -38,14 +38,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class FormattingLanguageServerClient : ClientNotifierServiceBase
     {
-        private readonly FilePathNormalizer _filePathNormalizer = new FilePathNormalizer();
         private readonly Dictionary<string, RazorCodeDocument> _documents = new Dictionary<string, RazorCodeDocument>();
 
         public InitializeResult ServerSettings => throw new NotImplementedException();
 
         public void AddCodeDocument(RazorCodeDocument codeDocument)
         {
-            var path = _filePathNormalizer.Normalize(codeDocument.Source.FilePath);
+            var path = FilePathNormalizer.Normalize(codeDocument.Source.FilePath);
             _documents.TryAdd("/" + path, codeDocument);
         }
 

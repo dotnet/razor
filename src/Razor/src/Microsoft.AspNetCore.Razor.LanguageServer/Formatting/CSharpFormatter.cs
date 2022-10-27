@@ -25,13 +25,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private const string MarkerId = "RazorMarker";
 
         private readonly RazorDocumentMappingService _documentMappingService;
-        private readonly FilePathNormalizer _filePathNormalizer;
         private readonly ClientNotifierServiceBase _server;
 
         public CSharpFormatter(
             RazorDocumentMappingService documentMappingService,
-            ClientNotifierServiceBase languageServer,
-            FilePathNormalizer filePathNormalizer)
+            ClientNotifierServiceBase languageServer)
         {
             if (documentMappingService is null)
             {
@@ -43,14 +41,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(languageServer));
             }
 
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
-            }
-
             _documentMappingService = documentMappingService;
             _server = languageServer;
-            _filePathNormalizer = filePathNormalizer;
         }
 
         public async Task<TextEdit[]> FormatAsync(
@@ -120,7 +112,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 Kind = RazorLanguageKind.CSharp,
                 ProjectedRange = projectedRange,
-                HostDocumentFilePath = _filePathNormalizer.Normalize(context.Uri.GetAbsoluteOrUNCPath()),
+                HostDocumentFilePath = FilePathNormalizer.Normalize(context.Uri.GetAbsoluteOrUNCPath()),
                 Options = context.Options
             };
 

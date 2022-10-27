@@ -18,7 +18,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     internal class MonitorProjectConfigurationFilePathEndpoint : IMonitorProjectConfigurationFilePathHandler, IDisposable
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly FilePathNormalizer _filePathNormalizer;
         private readonly WorkspaceDirectoryPathResolver _workspaceDirectoryPathResolver;
         private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
@@ -31,7 +30,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public MonitorProjectConfigurationFilePathEndpoint(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            FilePathNormalizer filePathNormalizer,
             WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
             LanguageServerFeatureOptions languageServerFeatureOptions,
@@ -43,7 +41,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _filePathNormalizer = filePathNormalizer;
             _workspaceDirectoryPathResolver = workspaceDirectoryPathResolver;
             _listeners = listeners;
             _languageServerFeatureOptions = languageServerFeatureOptions;
@@ -82,9 +79,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             var configurationDirectory = Path.GetDirectoryName(request.ConfigurationFilePath);
-            var normalizedConfigurationDirectory = _filePathNormalizer.NormalizeDirectory(configurationDirectory);
+            var normalizedConfigurationDirectory = FilePathNormalizer.NormalizeDirectory(configurationDirectory);
             var workspaceDirectory = _workspaceDirectoryPathResolver.Resolve();
-            var normalizedWorkspaceDirectory = _filePathNormalizer.NormalizeDirectory(workspaceDirectory);
+            var normalizedWorkspaceDirectory = FilePathNormalizer.NormalizeDirectory(workspaceDirectory);
 
             var previousMonitorExists = _outputPathMonitors.TryGetValue(request.ProjectFilePath, out var entry);
 
@@ -191,7 +188,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Protected virtual for testing
         protected virtual IFileChangeDetector CreateFileChangeDetector() => new ProjectConfigurationFileChangeDetector(
             _projectSnapshotManagerDispatcher,
-            _filePathNormalizer,
             _listeners,
             _languageServerFeatureOptions);
     }

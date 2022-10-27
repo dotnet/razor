@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
@@ -38,7 +37,6 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
         // the opportunity to re-write our tests correctly.
         private protected ProjectSnapshotManagerDispatcher LegacyDispatcher { get; }
         private protected ProjectSnapshotManagerDispatcher Dispatcher { get; }
-        protected FilePathNormalizer FilePathNormalizer { get; }
         private protected IRazorSpanMappingService SpanMappingService { get; }
 
         protected JsonSerializer Serializer { get; }
@@ -53,7 +51,6 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
             Dispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
             AddDisposable((IDisposable)Dispatcher);
 
-            FilePathNormalizer = new FilePathNormalizer();
             SpanMappingService = new ThrowingRazorSpanMappingService();
 
             Serializer = new JsonSerializer();
