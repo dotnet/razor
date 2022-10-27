@@ -16,15 +16,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _languageServer = languageServer;
         }
 
-        public async Task ExitAsync()
+        public Task ExitAsync()
         {
-            await _languageServer.ExitAsync();
+            var services = _languageServer.GetLspServices();
+            services.Dispose();
             _tcs.TrySetResult(0);
+
+            return Task.CompletedTask;
         }
 
-        public async Task ShutdownAsync(string message = "Shutting down")
+        public Task ShutdownAsync(string message = "Shutting down")
         {
-            await _languageServer.ShutdownAsync(message);
+            return Task.CompletedTask;
         }
 
         public Task WaitForExit => _tcs.Task;

@@ -7,6 +7,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
     {
         public required string ProjectFilePath { get; init; }
 
-        public required string ConfigurationFilePath { get; init; }
+        public required string? ConfigurationFilePath { get; init; }
     }
 }

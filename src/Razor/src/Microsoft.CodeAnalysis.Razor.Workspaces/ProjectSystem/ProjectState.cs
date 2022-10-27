@@ -185,10 +185,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             {
                 lock (_lock)
                 {
-                    if (_projectEngine is null)
-                    {
-                        _projectEngine = CreateProjectEngine();
-                    }
+                    _projectEngine ??= CreateProjectEngine();
                 }
 
                 return _projectEngine;

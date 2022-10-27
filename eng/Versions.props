@@ -54,11 +54,11 @@
   -->
   <!-- TODO: https://github.com/dotnet/razor-tooling/issues/6760 -->
   <PropertyGroup Label="Automated">
-    <MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>7.0.0-preview.5.22364.1</MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>
-    <MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>7.0.0-preview.5.22364.1</MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>7.0.0-preview.5.22364.1</MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>7.0.0-preview.5.22364.1</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>7.0.0-preview.5.22364.1</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>
+    <MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>7.0.0-preview.5.22471.1</MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>
+    <MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>7.0.0-preview.5.22471.1</MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>7.0.0-preview.5.22471.1</MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>7.0.0-preview.5.22471.1</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>7.0.0-preview.5.22471.1</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>
     <MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>6.0.2-servicing.22064.6</MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>
     <MicrosoftNETCorePlatformsPackageVersion>6.0.1</MicrosoftNETCorePlatformsPackageVersion>
   </PropertyGroup>
@@ -81,7 +81,7 @@
     <RoslynPackageVersion>4.4.0-2.22424.2</RoslynPackageVersion>
     <VisualStudioLanguageServerProtocolVersion>17.4.1008-preview</VisualStudioLanguageServerProtocolVersion>
     <MicrosoftNetCompilersToolsetVersion>4.4.0-1.final</MicrosoftNetCompilersToolsetVersion>
-    <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>4.5.0-1.22513.3</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
+    <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>4.5.0-1.22519.14</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
   </PropertyGroup>
   <PropertyGroup Label="Manual">
     <!-- dotnet/runtime packages -->
@@ -155,16 +155,15 @@
     <Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion>$(RoslynPackageVersion)</Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion>
     <XunitAnalyzersPackageVersion>0.10.0</XunitAnalyzersPackageVersion>
     <XunitCombinatorialPackageVersion>1.4.1</XunitCombinatorialPackageVersion>
-    <XunitVersion>2.4.1</XunitVersion>
+    <XunitVersion>2.4.2</XunitVersion>
     <XunitExtensibilityExecutionPackageVersion>$(XunitVersion)</XunitExtensibilityExecutionPackageVersion>
     <!-- Temporary hack to workaround package restrictions for dev17 -->
     <MicrosoftInternalVisualStudioShellFrameworkPackageVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftInternalVisualStudioShellFrameworkPackageVersion>
     <MicrosoftIORedistPackageVersion>4.7.1</MicrosoftIORedistPackageVersion>
-
     <!-- Compiler Deps -->
     <BenchmarkDotNetVersion>0.13.0.1555</BenchmarkDotNetVersion>
     <DiffPlexVersion>1.5.0</DiffPlexVersion>
-    <FluentAssertionsVersion>4.19.2</FluentAssertionsVersion>
+    <FluentAssertionsVersion>6.7.0</FluentAssertionsVersion>
     <MicrosoftBuildVersion>17.2.0-preview-22178-03</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>$(MicrosoftBuildVersion)</MicrosoftBuildFrameworkVersion>
     <MicrosoftBuildUtilitiesCoreVersion>$(MicrosoftBuildVersion)</MicrosoftBuildUtilitiesCoreVersion>

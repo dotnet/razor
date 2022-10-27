@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         public ElementCompletionContext(
             TagHelperDocumentContext documentContext,
             IEnumerable<string>? existingCompletions,
-            string containingTagName,
+            string? containingTagName,
             IEnumerable<KeyValuePair<string, string>> attributes,
             string? containingParentTagName,
             bool containingParentIsTagHelper,
@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         public IEnumerable<string> ExistingCompletions { get; }
 
-        public string ContainingTagName { get; }
+        public string? ContainingTagName { get; }
 
         public IEnumerable<KeyValuePair<string, string>> Attributes { get; }
 

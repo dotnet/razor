@@ -1,15 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     internal class ProjectConfigurationFilePathChangedEventArgs : EventArgs
     {
-        public ProjectConfigurationFilePathChangedEventArgs(string projectFilePath, string configurationFilePath)
+        public ProjectConfigurationFilePathChangedEventArgs(string projectFilePath, string? configurationFilePath)
         {
             if (projectFilePath is null)
             {
@@ -22,6 +20,6 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public string ProjectFilePath { get; }
 
-        public string ConfigurationFilePath { get; }
+        public string? ConfigurationFilePath { get; }
     }
 }
