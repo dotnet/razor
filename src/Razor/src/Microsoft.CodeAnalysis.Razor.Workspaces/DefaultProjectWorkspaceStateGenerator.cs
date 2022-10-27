@@ -98,6 +98,11 @@ namespace Microsoft.CodeAnalysis.Razor
 
         public void Dispose()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             _disposed = true;
 
             foreach (var update in Updates)
@@ -109,6 +114,10 @@ namespace Microsoft.CodeAnalysis.Razor
                 }
             }
 
+            // Release before dispose to ensure we don't throw exceptions from the background thread trying to release
+            // while we're disposing. Multiple releases are fine, and if we release and it lets something passed the lock
+            // our cancellation token check will mean its a no-op.
+            _semaphore.Release();
             _semaphore.Dispose();
 
             BlockBackgroundWorkStart?.Set();
@@ -122,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Razor
             {
                 return;
             }
-            
+
             try
             {
                 // Only allow a single TagHelper resolver request to process at a time in order to reduce Visual Studio memory pressure. Typically a TagHelper resolution result can be upwards of 10mb+.
@@ -215,7 +224,12 @@ namespace Microsoft.CodeAnalysis.Razor
             {
                 try
                 {
-                    _semaphore.Release();
+                    // Prevent ObjectDisposedException if we've disposed before we got here. The dispose method will release
+                    // anyway, so we're all good.
+                    if (!_disposed)
+                    {
+                        _semaphore.Release();
+                    }
                 }
                 catch
                 {
