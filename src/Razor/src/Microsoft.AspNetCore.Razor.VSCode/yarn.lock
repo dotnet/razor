@@ -190,12 +190,12 @@ js-yaml@^3.13.1:
     argparse "^1.0.7"
     esprima "^4.0.0"
 
-lru-cache@^6.0.0:
-  version "6.0.0"
-  resolved "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-npm/npm/registry/lru-cache/-/lru-cache-6.0.0.tgz"
-  integrity sha1-bW/mVw69lqr5D8rR2vo7JWbbOpQ=
+minimatch@3.0.5:
+  version "3.0.5"
+  resolved "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-npm/npm/registry/minimatch/-/minimatch-3.0.5.tgz#4da8f1290ee0f0f8e83d60ca69f8f134068604a3"
+  integrity sha1-TajxKQ7g8PjoPWDKafjxNAaGBKM=
   dependencies:
-    yallist "^4.0.0"
+    brace-expansion "^1.1.7"
 
 minimatch@^3.0.4:
   version "3.0.4"

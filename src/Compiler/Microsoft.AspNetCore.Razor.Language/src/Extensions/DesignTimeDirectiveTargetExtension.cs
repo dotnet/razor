@@ -152,6 +152,20 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
 
                 case DirectiveTokenKind.String:
 
+                    // Add a string syntax to the directive if the document is a Razor page or a Blazor component.
+                    // language=Route tells Roslyn that this string is a route template. A classifier that's
+                    // part of ASP.NET Core will run that colorizes the route string.
+                    var stringSyntax = context.DocumentKind switch
+                    {
+                        "mvc.1.0.razor-page" => "Route",
+                        "component.1.0" => "ComponentRoute",
+                        _ => null
+                    };
+                    if (stringSyntax is not null)
+                    {
+                        context.CodeWriter.Write("// language=").Write(stringSyntax);
+                    }
+
                     // global::System.Object __typeHelper = "{node.Content}";
                     using (context.CodeWriter.BuildLinePragma(node.Source, context))
                     {

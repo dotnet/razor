@@ -79,7 +79,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var changeKind = RazorFileChangeKind.Added;
             var listener = new Mock<IRazorFileChangeListener>(MockBehavior.Strict);
             listener.Setup(l => l.RazorFileChanged(filePath, changeKind)).Verifiable();
-            var fileChangeDetector = new RazorFileChangeDetector(Dispatcher, FilePathNormalizer, new[] { listener.Object })
+            var fileChangeDetector = new RazorFileChangeDetector(Dispatcher, new[] { listener.Object })
             {
                 EnqueueDelay = 50,
                 BlockNotificationWorkStart = new ManualResetEventSlim(initialState: false),
@@ -108,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var listenerCalled = false;
             var listener = new Mock<IRazorFileChangeListener>(MockBehavior.Strict);
             listener.Setup(l => l.RazorFileChanged(filePath, It.IsAny<RazorFileChangeKind>())).Callback(() => listenerCalled = true);
-            var fileChangeDetector = new RazorFileChangeDetector(Dispatcher, FilePathNormalizer, new[] { listener.Object })
+            var fileChangeDetector = new RazorFileChangeDetector(Dispatcher, new[] { listener.Object })
             {
                 EnqueueDelay = 10,
                 NotifyNotificationNoop = new ManualResetEventSlim(initialState: false),
@@ -133,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var listener = new Mock<IRazorFileChangeListener>(MockBehavior.Strict);
             var callCount = 0;
             listener.Setup(l => l.RazorFileChanged(filePath, RazorFileChangeKind.Added)).Callback(() => callCount++);
-            var fileChangeDetector = new RazorFileChangeDetector(Dispatcher, FilePathNormalizer, new[] { listener.Object })
+            var fileChangeDetector = new RazorFileChangeDetector(Dispatcher, new[] { listener.Object })
             {
                 EnqueueDelay = 50,
                 BlockNotificationWorkStart = new ManualResetEventSlim(initialState: false),
@@ -166,7 +166,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
                 IEnumerable<IRazorFileChangeListener> listeners,
                 IReadOnlyList<string> existingprojectFiles)
-                : base(projectSnapshotManagerDispatcher, new FilePathNormalizer(), listeners)
+                : base(projectSnapshotManagerDispatcher, listeners)
             {
                 _cancellationTokenSource = cancellationTokenSource;
                 _existingProjectFiles = existingprojectFiles;

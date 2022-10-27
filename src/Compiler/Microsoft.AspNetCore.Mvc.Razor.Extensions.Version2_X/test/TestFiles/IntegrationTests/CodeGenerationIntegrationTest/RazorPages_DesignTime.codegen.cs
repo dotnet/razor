@@ -35,6 +35,7 @@ NewModel __typeHelper = default;
         }
         ))();
         ((System.Action)(() => {
+// language=Route
 #line 4 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPages.cshtml"
 global::System.Object __typeHelper = "*, AppCode";
 

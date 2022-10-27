@@ -296,7 +296,7 @@ repository:
     name: 'meta.structure.razor.directive.codeblock'
     contentName: 'source.cs'
     patterns:
-      - include: 'source.cs'
+      - include: 'source.cs#class-or-struct-members'
     end: '(\})'
     endCaptures:
       1: { name: 'keyword.control.razor.directive.codeblock.close' }

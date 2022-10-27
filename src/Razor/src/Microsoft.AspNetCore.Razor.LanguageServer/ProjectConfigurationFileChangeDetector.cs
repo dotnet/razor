@@ -16,7 +16,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     internal class ProjectConfigurationFileChangeDetector : IFileChangeDetector
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IProjectConfigurationFileChangeListener> _listeners;
         private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
         private readonly ILogger? _logger;
@@ -31,7 +30,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public ProjectConfigurationFileChangeDetector(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            FilePathNormalizer filePathNormalizer,
             IEnumerable<IProjectConfigurationFileChangeListener> listeners,
             LanguageServerFeatureOptions languageServerFeatureOptions,
             ILoggerFactory? loggerFactory = null)
@@ -39,11 +37,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
             }
 
             if (listeners is null)
@@ -57,7 +50,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
             _languageServerFeatureOptions = languageServerFeatureOptions;
             _logger = loggerFactory?.CreateLogger<ProjectConfigurationFileChangeDetector>();
@@ -72,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Dive through existing project configuration files and fabricate "added" events so listeners can accurately listen to state changes for them.
 
-            workspaceDirectory = _filePathNormalizer.Normalize(workspaceDirectory);
+            workspaceDirectory = FilePathNormalizer.Normalize(workspaceDirectory);
             var existingConfigurationFiles = GetExistingConfigurationFiles(workspaceDirectory);
 
             await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>

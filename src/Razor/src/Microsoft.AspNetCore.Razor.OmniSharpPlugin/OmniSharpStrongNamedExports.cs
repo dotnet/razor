@@ -17,12 +17,6 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     // named plugin assembly.
 
     [Shared]
-    [Export(typeof(FilePathNormalizer))]
-    public class ExportedFilePathNormalizer : FilePathNormalizer
-    {
-    }
-
-    [Shared]
     [Export(typeof(OmniSharpProjectSnapshotManagerDispatcher))]
     internal class ExportOmniSharpProjectSnapshotManagerDispatcher : DefaultOmniSharpProjectSnapshotManagerDispatcher
     {
@@ -32,10 +26,6 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     [Export(typeof(RemoteTextLoaderFactory))]
     internal class ExportRemoteTextLoaderFactory : DefaultRemoteTextLoaderFactory
     {
-        [ImportingConstructor]
-        public ExportRemoteTextLoaderFactory(FilePathNormalizer filePathNormalizer) : base(filePathNormalizer)
-        {
-        }
     }
 
     [Shared]

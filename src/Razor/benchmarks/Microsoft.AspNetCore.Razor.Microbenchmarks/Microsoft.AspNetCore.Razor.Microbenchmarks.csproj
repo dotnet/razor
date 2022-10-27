@@ -33,6 +33,9 @@
     <Compile Include="..\..\test\Microsoft.CodeAnalysis.Razor.Workspaces.Test.Common\TestWorkspaceServices.cs">
       <Link>TestServices\%(FileName)%(Extension)</Link>
     </Compile>
+    <Compile Include="..\..\test\Microsoft.AspNetCore.Razor.Test.Common\NoOpTelemetryReporter.cs">
+      <Link>TestServices\%(FileName)%(Extension)</Link>
+    </Compile>
 
     <Compile Include="$(SharedSourceRoot)BenchmarkRunner\*.cs">
       <Link>BenchmarkRunner\%(FileName)%(Extension)</Link>

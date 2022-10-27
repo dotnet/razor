@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 {
     public class RazorCodeActionsTests : AbstractRazorEditorTest
     {
-        [IdeFact(Skip = "Behavior not yet testable")]
+        [IdeFact]
         public async Task RazorCodeActions_Show()
         {
             // Create Warnings by removing usings

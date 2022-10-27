@@ -26,7 +26,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
         private readonly ProjectResolver _projectResolver;
         private readonly DocumentVersionCache _documentVersionCache;
-        private readonly FilePathNormalizer _filePathNormalizer;
         private readonly DocumentResolver _documentResolver;
         private readonly ILogger _logger;
 
@@ -36,7 +35,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             DocumentResolver documentResolver,
             ProjectResolver projectResolver,
             DocumentVersionCache documentVersionCache,
-            FilePathNormalizer filePathNormalizer,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
             ILoggerFactory loggerFactory)
         {
@@ -65,11 +63,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                 throw new ArgumentNullException(nameof(documentVersionCache));
             }
 
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
-            }
-
             if (projectSnapshotManagerAccessor is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
@@ -85,7 +78,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             _documentResolver = documentResolver;
             _projectResolver = projectResolver;
             _documentVersionCache = documentVersionCache;
-            _filePathNormalizer = filePathNormalizer;
             _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
             _logger = loggerFactory.CreateLogger<DefaultRazorProjectService>();
         }
@@ -94,7 +86,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            var textDocumentPath = _filePathNormalizer.Normalize(filePath);
+            var textDocumentPath = FilePathNormalizer.Normalize(filePath);
             if (_documentResolver.TryResolveDocument(textDocumentPath, out var _))
             {
                 // Document already added. This usually occurs when VSCode has already pre-initialized
@@ -108,7 +100,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             }
 
             var targetFilePath = textDocumentPath;
-            var projectDirectory = _filePathNormalizer.GetDirectory(projectSnapshot.FilePath);
+            var projectDirectory = FilePathNormalizer.GetDirectory(projectSnapshot.FilePath);
             if (targetFilePath.StartsWith(projectDirectory, FilePathComparison.Instance))
             {
                 // Make relative
@@ -130,7 +122,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            var textDocumentPath = _filePathNormalizer.Normalize(filePath);
+            var textDocumentPath = FilePathNormalizer.Normalize(filePath);
             if (!_documentResolver.TryResolveDocument(textDocumentPath, out _))
             {
                 // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
@@ -161,7 +153,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            var textDocumentPath = _filePathNormalizer.Normalize(filePath);
+            var textDocumentPath = FilePathNormalizer.Normalize(filePath);
             if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
             {
                 projectSnapshot = _projectResolver.GetMiscellaneousProject();
@@ -177,7 +169,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            var textDocumentPath = _filePathNormalizer.Normalize(filePath);
+            var textDocumentPath = FilePathNormalizer.Normalize(filePath);
             if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
             {
                 projectSnapshot = _projectResolver.GetMiscellaneousProject();
@@ -199,7 +191,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            var textDocumentPath = _filePathNormalizer.Normalize(filePath);
+            var textDocumentPath = FilePathNormalizer.Normalize(filePath);
             if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
             {
                 projectSnapshot = _projectResolver.GetMiscellaneousProject();
@@ -216,7 +208,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            var normalizedPath = _filePathNormalizer.Normalize(filePath);
+            var normalizedPath = FilePathNormalizer.Normalize(filePath);
 
             var project = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(normalizedPath);
 
@@ -237,7 +229,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            var normalizedPath = _filePathNormalizer.Normalize(filePath);
+            var normalizedPath = FilePathNormalizer.Normalize(filePath);
             var project = (DefaultProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(normalizedPath);
 
             if (project is null)
@@ -261,7 +253,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            var normalizedPath = _filePathNormalizer.Normalize(filePath);
+            var normalizedPath = FilePathNormalizer.Normalize(filePath);
             var project = (DefaultProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(normalizedPath);
 
             if (project is null)
@@ -315,7 +307,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         {
             var project = (DefaultProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectFilePath);
             var currentHostProject = project.HostProject;
-            var projectDirectory = _filePathNormalizer.GetDirectory(project.FilePath);
+            var projectDirectory = FilePathNormalizer.GetDirectory(project.FilePath);
             var documentMap = documents.ToDictionary(document => EnsureFullPath(document.FilePath, projectDirectory), FilePathComparer.Instance);
             var miscellaneousProject = (DefaultProjectSnapshot)_projectResolver.GetMiscellaneousProject();
 
@@ -409,13 +401,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             _projectSnapshotManagerAccessor.Instance.DocumentAdded(toProject.HostProject, newHostDocument, textLoader);
         }
 
-        private string EnsureFullPath(string filePath, string projectDirectory)
+        private static string EnsureFullPath(string filePath, string projectDirectory)
         {
-            var normalizedFilePath = _filePathNormalizer.Normalize(filePath);
+            var normalizedFilePath = FilePathNormalizer.Normalize(filePath);
             if (!normalizedFilePath.StartsWith(projectDirectory, FilePathComparison.Instance))
             {
                 var absolutePath = Path.Combine(projectDirectory, normalizedFilePath);
-                normalizedFilePath = _filePathNormalizer.Normalize(absolutePath);
+                normalizedFilePath = FilePathNormalizer.Normalize(absolutePath);
             }
 
             return normalizedFilePath;

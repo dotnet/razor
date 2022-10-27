@@ -13,6 +13,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
 public sealed class ViewComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, ITagHelperDescriptorProvider
 {
+    public string Name => nameof(ViewComponentTagHelperDescriptorProvider);
     public int Order { get; set; }
 
     public void Execute(TagHelperDescriptorProviderContext context)

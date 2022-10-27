@@ -3,8 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
@@ -19,8 +22,10 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         private readonly ProjectSnapshotProjectEngineFactory _factory;
         private readonly ErrorReporter _errorReporter;
         private readonly Workspace _workspace;
+        private readonly ITelemetryReporter _telemetryReporter;
 
-        public OOPTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, ErrorReporter errorReporter, Workspace workspace)
+        public OOPTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, ErrorReporter errorReporter, Workspace workspace, ITelemetryReporter telemetryReporter)
+            : base(telemetryReporter)
         {
             if (factory is null)
             {
@@ -37,11 +42,17 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                 throw new ArgumentNullException(nameof(workspace));
             }
 
+            if (telemetryReporter is null)
+            {
+                throw new ArgumentNullException(nameof(telemetryReporter));
+            }
+
             _factory = factory;
             _errorReporter = errorReporter;
             _workspace = workspace;
+            _telemetryReporter = telemetryReporter;
 
-            _defaultResolver = new DefaultTagHelperResolver();
+            _defaultResolver = new DefaultTagHelperResolver(telemetryReporter);
             _resultCache = new TagHelperResultCache();
         }
 
@@ -130,10 +141,14 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         // Protected virtual for testing
         protected virtual IReadOnlyCollection<TagHelperDescriptor>? ProduceTagHelpersFromDelta(string projectFilePath, int lastResultId, TagHelperDeltaResult deltaResult)
         {
+            var fromCache = true;
+            var stopWatch = Stopwatch.StartNew();
+
             if (!_resultCache.TryGet(projectFilePath, lastResultId, out var tagHelpers))
             {
                 // We most likely haven't made a request to the server yet so there's no delta to apply
                 tagHelpers = Array.Empty<TagHelperDescriptor>();
+                fromCache = false;
 
                 if (deltaResult.Delta)
                 {
@@ -146,6 +161,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
             {
                 // Not a delta based response, we should treat it as a "refresh"
                 tagHelpers = Array.Empty<TagHelperDescriptor>();
+                fromCache = false;
             }
 
             if (deltaResult.ResultId != lastResultId)
@@ -153,6 +169,16 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                 // New results, lets build a coherent TagHelper collection and then cache it
                 tagHelpers = deltaResult.Apply(tagHelpers);
                 _resultCache.Set(projectFilePath, deltaResult.ResultId, tagHelpers);
+                fromCache = false;
+            }
+
+            stopWatch.Stop();
+            if (fromCache)
+            {
+                _telemetryReporter.ReportEvent("taghelpers.fromcache", VisualStudio.Telemetry.TelemetrySeverity.Normal, new Dictionary<string, long>()
+                {
+                    { "taghelper.cachedresult.ellapsedms", stopWatch.ElapsedMilliseconds }
+                }.ToImmutableDictionary());
             }
 
             return tagHelpers;

@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
@@ -47,14 +46,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             : base(testOutput)
         {
             TestProjectPath = GetProjectDirectory();
-            FilePathNormalizer = new FilePathNormalizer();
 
             ILoggerExtensions.TestOnlyLoggingEnabled = true;
         }
 
         public static string? TestProjectPath { get; private set; }
-
-        protected FilePathNormalizer FilePathNormalizer { get; }
 
         // Used by the test framework to set the 'base' name for test files.
         public static string FileName

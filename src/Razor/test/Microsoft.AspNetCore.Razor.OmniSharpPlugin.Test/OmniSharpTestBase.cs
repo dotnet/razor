@@ -75,7 +75,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             var dispatcher = _dispatcherProperty.GetValue(Dispatcher);
             var testSnapshotManager = _createProjectSnapshotManagerMethod.Invoke(null, new object[] { dispatcher });
             _allowNotifyListenersProperty.SetValue(testSnapshotManager, allowNotifyListeners);
-            var remoteTextLoaderFactory = new DefaultRemoteTextLoaderFactory(new FilePathNormalizer());
+            var remoteTextLoaderFactory = new DefaultRemoteTextLoaderFactory();
             var snapshotManager = (OmniSharpProjectSnapshotManagerBase)_omniSharpProjectSnapshotMangerConstructor.Invoke(new[] { testSnapshotManager, remoteTextLoaderFactory });
 
             return snapshotManager;
