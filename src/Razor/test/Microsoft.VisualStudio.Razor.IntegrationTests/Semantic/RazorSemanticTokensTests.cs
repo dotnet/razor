@@ -24,6 +24,8 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 
         private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(RazorSemanticTokensTests), useCurrentDirectory: true);
 
+        // WARNING: If you leave this as "true" it will cause the semantic tokens tests to change their expected values.
+        // Do NOT check in set to true.
         protected bool GenerateBaselines { get; set; } = false;
 
         // Used by the test framework to set the 'base' name for test files.
