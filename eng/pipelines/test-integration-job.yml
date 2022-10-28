@@ -49,11 +49,14 @@ steps:
         artifactType: Container
         parallel: true
 
+  # We want to build the VSIX but NOT the ".Dependencies" package.
+  # This way we get as close to a real deployment as possible in VSMain.
   - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
       -msbuildEngine vs
       -prepareMachine
       /p:BuildVsix=true
+      /p:BuildDependencyVsix=false
       /p:BuildProjectReferences=false
     name: BuildVSIX
     displayName: Build and Deploy VSIX
@@ -68,9 +71,6 @@ steps:
         artifactName: $(Agent.Os)_$(Agent.JobName) BuildVSIXBinLog
         artifactType: Container
         parallel: true
-
-  - powershell: eng\SetupVSHive.ps1
-    displayName: Setup VS Hive
 
   - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
