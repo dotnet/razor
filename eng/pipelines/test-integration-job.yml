@@ -18,6 +18,8 @@ steps:
   # We explicitly pass the VS install directory in azure-pipelines-integration-dartlab.yml
   # We manually create the Hive before deployment to avoid a race condition
   - powershell: eng\scripts\CreateVSHive.ps1
+      -rootSuffix RoslynDev
+      -devenvExepath C:\\Test\\VisualStudio\\Common7\\IDE\\devenv.exe
     displayName: Create and Verify hive
 
   - script: eng\cibuild.cmd
