@@ -18,9 +18,9 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
         private readonly ITelemetryReporter _telemetryReporter;
 
         [ImportingConstructor]
-        public ExportedTagHelperResolverFactory(ITelemetryReporter telemetryReporter)
+        public ExportedTagHelperResolverFactory()
         {
-            _telemetryReporter = telemetryReporter;
+            _telemetryReporter = new OmniSharpTelemetryReporter();
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
