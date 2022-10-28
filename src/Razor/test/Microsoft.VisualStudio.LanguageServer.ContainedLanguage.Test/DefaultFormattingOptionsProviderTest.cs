@@ -4,22 +4,28 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Text.Editor;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
-    public class DefaultFormattingOptionsProviderTest
+    public class DefaultFormattingOptionsProviderTest : TestBase
     {
+        public DefaultFormattingOptionsProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void GetOptions_UsesIndentationManagerInformation()
         {
             // Arrange
-            var documentManager = new TestDocumentManager();
             var documentUri = new Uri("C:/path/to/razorfile.razor");
             var documentSnapshot = new TestLSPDocumentSnapshot(documentUri, version: 0);
-            documentManager.AddDocument(documentSnapshot.Uri, documentSnapshot);
+            var documentManager = new TestLSPDocumentManager(documentSnapshot);
             var expectedInsertSpaces = true;
             var expectedTabSize = 1337;
             var unneededIndentSize = 123;
@@ -30,12 +36,28 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var provider = new DefaultFormattingOptionsProvider(documentManager, indentationManagerService.Object);
 
             // Act
-            var options = provider.GetOptions(documentSnapshot);
+            var options = provider.GetOptions(documentUri);
 
             // Assert
             indentationManagerService.VerifyAll();
             Assert.Equal(expectedInsertSpaces, options.InsertSpaces);
             Assert.Equal(expectedTabSize, options.TabSize);
+        }
+
+        private class TestLSPDocumentManager : LSPDocumentManager
+        {
+            private readonly LSPDocumentSnapshot _snapshot;
+
+            public TestLSPDocumentManager(LSPDocumentSnapshot snapshot)
+            {
+                _snapshot = snapshot;
+            }
+
+            public override bool TryGetDocument(Uri uri, out LSPDocumentSnapshot lspDocumentSnapshot)
+            {
+                lspDocumentSnapshot = _snapshot;
+                return true;
+            }
         }
     }
 }

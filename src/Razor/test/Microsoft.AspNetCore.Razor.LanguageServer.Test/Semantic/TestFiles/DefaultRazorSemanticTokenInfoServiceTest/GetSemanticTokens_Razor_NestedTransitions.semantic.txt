@@ -1,20 +1,23 @@
 //line,characterPos,length,tokenType,modifier
-0 0 1 84 0 //razorTransition
-0 1 9 87 0 //razorDirective
-0 10 1 84 0 //razorTransition
-1 16 6 8 0 //variable
-0 6 1 43 0 //punctuation
-0 1 6 15 0 //keyword
-0 6 1 43 0 //punctuation
-0 2 3 31 0 //field name
-0 4 1 21 0 //operator
-0 2 1 84 0 //razorTransition
-0 1 1 91 0 //markupTagDelimiter
-0 1 4 92 0 //markupElement
-0 4 1 91 0 //markupTagDelimiter
-0 1 1 91 0 //markupTagDelimiter
-0 1 1 91 0 //markupTagDelimiter
-0 1 4 92 0 //markupElement
-0 4 1 91 0 //markupTagDelimiter
-0 1 1 43 0 //punctuation
-1 12 1 84 0 //razorTransition
+0 0 1 razorTransition 0
+0 1 5 keyword 0
+0 6 6 namespace name 0
+1 0 1 razorTransition 0
+0 1 9 razorDirective 0
+0 10 1 razorTransition 0
+1 4 6 delegate name 0
+0 6 1 punctuation 0
+0 1 6 keyword 0
+0 6 1 punctuation 0
+0 2 3 field name 0
+0 4 1 operator 0
+0 2 1 razorTransition 0
+0 1 1 markupTagDelimiter 0
+0 1 4 markupElement 0
+0 4 1 markupTagDelimiter 0
+0 1 1 markupTagDelimiter 0
+0 1 1 markupTagDelimiter 0
+0 1 4 markupElement 0
+0 4 1 markupTagDelimiter 0
+0 1 1 punctuation 0
+1 0 1 razorTransition 0

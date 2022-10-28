@@ -129,17 +129,17 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(clientCapabilities));
             }
 
-            _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
+            _logger.LogInformation("Starting request for {request.TextDocument.Uri}.", request.TextDocument.Uri);
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
-                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
+                _logger.LogWarning("Failed to find document {request.TextDocument.Uri}.", request.TextDocument.Uri);
                 return null;
             }
 
             if (request.Context is null)
             {
-                _logger.LogWarning($"No Context available when document was found.");
+                _logger.LogWarning("No Context available when document was found.");
                 return null;
             }
 
@@ -203,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     }
                 };
 
-                _logger.LogInformation($"Requesting non-provisional completions for {projectedDocumentUri}.");
+                _logger.LogInformation("Requesting non-provisional completions for {projectedDocumentUri}.", projectedDocumentUri);
 
                 var textBuffer = serverKind.GetTextBuffer(documentSnapshot);
                 var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(
@@ -320,7 +320,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             TextExtent wordExtent,
             CompletionList completionList)
         {
-            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot);
+            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot.Uri);
+            if (formattingOptions is null)
+            {
+                return completionList;
+            }
 
             if (IsSimpleImplicitExpression(request, documentSnapshot, wordExtent))
             {
@@ -572,7 +576,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 previousCharacterProjection.LanguageKind != RazorLanguageKind.CSharp ||
                 previousCharacterProjection.HostDocumentVersion is null)
             {
-                _logger.LogInformation($"Failed to find previous char projection in {previousCharacterProjection?.LanguageKind:G} at version {previousCharacterProjection?.HostDocumentVersion}.");
+                _logger.LogInformation("Failed to find previous char projection in {previousCharacterProjection?.LanguageKind:G} at version {previousCharacterProjection?.HostDocumentVersion}.",
+                    previousCharacterProjection?.LanguageKind, previousCharacterProjection?.HostDocumentVersion);
                 return default;
             }
 
@@ -609,7 +614,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                     }
                 };
 
-                _logger.LogInformation($"Requesting provisional completion for {previousCharacterProjection.Uri}.");
+                _logger.LogInformation("Requesting provisional completion for {previousCharacterProjection.Uri}.", previousCharacterProjection.Uri);
 
                 var textBuffer = LanguageServerKind.CSharp.GetTextBuffer(documentSnapshot);
                 var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, SumType<CompletionItem[], CompletionList>?>(

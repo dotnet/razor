@@ -7,6 +7,13 @@
         <target state="translated">값은 null이거나 빈 문자열일 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DirectiveSnippetDescription">
+        <source>Insert a directive code snippet
+[Tab] to navigate between elements, [Enter] to complete</source>
+        <target state="translated">지시문 코드 조각 삽입
+요소 사이를 탐색하려면 [Tab], 완료하려면 [Enter]</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

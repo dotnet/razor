@@ -2,15 +2,16 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -20,25 +21,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     /// </summary>
     internal class AddUsingsCSharpCodeActionResolver : CSharpCodeActionResolver
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
-        private readonly DocumentVersionCache _documentVersionCache;
+        private readonly DocumentContextFactory _documentContextFactory;
 
         public AddUsingsCSharpCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            ClientNotifierServiceBase languageServer,
-            DocumentVersionCache documentVersionCache)
+            DocumentContextFactory documentContextFactory,
+            ClientNotifierServiceBase languageServer)
             : base(languageServer)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
-            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
+            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
         }
 
         public override string Action => LanguageServerConstants.CodeActions.AddUsing;
 
-        public async override Task<CodeAction?> ResolveAsync(
+        public async override Task<CodeAction> ResolveAsync(
             CSharpCodeActionParams csharpParams,
             CodeAction codeAction,
             CancellationToken cancellationToken)
@@ -55,48 +50,57 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!AddUsingsCodeActionProviderHelper.TryExtractNamespace(codeAction.Title, out var @namespace))
-            {
-                // Invalid text edit, missing namespace
-                return codeAction;
-            }
+            var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, codeAction, cancellationToken).ConfigureAwait(false);
 
-            var documentSnapshot = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentResolver.TryResolveDocument(csharpParams.RazorFileUri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-            if (documentSnapshot is null)
+            // TODO: Move this higher, so it happens on any code action.
+            //       For that though, we need a deeper understanding of applying workspace edits to documents, rather than
+            //       just picking out the first one because we assume thats where it will be.
+            //       Tracked by https://github.com/dotnet/razor-tooling/issues/6159
+            if (resolvedCodeAction?.Edit?.TryGetDocumentChanges(out var documentChanges) != true)
             {
                 return codeAction;
             }
 
-            var text = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
-            if (text is null)
+            if (documentChanges!.Length != 1)
             {
-                return null;
+                Debug.Fail("We don't yet support multi-document code actions! If you're seeing this, something about Roslyn changed and we should react.");
+                return codeAction;
             }
 
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+            var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null || cancellationToken.IsCancellationRequested)
+            {
+                return codeAction;
+            }
+
+            var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
-                return null;
+                return codeAction;
             }
 
-            var documentVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version);
-                return version;
-            }, cancellationToken).ConfigureAwait(false);
+            var csharpText = codeDocument.GetCSharpSourceText();
+            var edits = documentChanges[0].Edits;
+            var changes = edits.Select(e => e.AsTextChange(csharpText));
+            var changedText = csharpText.WithChanges(changes);
 
-            var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
+            edits = await AddUsingsCodeActionProviderHelper.GetUsingStatementEditsAsync(codeDocument, csharpText, changedText, cancellationToken).ConfigureAwait(false);
+
+            codeAction.Edit = new WorkspaceEdit
             {
-                Uri = csharpParams.RazorFileUri,
-                Version = documentVersion.Value
+                DocumentChanges = new TextDocumentEdit[]
+                {
+                    new TextDocumentEdit
+                    {
+                        TextDocument = new OptionalVersionedTextDocumentIdentifier()
+                        {
+                            Uri = csharpParams.RazorFileUri,
+                            Version = documentContext.Version
+                        },
+                        Edits = edits
+                    }
+                }
             };
-
-            var edit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(@namespace, codeDocument, codeDocumentIdentifier);
-            codeAction = codeAction with { Edit = edit };
 
             return codeAction;
         }

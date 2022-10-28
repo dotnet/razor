@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -22,26 +20,91 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
     internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
     {
         // Internal for testing
+        private readonly LSPDocumentManager _documentManager;
         internal TimeSpan _synchronizationTimeout = TimeSpan.FromSeconds(2);
         private readonly Dictionary<Uri, DocumentContext> _virtualDocumentContexts;
         private readonly object _documentContextLock = new();
         private readonly FileUriProvider _fileUriProvider;
 
         [ImportingConstructor]
-        public DefaultLSPDocumentSynchronizer(FileUriProvider fileUriProvider)
+        public DefaultLSPDocumentSynchronizer(FileUriProvider fileUriProvider, LSPDocumentManager documentManager)
         {
             if (fileUriProvider is null)
             {
                 throw new ArgumentNullException(nameof(fileUriProvider));
             }
 
+            if (documentManager is null)
+            {
+                throw new ArgumentNullException(nameof(documentManager));
+            }
+
             _fileUriProvider = fileUriProvider;
             _virtualDocumentContexts = new Dictionary<Uri, DocumentContext>();
+            _documentManager = documentManager;
         }
 
+        internal record SynchronizedResult<TVirtualDocumentSnapshot>(bool Synchronized, TVirtualDocumentSnapshot VirtualSnapshot)
+            where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
+        {
+        }
+
+        public override Task<SynchronizedResult<TVirtualDocumentSnapshot>> TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
+            int requiredHostDocumentVersion,
+            Uri hostDocumentUri,
+            CancellationToken cancellationToken)
+            where TVirtualDocumentSnapshot : class
+            => TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
+                requiredHostDocumentVersion,
+                hostDocumentUri,
+                rejectOnNewerParallelRequest: true,
+                cancellationToken);
+
+        public override async Task<SynchronizedResult<TVirtualDocumentSnapshot>> TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
+            int requiredHostDocumentVersion,
+            Uri hostDocumentUri,
+            bool rejectOnNewerParallelRequest,
+            CancellationToken cancellationToken)
+            where TVirtualDocumentSnapshot : class
+        {
+            if (hostDocumentUri is null)
+            {
+                throw new ArgumentNullException(nameof(hostDocumentUri));
+            }
+
+            Task<bool> onSynchronizedTask;
+            lock (_documentContextLock)
+            {
+                var preSyncedSnapshot = GetVirtualDocumentSnapshot<TVirtualDocumentSnapshot>(hostDocumentUri);
+                var virtualDocumentUri = preSyncedSnapshot.Uri;
+                if (!_virtualDocumentContexts.TryGetValue(virtualDocumentUri, out var documentContext))
+                {
+                    // Document was deleted/removed in mid-synchronization
+                    return new SynchronizedResult<TVirtualDocumentSnapshot>(false, preSyncedSnapshot);
+                }
+
+                if (requiredHostDocumentVersion == documentContext.SeenHostDocumentVersion)
+                {
+                    // Already synchronized
+                    return new SynchronizedResult<TVirtualDocumentSnapshot>(true, preSyncedSnapshot);
+                }
+
+                // Currently tracked synchronizing context is not sufficient, need to update a new one.
+                onSynchronizedTask = documentContext.GetSynchronizationTaskAsync(requiredHostDocumentVersion, rejectOnNewerParallelRequest, cancellationToken);
+            }
+
+            var onSynchronizedResult = await onSynchronizedTask.ConfigureAwait(false);
+
+            var virtualDocumentSnapshot = GetVirtualDocumentSnapshot<TVirtualDocumentSnapshot>(hostDocumentUri);
+
+            return new SynchronizedResult<TVirtualDocumentSnapshot>(onSynchronizedResult, virtualDocumentSnapshot);
+        }
+
+        [Obsolete]
         public override Task<bool> TrySynchronizeVirtualDocumentAsync(int requiredHostDocumentVersion, VirtualDocumentSnapshot virtualDocument, CancellationToken cancellationToken)
             => TrySynchronizeVirtualDocumentAsync(requiredHostDocumentVersion, virtualDocument, rejectOnNewerParallelRequest: true, cancellationToken);
 
+        [Obsolete]
         public override Task<bool> TrySynchronizeVirtualDocumentAsync(int requiredHostDocumentVersion, VirtualDocumentSnapshot virtualDocument, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken)
         {
             if (virtualDocument is null)
@@ -67,6 +130,25 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 var onSynchronizedTask = documentContext.GetSynchronizationTaskAsync(requiredHostDocumentVersion, rejectOnNewerParallelRequest, cancellationToken);
                 return onSynchronizedTask;
             }
+        }
+
+        private TVirtualDocumentSnapshot GetVirtualDocumentSnapshot<TVirtualDocumentSnapshot>(Uri hostDocumentUri)
+            where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
+        {
+            var normalizedString = hostDocumentUri.GetAbsoluteOrUNCPath();
+            var normalizedUri = new Uri(normalizedString);
+
+            if (!_documentManager.TryGetDocument(normalizedUri, out var documentSnapshot))
+            {
+                throw new InvalidOperationException($"Unable to retrieve snapshot for document {normalizedUri} after synchronization");
+            }
+
+            if (!documentSnapshot.TryGetVirtualDocument<TVirtualDocumentSnapshot>(out var virtualDoc))
+            {
+                throw new InvalidOperationException($"Unable to retrieve virtual document for {normalizedUri} after document synchronization");
+            }
+
+            return virtualDoc;
         }
 
         private void VirtualDocumentBuffer_PostChanged(object sender, EventArgs e)
@@ -99,13 +181,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             }
         }
 
-        public override void Changed(LSPDocumentSnapshot old, LSPDocumentSnapshot @new, VirtualDocumentSnapshot virtualOld, VirtualDocumentSnapshot virtualNew, LSPDocumentChangeKind kind)
+        public override void Changed(LSPDocumentSnapshot? old, LSPDocumentSnapshot? @new, VirtualDocumentSnapshot? virtualOld, VirtualDocumentSnapshot? virtualNew, LSPDocumentChangeKind kind)
         {
             lock (_documentContextLock)
             {
                 if (kind == LSPDocumentChangeKind.Added)
                 {
-                    var lspDocument = @new;
+                    var lspDocument = @new!;
                     for (var i = 0; i < lspDocument.VirtualDocuments.Count; i++)
                     {
                         var virtualDocument = lspDocument.VirtualDocuments[i];
@@ -119,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 }
                 else if (kind == LSPDocumentChangeKind.Removed)
                 {
-                    var lspDocument = old;
+                    var lspDocument = old!;
                     for (var i = 0; i < lspDocument.VirtualDocuments.Count; i++)
                     {
                         var virtualDocument = lspDocument.VirtualDocuments[i];
@@ -139,7 +221,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 }
                 else if (kind == LSPDocumentChangeKind.VirtualDocumentChanged)
                 {
-                    if (virtualOld.Snapshot.Version == virtualNew.Snapshot.Version)
+                    if (virtualOld!.Snapshot.Version == virtualNew!.Snapshot.Version)
                     {
                         // UpdateDocumentContextVersionInternal is typically invoked through a buffer notification,
                         //   however in the case where VirtualDocumentBase.Update is called with a zero change edit,

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using System.Threading;
@@ -14,19 +12,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
     public class DefaultRemoteTextLoaderFactory : RemoteTextLoaderFactory
     {
-        private readonly FilePathNormalizer _filePathNormalizer;
-
-        public DefaultRemoteTextLoaderFactory(
-            FilePathNormalizer filePathNormalizer)
-        {
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
-            }
-
-            _filePathNormalizer = filePathNormalizer;
-        }
-
         public override TextLoader Create(string filePath)
         {
             if (filePath is null)
@@ -34,7 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            var normalizedPath = _filePathNormalizer.Normalize(filePath);
+            var normalizedPath = FilePathNormalizer.Normalize(filePath);
             return new RemoteTextLoader(normalizedPath);
         }
 
@@ -52,7 +37,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
                 _filePath = filePath;
             }
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
             {
 
                 TextAndVersion textAndVersion;

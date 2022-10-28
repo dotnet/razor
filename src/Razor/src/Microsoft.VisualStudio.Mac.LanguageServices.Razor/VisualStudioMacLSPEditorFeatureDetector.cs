@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
     internal class VisualStudioMacLSPEditorFeatureDetector : LSPEditorFeatureDetector
     {
         private const string RazorLSPEditorFeatureFlag = "Razor.LSP.Editor";
-        private const string DotNetCoreCSharpProjectCapability = "CSharp&CPS";
+        private const string DotNetCoreCSharpProjectCapability = "DotNetCoreRazor | AspNetCore";
         private const string LegacyRazorEditorProjectCapability = "LegacyRazorEditor";
 
         private readonly AggregateProjectCapabilityResolver _projectCapabilityResolver;
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         {
         }
 
-        public override bool IsLSPEditorAvailable(string documentFilePath, object hierarchy)
+        public override bool IsLSPEditorAvailable(string? documentFilePath, object? hierarchy)
         {
             if (documentFilePath is null)
             {

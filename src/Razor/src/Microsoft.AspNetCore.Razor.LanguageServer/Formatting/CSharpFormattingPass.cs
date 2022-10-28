@@ -7,11 +7,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
@@ -22,10 +21,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public CSharpFormattingPass(
             RazorDocumentMappingService documentMappingService,
-            FilePathNormalizer filePathNormalizer,
             ClientNotifierServiceBase server,
             ILoggerFactory loggerFactory)
-            : base(documentMappingService, filePathNormalizer, server)
+            : base(documentMappingService, server)
         {
             if (loggerFactory is null)
             {
@@ -67,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 changedText = changedText.WithChanges(csharpChanges);
                 changedContext = await changedContext.WithTextAsync(changedText);
 
-                _logger.LogTestOnly($"After FormatCSharpAsync:\r\n{changedText}");
+                _logger.LogTestOnly("After FormatCSharpAsync:\r\n{changedText}", changedText);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -78,10 +76,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // Apply the edits that modify indentation.
                 changedText = changedText.WithChanges(indentationChanges);
 
-                _logger.LogTestOnly($"After AdjustIndentationAsync:\r\n{changedText}");
+                _logger.LogTestOnly("After AdjustIndentationAsync:\r\n{changedText}", changedText);
             }
 
-            _logger.LogTestOnly($"Generated C#:\r\n{context.CSharpSourceText}");
+            _logger.LogTestOnly("Generated C#:\r\n{context.CSharpSourceText}", context.CSharpSourceText);
 
             var finalChanges = changedText.GetTextChanges(originalText);
             var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();

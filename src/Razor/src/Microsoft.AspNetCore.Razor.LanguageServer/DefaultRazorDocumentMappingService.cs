@@ -6,29 +6,49 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
     {
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly ILogger _logger;
 
-        public DefaultRazorDocumentMappingService(ILoggerFactory loggerFactory) : base()
+        public DefaultRazorDocumentMappingService(
+            LanguageServerFeatureOptions languageServerFeatureOptions,
+            DocumentContextFactory documentContextFactory,
+            ILoggerFactory loggerFactory)
+            : base()
         {
+            if (languageServerFeatureOptions is null)
+            {
+                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            }
+
+            if (documentContextFactory is null)
+            {
+                throw new ArgumentNullException(nameof(documentContextFactory));
+            }
+
             if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
+            _languageServerFeatureOptions = languageServerFeatureOptions;
+            _documentContextFactory = documentContextFactory;
             _logger = loggerFactory.CreateLogger<DefaultRazorDocumentMappingService>();
         }
 
@@ -58,8 +78,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     break;
                 }
 
-                var mappedStart = TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _);
-                var mappedEnd = TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _);
+                var mappedStart = this.TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out var hostDocumentStart, out _);
+                var mappedEnd = this.TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out var hostDocumentEnd, out _);
 
                 // Ideal case, both start and end can be mapped so just return the edit
                 if (mappedStart && mappedEnd)
@@ -71,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     projectedEdits.Add(new TextEdit()
                     {
                         NewText = newText,
-                        Range = new Range(hostDocumentStart!, hostDocumentEnd!)
+                        Range = new Range { Start = hostDocumentStart!, End = hostDocumentEnd! },
                     });
                     continue;
                 }
@@ -105,7 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     // so we can ignore all but the last line. This assert ensures that is true, just in case something changes in Roslyn
                     Debug.Assert(lastNewLine == 0 || edit.NewText.Substring(0, lastNewLine - 1).All(c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
 
-                    var proposedRange = new Range(range.End.Line, 0, range.End.Line, range.End.Character);
+                    var proposedRange = new Range { Start = new Position(range.End.Line, 0), End = new Position(range.End.Line, range.End.Character) };
                     startSync = proposedRange.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out startIndex);
                     endSync = proposedRange.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out endIndex);
                     if (startSync is false || endSync is false)
@@ -113,15 +133,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         break;
                     }
 
-                    mappedStart = TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out hostDocumentStart, out _);
-                    mappedEnd = TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out hostDocumentEnd, out _);
+                    mappedStart = this.TryMapFromProjectedDocumentPosition(codeDocument, startIndex, out hostDocumentStart, out _);
+                    mappedEnd = this.TryMapFromProjectedDocumentPosition(codeDocument, endIndex, out hostDocumentEnd, out _);
 
                     if (mappedStart && mappedEnd)
                     {
                         projectedEdits.Add(new TextEdit()
                         {
                             NewText = edit.NewText.Substring(lastNewLine),
-                            Range = new Range(hostDocumentStart!, hostDocumentEnd!)
+                            Range = new Range { Start = hostDocumentStart!, End = hostDocumentEnd! },
                         });
                         continue;
                     }
@@ -168,7 +188,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
                     // Only do anything if the end of the line in question is a valid mapping point (ie, a transition)
                     var endOfLine = line.Span.End;
-                    if (TryMapFromProjectedDocumentPosition(codeDocument, endOfLine, out var hostDocumentIndex, out _))
+                    if (this.TryMapFromProjectedDocumentPosition(codeDocument, endOfLine, out var hostDocumentIndex, out _))
                     {
                         if (range.Start.Line == lastNewLineAddedToLine)
                         {
@@ -178,7 +198,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             projectedEdits.Add(new TextEdit()
                             {
                                 NewText = " " + edit.NewText,
-                                Range = new Range(hostDocumentIndex, hostDocumentIndex)
+                                Range = new Range { Start = hostDocumentIndex, End = hostDocumentIndex }
                             });
                         }
                         else
@@ -188,7 +208,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             projectedEdits.Add(new TextEdit()
                             {
                                 NewText = Environment.NewLine + new string(' ', range.Start.Character) + edit.NewText,
-                                Range = new Range(hostDocumentIndex, hostDocumentIndex)
+                                Range = new Range { Start = hostDocumentIndex, End = hostDocumentIndex }
                             });
                         }
 
@@ -200,7 +220,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return projectedEdits.ToArray();
         }
 
-        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange) => TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Strict, out originalRange);
+        public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange)
+            => TryMapFromProjectedDocumentRange(codeDocument, projectedRange, MappingBehavior.Strict, out originalRange);
 
         public override bool TryMapFromProjectedDocumentRange(RazorCodeDocument codeDocument, Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange)
         {
@@ -287,9 +308,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            projectedRange = new Range(
-                projectedStart,
-                projectedEnd);
+            projectedRange = new Range
+            {
+                Start = projectedStart,
+                End = projectedEnd,
+            };
 
             return true;
         }
@@ -328,11 +351,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return false;
         }
 
-        public override bool TryMapToProjectedDocumentPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
-            => TryMapToProjectedDocumentPositionInternal(codeDocument, absoluteIndex, nextCSharpPositionOnFailure: false, out projectedPosition, out projectedIndex);
-
         public override bool TryMapToProjectedDocumentOrNextCSharpPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
             => TryMapToProjectedDocumentPositionInternal(codeDocument, absoluteIndex, nextCSharpPositionOnFailure: true, out projectedPosition, out projectedIndex);
+
+        public override bool TryMapToProjectedDocumentPosition(RazorCodeDocument codeDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
+            => TryMapToProjectedDocumentPositionInternal(codeDocument, absoluteIndex, nextCSharpPositionOnFailure: false, out projectedPosition, out projectedIndex);
 
         private static bool TryMapToProjectedDocumentPositionInternal(RazorCodeDocument codeDocument, int absoluteIndex, bool nextCSharpPositionOnFailure, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
         {
@@ -388,7 +411,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
         }
 
-        public override RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex)
+        public override RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex, bool rightAssociative)
         {
             if (codeDocument is null)
             {
@@ -399,9 +422,64 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var classifiedSpans = syntaxTree.GetClassifiedSpans();
             var tagHelperSpans = syntaxTree.GetTagHelperSpans();
             var documentLength = codeDocument.GetSourceText().Length;
-            var languageKind = GetLanguageKindCore(classifiedSpans, tagHelperSpans, originalIndex, documentLength);
+            var languageKind = GetLanguageKindCore(classifiedSpans, tagHelperSpans, originalIndex, documentLength, rightAssociative);
 
             return languageKind;
+        }
+
+        public async override Task<WorkspaceEdit> RemapWorkspaceEditAsync(WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
+        {
+            if (workspaceEdit.TryGetDocumentChanges(out var documentChanges))
+            {
+                // The LSP spec says, we should prefer `DocumentChanges` property over `Changes` if available.
+                var remappedEdits = await RemapVersionedDocumentEditsAsync(documentChanges, cancellationToken).ConfigureAwait(false);
+                return new WorkspaceEdit()
+                {
+                    DocumentChanges = remappedEdits
+                };
+            }
+            else if (workspaceEdit.Changes != null)
+            {
+                var remappedEdits = await RemapDocumentEditsAsync(workspaceEdit.Changes, cancellationToken).ConfigureAwait(false);
+                return new WorkspaceEdit()
+                {
+                    Changes = remappedEdits
+                };
+            }
+
+            return workspaceEdit;
+        }
+
+        public async override Task<(Uri MappedDocumentUri, Range MappedRange)> MapFromProjectedDocumentRangeAsync(Uri virtualDocumentUri, Range projectedRange, CancellationToken cancellationToken)
+        {
+            var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(virtualDocumentUri);
+
+            // For Html we just map the Uri, the range will be the same
+            if (_languageServerFeatureOptions.IsVirtualHtmlFile(virtualDocumentUri))
+            {
+                return (razorDocumentUri, projectedRange);
+            }
+
+            // We only map from C# files
+            if (!_languageServerFeatureOptions.IsVirtualCSharpFile(virtualDocumentUri))
+            {
+                return (virtualDocumentUri, projectedRange);
+            }
+
+            var documentContext = await _documentContextFactory.TryCreateAsync(razorDocumentUri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
+            {
+                return (virtualDocumentUri, projectedRange);
+            }
+
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
+            if (TryMapFromProjectedDocumentRange(codeDocument, projectedRange, out var mappedRange))
+            {
+                return (razorDocumentUri, mappedRange);
+            }
+
+            return (virtualDocumentUri, projectedRange);
         }
 
         // Internal for testing
@@ -409,7 +487,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             IReadOnlyList<ClassifiedSpanInternal> classifiedSpans,
             IReadOnlyList<TagHelperSpanInternal> tagHelperSpans,
             int absoluteIndex,
-            int documentLength)
+            int documentLength,
+            bool rightAssociative)
         {
             for (var i = 0; i < classifiedSpans.Count; i++)
             {
@@ -430,6 +509,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                             {
                                 // Non-marker spans do not own the edges after it
                                 continue;
+                            }
+
+                            // If we're right associative, then we don't want to use the classification that we're at the end
+                            // of, if we're also at the start of the next one
+                            if (rightAssociative)
+                            {
+                                if (i < classifiedSpans.Count - 1 && classifiedSpans[i + 1].Span.AbsoluteIndex == absoluteIndex)
+                                {
+                                    // If we're at the start of the next span, then use that span
+                                    return GetLanguageFromClassifiedSpan(classifiedSpans[i + 1]);
+                                }
+
+                                // Otherwise, we did not find a match using right associativity, so check for tag helpers
+                                break;
                             }
                         }
 
@@ -509,9 +602,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 return false;
             }
 
-            originalRange = new Range(
-                hostDocumentStart,
-                hostDocumentEnd);
+            originalRange = new Range
+            {
+                Start = hostDocumentStart,
+                End = hostDocumentEnd
+            };
 
             return true;
         }
@@ -533,7 +628,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (startMappedDirectly && endMappedDirectly)
             {
                 // We strictly mapped the start/end of the projected range.
-                originalRange = new Range(hostDocumentStart!, hostDocumentEnd!);
+                originalRange = new Range
+                {
+                    Start = hostDocumentStart!,
+                    End = hostDocumentEnd!
+                };
                 return true;
             }
 
@@ -585,9 +684,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 var startLocation = sourceDocument.Lines.GetLocation(mapping.OriginalSpan.AbsoluteIndex);
                 var endLocation = sourceDocument.Lines.GetLocation(mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length);
-                var convertedRange = new Range(
-                    new Position(startLocation.LineIndex, startLocation.CharacterIndex),
-                    new Position(endLocation.LineIndex, endLocation.CharacterIndex));
+                var convertedRange = new Range
+                {
+                    Start = new Position(startLocation.LineIndex, startLocation.CharacterIndex),
+                    End = new Position(endLocation.LineIndex, endLocation.CharacterIndex)
+                };
                 return convertedRange;
             }
         }
@@ -691,6 +792,116 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             {
                 return position.Line < sourceText.Lines.Count;
             }
+        }
+
+        private async Task<TextDocumentEdit[]> RemapVersionedDocumentEditsAsync(TextDocumentEdit[] documentEdits, CancellationToken cancellationToken)
+        {
+            var remappedDocumentEdits = new List<TextDocumentEdit>();
+            foreach (var entry in documentEdits)
+            {
+                var virtualDocumentUri = entry.TextDocument.Uri;
+
+                // Check if the edit is actually for a generated document, because if not we don't need to do anything
+                if (!_languageServerFeatureOptions.IsVirtualDocumentUri(virtualDocumentUri))
+                {
+                    // This location doesn't point to a background razor file. No need to remap.
+                    remappedDocumentEdits.Add(entry);
+                    continue;
+                }
+
+                var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(virtualDocumentUri);
+                var documentContext = await _documentContextFactory.TryCreateAsync(razorDocumentUri, cancellationToken).ConfigureAwait(false);
+                if (documentContext is null)
+                {
+                    continue;
+                }
+
+                var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
+                var remappedEdits = RemapTextEditsCore(virtualDocumentUri, codeDocument, entry.Edits);
+                if (remappedEdits is null || remappedEdits.Length == 0)
+                {
+                    // Nothing to do.
+                    continue;
+                }
+
+                remappedDocumentEdits.Add(new TextDocumentEdit()
+                {
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier()
+                    {
+                        Uri = razorDocumentUri,
+                        Version = documentContext.Version
+                    },
+                    Edits = remappedEdits
+                });
+            }
+
+            return remappedDocumentEdits.ToArray();
+        }
+
+        private async Task<Dictionary<string, TextEdit[]>> RemapDocumentEditsAsync(Dictionary<string, TextEdit[]> changes, CancellationToken cancellationToken)
+        {
+            var remappedChanges = new Dictionary<string, TextEdit[]>();
+            foreach (var entry in changes)
+            {
+                var uri = new Uri(entry.Key);
+                var edits = entry.Value;
+
+                // Check if the edit is actually for a generated document, because if not we don't need to do anything
+                if (!_languageServerFeatureOptions.IsVirtualDocumentUri(uri))
+                {
+                    remappedChanges[entry.Key] = entry.Value;
+                    continue;
+                }
+
+                var documentContext = await _documentContextFactory.TryCreateAsync(uri, cancellationToken).ConfigureAwait(false);
+                if (documentContext is null)
+                {
+                    continue;
+                }
+
+                var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+                var remappedEdits = RemapTextEditsCore(uri, codeDocument, edits);
+                if (remappedEdits is null || remappedEdits.Length == 0)
+                {
+                    // Nothing to do.
+                    continue;
+                }
+
+                var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(uri);
+                remappedChanges[razorDocumentUri.AbsoluteUri] = remappedEdits;
+            }
+
+            return remappedChanges;
+        }
+
+        private TextEdit[] RemapTextEditsCore(Uri virtualDocumentUri, RazorCodeDocument codeDocument, TextEdit[] edits)
+        {
+            if (_languageServerFeatureOptions.IsVirtualCSharpFile(virtualDocumentUri))
+            {
+                var remappedEdits = new List<TextEdit>();
+                for (var i = 0; i < edits.Length; i++)
+                {
+                    var projectedRange = edits[i].Range;
+                    if (!TryMapFromProjectedDocumentRange(codeDocument, projectedRange, out var originalRange))
+                    {
+                        // Can't map range. Discard this edit.
+                        continue;
+                    }
+
+                    var edit = new TextEdit()
+                    {
+                        Range = originalRange,
+                        NewText = edits[i].NewText
+                    };
+
+                    remappedEdits.Add(edit);
+                }
+
+                return remappedEdits.ToArray();
+            }
+
+            return edits;
         }
     }
 }

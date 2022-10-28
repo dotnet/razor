@@ -15,6 +15,18 @@ steps:
     inputs:
       versionSpec: 10.x
 
+  # We explicitly pass the VS install directory in azure-pipelines-integration-dartlab.yml
+  - powershell: |
+      & "C:\\Test\\VisualStudio\\Common7\\IDE\\devenv.exe" /rootsuffix RoslynDev /updateConfiguration
+      if(Test-Path -Path $env:LocalAppData\Microsoft\VisualStudio\17.0*RoslynDev)
+      {
+        Write-Host "The hive 'RoslynDev' exists"
+      }
+      else{
+        throw "Failed to create hive"
+      }
+    displayName: Create and Verify hive
+
   - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
       -msbuildEngine vs
@@ -27,6 +39,16 @@ steps:
     displayName: Build
     condition: succeeded()
 
+  - task: PublishBuildArtifacts@1
+    displayName: Upload Build BinLog
+    condition: always()
+    continueOnError: true
+    inputs:
+        pathtoPublish: artifacts/log/${{ parameters.configuration }}/Build.binlog
+        artifactName: $(Agent.Os)_$(Agent.JobName) BuildBinLog
+        artifactType: Container
+        parallel: true
+
   - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
       -msbuildEngine vs
@@ -37,6 +59,16 @@ steps:
     displayName: Build and Deploy VSIX
     condition: succeeded()
 
+  - task: PublishBuildArtifacts@1
+    displayName: Upload Build VSIX BinLog
+    condition: always()
+    continueOnError: true
+    inputs:
+        pathtoPublish: artifacts/log/${{ parameters.configuration }}/Build.binlog
+        artifactName: $(Agent.Os)_$(Agent.JobName) BuildVSIXBinLog
+        artifactType: Container
+        parallel: true
+
   - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
       -msbuildEngine vs
@@ -46,6 +78,16 @@ steps:
     name: RunIntegrationTests
     displayName: Run Integration Tests
     condition: succeeded()
+
+  - task: PublishBuildArtifacts@1
+    displayName: Upload Run tests BinLog
+    condition: always()
+    continueOnError: true
+    inputs:
+        pathtoPublish: artifacts/log/${{ parameters.configuration }}/Build.binlog
+        artifactName: $(Agent.Os)_$(Agent.JobName) RunTestsBinLog
+        artifactType: Container
+        parallel: true
 
   - task: PublishTestResults@2
     displayName: Publish xUnit Test Results

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,7 +10,6 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -20,14 +17,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly Dictionary<string, PublishData> _publishedCSharpData;
         private readonly Dictionary<string, PublishData> _publishedHtmlData;
-        private readonly IClientLanguageServer _server;
+        private readonly ClientNotifierServiceBase _server;
         private readonly ILogger _logger;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private ProjectSnapshotManagerBase _projectSnapshotManager;
+        private ProjectSnapshotManagerBase? _projectSnapshotManager;
 
         public DefaultGeneratedDocumentPublisher(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            IClientLanguageServer server,
+            ClientNotifierServiceBase server,
             ILoggerFactory loggerFactory)
         {
             if (projectSnapshotManagerDispatcher is null)
@@ -54,6 +51,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {
+            if (projectManager is null)
+            {
+                throw new ArgumentNullException(nameof(projectManager));
+            }
+
             _projectSnapshotManager = projectManager;
             _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
         }
@@ -108,9 +110,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 HostDocumentVersion = hostDocumentVersion,
             };
 
-            var result = _server.SendRequest(LanguageServerConstants.RazorUpdateCSharpBufferEndpoint, request);
-            // This is the call that actually makes the request, any SendRequest without a .Returning* after it will do nothing.
-            _ = result.ReturningVoid(CancellationToken.None);
+            _ = _server.SendNotificationAsync(RazorLanguageServerCustomMessageTargets.RazorUpdateCSharpBufferEndpoint, request, CancellationToken.None);
         }
 
         public override void PublishHtml(string filePath, SourceText sourceText, int hostDocumentVersion)
@@ -163,8 +163,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 HostDocumentVersion = hostDocumentVersion,
             };
 
-            var result = _server.SendRequest(LanguageServerConstants.RazorUpdateHtmlBufferEndpoint, request);
-            _ = result.ReturningVoid(CancellationToken.None);
+            _ = _server.SendNotificationAsync(RazorLanguageServerCustomMessageTargets.RazorUpdateHtmlBufferEndpoint, request, CancellationToken.None);
         }
 
         private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
@@ -177,9 +176,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
+            Assumes.NotNull(_projectSnapshotManager);
+
             switch (args.Kind)
             {
                 case ProjectChangeKind.DocumentChanged:
+                    Assumes.NotNull(args.DocumentFilePath);
                     if (!_projectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
                     {
                         // Document closed, evict published source text.

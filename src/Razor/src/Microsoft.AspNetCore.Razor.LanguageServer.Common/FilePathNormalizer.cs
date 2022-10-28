@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -10,11 +8,9 @@ using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
-    public class FilePathNormalizer
+    public static class FilePathNormalizer
     {
-        public static readonly FilePathNormalizer Instance = new FilePathNormalizer();
-
-        public string NormalizeDirectory(string directoryFilePath)
+        public static string NormalizeDirectory(string directoryFilePath)
         {
             var normalized = Normalize(directoryFilePath);
 
@@ -26,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             return normalized;
         }
 
-        public string Normalize(string filePath)
+        public static string Normalize(string filePath)
         {
             if (string.IsNullOrEmpty(filePath))
             {
@@ -51,7 +47,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             return normalized;
         }
 
-        public string GetDirectory(string filePath)
+        public static Uri Normalize(Uri uri)
+        {
+            var normalized = Normalize(uri.OriginalString);
+            return new Uri(normalized);
+        }
+
+        public static string GetDirectory(string filePath)
         {
             if (string.IsNullOrEmpty(filePath))
             {
@@ -65,7 +67,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
             return directory;
         }
 
-        public bool FilePathsEquivalent(string filePath1, string filePath2)
+        public static bool FilePathsEquivalent(string filePath1, string filePath2)
         {
             var normalizedFilePath1 = Normalize(filePath1);
             var normalizedFilePath2 = Normalize(filePath2);

@@ -1,19 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
@@ -29,10 +28,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     [Export(ExportContractNames.Scopes.UnconfiguredProject, typeof(IProjectDynamicLoadComponent))]
     internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     {
-        private IDisposable _subscription;
+        private IDisposable? _subscription;
 
         private const string RootNamespaceProperty = "RootNamespace";
-        private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
         [ImportingConstructor]
         public DefaultWindowsRazorProjectHost(
@@ -40,14 +39,16 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            VSLanguageServerFeatureOptions languageServerFeatureOptions)
+            LanguageServerFeatureOptions languageServerFeatureOptions)
             : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
         {
             _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
         // Internal for testing
+#pragma warning disable CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
         internal DefaultWindowsRazorProjectHost(
+#pragma warning restore CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
             IUnconfiguredProjectCommonServices commonServices,
             Workspace workspace,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             await base.DisposeCoreAsync(initialized).ConfigureAwait(false);
 
-            if (initialized && _subscription != null)
+            if (initialized && _subscription is not null)
             {
                 _subscription.Dispose();
             }
@@ -150,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         // Internal for testing
         internal static bool TryGetConfiguration(
             IImmutableDictionary<string, IProjectRuleSnapshot> state,
-            out RazorConfiguration configuration)
+            [NotNullWhen(returnValue: true)] out RazorConfiguration? configuration)
         {
             if (!TryGetDefaultConfiguration(state, out var defaultConfiguration))
             {
@@ -184,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         // Internal for testing
         internal static bool TryGetDefaultConfiguration(
             IImmutableDictionary<string, IProjectRuleSnapshot> state,
-            out string defaultConfiguration)
+            [NotNullWhen(returnValue: true)] out string? defaultConfiguration)
         {
             if (!state.TryGetValue(Rules.RazorGeneral.SchemaName, out var rule))
             {
@@ -210,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         // Internal for testing
         internal static bool TryGetLanguageVersion(
             IImmutableDictionary<string, IProjectRuleSnapshot> state,
-            out RazorLanguageVersion languageVersion)
+            [NotNullWhen(returnValue: true)] out RazorLanguageVersion? languageVersion)
         {
             if (!state.TryGetValue(Rules.RazorGeneral.SchemaName, out var rule))
             {
@@ -304,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         // Internal for testing
         internal static bool TryGetRootNamespace(
             IImmutableDictionary<string, IProjectRuleSnapshot> state,
-            out string rootNamespace)
+            [NotNullWhen(returnValue: true)] out string? rootNamespace)
         {
             if (!state.TryGetValue(ConfigurationGeneralSchemaName, out var rule))
             {

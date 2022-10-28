@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,17 +8,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal class CodeActionResolutionEndpoint : IRazorCodeActionResolveHandler
+    internal class CodeActionResolutionEndpoint : IVSCodeActionResolveEndpoint
     {
         private readonly IReadOnlyDictionary<string, RazorCodeActionResolver> _razorCodeActionResolvers;
         private readonly IReadOnlyDictionary<string, CSharpCodeActionResolver> _csharpCodeActionResolvers;
         private readonly ILogger _logger;
+
+        public bool MutatesSolutionState => false;
 
         public CodeActionResolutionEndpoint(
             IEnumerable<RazorCodeActionResolver> razorCodeActionResolvers,
@@ -48,7 +49,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             _csharpCodeActionResolvers = CreateResolverMap(csharpCodeActionResolvers);
         }
 
-        public async Task<CodeAction> Handle(CodeAction request, CancellationToken cancellationToken)
+        public async Task<CodeAction> HandleRequestAsync(CodeAction request, RazorRequestContext requestContext, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -63,14 +64,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             var resolutionParams = paramsObj.ToObject<RazorCodeActionResolutionParams>();
 
-            _logger.LogInformation($"Resolving workspace edit for action {GetCodeActionId(resolutionParams)}.");
+            if (resolutionParams is null)
+            {
+                throw new ArgumentOutOfRangeException($"request.Data should be convertable to {nameof(RazorCodeActionResolutionParams)}");
+            }
+
+            var codeActionId = GetCodeActionId(resolutionParams);
+            _logger.LogInformation("Resolving workspace edit for action {codeActionId}.", codeActionId);
 
             // If it's a special "edit based code action" then the edit has been pre-computed and we
             // can extract the edit details and return to the client. This is only required for VSCode
             // as it does not support Command.Edit based code actions anymore.
             if (resolutionParams.Action == LanguageServerConstants.CodeActions.EditBasedCodeActionCommand)
             {
-                request = request with { Edit = (resolutionParams.Data as JObject)?.ToObject<WorkspaceEdit>() };
+                request.Edit = (resolutionParams.Data as JObject)?.ToObject<WorkspaceEdit>();
                 return request;
             }
 
@@ -87,7 +94,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         resolutionParams,
                         cancellationToken);
                 default:
-                    var codeActionId = GetCodeActionId(resolutionParams);
                     _logger.LogError("Invalid CodeAction.Data.Language. Received {codeActionId}.", codeActionId);
                     return request;
             }
@@ -107,8 +113,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var edit = await resolver.ResolveAsync(resolutionParams.Data as JObject, cancellationToken).ConfigureAwait(false);
-            codeAction = codeAction with { Edit = edit };
+            if (resolutionParams.Data is not JObject data)
+            {
+                return codeAction;
+            }
+
+            var edit = await resolver.ResolveAsync(data, cancellationToken).ConfigureAwait(false);
+            codeAction.Edit = edit;
             return codeAction;
         }
 
@@ -126,7 +137,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var csharpParams = csharpParamsObj.ToObject<CSharpCodeActionParams>();
-            codeAction = codeAction with { Data = csharpParams.Data as JToken };
+            if (csharpParams is null)
+            {
+                throw new ArgumentOutOfRangeException($"Data was not convertible to {nameof(CSharpCodeActionParams)}");
+            }
+
+            codeAction.Data = csharpParams.Data as JToken;
 
             if (!_csharpCodeActionResolvers.TryGetValue(resolutionParams.Action, out var resolver))
             {

@@ -5,15 +5,13 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
 {
-    internal class DocumentColorEndpoint : IDocumentColorHandler
+    internal class DocumentColorEndpoint : IDocumentColorEndpoint
     {
-        private static readonly Container<ColorInformation> EmptyDocumentColors = new Container<ColorInformation>();
         private readonly ClientNotifierServiceBase _languageServer;
 
         public DocumentColorEndpoint(ClientNotifierServiceBase languageServer)
@@ -25,26 +23,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
 
             _languageServer = languageServer;
         }
-        public DocumentColorRegistrationOptions GetRegistrationOptions(ColorProviderCapability capability, ClientCapabilities clientCapabilities)
+
+        public bool MutatesSolutionState => false;
+
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            return new DocumentColorRegistrationOptions()
-            {
-                DocumentSelector = RazorDefaults.Selector,
-            };
+            const string ServerCapabilities = "colorProvider";
+            var options = new SumType<bool, DocumentColorOptions>(new DocumentColorOptions());
+
+            return new RegistrationExtensionResult(ServerCapabilities, options);
         }
 
-        public async Task<Container<ColorInformation>> Handle(DocumentColorParams request, CancellationToken cancellationToken)
+        public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentColorParams request)
         {
-            var delegatedRequest = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideHtmlDocumentColorEndpoint, request).ConfigureAwait(false);
-            var documentColors = await delegatedRequest.Returning<Container<ColorInformation>?>(cancellationToken).ConfigureAwait(false);
+            return request.TextDocument;
+        }
+
+        public async Task<ColorInformation[]> HandleRequestAsync(DocumentColorParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            var documentColors = await _languageServer.SendRequestAsync<DocumentColorParams, ColorInformation[]>(
+                RazorLanguageServerCustomMessageTargets.RazorProvideHtmlDocumentColorEndpoint,
+                request,
+                cancellationToken).ConfigureAwait(false);
 
             if (documentColors is null)
             {
-                return EmptyDocumentColors;
+                return Array.Empty<ColorInformation>();
             }
 
             // HTML and Razor documents have identical mapping locations. Because of this we can return the result as-is.
-
             return documentColors;
         }
     }

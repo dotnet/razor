@@ -9,12 +9,12 @@
       </trans-unit>
       <trans-unit id="ProximityExpression_Dialog_Description">
         <source>Razor Debugger</source>
-        <target state="new">Razor Debugger</target>
+        <target state="translated">Razor-Debugger</target>
         <note />
       </trans-unit>
       <trans-unit id="ProximityExpression_Dialog_Title">
         <source>Determining proximity expressions...</source>
-        <target state="new">Determining proximity expressions...</target>
+        <target state="translated">Näherungsausdrücke werden ermittelt...</target>
         <note />
       </trans-unit>
     </body>

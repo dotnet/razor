@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -20,7 +18,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Serialization
             return typeof(ProjectSnapshotHandleProxy).IsAssignableFrom(objectType);
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType != JsonToken.StartObject)
             {
@@ -28,17 +26,17 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Serialization
             }
 
             var obj = JObject.Load(reader);
-            var filePath = obj[nameof(ProjectSnapshotHandleProxy.FilePath)].ToObject<Uri>(serializer);
-            var rootNamespace = obj[nameof(ProjectSnapshotHandleProxy.RootNamespace)].ToObject<string>(serializer);
-            var projectWorkspaceState = obj[nameof(ProjectSnapshotHandleProxy.ProjectWorkspaceState)].ToObject<ProjectWorkspaceState>(serializer);
-            var configuration = obj[nameof(ProjectSnapshotHandleProxy.Configuration)].ToObject<RazorConfiguration>(serializer);
+            var filePath = obj[nameof(ProjectSnapshotHandleProxy.FilePath)]!.ToObject<Uri>(serializer);
+            var rootNamespace = obj[nameof(ProjectSnapshotHandleProxy.RootNamespace)]!.ToObject<string>(serializer);
+            var projectWorkspaceState = obj[nameof(ProjectSnapshotHandleProxy.ProjectWorkspaceState)]!.ToObject<ProjectWorkspaceState>(serializer);
+            var configuration = obj[nameof(ProjectSnapshotHandleProxy.Configuration)]!.ToObject<RazorConfiguration>(serializer);
 
-            return new ProjectSnapshotHandleProxy(filePath, configuration, rootNamespace, projectWorkspaceState);
+            return new ProjectSnapshotHandleProxy(filePath!, configuration!, rootNamespace, projectWorkspaceState);
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
-            var handle = (ProjectSnapshotHandleProxy)value;
+            var handle = (ProjectSnapshotHandleProxy)value!;
 
             writer.WriteStartObject();
 

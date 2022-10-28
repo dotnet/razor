@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -13,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 {
     internal sealed class RazorCompletionItem : IEquatable<RazorCompletionItem>
     {
-        private ItemCollection _items;
+        private ItemCollection? _items;
 
         /// <summary>
         /// Creates a new Razor completion item
@@ -24,12 +22,14 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
         /// <param name="sortText">A string that is used to alphabetically sort the completion item. If omitted defaults to <paramref name="displayText"/>.</param>
         /// <param name="commitCharacters">Characters that can be used to commit the completion item.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="displayText"/> or <paramref name="insertText"/> are <c>null</c>.</exception>
+        /// <param name="isSnippet">Indicates whether the completion item's <see cref="InsertText"/> is an LSP snippet or not.</param>
         public RazorCompletionItem(
             string displayText,
             string insertText,
             RazorCompletionItemKind kind,
-            string sortText = null,
-            IReadOnlyCollection<string> commitCharacters = null)
+            string? sortText = null,
+            IReadOnlyList<RazorCommitCharacter>? commitCharacters = null,
+            bool isSnippet = false)
         {
             if (displayText is null)
             {
@@ -46,11 +46,14 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             Kind = kind;
             CommitCharacters = commitCharacters;
             SortText = sortText ?? displayText;
+            IsSnippet = isSnippet;
         }
 
         public string DisplayText { get; }
 
         public string InsertText { get; }
+
+        public bool IsSnippet { get; }
 
         /// <summary>
         /// A string that is used to alphabetically sort the completion item.
@@ -59,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
 
         public RazorCompletionItemKind Kind { get; }
 
-        public IReadOnlyCollection<string> CommitCharacters { get; }
+        public IReadOnlyCollection<RazorCommitCharacter>? CommitCharacters { get; }
 
         public ItemCollection Items
         {
@@ -69,10 +72,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
                 {
                     lock (this)
                     {
-                        if (_items is null)
-                        {
-                            _items = new ItemCollection();
-                        }
+                        _items ??= new ItemCollection();
                     }
                 }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion
             return Equals(obj as RazorCompletionItem);
         }
 
-        public bool Equals(RazorCompletionItem other)
+        public bool Equals(RazorCompletionItem? other)
         {
             if (other is null)
             {

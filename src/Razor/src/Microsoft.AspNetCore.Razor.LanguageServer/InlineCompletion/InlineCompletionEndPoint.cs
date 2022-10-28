@@ -7,53 +7,45 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class InlineCompletionEndpoint : IInlineCompletionHandler
+internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 {
     private static readonly ImmutableHashSet<string> s_cSharpKeywords = ImmutableHashSet.Create(
         "~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
         "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly DocumentResolver _documentResolver;
+    private readonly DocumentContextFactory _documentContextFactory;
     private readonly RazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly AdhocWorkspaceFactory _adhocWorkspaceFactory;
-    private readonly ILogger _logger;
+
+    public bool MutatesSolutionState => false;
 
     [ImportingConstructor]
     public InlineCompletionEndpoint(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        DocumentResolver documentResolver,
+        DocumentContextFactory documentContextFactory,
         RazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
-        AdhocWorkspaceFactory adhocWorkspaceFactory,
-        ILoggerFactory loggerFactory)
+        AdhocWorkspaceFactory adhocWorkspaceFactory)
     {
-        if (projectSnapshotManagerDispatcher is null)
+        if (documentContextFactory is null)
         {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (documentResolver is null)
-        {
-            throw new ArgumentNullException(nameof(documentResolver));
+            throw new ArgumentNullException(nameof(documentContextFactory));
         }
 
         if (documentMappingService is null)
@@ -71,70 +63,61 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
             throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
         }
 
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _documentResolver = documentResolver;
+        _documentContextFactory = documentContextFactory;
         _documentMappingService = documentMappingService;
         _languageServer = languageServer;
         _adhocWorkspaceFactory = adhocWorkspaceFactory;
-        _logger = loggerFactory.CreateLogger<InlineCompletionEndpoint>();
     }
 
-    public RegistrationExtensionResult GetRegistration()
+    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
     {
         const string AssociatedServerCapability = "_vs_inlineCompletionOptions";
 
-        var registrationOptions = new InlineCompletionOptions()
+        var registrationOptions = new VSInternalInlineCompletionOptions()
         {
-            DocumentSelector = RazorDefaults.Selector,
-            Pattern = string.Join("|", s_cSharpKeywords)
+            Pattern = new Regex(string.Join("|", s_cSharpKeywords))
         };
 
         return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
     }
 
-    public async Task<InlineCompletionList?> Handle(InlineCompletionRequest request, CancellationToken cancellationToken)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
+    {
+        return request.TextDocument;
+    }
+
+    public async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
         if (request is null)
         {
             throw new ArgumentNullException(nameof(request));
         }
 
-        _logger.LogInformation($"Starting request for {request.TextDocument.Uri} at {request.Position}.");
+        requestContext.Logger.LogInformation("Starting request for {textDocumentUri} at {position}.", request.TextDocument.Uri, request.Position);
 
-        var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-        {
-            _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
-
-            return documentSnapshot;
-        }, cancellationToken).ConfigureAwait(false);
-
-        if (document is null)
+        var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+        if (documentContext is null)
         {
             return null;
         }
 
-        var codeDocument = await document.GetGeneratedOutputAsync();
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
         if (codeDocument.IsUnsupported())
         {
             return null;
         }
 
-        var sourceText = await document.GetTextAsync();
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
         var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
         var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
 
-        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
+        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
 
         // Map to the location in the C# document.
         if (languageKind != RazorLanguageKind.CSharp ||
             !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out _))
         {
-            _logger.LogInformation($"Unsupported location for {request.TextDocument.Uri}.");
+            requestContext.Logger.LogInformation("Unsupported location for {textDocumentUri}.", request.TextDocument.Uri);
             return null;
         }
 
@@ -148,16 +131,17 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
         };
 
         request.Position = projectedPosition;
-        var response = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorInlineCompletionEndpoint, razorRequest).ConfigureAwait(false);
-        var list = await response.Returning<InlineCompletionList>(cancellationToken).ConfigureAwait(false);
-        if (list == null || !list.Items.Any())
+        var list = await _languageServer.SendRequestAsync<RazorInlineCompletionRequest, VSInternalInlineCompletionList?>(
+            RazorLanguageServerCustomMessageTargets.RazorInlineCompletionEndpoint,
+            razorRequest,
+            cancellationToken).ConfigureAwait(false);
+        if (list is null || !list.Items.Any())
         {
-            _logger.LogInformation($"Did not get any inline completions from delegation.");
+            requestContext.Logger.LogInformation("Did not get any inline completions from delegation.");
             return null;
         }
 
-        var items = new List<InlineCompletionItem>();
-        var csharpDocOptions = codeDocument.GetCSharpDocument();
+        var items = new List<VSInternalInlineCompletionItem>();
         foreach (var item in list.Items)
         {
             var containsSnippet = item.TextFormat == InsertTextFormat.Snippet;
@@ -165,17 +149,17 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
 
             if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, range, out var rangeInRazorDoc))
             {
-                _logger.LogWarning($"Could not remap projected range {range} to razor document");
+                requestContext.Logger.LogWarning("Could not remap projected range {range} to razor document", range);
                 continue;
             }
 
-            using var formattingContext = FormattingContext.Create(request.TextDocument.Uri, document, codeDocument, request.Options, _adhocWorkspaceFactory);
+            using var formattingContext = FormattingContext.Create(request.TextDocument.Uri, documentContext.Snapshot, codeDocument, request.Options, _adhocWorkspaceFactory);
             if (!TryGetSnippetWithAdjustedIndentation(formattingContext, item.Text, hostDocumentIndex, out var newSnippetText))
             {
                 continue;
             }
 
-            var remappedItem = new InlineCompletionItem
+            var remappedItem = new VSInternalInlineCompletionItem
             {
                 Command = item.Command,
                 Range = rangeInRazorDoc,
@@ -187,12 +171,12 @@ internal class InlineCompletionEndpoint : IInlineCompletionHandler
 
         if (items.Count == 0)
         {
-            _logger.LogInformation($"Could not format / map the items from delegation.");
+            requestContext.Logger.LogInformation("Could not format / map the items from delegation.");
             return null;
         }
 
-        _logger.LogInformation($"Returning {items.Count} items.");
-        return new InlineCompletionList
+        requestContext.Logger.LogInformation("Returning {itemsCount} items.", items.Count);
+        return new VSInternalInlineCompletionList
         {
             Items = items.ToArray()
         };

@@ -8,25 +8,39 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Remote.Razor.Test;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor
 {
     public class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
     {
-        public OOPTagHelperResolverTest()
+        private readonly ErrorReporter _errorReporter;
+        private readonly ProjectSnapshotProjectEngineFactory _engineFactory;
+        private readonly Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] _customFactories;
+        private readonly IFallbackProjectEngineFactory _fallbackFactory;
+        private readonly HostProject _hostProject_For_2_0;
+        private readonly HostProject _hostProject_For_NonSerializableConfiguration;
+        private readonly ProjectSnapshotManagerBase _projectManager;
+        private readonly Project _workspaceProject;
+        private readonly Workspace _workspace;
+
+        public OOPTagHelperResolverTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            HostProject_For_2_0 = new HostProject("Test.csproj", FallbackRazorConfiguration.MVC_2_0, rootNamespace: null);
-            HostProject_For_NonSerializableConfiguration = new HostProject(
+            _hostProject_For_2_0 = new HostProject("Test.csproj", FallbackRazorConfiguration.MVC_2_0, rootNamespace: null);
+            _hostProject_For_NonSerializableConfiguration = new HostProject(
                 "Test.csproj",
                 new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_2_1, "Random-0.1", Array.Empty<RazorExtension>()), rootNamespace: null);
 
-            CustomFactories = new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[]
+            _customFactories = new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[]
             {
                 new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(
                     () => Mock.Of<IProjectEngineFactory>(MockBehavior.Strict),
@@ -38,56 +52,39 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                     new ExportCustomProjectEngineFactoryAttribute("Test-2") { SupportsSerialization = false, }),
             };
 
-            FallbackFactory = new FallbackProjectEngineFactory();
+            _fallbackFactory = new FallbackProjectEngineFactory();
 
-            Workspace = new AdhocWorkspace();
+            _workspace = new AdhocWorkspace();
+            AddDisposable(_workspace);
 
             var info = ProjectInfo.Create(ProjectId.CreateNewId("Test"), VersionStamp.Default, "Test", "Test", LanguageNames.CSharp, filePath: "Test.csproj");
-            WorkspaceProject = Workspace.CurrentSolution.AddProject(info).GetProject(info.Id);
+            _workspaceProject = _workspace.CurrentSolution.AddProject(info).GetProject(info.Id);
 
-            ErrorReporter = new DefaultErrorReporter();
-            ProjectManager = new TestProjectSnapshotManager(Workspace);
-            EngineFactory = new DefaultProjectSnapshotProjectEngineFactory(FallbackFactory, CustomFactories);
+            _errorReporter = new DefaultErrorReporter();
+            _projectManager = new TestProjectSnapshotManager(_workspace);
+            _engineFactory = new DefaultProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
         }
-
-        private ErrorReporter ErrorReporter { get; }
-
-        private ProjectSnapshotProjectEngineFactory EngineFactory { get; }
-
-        private Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] CustomFactories { get; }
-
-        private IFallbackProjectEngineFactory FallbackFactory { get; }
-
-        private HostProject HostProject_For_2_0 { get; }
-
-        private HostProject HostProject_For_NonSerializableConfiguration { get; }
-
-        private ProjectSnapshotManagerBase ProjectManager { get; }
-
-        private Project WorkspaceProject { get; }
-
-        private Workspace Workspace { get; }
 
         [Fact]
         public async Task GetTagHelpersAsync_WithSerializableCustomFactory_GoesOutOfProcess()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject_For_2_0);
+            _projectManager.ProjectAdded(_hostProject_For_2_0);
 
-            var projectSnapshot = ProjectManager.GetLoadedProject("Test.csproj");
+            var projectSnapshot = _projectManager.GetLoadedProject("Test.csproj");
 
-            var resolver = new TestTagHelperResolver(EngineFactory, ErrorReporter, Workspace)
+            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace, NoOpTelemetryReporter.Instance)
             {
                 OnResolveOutOfProcess = (f, p) =>
                 {
-                    Assert.Same(CustomFactories[0].Value, f);
+                    Assert.Same(_customFactories[0].Value, f);
                     Assert.Same(projectSnapshot, p);
 
                     return Task.FromResult(TagHelperResolutionResult.Empty);
                 },
             };
 
-            var result = await resolver.GetTagHelpersAsync(WorkspaceProject, projectSnapshot);
+            var result = await resolver.GetTagHelpersAsync(_workspaceProject, projectSnapshot);
 
             // Assert
             Assert.Same(TagHelperResolutionResult.Empty, result);
@@ -97,11 +94,11 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         public async Task GetTagHelpersAsync_WithNonSerializableCustomFactory_StaysInProcess()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject_For_NonSerializableConfiguration);
+            _projectManager.ProjectAdded(_hostProject_For_NonSerializableConfiguration);
 
-            var projectSnapshot = ProjectManager.GetLoadedProject("Test.csproj");
+            var projectSnapshot = _projectManager.GetLoadedProject("Test.csproj");
 
-            var resolver = new TestTagHelperResolver(EngineFactory, ErrorReporter, Workspace)
+            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace, NoOpTelemetryReporter.Instance)
             {
                 OnResolveInProcess = (p) =>
                 {
@@ -111,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                 },
             };
 
-            var result = await resolver.GetTagHelpersAsync(WorkspaceProject, projectSnapshot);
+            var result = await resolver.GetTagHelpersAsync(_workspaceProject, projectSnapshot);
 
             // Assert
             Assert.Same(TagHelperResolutionResult.Empty, result);
@@ -121,12 +118,12 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         public async Task GetTagHelpersAsync_OperationCanceledException_DoesNotGetWrapped()
         {
             // Arrange
-            ProjectManager.ProjectAdded(HostProject_For_2_0);
+            _projectManager.ProjectAdded(_hostProject_For_2_0);
 
-            var projectSnapshot = ProjectManager.GetLoadedProject("Test.csproj");
+            var projectSnapshot = _projectManager.GetLoadedProject("Test.csproj");
 
             var cancellationToken = new CancellationToken(canceled: true);
-            var resolver = new TestTagHelperResolver(EngineFactory, ErrorReporter, Workspace)
+            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace, NoOpTelemetryReporter.Instance)
             {
                 OnResolveInProcess = (p) =>
                 {
@@ -142,14 +139,14 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                 }
             };
 
-            await Assert.ThrowsAsync<OperationCanceledException>(async () => await resolver.GetTagHelpersAsync(WorkspaceProject, projectSnapshot, cancellationToken));
+            await Assert.ThrowsAsync<OperationCanceledException>(async () => await resolver.GetTagHelpersAsync(_workspaceProject, projectSnapshot, cancellationToken));
         }
 
         [Fact]
         public void CalculateTagHelpersFromDelta_NewProject()
         {
             // Arrange
-            var resolver = new TestTagHelperResolver(EngineFactory, ErrorReporter, Workspace);
+            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace, NoOpTelemetryReporter.Instance);
             var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, Array.Empty<TagHelperDescriptor>());
 
             // Act
@@ -163,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         public void CalculateTagHelpersFromDelta_DeltaFailedToApplyToKnownProject()
         {
             // Arrange
-            var resolver = new TestTagHelperResolver(EngineFactory, ErrorReporter, Workspace);
+            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace, NoOpTelemetryReporter.Instance);
             var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, Array.Empty<TagHelperDescriptor>());
             resolver.PublicProduceTagHelpersFromDelta(Project1FilePath, lastResultId: -1, initialDelta);
             var newTagHelperSet = new[] { TagHelper1_Project1 };
@@ -180,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         public void CalculateTagHelpersFromDelta_NoopResult()
         {
             // Arrange
-            var resolver = new TestTagHelperResolver(EngineFactory, ErrorReporter, Workspace);
+            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace, NoOpTelemetryReporter.Instance);
             var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, Array.Empty<TagHelperDescriptor>());
             resolver.PublicProduceTagHelpersFromDelta(Project1FilePath, lastResultId: -1, initialDelta);
             var noopDelta = new TagHelperDeltaResult(Delta: true, initialDelta.ResultId, Array.Empty<TagHelperDescriptor>(), Array.Empty<TagHelperDescriptor>());
@@ -196,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
         public void CalculateTagHelpersFromDelta_ReplacedTagHelpers()
         {
             // Arrange
-            var resolver = new TestTagHelperResolver(EngineFactory, ErrorReporter, Workspace);
+            var resolver = new TestTagHelperResolver(_engineFactory, _errorReporter, _workspace, NoOpTelemetryReporter.Instance);
             var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, Array.Empty<TagHelperDescriptor>());
             resolver.PublicProduceTagHelpersFromDelta(Project1FilePath, lastResultId: -1, initialDelta);
             var changedDelta = new TagHelperDeltaResult(Delta: true, initialDelta.ResultId + 1, new[] { TagHelper2_Project2 }, new[] { TagHelper2_Project1 });
@@ -210,8 +207,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 
         private class TestTagHelperResolver : OOPTagHelperResolver
         {
-            public TestTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, ErrorReporter errorReporter, Workspace workspace)
-                : base(factory, errorReporter, workspace)
+            public TestTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, ErrorReporter errorReporter, Workspace workspace, ITelemetryReporter telemetryReporter)
+                : base(factory, errorReporter, workspace, telemetryReporter)
             {
             }
 

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using System.Linq;
@@ -11,7 +9,7 @@ using System.Reflection.PortableExecutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using MonoDevelop.Projects;
 using AssemblyReference = MonoDevelop.Projects.AssemblyReference;
 
@@ -20,14 +18,14 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
     internal class FallbackMacRazorProjectHost : MacRazorProjectHostBase
     {
         private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
-        private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
         public FallbackMacRazorProjectHost(
             DotNetProject project,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectSnapshotManagerBase projectSnapshotManager,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            VSLanguageServerFeatureOptions languageServerFeatureOptions)
+            LanguageServerFeatureOptions languageServerFeatureOptions)
             : base(project, projectSnapshotManagerDispatcher, projectSnapshotManager, projectConfigurationFilePathStore)
         {
             _languageServerFeatureOptions = languageServerFeatureOptions;
@@ -78,7 +76,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
                 return false;
             }
 
-            if (string.Equals(reference.FilePath.FileName, MvcAssemblyFileName, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(reference!.FilePath.FileName, MvcAssemblyFileName, StringComparison.OrdinalIgnoreCase))
             {
                 // Mvc assembly
                 return true;
@@ -87,18 +85,16 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
             return false;
         }
 
-        private static Version GetAssemblyVersion(string filePath)
+        private static Version? GetAssemblyVersion(string filePath)
         {
             try
             {
-                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
-                using (var reader = new PEReader(stream))
-                {
-                    var metadataReader = reader.GetMetadataReader();
+                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var reader = new PEReader(stream);
+                var metadataReader = reader.GetMetadataReader();
 
-                    var assemblyDefinition = metadataReader.GetAssemblyDefinition();
-                    return assemblyDefinition.Version;
-                }
+                var assemblyDefinition = metadataReader.GetAssemblyDefinition();
+                return assemblyDefinition.Version;
             }
             catch
             {

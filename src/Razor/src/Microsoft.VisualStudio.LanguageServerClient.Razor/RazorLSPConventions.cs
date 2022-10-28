@@ -1,36 +1,36 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using System.Composition;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    internal static class RazorLSPConventions
+    [Shared]
+    [Export(typeof(RazorLSPConventions))]
+    internal class RazorLSPConventions
     {
-        public static bool IsVirtualCSharpFile(Uri uri) => CheckIfFileUriAndExtensionMatch(uri, RazorLSPConstants.VirtualCSharpFileNameSuffix);
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
-        public static bool IsVirtualHtmlFile(Uri uri) => CheckIfFileUriAndExtensionMatch(uri, RazorLSPConstants.VirtualHtmlFileNameSuffix);
+        [ImportingConstructor]
+        public RazorLSPConventions(LanguageServerFeatureOptions languageServerFeatureOptions)
+        {
+            _languageServerFeatureOptions = languageServerFeatureOptions;
+        }
+
+        public bool IsVirtualCSharpFile(Uri uri) => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
+
+        public bool IsVirtualHtmlFile(Uri uri) => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.HtmlVirtualDocumentSuffix);
 
         public static bool IsRazorFile(Uri uri) => CheckIfFileUriAndExtensionMatch(uri, RazorLSPConstants.RazorFileExtension);
 
         public static bool IsCSHTMLFile(Uri uri) => CheckIfFileUriAndExtensionMatch(uri, RazorLSPConstants.CSHTMLFileExtension);
 
-        public static Uri GetRazorDocumentUri(Uri virtualDocumentUri)
+        public Uri GetRazorDocumentUri(Uri virtualDocumentUri)
         {
-            if (virtualDocumentUri is null)
-            {
-                throw new ArgumentNullException(nameof(virtualDocumentUri));
-            }
-
-            var path = virtualDocumentUri.AbsoluteUri;
-            path = path.Replace(RazorLSPConstants.VirtualCSharpFileNameSuffix, string.Empty);
-            path = path.Replace(RazorLSPConstants.VirtualHtmlFileNameSuffix, string.Empty);
-
-            var uri = new Uri(path, UriKind.Absolute);
-            return uri;
+            return _languageServerFeatureOptions.GetRazorDocumentUri(virtualDocumentUri);
         }
 
         private static bool CheckIfFileUriAndExtensionMatch(Uri uri, string extension)

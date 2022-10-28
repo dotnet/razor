@@ -5,6 +5,7 @@
 
 using System.CodeDom.Compiler;
 using System.IO;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -12,11 +13,17 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
-    public class ViewCodeCommandHandlerTests
+    public class ViewCodeCommandHandlerTests : TestBase
     {
+        public ViewCodeCommandHandlerTests(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void RazorFile_Available()
         {

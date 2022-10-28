@@ -8,14 +8,15 @@ using Moq;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
 {
-    internal class TestVSLanguageServerFeatureOptions : VSLanguageServerFeatureOptions
+    internal class TestVSLanguageServerFeatureOptions : VisualStudioMacLanguageServerFeatureOptions
     {
 #pragma warning disable CS0618 // Type or member is obsolete
         public static readonly TestVSLanguageServerFeatureOptions Instance = new();
 #pragma warning restore CS0618 // Type or member is obsolete
 
         [Obsolete("Use static Instance member")]
-        public TestVSLanguageServerFeatureOptions() : base(Mock.Of<LSPEditorFeatureDetector>(MockBehavior.Strict))
+        public TestVSLanguageServerFeatureOptions()
+            : base(Mock.Of<LSPEditorFeatureDetector>(MockBehavior.Strict))
         {
         }
     }

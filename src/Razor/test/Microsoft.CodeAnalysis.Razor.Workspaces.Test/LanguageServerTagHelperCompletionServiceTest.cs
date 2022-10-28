@@ -10,11 +10,17 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
-    public class LanguageServerTagHelperCompletionServiceTest
+    public class LanguageServerTagHelperCompletionServiceTest : TestBase
     {
+        public LanguageServerTagHelperCompletionServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1452432")]
         public void GetAttributeCompletions_OnlyIndexerNamePrefix()
@@ -653,10 +659,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     .TagOutputHint("table")
                     .Build(),
             };
-            var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>()
-            {
-                ["table"] = new HashSet<TagHelperDescriptor>(),
-            });
+            var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>());
 
             var existingCompletions = new[] { "table" };
             var completionContext = BuildElementCompletionContext(
@@ -728,11 +731,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
             };
             var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>()
             {
-                ["my-table"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0] },
-                ["table"] = new HashSet<TagHelperDescriptor>(),
+                ["my-table"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0] }
             });
 
-            var existingCompletions = new[] { "table" };
+            var existingCompletions = new[] { "table", "div" };
             var completionContext = BuildElementCompletionContext(
                 documentDescriptors,
                 existingCompletions,
@@ -763,7 +765,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>()
             {
                 ["th:li"] = new HashSet<TagHelperDescriptor> { documentDescriptors[1], documentDescriptors[0] },
-                ["li"] = new HashSet<TagHelperDescriptor>(),
             });
 
             var existingCompletions = new[] { "li" };
@@ -798,7 +799,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             {
                 ["th:superli"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0] },
                 ["th:li"] = new HashSet<TagHelperDescriptor> { documentDescriptors[1] },
-                ["li"] = new HashSet<TagHelperDescriptor>(),
             });
 
             var existingCompletions = new[] { "li" };
@@ -835,7 +835,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             {
                 ["myli"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0] },
                 ["MYLI"] = new HashSet<TagHelperDescriptor> { documentDescriptors[1] },
-                ["li"] = new HashSet<TagHelperDescriptor> { },
             });
 
             var existingCompletions = new[] { "li" };
@@ -905,7 +904,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>()
             {
                 ["superli"] = new HashSet<TagHelperDescriptor>() { documentDescriptors[0], documentDescriptors[1] },
-                ["li"] = new HashSet<TagHelperDescriptor>(),
             });
 
             var existingCompletions = new[] { "li" };
@@ -938,7 +936,6 @@ namespace Microsoft.VisualStudio.Editor.Razor
             var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>()
             {
                 ["th:superli"] = new HashSet<TagHelperDescriptor>() { documentDescriptors[0], documentDescriptors[1] },
-                ["th:li"] = new HashSet<TagHelperDescriptor>() { documentDescriptors[1] },
             });
 
             var existingCompletions = new[] { "th:li" };
@@ -1340,6 +1337,70 @@ namespace Microsoft.VisualStudio.Editor.Razor
             AssertCompletionsAreEquivalent(expectedCompletions, completions);
         }
 
+        [Fact]
+        public void GetElementCompletions_MustSatisfyAttributeRules_WithAttributes()
+        {
+            // Arrange
+            var documentDescriptors = new[]
+            {
+                TagHelperDescriptorBuilder.Create("FormTagHelper", "TestAssembly")
+                    .TagMatchingRuleDescriptor(rule => rule
+                        .RequireTagName("form")
+                    .RequireAttributeDescriptor(builder =>
+                        {
+                            builder.Name = "asp-route-";
+                            builder.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                        }))
+                    .Build(),
+            };
+            var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>()
+            {
+                ["form"] = new HashSet<TagHelperDescriptor> { documentDescriptors[0] }
+            });
+
+            var attributes = new Dictionary<string, string>
+            {
+                { "asp-route-id", "123" }
+            };
+
+            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "", containingParentTagName: "div", attributes: attributes);
+            var service = CreateTagHelperCompletionFactsService();
+
+            // Act
+            var completions = service.GetElementCompletions(completionContext);
+
+            // Assert
+            AssertCompletionsAreEquivalent(expectedCompletions, completions);
+        }
+
+        [Fact]
+        public void GetElementCompletions_MustSatisfyAttributeRules_NoAttributes()
+        {
+            // Arrange
+            var documentDescriptors = new[]
+            {
+                TagHelperDescriptorBuilder.Create("FormTagHelper", "TestAssembly")
+                    .TagMatchingRuleDescriptor(rule => rule
+                        .RequireTagName("form")
+                    .RequireAttributeDescriptor(builder =>
+                        {
+                            builder.Name = "asp-route-";
+                            builder.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                        }))
+                    .Build(),
+            };
+            var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>());
+
+            var completionContext = BuildElementCompletionContext(documentDescriptors, Enumerable.Empty<string>(), containingTagName: "", containingParentTagName: "div");
+            var service = CreateTagHelperCompletionFactsService();
+
+            // Act
+            var completions = service.GetElementCompletions(completionContext);
+
+            // Assert
+            AssertCompletionsAreEquivalent(expectedCompletions, completions);
+        }
+
         private static LanguageServerTagHelperCompletionService CreateTagHelperCompletionFactsService()
         {
             var tagHelperFactsService = new DefaultTagHelperFactsService();
@@ -1378,14 +1439,17 @@ namespace Microsoft.VisualStudio.Editor.Razor
             string containingTagName,
             string containingParentTagName = "body",
             bool containingParentIsTagHelper = false,
-            string tagHelperPrefix = "")
+            string tagHelperPrefix = "",
+            IEnumerable<KeyValuePair<string, string>> attributes = null)
         {
+            attributes ??= Enumerable.Empty<KeyValuePair<string, string>>();
+
             var documentContext = TagHelperDocumentContext.Create(tagHelperPrefix, descriptors);
             var completionContext = new ElementCompletionContext(
                 documentContext,
                 existingCompletions,
                 containingTagName,
-                attributes: Enumerable.Empty<KeyValuePair<string, string>>(),
+                attributes,
                 containingParentTagName: containingParentTagName,
                 containingParentIsTagHelper: containingParentIsTagHelper,
                 inHTMLSchema: (tag) => tag == "strong" || tag == "b" || tag == "bold" || tag == "li" || tag == "div");

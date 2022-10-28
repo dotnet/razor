@@ -1,9 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
@@ -17,22 +16,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
         protected internal readonly HostProject MiscellaneousHostProject;
 
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly FilePathNormalizer _filePathNormalizer;
         private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
 
         public DefaultProjectResolver(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            FilePathNormalizer filePathNormalizer,
             ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
             }
 
             if (projectSnapshotManagerAccessor is null)
@@ -41,14 +33,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
             }
 
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _filePathNormalizer = filePathNormalizer;
             _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
 
             var miscellaneousProjectPath = Path.Combine(TempDirectory.Instance.DirectoryPath, "__MISC_RAZOR_PROJECT__");
             MiscellaneousHostProject = new HostProject(miscellaneousProjectPath, RazorDefaults.Configuration, RazorDefaults.RootNamespace);
         }
 
-        public override bool TryResolveProject(string documentFilePath, out ProjectSnapshot projectSnapshot, bool enforceDocumentInProject = true)
+        public override bool TryResolveProject(string documentFilePath, [NotNullWhen(true)] out ProjectSnapshot? projectSnapshot, bool enforceDocumentInProject = true)
         {
             if (documentFilePath is null)
             {
@@ -57,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
 
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            var normalizedDocumentPath = _filePathNormalizer.Normalize(documentFilePath);
+            var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
             var projects = _projectSnapshotManagerAccessor.Instance.Projects;
             for (var i = 0; i < projects.Count; i++)
             {
@@ -74,7 +65,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
                     continue;
                 }
 
-                var projectDirectory = _filePathNormalizer.GetDirectory(projectSnapshot.FilePath);
+                var projectDirectory = FilePathNormalizer.GetDirectory(projectSnapshot.FilePath);
                 if (normalizedDocumentPath.StartsWith(projectDirectory, FilePathComparison.Instance) &&
                     (!enforceDocumentInProject || IsDocumentInProject(projectSnapshot, documentFilePath)))
                 {

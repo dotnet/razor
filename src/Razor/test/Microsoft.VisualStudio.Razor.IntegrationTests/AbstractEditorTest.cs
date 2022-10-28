@@ -38,9 +38,9 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
                 RazorDebug.AssertNotNull(_projectTemplate);
                 RazorDebug.AssertNotNull(_projectName);
 
-                await TestServices.SolutionExplorer.CreateSolutionAsync(_solutionName, HangMitigatingCancellationToken);
-                await TestServices.SolutionExplorer.AddProjectAsync(_projectName, _projectTemplate, LanguageName, HangMitigatingCancellationToken);
-                await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ProjectName, HangMitigatingCancellationToken);
+                await TestServices.SolutionExplorer.CreateSolutionAsync(_solutionName, ControlledHangMitigatingCancellationToken);
+                await TestServices.SolutionExplorer.AddProjectAsync(_projectName, _projectTemplate, LanguageName, ControlledHangMitigatingCancellationToken);
+                await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ProjectName, ControlledHangMitigatingCancellationToken);
             }
         }
     }

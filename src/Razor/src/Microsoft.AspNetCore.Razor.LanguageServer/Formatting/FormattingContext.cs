@@ -13,8 +13,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -29,7 +28,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private RazorProjectEngine? _engine;
         private IReadOnlyList<RazorSourceDocument>? _importSources;
 
-        private FormattingContext(AdhocWorkspaceFactory workspaceFactory, DocumentUri uri, DocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options, bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
+        private FormattingContext(AdhocWorkspaceFactory workspaceFactory, Uri uri, DocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
+            bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
         {
             _workspaceFactory = workspaceFactory;
             Uri = uri;
@@ -42,7 +42,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             TriggerCharacter = triggerCharacter;
         }
 
-        private FormattingContext(RazorProjectEngine engine, IReadOnlyList<RazorSourceDocument> importSources, AdhocWorkspaceFactory workspaceFactory, DocumentUri uri, DocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options, bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
+        private FormattingContext(RazorProjectEngine engine, IReadOnlyList<RazorSourceDocument> importSources, AdhocWorkspaceFactory workspaceFactory, Uri uri, DocumentSnapshot originalSnapshot, RazorCodeDocument codeDocument, FormattingOptions options,
+            bool isFormatOnType, bool automaticallyAddUsings, int hostDocumentIndex, char triggerCharacter)
             : this(workspaceFactory, uri, originalSnapshot, codeDocument, options, isFormatOnType, automaticallyAddUsings, hostDocumentIndex, triggerCharacter)
         {
             _engine = engine;
@@ -51,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public static bool SkipValidateComponents { get; set; }
 
-        public DocumentUri Uri { get; }
+        public Uri Uri { get; }
         public DocumentSnapshot OriginalSnapshot { get; }
         public RazorCodeDocument CodeDocument { get; }
         public FormattingOptions Options { get; }
@@ -365,7 +366,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         public static FormattingContext CreateForOnTypeFormatting(
-            DocumentUri uri,
+            Uri uri,
             DocumentSnapshot originalSnapshot,
             RazorCodeDocument codeDocument,
             FormattingOptions options,
@@ -378,7 +379,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         public static FormattingContext Create(
-            DocumentUri uri,
+            Uri uri,
             DocumentSnapshot originalSnapshot,
             RazorCodeDocument codeDocument,
             FormattingOptions options,
@@ -388,7 +389,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         private static FormattingContext CreateCore(
-            DocumentUri uri,
+            Uri uri,
             DocumentSnapshot originalSnapshot,
             RazorCodeDocument codeDocument,
             FormattingOptions options,

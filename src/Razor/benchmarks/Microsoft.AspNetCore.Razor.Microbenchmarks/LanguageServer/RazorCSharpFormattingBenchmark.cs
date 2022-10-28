@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,8 +14,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using FormattingOptions = OmniSharp.Extensions.LanguageServer.Protocol.Models.FormattingOptions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 {
@@ -30,11 +30,9 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
     {
         private string _filePath;
 
-        private RazorLanguageServer RazorLanguageServer { get; set; }
-
         private RazorFormattingService RazorFormattingService { get; set; }
 
-        private DocumentUri DocumentUri { get; set; }
+        private Uri DocumentUri { get; set; }
 
         private DocumentSnapshot DocumentSnapshot { get; set; }
 
@@ -52,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         [GlobalSetup(Target = nameof(RazorCSharpFormattingAsync))]
         public async Task InitializeRazorCSharpFormattingAsync()
         {
-            await EnsureServicesInitializedAsync();
+            EnsureServicesInitialized();
 
             var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
             var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
@@ -62,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 
             var targetPath = "/Components/Pages/Generated.razor";
 
-            DocumentUri = DocumentUri.File(_filePath);
+            DocumentUri = new Uri(_filePath);
             DocumentSnapshot = GetDocumentSnapshot(projectFilePath, _filePath, targetPath);
             DocumentText = await DocumentSnapshot.GetTextAsync();
         }
@@ -120,8 +118,9 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
                 InsertSpaces = true
             };
 
-            var range = TextSpan.FromBounds(0, DocumentText.Length).AsRange(DocumentText);
-            var edits = await RazorFormattingService.FormatAsync(DocumentUri, DocumentSnapshot, range, options, CancellationToken.None);
+            var documentContext = new DocumentContext(DocumentUri, DocumentSnapshot, version: 1);
+
+            var edits = await RazorFormattingService.FormatAsync(documentContext, range: null, options, CancellationToken.None);
 
 #if DEBUG
             // For debugging purposes only.
@@ -131,23 +130,20 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
         }
 
         [GlobalCleanup]
-        public void CleanupServer()
+        public async Task CleanupServerAsync()
         {
             File.Delete(_filePath);
 
-            RazorLanguageServer?.Dispose();
+            var innerServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
+
+            await innerServer.ShutdownAsync();
+            await innerServer.ExitAsync();
         }
 
-        private async Task EnsureServicesInitializedAsync()
+        private void EnsureServicesInitialized()
         {
-            if (RazorLanguageServer != null)
-            {
-                return;
-            }
-
-            RazorLanguageServer = await RazorLanguageServerTask;
             var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-            RazorFormattingService = languageServer.GetService(typeof(RazorFormattingService)) as RazorFormattingService;
+            RazorFormattingService = languageServer.GetRequiredService<RazorFormattingService>();
         }
     }
 }

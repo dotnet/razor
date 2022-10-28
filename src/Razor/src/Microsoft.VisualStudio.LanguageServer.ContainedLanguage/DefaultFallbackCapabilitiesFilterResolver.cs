@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -20,71 +18,40 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 throw new ArgumentNullException(nameof(lspRequestMethodName));
             }
 
-            switch (lspRequestMethodName)
+            return lspRequestMethodName switch
             {
                 // Standard LSP capabilities
-                case Methods.TextDocumentImplementationName:
-                    return CheckImplementationCapabilities;
-                case Methods.TextDocumentTypeDefinitionName:
-                    return CheckTypeDefinitionCapabilities;
-                case Methods.TextDocumentReferencesName:
-                    return CheckFindAllReferencesCapabilities;
-                case Methods.TextDocumentRenameName:
-                    return CheckRenameCapabilities;
-                case Methods.TextDocumentSignatureHelpName:
-                    return CheckSignatureHelpCapabilities;
-                case Methods.TextDocumentWillSaveName:
-                    return CheckWillSaveCapabilities;
-                case Methods.TextDocumentWillSaveWaitUntilName:
-                    return CheckWillSaveWaitUntilCapabilities;
-                case Methods.TextDocumentRangeFormattingName:
-                    return CheckRangeFormattingCapabilities;
-                case Methods.WorkspaceSymbolName:
-                    return CheckWorkspaceSymbolCapabilities;
-                case Methods.TextDocumentOnTypeFormattingName:
-                    return CheckOnTypeFormattingCapabilities;
-                case Methods.TextDocumentFormattingName:
-                    return CheckFormattingCapabilities;
-                case Methods.TextDocumentHoverName:
-                    return CheckHoverCapabilities;
-                case Methods.TextDocumentCodeActionName:
-                    return CheckCodeActionCapabilities;
-                case Methods.TextDocumentCodeLensName:
-                    return CheckCodeLensCapabilities;
-                case Methods.TextDocumentCompletionName:
-                    return CheckCompletionCapabilities;
-                case Methods.TextDocumentCompletionResolveName:
-                    return CheckCompletionResolveCapabilities;
-                case Methods.TextDocumentDefinitionName:
-                    return CheckDefinitionCapabilities;
-                case Methods.TextDocumentDocumentHighlightName:
-                    return CheckHighlightCapabilities;
-                case "textDocument/semanticTokens":
-                case Methods.TextDocumentSemanticTokensFullName:
-                case Methods.TextDocumentSemanticTokensFullDeltaName:
-                case Methods.TextDocumentSemanticTokensRangeName:
-                    return CheckSemanticTokensCapabilities;
-                case Methods.TextDocumentLinkedEditingRangeName:
-                    return CheckLinkedEditingRangeCapabilities;
-                case Methods.CodeActionResolveName:
-                    return CheckCodeActionResolveCapabilities;
-                case Methods.TextDocumentDocumentColorName:
-                    return CheckDocumentColorCapabilities;
-
+                Methods.TextDocumentImplementationName => CheckImplementationCapabilities,
+                Methods.TextDocumentTypeDefinitionName => CheckTypeDefinitionCapabilities,
+                Methods.TextDocumentReferencesName => CheckFindAllReferencesCapabilities,
+                Methods.TextDocumentRenameName => CheckRenameCapabilities,
+                Methods.TextDocumentSignatureHelpName => CheckSignatureHelpCapabilities,
+                Methods.TextDocumentWillSaveName => CheckWillSaveCapabilities,
+                Methods.TextDocumentWillSaveWaitUntilName => CheckWillSaveWaitUntilCapabilities,
+                Methods.TextDocumentRangeFormattingName => CheckRangeFormattingCapabilities,
+                Methods.WorkspaceSymbolName => CheckWorkspaceSymbolCapabilities,
+                Methods.TextDocumentOnTypeFormattingName => CheckOnTypeFormattingCapabilities,
+                Methods.TextDocumentFormattingName => CheckFormattingCapabilities,
+                Methods.TextDocumentHoverName => CheckHoverCapabilities,
+                Methods.TextDocumentCodeActionName => CheckCodeActionCapabilities,
+                Methods.TextDocumentCodeLensName => CheckCodeLensCapabilities,
+                Methods.TextDocumentCompletionName => CheckCompletionCapabilities,
+                Methods.TextDocumentCompletionResolveName => CheckCompletionResolveCapabilities,
+                Methods.TextDocumentDefinitionName => CheckDefinitionCapabilities,
+                Methods.TextDocumentDocumentHighlightName => CheckHighlightCapabilities,
+                "textDocument/semanticTokens" or Methods.TextDocumentSemanticTokensFullName or Methods.TextDocumentSemanticTokensFullDeltaName or Methods.TextDocumentSemanticTokensRangeName => CheckSemanticTokensCapabilities,
+                Methods.TextDocumentLinkedEditingRangeName => CheckLinkedEditingRangeCapabilities,
+                Methods.CodeActionResolveName => CheckCodeActionResolveCapabilities,
+                Methods.TextDocumentDocumentColorName => CheckDocumentColorCapabilities,
                 // VS LSP Expansion capabilities
-                case VSMethods.GetProjectContextsName:
-                    return CheckProjectContextsCapabilities;
-                case VSInternalMethods.DocumentReferencesName:
-                    return CheckMSReferencesCapabilities;
-                case VSInternalMethods.OnAutoInsertName:
-                    return CheckOnAutoInsertCapabilities;
-                case VSInternalMethods.DocumentPullDiagnosticName:
-                case VSInternalMethods.WorkspacePullDiagnosticName:
-                    return CheckPullDiagnosticCapabilities;
-
-                default:
-                    return FallbackCheckCapabilties;
-            }
+                VSMethods.GetProjectContextsName => CheckProjectContextsCapabilities,
+                VSInternalMethods.DocumentReferencesName => CheckMSReferencesCapabilities,
+                VSInternalMethods.OnAutoInsertName => CheckOnAutoInsertCapabilities,
+                VSInternalMethods.DocumentPullDiagnosticName or VSInternalMethods.WorkspacePullDiagnosticName => CheckPullDiagnosticCapabilities,
+                VSInternalMethods.TextDocumentTextPresentationName => CheckTextPresentationCapabilities,
+                VSInternalMethods.TextDocumentUriPresentationName => CheckUriPresentationCapabilities,
+                _ => FallbackCheckCapabilties,
+            };
         }
 
         private bool CheckDocumentColorCapabilities(JToken token)
@@ -93,14 +60,14 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             return serverCapabilities?.DocumentColorProvider?.Match(
                 boolValue => boolValue,
-                options => options != null) ?? false;
+                options => options is not null) ?? false;
         }
 
         private static bool CheckSemanticTokensCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<VSServerCapabilities>();
 
-            return serverCapabilities?.SemanticTokensOptions != null;
+            return serverCapabilities?.SemanticTokensOptions is not null;
         }
 
         private static bool CheckImplementationCapabilities(JToken token)
@@ -109,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             return serverCapabilities?.ImplementationProvider?.Match(
                 boolValue => boolValue,
-                options => options != null) ?? false;
+                options => options is not null) ?? false;
         }
 
         private bool CheckTypeDefinitionCapabilities(JToken token)
@@ -118,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             return serverCapabilities?.TypeDefinitionProvider?.Match(
                 boolValue => boolValue,
-                options => options != null) ?? false;
+                options => options is not null) ?? false;
         }
 
         private static bool CheckFindAllReferencesCapabilities(JToken token)
@@ -127,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             return serverCapabilities?.ReferencesProvider?.Match(
                 boolValue => boolValue,
-                options => options != null) ?? false;
+                options => options is not null) ?? false;
         }
 
         private static bool CheckRenameCapabilities(JToken token)
@@ -136,14 +103,14 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             return serverCapabilities?.RenameProvider?.Match(
                 boolValue => boolValue,
-                options => options != null) ?? false;
+                options => options is not null) ?? false;
         }
 
         private static bool CheckSignatureHelpCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.SignatureHelpProvider != null;
+            return serverCapabilities?.SignatureHelpProvider is not null;
         }
 
         private static bool CheckWillSaveCapabilities(JToken token)
@@ -166,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             return serverCapabilities?.DocumentRangeFormattingProvider?.Match(
                 boolValue => boolValue,
-                options => options != null) ?? false;
+                options => options is not null) ?? false;
         }
 
         private static bool CheckWorkspaceSymbolCapabilities(JToken token)
@@ -175,14 +142,14 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             return serverCapabilities?.WorkspaceSymbolProvider?.Match(
                 boolValue => boolValue,
-                options => options != null) ?? false;
+                options => options is not null) ?? false;
         }
 
         private static bool CheckOnTypeFormattingCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.DocumentOnTypeFormattingProvider != null;
+            return serverCapabilities?.DocumentOnTypeFormattingProvider is not null;
         }
 
         private static bool CheckFormattingCapabilities(JToken token)
@@ -191,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             return serverCapabilities?.DocumentFormattingProvider?.Match(
                 boolValue => boolValue,
-                options => options != null) ?? false;
+                options => options is not null) ?? false;
         }
 
         private static bool CheckHoverCapabilities(JToken token)
@@ -200,7 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             return serverCapabilities?.HoverProvider?.Match(
                 boolValue => boolValue,
-                options => options != null) ?? false;
+                options => options is not null) ?? false;
         }
 
         private static bool CheckCodeActionCapabilities(JToken token)
@@ -209,21 +176,21 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             return serverCapabilities?.CodeActionProvider?.Match(
                 boolValue => boolValue,
-                options => options != null) ?? false;
+                options => options is not null) ?? false;
         }
 
         private static bool CheckCodeLensCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.CodeLensProvider != null;
+            return serverCapabilities?.CodeLensProvider is not null;
         }
 
         private static bool CheckCompletionCapabilities(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return serverCapabilities?.CompletionProvider != null;
+            return serverCapabilities?.CompletionProvider is not null;
         }
 
         private static bool CheckCompletionResolveCapabilities(JToken token)
@@ -239,7 +206,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             return serverCapabilities?.DefinitionProvider?.Match(
                 boolValue => boolValue,
-                options => options != null) ?? false;
+                options => options is not null) ?? false;
         }
 
         private static bool CheckHighlightCapabilities(JToken token)
@@ -248,7 +215,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             return serverCapabilities?.DocumentHighlightProvider?.Match(
                 boolValue => boolValue,
-                options => options != null) ?? false;
+                options => options is not null) ?? false;
         }
 
         private static bool CheckMSReferencesCapabilities(JToken token)
@@ -280,7 +247,20 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
 
-            return serverCapabilities?.OnAutoInsertProvider != null;
+            return serverCapabilities?.OnAutoInsertProvider is not null;
+        }
+
+        private static bool CheckTextPresentationCapabilities(JToken token)
+        {
+            var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
+
+            return serverCapabilities?.TextPresentationProvider == true;
+        }
+        private static bool CheckUriPresentationCapabilities(JToken token)
+        {
+            var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
+
+            return serverCapabilities?.UriPresentationProvider == true;
         }
 
         private static bool CheckLinkedEditingRangeCapabilities(JToken token)
@@ -289,7 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             return serverCapabilities?.LinkedEditingRangeProvider?.Match(
               boolValue => boolValue,
-              options => options != null) ?? false;
+              options => options is not null) ?? false;
         }
 
         private static bool CheckPullDiagnosticCapabilities(JToken token)

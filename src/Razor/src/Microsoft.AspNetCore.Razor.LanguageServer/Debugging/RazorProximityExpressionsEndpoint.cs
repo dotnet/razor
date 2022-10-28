@@ -7,41 +7,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
 {
-    internal class RazorProximityExpressionsEndpoint : IRazorProximityExpressionsHandler
+    internal class RazorProximityExpressionsEndpoint : IRazorProximityExpressionsEndpoint
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
         private readonly RazorDocumentMappingService _documentMappingService;
         private readonly ILogger _logger;
 
         public RazorProximityExpressionsEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
             RazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
-            }
-
             if (documentMappingService is null)
             {
                 throw new ArgumentNullException(nameof(documentMappingService));
@@ -52,22 +36,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
             _documentMappingService = documentMappingService;
             _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
         }
 
-        public async Task<RazorProximityExpressionsResponse?> Handle(RazorProximityExpressionsParams request, CancellationToken cancellationToken)
-        {
-            var documentSnapshot = await TryGetDocumentSnapshotAndVersionAsync(request.Uri.GetAbsoluteOrUNCPath(), cancellationToken).ConfigureAwait(false);
-            if (documentSnapshot is null)
-            {
-                return null;
-            }
+        public bool MutatesSolutionState => false;
 
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-            var sourceText = await documentSnapshot.GetTextAsync();
+        public Uri GetTextDocumentIdentifier(RazorProximityExpressionsParams request)
+        {
+            return request.Uri;
+        }
+
+        public async Task<RazorProximityExpressionsResponse?> HandleRequestAsync(RazorProximityExpressionsParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            var documentContext = requestContext.GetRequiredDocumentContext();
+
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
             var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
             var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
 
@@ -77,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
             }
 
             var projectedIndex = hostDocumentIndex;
-            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex);
+            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
             // If we're in C#, then map to the right position in the generated document
             if (languageKind == RazorLanguageKind.CSharp &&
                 !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out _, out projectedIndex))
@@ -104,25 +89,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
                 return null;
             }
 
-            _logger.LogTrace($"Proximity expressions request for ({request.Position.Line}, {request.Position.Character}) yielded {expressions.Count} results.");
+            _logger.LogTrace("Proximity expressions request for ({Line}, {Character}) yielded {expressionsCount} results.",
+                request.Position.Line, request.Position.Character, expressions.Count);
 
             return new RazorProximityExpressionsResponse
             {
                 Expressions = expressions,
             };
-        }
-
-        private Task<DocumentSnapshot?> TryGetDocumentSnapshotAndVersionAsync(string uri, CancellationToken cancellationToken)
-        {
-            return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                if (_documentResolver.TryResolveDocument(uri, out var documentSnapshot))
-                {
-                    return documentSnapshot;
-                }
-
-                return null;
-            }, cancellationToken);
         }
     }
 }

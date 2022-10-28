@@ -4,25 +4,20 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal abstract class RazorFormattingService
     {
         public abstract Task<TextEdit[]> FormatAsync(
-            DocumentUri uri,
-            DocumentSnapshot documentSnapshot,
-            Range range,
+            DocumentContext documentContext,
+            Range? range,
             FormattingOptions options,
             CancellationToken cancellationToken);
 
         public abstract Task<TextEdit[]> FormatOnTypeAsync(
-           DocumentUri uri,
-           DocumentSnapshot documentSnapshot,
+           DocumentContext documentContext,
            RazorLanguageKind kind,
            TextEdit[] formattedEdits,
            FormattingOptions options,
@@ -31,18 +26,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
            CancellationToken cancellationToken);
 
         public abstract Task<TextEdit[]> FormatCodeActionAsync(
-            DocumentUri uri,
-            DocumentSnapshot documentSnapshot,
+            DocumentContext documentContext,
             RazorLanguageKind kind,
             TextEdit[] formattedEdits,
             FormattingOptions options,
             CancellationToken cancellationToken);
 
         public abstract Task<TextEdit[]> FormatSnippetAsync(
-            DocumentUri uri,
-            DocumentSnapshot documentSnapshot,
+            DocumentContext documentContext,
             RazorLanguageKind kind,
-            TextEdit[] formattedEdits,
+            TextEdit[] edits,
             FormattingOptions options,
             CancellationToken cancellationToken);
     }

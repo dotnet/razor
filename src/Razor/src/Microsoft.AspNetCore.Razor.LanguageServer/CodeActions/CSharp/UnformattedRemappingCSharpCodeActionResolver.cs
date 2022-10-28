@@ -9,10 +9,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -21,28 +19,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     /// </summary>
     internal class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeActionResolver
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
-        private readonly DocumentVersionCache _documentVersionCache;
+        private readonly DocumentContextFactory _documentContextFactory;
         private readonly RazorDocumentMappingService _documentMappingService;
 
         public UnformattedRemappingCSharpCodeActionResolver(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
+            DocumentContextFactory documentContextFactory,
             ClientNotifierServiceBase languageServer,
-            DocumentVersionCache documentVersionCache,
             RazorDocumentMappingService documentMappingService)
             : base(languageServer)
         {
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
-            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
+            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         }
 
         public override string Action => LanguageServerConstants.CodeActions.UnformattedRemap;
 
-        public async override Task<CodeAction?> ResolveAsync(
+        public async override Task<CodeAction> ResolveAsync(
             CSharpCodeActionParams csharpParams,
             CodeAction codeAction,
             CancellationToken cancellationToken)
@@ -66,47 +58,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            if (resolvedCodeAction.Edit.DocumentChanges.Count() != 1)
+            if (resolvedCodeAction.Edit.DocumentChanges.Value.Count() != 1)
             {
                 // We don't yet support multi-document code actions, return original code action
                 Debug.Fail($"Encountered an unsupported multi-document code action edit with ${codeAction.Title}.");
                 return codeAction;
             }
 
-            var documentChanged = resolvedCodeAction.Edit.DocumentChanges.First();
-            if (!documentChanged.IsTextDocumentEdit)
+            var documentChanged = resolvedCodeAction.Edit.DocumentChanges.Value.First();
+            if (!documentChanged.TryGetFirst(out var textDocumentEdit))
             {
                 // Only Text Document Edit changes are supported currently, return original code action
                 return codeAction;
             }
 
-            var textEdit = documentChanged.TextDocumentEdit!.Edits.FirstOrDefault();
+            var textEdit = textDocumentEdit.Edits.FirstOrDefault();
             if (textEdit is null)
             {
                 // No text edit available
                 return codeAction;
             }
 
-            var documentInfo = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync<(DocumentSnapshot, int)?>(() =>
-            {
-                if (_documentResolver.TryResolveDocument(csharpParams.RazorFileUri.ToUri().GetAbsoluteOrUNCPath(), out var documentSnapshot))
-                {
-                    if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
-                    {
-                        return (documentSnapshot, version.Value);
-                    }
-                }
-
-                return null;
-            }, cancellationToken).ConfigureAwait(false);
-            if (documentInfo is null)
+            var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
             {
                 return codeAction;
             }
 
-            var (documentSnapshot, documentVersion) = documentInfo.Value;
-
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+            var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
                 return codeAction;
@@ -118,26 +97,21 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            textEdit = textEdit with { Range = originalRange };
+            textEdit.Range = originalRange;
 
             var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier()
             {
                 Uri = csharpParams.RazorFileUri,
-                Version = documentVersion
+                Version = documentContext.Version,
             };
-
-            resolvedCodeAction = resolvedCodeAction with
+            resolvedCodeAction.Edit = new WorkspaceEdit()
             {
-                Edit = new WorkspaceEdit()
-                {
-                    DocumentChanges = new[] {
-                    new WorkspaceEditDocumentChange(
+                DocumentChanges = new[] {
                         new TextDocumentEdit()
                         {
                             TextDocument = codeDocumentIdentifier,
                             Edits = new[] { textEdit },
-                        })
-                }
+                        }
                 },
             };
 

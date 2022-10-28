@@ -7,6 +7,13 @@
         <target state="translated">値を null または空の文字列にすることはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="DirectiveSnippetDescription">
+        <source>Insert a directive code snippet
+[Tab] to navigate between elements, [Enter] to complete</source>
+        <target state="translated">ディレクティブ コード スニペット
+[Tab] を挿入して要素間を移動します。[Enter] を押して完了します</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,7 +21,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal readonly Dictionary<string, DelayedFileChangeNotification> PendingNotifications;
 
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IRazorFileChangeListener> _listeners;
         private readonly List<FileSystemWatcher> _watchers;
         private readonly object _pendingNotificationsLock = new();
@@ -35,17 +32,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public RazorFileChangeDetector(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            FilePathNormalizer filePathNormalizer,
             IEnumerable<IRazorFileChangeListener> listeners)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
             }
 
             if (listeners is null)
@@ -54,7 +45,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
             _watchers = new List<FileSystemWatcher>(s_razorFileExtensions.Count);
             PendingNotifications = new Dictionary<string, DelayedFileChangeNotification>(FilePathComparer.Instance);
@@ -64,10 +54,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal int EnqueueDelay { get; set; } = 1000;
 
         // Used in tests to ensure we can control when delayed notification work starts.
-        internal ManualResetEventSlim BlockNotificationWorkStart { get; set; }
+        internal ManualResetEventSlim? BlockNotificationWorkStart { get; set; }
 
         // Used in tests to ensure we can understand when notification work noops.
-        internal ManualResetEventSlim NotifyNotificationNoop { get; set; }
+        internal ManualResetEventSlim? NotifyNotificationNoop { get; set; }
 
         public async Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken)
         {
@@ -78,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Dive through existing Razor files and fabricate "added" events so listeners can accurately listen to state changes for them.
 
-            workspaceDirectory = _filePathNormalizer.Normalize(workspaceDirectory);
+            workspaceDirectory = FilePathNormalizer.Normalize(workspaceDirectory);
 
             var existingRazorFiles = GetExistingRazorFiles(workspaceDirectory);
 
@@ -269,7 +259,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         // Internal for testing
         internal class DelayedFileChangeNotification
         {
-            public Task NotifyTask { get; set; }
+            public Task? NotifyTask { get; set; }
 
             public RazorFileChangeKind? ChangeKind { get; set; }
         }

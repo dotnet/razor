@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -18,8 +17,10 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
@@ -29,44 +30,20 @@ using Microsoft.WebTools.Languages.Shared.Editor.Text;
 using Microsoft.WebTools.Shared;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.JsonRpc;
 using OmniSharp.Extensions.LanguageServer.Protocol;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Progress;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server.WorkDone;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal class FormattingLanguageServerClient : ClientNotifierServiceBase
     {
-        private readonly FilePathNormalizer _filePathNormalizer = new FilePathNormalizer();
         private readonly Dictionary<string, RazorCodeDocument> _documents = new Dictionary<string, RazorCodeDocument>();
-
-        public IProgressManager ProgressManager => throw new NotImplementedException();
-
-        public IServerWorkDoneManager WorkDoneManager => throw new NotImplementedException();
-
-        public ILanguageServerConfiguration Configuration => throw new NotImplementedException();
-
-        public override InitializeParams ClientSettings
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
 
         public InitializeResult ServerSettings => throw new NotImplementedException();
 
-        public void SendNotification(string method) => throw new NotImplementedException();
-
-        public void SendNotification<T>(string method, T @params) => throw new NotImplementedException();
-
         public void AddCodeDocument(RazorCodeDocument codeDocument)
         {
-            var path = _filePathNormalizer.Normalize(codeDocument.Source.FilePath);
+            var path = FilePathNormalizer.Normalize(codeDocument.Source.FilePath);
             _documents.TryAdd("/" + path, codeDocument);
         }
 
@@ -97,7 +74,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var editHandlerType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.Html.OperationHandlers.ApplyFormatEditsHandler", throwOnError: true);
             var bufferManagerType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.Shared.Buffer.BufferManager", throwOnError: true);
 
-            var exportProvider = TestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
+            var exportProvider = EditorTestCompositions.Editor.ExportProviderFactory.CreateExportProvider();
             var contentTypeService = exportProvider.GetExportedValue<IContentTypeRegistryService>();
 
             if (!contentTypeService.ContentTypes.Any(t => t.TypeName == HtmlContentTypeDefinition.HtmlContentType))
@@ -113,11 +90,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var applyFormatEditsHandler = Activator.CreateInstance(editHandlerType, new object[] { bufferManager, threadSwitcher, textBufferFactoryService });
 
             // Make sure the buffer manager knows about the source document
-            var documentUri = DocumentUri.From($"file:///{@params.TextDocument.Uri}");
+            var documentUri = @params.TextDocument.Uri;
             var contentTypeName = HtmlContentTypeDefinition.HtmlContentType;
             var initialContent = generatedHtml;
             var snapshotVersionFromLSP = 0;
-            Assert.IsAssignableFrom<ITextSnapshot>(bufferManager.GetType().GetMethod("CreateBuffer").Invoke(bufferManager, new object[] { documentUri, contentTypeName, initialContent, snapshotVersionFromLSP }));
+            var oSharpDocUri = DocumentUri.From(documentUri);
+            Assert.IsAssignableFrom<ITextSnapshot>(bufferManager.GetType().GetMethod("CreateBuffer").Invoke(bufferManager, new object[] { oSharpDocUri, contentTypeName, initialContent, snapshotVersionFromLSP }));
 
             var requestType = editHandlerAssembly.GetType("Microsoft.WebTools.Languages.LanguageServer.Server.ContainedLanguage.ApplyFormatEditsParamForOmniSharp", throwOnError: true);
             var serializedValue = $@"{{
@@ -126,15 +104,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         ""TabSize"": {@params.Options.TabSize},
         ""IndentSize"": {@params.Options.TabSize}
     }},
-    ""Uri"": ""file:///{@params.TextDocument.Uri}"",
+    ""Uri"": ""{@params.TextDocument.Uri}"",
     ""GeneratedChanges"": [
     ]
 }}
 ";
             var request = JsonConvert.DeserializeObject(serializedValue, requestType);
-            var resultTask = (Task)applyFormatEditsHandler.GetType().GetRuntimeMethod("Handle", new Type[] { requestType, typeof(CancellationToken) }).Invoke(applyFormatEditsHandler, new object[] { request, CancellationToken.None });
-            var result = resultTask.GetType().GetProperty(nameof(Task<int>.Result)).GetValue(resultTask);
-            var rawTextChanges = result.GetType().GetProperty("TextChanges").GetValue(result);
+
+            var resultTask = (Task)applyFormatEditsHandler.GetType()
+                .GetRuntimeMethod(
+                    name: "Handle",
+                    parameters: new[] { requestType, typeof(CancellationToken) })
+                .Invoke(
+                    obj: applyFormatEditsHandler,
+                    parameters: new object[] { request, CancellationToken.None });
+
+            var result = resultTask.GetType()
+                .GetProperty(nameof(Task<int>.Result))
+                .GetValue(resultTask);
+
+            var rawTextChanges = result.GetType()
+                .GetProperty("TextChanges")
+                .GetValue(result);
+
             var serializedTextChanges = JsonConvert.SerializeObject(rawTextChanges, Newtonsoft.Json.Formatting.Indented);
             var textChanges = JsonConvert.DeserializeObject<HtmlFormatterTextEdit[]>(serializedTextChanges);
             response.Edits = textChanges.Select(change => change.AsTextEdit(SourceText.From(generatedHtml))).ToArray();
@@ -195,7 +187,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 return new TextEdit
                 {
-                    Range = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range()
+                    Range = new Range()
                     {
                         Start = new Position(startLinePosition.Line, startLinePosition.Character),
                         End = new Position(endLinePosition.Line, endLinePosition.Character),
@@ -214,71 +206,43 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return csharpDocument;
         }
 
-        private class ResponseRouterReturns : IResponseRouterReturns
-        {
-            private readonly object _response;
-
-            public ResponseRouterReturns(object response)
-            {
-                _response = response;
-            }
-
-            public Task<TResponse> Returning<TResponse>(CancellationToken cancellationToken)
-            {
-                return Task.FromResult((TResponse)_response);
-            }
-
-            public Task ReturningVoid(CancellationToken cancellationToken)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        private static IResponseRouterReturns Convert<T>(T instance)
-        {
-            return new ResponseRouterReturns(instance);
-        }
-
-        public void SendNotification(IRequest request)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override Task<IResponseRouterReturns> SendRequestAsync<T>(string method, T @params)
+        public override Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         {
             if (@params is RazorDocumentRangeFormattingParams rangeFormattingParams &&
                string.Equals(method, "razor/rangeFormatting", StringComparison.Ordinal))
             {
                 var response = Format(rangeFormattingParams);
 
-                return Task.FromResult(Convert(response));
+                return Task.FromResult(Convert<TResponse>(response));
             }
             else if (@params is DocumentFormattingParams formattingParams &&
                 string.Equals(method, "textDocument/formatting", StringComparison.Ordinal))
             {
                 var response = Format(formattingParams);
 
-                return Task.FromResult(Convert(response));
+                return Task.FromResult(Convert<TResponse>(response));
             }
             else if (@params is DocumentOnTypeFormattingParams &&
                 string.Equals(method, "textDocument/onTypeFormatting", StringComparison.Ordinal))
             {
                 var response = Format();
 
-                return Task.FromResult(Convert(response));
+                return Task.FromResult(Convert<TResponse>(response));
             }
 
             throw new NotImplementedException();
         }
 
-        public override Task<IResponseRouterReturns> SendRequestAsync(string method)
+        private static TResponse Convert<TResponse>(RazorDocumentFormattingResponse response)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<TResponse> SendRequestAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
+            if (response is TResponse tResp)
+            {
+                return tResp;
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
         }
 
         public object GetService(Type serviceType)
@@ -291,9 +255,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             throw new NotImplementedException();
         }
 
-        public override Task OnStarted(ILanguageServer server, CancellationToken cancellationToken)
+        public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
+        }
+
+        public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
     }
 }

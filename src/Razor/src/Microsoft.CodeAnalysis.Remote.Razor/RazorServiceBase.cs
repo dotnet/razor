@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -16,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
     {
         protected readonly ServiceBrokerClient ServiceBrokerClient;
 
-        public RazorServiceBase(IServiceBroker serviceBroker)
+        public RazorServiceBase(IServiceBroker serviceBroker, ITelemetryReporter telemetryReporter)
         {
-            RazorServices = new RazorServices();
+            RazorServices = new RazorServices(telemetryReporter);
 
 #pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
             ServiceBrokerClient = new ServiceBrokerClient(serviceBroker);
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
 
         private class SerializedProjectSnapshot : ProjectSnapshot
         {
-            public SerializedProjectSnapshot(string filePath, RazorConfiguration configuration, string rootNamespace)
+            public SerializedProjectSnapshot(string filePath, RazorConfiguration? configuration, string? rootNamespace)
             {
                 FilePath = filePath;
                 Configuration = configuration;
@@ -54,13 +55,13 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
                 Version = VersionStamp.Default;
             }
 
-            public override RazorConfiguration Configuration { get; }
+            public override RazorConfiguration? Configuration { get; }
 
             public override IEnumerable<string> DocumentFilePaths => Array.Empty<string>();
 
             public override string FilePath { get; }
 
-            public override string RootNamespace { get; }
+            public override string? RootNamespace { get; }
 
             public override VersionStamp Version { get; }
 

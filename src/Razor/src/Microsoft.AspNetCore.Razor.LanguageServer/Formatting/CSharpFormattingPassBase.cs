@@ -11,20 +11,18 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     internal abstract class CSharpFormattingPassBase : FormattingPassBase
     {
-        protected CSharpFormattingPassBase(RazorDocumentMappingService documentMappingService, FilePathNormalizer filePathNormalizer, ClientNotifierServiceBase server)
-            : base(documentMappingService, filePathNormalizer, server)
+        protected CSharpFormattingPassBase(RazorDocumentMappingService documentMappingService, ClientNotifierServiceBase server)
+            : base(documentMappingService, server)
         {
-            CSharpFormatter = new CSharpFormatter(documentMappingService, server, filePathNormalizer);
+            CSharpFormatter = new CSharpFormatter(documentMappingService, server);
         }
 
         protected CSharpFormatter CSharpFormatter { get; }
@@ -56,6 +54,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             foreach (var mapping in context.CodeDocument.GetCSharpDocument().SourceMappings)
             {
                 var mappingSpan = new TextSpan(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
+#if DEBUG
+                var spanText = context.SourceText.GetSubText(mappingSpan).ToString();
+#endif
                 if (!ShouldFormat(context, mappingSpan, allowImplicitStatements: true))
                 {
                     // We don't care about this range as this can potentially lead to incorrect scopes.
@@ -105,7 +106,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var significantLocationIndentation = await CSharpFormatter.GetCSharpIndentationAsync(context, significantLocations, cancellationToken);
 
             // Build source mapping indentation scopes.
-            var sourceMappingIndentations = new SortedDictionary<int, int>();
+            var sourceMappingIndentations = new SortedDictionary<int, IndentationData>();
+            var syntaxTreeRoot = context.CodeDocument.GetSyntaxTree().Root;
             foreach (var originalLocation in sourceMappingMap.Keys)
             {
                 var significantLocation = sourceMappingMap[originalLocation];
@@ -115,7 +117,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     continue;
                 }
 
-                sourceMappingIndentations[originalLocation] = indentation;
+                var scopeOwner = syntaxTreeRoot.LocateOwner(new SourceChange(originalLocation, 0, string.Empty));
+                sourceMappingIndentations[originalLocation] = new IndentationData(indentation);
+
+                // For @section blocks we have special handling to add a fake source mapping/significant location at the end of the
+                // section, to return the indentation back to before the start of the section block.
+                if (scopeOwner?.Parent?.Parent?.Parent is RazorDirectiveSyntax containingDirective &&
+                    containingDirective.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive &&
+                    !sourceMappingIndentations.ContainsKey(containingDirective.EndPosition - 1))
+                {
+                    // We want the indentation for the end point to be whatever the indentation was before the start point. For
+                    // performance reasons, and because source mappings could be un-ordered, we defer that calculation until
+                    // later, when we have all of the information in place. We use a negative number to indicate that there is
+                    // more processing to do.
+                    // This is saving repeatedly realising the source mapping indentations keys, then converting them to an array,
+                    // and then doing binary search here, before we've processed all of the mappings
+                    sourceMappingIndentations[containingDirective.EndPosition - 1] = new IndentationData(lazyLoad: true, offset: originalLocation - 1);
+                }
             }
 
             var sourceMappingIndentationScopes = sourceMappingIndentations.Keys.ToArray();
@@ -171,6 +189,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     // We use binary search to find that spot.
 
                     var index = Array.BinarySearch(sourceMappingIndentationScopes, lineStart);
+
                     if (index < 0)
                     {
                         // Couldn't find the exact value. Find the index of the element to the left of the searched value.
@@ -189,7 +208,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     {
                         // index will now be set to the same value as the end of the closest source mapping.
                         var absoluteIndex = sourceMappingIndentationScopes[index];
-                        csharpDesiredIndentation = sourceMappingIndentations[absoluteIndex];
+                        csharpDesiredIndentation = sourceMappingIndentations[absoluteIndex].GetIndentation(sourceMappingIndentations, sourceMappingIndentationScopes, minCSharpIndentation);
 
                         // This means we didn't find an exact match and so we used the indentation of the end of a previous mapping.
                         // So let's use the MinCSharpIndentation of that same location if possible.
@@ -256,11 +275,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         protected static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements)
         {
+            return ShouldFormat(context, mappingSpan, allowImplicitStatements, out _);
+        }
+
+        protected static bool ShouldFormat(FormattingContext context, TextSpan mappingSpan, bool allowImplicitStatements, out SyntaxNode? foundOwner)
+        {
             // We should be called with the range of various C# SourceMappings.
 
             if (mappingSpan.Start == 0)
             {
                 // The mapping starts at 0. It can't be anything special but pure C#. Let's format it.
+                foundOwner = null;
                 return true;
             }
 
@@ -282,10 +307,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             if (owner is null)
             {
                 // Can't determine owner of this position. Optimistically allow formatting.
+                foundOwner = null;
                 return true;
             }
 
             owner = FixOwnerToWorkaroundCompilerQuirks(owner);
+            foundOwner = owner;
 
             // special case: If we're formatting implicit statements, we want to treat the `@attribute` directive as one
             // so that the C# definition of the attribute is formatted as C#
@@ -296,7 +323,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             if (IsRazorComment() ||
-                IsInHtmlTag() ||
+                IsInHtmlAttributeValue() ||
                 IsInDirectiveWithNoKind() ||
                 IsInSingleLineDirective() ||
                 IsImplicitExpression() ||
@@ -339,14 +366,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 return false;
             }
 
-            bool IsInHtmlTag()
+            bool IsInHtmlAttributeValue()
             {
                 // E.g, (| is position)
                 //
                 // `<p csharpattr="|Variable">` - true
                 //
                 return owner.AncestorsAndSelf().Any(
-                    n => n is MarkupStartTagSyntax || n is MarkupTagHelperStartTagSyntax || n is MarkupEndTagSyntax || n is MarkupTagHelperEndTagSyntax);
+                    n => n is MarkupDynamicAttributeValueSyntax or
+                              MarkupLiteralAttributeValueSyntax or
+                              MarkupTagHelperAttributeValueSyntax);
             }
 
             bool IsInDirectiveWithNoKind()
@@ -405,7 +434,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     owner.Parent is MarkupBlockSyntax block &&
                     owner == block.Children[block.Children.Count - 1] &&
                     // MarkupBlock -> CSharpCodeBlock -> RazorDirectiveBody -> RazorDirective
-                    block.Parent.Parent.Parent is RazorDirectiveSyntax directive &&
+                    block.Parent?.Parent?.Parent is RazorDirectiveSyntax directive &&
                     directive.DirectiveDescriptor.Directive == SectionDirective.Directive.Directive)
                 {
                     return true;
@@ -429,6 +458,48 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             return owner;
+        }
+
+        private class IndentationData
+        {
+            private readonly int _offset;
+            private int _indentation;
+            private bool _lazyLoad;
+
+            public IndentationData(int indentation)
+            {
+                _indentation = indentation;
+            }
+
+            public IndentationData(bool lazyLoad, int offset)
+            {
+                _lazyLoad = lazyLoad;
+                _offset = offset;
+            }
+
+            public int GetIndentation(SortedDictionary<int, IndentationData> sourceMappingIndentations, int[] indentationScopes, int minCSharpIndentation)
+            {
+                // If we're lazy loading, then we need to find the indentation from the source mappings, at the offset,
+                // which for whatever reason may not have been available when creating this class.
+                if (_lazyLoad)
+                {
+                    _lazyLoad = false;
+
+                    var index = Array.BinarySearch(indentationScopes, _offset);
+                    if (index < 0)
+                    {
+                        index = (~index) - 1;
+                    }
+
+                    // If there is a source mapping to the left of the original start point, then we use its indentation
+                    // otherwise use the minimum
+                    _indentation = index < 0
+                        ? minCSharpIndentation
+                        : sourceMappingIndentations[indentationScopes[index]]._indentation;
+                }
+
+                return _indentation;
+            }
         }
     }
 }

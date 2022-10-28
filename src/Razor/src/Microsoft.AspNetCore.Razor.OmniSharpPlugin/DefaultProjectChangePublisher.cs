@@ -126,8 +126,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning($@"Could not update Razor project configuration file '{publishFilePath}':
-{ex}");
+                    _logger.LogWarning(@"Could not update Razor project configuration file '{publishFilePath}':
+{ex}", publishFilePath, ex);
                 }
             }
         }

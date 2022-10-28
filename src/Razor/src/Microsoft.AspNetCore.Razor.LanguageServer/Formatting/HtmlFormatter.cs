@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -32,14 +32,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var @params = new DocumentFormattingParams()
+            var documentVersion = await _documentVersionCache.TryGetDocumentVersionAsync(context.OriginalSnapshot, cancellationToken).ConfigureAwait(false);
+            if (documentVersion is null)
             {
-                TextDocument = new TextDocumentIdentifier { Uri = FilePathNormalizer.Instance.Normalize(context.Uri.GetAbsoluteOrUNCPath()) },
+                return Array.Empty<TextEdit>();
+            }
+
+            var @params = new VersionedDocumentFormattingParams()
+            {
+                TextDocument = new TextDocumentIdentifier {
+                    Uri = FilePathNormalizer.Normalize(context.Uri),
+                },
+                HostDocumentVersion = documentVersion.Value,
                 Options = context.Options
             };
 
-            var response = await _server.SendRequestAsync(LanguageServerConstants.RazorDocumentFormattingEndpoint, @params);
-            var result = await response.Returning<RazorDocumentFormattingResponse>(cancellationToken);
+            var result = await _server.SendRequestAsync<DocumentFormattingParams, RazorDocumentFormattingResponse?>(
+                LanguageServerConstants.RazorDocumentFormattingEndpoint,
+                @params,
+                cancellationToken);
 
             return result?.Edits ?? Array.Empty<TextEdit>();
         }
@@ -59,13 +70,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 Position = new Position(line, col),
                 Character = context.TriggerCharacter.ToString(),
-                TextDocument = new TextDocumentIdentifier { Uri = FilePathNormalizer.Instance.Normalize(context.Uri.GetAbsoluteOrUNCPath()) },
+                TextDocument = new TextDocumentIdentifier { Uri = FilePathNormalizer.Normalize(context.Uri) },
                 Options = context.Options,
                 HostDocumentVersion = documentVersion.Value,
             };
 
-            var response = await _server.SendRequestAsync(LanguageServerConstants.RazorDocumentOnTypeFormattingEndpoint, @params);
-            var result = await response.Returning<RazorDocumentFormattingResponse>(cancellationToken);
+            var result = await _server.SendRequestAsync<RazorDocumentOnTypeFormattingParams, RazorDocumentFormattingResponse?>(
+                LanguageServerConstants.RazorDocumentOnTypeFormattingEndpoint,
+                @params,
+                cancellationToken);
 
             return result?.Edits ?? Array.Empty<TextEdit>();
         }

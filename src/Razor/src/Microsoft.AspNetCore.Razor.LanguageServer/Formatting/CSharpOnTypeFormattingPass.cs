@@ -9,18 +9,19 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
+using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -31,11 +32,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public CSharpOnTypeFormattingPass(
             RazorDocumentMappingService documentMappingService,
-            FilePathNormalizer filePathNormalizer,
             ClientNotifierServiceBase server,
             RazorGlobalOptions globalOptions,
             ILoggerFactory loggerFactory)
-            : base(documentMappingService, filePathNormalizer, server)
+            : base(documentMappingService, server)
         {
             if (loggerFactory is null)
             {
@@ -63,7 +63,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 if (!DocumentMappingService.TryMapToProjectedDocumentPosition(codeDocument, context.HostDocumentIndex, out _, out var projectedIndex))
                 {
-                    _logger.LogWarning($"Failed to map to projected position for document {context.Uri}.");
+                    _logger.LogWarning("Failed to map to projected position for document {context.Uri}.", context.Uri);
                     return result;
                 }
 
@@ -85,7 +85,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
 
                 textEdits = formattingChanges.Select(change => change.AsTextEdit(csharpText)).ToArray();
-                _logger.LogInformation($"Received {textEdits.Length} results from C#.");
+                _logger.LogInformation("Received {textEditsLength} results from C#.", textEdits.Length);
+            }
+
+            // Sometimes the C# document is out of sync with our document, so Roslyn can return edits to us that will throw when we try
+            // to normalize them. Instead of having this flow up and log a NFW, we just capture it here. Since this only happens when typing
+            // very quickly, it is a safe assumption that we'll get another chance to do on type formatting, since we know the user is typing.
+            // The proper fix for this is https://github.com/dotnet/razor-tooling/issues/6650 at which point this can be removed
+            foreach (var edit in textEdits)
+            {
+                var startLine = edit.Range.Start.Line;
+                var endLine = edit.Range.End.Line;
+                var count = csharpText.Lines.Count;
+                if (startLine >= count || endLine >= count)
+                {
+                    _logger.LogWarning("Got a bad edit that couldn't be applied. Edit is {startLine}-{endLine} but there are only {count} lines in C#.", startLine, endLine, count);
+                    return result;
+                }
             }
 
             var normalizedEdits = NormalizeTextEdits(csharpText, textEdits, out var originalTextWithChanges);
@@ -158,18 +174,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // we calculate these positions in the LineDelta method called above.
             // This is essentially: rangeToAdjust = new Range(Math.Min(firstFormattingEdit, userEdit), Math.Max(lastFormattingEdit, userEdit))
             var start = rangeAfterFormatting.Start;
-            if (firstPosition is not null && firstPosition < start)
+            if (firstPosition is not null && firstPosition.CompareTo(start) < 0)
             {
                 start = firstPosition;
             }
 
             var end = new Position(rangeAfterFormatting.End.Line + lineDelta, 0);
-            if (lastPosition is not null && lastPosition < start)
+            if (lastPosition is not null && lastPosition.CompareTo(start) < 0)
             {
                 end = lastPosition;
             }
 
-            var rangeToAdjust = new Range(start, end);
+            var rangeToAdjust = new Range { Start = start, End = end };
 
             Debug.Assert(rangeToAdjust.End.IsValid(cleanedText), "Invalid range. This is unexpected.");
 
@@ -189,47 +205,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
                 if (textEdits.Any(e => e.NewText.IndexOf("using") != -1))
                 {
-                    finalEdits = await AddUsingStatementEditsAsync(codeDocument, finalEdits, csharpText, originalTextWithChanges, cancellationToken);
+                    var usingStatementEdits = await AddUsingsCodeActionProviderHelper.GetUsingStatementEditsAsync(codeDocument, csharpText, originalTextWithChanges, cancellationToken);
+                    finalEdits = usingStatementEdits.Concat(finalEdits).ToArray();
                 }
             }
 
             return new FormattingResult(finalEdits);
-        }
-
-        private async Task<TextEdit[]> AddUsingStatementEditsAsync(RazorCodeDocument codeDocument, TextEdit[] finalEdits, SourceText csharpText, SourceText originalTextWithChanges, CancellationToken cancellationToken)
-        {
-            // Now that we're done with everything, lets see if there are any using statements to fix up
-            // We do this by comparing the original generated C# code, and the changed C# code, and look for a difference
-            // in using statements. We can't use edits for this for two main reasons:
-            //
-            // 1. Using statements in the generated code might come from _Imports.razor, or from this file, and C# will shove them anywhere
-            // 2. The edit might not be clean. eg given:
-            //      using System;
-            //      using System.Text;
-            //    Adding "using System.Linq;" could result in an insert of "Linq;\r\nusing System." on line 2
-            //
-            // So because of the above, we look for a difference in C# using directive nodes directly from the C# syntax tree, and apply them manually
-            // to the Razor document.
-
-            // First grab the old usings. We just convert them all to strings, because we only care about how the statements are represented in code.
-            var oldSyntaxTree = CSharpSyntaxTree.ParseText(csharpText, cancellationToken: cancellationToken);
-            var oldRoot = await oldSyntaxTree.GetRootAsync(cancellationToken);
-            var oldUsings = oldRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax).OfType<UsingDirectiveSyntax>().Select(u => u.ToString().Substring(6));
-
-            // Grab the new usings
-            var newSyntaxTree = CSharpSyntaxTree.ParseText(originalTextWithChanges, cancellationToken: cancellationToken);
-            var newRoot = await newSyntaxTree.GetRootAsync(cancellationToken);
-            var newUsings = newRoot.DescendantNodes(n => n is BaseNamespaceDeclarationSyntax or CompilationUnitSyntax).OfType<UsingDirectiveSyntax>().Select(u => u.ToString().Substring(6));
-
-            var edits = new List<TextEdit>();
-            foreach (var usingStatement in newUsings.Except(oldUsings))
-            {
-                var workspaceEdit = AddUsingsCodeActionResolver.CreateAddUsingWorkspaceEdit(usingStatement, codeDocument, null);
-                edits.AddRange(workspaceEdit.DocumentChanges.First().TextDocumentEdit!.Edits);
-            }
-
-            edits.AddRange(finalEdits);
-            return edits.ToArray();
         }
 
         // Returns the minimal TextSpan that encompasses all the differences between the old and the new text.
@@ -272,12 +253,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
                 // For convenience, since we're already iterating through things, we also find the extremes
                 // of the range of edits that were made.
-                if (firstPosition is null || firstPosition > range.Start)
+                if (firstPosition is null || firstPosition.CompareTo(range.Start) > 0)
                 {
                     firstPosition = range.Start;
                 }
 
-                if (lastPosition is null || lastPosition < range.End)
+                if (lastPosition is null || lastPosition.CompareTo(range.End) < 0)
                 {
                     lastPosition = range.End;
                 }
@@ -337,9 +318,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var text = context.SourceText;
             var sourceMappingSpan = sourceMappingRange.AsTextSpan(text);
-            if (!ShouldFormat(context, sourceMappingSpan, allowImplicitStatements: false))
+            if (!ShouldFormat(context, sourceMappingSpan, allowImplicitStatements: false, out var owner))
             {
                 // We don't want to run cleanup on this range.
+                return;
+            }
+
+            if (owner is CSharpStatementLiteralSyntax &&
+                owner.PreviousSpan() is { } prevNode &&
+                prevNode.AncestorsAndSelf().FirstOrDefault(a => a is CSharpTemplateBlockSyntax) is { } template &&
+                owner.SpanStart == template.Span.End &&
+                IsOnSingleLine(template, text))
+            {
+                // Special case, we don't want to add a line break after a single line template
                 return;
             }
 
@@ -470,9 +461,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             }
 
             var endSpan = TextSpan.FromBounds(sourceMappingSpan.End, sourceMappingSpan.End);
-            if (!ShouldFormat(context, endSpan, allowImplicitStatements: false))
+            if (!ShouldFormat(context, endSpan, allowImplicitStatements: false, out var owner))
             {
                 // We don't want to run cleanup on this range.
+                return;
+            }
+
+            if (owner is CSharpStatementLiteralSyntax &&
+                owner.NextSpan() is { } nextNode &&
+                nextNode.AncestorsAndSelf().FirstOrDefault(a => a is CSharpTemplateBlockSyntax) is { } template &&
+                template.SpanStart == owner.Span.End &&
+                IsOnSingleLine(template, text))
+            {
+                // Special case, we don't want to add a line break in front of a single line template
                 return;
             }
 
@@ -502,6 +503,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // }
             var change = new TextChange(spanToReplace, replacement);
             changes.Add(change);
+        }
+
+        private static bool IsOnSingleLine(SyntaxNode node, SourceText text)
+        {
+            text.GetLineAndOffset(node.Span.Start, out var startLine, out _);
+            text.GetLineAndOffset(node.Span.End, out var endLine, out _);
+
+            return startLine == endLine;
         }
 
         private static TextEdit[] NormalizeTextEdits(SourceText originalText, TextEdit[] edits, out SourceText originalTextWithChanges)

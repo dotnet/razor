@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.VisualStudio.Text;
@@ -12,10 +10,20 @@ namespace Microsoft.VisualStudio.Editor.Razor
     public sealed class DocumentStructureChangedEventArgs : EventArgs
     {
         public DocumentStructureChangedEventArgs(
-            SourceChange change,
+            SourceChange? change,
             ITextSnapshot snapshot,
             RazorCodeDocument codeDocument)
         {
+            if (snapshot is null)
+            {
+                throw new ArgumentNullException(nameof(snapshot));
+            }
+
+            if (codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(codeDocument));
+            }
+
             SourceChange = change;
             Snapshot = snapshot;
             CodeDocument = codeDocument;
@@ -24,7 +32,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         /// <summary>
         /// The <see cref="AspNetCore.Razor.Language.SourceChange"/> which triggered the re-parse.
         /// </summary>
-        public SourceChange SourceChange { get; }
+        public SourceChange? SourceChange { get; }
 
         /// <summary>
         /// The text snapshot used in the re-parse.

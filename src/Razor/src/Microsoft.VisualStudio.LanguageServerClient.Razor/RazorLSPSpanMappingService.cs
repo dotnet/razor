@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,7 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             _lspDocumentMappingProvider = lspDocumentMappingProvider;
-
             _textSnapshot = textSnapshot;
             _documentSnapshot = documentSnapshot;
         }
@@ -82,15 +79,15 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var mappedSpanResults = GetMappedSpanResults(_documentSnapshot, sourceTextRazor, mappedResult);
+            var mappedSpanResults = GetMappedSpanResults(_documentSnapshot.Uri.LocalPath, sourceTextRazor, mappedResult);
             return mappedSpanResults;
         }
 
         // Internal for testing
         internal static ImmutableArray<RazorMappedSpanResult> GetMappedSpanResults(
-            LSPDocumentSnapshot documentSnapshot,
+            string localFilePath,
             SourceText sourceTextRazor,
-            RazorMapToDocumentRangesResponse mappedResult)
+            RazorMapToDocumentRangesResponse? mappedResult)
         {
             var results = ImmutableArray.CreateBuilder<RazorMappedSpanResult>();
 
@@ -101,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             foreach (var mappedRange in mappedResult.Ranges)
             {
-                if (Extensions.RangeExtensions.IsUndefined(mappedRange))
+                if (RangeExtensions.IsUndefined(mappedRange))
                 {
                     // Couldn't remap the range correctly. Add default placeholder to indicate to C# that there were issues.
                     results.Add(new RazorMappedSpanResult());
@@ -110,8 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
                 var mappedSpan = mappedRange.AsTextSpan(sourceTextRazor);
                 var linePositionSpan = sourceTextRazor.Lines.GetLinePositionSpan(mappedSpan);
-                var filePath = documentSnapshot.Uri.LocalPath;
-                results.Add(new RazorMappedSpanResult(filePath, linePositionSpan, mappedSpan));
+                results.Add(new RazorMappedSpanResult(localFilePath, linePositionSpan, mappedSpan));
             }
 
             return results.ToImmutable();

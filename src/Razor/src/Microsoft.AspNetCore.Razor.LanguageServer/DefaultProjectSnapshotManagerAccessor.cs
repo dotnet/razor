@@ -1,11 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Options;
@@ -16,16 +13,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
         private readonly IEnumerable<ProjectSnapshotChangeTrigger> _changeTriggers;
-        private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
         private readonly AdhocWorkspaceFactory _workspaceFactory;
-        private ProjectSnapshotManagerBase _instance;
+        private ProjectSnapshotManagerBase? _instance;
         private bool _disposed;
 
         public DefaultProjectSnapshotManagerAccessor(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             IEnumerable<ProjectSnapshotChangeTrigger> changeTriggers,
-            FilePathNormalizer filePathNormalizer,
             IOptionsMonitor<RazorLSPOptions> optionsMonitor,
             AdhocWorkspaceFactory workspaceFactory)
         {
@@ -37,11 +32,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             if (changeTriggers is null)
             {
                 throw new ArgumentNullException(nameof(changeTriggers));
-            }
-
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
             }
 
             if (optionsMonitor is null)
@@ -56,7 +46,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
             _changeTriggers = changeTriggers;
-            _filePathNormalizer = filePathNormalizer;
             _optionsMonitor = optionsMonitor;
             _workspaceFactory = workspaceFactory;
         }
@@ -70,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     var workspace = _workspaceFactory.Create(
                         workspaceServices: new[]
                         {
-                            new RemoteProjectSnapshotProjectEngineFactory(_filePathNormalizer, _optionsMonitor)
+                            new RemoteProjectSnapshotProjectEngineFactory(_optionsMonitor)
                         });
                     _instance = new DefaultProjectSnapshotManager(
                         _projectSnapshotManagerDispatcher,

@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 throw new ArgumentNullException(nameof(completionContext));
             }
 
-            var elementCompletions = new Dictionary<string, HashSet<TagHelperDescriptor>>(StringComparer.OrdinalIgnoreCase);
+            var elementCompletions = new Dictionary<string, HashSet<TagHelperDescriptor>>(StringComparer.Ordinal);
 
             AddAllowedChildrenCompletions(completionContext, elementCompletions);
 
@@ -175,10 +175,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                 return emptyResult;
             }
 
-            elementCompletions = completionContext.ExistingCompletions.ToDictionary(
-                completion => completion,
-                _ => new HashSet<TagHelperDescriptor>(),
-                StringComparer.Ordinal);
+            var tagAttributes = completionContext.Attributes.ToList();
 
             var catchAllDescriptors = new HashSet<TagHelperDescriptor>();
             var prefix = completionContext.DocumentContext.Prefix ?? string.Empty;
@@ -202,6 +199,12 @@ namespace Microsoft.VisualStudio.Editor.Razor
                     }
                     else if (elementCompletions.ContainsKey(rule.TagName))
                     {
+                        // If we've previously added a completion item for this rules tag, then we want to add this item
+                        addRuleCompletions = true;
+                    }
+                    else if (completionContext.ExistingCompletions.Contains(rule.TagName))
+                    {
+                        // If Html wants to show a completion item for rules tag, then we want to add this item
                         addRuleCompletions = true;
                     }
                     else if (outputHint != null)
@@ -210,7 +213,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                         // Example: We have a MyTableTagHelper that has an output hint of "table" and a MyTrTagHelper that has an output hint of "tr".
                         // If we try typing in a situation like this: <body > | </body>
                         // We'd expect to only get "my-table" as a completion because the "body" tag doesn't allow "tr" tags.
-                        addRuleCompletions = elementCompletions.ContainsKey(outputHint);
+                        addRuleCompletions = completionContext.ExistingCompletions.Contains(outputHint);
                     }
                     else if (!completionContext.InHTMLSchema(rule.TagName) || rule.TagName.Any(c => char.IsUpper(c)))
                     {
@@ -221,7 +224,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
                         addRuleCompletions = true;
                     }
 
-                    if (addRuleCompletions)
+                    // If we think this completion should be added based on tag name, thats great, but lets also make sure the attributes are correct
+                    if (addRuleCompletions && TagHelperMatchingConventions.SatisfiesAttributes(tagAttributes, rule))
                     {
                         UpdateCompletions(prefix + rule.TagName, possibleDescriptor);
                     }

@@ -2149,12 +2149,8 @@ micromatch@^4.0.4:
     picomatch "^2.2.3"
 
 "microsoft.aspnetcore.razor.vscode@link:../../src/Microsoft.AspNetCore.Razor.VSCode":
-  version "0.0.1"
-  dependencies:
-    ps-list "^7.0.0"
-    vscode-html-languageservice "^4.2.1"
-    vscode-languageclient "5.2.1"
-    vscode-languageserver-textdocument "^1.0.3"
+  version "0.0.0"
+  uid ""
 
 mime-db@1.43.0:
   version "1.43.0"
@@ -2173,6 +2169,13 @@ mimic-fn@^2.1.0:
   resolved "https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-2.1.0.tgz#7ed2c2ccccaf84d3ffcb7a69b57711fc2083401b"
   integrity sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==
 
+minimatch@3.0.5:
+  version "3.0.5"
+  resolved "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-npm/npm/registry/minimatch/-/minimatch-3.0.5.tgz#4da8f1290ee0f0f8e83d60ca69f8f134068604a3"
+  integrity sha1-TajxKQ7g8PjoPWDKafjxNAaGBKM=
+  dependencies:
+    brace-expansion "^1.1.7"
+
 minimatch@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.0.4.tgz#5166e286457f03306064be5497e8dbb0c3d32083"
@@ -2184,6 +2187,11 @@ minimist@0.0.8:
   version "0.0.8"
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-0.0.8.tgz#857fcabfc3397d2625b8228262e86aa7a011b05d"
   integrity sha1-hX/Kv8M5fSYluCKCYuhqp6ARsF0=
+
+minimist@1.2.6:
+  version "1.2.6"
+  resolved "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-npm/npm/registry/minimist/-/minimist-1.2.6.tgz#8637a5b759ea0d6e98702cfb3a9283323c93af44"
+  integrity sha1-hjelt1nqDW6YcCz7OpKDMjyTr0Q=
 
 minimist@^1.2.0:
   version "1.2.0"

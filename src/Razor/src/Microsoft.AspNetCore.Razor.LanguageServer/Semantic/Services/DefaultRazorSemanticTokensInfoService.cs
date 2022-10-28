@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -11,16 +10,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
@@ -28,26 +24,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
     {
         private const int TokenSize = 5;
 
-        private readonly ClientNotifierServiceBase _languageServer;
         private readonly RazorDocumentMappingService _documentMappingService;
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
-        private readonly DocumentVersionCache _documentVersionCache;
+        private readonly ClientNotifierServiceBase _languageServer;
         private readonly ILogger _logger;
 
         public DefaultRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
             RazorDocumentMappingService documentMappingService,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            DocumentVersionCache documentVersionCache,
             ILoggerFactory loggerFactory)
         {
             _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
             _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            _documentResolver = documentResolver ?? throw new ArgumentNullException(nameof(documentResolver));
-            _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
 
             if (loggerFactory is null)
             {
@@ -60,40 +47,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         public override async Task<SemanticTokens?> GetSemanticTokensAsync(
             TextDocumentIdentifier textDocumentIdentifier,
             Range range,
+            DocumentContext documentContext,
             CancellationToken cancellationToken)
         {
-            var documentPath = textDocumentIdentifier.Uri.GetAbsoluteOrUNCPath();
-            if (documentPath is null)
-            {
-                return null;
-            }
-
-            var documentInfo = await TryGetDocumentInfoAsync(documentPath, cancellationToken).ConfigureAwait(false);
-            if (documentInfo is null)
-            {
-                return null;
-            }
-
-            var (documentSnapshot, documentVersion) = documentInfo.Value;
-
-            var tokens = await GetSemanticTokensAsync(
-                textDocumentIdentifier, range, documentSnapshot, documentVersion, cancellationToken);
-            return tokens;
-        }
-
-        // Internal for benchmarks
-        internal async Task<SemanticTokens?> GetSemanticTokensAsync(
-            TextDocumentIdentifier textDocumentIdentifier,
-            Range range,
-            DocumentSnapshot documentSnapshot,
-            int documentVersion,
-            CancellationToken cancellationToken)
-        {
-            var codeDocument = await GetRazorCodeDocumentAsync(documentSnapshot);
-            if (codeDocument is null)
-            {
-                throw new ArgumentNullException(nameof(codeDocument));
-            }
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
             var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range);
@@ -102,11 +59,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             try
             {
                 csharpSemanticRanges = await GetCSharpSemanticRangesAsync(
-                    codeDocument, textDocumentIdentifier, range, documentVersion, cancellationToken).ConfigureAwait(false);
+                    codeDocument, textDocumentIdentifier, range, documentContext.Version, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error thrown while retrieving CSharp semantic range");
+                _logger.LogError(ex, "Error thrown while retrieving CSharp semantic range.");
             }
 
             var combinedSemanticRanges = CombineSemanticRanges(razorSemanticRanges, csharpSemanticRanges);
@@ -124,17 +81,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var tokens = new SemanticTokens { Data = data };
 
             return tokens;
-        }
-
-        private static async Task<RazorCodeDocument?> GetRazorCodeDocumentAsync(DocumentSnapshot documentSnapshot)
-        {
-            var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-            if (codeDocument.IsUnsupported())
-            {
-                return null;
-            }
-
-            return codeDocument;
         }
 
         private static IReadOnlyList<SemanticRange>? CombineSemanticRanges(params IReadOnlyList<SemanticRange>?[] rangesArray)
@@ -187,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             // `GetMatchingCSharpResponseAsync` that will cause us to retry in a bit.
             if (csharpResponse is null)
             {
-                _logger.LogWarning($"Issue with retrieving C# response for Razor range: {razorRange}");
+                _logger.LogWarning("Issue with retrieving C# response for Razor range: {razorRange}", razorRange);
                 return null;
             }
 
@@ -254,11 +200,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             if (minGeneratedSpan is not null && maxGeneratedSpan is not null)
             {
                 var csharpSourceText = codeDocument.GetCSharpSourceText();
-                var startRange = minGeneratedSpan.Value.AsTextSpan().AsRange(csharpSourceText);
-                var endRange = maxGeneratedSpan.Value.AsTextSpan().AsRange(csharpSourceText);
+                var startRange = minGeneratedSpan.Value.AsRange(csharpSourceText);
+                var endRange = maxGeneratedSpan.Value.AsRange(csharpSourceText);
 
                 csharpRange = new Range { Start = startRange.Start, End = endRange.End };
-                Debug.Assert(csharpRange.Start <= csharpRange.End, "Range.Start should not be larger than Range.End");
+                Debug.Assert(csharpRange.Start.CompareTo(csharpRange.End) <= 0, "Range.Start should not be larger than Range.End");
 
                 return true;
             }
@@ -274,8 +220,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             CancellationToken cancellationToken)
         {
             var parameter = new ProvideSemanticTokensRangeParams(textDocumentIdentifier, documentVersion, csharpRange);
-            var request = await _languageServer.SendRequestAsync(LanguageServerConstants.RazorProvideSemanticTokensRangeEndpoint, parameter);
-            var csharpResponse = await request.Returning<ProvideSemanticTokensResponse>(cancellationToken);
+
+            var csharpResponse = await _languageServer.SendRequestAsync<ProvideSemanticTokensRangeParams, ProvideSemanticTokensResponse>(
+                RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint,
+                parameter,
+                cancellationToken);
 
             if (csharpResponse is null)
             {
@@ -303,7 +252,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         {
             if (previousSemanticRange is null)
             {
-                previousSemanticRange = new SemanticRange(0, new Range(new Position(0, 0), new Position(0, 0)), modifier: 0);
+                var previousRange = new Range
+                {
+                    Start = new Position(0, 0),
+                    End = new Position(0, 0)
+                };
+                previousSemanticRange = new SemanticRange(0, previousRange, modifier: 0);
             }
 
             var startLine = previousSemanticRange.Range.End.Line + lineDelta;
@@ -315,90 +269,78 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             var endCharacter = startCharacter + length;
             var end = new Position(endLine, endCharacter);
 
-            var range = new Range(start, end);
+            var range = new Range()
+            {
+                Start = start,
+                End = end
+            };
             var semanticRange = new SemanticRange(tokenType, range, tokenModifiers);
 
             return semanticRange;
         }
 
-        private static ImmutableArray<int> ConvertSemanticRangesToSemanticTokensData(
+        private static int[] ConvertSemanticRangesToSemanticTokensData(
             IReadOnlyList<SemanticRange> semanticRanges,
             RazorCodeDocument razorCodeDocument)
         {
             SemanticRange? previousResult = null;
 
-            var data = new List<int>();
+            var data = new int[semanticRanges.Count * TokenSize];
+            var semanticRangeCount = 0;
             foreach (var result in semanticRanges)
             {
-                var newData = GetData(result, previousResult, razorCodeDocument);
-                data.AddRange(newData);
+                AppendData(result, previousResult, razorCodeDocument, data, semanticRangeCount);
+                semanticRangeCount += TokenSize;
 
                 previousResult = result;
             }
 
-            return data.ToImmutableArray();
-        }
+            return data;
 
-        /**
-         * In short, each token takes 5 integers to represent, so a specific token `i` in the file consists of the following array indices:
-         *  - at index `5*i`   - `deltaLine`: token line number, relative to the previous token
-         *  - at index `5*i+1` - `deltaStart`: token start character, relative to the previous token (relative to 0 or the previous token's start if they are on the same line)
-         *  - at index `5*i+2` - `length`: the length of the token. A token cannot be multiline.
-         *  - at index `5*i+3` - `tokenType`: will be looked up in `SemanticTokensLegend.tokenTypes`
-         *  - at index `5*i+4` - `tokenModifiers`: each set bit will be looked up in `SemanticTokensLegend.tokenModifiers`
-        **/
-        private static IEnumerable<int> GetData(
-            SemanticRange currentRange,
-            SemanticRange? previousRange,
-            RazorCodeDocument razorCodeDocument)
-        {
-            // var previousRange = previousRange?.Range;
-            // var currentRange = currentRange.Range;
-
-            // deltaLine
-            var previousLineIndex = previousRange?.Range is null ? 0 : previousRange.Range.Start.Line;
-            yield return currentRange.Range.Start.Line - previousLineIndex;
-
-            // deltaStart
-            if (previousRange != null && previousRange?.Range.Start.Line == currentRange.Range.Start.Line)
+            // We purposely capture and manipulate the "data" array here to avoid allocation
+            static void AppendData(
+                SemanticRange currentRange,
+                SemanticRange? previousRange,
+                RazorCodeDocument razorCodeDocument,
+                int[] targetArray,
+                int currentCount)
             {
-                yield return currentRange.Range.Start.Character - previousRange.Range.Start.Character;
-            }
-            else
-            {
-                yield return currentRange.Range.Start.Character;
-            }
+                /*
+                 * In short, each token takes 5 integers to represent, so a specific token `i` in the file consists of the following array indices:
+                 *  - at index `5*i`   - `deltaLine`: token line number, relative to the previous token
+                 *  - at index `5*i+1` - `deltaStart`: token start character, relative to the previous token (relative to 0 or the previous token's start if they are on the same line)
+                 *  - at index `5*i+2` - `length`: the length of the token. A token cannot be multiline.
+                 *  - at index `5*i+3` - `tokenType`: will be looked up in `SemanticTokensLegend.tokenTypes`
+                 *  - at index `5*i+4` - `tokenModifiers`: each set bit will be looked up in `SemanticTokensLegend.tokenModifiers`
+                */
 
-            // length
-            var textSpan = currentRange.Range.AsTextSpan(razorCodeDocument.GetSourceText());
-            var length = textSpan.Length;
-            Debug.Assert(length > 0);
-            yield return length;
+                // deltaLine
+                var previousLineIndex = previousRange?.Range is null ? 0 : previousRange.Range.Start.Line;
+                targetArray[currentCount] = currentRange.Range.Start.Line - previousLineIndex;
 
-            // tokenType
-            yield return currentRange.Kind;
-
-            // tokenModifiers
-            // We don't currently have any need for tokenModifiers
-            yield return currentRange.Modifier;
-        }
-
-        private Task<(DocumentSnapshot Snapshot, int Version)?> TryGetDocumentInfoAsync(string absolutePath, CancellationToken cancellationToken)
-        {
-            return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync<(DocumentSnapshot Snapshot, int Version)?>(() =>
-            {
-                if (_documentResolver.TryResolveDocument(absolutePath, out var documentSnapshot))
+                // deltaStart
+                if (previousRange != null && previousRange?.Range.Start.Line == currentRange.Range.Start.Line)
                 {
-                    if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
-                    {
-                        return (documentSnapshot, version.Value);
-                    }
+                    targetArray[currentCount + 1] = currentRange.Range.Start.Character - previousRange.Range.Start.Character;
+                }
+                else
+                {
+                    targetArray[currentCount + 1] = currentRange.Range.Start.Character;
                 }
 
-                return null;
-            }, cancellationToken);
-        }
+                // length
+                var textSpan = currentRange.Range.AsTextSpan(razorCodeDocument.GetSourceText());
+                var length = textSpan.Length;
+                Debug.Assert(length > 0);
+                targetArray[currentCount + 2] = length;
 
-        private record SemanticTokensCacheResponse(VersionStamp SemanticVersion, Range Range, SemanticTokens SemanticTokens);
+                // tokenType
+                targetArray[currentCount + 3] = currentRange.Kind;
+
+                // tokenModifiers
+                // We don't currently have any need for tokenModifiers
+                targetArray[currentCount + 4] = currentRange.Modifier;
+            }
+        }
     }
 }

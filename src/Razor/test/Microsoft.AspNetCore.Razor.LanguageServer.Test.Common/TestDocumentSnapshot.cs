@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -15,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 {
     internal class TestDocumentSnapshot : DefaultDocumentSnapshot
     {
-        private RazorCodeDocument _codeDocument;
+        private RazorCodeDocument? _codeDocument;
 
         public static TestDocumentSnapshot Create(string filePath) => Create(filePath, string.Empty);
 
@@ -47,12 +45,17 @@ namespace Microsoft.AspNetCore.Razor.Test.Common
 
         public override Task<RazorCodeDocument> GetGeneratedOutputAsync()
         {
+            if (_codeDocument is null)
+            {
+                throw new ArgumentNullException(nameof(_codeDocument));
+            }
+
             return Task.FromResult(_codeDocument);
         }
 
         public override IReadOnlyList<DocumentSnapshot> GetImports()
         {
-            throw new NotImplementedException();
+            return Array.Empty<DocumentSnapshot>();
         }
 
         public override bool TryGetGeneratedOutput(out RazorCodeDocument result)

@@ -6,31 +6,26 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.JsonRpc;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
-using OS = OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using VS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 {
     public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
     {
         private static readonly AsyncLocal<string?> s_fileName = new();
-
         private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(TagHelperServiceTestBase));
 
         protected static readonly ServerCapabilities SemanticTokensServerCapabilities = new()
@@ -41,7 +36,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 Range = true
             }
         };
-
         // Used by the test framework to set the 'base' name for test files.
         public static string? FileName
         {
@@ -57,6 +51,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
 
         protected int BaselineTestCount { get; set; }
         protected int BaselineEditTestCount { get; set; }
+
+        protected SemanticTokenTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
 
         protected void AssertSemanticTokensMatchesBaseline(IEnumerable<int>? actualSemanticTokens)
         {
@@ -112,40 +111,35 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
         }
 
         private protected async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(
-            string documentText, OS.Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
+            string documentText, Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
         {
             var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
             var csharpRange = GetMappedCSharpRange(codeDocument, razorRange);
             var csharpTokens = Array.Empty<int>();
-            var isFinalized = true;
 
             if (csharpRange is not null)
             {
+                var csharpDocumentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
                 var csharpSourceText = codeDocument.GetCSharpSourceText();
-                var files = new List<(Uri, SourceText)>();
-                var documentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
-                files.Add((documentUri, csharpSourceText));
 
-                var exportProvider = TestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
-                using var workspace = CreateTestWorkspace(files, exportProvider);
-                await using var csharpLspServer = await CreateCSharpLspServerAsync(workspace, exportProvider, SemanticTokensServerCapabilities);
-
-                var result = await csharpLspServer.ExecuteRequestAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
+                await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
+                    csharpSourceText, csharpDocumentUri, SemanticTokensServerCapabilities, SpanMappingService, DisposalToken);
+                var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
                     Methods.TextDocumentSemanticTokensRangeName,
-                    CreateVSSemanticTokensRangeParams(csharpRange.AsVSRange(), documentUri), CancellationToken.None);
+                    CreateVSSemanticTokensRangeParams(csharpRange, csharpDocumentUri),
+                    DisposalToken);
 
                 csharpTokens = result?.Data;
-                isFinalized = result?.IsFinalized ?? false;
             }
 
-            var csharpResponse = new ProvideSemanticTokensResponse(
-                tokens: csharpTokens, isFinalized, hostDocumentSyncVersion);
+            var csharpResponse = new ProvideSemanticTokensResponse(tokens: csharpTokens, hostDocumentSyncVersion);
             return csharpResponse;
         }
 
-        protected static OS.Range? GetMappedCSharpRange(RazorCodeDocument codeDocument, OS.Range razorRange)
+        protected Range? GetMappedCSharpRange(RazorCodeDocument codeDocument, Range razorRange)
         {
-            var documentMappingService = new DefaultRazorDocumentMappingService(TestLoggerFactory.Instance);
+            var documentMappingService = new DefaultRazorDocumentMappingService(
+                TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
             if (!documentMappingService.TryMapToProjectedDocumentRange(codeDocument, razorRange, out var csharpRange) &&
                 !DefaultRazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
             {
@@ -156,7 +150,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
             return csharpRange;
         }
 
-        protected static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(VS.Range range, Uri uri)
+        internal static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(Range range, Uri uri)
             => new()
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
@@ -177,8 +171,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                     builder.Append(actualArray[i]).Append(' ');
                     builder.Append(actualArray[i + 1]).Append(' ');
                     builder.Append(actualArray[i + 2]).Append(' ');
-                    builder.Append(actualArray[i + 3]).Append(' ');
-                    builder.Append(actualArray[i + 4]).Append(" //").Append(typeString);
+                    builder.Append(typeString).Append(' ');
+                    builder.Append(actualArray[i + 4]);
                     builder.AppendLine();
                 }
             }
@@ -194,28 +188,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic
                 return null;
             }
 
-            var strArray = semanticIntStr.Split(new string[] { " ", Environment.NewLine }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            var tokenTypesList = RazorSemanticTokensLegend.TokenTypes.ToList();
+            var strArr = semanticIntStr.Split(new string[] { " ", Environment.NewLine }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
             var results = new List<int>();
-            foreach (var str in strArray)
+            for (var i = 0; i < strArr.Length; i++)
             {
-                if (str.StartsWith("//", StringComparison.Ordinal))
+                if (int.TryParse(strArr[i], System.Globalization.NumberStyles.Integer, Thread.CurrentThread.CurrentCulture, out var intResult))
                 {
+                    results.Add(intResult);
                     continue;
                 }
 
-                if (int.TryParse(str, System.Globalization.NumberStyles.Integer, Thread.CurrentThread.CurrentCulture, out var intResult))
+                // Needed to handle token types with spaces in their names, e.g. C#'s 'local name' type
+                var tokenTypeStr = strArr[i];
+                while (i + 1 < strArr.Length && !int.TryParse(strArr[i + 1], System.Globalization.NumberStyles.Integer, Thread.CurrentThread.CurrentCulture, out _))
                 {
-                    results.Add(intResult);
+                    tokenTypeStr += $" {strArr[i + 1]}";
+                    i++;
+                }
+
+                var tokenIndex = tokenTypesList.IndexOf(tokenTypeStr);
+                if (tokenIndex != -1)
+                {
+                    results.Add(tokenIndex);
+                    continue;
                 }
             }
 
             return results.ToArray();
-        }
-
-        private class VSSemanticTokensResponse : SemanticTokens
-        {
-            [DataMember(Name = "isFinalized")]
-            public bool IsFinalized { get; set; }
         }
     }
 }

@@ -1,13 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -31,9 +33,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable,
         };
 
-        public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(
+        // We don't support any code actions in implicit expressions at the moment, but rather than simply returning early
+        // I thought it best to create an allow list, empty, so that we can easily add them later if we identify any big
+        // hitters that we want to enable.
+        // The one example commented out here should not be taken as an opinion as to what that allow list should look like.
+        internal static readonly HashSet<string> SupportedImplicitExpressionCodeActionNames = new HashSet<string>()
+        {
+            // RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable,
+        };
+
+        public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
             RazorCodeActionContext context,
-            IEnumerable<RazorCodeAction> codeActions,
+            IEnumerable<RazorVSInternalCodeAction> codeActions,
             CancellationToken cancellationToken)
         {
             if (context is null)
@@ -53,17 +64,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return EmptyResult;
             }
 
-            var results = new List<RazorCodeAction>();
+            var tree = context.CodeDocument.GetSyntaxTree();
+            var node = tree.GetOwner(context.Location.AbsoluteIndex);
+            var isInImplicitExpression = node?.AncestorsAndSelf().Any(n => n is CSharpImplicitExpressionSyntax) ?? false;
+
+            var allowList = isInImplicitExpression
+                ? SupportedImplicitExpressionCodeActionNames
+                : SupportedDefaultCodeActionNames;
+
+            var results = new List<RazorVSInternalCodeAction>();
 
             foreach (var codeAction in codeActions)
             {
-                if (SupportedDefaultCodeActionNames.Contains(codeAction.Name))
+                if (codeAction.Name is not null && allowList.Contains(codeAction.Name))
                 {
                     results.Add(codeAction.WrapResolvableCSharpCodeAction(context));
                 }
             }
 
-            return Task.FromResult(results as IReadOnlyList<RazorCodeAction>);
+            return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(results);
         }
     }
 }

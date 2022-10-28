@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,9 +21,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
     {
-        private static readonly Task<IReadOnlyList<RazorCodeAction>> s_emptyResult = Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
+        private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult = Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(null);
 
-        public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+        public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             if (context is null)
             {
@@ -91,13 +90,19 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return s_emptyResult;
             }
 
+            if (!TryGetNamespace(context.CodeDocument, out var @namespace))
+            {
+                return s_emptyResult;
+            }
+
             var actionParams = new ExtractToCodeBehindCodeActionParams()
             {
                 Uri = context.Request.TextDocument.Uri,
                 ExtractStart = csharpCodeBlockNode.Span.Start,
                 ExtractEnd = csharpCodeBlockNode.Span.End,
                 RemoveStart = directiveNode.Span.Start,
-                RemoveEnd = directiveNode.Span.End
+                RemoveEnd = directiveNode.Span.End,
+                Namespace = @namespace
             };
 
             var resolutionParams = new RazorCodeActionResolutionParams()
@@ -108,10 +113,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             var codeAction = RazorCodeActionFactory.CreateExtractToCodeBehind(resolutionParams);
-            var codeActions = new List<RazorCodeAction> { codeAction };
+            var codeActions = new List<RazorVSInternalCodeAction> { codeAction };
 
-            return Task.FromResult(codeActions as IReadOnlyList<RazorCodeAction>);
+            return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(codeActions);
         }
+
+        private bool TryGetNamespace(RazorCodeDocument codeDocument, [NotNullWhen(returnValue: true)] out string? @namespace)
+            // If the compiler can't provide a computed namespace it will fallback to "__GeneratedComponent" or
+            // similar for the NamespaceNode. This would end up with extracting to a wrong namespace
+            // and causing compiler errors. Avoid offering this refactoring if we can't accurately get a
+            // good namespace to extract to
+            => codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out @namespace);
 
         private static bool HasUnsupportedChildren(Language.Syntax.SyntaxNode node)
         {

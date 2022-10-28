@@ -9,10 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -22,10 +21,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
         public RazorFormattingPass(
             RazorDocumentMappingService documentMappingService,
-            FilePathNormalizer filePathNormalizer,
             ClientNotifierServiceBase server,
             ILoggerFactory loggerFactory)
-            : base(documentMappingService, filePathNormalizer, server)
+            : base(documentMappingService, server)
         {
             if (loggerFactory is null)
             {
@@ -105,10 +103,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             // @functions
             // {
             // }
+            //
+            // or
+            //
+            // @code
+            // {
+            // }
             if (node is CSharpCodeBlockSyntax directiveCode &&
                 directiveCode.Children.Count == 1 && directiveCode.Children.First() is RazorDirectiveSyntax directive &&
                 directive.Body is RazorDirectiveBodySyntax directiveBody &&
-                directiveBody.Keyword.GetContent().Equals("functions"))
+                (directiveBody.Keyword.GetContent().Equals("functions") || directiveBody.Keyword.GetContent().Equals("code")))
             {
                 var cSharpCode = directiveBody.CSharpCode;
                 if (!cSharpCode.Children.TryGetOpenBraceNode(out var openBrace) || !cSharpCode.Children.TryGetCloseBraceNode(out var closeBrace))
@@ -123,7 +127,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var codeNode = code!;
                 var closeBraceNode = closeBrace;
 
-                return FormatBlock(context, source, openBraceNode, codeNode, closeBraceNode, edits);
+                return FormatBlock(context, source, directive, openBraceNode, codeNode, closeBraceNode, edits);
             }
 
             return false;
@@ -144,7 +148,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var codeNode = csharpStatementBody.CSharpCode;
                 var closeBraceNode = csharpStatementBody.CloseBrace;
 
-                return FormatBlock(context, source, openBraceNode, codeNode, closeBraceNode, edits);
+                return FormatBlock(context, source, directiveNode: null, openBraceNode, codeNode, closeBraceNode, edits);
             }
 
             return false;
@@ -166,7 +170,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var openBraceNode = outerCodeBlock.Children.PreviousSiblingOrSelf(innerCodeBlock);
                 var closeBraceNode = outerCodeBlock.Children.NextSiblingOrSelf(innerCodeBlock);
 
-                return FormatBlock(context, source, openBraceNode, codeNode, closeBraceNode, edits);
+                return FormatBlock(context, source, directiveNode: null, openBraceNode, codeNode, closeBraceNode, edits);
             }
 
             return false;
@@ -184,7 +188,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var openBraceNode = cSharpCodeBlock.Children.PreviousSiblingOrSelf(markupBlockNode);
                 var closeBraceNode = cSharpCodeBlock.Children.NextSiblingOrSelf(markupBlockNode);
 
-                return FormatBlock(context, source, openBraceNode, markupBlockNode, closeBraceNode, edits);
+                return FormatBlock(context, source, directiveNode: null, openBraceNode, markupBlockNode, closeBraceNode, edits);
             }
 
             return false;
@@ -221,7 +225,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     var start = brace.GetRange(source).Start;
                     var edit = new TextEdit
                     {
-                        Range = new Range(start, start),
+                        Range = new Range { Start = start, End = start },
                         NewText = " "
                     };
                     edits.Add(edit);
@@ -333,7 +337,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             edits.Add(edit);
         }
 
-        private static bool FormatBlock(FormattingContext context, RazorSourceDocument source, SyntaxNode openBraceNode, SyntaxNode codeNode, SyntaxNode closeBraceNode, IList<TextEdit> edits)
+        private static bool FormatBlock(FormattingContext context, RazorSourceDocument source, SyntaxNode? directiveNode, SyntaxNode openBraceNode, SyntaxNode codeNode, SyntaxNode closeBraceNode, IList<TextEdit> edits)
         {
             var didFormat = false;
 
@@ -354,7 +358,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 var edit = new TextEdit
                 {
                     NewText = newText,
-                    Range = new Range(openBraceRange.End, openBraceRange.End),
+                    Range = new Range { Start = openBraceRange.End, End = openBraceRange.End },
                 };
                 edits.Add(edit);
                 didFormat = true;
@@ -363,17 +367,32 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var closeBraceRange = closeBraceNode.GetRangeWithoutWhitespace(source);
             if (codeRange is not null &&
                 closeBraceRange is not null &&
-                codeRange.End.Line == closeBraceRange.Start.Line &&
                 !RangeHasBeenModified(edits, codeRange))
             {
-                // Add a Newline between the content and the "}" if one doesn't already exist.
-                var edit = new TextEdit
+                if (directiveNode is not null &&
+                    directiveNode.GetRange(source).Start.Character < closeBraceRange.Start.Character)
                 {
-                    NewText = context.NewLineString,
-                    Range = new Range(codeRange.End, codeRange.End),
-                };
-                edits.Add(edit);
-                didFormat = true;
+                    // If we have a directive, then we line the close brace up with it, and ensure
+                    // there is a close brace
+                    var edit = new TextEdit
+                    {
+                        NewText = context.NewLineString + context.GetIndentationString(directiveNode.GetRange(source).Start.Character),
+                        Range = new Range { Start = codeRange.End, End = closeBraceRange.Start },
+                    };
+                    edits.Add(edit);
+                    didFormat = true;
+                }
+                else if (codeRange.End.Line == closeBraceRange.Start.Line)
+                {
+                    // Add a Newline between the content and the "}" if one doesn't already exist.
+                    var edit = new TextEdit
+                    {
+                        NewText = context.NewLineString,
+                        Range = new Range { Start = codeRange.End, End = codeRange.End },
+                    };
+                    edits.Add(edit);
+                    didFormat = true;
+                }
             }
 
             return didFormat;

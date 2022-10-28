@@ -6,42 +6,57 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
-    public class DefaultLSPDocumentSynchronizerTest
+    public class DefaultLSPDocumentSynchronizerTest : TestBase
     {
-        public DefaultLSPDocumentSynchronizerTest()
+        private readonly ITextSnapshot _virtualDocumentSnapshot;
+        private readonly ITextBuffer _virtualDocumentTextBuffer;
+
+        public DefaultLSPDocumentSynchronizerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             var snapshot = new StringTextSnapshot("Hello World");
             var buffer = new TestTextBuffer(snapshot);
-            VirtualDocumentTextBuffer = buffer;
+            _virtualDocumentTextBuffer = buffer;
             snapshot.TextBuffer = buffer;
-            VirtualDocumentSnapshot = snapshot;
+            _virtualDocumentSnapshot = snapshot;
         }
 
-        private ITextSnapshot VirtualDocumentSnapshot { get; }
+        private TrackingLSPDocumentManager GetDocumentManager(bool useDocumentManager = false, LSPDocumentSnapshot documentSnapshot = null)
+        {
+            var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+            if (useDocumentManager)
+            {
+                documentManager.Setup(m => m.TryGetDocument(It.IsAny<Uri>(), out documentSnapshot))
+                    .Returns(true);
+            }
 
-        private ITextBuffer VirtualDocumentTextBuffer { get; }
+            return documentManager.Object;
+        }
 
         [Fact]
         public async Task TrySynchronizeVirtualDocumentAsync_RemovedDocument_ReturnsFalse()
         {
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 123, virtualDocumentSyncVersion: 123);
-            var fileUriProvider = CreateUriProviderFor(VirtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider);
+            var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager());
             NotifyLSPDocumentAdded(lspDocument, synchronizer);
-            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, virtualDocument.HostDocumentSyncVersion.Value);
+            NotifyBufferVersionUpdated(_virtualDocumentTextBuffer, virtualDocument.HostDocumentSyncVersion.Value);
             NotifyLSPDocumentRemoved(lspDocument, synchronizer);
 
             // Act
-            var result = await synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, CancellationToken.None).ConfigureAwait(false);
+#pragma warning disable CS0612 // Type or member is obsolete
+            var result = await synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, DisposalToken);
 
             // Assert
             Assert.False(result);
@@ -52,13 +67,13 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 123, virtualDocumentSyncVersion: 123);
-            var fileUriProvider = CreateUriProviderFor(VirtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider);
+            var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager());
             NotifyLSPDocumentAdded(lspDocument, synchronizer);
-            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, virtualDocument.HostDocumentSyncVersion.Value);
+            NotifyBufferVersionUpdated(_virtualDocumentTextBuffer, virtualDocument.HostDocumentSyncVersion.Value);
 
             // Act
-            var result = await synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, CancellationToken.None).ConfigureAwait(false);
+            var result = await synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, DisposalToken);
 
             // Assert
             Assert.True(result);
@@ -69,8 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
-            var fileUriProvider = CreateUriProviderFor(VirtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
             };
@@ -78,11 +93,12 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             // Act
 
-            // Start synchronization, this will hang until we notify the buffer versions been updated because the above virtual document expects host doc version 123 but the host doc is 124
-            var synchronizeTask = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, CancellationToken.None);
+            // Start synchronization, this will hang until we notify the buffer versions been updated because
+            // the above virtual document expects host doc version 123 but the host doc is 124
+            var synchronizeTask = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, DisposalToken);
 
-            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, lspDocument.Version);
-            var result = await synchronizeTask.ConfigureAwait(false);
+            NotifyBufferVersionUpdated(_virtualDocumentTextBuffer, lspDocument.Version);
+            var result = await synchronizeTask;
 
             // Assert
             Assert.True(result);
@@ -93,8 +109,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
-            var fileUriProvider = CreateUriProviderFor(VirtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
             };
@@ -102,13 +118,14 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             // Act
 
-            // Start synchronization, this will hang until we notify the buffer versions been updated because the above virtual document expects host doc version 123 but the host doc is 124
-            var synchronizeTask1 = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, CancellationToken.None);
-            var synchronizeTask2 = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, CancellationToken.None);
+            // Start synchronization, this will hang until we notify the buffer versions been updated because
+            // the above virtual document expects host doc version 123 but the host doc is 124
+            var synchronizeTask1 = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, DisposalToken);
+            var synchronizeTask2 = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, DisposalToken);
 
-            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, lspDocument.Version);
-            var result1 = await synchronizeTask1.ConfigureAwait(false);
-            var result2 = await synchronizeTask2.ConfigureAwait(false);
+            NotifyBufferVersionUpdated(_virtualDocumentTextBuffer, lspDocument.Version);
+            var result1 = await synchronizeTask1;
+            var result2 = await synchronizeTask2;
 
             // Assert
             Assert.True(result1);
@@ -120,8 +137,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             // Arrange
             var (originalLSPDocument, originalVirtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
-            var fileUriProvider = CreateUriProviderFor(VirtualDocumentTextBuffer, originalVirtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, originalVirtualDocument.Uri);
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
             };
@@ -129,18 +146,20 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             // Act
 
-            // Start synchronization, this will hang until we notify the buffer versions been updated because the above virtual document expects host doc version 123 but the host doc is 124
-            var synchronizeTask1 = synchronizer.TrySynchronizeVirtualDocumentAsync(originalLSPDocument.Version, originalVirtualDocument, CancellationToken.None);
+            // Start synchronization, this will hang until we notify the buffer versions been updated because
+            // the above virtual document expects host doc version 123 but the host doc is 124
+            var synchronizeTask1 = synchronizer.TrySynchronizeVirtualDocumentAsync(originalLSPDocument.Version, originalVirtualDocument, DisposalToken);
 
-            // Start another synchronization that will also hang because 124 != 125. However, this synchronization request is for the same addressable virtual document (same URI)
-            // therefore requesting a second synchronization with a different host doc version expectation will cancel the original synchronization request resulting it returning
-            // false.
+            // Start another synchronization that will also hang because 124 != 125. However, this synchronization
+            // request is for the same addressable virtual document (same URI) therefore requesting a second
+            // synchronization with a different host doc version expectation will cancel the original synchronization
+            // request resulting it returning false.
             var (newLSPDocument, newVirtualDocument) = CreateDocuments(lspDocumentVersion: 125, virtualDocumentSyncVersion: 124);
-            var synchronizeTask2 = synchronizer.TrySynchronizeVirtualDocumentAsync(newLSPDocument.Version, newVirtualDocument, CancellationToken.None);
+            var synchronizeTask2 = synchronizer.TrySynchronizeVirtualDocumentAsync(newLSPDocument.Version, newVirtualDocument, DisposalToken);
 
-            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, newLSPDocument.Version);
-            var result1 = await synchronizeTask1.ConfigureAwait(false);
-            var result2 = await synchronizeTask2.ConfigureAwait(false);
+            NotifyBufferVersionUpdated(_virtualDocumentTextBuffer, newLSPDocument.Version);
+            var result1 = await synchronizeTask1;
+            var result2 = await synchronizeTask2;
 
             // Assert
             Assert.False(result1);
@@ -152,8 +171,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
-            var fileUriProvider = CreateUriProviderFor(VirtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
             };
@@ -162,15 +181,16 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             // Act
 
-            // Start synchronization, this will hang until we notify the buffer versions been updated because the above virtual document expects host doc version 123 but the host doc is 124
+            // Start synchronization, this will hang until we notify the buffer versions been updated because
+            // the above virtual document expects host doc version 123 but the host doc is 124
             var synchronizeTask1 = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, cts.Token);
-            var synchronizeTask2 = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, CancellationToken.None);
+            var synchronizeTask2 = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, DisposalToken);
 
             cts.Cancel();
 
-            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, lspDocument.Version);
-            var result1 = await synchronizeTask1.ConfigureAwait(false);
-            var result2 = await synchronizeTask2.ConfigureAwait(false);
+            NotifyBufferVersionUpdated(_virtualDocumentTextBuffer, lspDocument.Version);
+            var result1 = await synchronizeTask1;
+            var result2 = await synchronizeTask2;
 
             // Assert
             Assert.False(result1);
@@ -182,8 +202,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
-            var fileUriProvider = CreateUriProviderFor(VirtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
             };
@@ -191,16 +211,17 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             // Act
 
-            // Start synchronization, this will hang until we notify the buffer versions been updated because the above virtual document expects host doc version 123 but the host doc is 124
-            var synchronizeTask1 = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, CancellationToken.None);
+            // Start synchronization, this will hang until we notify the buffer versions been updated because
+            // the above virtual document expects host doc version 123 but the host doc is 124
+            var synchronizeTask1 = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, DisposalToken);
             var (newLSPDocument, newVirtualDocument) = CreateDocuments(lspDocumentVersion: 125, virtualDocumentSyncVersion: 124);
-            var synchronizeTask2 = synchronizer.TrySynchronizeVirtualDocumentAsync(newLSPDocument.Version, newVirtualDocument, CancellationToken.None);
+            var synchronizeTask2 = synchronizer.TrySynchronizeVirtualDocumentAsync(newLSPDocument.Version, newVirtualDocument, DisposalToken);
 
-            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, lspDocument.Version);
-            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, newLSPDocument.Version);
+            NotifyBufferVersionUpdated(_virtualDocumentTextBuffer, lspDocument.Version);
+            NotifyBufferVersionUpdated(_virtualDocumentTextBuffer, newLSPDocument.Version);
 
-            var result1 = await synchronizeTask1.ConfigureAwait(false);
-            var result2 = await synchronizeTask2.ConfigureAwait(false);
+            var result1 = await synchronizeTask1;
+            var result2 = await synchronizeTask2;
 
             // Assert
             Assert.False(result1);
@@ -212,8 +233,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
-            var fileUriProvider = CreateUriProviderFor(VirtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
             };
@@ -221,16 +242,17 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 
             // Act
 
-            // Start synchronization, this will hang until we notify the buffer versions been updated because the above virtual document expects host doc version 123 but the host doc is 124
-            var synchronizeTask1 = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, rejectOnNewerParallelRequest: false, CancellationToken.None);
+            // Start synchronization, this will hang until we notify the buffer versions been updated because
+            // the above virtual document expects host doc version 123 but the host doc is 124
+            var synchronizeTask1 = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, rejectOnNewerParallelRequest: false, DisposalToken);
             var (newLSPDocument, newVirtualDocument) = CreateDocuments(lspDocumentVersion: 125, virtualDocumentSyncVersion: 124);
-            var synchronizeTask2 = synchronizer.TrySynchronizeVirtualDocumentAsync(newLSPDocument.Version, newVirtualDocument, CancellationToken.None);
+            var synchronizeTask2 = synchronizer.TrySynchronizeVirtualDocumentAsync(newLSPDocument.Version, newVirtualDocument, DisposalToken);
 
-            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, lspDocument.Version);
-            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, newLSPDocument.Version);
+            NotifyBufferVersionUpdated(_virtualDocumentTextBuffer, lspDocument.Version);
+            NotifyBufferVersionUpdated(_virtualDocumentTextBuffer, newLSPDocument.Version);
 
-            var result1 = await synchronizeTask1.ConfigureAwait(false);
-            var result2 = await synchronizeTask2.ConfigureAwait(false);
+            var result1 = await synchronizeTask1;
+            var result2 = await synchronizeTask2;
 
             // Assert
             Assert.True(result1);
@@ -242,18 +264,18 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 124, virtualDocumentSyncVersion: 123);
-            var fileUriProvider = CreateUriProviderFor(VirtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(500)
             };
             NotifyLSPDocumentAdded(lspDocument, synchronizer);
 
-            var synchronizedTask = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, CancellationToken.None).ConfigureAwait(false);
+            var synchronizedTask = synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, DisposalToken);
 
             // Act
             NotifyLSPDocumentRemoved(lspDocument, synchronizer);
-            NotifyBufferVersionUpdated(VirtualDocumentTextBuffer, lspDocument.Version);
+            NotifyBufferVersionUpdated(_virtualDocumentTextBuffer, lspDocument.Version);
 
             var result = await synchronizedTask;
 
@@ -266,8 +288,8 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         {
             // Arrange
             var (lspDocument, virtualDocument) = CreateDocuments(lspDocumentVersion: 123, virtualDocumentSyncVersion: 123);
-            var fileUriProvider = CreateUriProviderFor(VirtualDocumentTextBuffer, virtualDocument.Uri);
-            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider)
+            var fileUriProvider = CreateUriProviderFor(_virtualDocumentTextBuffer, virtualDocument.Uri);
+            var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, GetDocumentManager())
             {
                 _synchronizationTimeout = TimeSpan.FromMilliseconds(10)
             };
@@ -276,12 +298,12 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // We're not going to notify that the buffer version was updated so the synchronization will wait until a timeout occurs.
 
             // Act
-            var result = await synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, CancellationToken.None).ConfigureAwait(false);
+            var result = await synchronizer.TrySynchronizeVirtualDocumentAsync(lspDocument.Version, virtualDocument, DisposalToken);
 
             // Assert
             Assert.False(result);
         }
-
+#pragma warning restore CS0612 // Type or member is obsolete
         private static void NotifyLSPDocumentAdded(LSPDocumentSnapshot lspDocument, DefaultLSPDocumentSynchronizer synchronizer)
         {
             synchronizer.Changed(old: null, @new: lspDocument, virtualOld: null, virtualNew: null, LSPDocumentChangeKind.Added);
@@ -295,7 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
         private (TestLSPDocumentSnapshot, TestVirtualDocumentSnapshot) CreateDocuments(int lspDocumentVersion, long virtualDocumentSyncVersion)
         {
             var virtualDocumentUri = new Uri("C:/path/to/file.razor__virtual.cs");
-            var virtualDocument = new TestVirtualDocumentSnapshot(virtualDocumentUri, virtualDocumentSyncVersion, VirtualDocumentSnapshot, state: null);
+            var virtualDocument = new TestVirtualDocumentSnapshot(virtualDocumentUri, virtualDocumentSyncVersion, _virtualDocumentSnapshot, state: null);
             var documentUri = new Uri("C:/path/to/file.razor");
             var document = new TestLSPDocumentSnapshot(documentUri, lspDocumentVersion, virtualDocument);
 

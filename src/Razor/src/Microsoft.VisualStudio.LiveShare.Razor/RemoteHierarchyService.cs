@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,14 +33,14 @@ namespace Microsoft.VisualStudio.LiveShare.Razor
 
         public async Task<bool> HasCapabilityAsync(Uri pathOfFileInProject, string capability, CancellationToken cancellationToken)
         {
-            if (capability is null)
-            {
-                throw new ArgumentNullException(nameof(capability));
-            }
-
             if (pathOfFileInProject is null)
             {
                 throw new ArgumentNullException(nameof(pathOfFileInProject));
+            }
+
+            if (capability is null)
+            {
+                throw new ArgumentNullException(nameof(capability));
             }
 
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
@@ -11,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     internal class RemoteProjectItem : RazorProjectItem
     {
-        public RemoteProjectItem(string filePath, string physicalPath, string fileKind)
+        public RemoteProjectItem(string filePath, string physicalPath, string? fileKind)
         {
             FilePath = filePath;
             PhysicalPath = physicalPath;
@@ -23,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public override string BasePath => "/";
 
-        public override string FilePath { get; }
+        public override string? FilePath { get; }
 
         public override string PhysicalPath { get; }
 

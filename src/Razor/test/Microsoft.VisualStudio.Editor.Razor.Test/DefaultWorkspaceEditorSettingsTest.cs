@@ -6,11 +6,17 @@
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor
 {
     public class DefaultWorkspaceEditorSettingsTest : ProjectSnapshotManagerDispatcherTestBase
     {
+        public DefaultWorkspaceEditorSettingsTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void InitialSettingsAreEditorSettingsManagerDefault()
         {
@@ -30,7 +36,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
         {
             // Arrange
             var editorSettingsManager = new Mock<EditorSettingsManager>(MockBehavior.Strict);
-            editorSettingsManager.SetupGet(m => m.Current).Returns((EditorSettings)null);
+            editorSettingsManager.SetupGet(m => m.Current).Returns(EditorSettings.Default);
             var manager = new DefaultWorkspaceEditorSettings(editorSettingsManager.Object);
             var called = false;
             manager.Changed += (caller, args) => called = true;
@@ -78,7 +84,8 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
         private class TestEditorSettingsManagerInternal : DefaultWorkspaceEditorSettings
         {
-            public TestEditorSettingsManagerInternal() : base(Mock.Of<EditorSettingsManager>(MockBehavior.Strict))
+            public TestEditorSettingsManagerInternal()
+                : base(Mock.Of<EditorSettingsManager>(MockBehavior.Strict))
             {
             }
 

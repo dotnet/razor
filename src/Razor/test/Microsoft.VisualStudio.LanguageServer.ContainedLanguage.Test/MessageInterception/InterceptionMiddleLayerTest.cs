@@ -4,15 +4,22 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.WebTools.Languages.Shared.VS.Test.LanguageServer.MiddleLayerProviders
 {
-    public class InterceptionMiddleLayerTest
+    public class InterceptionMiddleLayerTest : TestBase
     {
+        public InterceptionMiddleLayerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void Ctor_NullInterceptorManager_Throws()
         {
@@ -47,10 +54,16 @@ namespace Microsoft.WebTools.Languages.Shared.VS.Test.LanguageServer.MiddleLayer
         public async Task HandleNotificationAsync_IfInterceptorReturnsNull_DoesNotSendNotification()
         {
             var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
-            Mock.Get(fakeInterceptorManager).Setup(x => x.HasInterceptor("testMethod", "testLanguage"))
-                                            .Returns(true);
-            Mock.Get(fakeInterceptorManager).Setup(x => x.ProcessInterceptorsAsync("testMethod", It.IsAny<JToken>(), "testLanguage", CancellationToken.None))
-                                            .Returns(Task.FromResult<JToken?>(null));
+            Mock.Get(fakeInterceptorManager)
+                .Setup(x => x.HasInterceptor("testMethod", "testLanguage"))
+                .Returns(true);
+            Mock.Get(fakeInterceptorManager)
+                .Setup(x => x.ProcessInterceptorsAsync(
+                    "testMethod",
+                    It.IsAny<JToken>(),
+                    "testLanguage",
+                    CancellationToken.None))
+                .ReturnsAsync(value: null);
             var token = JToken.Parse("{}");
             var sut = new InterceptionMiddleLayer(fakeInterceptorManager, "testLanguage");
             var sentNotification = false;
@@ -67,10 +80,16 @@ namespace Microsoft.WebTools.Languages.Shared.VS.Test.LanguageServer.MiddleLayer
             var expected = JToken.Parse("\"expected\"");
             JToken? actual = null;
             var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
-            Mock.Get(fakeInterceptorManager).Setup(x => x.HasInterceptor("testMethod", "testLanguage"))
-                                            .Returns(true);
-            Mock.Get(fakeInterceptorManager).Setup(x => x.ProcessInterceptorsAsync("testMethod", It.IsAny<JToken>(), "testLanguage", CancellationToken.None))
-                                            .Returns(Task.FromResult<JToken?>(expected));
+            Mock.Get(fakeInterceptorManager)
+                .Setup(x => x.HasInterceptor("testMethod", "testLanguage"))
+                .Returns(true);
+            Mock.Get(fakeInterceptorManager)
+                .Setup(x => x.ProcessInterceptorsAsync(
+                    "testMethod",
+                    It.IsAny<JToken>(),
+                    "testLanguage",
+                    CancellationToken.None))
+                .ReturnsAsync(expected);
             var sut = new InterceptionMiddleLayer(fakeInterceptorManager, "testLanguage");
 
             await sut.HandleNotificationAsync("testMethod", token, (t) => { actual = t; return Task.CompletedTask; });

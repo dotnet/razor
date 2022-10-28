@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             if (!_documentManager.TryGetDocument(requestContext.HostDocumentUri, out var documentSnapshot))
             {
-                _logger.LogError("Could not find the associated host document for completion resolve: {0}.", requestContext.HostDocumentUri);
+                _logger.LogError("Could not find the associated host document for completion resolve: {hostDocumentUri}.", requestContext.HostDocumentUri);
                 return request;
             }
 
@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // This is a special contract between the Visual Studio LSP platform and language servers where if insert text and text edit's are not present
             // then the "resolve" endpoint is guaranteed to run prior to a completion item's content being comitted. This gives language servers the
             // opportunity to lazily evaluate text edits which in turn we need to remap. Given text edits generated through this mechanism tend to be
-            // more exntensive we do a full remapping gesture which includes formatting of said text-edits.
+            // more extensive we do a full remapping gesture which includes formatting of said text-edits.
             var shouldRemapTextEdits = preResolveCompletionItem.InsertText is null && preResolveCompletionItem.TextEdit is null;
             if (!shouldRemapTextEdits)
             {
@@ -148,7 +148,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 
             _logger.LogInformation("Start formatting text edit.");
 
-            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot);
+            var formattingOptions = _formattingOptionsProvider.GetOptions(documentSnapshot.Uri);
+            if (formattingOptions is null)
+            {
+                return resolvedCompletionItem;
+            }
+
             if (resolvedCompletionItem.TextEdit != null)
             {
                 var containsSnippet = resolvedCompletionItem.InsertTextFormat == InsertTextFormat.Snippet;

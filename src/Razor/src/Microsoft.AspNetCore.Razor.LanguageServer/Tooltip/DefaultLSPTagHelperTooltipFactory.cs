@@ -1,33 +1,21 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 {
     internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
     {
-        // Need to have a lazy server here because if we try to resolve the server it creates types which create a DefaultTagHelperDescriptionFactory, and we end up StackOverflowing.
-        // This lazy can be avoided in the future by using an upcoming ILanguageServerSettings interface, but it doesn't exist/work yet.
-        public DefaultLSPTagHelperTooltipFactory(ClientNotifierServiceBase languageServer)
-        {
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
-            _languageServer = languageServer;
-        }
-
-        private readonly ClientNotifierServiceBase _languageServer;
-
-        public override bool TryCreateTooltip(AggregateBoundElementDescription elementDescriptionInfo, out MarkupContent tooltipContent)
+        public override bool TryCreateTooltip(
+            AggregateBoundElementDescription elementDescriptionInfo,
+            MarkupKind markupKind,
+            [NotNullWhen(true)] out MarkupContent? tooltipContent)
         {
             if (elementDescriptionInfo is null)
             {
@@ -61,9 +49,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
                 var tagHelperType = descriptionInfo.TagHelperTypeName;
                 var reducedTypeName = ReduceTypeName(tagHelperType);
-                StartOrEndBold(descriptionBuilder);
+                StartOrEndBold(descriptionBuilder, markupKind);
                 descriptionBuilder.Append(reducedTypeName);
-                StartOrEndBold(descriptionBuilder);
+                StartOrEndBold(descriptionBuilder, markupKind);
 
                 var documentation = descriptionInfo.Documentation;
                 if (!TryExtractSummary(documentation, out var summaryContent))
@@ -79,13 +67,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
             tooltipContent = new MarkupContent
             {
-                Kind = GetMarkupKind(),
+                Kind = markupKind,
                 Value = descriptionBuilder.ToString(),
             };
             return true;
         }
 
-        public override bool TryCreateTooltip(AggregateBoundAttributeDescription attributeDescriptionInfo, out MarkupContent tooltipContent)
+        public override bool TryCreateTooltip(
+            AggregateBoundAttributeDescription attributeDescriptionInfo,
+            MarkupKind markupKind,
+            [NotNullWhen(true)] out MarkupContent? tooltipContent)
         {
             if (attributeDescriptionInfo is null)
             {
@@ -117,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                     descriptionBuilder.AppendLine("---");
                 }
 
-                StartOrEndBold(descriptionBuilder);
+                StartOrEndBold(descriptionBuilder, markupKind);
                 if (!TypeNameStringResolver.TryGetSimpleName(descriptionInfo.ReturnTypeName, out var returnTypeName))
                 {
                     returnTypeName = descriptionInfo.ReturnTypeName;
@@ -125,15 +116,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
                 var reducedReturnTypeName = ReduceTypeName(returnTypeName);
                 descriptionBuilder.Append(reducedReturnTypeName);
-                StartOrEndBold(descriptionBuilder);
+                StartOrEndBold(descriptionBuilder, markupKind);
                 descriptionBuilder.Append(" ");
                 var tagHelperTypeName = descriptionInfo.TypeName;
                 var reducedTagHelperTypeName = ReduceTypeName(tagHelperTypeName);
                 descriptionBuilder.Append(reducedTagHelperTypeName);
                 descriptionBuilder.Append(".");
-                StartOrEndBold(descriptionBuilder);
+                StartOrEndBold(descriptionBuilder, markupKind);
                 descriptionBuilder.Append(descriptionInfo.PropertyName);
-                StartOrEndBold(descriptionBuilder);
+                StartOrEndBold(descriptionBuilder, markupKind);
 
                 var documentation = descriptionInfo.Documentation;
                 if (!TryExtractSummary(documentation, out var summaryContent))
@@ -149,7 +140,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
             tooltipContent = new MarkupContent
             {
-                Kind = GetMarkupKind(),
+                Kind = markupKind,
                 Value = descriptionBuilder.ToString(),
             };
             return true;
@@ -171,7 +162,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
                 var cref = crefMatches[i];
                 if (cref.Success)
                 {
-                    var value = cref.Groups[2].Value;
+                    var value = cref.Groups[TagContentGroupName].Value;
                     var reducedValue = ReduceCrefValue(value);
                     reducedValue = reducedValue.Replace("{", "<").Replace("}", ">");
                     summaryBuilder.Remove(cref.Index, cref.Length);
@@ -184,30 +175,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
             return finalSummaryContent;
         }
 
-        private void StartOrEndBold(StringBuilder stringBuilder)
+        private void StartOrEndBold(StringBuilder stringBuilder, MarkupKind markupKind)
         {
-            if (GetMarkupKind() == MarkupKind.Markdown)
+            if (markupKind == MarkupKind.Markdown)
             {
                 stringBuilder.Append("**");
-            }
-        }
-
-        private MarkupKind GetMarkupKind()
-        {
-            var completionSupportedKinds = _languageServer.ClientSettings?.Capabilities?.TextDocument?.Completion.Value?.CompletionItem?.DocumentationFormat;
-            var hoverSupportedKinds = _languageServer.ClientSettings?.Capabilities?.TextDocument?.Hover.Value?.ContentFormat;
-
-            // For now we're assuming that if you support Markdown for either completions or hovers you support it for both.
-            // If this assumption is ever untrue we'll have to start informing this class about if a request is for Hover or Completions.
-            var supportedKinds = completionSupportedKinds ?? hoverSupportedKinds;
-
-            if (supportedKinds?.Contains(MarkupKind.Markdown) ?? false)
-            {
-                return MarkupKind.Markdown;
-            }
-            else
-            {
-                return MarkupKind.PlainText;
             }
         }
     }

@@ -1,116 +1,93 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using HoverModel = OmniSharp.Extensions.LanguageServer.Protocol.Models.Hover;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
 {
-    internal class RazorHoverEndpoint : IHoverHandler
+    internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParamsBridge, VSInternalHover?>, IVSHoverEndpoint
     {
-        private readonly ILogger _logger;
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
         private readonly RazorHoverInfoService _hoverInfoService;
-        private readonly ClientNotifierServiceBase _languageServer;
+        private readonly RazorDocumentMappingService _documentMappingService;
+        private VSInternalClientCapabilities? _clientCapabilities;
 
         public RazorHoverEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
             RazorHoverInfoService hoverInfoService,
+            LanguageServerFeatureOptions languageServerFeatureOptions,
+            RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory)
+            : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RazorHoverEndpoint>())
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
-            }
-
-            if (hoverInfoService is null)
-            {
-                throw new ArgumentNullException(nameof(hoverInfoService));
-            }
-
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
-            _hoverInfoService = hoverInfoService;
-            _languageServer = languageServer;
-            _logger = loggerFactory.CreateLogger<RazorHoverEndpoint>();
+            _hoverInfoService = hoverInfoService ?? throw new ArgumentNullException(nameof(hoverInfoService));
+            _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         }
 
-        public async Task<HoverModel> Handle(HoverParams request, CancellationToken cancellationToken)
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            if (request is null)
+            const string AssociatedServerCapability = "hoverProvider";
+            _clientCapabilities = clientCapabilities;
+
+            var registrationOptions = new HoverOptions()
             {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-            {
-                _documentResolver.TryResolveDocument(request.TextDocument.Uri.GetAbsoluteOrUNCPath(), out var documentSnapshot);
-
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-
-            if (document is null)
-            {
-                return null;
-            }
-
-            var codeDocument = await document.GetGeneratedOutputAsync();
-            if (codeDocument.IsUnsupported())
-            {
-                return null;
-            }
-
-            var sourceText = await document.GetTextAsync();
-            var linePosition = new LinePosition((int)request.Position.Line, (int)request.Position.Character);
-            var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
-            var location = new SourceLocation(hostDocumentIndex, (int)request.Position.Line, (int)request.Position.Character);
-            var clientCapabilities = _languageServer.ClientSettings.Capabilities;
-
-            var hoverItem = _hoverInfoService.GetHoverInfo(codeDocument, location, clientCapabilities);
-
-            _logger.LogTrace($"Found hover info items.");
-
-            return hoverItem;
-        }
-
-        public HoverRegistrationOptions GetRegistrationOptions(HoverCapability capability, ClientCapabilities clientCapabilities)
-        {
-            return new HoverRegistrationOptions
-            {
-                DocumentSelector = RazorDefaults.Selector,
+                WorkDoneProgress = false,
             };
+
+            return new RegistrationExtensionResult(AssociatedServerCapability, new SumType<bool, HoverOptions>(registrationOptions));
+        }
+
+        protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
+
+        protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        {
+            var documentContext = requestContext.GetRequiredDocumentContext();
+            return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
+                    documentContext.Identifier,
+                    projection.Position,
+                    projection.LanguageKind));
+        }
+
+        protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        {
+            var documentContext = requestContext.GetRequiredDocumentContext();
+            // HTML can still sometimes be handled by razor. For example hovering over
+            // a component tag like <Counter /> will still be in an html context
+            if (projection.LanguageKind == RazorLanguageKind.CSharp)
+            {
+                return null;
+            }
+
+            var location = new SourceLocation(projection.AbsoluteIndex, request.Position.Line, request.Position.Character);
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+
+            return _hoverInfoService.GetHoverInfo(codeDocument, location, _clientCapabilities!);
+        }
+
+        protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParamsBridge originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+        {
+            if (response?.Range is null)
+            {
+                return response;
+            }
+
+            var documentContext = requestContext.GetRequiredDocumentContext();
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
+            if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, response.Range, out var projectedRange))
+            {
+                response.Range = projectedRange;
+            }
+
+            return response;
         }
     }
 }

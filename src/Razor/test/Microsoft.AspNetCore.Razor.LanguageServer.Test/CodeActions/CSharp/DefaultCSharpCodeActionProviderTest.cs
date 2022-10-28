@@ -6,28 +6,37 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Moq;
-using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Moq;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class DefaultCSharpCodeActionProviderTest : LanguageServerTestBase
     {
-        private readonly RazorCodeAction[] _supportedCodeActions;
+        private readonly RazorVSInternalCodeAction[] _supportedCodeActions;
+        private readonly RazorVSInternalCodeAction[] _supportedImplicitExpressionCodeActions;
 
-        public DefaultCSharpCodeActionProviderTest()
+        public DefaultCSharpCodeActionProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             _supportedCodeActions = DefaultCSharpCodeActionProvider
                 .SupportedDefaultCodeActionNames
-                .Select(name => new RazorCodeAction() { Name = name })
+                .Select(name => new RazorVSInternalCodeAction { Name = name })
+                .ToArray();
+
+            _supportedImplicitExpressionCodeActions = DefaultCSharpCodeActionProvider
+                .SupportedImplicitExpressionCodeActionNames
+                .Select(name => new RazorVSInternalCodeAction { Name = name })
                 .ToArray();
         }
 
@@ -36,15 +45,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             // Arrange
             var documentPath = "c:/Test.razor";
-            var contents = "@code { Path; }";
+            var contents = "@code { $$Path; }";
+            TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
             };
 
-            var location = new SourceLocation(8, -1, -1);
+            var location = new SourceLocation(cursorPosition, -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(8, 4));
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
@@ -65,15 +76,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             // Arrange
             var documentPath = "c:/Test.razor";
-            var contents = "@code { Path; }";
+            var contents = "@code { $$Path; }";
+            TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
             };
 
-            var location = new SourceLocation(8, -1, -1);
+            var location = new SourceLocation(cursorPosition, -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(8, 4), supportsCodeActionResolve: false);
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
@@ -91,15 +104,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             // Arrange
             var documentPath = "c:/Test.razor";
-            var contents = "@functions { Path; }";
+            var contents = "@functions { $$Path; }";
+            TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
             };
 
-            var location = new SourceLocation(13, -1, -1);
+            var location = new SourceLocation(cursorPosition, -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(13, 4));
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
@@ -121,16 +136,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Arrange
             var documentPath = "c:/Test.razor";
             var contents = @"@functions {
-Path;
+$$Path;
 }";
+            TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
             };
 
-            var location = new SourceLocation(14, -1, -1);
+            var location = new SourceLocation(cursorPosition, -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(13, 4));
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
@@ -153,16 +170,18 @@ Path;
             var documentPath = "c:/Test.razor";
             var contents = @"@functions
 {
-Path;
+$$Path;
 }";
+            TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
             };
 
-            var location = new SourceLocation(15, -1, -1);
+            var location = new SourceLocation(cursorPosition, -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(13, 4));
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
@@ -183,23 +202,25 @@ Path;
         {
             // Arrange
             var documentPath = "c:/Test.razor";
-            var contents = "@code { Path; }";
+            var contents = "@code { $$Path; }";
+            TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
                 Context = new CodeActionContext()
             };
 
-            var location = new SourceLocation(8, -1, -1);
+            var location = new SourceLocation(cursorPosition, -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(8, 4));
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
             var provider = new DefaultCSharpCodeActionProvider();
 
-            var codeActions = new RazorCodeAction[]
+            var codeActions = new RazorVSInternalCodeAction[]
             {
-               new RazorCodeAction()
+               new RazorVSInternalCodeAction()
                {
                    Title = "Do something not really supported in razor",
                    Name = "Non-existant name"
@@ -211,6 +232,45 @@ Path;
 
             // Assert
             Assert.Empty(providedCodeActions);
+        }
+
+        [Fact]
+        public async Task ProvideAsync_ImplicitExpression_ReturnsProvidedCodeAction()
+        {
+            // Arrange
+            var documentPath = "c:/Test.razor";
+            var contents = """
+                @page "/dates"
+
+                @DateTi$$
+
+                @code {
+                    public DateTime Goo { get; set; }
+                }
+                """;
+            TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
+            var request = new CodeActionParams()
+            {
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range(),
+                Context = new CodeActionContext()
+            };
+
+            var location = new SourceLocation(cursorPosition, -1, -1);
+            var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(8, 4));
+            context.CodeDocument.SetFileKind(FileKinds.Legacy);
+
+            var provider = new DefaultCSharpCodeActionProvider();
+
+            // Act
+            var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
+
+            // Assert
+            Assert.Equal(_supportedImplicitExpressionCodeActions.Length, providedCodeActions.Count);
+            var providedNames = providedCodeActions.Select(action => action.Name);
+            var expectedNames = _supportedImplicitExpressionCodeActions.Select(action => action.Name);
+            Assert.Equal(expectedNames, providedNames);
         }
 
         private static RazorCodeActionContext CreateRazorCodeActionContext(

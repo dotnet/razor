@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _documentSnapshot = documentSnapshot;
         }
 
-        public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
         {
             var sourceText = await _documentSnapshot.GetTextAsync();
             var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default);

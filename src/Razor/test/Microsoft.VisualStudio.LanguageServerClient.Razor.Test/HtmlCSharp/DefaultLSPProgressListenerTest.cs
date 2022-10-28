@@ -9,19 +9,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
 {
-    public class DefaultLSPProgressListenerTest
+    public class DefaultLSPProgressListenerTest : TestBase
     {
         // Long timeout after last notification to avoid triggering even in slow CI environments
         private static readonly TimeSpan s_notificationTimeout = TimeSpan.FromSeconds(20);
+
+        public DefaultLSPProgressListenerTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
 
         [Fact]
         public void TryListenForProgress_ReturnsTrue()

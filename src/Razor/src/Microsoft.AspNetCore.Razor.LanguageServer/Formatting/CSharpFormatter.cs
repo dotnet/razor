@@ -14,10 +14,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
@@ -26,13 +26,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         private const string MarkerId = "RazorMarker";
 
         private readonly RazorDocumentMappingService _documentMappingService;
-        private readonly FilePathNormalizer _filePathNormalizer;
         private readonly ClientNotifierServiceBase _server;
 
         public CSharpFormatter(
             RazorDocumentMappingService documentMappingService,
-            ClientNotifierServiceBase languageServer,
-            FilePathNormalizer filePathNormalizer)
+            ClientNotifierServiceBase languageServer)
         {
             if (documentMappingService is null)
             {
@@ -44,14 +42,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 throw new ArgumentNullException(nameof(languageServer));
             }
 
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
-            }
-
             _documentMappingService = documentMappingService;
             _server = languageServer;
-            _filePathNormalizer = filePathNormalizer;
         }
 
         public async Task<TextEdit[]> FormatAsync(
@@ -121,12 +113,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 Kind = RazorLanguageKind.CSharp,
                 ProjectedRange = projectedRange,
-                HostDocumentFilePath = _filePathNormalizer.Normalize(context.Uri.GetAbsoluteOrUNCPath()),
+                HostDocumentFilePath = FilePathNormalizer.Normalize(context.Uri.GetAbsoluteOrUNCPath()),
                 Options = context.Options
             };
 
-            var response = await _server.SendRequestAsync(LanguageServerConstants.RazorRangeFormattingEndpoint, @params);
-            var result = await response.Returning<RazorDocumentFormattingResponse>(cancellationToken);
+            var result = await _server.SendRequestAsync<RazorDocumentRangeFormattingParams, RazorDocumentFormattingResponse>(
+                RazorLanguageServerCustomMessageTargets.RazorRangeFormattingEndpoint,
+                @params,
+                cancellationToken);
 
             return result?.Edits ?? Array.Empty<TextEdit>();
         }
@@ -270,6 +264,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 var parent = token.Parent;
                 if (parent is null)
+                {
+                    return false;
+                }
+
+                // When directly in an implicit object creation expression, it seems the C# formatter
+                // does format the braces of an array initializer, so we need to special case those
+                // node types. Doing it outside the loop is good for perf, but also makes things easier.
+                if (parent is InitializerExpressionSyntax initializer &&
+                    initializer.IsKind(CodeAnalysis.CSharp.SyntaxKind.ArrayInitializerExpression) &&
+                    (token == initializer.OpenBraceToken || token == initializer.CloseBraceToken) &&
+                    initializer.Parent?.Parent?.Parent?.Parent is ImplicitObjectCreationExpressionSyntax)
                 {
                     return false;
                 }

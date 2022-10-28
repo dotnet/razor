@@ -11,44 +11,42 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 {
     public class ProjectStateGeneratedOutputTest : WorkspaceTestBase
     {
-        public ProjectStateGeneratedOutputTest()
-        {
-            HostProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
-            HostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
+        private readonly HostDocument _hostDocument;
+        private readonly HostProject _hostProject;
+        private readonly HostProject _hostProjectWithConfigurationChange;
+        private readonly TestTagHelperResolver _tagHelperResolver;
+        private readonly List<TagHelperDescriptor> _someTagHelpers;
+        private readonly Func<Task<TextAndVersion>> _textLoader;
+        private readonly SourceText _text;
 
-            SomeTagHelpers = new List<TagHelperDescriptor>
+        public ProjectStateGeneratedOutputTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _hostProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
+            _hostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
+
+            _tagHelperResolver = new TestTagHelperResolver();
+
+            _someTagHelpers = new List<TagHelperDescriptor>
             {
                 TagHelperDescriptorBuilder.Create("Test1", "TestAssembly").Build()
             };
 
-            HostDocument = TestProjectData.SomeProjectFile1;
+            _hostDocument = TestProjectData.SomeProjectFile1;
 
-            Text = SourceText.From("Hello, world!");
-            TextLoader = () => Task.FromResult(TextAndVersion.Create(Text, VersionStamp.Create()));
+            _text = SourceText.From("Hello, world!");
+            _textLoader = () => Task.FromResult(TextAndVersion.Create(_text, VersionStamp.Create()));
         }
-
-        private HostDocument HostDocument { get; }
-
-        private HostProject HostProject { get; }
-
-        private HostProject HostProjectWithConfigurationChange { get; }
-
-        private TestTagHelperResolver TagHelperResolver { get; } = new TestTagHelperResolver();
-
-        private List<TagHelperDescriptor> SomeTagHelpers { get; }
-
-        private Func<Task<TextAndVersion>> TextLoader { get; }
-
-        private SourceText Text { get; }
 
         protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
         {
-            services.Add(TagHelperResolver);
+            services.Add(_tagHelperResolver);
         }
 
         protected override void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
@@ -61,22 +59,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var original =
-                ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, DocumentState.EmptyLoader);
+                ProjectState.Create(Workspace.Services, _hostProject)
+                .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader);
 
-            var (originalOutput, originalInputVersion, originalCSharpOutputVersion, originalHtmlOutputVersion) = await GetOutputAsync(original, HostDocument);
+            var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument);
 
             // Act
             var state = original.WithAddedHostDocument(TestProjectData.AnotherProjectFile1, DocumentState.EmptyLoader);
 
             // Assert
-            var (actualOutput, actualInputVersion, actualCSharpOutputVersion, actualHtmlOutputVersion) = await GetOutputAsync(state, HostDocument);
+            var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument);
             Assert.Same(originalOutput, actualOutput);
             Assert.Equal(originalInputVersion, actualInputVersion);
-            Assert.Equal(originalCSharpOutputVersion, actualCSharpOutputVersion);
-            Assert.Equal(originalHtmlOutputVersion, actualHtmlOutputVersion);
-            Assert.NotEqual(state.ProjectWorkspaceStateVersion, actualCSharpOutputVersion);
-            Assert.NotEqual(state.ConfigurationVersion, actualCSharpOutputVersion);
         }
 
         [Fact]
@@ -84,20 +78,18 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var original =
-                ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, DocumentState.EmptyLoader);
+                ProjectState.Create(Workspace.Services, _hostProject)
+                .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader);
 
-            var (originalOutput, originalInputVersion, originalCSharpOutputVersion, originalHtmlOutputVersion) = await GetOutputAsync(original, HostDocument);
+            var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument);
 
             // Act
             var state = original.WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
 
             // Assert
-            var (actualOutput, actualInputVersion, actualCSharpOutputVersion, actualHtmlOutputVersion) = await GetOutputAsync(state, HostDocument);
+            var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument);
             Assert.NotSame(originalOutput, actualOutput);
             Assert.NotEqual(originalInputVersion, actualInputVersion);
-            Assert.Equal(originalCSharpOutputVersion, actualCSharpOutputVersion);
-            Assert.Equal(originalHtmlOutputVersion, actualHtmlOutputVersion);
             Assert.Equal(state.DocumentCollectionVersion, actualInputVersion);
         }
 
@@ -106,22 +98,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var original =
-                ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, DocumentState.EmptyLoader)
+                ProjectState.Create(Workspace.Services, _hostProject)
+                .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader)
                 .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
 
-            var (originalOutput, originalInputVersion, originalCSharpOutputVersion, originalHtmlOutputVersion) = await GetOutputAsync(original, HostDocument);
+            var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument);
 
             // Act
             var version = VersionStamp.Create();
-            var state = original.WithChangedHostDocument(HostDocument, () => Task.FromResult(TextAndVersion.Create(SourceText.From("@using System"), version)));
+            var state = original.WithChangedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(SourceText.From("@using System"), version)));
 
             // Assert
-            var (actualOutput, actualInputVersion, actualCSharpOutputVersion, actualHtmlOutputVersion) = await GetOutputAsync(state, HostDocument);
+            var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument);
             Assert.NotSame(originalOutput, actualOutput);
             Assert.NotEqual(originalInputVersion, actualInputVersion);
-            Assert.NotEqual(originalCSharpOutputVersion, actualCSharpOutputVersion);
-            Assert.NotEqual(originalHtmlOutputVersion, actualHtmlOutputVersion);
             Assert.Equal(version, actualInputVersion);
         }
 
@@ -130,22 +120,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var original =
-                ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, DocumentState.EmptyLoader)
+                ProjectState.Create(Workspace.Services, _hostProject)
+                .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader)
                 .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
 
-            var (originalOutput, originalInputVersion, originalCSharpOutputVersion, originalHtmlOutputVersion) = await GetOutputAsync(original, HostDocument);
+            var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument);
 
             // Act
             var version = VersionStamp.Create();
             var state = original.WithChangedHostDocument(TestProjectData.SomeProjectImportFile, () => Task.FromResult(TextAndVersion.Create(SourceText.From("@using System"), version)));
 
             // Assert
-            var (actualOutput, actualInputVersion, actualCSharpOutputVersion, actualHtmlOutputVersion) = await GetOutputAsync(state, HostDocument);
+            var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument);
             Assert.NotSame(originalOutput, actualOutput);
             Assert.NotEqual(originalInputVersion, actualInputVersion);
-            Assert.NotEqual(originalCSharpOutputVersion, actualCSharpOutputVersion);
-            Assert.Equal(originalHtmlOutputVersion, actualHtmlOutputVersion);
             Assert.Equal(version, actualInputVersion);
         }
 
@@ -154,21 +142,19 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var original =
-                ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, DocumentState.EmptyLoader)
+                ProjectState.Create(Workspace.Services, _hostProject)
+                .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader)
                 .WithAddedHostDocument(TestProjectData.SomeProjectImportFile, DocumentState.EmptyLoader);
 
-            var (originalOutput, originalInputVersion, originalCSharpOutputVersion, originalHtmlOutputVersion) = await GetOutputAsync(original, HostDocument);
+            var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument);
 
             // Act
             var state = original.WithRemovedHostDocument(TestProjectData.SomeProjectImportFile);
 
             // Assert
-            var (actualOutput, actualInputVersion, actualCSharpOutputVersion, actualHtmlOutputVersion) = await GetOutputAsync(state, HostDocument);
+            var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument);
             Assert.NotSame(originalOutput, actualOutput);
             Assert.NotEqual(originalInputVersion, actualInputVersion);
-            Assert.Equal(originalCSharpOutputVersion, actualCSharpOutputVersion);
-            Assert.Equal(originalHtmlOutputVersion, actualHtmlOutputVersion);
             Assert.Equal(state.DocumentCollectionVersion, actualInputVersion);
         }
 
@@ -177,22 +163,20 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var original =
-                ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, DocumentState.EmptyLoader)
+                ProjectState.Create(Workspace.Services, _hostProject)
+                .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader)
                 .WithProjectWorkspaceState(ProjectWorkspaceState.Default);
 
-            var (originalOutput, originalInputVersion, originalCSharpOutputVersion, originalHtmlOutputVersion) = await GetOutputAsync(original, HostDocument);
+            var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument);
             var changed = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), default);
 
             // Act
             var state = original.WithProjectWorkspaceState(changed);
 
             // Assert
-            var (actualOutput, actualInputVersion, actualCSharpOutputVersion, actualHtmlOutputVersion) = await GetOutputAsync(state, HostDocument);
+            var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument);
             Assert.Same(originalOutput, actualOutput);
             Assert.Equal(originalInputVersion, actualInputVersion);
-            Assert.Equal(originalCSharpOutputVersion, actualCSharpOutputVersion);
-            Assert.Equal(originalHtmlOutputVersion, actualHtmlOutputVersion);
             Assert.Equal(state.ProjectWorkspaceStateVersion, actualInputVersion);
         }
 
@@ -202,21 +186,19 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var original =
-                ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, DocumentState.EmptyLoader);
+                ProjectState.Create(Workspace.Services, _hostProject)
+                .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader);
 
-            var (originalOutput, originalInputVersion, originalCSharpOutputVersion, originalHtmlOutputVersion) = await GetOutputAsync(original, HostDocument);
-            var changed = new ProjectWorkspaceState(SomeTagHelpers, default);
+            var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument);
+            var changed = new ProjectWorkspaceState(_someTagHelpers, default);
 
             // Act
             var state = original.WithProjectWorkspaceState(changed);
 
             // Assert
-            var (actualOutput, actualInputVersion, actualCSharpOutputVersion, actualHtmlOutputVersion) = await GetOutputAsync(state, HostDocument);
+            var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument);
             Assert.NotSame(originalOutput, actualOutput);
             Assert.NotEqual(originalInputVersion, actualInputVersion);
-            Assert.Equal(originalCSharpOutputVersion, actualCSharpOutputVersion);
-            Assert.Equal(originalHtmlOutputVersion, actualHtmlOutputVersion);
             Assert.Equal(state.ProjectWorkspaceStateVersion, actualInputVersion);
         }
 
@@ -224,25 +206,23 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         public async Task ProjectWorkspaceStateChange_WithProjectWorkspaceState_CSharpLanguageVersionChange_DoesNotCacheOutput()
         {
             // Arrange
-            var csharp8ValidConfiguration = RazorConfiguration.Create(RazorLanguageVersion.Version_3_0, HostProject.Configuration.ConfigurationName, HostProject.Configuration.Extensions);
+            var csharp8ValidConfiguration = RazorConfiguration.Create(RazorLanguageVersion.Version_3_0, _hostProject.Configuration.ConfigurationName, _hostProject.Configuration.Extensions);
             var hostProject = new HostProject(TestProjectData.SomeProject.FilePath, csharp8ValidConfiguration, TestProjectData.SomeProject.RootNamespace);
-            var originalWorkspaceState = new ProjectWorkspaceState(SomeTagHelpers, LanguageVersion.CSharp7);
+            var originalWorkspaceState = new ProjectWorkspaceState(_someTagHelpers, LanguageVersion.CSharp7);
             var original =
                 ProjectState.Create(Workspace.Services, hostProject, originalWorkspaceState)
-                .WithAddedHostDocument(HostDocument, () => Task.FromResult(TextAndVersion.Create(SourceText.From("@DateTime.Now"), VersionStamp.Default)));
-            var changedWorkspaceState = new ProjectWorkspaceState(SomeTagHelpers, LanguageVersion.CSharp8);
+                .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(SourceText.From("@DateTime.Now"), VersionStamp.Default)));
+            var changedWorkspaceState = new ProjectWorkspaceState(_someTagHelpers, LanguageVersion.CSharp8);
 
-            var (originalOutput, originalInputVersion, originalCSharpOutputVersion, originalHtmlOutputVersion) = await GetOutputAsync(original, HostDocument);
+            var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument);
 
             // Act
             var state = original.WithProjectWorkspaceState(changedWorkspaceState);
 
             // Assert
-            var (actualOutput, actualInputVersion, actualCSharpOutputVersion, actualHtmlOutputVersion) = await GetOutputAsync(state, HostDocument);
+            var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument);
             Assert.NotSame(originalOutput, actualOutput);
             Assert.NotEqual(originalInputVersion, actualInputVersion);
-            Assert.NotEqual(originalCSharpOutputVersion, actualCSharpOutputVersion);
-            Assert.Equal(originalHtmlOutputVersion, actualHtmlOutputVersion);
             Assert.Equal(state.ProjectWorkspaceStateVersion, actualInputVersion);
         }
 
@@ -251,30 +231,28 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         {
             // Arrange
             var original =
-                ProjectState.Create(Workspace.Services, HostProject)
-                .WithAddedHostDocument(HostDocument, DocumentState.EmptyLoader);
+                ProjectState.Create(Workspace.Services, _hostProject)
+                .WithAddedHostDocument(_hostDocument, DocumentState.EmptyLoader);
 
-            var (originalOutput, originalInputVersion, originalCSharpOutputVersion, originalHtmlOutputVersion) = await GetOutputAsync(original, HostDocument);
+            var (originalOutput, originalInputVersion) = await GetOutputAsync(original, _hostDocument);
 
             // Act
-            var state = original.WithHostProject(HostProjectWithConfigurationChange);
+            var state = original.WithHostProject(_hostProjectWithConfigurationChange);
 
             // Assert
-            var (actualOutput, actualInputVersion, actualCSharpOutputVersion, actualHtmlOutputVersion) = await GetOutputAsync(state, HostDocument);
+            var (actualOutput, actualInputVersion) = await GetOutputAsync(state, _hostDocument);
             Assert.NotSame(originalOutput, actualOutput);
             Assert.NotEqual(originalInputVersion, actualInputVersion);
-            Assert.NotEqual(originalCSharpOutputVersion, actualCSharpOutputVersion);
-            Assert.NotEqual(originalHtmlOutputVersion, actualHtmlOutputVersion);
             Assert.NotEqual(state.ProjectWorkspaceStateVersion, actualInputVersion);
         }
 
-        private static Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> GetOutputAsync(ProjectState project, HostDocument hostDocument)
+        private static Task<(RazorCodeDocument, VersionStamp)> GetOutputAsync(ProjectState project, HostDocument hostDocument)
         {
             var document = project.Documents[hostDocument.FilePath];
             return GetOutputAsync(project, document);
         }
 
-        private static Task<(RazorCodeDocument, VersionStamp, VersionStamp, VersionStamp)> GetOutputAsync(ProjectState project, DocumentState document)
+        private static Task<(RazorCodeDocument, VersionStamp)> GetOutputAsync(ProjectState project, DocumentState document)
         {
 
             var projectSnapshot = new DefaultProjectSnapshot(project);

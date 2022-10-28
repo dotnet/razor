@@ -7,6 +7,13 @@
         <target state="translated">La valeur ne peut pas être Null ni être une chaîne vide.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DirectiveSnippetDescription">
+        <source>Insert a directive code snippet
+[Tab] to navigate between elements, [Enter] to complete</source>
+        <target state="translated">Insérer un extrait de code de directive
+[Tab] pour naviguer entre les éléments, [Entrée] pour terminer</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

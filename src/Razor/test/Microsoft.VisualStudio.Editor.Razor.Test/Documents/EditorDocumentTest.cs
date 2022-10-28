@@ -10,48 +10,45 @@ using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents
 {
     public class EditorDocumentTest : ProjectSnapshotManagerDispatcherTestBase
     {
-        public EditorDocumentTest()
+        private readonly EditorDocumentManager _documentManager;
+        private readonly string _projectFilePath;
+        private readonly string _documentFilePath;
+        private readonly TextLoader _textLoader;
+        private readonly FileChangeTracker _fileChangeTracker;
+        private readonly TestTextBuffer _textBuffer;
+
+        public EditorDocumentTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            DocumentManager = new Mock<EditorDocumentManager>(MockBehavior.Strict).Object;
-            Mock.Get(DocumentManager).Setup(m => m.RemoveDocument(It.IsAny<EditorDocument>())).Verifiable();
-            ProjectFilePath = TestProjectData.SomeProject.FilePath;
-            DocumentFilePath = TestProjectData.SomeProjectFile1.FilePath;
-            TextLoader = TextLoader.From(TextAndVersion.Create(SourceText.From("FILE"), VersionStamp.Default));
-            FileChangeTracker = new DefaultFileChangeTracker(DocumentFilePath);
+            _documentManager = new Mock<EditorDocumentManager>(MockBehavior.Strict).Object;
+            Mock.Get(_documentManager).Setup(m => m.RemoveDocument(It.IsAny<EditorDocument>())).Verifiable();
+            _projectFilePath = TestProjectData.SomeProject.FilePath;
+            _documentFilePath = TestProjectData.SomeProjectFile1.FilePath;
+            _textLoader = TextLoader.From(TextAndVersion.Create(SourceText.From("FILE"), VersionStamp.Default));
+            _fileChangeTracker = new DefaultFileChangeTracker(_documentFilePath);
 
-            TextBuffer = new TestTextBuffer(new StringTextSnapshot("Hello"));
+            _textBuffer = new TestTextBuffer(new StringTextSnapshot("Hello"));
         }
-
-        private EditorDocumentManager DocumentManager { get; }
-
-        private string ProjectFilePath { get; }
-
-        private string DocumentFilePath { get; }
-
-        private TextLoader TextLoader { get; }
-
-        private FileChangeTracker FileChangeTracker { get; }
-
-        private TestTextBuffer TextBuffer { get; }
 
         [Fact]
         public void EditorDocument_CreatedWhileOpened()
         {
             // Arrange & Act
             using (var document = new EditorDocument(
-                DocumentManager,
+                _documentManager,
                 Dispatcher,
                 JoinableTaskFactory.Context,
-                ProjectFilePath,
-                DocumentFilePath,
-                TextLoader,
-                FileChangeTracker,
-                TextBuffer,
+                _projectFilePath,
+                _documentFilePath,
+                _textLoader,
+                _fileChangeTracker,
+                _textBuffer,
                 changedOnDisk: null,
                 changedInEditor: null,
                 opened: null,
@@ -59,7 +56,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
             {
                 // Assert
                 Assert.True(document.IsOpenInEditor);
-                Assert.Same(TextBuffer, document.EditorTextBuffer);
+                Assert.Same(_textBuffer, document.EditorTextBuffer);
                 Assert.NotNull(document.EditorTextContainer);
             }
         }
@@ -69,13 +66,13 @@ namespace Microsoft.VisualStudio.Editor.Razor.Documents
         {
             // Arrange & Act
             using (var document = new EditorDocument(
-                DocumentManager,
+                _documentManager,
                 Dispatcher,
                 JoinableTaskFactory.Context,
-                ProjectFilePath,
-                DocumentFilePath,
-                TextLoader,
-                FileChangeTracker,
+                _projectFilePath,
+                _documentFilePath,
+                _textLoader,
+                _fileChangeTracker,
                 null,
                 changedOnDisk: null,
                 changedInEditor: null,

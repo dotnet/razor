@@ -30,18 +30,10 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
         public abstract Task<RazorCodeDocument> GetGeneratedOutputAsync();
 
-        public abstract Task<VersionStamp> GetGeneratedCSharpOutputVersionAsync();
-
-        public abstract Task<VersionStamp> GetGeneratedHtmlOutputVersionAsync();
-
         public abstract bool TryGetText(out SourceText result);
 
         public abstract bool TryGetTextVersion(out VersionStamp result);
 
         public abstract bool TryGetGeneratedOutput(out RazorCodeDocument result);
-
-        public abstract bool TryGetGeneratedCSharpOutputVersion(out VersionStamp result);
-
-        public abstract bool TryGetGeneratedHtmlOutputVersion(out VersionStamp result);
     }
 }

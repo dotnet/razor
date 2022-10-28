@@ -17,12 +17,6 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     // named plugin assembly.
 
     [Shared]
-    [Export(typeof(FilePathNormalizer))]
-    public class ExportedFilePathNormalizer : FilePathNormalizer
-    {
-    }
-
-    [Shared]
     [Export(typeof(OmniSharpProjectSnapshotManagerDispatcher))]
     internal class ExportOmniSharpProjectSnapshotManagerDispatcher : DefaultOmniSharpProjectSnapshotManagerDispatcher
     {
@@ -32,10 +26,6 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
     [Export(typeof(RemoteTextLoaderFactory))]
     internal class ExportRemoteTextLoaderFactory : DefaultRemoteTextLoaderFactory
     {
-        [ImportingConstructor]
-        public ExportRemoteTextLoaderFactory(FilePathNormalizer filePathNormalizer) : base(filePathNormalizer)
-        {
-        }
     }
 
     [Shared]
@@ -59,7 +49,9 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
         [ImportingConstructor]
         public ExportOmniSharpWorkspaceProjectStateChangeDetector(
             OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator) : base(projectSnapshotManagerDispatcher, workspaceStateGenerator)
+            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator,
+            OmniSharpLanguageServerFeatureOptions languageServerFeatureOptions)
+            : base(projectSnapshotManagerDispatcher, workspaceStateGenerator, languageServerFeatureOptions)
         {
         }
     }
@@ -84,6 +76,16 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
             OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             RemoteTextLoaderFactory remoteTextLoaderFactory,
             [ImportMany] IEnumerable<OmniSharpDocumentProcessedListener> documentProcessedListeners) : base(projectSnapshotManagerDispatcher, remoteTextLoaderFactory, documentProcessedListeners)
+        {
+        }
+    }
+
+    [Shared]
+    [Export(typeof(OmniSharpLanguageServerFeatureOptions))]
+    public class ExportOmniSharpLanguageServerFeatureOptions : OmniSharpLanguageServerFeatureOptions
+    {
+        [ImportingConstructor]
+        public ExportOmniSharpLanguageServerFeatureOptions() : base()
         {
         }
     }

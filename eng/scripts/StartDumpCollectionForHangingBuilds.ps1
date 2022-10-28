@@ -76,13 +76,13 @@ Out-File -FilePath $sentinelFile -InputObject $JobName | Out-Null;
     $ProcDumpOutputPath,
     $CandidateProcessNames)
 
-  Write-Output "Waking up to capture process dumps. Determining hanging processes.";
+  Write-Output "[$((Get-Date).ToLongTimeString())] Waking up to capture process dumps. Determining hanging processes.";
 
   [System.Diagnostics.Process []]$AliveProcesses = @();
   foreach ($candidate in $CandidateProcessNames) {
     try {
       $candidateProcesses = Get-Process $candidate 2>$null
-      $candidateProcesses | ForEach-Object { Write-Output "Found candidate process $candidate with PID '$($_.Id)'." };
+      $candidateProcesses | ForEach-Object { Write-Output "- Found candidate process '$candidate' with PID '$($_.Id)'." };
       $AliveProcesses += $candidateProcesses;
     }
     catch {
@@ -101,7 +101,7 @@ Out-File -FilePath $sentinelFile -InputObject $JobName | Out-Null;
     $procDumpArgs = @("-accepteula", "-ma", $process.Id, $dumpFullPath);
     try {
       Write-Output "Capturing dump for dump for '$($process.Name)' with PID '$($process.Id)'.";
-      Start-Process -FilePath $ProcDumpPath -ArgumentList $procDumpArgs -NoNewWindow -Wait;
+      Start-Process -FilePath $ProcDumpPath -ArgumentList $procDumpArgs -WindowStyle Hidden -Wait;
     }
     catch {
       Write-Output "There was an error capturing a process dump for '$($process.Name)' with PID '$($process.Id)'."
@@ -116,6 +116,7 @@ $ScriptTrigger = New-JobTrigger -Once -At $WakeTime;
 
 try {
   Register-ScheduledJob -Name $JobName -ScriptBlock $ScriptCode -Trigger $ScriptTrigger -ArgumentList $ProcDumpPath, $ProcDumpOutputPath, $CandidateProcessNames;
+  Write-Output "[$((Get-Date).ToLongTimeString())] Job scheduled to capture process dumps at $($WakeTime.ToLongTimeString())";
 }
 catch {
   Write-Warning "Failed to register scheduled job '$JobName'. Dumps will not be captured for build hangs.";

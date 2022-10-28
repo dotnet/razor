@@ -15,14 +15,7 @@
     <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.dll" />
     <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.Common.dll" />
     <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.Protocol.dll" />
-    <Import assembly="MediatR.dll" />
-    <Import assembly="OmniSharp.Extensions.JsonRpc.dll" />
-    <Import assembly="OmniSharp.Extensions.LanguageProtocol.dll" />
-    <Import assembly="OmniSharp.Extensions.LanguageServer.dll" />
-    <Import assembly="OmniSharp.Extensions.LanguageServer.Shared.dll" />
-    <Import assembly="Microsoft.Extensions.Configuration.Binder.dll" />
     <Import assembly="Microsoft.Extensions.Options.dll" />
-    <Import assembly="Microsoft.Extensions.Options.ConfigurationExtensions.dll" />
     <Import assembly="Microsoft.Extensions.Primitives.dll" />
     <Import assembly="Microsoft.Extensions.DependencyInjection.dll" />
     <Import assembly="Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
@@ -35,14 +28,13 @@
         <Import assembly="Microsoft.Extensions.Logging.dll" />
         <Import assembly="Microsoft.Extensions.Logging.Abstractions.dll" />
         <Import assembly="System.IO.Pipelines.dll" />
-        <Import assembly="System.Reactive.dll" />
         <Import assembly="System.Runtime.CompilerServices.Unsafe.dll" />
         <Import assembly="System.Threading.Channels.dll" />
     -->
   </Runtime>
   <Dependencies>
-    <Addin id="::MonoDevelop.Core" version="17.0" />
-    <Addin id="::MonoDevelop.Ide" version="17.0" />
+    <Addin id="::MonoDevelop.Core" version="17.3" />
+    <Addin id="::MonoDevelop.Ide" version="17.3" />
   </Dependencies>
 
   <!-- MEF catalog -->
@@ -62,5 +54,18 @@
   <!-- Feature Switches -->
   <Extension path="/MonoDevelop/Core/FeatureSwitches">
     <FeatureSwitch id="Razor.LSP.Editor" _description="Enables the Razor LSP editor for ASP.NET Core scenarios" defaultValue="false" />
+  </Extension>
+
+  <!-- TextMate -->
+  <Extension path="/MonoDevelop/Ide/Editor/TextMate">
+    <Repository folderPath="Grammars"/>
+  </Extension>
+
+  <Extension path="/MonoDevelop/Ide/Editor/LanguageConfiguration">
+    <LanguageConfiguration contentTypeName="Razor" scopeName="text.aspnetcorerazor" languageConfigurationFilePath="language-configuration.json" />
+    <LanguageConfiguration scopeName="source.js" languageConfigurationFilePath="javascript-language-configuration.json" />
+    <LanguageConfiguration scopeName="source.css" languageConfigurationFilePath="css-language-configuration.json" />
+    <LanguageConfiguration scopeName="source.cs" languageConfigurationFilePath="csharp-language-configuration.json" />
+    <LanguageConfiguration scopeName="meta.directive" languageConfigurationFilePath="razordirective-language-configuration.json" />
   </Extension>
 </ExtensionModel>

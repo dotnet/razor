@@ -3,25 +3,24 @@
 
 #nullable disable
 
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    public class RemoteRazorProjectFileSystemTest
+    public class RemoteRazorProjectFileSystemTest : TestBase
     {
-        public RemoteRazorProjectFileSystemTest()
+        public RemoteRazorProjectFileSystemTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            FilePathNormalizer = new FilePathNormalizer();
         }
-
-        private FilePathNormalizer FilePathNormalizer { get; }
 
         [Fact]
         public void GetItem_RootlessFilePath()
         {
             // Arrange
-            var fileSystem = new RemoteRazorProjectFileSystem("C:/path/to", FilePathNormalizer);
+            var fileSystem = new RemoteRazorProjectFileSystem("C:/path/to");
             var documentFilePath = "file.cshtml";
 
             // Act
@@ -36,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void GetItem_RootedFilePath_BelongsToProject()
         {
             // Arrange
-            var fileSystem = new RemoteRazorProjectFileSystem("C:/path/to", FilePathNormalizer);
+            var fileSystem = new RemoteRazorProjectFileSystem("C:/path/to");
             var documentFilePath = "C:/path/to/file.cshtml";
 
             // Act
@@ -51,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         public void GetItem_RootedFilePath_DoesNotBelongToProject()
         {
             // Arrange
-            var fileSystem = new RemoteRazorProjectFileSystem("C:/path/to", FilePathNormalizer);
+            var fileSystem = new RemoteRazorProjectFileSystem("C:/path/to");
             var documentFilePath = "C:/otherpath/to/file.cshtml";
 
             // Act

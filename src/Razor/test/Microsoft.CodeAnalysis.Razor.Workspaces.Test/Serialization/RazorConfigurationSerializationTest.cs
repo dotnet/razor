@@ -5,26 +5,30 @@
 
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Newtonsoft.Json;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
 {
-    public class RazorConfigurationSerializationTest
+    public class RazorConfigurationSerializationTest : TestBase
     {
-        public RazorConfigurationSerializationTest()
+        private readonly JsonConverter[] _converters;
+
+        public RazorConfigurationSerializationTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
             var converters = new JsonConverterCollection
             {
                 RazorExtensionJsonConverter.Instance,
                 RazorConfigurationJsonConverter.Instance
             };
-            Converters = converters.ToArray();
-        }
 
-        public JsonConverter[] Converters { get; }
+            _converters = converters.ToArray();
+        }
 
         [Fact]
         public void RazorConfigurationJsonConverter_Serialization_CanRoundTrip()
@@ -40,8 +44,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
                 });
 
             // Act
-            var json = JsonConvert.SerializeObject(configuration, Converters);
-            var obj = JsonConvert.DeserializeObject<RazorConfiguration>(json, Converters);
+            var json = JsonConvert.SerializeObject(configuration, _converters);
+            var obj = JsonConvert.DeserializeObject<RazorConfiguration>(json, _converters);
 
             // Assert
             Assert.Equal(configuration.ConfigurationName, obj.ConfigurationName);
@@ -67,7 +71,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
 }";
 
             // Act
-            var obj = JsonConvert.DeserializeObject<RazorConfiguration>(configurationJson, Converters);
+            var obj = JsonConvert.DeserializeObject<RazorConfiguration>(configurationJson, _converters);
 
             // Assert
             Assert.Equal("MVC-3.0", obj.ConfigurationName);
@@ -91,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
 }";
 
             // Act
-            var obj = JsonConvert.DeserializeObject<RazorConfiguration>(configurationJson, Converters);
+            var obj = JsonConvert.DeserializeObject<RazorConfiguration>(configurationJson, _converters);
 
             // Assert
             Assert.Equal("MVC-2.1", obj.ConfigurationName);
@@ -118,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
 }";
 
             // Act
-            var obj = JsonConvert.DeserializeObject<RazorConfiguration>(configurationJson, Converters);
+            var obj = JsonConvert.DeserializeObject<RazorConfiguration>(configurationJson, _converters);
 
             // Assert
             Assert.Equal("MVC-1.1", obj.ConfigurationName);

@@ -1,22 +1,20 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
     internal static class SyntaxNodeExtensions
     {
-        internal static bool TryGetPreviousSibling(this SyntaxNode syntaxNode, out SyntaxNode previousSibling)
+        internal static bool TryGetPreviousSibling(this SyntaxNode syntaxNode, [NotNullWhen(true)] out SyntaxNode? previousSibling)
         {
             var syntaxNodeParent = syntaxNode.Parent;
             if (syntaxNodeParent is null)
@@ -120,14 +118,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             }
 
             var lineSpan = node.GetLinePositionSpan(source);
-            var range = new Range(
-                new Position(lineSpan.Start.Line, lineSpan.Start.Character),
-                new Position(lineSpan.End.Line, lineSpan.End.Character));
+            var range = new Range
+            {
+                Start = new Position(lineSpan.Start.Line, lineSpan.Start.Character),
+                End = new Position(lineSpan.End.Line, lineSpan.End.Character)
+            };
 
             return range;
         }
 
-        public static Range GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
+        public static Range? GetRangeWithoutWhitespace(this SyntaxNode node, RazorSourceDocument source)
         {
             if (node is null)
             {
@@ -141,7 +141,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 
             var tokens = node.GetTokens();
 
-            SyntaxToken firstToken = null;
+            SyntaxToken? firstToken = null;
             for (var i = 0; i < tokens.Count; i++)
             {
                 var token = tokens[i];
@@ -152,7 +152,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 }
             }
 
-            SyntaxToken lastToken = null;
+            SyntaxToken? lastToken = null;
             for (var i = tokens.Count - 1; i >= 0; i--)
             {
                 var token = tokens[i];
@@ -171,15 +171,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             var startPositionSpan = GetLinePositionSpan(firstToken, source, node.SpanStart);
             var endPositionSpan = GetLinePositionSpan(lastToken, source, node.SpanStart);
 
-            var range = new Range(
-                new Position(startPositionSpan.Start.Line, startPositionSpan.Start.Character),
-                new Position(endPositionSpan.End.Line, endPositionSpan.End.Character));
+            var range = new Range
+            {
+                Start = new Position(startPositionSpan.Start.Line, startPositionSpan.Start.Character),
+                End = new Position(endPositionSpan.End.Line, endPositionSpan.End.Character)
+            };
 
             return range;
 
             // This is needed because SyntaxToken positions taken from GetTokens
             // are relative to their parent node and not to the document.
-            static LinePositionSpan GetLinePositionSpan(SyntaxNode node, RazorSourceDocument source, int parentStart)
+            static LinePositionSpan GetLinePositionSpan(SyntaxNode? node, RazorSourceDocument source, int parentStart)
             {
                 if (node is null)
                 {
@@ -253,7 +255,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
             var tokens = node.GetTokens();
             var whitespaceLength = 0;
 
-            for (var i = tokens.Count - 1;  i >= 0; i--)
+            for (var i = tokens.Count - 1; i >= 0; i--)
             {
                 var token = tokens[i];
                 if (token.IsWhitespace())

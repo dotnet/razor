@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,9 +16,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         private const string ProjectFileExtension = ".csproj";
         private const string ProjectFileExtensionPattern = "*" + ProjectFileExtension;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly FilePathNormalizer _filePathNormalizer;
         private readonly IEnumerable<IProjectFileChangeListener> _listeners;
-        private FileSystemWatcher _watcher;
+        private FileSystemWatcher? _watcher;
 
         private static readonly string[] s_ignoredDirectories = new string[]
         {
@@ -31,17 +28,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
         public ProjectFileChangeDetector(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            FilePathNormalizer filePathNormalizer,
             IEnumerable<IProjectFileChangeListener> listeners)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
             }
 
             if (listeners is null)
@@ -50,7 +41,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _filePathNormalizer = filePathNormalizer;
             _listeners = listeners;
         }
 
@@ -63,7 +53,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             // Dive through existing project files and fabricate "added" events so listeners can accurately listen to state changes for them.
 
-            workspaceDirectory = _filePathNormalizer.Normalize(workspaceDirectory);
+            workspaceDirectory = FilePathNormalizer.Normalize(workspaceDirectory);
             var existingProjectFiles = GetExistingProjectFiles(workspaceDirectory);
 
             await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>

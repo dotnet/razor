@@ -1,14 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -31,7 +28,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 Message = razorDiagnostic.GetMessage(CultureInfo.InvariantCulture),
                 Code = razorDiagnostic.Id,
                 Severity = ConvertSeverity(razorDiagnostic.Severity),
-                Range = ConvertSpanToRange(razorDiagnostic.Span, sourceText),
+                // This is annotated as not null, but we have tests that validate the behaviour when
+                // we pass in null here
+                Range = ConvertSpanToRange(razorDiagnostic.Span, sourceText)!,
             };
 
             return diagnostic;
@@ -49,7 +48,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         }
 
         // Internal for testing
-        internal static Range ConvertSpanToRange(SourceSpan sourceSpan, SourceText sourceText)
+        internal static Range? ConvertSpanToRange(SourceSpan sourceSpan, SourceText sourceText)
         {
             if (sourceSpan == SourceSpan.Undefined)
             {

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,10 +30,10 @@ namespace Microsoft.VisualStudio.Editor.Razor
         private readonly List<ITextView> _textViews;
         private readonly Workspace _workspace;
         private bool _isSupportedProject;
-        private ProjectSnapshot _projectSnapshot;
+        private ProjectSnapshot? _projectSnapshot;
         private int _subscribeCount;
 
-        public override event EventHandler<ContextChangeEventArgs> ContextChanged;
+        public override event EventHandler<ContextChangeEventArgs>? ContextChanged;
 
         public DefaultVisualStudioDocumentTracker(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -106,15 +104,15 @@ namespace Microsoft.VisualStudio.Editor.Razor
             _textViews = new List<ITextView>();
         }
 
-        public override RazorConfiguration Configuration => _projectSnapshot?.Configuration;
+        public override RazorConfiguration? Configuration => _projectSnapshot?.Configuration;
 
         public override EditorSettings EditorSettings => _workspaceEditorSettings.Current;
 
-        public override IReadOnlyList<TagHelperDescriptor> TagHelpers => ProjectSnapshot?.TagHelpers;
+        public override IReadOnlyList<TagHelperDescriptor>? TagHelpers => ProjectSnapshot?.TagHelpers;
 
         public override bool IsSupportedProject => _isSupportedProject;
 
-        internal override ProjectSnapshot ProjectSnapshot => _projectSnapshot;
+        internal override ProjectSnapshot? ProjectSnapshot => _projectSnapshot;
 
         public override ITextBuffer TextBuffer => _textBuffer;
 
@@ -156,7 +154,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
             }
         }
 
-        public override ITextView GetFocusedTextView()
+        public override ITextView? GetFocusedTextView()
         {
             _joinableTaskContext.AssertUIThread();
 
@@ -231,7 +229,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
 
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-            if (_projectPath != null &&
+            if (_projectPath is not null &&
                 string.Equals(_projectPath, e.ProjectFilePath, StringComparison.OrdinalIgnoreCase))
             {
                 // This will be the new snapshot unless the project was removed.
@@ -253,7 +251,7 @@ namespace Microsoft.VisualStudio.Editor.Razor
                         _ = OnContextChangedAsync(ContextChangeKind.ProjectChanged);
 
                         if (e.Older is null ||
-                            !Enumerable.SequenceEqual(e.Older.TagHelpers, e.Newer.TagHelpers))
+                            !Enumerable.SequenceEqual(e.Older.TagHelpers, e.Newer!.TagHelpers))
                         {
                             _ = OnContextChangedAsync(ContextChangeKind.TagHelpersChanged);
                         }

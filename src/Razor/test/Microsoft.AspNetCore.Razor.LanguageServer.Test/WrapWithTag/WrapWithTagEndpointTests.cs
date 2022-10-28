@@ -2,59 +2,58 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.WrapWithTag;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.JsonRpc;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
 {
     public class WrapWithTagEndpointTest : LanguageServerTestBase
     {
+        public WrapWithTagEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_Html_ReturnsResult()
         {
             // Arrange
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            responseRouterReturns
-                .Setup(l => l.Returning<WrapWithTagResponse>(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new WrapWithTagResponse());
+            var documentContext = CreateDocumentContext(uri, codeDocument);
+            var response = new WrapWithTagResponse();
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>()))
-                .ReturnsAsync(responseRouterReturns.Object);
+                .Setup(l => l.SendRequestAsync<WrapWithTagParams, WrapWithTagResponse>(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(response);
 
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
-                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
+                s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
             var endpoint = new WrapWithTagEndpoint(
                 languageServer.Object,
-                Dispatcher,
-                documentResolver,
-                documentMappingService,
-                LoggerFactory);
+                documentMappingService);
 
-            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier(uri))
+            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
             {
-                Range = new(0, 0, 0, 2),
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(wrapWithDivParams, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(wrapWithDivParams, requestContext, DisposalToken);
 
             // Assert
             Assert.NotNull(result);
@@ -67,33 +66,28 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             // Arrange
             var codeDocument = TestRazorCodeDocument.Create("@counter");
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
-            var responseRouterReturns = new Mock<IResponseRouterReturns>(MockBehavior.Strict);
-            responseRouterReturns
-                .Setup(l => l.Returning<WrapWithTagResponse>(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new WrapWithTagResponse());
+            var documentContext = CreateDocumentContext(uri, codeDocument);
+            var response = new WrapWithTagResponse();
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
             languageServer
-                .Setup(l => l.SendRequestAsync(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>()))
-                .ReturnsAsync(responseRouterReturns.Object);
+                .Setup(l => l.SendRequestAsync<WrapWithTagParams, WrapWithTagResponse>(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(response);
 
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
-                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.CSharp, MockBehavior.Strict);
+                s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp, MockBehavior.Strict);
             var endpoint = new WrapWithTagEndpoint(
                 languageServer.Object,
-                Dispatcher,
-                documentResolver,
-                documentMappingService,
-                LoggerFactory);
+                documentMappingService);
 
-            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier(uri))
+            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
             {
-                Range = new(0, 0, 0, 2),
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(wrapWithDivParams, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(wrapWithDivParams, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -105,28 +99,23 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
         {
             // Arrange
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
-            var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var realUri = new Uri("file://path/test.razor");
+            var missingUri = new Uri("file://path/nottest.razor");
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
 
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
-                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
-            var endpoint = new WrapWithTagEndpoint(
-                languageServer.Object,
-                Dispatcher,
-                documentResolver,
-                documentMappingService,
-                LoggerFactory);
+                s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
+            var endpoint = new WrapWithTagEndpoint(languageServer.Object, documentMappingService);
 
-            uri = new Uri("file://path/nottest.razor");
-            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier(uri))
+            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = missingUri })
             {
-                Range = new(0, 0, 0, 2),
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            var result = await endpoint.Handle(wrapWithDivParams, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(wrapWithDivParams, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -139,47 +128,175 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             var codeDocument = TestRazorCodeDocument.Create("<div></div>");
             codeDocument.SetUnsupported();
             var uri = new Uri("file://path/test.razor");
-            var documentResolver = CreateDocumentResolver(uri.GetAbsoluteOrUNCPath(), codeDocument);
+            var documentContext = CreateDocumentContext(uri, codeDocument);
 
             var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
 
             var documentMappingService = Mock.Of<RazorDocumentMappingService>(
-                s => s.GetLanguageKind(codeDocument, It.IsAny<int>()) == RazorLanguageKind.Html, MockBehavior.Strict);
-            var endpoint = new WrapWithTagEndpoint(
-                languageServer.Object,
-                Dispatcher,
-                documentResolver,
-                documentMappingService,
-                LoggerFactory);
+                s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
+            var endpoint = new WrapWithTagEndpoint(languageServer.Object, documentMappingService);
 
-            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier(uri))
+            var wrapWithDivParams = new WrapWithTagParams(new TextDocumentIdentifier { Uri = uri })
             {
-                Range = new(0, 0, 0, 2),
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 2) },
             };
+            var requestContext = CreateRazorRequestContext(documentContext);
 
             // Act
-            var result = await endpoint.Handle(wrapWithDivParams, CancellationToken.None);
+            var result = await endpoint.HandleRequestAsync(wrapWithDivParams, requestContext, DisposalToken);
 
             // Assert
             Assert.Null(result);
+
+            Func<int, int, int> x = (_, _) => { return 4; };
         }
 
-        private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
+        [Fact]
+        public async Task CleanUpTextEdits_NoTilde()
         {
-            var sourceTextChars = new char[codeDocument.Source.Length];
-            codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
-            var sourceText = SourceText.From(new string(sourceTextChars));
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(document =>
-                document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-                document.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
-            var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
-            documentResolver.Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
-                .Returns(true);
+            var input = """
+                @if (true)
+                {
+                }
+                """;
+            var expected = """
+                <div>
+                    @if (true)
+                    {
+                    }
+                </div>
+                """;
 
-            DocumentSnapshot? nullDocumentSnapshot = null;
-            documentResolver.Setup(resolver => resolver.TryResolveDocument(It.IsNotIn(documentPath), out nullDocumentSnapshot))
-                .Returns(false);
-            return documentResolver.Object;
+            var uri = new Uri("file://path.razor");
+            var factory = CreateDocumentContextFactory(uri, input);
+            var context = await factory.TryCreateAsync(uri, DisposalToken);
+            Assert.NotNull(context);
+            var inputSourceText = await context!.GetSourceTextAsync(DisposalToken);
+
+            var computedEdits = new TextEdit[]
+            {
+                new TextEdit
+                {
+                    NewText="<div>\r\n    ",
+                    Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
+                },
+                new TextEdit
+                {
+                    NewText="    ",
+                    Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
+                },
+                new TextEdit
+                {
+                    NewText="    }\r\n</div>",
+                    Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
+                }
+            };
+
+            var edits = await WrapWithTagEndpoint.CleanUpTextEditsAsync(context!, computedEdits, DisposalToken);
+            Assert.Same(computedEdits, edits);
+
+            var finalText = inputSourceText.WithChanges(edits.Select(e => e.AsTextChange(inputSourceText)));
+            Assert.Equal(expected, finalText.ToString());
+        }
+
+        [Fact]
+        public async Task CleanUpTextEdits_BadEditWithTilde()
+        {
+            var input = """
+                @if (true)
+                {
+                }
+                """;
+
+            var expected = """
+                <div>
+                    @if (true)
+                    {
+                    }
+                </div>
+                """;
+
+            var uri = new Uri("file://path.razor");
+            var factory = CreateDocumentContextFactory(uri, input);
+            var context = await factory.TryCreateAsync(uri, DisposalToken);
+            Assert.NotNull(context);
+            var inputSourceText = await context!.GetSourceTextAsync(DisposalToken);
+
+            var computedEdits = new TextEdit[]
+            {
+                new TextEdit
+                {
+                    NewText="<div>\r\n    ",
+                    Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
+                },
+                new TextEdit
+                {
+                    NewText="    ",
+                    Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
+                },
+                new TextEdit
+                {
+                    // This is the problematic edit.. the close brace has been replaced with a tilde
+                    NewText="    ~\r\n</div>",
+                    Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
+                }
+            };
+
+            var edits = await WrapWithTagEndpoint.CleanUpTextEditsAsync(context!, computedEdits, DisposalToken);
+            Assert.NotSame(computedEdits, edits);
+
+            var finalText = inputSourceText.WithChanges(edits.Select(e => e.AsTextChange(inputSourceText)));
+            Assert.Equal(expected, finalText.ToString());
+        }
+
+        [Fact]
+        public async Task CleanUpTextEdits_GoodEditWithTilde()
+        {
+            var input = """
+                @if (true)
+                {
+                ~
+                """;
+
+            var expected = """
+                <div>
+                    @if (true)
+                    {
+                    ~
+                </div>
+                """;
+
+            var uri = new Uri("file://path.razor");
+            var factory = CreateDocumentContextFactory(uri, input);
+            var context = await factory.TryCreateAsync(uri, DisposalToken);
+            Assert.NotNull(context);
+            var inputSourceText = await context!.GetSourceTextAsync(DisposalToken);
+
+            var computedEdits = new TextEdit[]
+            {
+                new TextEdit
+                {
+                    NewText="<div>\r\n    ",
+                    Range = new Range { Start= new Position(0, 0), End = new Position(0, 0) }
+                },
+                new TextEdit
+                {
+                    NewText="    ",
+                    Range = new Range { Start= new Position(1, 0), End = new Position(1, 0) }
+                },
+                new TextEdit
+                {
+                    // This looks like a bad edit, but the original source document had a tilde
+                    NewText="    ~\r\n</div>",
+                    Range = new Range { Start= new Position(2, 0), End = new Position(2, 1) }
+                }
+            };
+
+            var edits = await WrapWithTagEndpoint.CleanUpTextEditsAsync(context!, computedEdits, DisposalToken);
+            Assert.NotSame(computedEdits, edits);
+
+            var finalText = inputSourceText.WithChanges(edits.Select(e => e.AsTextChange(inputSourceText)));
+            Assert.Equal(expected, finalText.ToString());
         }
     }
 }

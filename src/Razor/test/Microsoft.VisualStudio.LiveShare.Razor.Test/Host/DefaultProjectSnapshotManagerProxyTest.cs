@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
@@ -13,45 +12,49 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LiveShare.Razor.Test;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 {
     public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDispatcherTestBase
     {
-        public DefaultProjectSnapshotManagerProxyTest()
+        private readonly Workspace _workspace;
+        private readonly ProjectSnapshot _projectSnapshot1;
+        private readonly ProjectSnapshot _projectSnapshot2;
+
+        public DefaultProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            Workspace = TestWorkspace.Create();
+            _workspace = TestWorkspace.Create();
+            AddDisposable(_workspace);
+
             var projectWorkspaceState1 = new ProjectWorkspaceState(new[]
             {
                 TagHelperDescriptorBuilder.Create("test1", "TestAssembly1").Build(),
-            }, default);
-            ProjectSnapshot1 = new DefaultProjectSnapshot(
+            },
+            default);
+            _projectSnapshot1 = new DefaultProjectSnapshot(
                 ProjectState.Create(
-                    Workspace.Services,
+                    _workspace.Services,
                     new HostProject("/host/path/to/project1.csproj", RazorConfiguration.Default, "project1"),
                     projectWorkspaceState1));
             var projectWorkspaceState2 = new ProjectWorkspaceState(new[]
             {
                 TagHelperDescriptorBuilder.Create("test2", "TestAssembly2").Build(),
-            }, default);
-            ProjectSnapshot2 = new DefaultProjectSnapshot(
+            },
+            default);
+            _projectSnapshot2 = new DefaultProjectSnapshot(
                 ProjectState.Create(
-                    Workspace.Services,
+                    _workspace.Services,
                     new HostProject("/host/path/to/project2.csproj", RazorConfiguration.Default, "project2"),
                     projectWorkspaceState2));
         }
-
-        private Workspace Workspace { get; }
-
-        private ProjectSnapshot ProjectSnapshot1 { get; }
-
-        private ProjectSnapshot ProjectSnapshot2 { get; }
 
         [Fact]
         public async Task CalculateUpdatedStateAsync_ReturnsStateForAllProjects()
         {
             // Arrange
-            var projectSnapshotManager = new TestProjectSnapshotManager(ProjectSnapshot1, ProjectSnapshot2);
+            var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1, _projectSnapshot2);
             using var proxy = new DefaultProjectSnapshotManagerProxy(
                 new TestCollaborationSession(true),
                 Dispatcher,
@@ -67,12 +70,12 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
                 handle =>
                 {
                     Assert.Equal("vsls:/path/to/project1.csproj", handle.FilePath.ToString());
-                    Assert.Equal(ProjectSnapshot1.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+                    Assert.Equal(_projectSnapshot1.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
                 },
                 handle =>
                 {
                     Assert.Equal("vsls:/path/to/project2.csproj", handle.FilePath.ToString());
-                    Assert.Equal(ProjectSnapshot2.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+                    Assert.Equal(_projectSnapshot2.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
                 });
         }
 
@@ -80,13 +83,13 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
         public async Task Changed_TriggersOnSnapshotManagerChanged()
         {
             // Arrange
-            var projectSnapshotManager = new TestProjectSnapshotManager(ProjectSnapshot1);
+            var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
             using var proxy = new DefaultProjectSnapshotManagerProxy(
                 new TestCollaborationSession(true),
                 Dispatcher,
                 projectSnapshotManager,
                 JoinableTaskFactory);
-            var changedArgs = new ProjectChangeEventArgs(ProjectSnapshot1, ProjectSnapshot1, ProjectChangeKind.ProjectChanged);
+            var changedArgs = new ProjectChangeEventArgs(_projectSnapshot1, _projectSnapshot1, ProjectChangeKind.ProjectChanged);
             var called = false;
             proxy.Changed += (sender, args) =>
             {
@@ -108,13 +111,13 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
         public void Changed_NoopsIfProxyDisposed()
         {
             // Arrange
-            var projectSnapshotManager = new TestProjectSnapshotManager(ProjectSnapshot1);
+            var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
             var proxy = new DefaultProjectSnapshotManagerProxy(
                 new TestCollaborationSession(true),
                 Dispatcher,
                 projectSnapshotManager,
                 JoinableTaskFactory);
-            var changedArgs = new ProjectChangeEventArgs(ProjectSnapshot1, ProjectSnapshot1, ProjectChangeKind.ProjectChanged);
+            var changedArgs = new ProjectChangeEventArgs(_projectSnapshot1, _projectSnapshot1, ProjectChangeKind.ProjectChanged);
             proxy.Changed += (sender, args) => throw new InvalidOperationException("Should not have been called.");
             proxy.Dispose();
 
@@ -129,7 +132,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
         public async Task GetLatestProjectsAsync_ReturnsSnapshotManagerProjects()
         {
             // Arrange
-            var projectSnapshotManager = new TestProjectSnapshotManager(ProjectSnapshot1);
+            var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
             using var proxy = new DefaultProjectSnapshotManagerProxy(
                 new TestCollaborationSession(true),
                 Dispatcher,
@@ -141,14 +144,14 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
 
             // Assert
             var project = Assert.Single(projects);
-            Assert.Same(ProjectSnapshot1, project);
+            Assert.Same(_projectSnapshot1, project);
         }
 
         [Fact]
         public async Task GetStateAsync_ReturnsProjectState()
         {
             // Arrange
-            var projectSnapshotManager = new TestProjectSnapshotManager(ProjectSnapshot1, ProjectSnapshot2);
+            var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1, _projectSnapshot2);
             using var proxy = new DefaultProjectSnapshotManagerProxy(
                 new TestCollaborationSession(true),
                 Dispatcher,
@@ -156,7 +159,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
                 JoinableTaskFactory);
 
             // Act
-            var state = await JoinableTaskFactory.RunAsync(() => proxy.GetProjectManagerStateAsync(CancellationToken.None));
+            var state = await JoinableTaskFactory.RunAsync(() => proxy.GetProjectManagerStateAsync(DisposalToken));
 
             // Assert
             Assert.Collection(
@@ -164,12 +167,12 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
                 handle =>
                 {
                     Assert.Equal("vsls:/path/to/project1.csproj", handle.FilePath.ToString());
-                    Assert.Equal(ProjectSnapshot1.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+                    Assert.Equal(_projectSnapshot1.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
                 },
                 handle =>
                 {
                     Assert.Equal("vsls:/path/to/project2.csproj", handle.FilePath.ToString());
-                    Assert.Equal(ProjectSnapshot2.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+                    Assert.Equal(_projectSnapshot2.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
                 });
         }
 
@@ -177,7 +180,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
         public async Task GetStateAsync_CachesState()
         {
             // Arrange
-            var projectSnapshotManager = new TestProjectSnapshotManager(ProjectSnapshot1);
+            var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
             using var proxy = new DefaultProjectSnapshotManagerProxy(
                 new TestCollaborationSession(true),
                 Dispatcher,
@@ -185,8 +188,8 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Host
                 JoinableTaskFactory);
 
             // Act
-            var state1 = await JoinableTaskFactory.RunAsync(() => proxy.GetProjectManagerStateAsync(CancellationToken.None));
-            var state2 = await JoinableTaskFactory.RunAsync(() => proxy.GetProjectManagerStateAsync(CancellationToken.None));
+            var state1 = await JoinableTaskFactory.RunAsync(() => proxy.GetProjectManagerStateAsync(DisposalToken));
+            var state2 = await JoinableTaskFactory.RunAsync(() => proxy.GetProjectManagerStateAsync(DisposalToken));
 
             // Assert
             Assert.Same(state1, state2);

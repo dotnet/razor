@@ -2,26 +2,23 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using System.Diagnostics.CodeAnalysis;
-using OmniSharp.Extensions.LanguageServer.Protocol.Document;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.LinkedEditingRange;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
 {
-    internal class LinkedEditingRangeEndpoint : ILinkedEditingRangeHandler
+    internal class LinkedEditingRangeEndpoint : ILinkedEditingRangeEndpoint
     {
         // The regex below excludes characters that can never be valid in a TagHelper name.
         // This is loosely based off logic from the Razor compiler:
@@ -29,82 +26,58 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
         // Internal for testing only.
         internal static readonly string WordPattern = @"!?[^ <>!\/\?\[\]=""\\@" + Environment.NewLine + "]+";
 
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly DocumentResolver _documentResolver;
         private readonly ILogger _logger;
 
-        public LinkedEditingRangeEndpoint(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            DocumentResolver documentResolver,
-            ILoggerFactory loggerFactory)
+        public LinkedEditingRangeEndpoint(ILoggerFactory loggerFactory)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (documentResolver is null)
-            {
-                throw new ArgumentNullException(nameof(documentResolver));
-            }
-
             if (loggerFactory is null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _documentResolver = documentResolver;
             _logger = loggerFactory.CreateLogger<LinkedEditingRangeEndpoint>();
         }
 
-        public LinkedEditingRangeRegistrationOptions GetRegistrationOptions(
-            LinkedEditingRangeClientCapabilities capability,
-            ClientCapabilities clientCapabilities)
+        public bool MutatesSolutionState => false;
+
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
-            return new LinkedEditingRangeRegistrationOptions
-            {
-                DocumentSelector = RazorDefaults.Selector
-            };
+            const string ServerCapability = "linkedEditingRangeProvider";
+            var option = new SumType<bool, LinkedEditingRangeOptions>(new LinkedEditingRangeOptions { });
+
+            return new RegistrationExtensionResult(ServerCapability, option);
         }
 
-#pragma warning disable CS8613 // Nullability of reference types in return type doesn't match implicitly implemented member.
-        // The return type of the handler should be nullable. O# tracking issue:
-        // https://github.com/OmniSharp/csharp-language-server-protocol/issues/644
-        public async Task<LinkedEditingRanges?> Handle(
-#pragma warning restore CS8613 // Nullability of reference types in return type doesn't match implicitly implemented member.
+        public TextDocumentIdentifier GetTextDocumentIdentifier(LinkedEditingRangeParams request)
+        {
+            return request.TextDocument;
+        }
+
+        public async Task<LinkedEditingRanges?> HandleRequestAsync(
             LinkedEditingRangeParams request,
+            RazorRequestContext requestContext,
             CancellationToken cancellationToken)
         {
-            var uri = request.TextDocument.Uri.GetAbsoluteOrUNCPath();
-            var document = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
+            var documentContext = requestContext.DocumentContext;
+            if (documentContext is null || cancellationToken.IsCancellationRequested)
             {
-                if (!_documentResolver.TryResolveDocument(uri, out var documentSnapshot))
-                {
-                    _logger.LogWarning("Unable to resolve document for {Uri}", uri);
-                    return null;
-                }
-
-                return documentSnapshot;
-            }, cancellationToken).ConfigureAwait(false);
-
-            if (document is null || cancellationToken.IsCancellationRequested)
-            {
-                _logger.LogWarning("Unable to resolve document for {Uri} or cancellation was requested.", uri);
+                _logger.LogWarning("Unable to resolve document for {Uri} or cancellation was requested.", request.TextDocument.Uri);
                 return null;
             }
 
-            var codeDocument = await document.GetGeneratedOutputAsync();
+            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
             if (codeDocument.IsUnsupported())
             {
                 _logger.LogWarning("FileKind {FileKind} is unsupported", codeDocument.GetFileKind());
                 return null;
             }
 
-            var location = await GetSourceLocation(request, document).ConfigureAwait(false);
+            var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken);
+
+            var location = await GetSourceLocation(request, documentContext, cancellationToken).ConfigureAwait(false);
 
             // We only care if the user is within a TagHelper or HTML tag with a valid start and end tag.
-            if (TryGetNearestMarkupNameTokens(codeDocument, location, out var startTagNameToken, out var endTagNameToken) &&
+            if (TryGetNearestMarkupNameTokens(syntaxTree, location, out var startTagNameToken, out var endTagNameToken) &&
                 (startTagNameToken.Span.Contains(location.AbsoluteIndex) || endTagNameToken.Span.Contains(location.AbsoluteIndex) ||
                 startTagNameToken.Span.End == location.AbsoluteIndex || endTagNameToken.Span.End == location.AbsoluteIndex))
             {
@@ -119,14 +92,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
                 };
             }
 
-            _logger.LogInformation("LinkedEditingRange request was null at {location} for {uri}", location, uri);
+            _logger.LogInformation("LinkedEditingRange request was null at {location} for {uri}", location, request.TextDocument.Uri);
             return null;
 
             static async Task<SourceLocation> GetSourceLocation(
                 LinkedEditingRangeParams request,
-                DocumentSnapshot document)
+                DocumentContext documentContext,
+                CancellationToken cancellationToken)
             {
-                var sourceText = await document.GetTextAsync().ConfigureAwait(false);
+                var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
                 var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
                 var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
                 var location = new SourceLocation(hostDocumentIndex, request.Position.Line, request.Position.Character);
@@ -135,12 +109,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange
             }
 
             static bool TryGetNearestMarkupNameTokens(
-                RazorCodeDocument codeDocument,
+                RazorSyntaxTree syntaxTree,
                 SourceLocation location,
                 [NotNullWhen(true)] out SyntaxToken? startTagNameToken,
                 [NotNullWhen(true)] out SyntaxToken? endTagNameToken)
             {
-                var syntaxTree = codeDocument.GetSyntaxTree();
                 var change = new SourceChange(location.AbsoluteIndex, length: 0, newText: "");
                 var owner = syntaxTree.Root.LocateOwner(change);
                 var element = owner.FirstAncestorOrSelf<MarkupSyntaxNode>(

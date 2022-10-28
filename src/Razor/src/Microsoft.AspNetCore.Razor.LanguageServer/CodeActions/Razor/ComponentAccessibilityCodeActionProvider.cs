@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,29 +15,26 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvider
     {
-        private static readonly Task<IReadOnlyList<RazorCodeAction>> s_emptyResult = Task.FromResult<IReadOnlyList<RazorCodeAction>>(null);
+        private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult = Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(null);
 
         private readonly TagHelperFactsService _tagHelperFactsService;
-        private readonly FilePathNormalizer _filePathNormalizer;
 
-        public ComponentAccessibilityCodeActionProvider(
-            TagHelperFactsService tagHelperFactsService,
-            FilePathNormalizer filePathNormalizer)
+        public ComponentAccessibilityCodeActionProvider(TagHelperFactsService tagHelperFactsService)
         {
             _tagHelperFactsService = tagHelperFactsService ?? throw new ArgumentNullException(nameof(tagHelperFactsService));
-            _filePathNormalizer = filePathNormalizer ?? throw new ArgumentNullException(nameof(filePathNormalizer));
         }
 
-        public override Task<IReadOnlyList<RazorCodeAction>> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+        public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
-            var codeActions = new List<RazorCodeAction>();
+            var codeActions = new List<RazorVSInternalCodeAction>();
 
             // Locate cursor
             var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
@@ -73,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 AddCreateComponentFromTag(context, startTag, codeActions);
             }
 
-            return Task.FromResult(codeActions as IReadOnlyList<RazorCodeAction>);
+            return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(codeActions);
         }
 
         private static bool IsApplicableTag(MarkupStartTagSyntax startTag)
@@ -87,7 +82,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return true;
         }
 
-        private void AddCreateComponentFromTag(RazorCodeActionContext context, MarkupStartTagSyntax startTag, List<RazorCodeAction> container)
+        private void AddCreateComponentFromTag(RazorCodeActionContext context, MarkupStartTagSyntax startTag, List<RazorVSInternalCodeAction> container)
         {
             if (context is null)
             {
@@ -100,7 +95,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var path = context.Request.TextDocument.Uri.GetAbsoluteOrUNCPath();
-            path = _filePathNormalizer.Normalize(path);
+            path = FilePathNormalizer.Normalize(path);
             var newComponentPath = Path.Combine(Path.GetDirectoryName(path), $"{startTag.Name.Content}.razor");
             if (File.Exists(newComponentPath))
             {
@@ -124,7 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             container.Add(codeAction);
         }
 
-        private void AddComponentAccessFromTag(RazorCodeActionContext context, MarkupStartTagSyntax startTag, List<RazorCodeAction> container)
+        private void AddComponentAccessFromTag(RazorCodeActionContext context, MarkupStartTagSyntax startTag, List<RazorVSInternalCodeAction> container)
         {
             var matching = FindMatchingTagHelpers(context, startTag);
 
@@ -156,7 +151,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             // Get all data necessary for matching
             var tagName = startTag.Name.Content;
-            string parentTagName = null;
+            string? parentTagName = null;
             if (startTag.Parent?.Parent is MarkupElementSyntax parentElement)
             {
                 parentTagName = parentElement.StartTag?.Name.Content ?? parentElement.EndTag?.Name.Content;
@@ -174,7 +169,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 if (tagHelper.TagMatchingRules.All(rule => TagHelperMatchingConventions.SatisfiesRule(tagName, parentTagName, attributes, rule)))
                 {
-                    matching.Add(tagHelper.Name, new TagHelperPair { _short = tagHelper });
+                    matching.Add(tagHelper.Name, new TagHelperPair(@short: tagHelper));
                 }
             }
 
@@ -206,7 +201,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             textEdits.Add(startTagTextEdit);
 
-            var endTag = (startTag.Parent as MarkupElementSyntax).EndTag;
+            var endTag = (startTag.Parent as MarkupElementSyntax)?.EndTag;
             if (endTag != null)
             {
                 var endTagTextEdit = new TextEdit
@@ -220,16 +215,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             return new WorkspaceEdit
             {
-                DocumentChanges = new List<WorkspaceEditDocumentChange>()
+                DocumentChanges = new List<TextDocumentEdit>()
                 {
-                    new WorkspaceEditDocumentChange(
                         new TextDocumentEdit()
                         {
                             TextDocument = codeDocumentIdentifier,
-                            Edits = textEdits,
+                            Edits = textEdits.ToArray(),
                         }
-                    )
-                }
+                }.ToArray(),
             };
         }
 
@@ -254,8 +247,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
         private class TagHelperPair
         {
-            public TagHelperDescriptor _short = null;
-            public TagHelperDescriptor _fullyQualified = null;
+            public TagHelperDescriptor _short;
+            public TagHelperDescriptor? _fullyQualified = null;
+
+            public TagHelperPair(TagHelperDescriptor @short, TagHelperDescriptor? fullyQualified = null)
+            {
+                _short = @short;
+                _fullyQualified = fullyQualified;
+            }
         }
     }
 }

@@ -4,28 +4,32 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
 {
-    public class VirtualDocumentBaseTest
+    public class VirtualDocumentBaseTest : TestBase
     {
-        public VirtualDocumentBaseTest()
-        {
-            Uri = new Uri("C:/path/to/file.razor__virtual.test");
-        }
+        private readonly Uri _uri;
 
-        private Uri Uri { get; }
+        public VirtualDocumentBaseTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _uri = new Uri("C:/path/to/file.razor__virtual.test");
+        }
 
         [Fact]
         public void Update_AlwaysSetsHostDocumentSyncVersion_AndUpdatesSnapshot_AndSetsState()
         {
             // Arrange
             var textBuffer = new TestTextBuffer(StringTextSnapshot.Empty);
-            using var document = new TestVirtualDocument(Uri, textBuffer);
+            using var document = new TestVirtualDocument(_uri, textBuffer);
             var originalSnapshot = document.CurrentSnapshot;
             var originalState = new object();
 
@@ -44,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var insert = new VisualStudioTextChange(0, 0, "inserted text");
             var textBuffer = new TestTextBuffer(StringTextSnapshot.Empty);
-            using var document = new TestVirtualDocument(Uri, textBuffer);
+            using var document = new TestVirtualDocument(_uri, textBuffer);
 
             // Act
             document.Update(new[] { insert }, hostDocumentVersion: 1, state: null);
@@ -60,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var textBuffer = new TestTextBuffer(new StringTextSnapshot("original"));
             var replace = new VisualStudioTextChange(0, textBuffer.CurrentSnapshot.Length, "replaced text");
-            using var document = new TestVirtualDocument(Uri, textBuffer);
+            using var document = new TestVirtualDocument(_uri, textBuffer);
 
             // Act
             document.Update(new[] { replace }, hostDocumentVersion: 1, state: null);
@@ -76,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             // Arrange
             var textBuffer = new TestTextBuffer(new StringTextSnapshot("Hello World"));
             var delete = new VisualStudioTextChange(6, 5, string.Empty);
-            using var document = new TestVirtualDocument(Uri, textBuffer);
+            using var document = new TestVirtualDocument(_uri, textBuffer);
 
             // Act
             document.Update(new[] { delete }, hostDocumentVersion: 1, state: null);
@@ -93,7 +97,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
             var textBuffer = new TestTextBuffer(new StringTextSnapshot("Hello World"));
             var replace = new VisualStudioTextChange(6, 5, "Replaced");
             var delete = new VisualStudioTextChange(0, 6, string.Empty);
-            using var document = new TestVirtualDocument(Uri, textBuffer);
+            using var document = new TestVirtualDocument(_uri, textBuffer);
 
             // Act
             document.Update(new[] { replace, delete }, hostDocumentVersion: 1, state: null);
@@ -117,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
                 called += 1;
             };
 
-            using var document = new TestVirtualDocument(Uri, textBuffer);
+            using var document = new TestVirtualDocument(_uri, textBuffer);
 
             // Act
             document.Update(Array.Empty<ITextChange>(), hostDocumentVersion: 1, state: null);

@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -12,6 +11,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 {
     internal abstract class TagHelperTooltipFactoryBase
     {
+        protected static readonly string TagContentGroupName = "content";
+        private static readonly Regex s_codeRegex = new Regex($"""<(?:c|code)>(?<{TagContentGroupName}>.*?)<\/(?:c|code)>""", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+        private static readonly Regex s_crefRegex = new Regex($"""<(?:see|seealso)[\s]+cref="(?<{TagContentGroupName}>[^">]+)"[^>]*>""", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+
         private static readonly IReadOnlyList<char> s_newLineChars = new char[] { '\n', '\r' };
 
         // Internal for testing
@@ -52,12 +55,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
         internal static string ReduceMemberName(string content) => ReduceFullName(content, reduceWhenDotCount: 2);
 
         // Internal for testing
-        internal static bool TryExtractSummary(string documentation, out string summary)
+        internal static bool TryExtractSummary(string? documentation, [NotNullWhen(returnValue: true)] out string? summary)
         {
             const string SummaryStartTag = "<summary>";
             const string SummaryEndTag = "</summary>";
 
-            if (string.IsNullOrEmpty(documentation))
+            if (documentation is null || documentation == string.Empty)
             {
                 summary = null;
                 return false;
@@ -90,15 +93,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Tooltip
 
         internal static List<Match> ExtractCodeMatches(string summaryContent)
         {
-            var codeRegex = new Regex(@"<code>(.*?)<\/code>", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
-            var successfulMatches = ExtractSuccessfulMatches(codeRegex, summaryContent);
+            var successfulMatches = ExtractSuccessfulMatches(s_codeRegex, summaryContent);
             return successfulMatches;
-    }
+        }
 
         internal static List<Match> ExtractCrefMatches(string summaryContent)
         {
-            var crefRegex = new Regex("<(see|seealso)[\\s]+cref=\"([^\">]+)\"[^>]*>", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
-            var successfulMatches = ExtractSuccessfulMatches(crefRegex, summaryContent);
+            var successfulMatches = ExtractSuccessfulMatches(s_crefRegex, summaryContent);
             return successfulMatches;
         }
 

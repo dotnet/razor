@@ -2,6 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -27,12 +29,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
         private readonly HeaderDelimitedMessageHandler _clientMessageHandler;
         private readonly HeaderDelimitedMessageHandler _serverMessageHandler;
 
+        private readonly CancellationToken _cancellationToken;
+
         private CSharpTestLspServer(
             AdhocWorkspace testWorkspace,
             ExportProvider exportProvider,
-            ServerCapabilities serverCapabilities)
+            ServerCapabilities serverCapabilities,
+            CancellationToken cancellationToken)
         {
             _testWorkspace = testWorkspace;
+            _cancellationToken = cancellationToken;
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
@@ -84,36 +90,41 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             AdhocWorkspace testWorkspace,
             ExportProvider exportProvider,
             ClientCapabilities clientCapabilities,
-            ServerCapabilities serverCapabilities)
+            ServerCapabilities serverCapabilities,
+            CancellationToken cancellationToken)
         {
-            var server = new CSharpTestLspServer(testWorkspace, exportProvider, serverCapabilities);
+            var server = new CSharpTestLspServer(testWorkspace, exportProvider, serverCapabilities, cancellationToken);
 
-            await server.ExecuteRequestAsync<InitializeParams, InitializeResult>(Methods.InitializeName, new InitializeParams
-            {
-                Capabilities = clientCapabilities,
-            }, CancellationToken.None);
+            await server.ExecuteRequestAsync<InitializeParams, InitializeResult>(
+                Methods.InitializeName,
+                new InitializeParams
+                {
+                    Capabilities = clientCapabilities,
+                },
+                cancellationToken);
 
-            await server.ExecuteRequestAsync(Methods.InitializedName, new InitializedParams(), CancellationToken.None);
+            await server.ExecuteRequestAsync(Methods.InitializedName, new InitializedParams(), cancellationToken);
+
             return server;
         }
 
-        internal async Task ExecuteRequestAsync<RequestType>(
+        internal Task ExecuteRequestAsync<RequestType>(
             string methodName,
             RequestType request,
             CancellationToken cancellationToken) where RequestType : class
-            => await _clientRpc.InvokeWithParameterObjectAsync(
+            => _clientRpc.InvokeWithParameterObjectAsync(
                 methodName,
                 request,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
 
-        internal async Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(
+        internal Task<ResponseType> ExecuteRequestAsync<RequestType, ResponseType>(
             string methodName,
             RequestType request,
-            CancellationToken cancellationToken) where RequestType : class
-            => await _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(
+            CancellationToken cancellationToken)
+            => _clientRpc.InvokeWithParameterObjectAsync<ResponseType>(
                 methodName,
                 request,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
 
         public async ValueTask DisposeAsync()
         {
@@ -129,6 +140,53 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
             await _serverMessageHandler.DisposeAsync();
         }
 
+        #region Document Change Methods
+
+        public async Task OpenDocumentAsync(Uri documentUri, string documentText)
+        {
+            var didOpenParams = CreateDidOpenTextDocumentParams(documentUri, documentText);
+            await ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, _cancellationToken);
+
+            static DidOpenTextDocumentParams CreateDidOpenTextDocumentParams(Uri uri, string source)
+                => new()
+                {
+                    TextDocument = new TextDocumentItem
+                    {
+                        Text = source,
+                        Uri = uri
+                    }
+                };
+        }
+
+        public async Task ReplaceTextAsync(Uri documentUri, params (Range Range, string Text)[] changes)
+        {
+            var didChangeParams = CreateDidChangeTextDocumentParams(
+                documentUri,
+                changes.Select(change => (change.Range, change.Text)).ToImmutableArray());
+
+            await ExecuteRequestAsync<DidChangeTextDocumentParams, object>(Methods.TextDocumentDidChangeName, didChangeParams, _cancellationToken);
+
+            static DidChangeTextDocumentParams CreateDidChangeTextDocumentParams(Uri documentUri, ImmutableArray<(Range Range, string Text)> changes)
+            {
+                var changeEvents = changes.Select(change => new TextDocumentContentChangeEvent
+                {
+                    Text = change.Text,
+                    Range = change.Range,
+                }).ToArray();
+
+                return new DidChangeTextDocumentParams()
+                {
+                    TextDocument = new VersionedTextDocumentIdentifier
+                    {
+                        Uri = documentUri
+                    },
+                    ContentChanges = changeEvents
+                };
+            }
+        }
+
+        #endregion
+
         private class RazorCapabilitiesProvider : IRazorCapabilitiesProvider
         {
             private readonly ServerCapabilities _serverCapabilities;
@@ -138,7 +196,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
                 _serverCapabilities = serverCapabilities;
             }
 
-            public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities) => _serverCapabilities;
+            public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+                => _serverCapabilities;
         }
     }
 }

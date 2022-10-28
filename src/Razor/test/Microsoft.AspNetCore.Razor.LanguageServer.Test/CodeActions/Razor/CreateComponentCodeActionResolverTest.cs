@@ -5,30 +5,40 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class CreateComponentCodeActionResolverTest : LanguageServerTestBase
     {
-        private readonly DocumentResolver _emptyDocumentResolver = Mock.Of<DocumentResolver>(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<DocumentSnapshot>.IsAny) == false, MockBehavior.Strict);
+        private readonly DocumentContextFactory _emptyDocumentContextFactory;
+
+        public CreateComponentCodeActionResolverTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _emptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(
+                r => r.TryCreateAsync(
+                    It.IsAny<Uri>(),
+                    It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(null),
+                MockBehavior.Strict);
+        }
 
         [Fact]
         public async Task Handle_MissingFile()
         {
             // Arrange
-            var resolver = new CreateComponentCodeActionResolver(Dispatcher, _emptyDocumentResolver);
+            var resolver = new CreateComponentCodeActionResolver(_emptyDocumentContextFactory);
             var data = JObject.FromObject(new CreateComponentCodeActionParams()
             {
                 Uri = new Uri("c:/Test.razor"),
@@ -46,15 +56,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public async Task Handle_Unsupported()
         {
             // Arrange
-            var documentPath = "c:/Test.razor";
+            var documentPath = new Uri("c:/Test.razor");
             var contents = $"@page \"/test\"";
             var codeDocument = CreateCodeDocument(contents);
             codeDocument.SetUnsupported();
 
-            var resolver = new CreateComponentCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new CreateComponentCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
             var data = JObject.FromObject(new CreateComponentCodeActionParams()
             {
-                Uri = new Uri(documentPath),
+                Uri = documentPath,
                 Path = "c:/Another.razor",
             });
 
@@ -69,15 +79,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public async Task Handle_InvalidFileKind()
         {
             // Arrange
-            var documentPath = "c:/Test.razor";
+            var documentPath = new Uri("c:/Test.razor");
             var contents = $"@page \"/test\"";
             var codeDocument = CreateCodeDocument(contents);
             codeDocument.SetFileKind(FileKinds.Legacy);
 
-            var resolver = new CreateComponentCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new CreateComponentCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
             var data = JObject.FromObject(new CreateComponentCodeActionParams()
             {
-                Uri = new Uri(documentPath),
+                Uri = documentPath,
                 Path = "c:/Another.razor",
             });
 
@@ -92,15 +102,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public async Task Handle_CreateComponent()
         {
             // Arrange
-            var documentPath = "c:/Test.razor";
-            var documentUri = new Uri(documentPath);
+            var documentPath = new Uri("c:/Test.razor");
             var contents = $"@page \"/test\"";
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new CreateComponentCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new CreateComponentCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
             var actionParams = new CreateComponentCodeActionParams
             {
-                Uri = documentUri,
+                Uri = documentPath,
                 Path = "c:/Another.razor",
             };
             var data = JObject.FromObject(actionParams);
@@ -111,26 +120,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Single(workspaceEdit.DocumentChanges);
+            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
-            var createFileChange = documentChanges[0];
-            Assert.True(createFileChange.IsCreateFile);
+            var createFileChange = workspaceEdit.DocumentChanges.Value.First();
+            Assert.True(createFileChange.TryGetSecond(out var _));
         }
 
         [Fact]
         public async Task Handle_CreateComponentWithNamespace()
         {
             // Arrange
-            var documentPath = "c:/Test.razor";
-            var documentUri = new Uri(documentPath);
+            var documentPath = new Uri("c:/Test.razor");
             var contents = $"@page \"/test\"{Environment.NewLine}@namespace Another.Namespace";
             var codeDocument = CreateCodeDocument(contents);
 
-            var resolver = new CreateComponentCodeActionResolver(Dispatcher, CreateDocumentResolver(documentPath, codeDocument));
+            var resolver = new CreateComponentCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
             var actionParams = new CreateComponentCodeActionParams
             {
-                Uri = documentUri,
+                Uri = documentPath,
                 Path = "c:/Another.razor",
             };
             var data = JObject.FromObject(actionParams);
@@ -141,30 +148,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             // Assert
             Assert.NotNull(workspaceEdit);
             Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(2, workspaceEdit.DocumentChanges.Count());
+            Assert.Equal(2, workspaceEdit.DocumentChanges.Value.Count());
 
-            var documentChanges = workspaceEdit.DocumentChanges.ToArray();
-            var createFileChange = documentChanges[0];
-            Assert.True(createFileChange.IsCreateFile);
+            var createFileChange = workspaceEdit.DocumentChanges.Value.First();
+            Assert.True(createFileChange.TryGetSecond(out var _));
 
-            var editNewComponentChange = documentChanges[1];
-            var editNewComponentEdit = editNewComponentChange.TextDocumentEdit.Edits.First();
+            var editNewComponentChange = workspaceEdit.DocumentChanges.Value.Last();
+            var editNewComponentEdit = editNewComponentChange.First.Edits.First();
             Assert.Contains("@namespace Another.Namespace", editNewComponentEdit.NewText, StringComparison.Ordinal);
-        }
-
-        private static DocumentResolver CreateDocumentResolver(string documentPath, RazorCodeDocument codeDocument)
-        {
-            var sourceTextChars = new char[codeDocument.Source.Length];
-            codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
-            var sourceText = SourceText.From(new string(sourceTextChars));
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(document =>
-                document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-                document.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
-            var documentResolver = new Mock<DocumentResolver>(MockBehavior.Strict);
-            documentResolver
-                .Setup(resolver => resolver.TryResolveDocument(documentPath, out documentSnapshot))
-                .Returns(true);
-            return documentResolver.Object;
         }
 
         private static RazorCodeDocument CreateCodeDocument(string text)

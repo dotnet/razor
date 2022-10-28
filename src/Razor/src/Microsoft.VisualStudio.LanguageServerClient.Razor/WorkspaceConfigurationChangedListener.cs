@@ -5,14 +5,12 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
-using DidChangeConfigurationParams = OmniSharp.Extensions.LanguageServer.Protocol.Models.DidChangeConfigurationParams;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 {
@@ -67,6 +65,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // and just lookup generic Razor language server specific capabilities. If they exist we can succeed.
             var isRazorLanguageServer = RazorLanguageServerCapability.TryGet(token, out _);
             return isRazorLanguageServer;
+        }
+
+        private class Unit
+        {
+
         }
     }
 }

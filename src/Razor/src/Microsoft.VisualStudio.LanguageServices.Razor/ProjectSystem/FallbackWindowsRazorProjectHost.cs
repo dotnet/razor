@@ -1,12 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -15,7 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.ProjectSystem;
 using ContentItem = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.ContentItem;
@@ -34,8 +33,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
     internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
     {
         private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
-        private readonly VSLanguageServerFeatureOptions _languageServerFeatureOptions;
-        private IDisposable _subscription;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+        private IDisposable? _subscription;
 
         [ImportingConstructor]
         public FallbackWindowsRazorProjectHost(
@@ -43,13 +42,16 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            VSLanguageServerFeatureOptions languageServerFeatureOptions)
+            LanguageServerFeatureOptions languageServerFeatureOptions)
             : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
         {
             _languageServerFeatureOptions = languageServerFeatureOptions;
         }
 
+        // Internal for testing
+#pragma warning disable CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
         internal FallbackWindowsRazorProjectHost(
+#pragma warning restore CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
             IUnconfiguredProjectCommonServices commonServices,
             Workspace workspace,
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             if (initialized)
             {
-                _subscription.Dispose();
+                _subscription?.Dispose();
             }
         }
 
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
 
             await CommonServices.TasksService.LoadedProjectAsync(async () => await ExecuteWithLockAsync(async () =>
             {
-                string mvcReferenceFullPath = null;
+                string? mvcReferenceFullPath = null;
                 if (update.Value.CurrentState.ContainsKey(ResolvedCompilationReference.SchemaName))
                 {
                     var references = update.Value.CurrentState[ResolvedCompilationReference.SchemaName].Items;
@@ -167,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         // virtual for overriding in tests
-        protected virtual Version GetAssemblyVersion(string filePath)
+        protected virtual Version? GetAssemblyVersion(string filePath)
         {
             return ReadAssemblyVersion(filePath);
         }
@@ -239,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
         }
 
         // Internal for testing
-        internal bool TryGetRazorDocument(IImmutableDictionary<string, string> itemState, out HostDocument razorDocument)
+        internal bool TryGetRazorDocument(IImmutableDictionary<string, string> itemState, [NotNullWhen(returnValue: true)] out HostDocument? razorDocument)
         {
             if (itemState.TryGetValue(ItemReference.FullPathPropertyName, out var filePath))
             {
@@ -263,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
             return false;
         }
 
-        private static Version ReadAssemblyVersion(string filePath)
+        private static Version? ReadAssemblyVersion(string filePath)
         {
             try
             {

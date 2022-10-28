@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests
@@ -19,7 +18,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
             }
 
             // Open the file
-            await TestServices.SolutionExplorer.OpenFileAsync(BlazorProjectName, ErrorCshtmlFile, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
 
             // Change text to refer back to Program class
             await TestServices.Editor.SetTextAsync(@"
@@ -29,14 +28,14 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
         var    x     =   3
     }
 </script>
-", HangMitigatingCancellationToken);
-            await TestServices.Editor.PlaceCaretAsync("3", charsOffset: 1, HangMitigatingCancellationToken);
+", ControlledHangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("3", charsOffset: 1, ControlledHangMitigatingCancellationToken);
 
             // Act
             TestServices.Input.Send(";");
 
             // Assert
-            await TestServices.Editor.WaitForCurrentLineTextAsync("var x = 3;", HangMitigatingCancellationToken);
+            await TestServices.Editor.WaitForCurrentLineTextAsync("var x = 3;", ControlledHangMitigatingCancellationToken);
         }
     }
 }

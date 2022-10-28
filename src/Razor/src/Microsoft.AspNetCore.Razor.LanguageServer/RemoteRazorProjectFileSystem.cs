@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,25 +14,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
     internal class RemoteRazorProjectFileSystem : RazorProjectFileSystem
     {
         private readonly string _root;
-        private readonly FilePathNormalizer _filePathNormalizer;
 
-        public RemoteRazorProjectFileSystem(
-            string root,
-            FilePathNormalizer filePathNormalizer)
+        public RemoteRazorProjectFileSystem(string root)
         {
             if (root is null)
             {
                 throw new ArgumentNullException(nameof(root));
             }
 
-            if (filePathNormalizer is null)
-            {
-                throw new ArgumentNullException(nameof(filePathNormalizer));
-            }
-
-            _root = filePathNormalizer.NormalizeDirectory(root);
-
-            _filePathNormalizer = filePathNormalizer;
+            _root = FilePathNormalizer.NormalizeDirectory(root);
         }
 
         public override IEnumerable<RazorProjectItem> EnumerateItems(string basePath)
@@ -47,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             return GetItem(path, fileKind: null);
         }
 
-        public override RazorProjectItem GetItem(string path, string fileKind)
+        public override RazorProjectItem GetItem(string path, string? fileKind)
         {
             if (path is null)
             {
@@ -89,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 absolutePath = _root + path;
             }
 
-            absolutePath = _filePathNormalizer.Normalize(absolutePath);
+            absolutePath = FilePathNormalizer.Normalize(absolutePath);
             return absolutePath;
 
             static bool IsPathRootedForPlatform(string path)

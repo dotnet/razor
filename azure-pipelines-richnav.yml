@@ -31,8 +31,8 @@ stages:
       jobs:
       - job: Windows
         pool:
-          name: NetCore1ESPool-Public
-          demands: ImageOverride -equals build.windows.10.amd64.vs2019.pre.open
+          name: NetCore-Public
+          demands: ImageOverride -equals windows.vs2019.amd64.open
 
         steps:
         - task: NodeTool@0
@@ -49,10 +49,17 @@ stages:
             command: custom
             arguments: 'locals all -clear'
 
-        - script: eng\common\cibuild.cmd
-            -configuration Debug
-            -msbuildEngine dotnet
-            -prepareMachine
-          name: Build
+        - task: PowerShell@2
           displayName: Build
           condition: succeeded()
+          inputs:
+            filePath: eng/common/build.ps1
+            arguments: -ci
+                       -restore
+                       -build
+                       -sign
+                       -pack
+                       -publish
+                       -configuration Debug
+                       -msbuildEngine dotnet
+                       -prepareMachine

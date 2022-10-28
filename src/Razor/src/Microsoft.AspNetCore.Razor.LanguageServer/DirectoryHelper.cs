@@ -66,12 +66,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             catch (PathTooLongException ex)
             {
-                logger?.LogWarning(ex.Message);
+                logger?.LogWarning("PathTooLong: {exception}", ex.Message);
                 yield break;
             }
             catch (IOException ex)
             {
-                logger?.LogWarning(ex.Message);
+                logger?.LogWarning("IOException: {exception}", ex.Message);
                 yield break;
             }
 
@@ -93,7 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             catch (PathTooLongException ex)
             {
-                logger?.LogWarning(ex.Message);
+                logger?.LogWarning("PathTooLong: {exception}", ex.Message);
                 yield break;
             }
 

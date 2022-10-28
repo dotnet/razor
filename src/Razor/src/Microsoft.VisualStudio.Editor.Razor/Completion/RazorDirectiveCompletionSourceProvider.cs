@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -35,7 +33,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             _completionFactsService = completionFactsService;
         }
 
-        public IAsyncCompletionSource GetOrCreate(ITextView textView)
+        public IAsyncCompletionSource? GetOrCreate(ITextView textView)
         {
             if (textView is null)
             {
@@ -43,7 +41,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
             }
 
             var razorBuffer = textView.BufferGraph.GetRazorBuffers().FirstOrDefault();
-            if (!razorBuffer.Properties.TryGetProperty(typeof(RazorDirectiveCompletionSource), out IAsyncCompletionSource completionSource) ||
+            if (!razorBuffer.Properties.TryGetProperty(typeof(RazorDirectiveCompletionSource), out IAsyncCompletionSource? completionSource) ||
                 completionSource is null)
             {
                 completionSource = CreateCompletionSource(razorBuffer);
@@ -54,7 +52,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
         }
 
         // Internal for testing
-        internal IAsyncCompletionSource CreateCompletionSource(ITextBuffer razorBuffer)
+        internal IAsyncCompletionSource? CreateCompletionSource(ITextBuffer razorBuffer)
         {
             if (!razorBuffer.Properties.TryGetProperty(typeof(VisualStudioRazorParser), out VisualStudioRazorParser parser))
             {

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -22,7 +20,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
         private readonly TextBufferProjectService _projectService;
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private ProjectSnapshotManagerBase _projectManager;
+        private ProjectSnapshotManagerBase? _projectManager;
 
         [ImportingConstructor]
         public ProjectBuildChangeTrigger(
@@ -92,7 +90,7 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
 
             _projectManager = projectManager;
 
-            if (IdeApp.ProjectOperations != null)
+            if (IdeApp.ProjectOperations is not null)
             {
                 IdeApp.ProjectOperations.EndBuild += ProjectOperations_EndBuild;
             }
@@ -126,12 +124,12 @@ namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
                        }
 
                        var projectPath = _projectService.GetProjectPath(projectItem);
-                       var projectSnapshot = _projectManager.GetLoadedProject(projectPath);
-                       if (projectSnapshot != null)
+                       var projectSnapshot = _projectManager?.GetLoadedProject(projectPath);
+                       if (projectSnapshot is not null)
                        {
-                           var workspaceProject = _projectManager.Workspace.CurrentSolution?.Projects.FirstOrDefault(
+                           var workspaceProject = _projectManager?.Workspace.CurrentSolution?.Projects.FirstOrDefault(
                                project => FilePathComparer.Instance.Equals(project.FilePath, projectSnapshot.FilePath));
-                           if (workspaceProject != null)
+                           if (workspaceProject is not null)
                            {
                                // Trigger a tag helper update by forcing the project manager to see the workspace Project
                                // from the current solution.

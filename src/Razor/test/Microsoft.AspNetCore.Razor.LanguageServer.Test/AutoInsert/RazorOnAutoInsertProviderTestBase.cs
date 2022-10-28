@@ -14,14 +14,20 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
 {
     public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
     {
+        protected RazorOnAutoInsertProviderTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         internal abstract RazorOnAutoInsertProvider CreateProvider();
 
         protected void RunAutoInsertTest(string input, string expected, int tabSize = 4, bool insertSpaces = true, string fileKind = default, IReadOnlyList<TagHelperDescriptor> tagHelpers = default)

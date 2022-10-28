@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -20,7 +18,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         private readonly DefaultLiveShareSessionAccessor _sessionAccessor;
 
         // Internal for testing
-        internal Task _viewImportsCopyTask;
+        internal Task? _viewImportsCopyTask;
 
         [ImportingConstructor]
         public RazorGuestInitializationService([Import(typeof(LiveShareSessionAccessor))] DefaultLiveShareSessionAccessor sessionAccessor)
@@ -57,7 +55,7 @@ namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
         // Today we ensure that all _ViewImports in the shared project exist on the guest because we don't currently track import documents
         // in a manner that would allow us to retrieve/monitor that data across the wire. Once the Razor sub-system is moved to use
         // DocumentSnapshots we'll be able to rely on that API to more properly manage files that impact parsing of Razor documents.
-        private async Task EnsureViewImportsCopiedAsync(CollaborationSession sessionContext, CancellationToken cancellationToken)
+        private static async Task EnsureViewImportsCopiedAsync(CollaborationSession sessionContext, CancellationToken cancellationToken)
         {
             var listDirectoryOptions = new ListDirectoryOptions()
             {

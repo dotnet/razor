@@ -29,11 +29,15 @@
     </AssemblyAttribute>
     <AssemblyAttribute Include="Mono.Addins.AddinDependencyAttribute">
       <_Parameter1>::MonoDevelop.Core</_Parameter1>
-      <_Parameter2>17.0</_Parameter2>
+      <_Parameter2>17.3</_Parameter2>
     </AssemblyAttribute>
     <AssemblyAttribute Include="Mono.Addins.AddinDependencyAttribute">
       <_Parameter1>::MonoDevelop.Ide</_Parameter1>
-      <_Parameter2>17.0</_Parameter2>
+      <_Parameter2>17.3</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="Mono.Addins.AddinDependencyAttribute">
+      <_Parameter1>::MonoDevelop.TextEditor</_Parameter1>
+      <_Parameter2>17.3</_Parameter2>
     </AssemblyAttribute>
   </ItemGroup>
 
@@ -42,23 +46,26 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal" Version="$(MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion)" GeneratePathProperty="true"/>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.Internal.Transport" Version="$(MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion)" GeneratePathProperty="true"/>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.Internal.Transport" Version="$(MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion)" GeneratePathProperty="true"/>
-    <PackageReference Include="Microsoft.AspNetCore.Razor.Symbols.Transport" Version="$(MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion)" GeneratePathProperty="true"/>
-    <PackageReference Include="Microsoft.CodeAnalysis.Razor.Tooling.Internal" Version="$(MicrosoftCodeAnalysisRazorToolingInternalPackageVersion)" GeneratePathProperty="true"/>
-    <PackageReference Include="Mono.Addins" Version="$(MonoAddinsPackageVersion)" />
-
-    <!-- We need to directly reference the O# language server here because we mark it as PrivateAssets="All" in our language server itself -->
-    <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="$(OmniSharpExtensionsLanguageServerPackageVersion)" />
+    <Content Include="$(RepositoryRoot)NOTICE.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <MPackFile Include="$(PkgMicrosoft_AspNetCore_Mvc_Razor_Extensions_Tooling_Internal)\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.dll" />
-    <MPackFile Include="$(PkgMicrosoft_AspNetCore_Mvc_Razor_Extensions_Version1_X_Internal_Transport)\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll" />
-    <MPackFile Include="$(PkgMicrosoft_AspNetCore_Mvc_Razor_Extensions_Version2_X_Internal_Transport)\lib\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />
-    <MPackFile Include="$(PkgMicrosoft_CodeAnalysis_Razor_Tooling_Internal)\lib\netstandard2.0\Microsoft.AspNetCore.Razor.Language.dll" />
-    <MPackFile Include="$(PkgMicrosoft_CodeAnalysis_Razor_Tooling_Internal)\lib\netstandard2.0\Microsoft.CodeAnalysis.Razor.dll" />
+    <PackageReference Include="Mono.Addins" Version="$(MonoAddinsPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Razor.Language\src\Microsoft.AspNetCore.Razor.Language.csproj" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.dll" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.Language\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.Language.dll" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Razor.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Razor.Workspaces.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Editor.Razor\$(Configuration)\net472\Microsoft.VisualStudio.Editor.Razor.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.LanguageServices.Razor\$(Configuration)\net472\Microsoft.VisualStudio.Mac.LanguageServices.Razor.dll" />
@@ -69,23 +76,37 @@
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer.Common\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.LanguageServer.Common.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer.Protocol\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.LanguageServer.Protocol.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.LanguageServer.dll" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\MediatR.dll" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\OmniSharp.Extensions.JsonRpc.dll" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\OmniSharp.Extensions.LanguageProtocol.dll" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\OmniSharp.Extensions.LanguageServer.dll" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\OmniSharp.Extensions.LanguageServer.Shared.dll" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Microsoft.Extensions.Configuration.Binder.dll" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.Common\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.Common.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Microsoft.Extensions.Options.dll" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Microsoft.Extensions.Options.ConfigurationExtensions.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Microsoft.Extensions.Primitives.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Microsoft.Extensions.DependencyInjection.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Microsoft.Extensions.Configuration.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Microsoft.Extensions.Configuration.Abstractions.dll" />
+
+    <!-- Third Party Notices -->
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\NOTICE.txt" />
+
+    <!-- Embedded Grammars -->
+    <MPackFile Include="..\Microsoft.VisualStudio.RazorExtension\EmbeddedGrammars\*">
+      <Folder>Grammars</Folder>
+    </MPackFile>
+
+    <!-- Embedded Language Configuration Files -->
+    <MPackFile Include="$(RepositoryRoot)src\Razor\src\Microsoft.VisualStudio.RazorExtension\language-configuration.json" />
+    <MPackFile Include="$(RepositoryRoot)src\Razor\src\Microsoft.VisualStudio.RazorExtension\javascript-language-configuration.json" />
+    <MPackFile Include="$(RepositoryRoot)src\Razor\src\Microsoft.VisualStudio.RazorExtension\css-language-configuration.json" />
+    <MPackFile Include="$(RepositoryRoot)src\Razor\src\Microsoft.VisualStudio.RazorExtension\csharp-language-configuration.json" />
+    <MPackFile Include="$(RepositoryRoot)src\Razor\src\Microsoft.VisualStudio.RazorExtension\razordirective-language-configuration.json" />
   </ItemGroup>
 
   <ItemGroup Condition="$(DebugType) != 'embedded'">
-    <MPackFile Include="$(PkgMicrosoft_AspNetCore_Razor_Symbols_Transport)\pdb\*.pdb" />
+
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.pdb" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.pdb" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.pdb" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.Language\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.Language.pdb" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Razor.pdb" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Razor.Workspaces.pdb" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Editor.Razor\$(Configuration)\net472\Microsoft.VisualStudio.Editor.Razor.pdb" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.LanguageServices.Razor\$(Configuration)\net472\Microsoft.VisualStudio.Mac.LanguageServices.Razor.pdb" />
@@ -101,4 +122,16 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.Mac.LanguageServices.Razor\Microsoft.VisualStudio.Mac.LanguageServices.Razor.csproj" />
     <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServerClient.Razor\Microsoft.VisualStudio.LanguageServerClient.Razor.csproj" />
   </ItemGroup>
+
+  <Target Name="_BuildRazorGrammar">
+    <MSBuild Projects="..\Microsoft.AspNetCore.Razor.VSCode.Extension\Microsoft.AspNetCore.Razor.VSCode.Extension.npmproj" Targets="Build" />
+  </Target>
+
+  <Target Name="_IncludeRazorGrammar" DependsOnTargets="PrepareForBuild;_BuildRazorGrammar" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <MPackFile Include="..\Microsoft.AspNetCore.Razor.VSCode.Extension\syntaxes\aspnetcorerazor.tmLanguage.json">
+        <Folder>Grammars</Folder>
+      </MPackFile>
+    </ItemGroup>
+  </Target>
 </Project>

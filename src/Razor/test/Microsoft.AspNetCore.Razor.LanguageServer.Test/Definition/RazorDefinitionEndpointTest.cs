@@ -4,402 +4,406 @@
 #nullable disable
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
 {
     public class RazorDefinitionEndpointTest : TagHelperServiceTestBase
     {
-        private const string DefaultContent = @"@addTagHelper *, TestAssembly
-<Component1 @test=""Increment""></Component1>
-@code {
-    public void Increment()
-    {
-    }
-}";
+        public RazorDefinitionEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task GetOriginTagHelperBindingAsync_TagHelper_Element()
         {
-            // Arrange
-            var txt = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test1></test1>";
-            var srcText = SourceText.From(txt);
-            var codeDocument = CreateCodeDocument(txt, isRazorFile: false, DefaultTagHelpers);
-            var documentSnapshot = Mock.Of<DocumentSnapshot>(d => d.GetTextAsync() == Task.FromResult(srcText), MockBehavior.Strict);
-            var position = new Position(1, 2);
+            var content = """
+                @addTagHelper *, TestAssembly
+                <te$$st1></test1>
+                """;
 
-            // Act
-            var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
-
-            // Assert
-            Assert.Equal("Test1TagHelper", descriptor.Name);
-            Assert.Null(attributeDescriptor);
+            await VerifyOriginTagHelperBindingAsync(content, "Test1TagHelper", isRazorFile: false);
         }
 
         [Fact]
         public async Task GetOriginTagHelperBindingAsync_TagHelper_StartTag_WithAttribute()
         {
-            // Arrange
-            SetupDocument(out var codeDocument, out var documentSnapshot);
-            var position = new Position(1, 2);
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Co$$mponent1 @test="Increment"></Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
 
-            // Act
-            var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
-
-            // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
-            Assert.Null(attributeDescriptor);
+            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper");
         }
 
         [Fact]
         public async Task GetOriginTagHelperBindingAsync_TagHelper_EndTag_WithAttribute()
         {
-            // Arrange
-            SetupDocument(out var codeDocument, out var documentSnapshot);
-            var position = new Position(1, 35);
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Component1 @test="Increment"></Comp$$onent1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
 
-            // Act
-            var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
-
-            // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
-            Assert.Null(attributeDescriptor);
+            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper");
         }
 
         [Fact]
         public async Task GetOriginTagHelperBindingAsync_TagHelper_Attribute_ReturnsNull()
         {
-            // Arrange
-            SetupDocument(out var codeDocument, out var documentSnapshot);
-            var position = new Position(1, 14);
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Component1 @te$$st="Increment"></Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
 
-            // Act
-            var (binding, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
-
-            // Assert
-            Assert.Null(binding);
-            Assert.Null(attributeDescriptor);
+            await VerifyOriginTagHelperBindingAsync(content);
         }
 
         [Fact]
         public async Task GetOriginTagHelperBindingAsync_TagHelper_AttributeValue_ReturnsNull()
         {
-            // Arrange
-            SetupDocument(out var codeDocument, out var documentSnapshot);
-            var position = new Position(1, 24);
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Component1 @test="Increm$$ent"></Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
 
-            // Act
-            var (binding, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
-
-            // Assert
-            Assert.Null(binding);
-            Assert.Null(attributeDescriptor);
+            await VerifyOriginTagHelperBindingAsync(content);
         }
 
         [Fact]
         public async Task GetOriginTagHelperBindingAsync_TagHelper_AfterAttributeEquals_ReturnsNull()
         {
-            // Arrange
-            SetupDocument(out var codeDocument, out var documentSnapshot);
-            var position = new Position(1, 18);
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Component1 @test="$$Increment"></Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
 
-            // Act
-            var (binding, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
-
-            // Assert
-            Assert.Null(binding);
-            Assert.Null(attributeDescriptor);
+            await VerifyOriginTagHelperBindingAsync(content);
         }
 
         [Fact]
         public async Task GetOriginTagHelperBindingAsync_TagHelper_AttributeEnd_ReturnsNull()
         {
-            // Arrange
-            SetupDocument(out var codeDocument, out var documentSnapshot);
-            var position = new Position(1, 29);
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Component1 @test="Increment">$$</Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
 
-            // Act
-            var (binding, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
-
-            // Assert
-            Assert.Null(binding);
-            Assert.Null(attributeDescriptor);
+            await VerifyOriginTagHelperBindingAsync(content);
         }
 
         [Fact]
         public async Task GetOriginTagHelperBindingAsync_TagHelper_MultipleAttributes()
         {
-            // Arrange
-            var content = @"@addTagHelper *, TestAssembly
-<Component1 @test=""Increment"" @minimized></Component1>
-@code {
-    public void Increment()
-    {
-    }
-}";
-            SetupDocument(out var codeDocument, out var documentSnapshot, content);
-            var position = new Position(1, 2);
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Co$$mponent1 @test="Increment" @minimized></Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
 
-            // Act
-            var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
-
-            // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
-            Assert.Null(attributeDescriptor);
+            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper");
         }
 
         [Fact]
         public async Task GetOriginTagHelperBindingAsync_TagHelper_MalformedElement()
         {
-            // Arrange
-            var content = @"@addTagHelper *, TestAssembly
-<Component1</Component1>
-@code {
-    public void Increment()
-    {
-    }
-}";
-            SetupDocument(out var codeDocument, out var documentSnapshot, content);
-            var position = new Position(1, 2);
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Co$$mponent1</Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
 
-            // Act
-            var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
-
-            // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
-            Assert.Null(attributeDescriptor);
+            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper");
         }
 
         [Fact]
         public async Task GetOriginTagHelperBindingAsync_TagHelper_MalformedAttribute()
         {
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Co$$mponent1 @test="Increment></Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
 
-            // Arrange
-            var content = @"@addTagHelper *, TestAssembly
-<Component1 @test=""Increment></Component1>
-@code {
-    public void Increment()
-    {
-    }
-}";
-            SetupDocument(out var codeDocument, out var documentSnapshot, content);
-            var position = new Position(1, 2);
-
-            // Act
-            var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
-
-            // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
-            Assert.Null(attributeDescriptor);
+            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper");
         }
 
         [Fact]
         public async Task GetOriginTagHelperBindingAsync_HTML_MarkupElement()
         {
-            // Arrange
-            var content = $"@addTagHelper *, TestAssembly{Environment.NewLine}<p><strong></strong></p>";
-            SetupDocument(out var codeDocument, out var documentSnapshot, content);
-            var position = new Position(1, 6);
+            var content = """
+                @addTagHelper *, TestAssembly
+                <p>
+                    <str$$ong></strong>
+                </p>
+                """;
 
-            // Act
-            var (binding, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
-
-            // Assert
-            Assert.Null(binding);
-            Assert.Null(attributeDescriptor);
+            await VerifyOriginTagHelperBindingAsync(content);
         }
 
         [Fact]
         public async Task GetOriginTagHelperBindingAsync_TagHelper_PropertyAttribute()
         {
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Component1 boo$$l-val="true"></Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
 
-            // Arrange
-            var content = @"@addTagHelper *, TestAssembly
-<Component1 bool-val=""true""></Component1>
-@code {
-    public void Increment()
-    {
-    }
-}";
-            SetupDocument(out var codeDocument, out var documentSnapshot, content);
-            var position = new Position(1, 14);
-
-            // Act
-            var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
-
-            // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
-            Assert.NotNull(attributeDescriptor);
-            Assert.Equal("BoolVal", attributeDescriptor.GetPropertyName());
+            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
         }
 
         [Fact]
         public async Task GetOriginTagHelperBindingAsync_TagHelper_MinimizedPropertyAttribute()
         {
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Component1 boo$$l-val></Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
 
-            // Arrange
-            var content = @"@addTagHelper *, TestAssembly
-<Component1 bool-val></Component1>
-@code {
-    public void Increment()
-    {
-    }
-}";
-            SetupDocument(out var codeDocument, out var documentSnapshot, content);
-            var position = new Position(1, 14);
+            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
+        }
 
-            // Act
-            var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentSnapshot, codeDocument, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint")).ConfigureAwait(false);
+        [Fact]
+        public async Task GetOriginTagHelperBindingAsync_TagHelper_MinimizedPropertyAttributeEdge1()
+        {
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Component1 $$bool-val></Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
 
-            // Assert
-            Assert.Equal("Component1TagHelper", descriptor.Name);
-            Assert.NotNull(attributeDescriptor);
-            Assert.Equal("BoolVal", attributeDescriptor.GetPropertyName());
+            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
+        }
+
+        [Fact]
+        public async Task GetOriginTagHelperBindingAsync_TagHelper_MinimizedPropertyAttributeEdge2()
+        {
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Component1 bool-val$$></Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
+
+            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/razor-tooling/issues/6775")]
+        public async Task GetOriginTagHelperBindingAsync_TagHelper_PropertyAttributeEdge()
+        {
+            var content = """
+                @addTagHelper *, TestAssembly
+                <Component1 bool-val$$="true"></Component1>
+                @code {
+                    public void Increment()
+                    {
+                    }
+                }
+                """;
+
+            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
         }
 
         [Fact]
         public async Task GetNavigatePositionAsync_TagHelperProperty_CorrectRange1()
         {
-            // Arrange
-            var content = @"
+            var content = """
+                <div>@Title</div>
 
-<div>@Title</div>
+                @code
+                {
+                    [Parameter]
+                    public string NotTitle { get; set; }
 
-@code
-{
-    [Parameter]
-    public string NotTitle { get; set; }
+                    [Parameter]
+                    public string [|Title|] { get; set; }
+                }
+                """;
 
-    [Parameter]
-    public string [|Title|] { get; set; }
-}
-";
-            TestFileMarkupParser.GetSpan(content, out content, out var selection);
-
-            SetupDocument(out var codeDocument, out _, content);
-            var expectedRange = selection.AsRange(codeDocument.GetSourceText());
-
-            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
-
-            // Act II
-            var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, Logger, CancellationToken.None).ConfigureAwait(false);
-            Assert.NotNull(range);
-            Assert.Equal(expectedRange, range);
+            await VerifyNavigatePositionAsync(content, "Title");
         }
 
         [Fact]
         public async Task GetNavigatePositionAsync_TagHelperProperty_CorrectRange2()
         {
-            // Arrange
-            var content = @"
+            var content = """
+                <div>@Title</div>
 
-<div>@Title</div>
+                @code
+                {
+                    [Microsoft.AspNetCore.Components.Parameter]
+                    public string [|Title|] { get; set; }
+                }
+                """;
 
-@code
-{
-    [Microsoft.AspNetCore.Components.Parameter]
-    public string [|Title|] { get; set; }
-}
-";
-            TestFileMarkupParser.GetSpan(content, out content, out var selection);
-
-            SetupDocument(out var codeDocument, out _, content);
-            var expectedRange = selection.AsRange(codeDocument.GetSourceText());
-
-            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
-
-            // Act II
-            var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, Logger, CancellationToken.None).ConfigureAwait(false);
-            Assert.NotNull(range);
-            Assert.Equal(expectedRange, range);
+            await VerifyNavigatePositionAsync(content, "Title");
         }
 
         [Fact]
         public async Task GetNavigatePositionAsync_TagHelperProperty_CorrectRange3()
         {
-            // Arrange
-            var content = @"
+            var content = """
+                <div>@Title</div>
 
-<div>@Title</div>
+                @code
+                {
+                    [Components.ParameterAttribute]
+                    public string [|Title|] { get; set; }
+                }
+                """;
 
-@code
-{
-    [Components.ParameterAttribute]
-    public string [|Title|] { get; set; }
-}
-";
-            TestFileMarkupParser.GetSpan(content, out content, out var selection);
-
-            SetupDocument(out var codeDocument, out _, content);
-            var expectedRange = selection.AsRange(codeDocument.GetSourceText());
-
-            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
-
-            // Act II
-            var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, Logger, CancellationToken.None).ConfigureAwait(false);
-            Assert.NotNull(range);
-            Assert.Equal(expectedRange, range);
+            await VerifyNavigatePositionAsync(content, "Title");
         }
 
         [Fact]
         public async Task GetNavigatePositionAsync_TagHelperProperty_IgnoreInnerProperty()
         {
-            // Arrange
-            var content = @"
+            var content = """
+                <div>@Title</div>
 
-<div>@Title</div>
+                @code
+                {
+                    private class NotTheDroidsYoureLookingFor
+                    {
+                        public string Title { get; set; }
+                    }
 
-@code
-{
-    private class NotTheDroidsYoureLookingFor
-    {
-        public string Title { get; set; }
-    }
+                    public string [|Title|] { get; set; }
+                }
+                """;
 
-    public string [|Title|] { get; set; }
-}
-";
+            await VerifyNavigatePositionAsync(content, "Title");
+        }
+
+        #region Helpers
+        private async Task VerifyOriginTagHelperBindingAsync(string content, string tagHelperDescriptorName = null, string attributeDescriptorPropertyName = null, bool isRazorFile = true)
+        {
+            TestFileMarkupParser.GetPosition(content, out content, out var position);
+
+            SetupDocument(out _, out var documentSnapshot, content, isRazorFile);
+            var documentContext = CreateDocumentContext(new Uri(@"C:\file.razor"), documentSnapshot);
+
+            var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
+                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), DisposalToken);
+
+            if (tagHelperDescriptorName is null)
+            {
+                Assert.Null(descriptor);
+            }
+            else
+            {
+                Assert.NotNull(descriptor);
+                Assert.Equal(tagHelperDescriptorName, descriptor!.Name);
+            }
+
+            if (attributeDescriptorPropertyName is null)
+            {
+                Assert.Null(attributeDescriptor);
+            }
+            else
+            {
+                Assert.NotNull(attributeDescriptor);
+                Assert.Equal(attributeDescriptorPropertyName, attributeDescriptor.GetPropertyName());
+            }
+        }
+
+        private async Task VerifyNavigatePositionAsync(string content, string propertyName)
+        {
             TestFileMarkupParser.GetSpan(content, out content, out var selection);
 
             SetupDocument(out var codeDocument, out _, content);
             var expectedRange = selection.AsRange(codeDocument.GetSourceText());
 
-            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
 
-            // Act II
-            var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, "Title", mappingService, Logger, CancellationToken.None).ConfigureAwait(false);
+            var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, propertyName, mappingService, Logger, DisposalToken);
             Assert.NotNull(range);
             Assert.Equal(expectedRange, range);
         }
 
-        private void SetupDocument(out Language.RazorCodeDocument codeDocument, out DocumentSnapshot documentSnapshot, string content = DefaultContent)
+        private void SetupDocument(out RazorCodeDocument codeDocument, out DocumentSnapshot documentSnapshot, string content, bool isRazorFile = true)
         {
             var sourceText = SourceText.From(content);
-            codeDocument = CreateCodeDocument(content, "text.razor", DefaultTagHelpers);
-            documentSnapshot = Mock.Of<DocumentSnapshot>(d => d.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
+            codeDocument = CreateCodeDocument(content, isRazorFile, DefaultTagHelpers);
+            var outDoc = codeDocument;
+            documentSnapshot = Mock.Of<DocumentSnapshot>(
+                d => d.GetTextAsync() == Task.FromResult(sourceText),
+                MockBehavior.Strict);
+            Mock.Get(documentSnapshot)
+                .Setup(s => s.GetGeneratedOutputAsync())
+                .ReturnsAsync(outDoc);
         }
+        #endregion
     }
 }

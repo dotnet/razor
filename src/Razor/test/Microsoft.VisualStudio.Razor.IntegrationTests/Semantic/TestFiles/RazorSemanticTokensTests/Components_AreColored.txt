@@ -26,7 +26,6 @@
 113,1,HTML Tag Delimiter,
 124,1,HTML Tag Delimiter,
 125,7,RazorComponentElement,
-132,1,HTML Tag Delimiter,
 133,1,HTML Tag Delimiter,
 134,1,HTML Tag Delimiter,
 141,1,HTML Tag Delimiter,

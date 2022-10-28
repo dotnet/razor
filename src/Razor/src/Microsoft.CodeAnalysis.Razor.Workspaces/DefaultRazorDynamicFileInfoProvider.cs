@@ -7,6 +7,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,9 +28,13 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
         private readonly Func<Key, Entry> _createEmptyEntry;
         private readonly RazorDocumentServiceProviderFactory _factory;
         private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
+        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
         [ImportingConstructor]
-        public DefaultRazorDynamicFileInfoProvider(RazorDocumentServiceProviderFactory factory, LSPEditorFeatureDetector lspEditorFeatureDetector)
+        public DefaultRazorDynamicFileInfoProvider(
+            RazorDocumentServiceProviderFactory factory,
+            LSPEditorFeatureDetector lspEditorFeatureDetector,
+            LanguageServerFeatureOptions languageServerFeatureOptions)
         {
             if (factory is null)
             {
@@ -41,8 +46,14 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
             }
 
+            if (languageServerFeatureOptions is null)
+            {
+                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+            }
+
             _factory = factory;
             _lspEditorFeatureDetector = lspEditorFeatureDetector;
+            _languageServerFeatureOptions = languageServerFeatureOptions;
             _entries = new ConcurrentDictionary<Key, Entry>();
             _createEmptyEntry = (key) => new Entry(CreateEmptyInfo(key));
         }
@@ -71,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             // We report diagnostics are supported to Roslyn in this case
             documentContainer.SupportsDiagnostics = true;
 
-            var filePath = documentUri.GetAbsoluteOrUNCPath().Replace('/', '\\');
+            var filePath = GetProjectSystemFilePath(documentUri);
             if (!TryGetKeyAndEntry(filePath, out var associatedKvp))
             {
                 return;
@@ -136,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
                 throw new ArgumentNullException(nameof(propertiesService));
             }
 
-            var filePath = documentUri.GetAbsoluteOrUNCPath().Replace('/', '\\');
+            var filePath = GetProjectSystemFilePath(documentUri);
             if (!TryGetKeyAndEntry(filePath, out var associatedKvp))
             {
                 return;
@@ -145,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
             var associatedKey = associatedKvp.Value.Key;
             var associatedEntry = associatedKvp.Value.Value;
 
-            var filename = associatedKey.FilePath + ".g.cs";
+            var filename = _languageServerFeatureOptions.GetRazorCSharpFilePath(associatedKey.FilePath);
 
             // To promote the background document, we just need to add the passed in properties service to
             // the dynamic file info. The properties service contains the client name and allows the C#
@@ -288,29 +299,37 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces
 
                         break;
                     }
-                case ProjectChangeKind.DocumentRemoved:
-                    {
-                        var owningProject = args.Newer;
-
-                        var key = new Key(owningProject.FilePath, args.DocumentFilePath);
-                        _entries.TryRemove(key, out _);
-                        break;
-                    }
             }
         }
 
         private RazorDynamicFileInfo CreateEmptyInfo(Key key)
         {
-            var filename = key.FilePath + ".g.cs";
+            var filename = _languageServerFeatureOptions.GetRazorCSharpFilePath(key.FilePath);
             var textLoader = new EmptyTextLoader(filename);
             return new RazorDynamicFileInfo(filename, SourceCodeKind.Regular, textLoader, _factory.CreateEmpty());
         }
 
         private RazorDynamicFileInfo CreateInfo(Key key, DynamicDocumentContainer document)
         {
-            var filename = key.FilePath + ".g.cs";
+            var filename = _languageServerFeatureOptions.GetRazorCSharpFilePath(key.FilePath);
             var textLoader = document.GetTextLoader(filename);
             return new RazorDynamicFileInfo(filename, SourceCodeKind.Regular, textLoader, _factory.Create(document));
+        }
+
+        private static string GetProjectSystemFilePath(Uri uri)
+        {
+            // In VS Windows project system file paths always utilize `\`. In VSMac they don't. This is a bit of a hack
+            // however, it's the only way to get the correct file path for a document to map to a corresponding project
+            // system.
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // VSWin
+                return uri.GetAbsoluteOrUNCPath().Replace('/', '\\');
+            }
+
+            // VSMac
+            return uri.AbsolutePath;
         }
 
         // Using a separate handle to the 'current' file info so that can allow Roslyn to send

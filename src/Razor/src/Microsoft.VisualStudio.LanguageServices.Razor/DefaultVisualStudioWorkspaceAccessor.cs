@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -48,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             _defaultWorkspace = defaultWorkspace;
         }
 
-        public override bool TryGetWorkspace(ITextBuffer textBuffer, out Workspace workspace)
+        public override bool TryGetWorkspace(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out Workspace? workspace)
         {
             if (textBuffer is null)
             {
@@ -79,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         }
 
         // Internal virtual for testing
-        internal virtual bool TryGetWorkspaceFromProjectionBuffer(ITextBuffer textBuffer, out Workspace workspace)
+        internal virtual bool TryGetWorkspaceFromProjectionBuffer(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out Workspace? workspace)
         {
             var graph = _bufferGraphService.CreateBufferGraph(textBuffer);
             var projectedCSharpBuffer = graph.GetTextBuffers(buffer => buffer.ContentType.IsOfType("CSharp")).FirstOrDefault();
@@ -101,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         }
 
         // Internal virtual for testing
-        internal virtual bool TryGetWorkspaceFromHostProject(ITextBuffer textBuffer, out Workspace workspace)
+        internal virtual bool TryGetWorkspaceFromHostProject(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out Workspace? workspace)
         {
             var project = _projectService.GetHostProject(textBuffer);
 

@@ -1,14 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -21,11 +20,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
     internal class RazorDirectiveCompletionSource : IAsyncCompletionSource
     {
         // Internal for testing
-        internal static readonly object DescriptionKey = new object();
+        internal static readonly object DescriptionKey = new();
         // Hardcoding the Guid here to avoid a reference to Microsoft.VisualStudio.ImageCatalog.dll
         // that is not present in Visual Studio for Mac
-        internal static readonly Guid ImageCatalogGuid = new Guid("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
-        internal static readonly ImageElement DirectiveImageGlyph = new ImageElement(
+        internal static readonly Guid ImageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
+        internal static readonly ImageElement DirectiveImageGlyph = new(
             new ImageId(ImageCatalogGuid, 3233), // KnownImageIds.Type = 3233
             "Razor Directive.");
         internal static readonly ImmutableArray<CompletionFilter> DirectiveCompletionFilters = new[] {
@@ -72,8 +71,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
                 var location = new SourceSpan(triggerLocation.Position, 0);
                 var syntaxTree = codeDocument.GetSyntaxTree();
                 var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
-                var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
-                var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext, location);
+                var absoluteIndex = triggerLocation.Position;
+                var queryableChange = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
+                var owner = syntaxTree.Root.LocateOwner(queryableChange);
+                var razorCompletionContext = new RazorCompletionContext(absoluteIndex, owner, syntaxTree, tagHelperDocumentContext);
+                var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext);
 
                 var completionItems = new List<CompletionItem>();
                 foreach (var razorCompletionItem in razorCompletionItems)

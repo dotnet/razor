@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Razor.Serialization
             writer.WriteStartObject();
 
             writer.WritePropertyName(RazorSerializationConstants.HashCodePropertyName);
-            writer.WriteValue(tagHelper.GetHashCode());
+            writer.WriteValue(TagHelperDescriptorCache.GetTagHelperDescriptorCacheId(tagHelper));
 
             writer.WritePropertyName(nameof(TagHelperDescriptor.Kind));
             writer.WriteValue(tagHelper.Kind);

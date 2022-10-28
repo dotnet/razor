@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.Razor
             return Create(configuration, RazorProjectFileSystem.Create(directoryPath), configure);
         }
 
-        public abstract RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure);
+#nullable enable
+        public abstract RazorProjectEngine? Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure);
+#nullable disable
     }
 }

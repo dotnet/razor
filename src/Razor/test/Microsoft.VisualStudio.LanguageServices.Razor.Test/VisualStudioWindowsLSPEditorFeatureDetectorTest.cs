@@ -3,18 +3,28 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Shell.Interop;
+using Moq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor
 {
-    public class VisualStudioWindowsLSPEditorFeatureDetectorTest
+    public class VisualStudioWindowsLSPEditorFeatureDetectorTest : TestBase
     {
+        public VisualStudioWindowsLSPEditorFeatureDetectorTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void IsLSPEditorAvailable_ProjectSupported_ReturnsTrue()
         {
             // Arrange
-            var featureDetector = new TestLSPEditorFeatureDetector()
+            var logger = GetRazorLogger();
+            var featureDetector = new TestLSPEditorFeatureDetector(logger)
             {
                 ProjectSupportsLSPEditorValue = true,
             };
@@ -30,7 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         public void IsLSPEditorAvailable_LegacyEditorEnabled_ReturnsFalse()
         {
             // Arrange
-            var featureDetector = new TestLSPEditorFeatureDetector()
+            var logger = GetRazorLogger();
+            var featureDetector = new TestLSPEditorFeatureDetector(logger)
             {
                 UseLegacyEditor = true,
                 ProjectSupportsLSPEditorValue = true,
@@ -47,7 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         public void IsLSPEditorAvailable_IsVSRemoteClient_ReturnsTrue()
         {
             // Arrange
-            var featureDetector = new TestLSPEditorFeatureDetector()
+            var logger = GetRazorLogger();
+            var featureDetector = new TestLSPEditorFeatureDetector(logger)
             {
                 IsVSRemoteClientValue = true,
                 ProjectSupportsLSPEditorValue = true,
@@ -64,7 +76,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         public void IsLSPEditorAvailable_UnsupportedProject_ReturnsFalse()
         {
             // Arrange
-            var featureDetector = new TestLSPEditorFeatureDetector()
+            var logger = GetRazorLogger();
+            var featureDetector = new TestLSPEditorFeatureDetector(logger)
             {
                 ProjectSupportsLSPEditorValue = false,
             };
@@ -80,7 +93,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         public void IsRemoteClient_VSRemoteClient_ReturnsTrue()
         {
             // Arrange
-            var featureDetector = new TestLSPEditorFeatureDetector()
+            var logger = GetRazorLogger();
+            var featureDetector = new TestLSPEditorFeatureDetector(logger)
             {
                 IsVSRemoteClientValue = true,
             };
@@ -96,7 +110,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         public void IsRemoteClient_LiveShareGuest_ReturnsTrue()
         {
             // Arrange
-            var featureDetector = new TestLSPEditorFeatureDetector()
+            var logger = GetRazorLogger();
+            var featureDetector = new TestLSPEditorFeatureDetector(logger)
             {
                 IsLiveShareGuestValue = true,
             };
@@ -112,7 +127,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
         public void IsRemoteClient_UnknownEnvironment_ReturnsFalse()
         {
             // Arrange
-            var featureDetector = new TestLSPEditorFeatureDetector();
+            var logger = GetRazorLogger();
+            var featureDetector = new TestLSPEditorFeatureDetector(logger);
 
             // Act
             var result = featureDetector.IsRemoteClient();
@@ -121,9 +137,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
             Assert.False(result);
         }
 
+        private static RazorLogger GetRazorLogger()
+        {
+            var mock = new Mock<RazorLogger>(MockBehavior.Strict);
+            mock.Setup(l => l.LogVerbose(It.IsAny<string>()));
+
+            return mock.Object;
+        }
+
 #pragma warning disable CS0618 // Type or member is obsolete (Test constructor)
         private class TestLSPEditorFeatureDetector : VisualStudioWindowsLSPEditorFeatureDetector
         {
+            public TestLSPEditorFeatureDetector(RazorLogger logger)
+                : base(projectCapabilityResolver: null, logger)
+            {
+            }
+
             public bool UseLegacyEditor { get; set; }
 
             public bool IsLiveShareGuestValue { get; set; }

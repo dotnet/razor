@@ -5,7 +5,7 @@ using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.RazorLS;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
 {
@@ -23,21 +23,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 throw new ArgumentNullException(nameof(sourceText));
             }
 
-            var linePosition = new LinePosition(position.Line, position.Character);
-            if (linePosition.Line >= sourceText.Lines.Count)
+            return TryGetAbsoluteIndex(position.Character, position.Line, sourceText, logger, out absoluteIndex);
+        }
+
+        public static int GetRequiredAbsoluteIndex(this Position position, SourceText sourceText, ILogger logger)
+        {
+            if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
             {
-                var errorMessage = Resources.FormatPositionIndex_Outside_Range(
-                    position.Line,
-                    nameof(sourceText),
-                    sourceText.Lines.Count);
-                logger?.LogError(errorMessage);
-                absoluteIndex = -1;
-                return false;
+                throw new InvalidOperationException();
             }
 
-            var index = sourceText.Lines.GetPosition(linePosition);
-            absoluteIndex = index;
-            return true;
+            return absoluteIndex;
         }
 
         public static int CompareTo(this Position position, Position other)
@@ -72,6 +68,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
                 position.Character >= 0 &&
                 position.Line < sourceText.Lines.Count &&
                 sourceText.Lines[position.Line].Start + position.Character <= sourceText.Length;
+        }
+
+        private static bool TryGetAbsoluteIndex(int character, int line, SourceText sourceText, ILogger logger, out int absoluteIndex)
+        {
+            var linePosition = new LinePosition(line, character);
+            if (linePosition.Line >= sourceText.Lines.Count)
+            {
+#pragma warning disable CA2254 // Template should be a static expression.
+// This is actually static, the compiler just doesn't know it.
+                logger?.LogError(Resources.GetResourceString("FormatPositionIndex_Outside_Range"), line, nameof(sourceText), sourceText.Lines.Count);
+#pragma warning restore CA2254 // Template should be a static expression
+                absoluteIndex = -1;
+                return false;
+            }
+
+            var index = sourceText.Lines.GetPosition(linePosition);
+            absoluteIndex = index;
+            return true;
         }
     }
 }

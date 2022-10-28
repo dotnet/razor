@@ -1,5 +1,5 @@
 ﻿{
-  "host": "coreClr",
+  "host": "dotnet",
   "hostId": "RoslynCodeAnalysisServiceS",
   "hostGroupAllowed": true,
   "entryPoint": {

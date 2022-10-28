@@ -3,24 +3,29 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
+using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
     public class FormattingContentValidationPassTest : LanguageServerTestBase
     {
+        public FormattingContentValidationPassTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Execute_LanguageKindCSharp_Noops()
         {
@@ -35,7 +40,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var pass = GetPass();
 
             // Act
-            var result = await pass.ExecuteAsync(context, input, CancellationToken.None);
+            var result = await pass.ExecuteAsync(context, input, DisposalToken);
 
             // Assert
             Assert.Equal(input, result);
@@ -55,7 +60,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             var pass = GetPass();
 
             // Act
-            var result = await pass.ExecuteAsync(context, input, CancellationToken.None);
+            var result = await pass.ExecuteAsync(context, input, DisposalToken);
 
             // Assert
             Assert.Equal(input, result);
@@ -76,14 +81,14 @@ public class Foo { }
                 new TextEdit()
                 {
                     NewText = "    ",
-                    Range = new Range(new Position(2, 0), new Position(2, 0))
+                    Range = new Range{ Start = new Position(2, 0), End = new Position(2, 0) }
                 }
             };
             var input = new FormattingResult(edits, RazorLanguageKind.Razor);
             var pass = GetPass();
 
             // Act
-            var result = await pass.ExecuteAsync(context, input, CancellationToken.None);
+            var result = await pass.ExecuteAsync(context, input, DisposalToken);
 
             // Assert
             Assert.Equal(input, result);
@@ -104,14 +109,14 @@ public class Foo { }
                 new TextEdit()
                 {
                     NewText = "    ",
-                    Range = new Range(new Position(2, 0), new Position(3, 0)) // Nukes a line
+                    Range = new Range{ Start = new Position(2, 0), End = new Position(3, 0) } // Nukes a line
                 }
             };
             var input = new FormattingResult(edits, RazorLanguageKind.Razor);
             var pass = GetPass();
 
             // Act
-            var result = await pass.ExecuteAsync(context, input, CancellationToken.None);
+            var result = await pass.ExecuteAsync(context, input, DisposalToken);
 
             // Assert
             Assert.Empty(result.Edits);
@@ -119,10 +124,10 @@ public class Foo { }
 
         private FormattingContentValidationPass GetPass()
         {
-            var mappingService = new DefaultRazorDocumentMappingService(LoggerFactory);
+            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
 
             var client = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
-            var pass = new FormattingContentValidationPass(mappingService, FilePathNormalizer, client, LoggerFactory)
+            var pass = new FormattingContentValidationPass(mappingService, client, LoggerFactory)
             {
                 DebugAssertsEnabled = false
             };
@@ -154,11 +159,21 @@ public class Foo { }
             var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, Array.Empty<RazorSourceDocument>(), tagHelpers);
 
             var documentSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
-            documentSnapshot.Setup(d => d.GetGeneratedOutputAsync()).Returns(Task.FromResult(codeDocument));
-            documentSnapshot.Setup(d => d.Project.GetProjectEngine()).Returns(projectEngine);
-            documentSnapshot.Setup(d => d.TargetPath).Returns(path);
-            documentSnapshot.Setup(d => d.Project.TagHelpers).Returns(tagHelpers);
-            documentSnapshot.Setup(d => d.FileKind).Returns(fileKind);
+            documentSnapshot
+                .Setup(d => d.GetGeneratedOutputAsync())
+                .ReturnsAsync(codeDocument);
+            documentSnapshot
+                .Setup(d => d.Project.GetProjectEngine())
+                .Returns(projectEngine);
+            documentSnapshot
+                .Setup(d => d.TargetPath)
+                .Returns(path);
+            documentSnapshot
+                .Setup(d => d.Project.TagHelpers)
+                .Returns(tagHelpers);
+            documentSnapshot
+                .Setup(d => d.FileKind)
+                .Returns(fileKind);
 
             return (codeDocument, documentSnapshot.Object);
         }

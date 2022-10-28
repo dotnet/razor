@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -33,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private readonly LSPProjectionProvider _projectionProvider;
         private readonly LSPDocumentMappingProvider _documentMappingProvider;
         private readonly LSPProgressListener _lspProgressListener;
+        private readonly RazorLSPConventions _razorConventions;
         private readonly ILogger _logger;
 
         [ImportingConstructor]
@@ -42,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             LSPProjectionProvider projectionProvider,
             LSPDocumentMappingProvider documentMappingProvider,
             LSPProgressListener lspProgressListener,
+            RazorLSPConventions razorConventions,
             HTMLCSharpLanguageServerLogHubLoggerProvider loggerProvider)
         {
             if (requestInvoker is null)
@@ -69,6 +69,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(lspProgressListener));
             }
 
+            if (razorConventions is null)
+            {
+                throw new ArgumentNullException(nameof(razorConventions));
+            }
+
             if (loggerProvider is null)
             {
                 throw new ArgumentNullException(nameof(loggerProvider));
@@ -79,12 +84,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             _projectionProvider = projectionProvider;
             _documentMappingProvider = documentMappingProvider;
             _lspProgressListener = lspProgressListener;
-
+            _razorConventions = razorConventions;
             _logger = loggerProvider.CreateLogger(nameof(FindAllReferencesHandler));
         }
 
         // Internal for testing
-        internal async override Task<VSInternalReferenceItem[]> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
+        internal async override Task<VSInternalReferenceItem[]?> HandleRequestAsync(ReferenceParams request, ClientCapabilities clientCapabilities, string token, CancellationToken cancellationToken)
         {
             if (request is null)
             {
@@ -96,11 +101,11 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 throw new ArgumentNullException(nameof(clientCapabilities));
             }
 
-            _logger.LogInformation($"Starting request for {request.TextDocument.Uri}.");
+            _logger.LogInformation("Starting request for {textDocumentUri}.", request.TextDocument.Uri);
 
             if (!_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
             {
-                _logger.LogWarning($"Failed to find document {request.TextDocument.Uri}.");
+                _logger.LogWarning("Failed to find document {textDocumentUri}.", request.TextDocument.Uri);
                 return null;
             }
 
@@ -139,7 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return null;
             }
 
-            _logger.LogInformation($"Requesting references for {projectionResult.Uri}.");
+            _logger.LogInformation("Requesting references for {projectionResultUri}.", projectionResult.Uri);
 
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<SerializableReferenceParams, VSInternalReferenceItem[]>(
                 Methods.TextDocumentReferencesName,
@@ -169,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             // Results returned through Progress notification
             var remappedResults = await RemapReferenceItemsAsync(result, cancellationToken).ConfigureAwait(false);
 
-            _logger.LogInformation($"Returning {remappedResults.Length} results.");
+            _logger.LogInformation("Returning {remappedResultsLength} results.", remappedResults.Length);
 
             return remappedResults;
 
@@ -202,17 +207,22 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 return;
             }
 
-            _logger.LogInformation($"Received {result.Length} references, remapping.");
+            _logger.LogInformation("Received {resultLength} references, remapping.", result.Length);
             var remappedResults = await RemapReferenceItemsAsync(result, cancellationToken).ConfigureAwait(false);
 
-            _logger.LogInformation($"Reporting {remappedResults.Length} results.");
+            _logger.LogInformation("Reporting {remappedResultsLength} results.", remappedResults.Length);
             progress.Report(remappedResults);
         }
 
         private Task<VSInternalReferenceItem[]> RemapReferenceItemsAsync(VSInternalReferenceItem[] result, CancellationToken cancellationToken)
-            => RemapReferenceItemsAsync(result, _documentMappingProvider, _documentManager, cancellationToken);
+            => RemapReferenceItemsAsync(result, _documentMappingProvider, _documentManager, _razorConventions, cancellationToken);
 
-        public static async Task<VSInternalReferenceItem[]> RemapReferenceItemsAsync(VSInternalReferenceItem[] result, LSPDocumentMappingProvider documentMappingProvider, LSPDocumentManager documentManager, CancellationToken cancellationToken)
+        public static async Task<VSInternalReferenceItem[]> RemapReferenceItemsAsync(
+            VSInternalReferenceItem[] result,
+            LSPDocumentMappingProvider documentMappingProvider,
+            LSPDocumentManager documentManager,
+            RazorLSPConventions razorConventions,
+            CancellationToken cancellationToken)
         {
             var remappedLocations = new List<VSInternalReferenceItem>();
 
@@ -231,16 +241,16 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 // Indicates the reference item is directly available in the code
                 referenceItem.Origin = VSInternalItemOrigin.Exact;
 
-                if (!RazorLSPConventions.IsVirtualCSharpFile(referenceItem.Location.Uri) &&
-                    !RazorLSPConventions.IsVirtualHtmlFile(referenceItem.Location.Uri))
+                if (!razorConventions.IsVirtualCSharpFile(referenceItem.Location.Uri) &&
+                    !razorConventions.IsVirtualHtmlFile(referenceItem.Location.Uri))
                 {
                     // This location doesn't point to a virtual cs file. No need to remap.
                     remappedLocations.Add(referenceItem);
                     continue;
                 }
 
-                var razorDocumentUri = RazorLSPConventions.GetRazorDocumentUri(referenceItem.Location.Uri);
-                var languageKind = RazorLSPConventions.IsVirtualCSharpFile(referenceItem.Location.Uri) ? RazorLanguageKind.CSharp : RazorLanguageKind.Html;
+                var razorDocumentUri = razorConventions.GetRazorDocumentUri(referenceItem.Location.Uri);
+                var languageKind = razorConventions.IsVirtualCSharpFile(referenceItem.Location.Uri) ? RazorLanguageKind.CSharp : RazorLanguageKind.Html;
                 var mappingResult = await documentMappingProvider.MapToDocumentRangesAsync(
                     languageKind,
                     razorDocumentUri,
@@ -266,7 +276,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
             return remappedLocations.ToArray();
         }
 
-        private static object FilterReferenceDisplayText(object referenceText)
+        private static object? FilterReferenceDisplayText(object? referenceText)
         {
             const string CodeBehindObjectPrefix = "__o = ";
             const string CodeBehindBackingFieldSuffix = "k__BackingField";
@@ -318,10 +328,10 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
         private class SerializableReferenceParams : TextDocumentPositionParams
         {
             [DataMember(Name = "context")]
-            public ReferenceContext Context { get; set; }
+            public required ReferenceContext Context { get; init; }
 
             [DataMember(Name = "partialResultToken")]
-            public string PartialResultToken { get; set; }
+            public required string PartialResultToken { get; init; }
         }
     }
 }

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.Extensions.Logging;
 
@@ -35,25 +33,32 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
 
         public bool IsEnabled(LogLevel logLevel) => true;
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            var formattedResult = formatter(state, exception);
-
-            switch (logLevel)
+            try
             {
-                case LogLevel.Trace:
-                case LogLevel.Debug:
-                case LogLevel.Information:
-                case LogLevel.None:
-                    _logWriter.TraceInformation("[{0}] {1}", _categoryName, formattedResult);
-                    break;
-                case LogLevel.Warning:
-                    _logWriter.TraceWarning("[{0}] {1}", _categoryName, formattedResult);
-                    break;
-                case LogLevel.Error:
-                case LogLevel.Critical:
-                    _logWriter.TraceError("[{0}] {1} {2}", _categoryName, formattedResult, exception);
-                    break;
+                var formattedResult = formatter(state, exception);
+
+                switch (logLevel)
+                {
+                    case LogLevel.Trace:
+                    case LogLevel.Debug:
+                    case LogLevel.Information:
+                    case LogLevel.None:
+                        _logWriter.TraceInformation("[{0}] {1}", _categoryName, formattedResult);
+                        break;
+                    case LogLevel.Warning:
+                        _logWriter.TraceWarning("[{0}] {1}", _categoryName, formattedResult);
+                        break;
+                    case LogLevel.Error:
+                    case LogLevel.Critical:
+                        _logWriter.TraceError("[{0}] {1} {2}", _categoryName, formattedResult, exception!);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logWriter.TraceError("Error while trying to write log message: [{0}] {1}", _categoryName, ex);
             }
         }
 

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 // Temporary code until we get access to these APIs
 #if WORKSPACE_PROJECT_CONTEXT_FACTORY
 
@@ -16,7 +14,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
     internal interface IWorkspaceProjectContextFactory2
     {
         IWorkspaceProjectContext CreateProjectContext(string languageName, string projectDisplayName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath);
-
 
         IWorkspaceProjectContext CreateProjectContext(string languageName, string projectDisplayName, string projectFilePath, Guid projectGuid, object hierarchy, string binOutputPath, ProjectExternalErrorReporter errorReporter);
     }

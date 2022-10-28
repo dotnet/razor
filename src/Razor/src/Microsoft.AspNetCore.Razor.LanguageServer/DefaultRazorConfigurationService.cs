@@ -1,16 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
@@ -35,17 +32,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             _logger = loggerFactory.CreateLogger<DefaultRazorConfigurationService>();
         }
 
-        public async override Task<RazorLSPOptions> GetLatestOptionsAsync(CancellationToken cancellationToken)
+        public async override Task<RazorLSPOptions?> GetLatestOptionsAsync(CancellationToken cancellationToken)
         {
             try
             {
                 var request = GenerateConfigParams();
 
-                var response = await _server.SendRequestAsync("workspace/configuration", request);
-                var result = await response.Returning<JObject[]>(cancellationToken);
+                var result = await _server.SendRequestAsync<ConfigurationParams, JObject[]>(Methods.WorkspaceConfigurationName, request, cancellationToken);
 
                 // LSP spec indicates result should be the same length as the number of ConfigurationItems we pass in.
-                if (result?.Length != request.Items.Count() || result[0] is null)
+                if (result?.Length != request.Items.Length || result[0] is null)
                 {
                     _logger.LogWarning("Client failed to provide the expected configuration.");
                     return null;
@@ -56,7 +52,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Failed to sync client configuration on the server: {ex}");
+                _logger.LogWarning("Failed to sync client configuration on the server: {ex}", ex);
                 return null;
             }
         }
@@ -169,7 +165,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Malformed option: Token {token} cannot be converted to type {typeof(T)}.");
+                _logger.LogError(ex, "Malformed option: Token {token} cannot be converted to type {TypeOfT}.", token, typeof(T));
                 return defaultValue;
             }
         }

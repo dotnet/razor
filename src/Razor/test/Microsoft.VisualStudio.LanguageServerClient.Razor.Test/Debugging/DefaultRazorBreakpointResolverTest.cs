@@ -7,27 +7,35 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Editor.Razor.Debugging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Xunit;
-using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
 {
-    public class DefaultRazorBreakpointResolverTest
+    public class DefaultRazorBreakpointResolverTest : TestBase
     {
         private const string ValidBreakpointCSharp = "private int foo = 123;";
         private const string InvalidBreakpointCSharp = "private int bar;";
 
-        public DefaultRazorBreakpointResolverTest()
+        private readonly ITextBuffer _csharpTextBuffer;
+        private readonly Uri _documentUri;
+        private readonly Uri _csharpDocumentUri;
+        private readonly ITextBuffer _hostTextbuffer;
+
+        public DefaultRazorBreakpointResolverTest(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            DocumentUri = new Uri("file://C:/path/to/file.razor", UriKind.Absolute);
-            CSharpDocumentUri = new Uri(DocumentUri.OriginalString + ".g.cs", UriKind.Absolute);
+            _documentUri = new Uri("file://C:/path/to/file.razor", UriKind.Absolute);
+            _csharpDocumentUri = new Uri(_documentUri.OriginalString + ".g.cs", UriKind.Absolute);
 
             var csharpTextSnapshot = new StringTextSnapshot(
 $@"public class SomeRazorFile
@@ -35,7 +43,7 @@ $@"public class SomeRazorFile
     {ValidBreakpointCSharp}
     {InvalidBreakpointCSharp}
 }}");
-            CSharpTextBuffer = new TestTextBuffer(csharpTextSnapshot);
+            _csharpTextBuffer = new TestTextBuffer(csharpTextSnapshot);
 
             var textBufferSnapshot = new StringTextSnapshot(@$"
 @code
@@ -44,16 +52,8 @@ $@"public class SomeRazorFile
     {InvalidBreakpointCSharp}
 }}
 ");
-            HostTextbuffer = new TestTextBuffer(textBufferSnapshot);
+            _hostTextbuffer = new TestTextBuffer(textBufferSnapshot);
         }
-
-        private ITextBuffer CSharpTextBuffer { get; }
-
-        private Uri DocumentUri { get; }
-
-        private Uri CSharpDocumentUri { get; }
-
-        private ITextBuffer HostTextbuffer { get; }
 
         [Fact]
         public async Task TryResolveBreakpointRangeAsync_UnaddressableTextBuffer_ReturnsNull()
@@ -63,7 +63,7 @@ $@"public class SomeRazorFile
             var resolver = CreateResolverWith();
 
             // Act
-            var breakpointRange = await resolver.TryResolveBreakpointRangeAsync(differentTextBuffer, lineIndex: 0, characterIndex: 1, CancellationToken.None);
+            var breakpointRange = await resolver.TryResolveBreakpointRangeAsync(differentTextBuffer, lineIndex: 0, characterIndex: 1, DisposalToken);
 
             // Assert
             Assert.Null(breakpointRange);
@@ -74,11 +74,11 @@ $@"public class SomeRazorFile
         {
             // Arrange
             var documentManager = new Mock<LSPDocumentManager>(MockBehavior.Strict).Object;
-            Mock.Get(documentManager).Setup(m => m.TryGetDocument(DocumentUri, out It.Ref<LSPDocumentSnapshot>.IsAny)).Returns(false);
+            Mock.Get(documentManager).Setup(m => m.TryGetDocument(_documentUri, out It.Ref<LSPDocumentSnapshot>.IsAny)).Returns(false);
             var resolver = CreateResolverWith(documentManager: documentManager);
 
             // Act
-            var result = await resolver.TryResolveBreakpointRangeAsync(HostTextbuffer, lineIndex: 0, characterIndex: 1, CancellationToken.None);
+            var result = await resolver.TryResolveBreakpointRangeAsync(_hostTextbuffer, lineIndex: 0, characterIndex: 1, DisposalToken);
 
             // Assert
             Assert.Null(result);
@@ -89,13 +89,13 @@ $@"public class SomeRazorFile
         {
             // Arrange
             var documentManager = new TestDocumentManager();
-            var testCSharpDocument = new CSharpVirtualDocumentSnapshot(CSharpDocumentUri, CSharpTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 1);
-            var document = new TestLSPDocumentSnapshot(DocumentUri, version: (int)(testCSharpDocument.HostDocumentSyncVersion.Value + 1), testCSharpDocument);
+            var testCSharpDocument = new CSharpVirtualDocumentSnapshot(_csharpDocumentUri, _csharpTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 1);
+            var document = new TestLSPDocumentSnapshot(_documentUri, version: (int)(testCSharpDocument.HostDocumentSyncVersion.Value + 1), testCSharpDocument);
             documentManager.AddDocument(document.Uri, document);
             var resolver = CreateResolverWith(documentManager: documentManager);
 
             // Act
-            var expressions = await resolver.TryResolveBreakpointRangeAsync(HostTextbuffer, lineIndex: 0, characterIndex: 1, CancellationToken.None);
+            var expressions = await resolver.TryResolveBreakpointRangeAsync(_hostTextbuffer, lineIndex: 0, characterIndex: 1, DisposalToken);
 
             // Assert
             Assert.Null(expressions);
@@ -108,7 +108,7 @@ $@"public class SomeRazorFile
             var resolver = CreateResolverWith();
 
             // Act
-            var breakpointRange = await resolver.TryResolveBreakpointRangeAsync(HostTextbuffer, lineIndex: 0, characterIndex: 1, CancellationToken.None);
+            var breakpointRange = await resolver.TryResolveBreakpointRangeAsync(_hostTextbuffer, lineIndex: 0, characterIndex: 1, DisposalToken);
 
             // Assert
             Assert.Null(breakpointRange);
@@ -118,11 +118,11 @@ $@"public class SomeRazorFile
         public async Task TryResolveBreakpointRangeAsync_NotValidBreakpointLocation_ReturnsNull()
         {
             // Arrange
-            var hostDocumentPosition = GetPosition(InvalidBreakpointCSharp, HostTextbuffer);
+            var hostDocumentPosition = GetPosition(InvalidBreakpointCSharp, _hostTextbuffer);
             var resolver = CreateResolverWith();
 
             // Act
-            var breakpointRange = await resolver.TryResolveBreakpointRangeAsync(HostTextbuffer, hostDocumentPosition.Line, hostDocumentPosition.Character, CancellationToken.None);
+            var breakpointRange = await resolver.TryResolveBreakpointRangeAsync(_hostTextbuffer, hostDocumentPosition.Line, hostDocumentPosition.Character, DisposalToken);
 
             // Assert
             Assert.Null(breakpointRange);
@@ -132,14 +132,14 @@ $@"public class SomeRazorFile
         public async Task TryResolveBreakpointRangeAsync_MappableCSharpBreakpointLocation_ReturnsHostBreakpointLocation()
         {
             // Arrange
-            var hostDocumentPosition = GetPosition(ValidBreakpointCSharp, HostTextbuffer);
+            var hostDocumentPosition = GetPosition(ValidBreakpointCSharp, _hostTextbuffer);
             var hostBreakpointRange = new Range()
             {
                 Start = hostDocumentPosition,
                 End = new Position(hostDocumentPosition.Line, hostDocumentPosition.Character + ValidBreakpointCSharp.Length),
             };
             var projectionProvider = new TestLSPBreakpointSpanProvider(
-                DocumentUri,
+                _documentUri,
                 new Dictionary<Position, Range>()
                 {
                     [hostDocumentPosition] = hostBreakpointRange
@@ -147,7 +147,7 @@ $@"public class SomeRazorFile
             var resolver = CreateResolverWith(projectionProvider: projectionProvider);
 
             // Act
-            var breakpointRange = await resolver.TryResolveBreakpointRangeAsync(HostTextbuffer, hostDocumentPosition.Line, hostDocumentPosition.Character, CancellationToken.None);
+            var breakpointRange = await resolver.TryResolveBreakpointRangeAsync(_hostTextbuffer, hostDocumentPosition.Line, hostDocumentPosition.Character, DisposalToken);
 
             // Assert
             Assert.Equal(hostBreakpointRange, breakpointRange);
@@ -158,16 +158,20 @@ $@"public class SomeRazorFile
             LSPDocumentManager documentManager = null,
             LSPBreakpointSpanProvider projectionProvider = null)
         {
-            var documentUri = DocumentUri;
-            uriProvider ??= Mock.Of<FileUriProvider>(provider => provider.TryGet(HostTextbuffer, out documentUri) == true && provider.TryGet(It.IsNotIn(HostTextbuffer), out It.Ref<Uri>.IsAny) == false, MockBehavior.Strict);
-            var csharpVirtualDocumentSnapshot = new CSharpVirtualDocumentSnapshot(CSharpDocumentUri, CSharpTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0);
-            LSPDocumentSnapshot documentSnapshot = new TestLSPDocumentSnapshot(DocumentUri, 0, csharpVirtualDocumentSnapshot);
-            documentManager ??= Mock.Of<LSPDocumentManager>(manager => manager.TryGetDocument(DocumentUri, out documentSnapshot) == true, MockBehavior.Strict);
+            var documentUri = _documentUri;
+            uriProvider ??= Mock.Of<FileUriProvider>(provider => provider.TryGet(_hostTextbuffer, out documentUri) == true && provider.TryGet(It.IsNotIn(_hostTextbuffer), out It.Ref<Uri>.IsAny) == false, MockBehavior.Strict);
+            var csharpVirtualDocumentSnapshot = new CSharpVirtualDocumentSnapshot(_csharpDocumentUri, _csharpTextBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0);
+            LSPDocumentSnapshot documentSnapshot = new TestLSPDocumentSnapshot(_documentUri, 0, csharpVirtualDocumentSnapshot);
+            documentManager ??= Mock.Of<LSPDocumentManager>(manager => manager.TryGetDocument(_documentUri, out documentSnapshot) == true, MockBehavior.Strict);
             if (projectionProvider is null)
             {
                 projectionProvider = new Mock<LSPBreakpointSpanProvider>(MockBehavior.Strict).Object;
-                Mock.Get(projectionProvider).Setup(projectionProvider => projectionProvider.GetBreakpointSpanAsync(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<Position>(), CancellationToken.None))
-                    .Returns(Task.FromResult<Range>(null));
+                Mock.Get(projectionProvider)
+                    .Setup(projectionProvider => projectionProvider.GetBreakpointSpanAsync(
+                        It.IsAny<LSPDocumentSnapshot>(),
+                        It.IsAny<Position>(),
+                        DisposalToken))
+                    .ReturnsAsync(value: null);
             }
 
             var razorBreakpointResolver = new DefaultRazorBreakpointResolver(uriProvider, documentManager, projectionProvider);

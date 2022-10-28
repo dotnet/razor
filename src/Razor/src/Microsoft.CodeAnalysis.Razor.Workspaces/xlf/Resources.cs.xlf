@@ -7,6 +7,13 @@
         <target state="translated">Hodnota nesmí být null ani prázdný řetězec.</target>
         <note />
       </trans-unit>
+      <trans-unit id="DirectiveSnippetDescription">
+        <source>Insert a directive code snippet
+[Tab] to navigate between elements, [Enter] to complete</source>
+        <target state="translated">Vložení fragmentu kódu direktivy
+[Tab] pro navigaci mezi elementy, [Enter] pro dokončení</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

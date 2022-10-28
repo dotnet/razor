@@ -1,42 +1,38 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal record RazorLanguageServerCapability(
-        bool LanguageQuery,
-        bool RangeMapping,
-        bool EditMapping,
-        bool MonitorProjectConfigurationFilePath,
-        bool BreakpointSpan,
-        bool ProximityExpressions)
+    internal class RazorLanguageServerCapability : IRegistrationExtension
     {
         private const string RazorCapabilityKey = "razor";
-        private static readonly RazorLanguageServerCapability s_default = new RazorLanguageServerCapability(
-            LanguageQuery: true,
-            RangeMapping: true,
-            EditMapping: true,
-            MonitorProjectConfigurationFilePath: true,
-            BreakpointSpan: true,
-            ProximityExpressions: true);
-
-        public static void AddTo(ServerCapabilities capabilities)
+        private static readonly RazorLanguageServerCapability s_default = new RazorLanguageServerCapability
         {
-            // We have to use the experimental capabilities bucket here because not all platforms maintain custom capabilities. For instance
-            // in Visual Studio scenarios it will deserialize server capabilties into what it believes is "valid" and then will re-pass said
-            // server capabilities to our client side code having lost the information of the custom capabilities. To avoid this we use the
-            // experimental bag since it's part of the official LSP spec. This approach enables us to work with any client.
-            capabilities.Experimental ??= new Dictionary<string, JToken>();
-            capabilities.Experimental[RazorCapabilityKey] = JToken.FromObject(s_default);
+            LanguageQuery = true,
+            RangeMapping = true,
+            EditMapping = true,
+            MonitorProjectConfigurationFilePath = true,
+            BreakpointSpan = true,
+            ProximityExpressions = true
+        };
+
+        public bool LanguageQuery { get; set; }
+        public bool RangeMapping { get; set; }
+        public bool EditMapping { get; set; }
+        public bool MonitorProjectConfigurationFilePath { get; set; }
+        public bool BreakpointSpan { get; set; }
+        public bool ProximityExpressions { get; set; }
+
+        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+        {
+            return new RegistrationExtensionResult(RazorCapabilityKey, JToken.FromObject(s_default));
         }
 
-        public static bool TryGet(JToken token, out RazorLanguageServerCapability razorCapability)
+        public static bool TryGet(JToken token, [NotNullWhen(true)] out RazorLanguageServerCapability? razorCapability)
         {
             if (token is not JObject jobject)
             {
@@ -63,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             razorCapability = razorCapabilityToken.ToObject<RazorLanguageServerCapability>();
-            return true;
+            return razorCapability is not null;
         }
     }
 }

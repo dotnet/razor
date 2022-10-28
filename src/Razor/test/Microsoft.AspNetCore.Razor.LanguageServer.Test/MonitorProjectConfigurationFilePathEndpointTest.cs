@@ -9,23 +9,26 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
     public class MonitorProjectConfigurationFilePathEndpointTest : LanguageServerTestBase
     {
-        public MonitorProjectConfigurationFilePathEndpointTest()
-        {
-            DirectoryPathResolver = Mock.Of<WorkspaceDirectoryPathResolver>(resolver => resolver.Resolve() == "C:/dir", MockBehavior.Strict);
-        }
+        private readonly WorkspaceDirectoryPathResolver _directoryPathResolver;
 
-        private WorkspaceDirectoryPathResolver DirectoryPathResolver { get; }
+        public MonitorProjectConfigurationFilePathEndpointTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+            _directoryPathResolver = Mock.Of<WorkspaceDirectoryPathResolver>(resolver => resolver.Resolve() == "C:/dir", MockBehavior.Strict);
+        }
 
         [Fact]
         public async Task Handle_Disposed_Noops()
@@ -36,7 +39,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 .Throws<XunitException>();
             var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
                 LegacyDispatcher,
-                FilePathNormalizer,
                 directoryPathResolver.Object,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 TestLanguageServerFeatureOptions.Instance,
@@ -47,9 +49,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 ProjectFilePath = "C:/dir/project.csproj",
                 ConfigurationFilePath = "C:/dir/obj/Debug/project.razor.json",
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act & Assert
-            await configurationFileEndpoint.Handle(request, CancellationToken.None);
+            await configurationFileEndpoint.HandleNotificationAsync(request, requestContext, DisposalToken);
         }
 
         [Fact]
@@ -61,7 +64,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 .Throws<XunitException>();
             var configurationFileEndpoint = new MonitorProjectConfigurationFilePathEndpoint(
                 LegacyDispatcher,
-                FilePathNormalizer,
                 directoryPathResolver.Object,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 TestLanguageServerFeatureOptions.Instance,
@@ -71,9 +73,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 ProjectFilePath = "C:/dir/project.csproj",
                 ConfigurationFilePath = null,
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act & Assert
-            await configurationFileEndpoint.Handle(request, CancellationToken.None);
+            await configurationFileEndpoint.HandleNotificationAsync(request, requestContext, DisposalToken);
         }
 
         [Fact]
@@ -84,8 +87,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detector,
                 LegacyDispatcher,
-                FilePathNormalizer,
-                DirectoryPathResolver,
+                _directoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 LoggerFactory);
             var startRequest = new MonitorProjectConfigurationFilePathParams()
@@ -93,7 +95,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 ProjectFilePath = "C:/dir/project.csproj",
                 ConfigurationFilePath = "C:/externaldir/obj/Debug/project.razor.json",
             };
-            await configurationFileEndpoint.Handle(startRequest, CancellationToken.None);
+            var requestContext = CreateRazorRequestContext(documentContext: null);
+            await configurationFileEndpoint.HandleNotificationAsync(startRequest, requestContext, DisposalToken);
             var stopRequest = new MonitorProjectConfigurationFilePathParams()
             {
                 ProjectFilePath = "C:/dir/project.csproj",
@@ -101,7 +104,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             };
 
             // Act
-            await configurationFileEndpoint.Handle(stopRequest, CancellationToken.None);
+            await configurationFileEndpoint.HandleNotificationAsync(stopRequest, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(1, detector.StartCount);
@@ -116,8 +119,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detector,
                 LegacyDispatcher,
-                FilePathNormalizer,
-                DirectoryPathResolver,
+                _directoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 LoggerFactory);
             var startRequest = new MonitorProjectConfigurationFilePathParams()
@@ -125,9 +127,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 ProjectFilePath = "C:/dir/project.csproj",
                 ConfigurationFilePath = "C:/dir/obj/Debug/project.razor.json",
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            await configurationFileEndpoint.Handle(startRequest, CancellationToken.None);
+            await configurationFileEndpoint.HandleNotificationAsync(startRequest, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(0, detector.StartCount);
@@ -141,8 +144,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detector,
                 LegacyDispatcher,
-                FilePathNormalizer,
-                DirectoryPathResolver,
+                _directoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 LoggerFactory);
             var startRequest = new MonitorProjectConfigurationFilePathParams()
@@ -150,10 +152,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 ProjectFilePath = "C:/dir/project.csproj",
                 ConfigurationFilePath = "C:/externaldir/obj/Debug/project.razor.json",
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            await configurationFileEndpoint.Handle(startRequest, CancellationToken.None);
-            await configurationFileEndpoint.Handle(startRequest, CancellationToken.None);
+            await configurationFileEndpoint.HandleNotificationAsync(startRequest, requestContext, DisposalToken);
+            await configurationFileEndpoint.HandleNotificationAsync(startRequest, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(1, detector.StartCount);
@@ -168,8 +171,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detector,
                 LegacyDispatcher,
-                FilePathNormalizer,
-                DirectoryPathResolver,
+                _directoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 LoggerFactory);
             var debugOutputPath = new MonitorProjectConfigurationFilePathParams()
@@ -182,10 +184,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 ProjectFilePath = debugOutputPath.ProjectFilePath,
                 ConfigurationFilePath = "C:\\externaldir\\obj\\Release\\project.razor.json",
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            await configurationFileEndpoint.Handle(debugOutputPath, CancellationToken.None);
-            await configurationFileEndpoint.Handle(releaseOutputPath, CancellationToken.None);
+            await configurationFileEndpoint.HandleNotificationAsync(debugOutputPath, requestContext, DisposalToken);
+            await configurationFileEndpoint.HandleNotificationAsync(releaseOutputPath, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(new[] { "C:\\externaldir\\obj\\Debug", "C:\\externaldir\\obj\\Release" }, detector.StartedWithDirectory);
@@ -200,8 +203,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detector,
                 LegacyDispatcher,
-                FilePathNormalizer,
-                DirectoryPathResolver,
+                _directoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 LoggerFactory);
             var externalRequest = new MonitorProjectConfigurationFilePathParams()
@@ -214,10 +216,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 ProjectFilePath = externalRequest.ProjectFilePath,
                 ConfigurationFilePath = "C:\\dir\\obj\\Release\\project.razor.json",
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            await configurationFileEndpoint.Handle(externalRequest, CancellationToken.None);
-            await configurationFileEndpoint.Handle(internalRequest, CancellationToken.None);
+            await configurationFileEndpoint.HandleNotificationAsync(externalRequest, requestContext, DisposalToken);
+            await configurationFileEndpoint.HandleNotificationAsync(internalRequest, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(new[] { "C:\\externaldir\\obj\\Debug" }, detector.StartedWithDirectory);
@@ -236,8 +239,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detectors[callCount++],
                 LegacyDispatcher,
-                FilePathNormalizer,
-                DirectoryPathResolver,
+                _directoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 LoggerFactory);
             var debugOutputPath = new MonitorProjectConfigurationFilePathParams()
@@ -250,17 +252,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 ProjectFilePath = debugOutputPath.ProjectFilePath,
                 ConfigurationFilePath = "C:\\externaldir1\\obj\\Release\\project.razor.json",
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
 
             // Project opened, defaults to Debug output path
-            await configurationFileEndpoint.Handle(debugOutputPath, CancellationToken.None);
+            await configurationFileEndpoint.HandleNotificationAsync(debugOutputPath, requestContext, DisposalToken);
 
             // Project published (temporarily moves to release output path)
-            await configurationFileEndpoint.Handle(releaseOutputPath, CancellationToken.None);
+            await configurationFileEndpoint.HandleNotificationAsync(releaseOutputPath, requestContext, DisposalToken);
 
             // Project publish finished (moves back to debug output path)
-            await configurationFileEndpoint.Handle(debugOutputPath, CancellationToken.None);
+            await configurationFileEndpoint.HandleNotificationAsync(debugOutputPath, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(1, projectOpenDebugDetector.StartCount);
@@ -283,8 +286,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             var configurationFileEndpoint = new TestMonitorProjectConfigurationFilePathEndpoint(
                 () => detectors[callCount++],
                 LegacyDispatcher,
-                FilePathNormalizer,
-                DirectoryPathResolver,
+                _directoryPathResolver,
                 Enumerable.Empty<IProjectConfigurationFileChangeListener>(),
                 LoggerFactory);
             var debugOutputPath1 = new MonitorProjectConfigurationFilePathParams()
@@ -302,11 +304,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 ProjectFilePath = "C:\\dir\\project2.csproj",
                 ConfigurationFilePath = "C:\\externaldir2\\obj\\Debug\\project.razor.json",
             };
+            var requestContext = CreateRazorRequestContext(documentContext: null);
 
             // Act
-            await configurationFileEndpoint.Handle(debugOutputPath1, CancellationToken.None);
-            await configurationFileEndpoint.Handle(debugOutputPath2, CancellationToken.None);
-            await configurationFileEndpoint.Handle(releaseOutputPath1, CancellationToken.None);
+            await configurationFileEndpoint.HandleNotificationAsync(debugOutputPath1, requestContext, DisposalToken);
+            await configurationFileEndpoint.HandleNotificationAsync(debugOutputPath2, requestContext, DisposalToken);
+            await configurationFileEndpoint.HandleNotificationAsync(releaseOutputPath1, requestContext, DisposalToken);
 
             // Assert
             Assert.Equal(1, debug1Detector.StartCount);
@@ -323,13 +326,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
 
             public TestMonitorProjectConfigurationFilePathEndpoint(
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-                FilePathNormalizer filePathNormalizer,
                 WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
                 IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-                ILoggerFactory loggerFactory) : this(
+                ILoggerFactory loggerFactory)
+                : this(
                     fileChangeDetectorFactory: null,
                     projectSnapshotManagerDispatcher,
-                    filePathNormalizer,
                     workspaceDirectoryPathResolver,
                     listeners,
                     loggerFactory)
@@ -339,12 +341,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             public TestMonitorProjectConfigurationFilePathEndpoint(
                 Func<IFileChangeDetector> fileChangeDetectorFactory,
                 ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-                FilePathNormalizer filePathNormalizer,
                 WorkspaceDirectoryPathResolver workspaceDirectoryPathResolver,
                 IEnumerable<IProjectConfigurationFileChangeListener> listeners,
-                ILoggerFactory loggerFactory) : base(
+                ILoggerFactory loggerFactory)
+                : base(
                     projectSnapshotManagerDispatcher,
-                    filePathNormalizer,
                     workspaceDirectoryPathResolver,
                     listeners,
                     TestLanguageServerFeatureOptions.Instance,

@@ -1,53 +1,36 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.Extensions.Logging;
-using OmniSharp.Extensions.LanguageServer.Protocol.Client.Capabilities;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
-using OmniSharp.Extensions.LanguageServer.Protocol.Workspace;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer
 {
-    internal class RazorConfigurationEndpoint : IDidChangeConfigurationHandler
+    internal class RazorConfigurationEndpoint : IDidChangeConfigurationEndpoint
     {
         private readonly RazorLSPOptionsMonitor _optionsMonitor;
-        private readonly ILogger _logger;
-        private DidChangeConfigurationCapability _capability;
 
-        public RazorConfigurationEndpoint(RazorLSPOptionsMonitor optionsMonitor, ILoggerFactory loggerFactory)
+        public RazorConfigurationEndpoint(RazorLSPOptionsMonitor optionsMonitor)
         {
             if (optionsMonitor is null)
             {
                 throw new ArgumentNullException(nameof(optionsMonitor));
             }
 
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
             _optionsMonitor = optionsMonitor;
-            _logger = loggerFactory.CreateLogger<RazorConfigurationEndpoint>();
         }
 
-        public void SetCapability(DidChangeConfigurationCapability capability, ClientCapabilities clientCapabilities)
-        {
-            _capability = capability;
-        }
+        public bool MutatesSolutionState => true;
 
-        public async Task<Unit> Handle(DidChangeConfigurationParams request, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(DidChangeConfigurationParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
         {
-            _logger.LogTrace("Settings changed. Updating the server.");
+            requestContext.Logger.LogInformation("Settings changed. Updating the server.");
 
             await _optionsMonitor.UpdateAsync(cancellationToken);
-
-            return new Unit();
         }
     }
 }

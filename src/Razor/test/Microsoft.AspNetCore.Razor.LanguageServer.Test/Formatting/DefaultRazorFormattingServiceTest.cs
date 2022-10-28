@@ -5,14 +5,21 @@
 
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 {
-    public class DefaultRazorFormattingServiceTest
+    public class DefaultRazorFormattingServiceTest : TestBase
     {
+        public DefaultRazorFormattingServiceTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void MergeEdits_ReturnsSingleEditAsExpected()
         {
@@ -28,12 +35,12 @@ public class Foo{}
                 new TextEdit()
                 {
                     NewText = "Bar",
-                    Range = new Range(new Position(2, 13), new Position(2, 16))
+                    Range = new Range{ Start = new Position(2, 13), End = new Position(2, 16) }
                 },
                 new TextEdit()
                 {
                     NewText = "    ",
-                    Range = new Range(new Position(2, 0), new Position(2, 0))
+                    Range = new Range{Start = new Position(2, 0),End = new Position(2, 0)}
                 },
             };
 

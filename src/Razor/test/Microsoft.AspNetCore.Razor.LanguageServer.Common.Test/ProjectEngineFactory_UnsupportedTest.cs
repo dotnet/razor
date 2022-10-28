@@ -5,13 +5,20 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
 {
-    public class ProjectEngineFactory_UnsupportedTest
+    public class ProjectEngineFactory_UnsupportedTest : TestBase
     {
+        public ProjectEngineFactory_UnsupportedTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public void Create_IgnoresConfigureParameter()
         {

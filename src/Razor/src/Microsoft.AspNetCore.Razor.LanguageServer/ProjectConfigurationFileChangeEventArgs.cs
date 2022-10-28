@@ -72,8 +72,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                         return false;
                     }
 
-                    var normalizedSerializedFilePath = FilePathNormalizer.Instance.Normalize(deserializedProjectRazorJson.SerializedFilePath);
-                    var normalizedDetectedFilePath = FilePathNormalizer.Instance.Normalize(ConfigurationFilePath);
+                    var normalizedSerializedFilePath = FilePathNormalizer.Normalize(deserializedProjectRazorJson.SerializedFilePath);
+                    var normalizedDetectedFilePath = FilePathNormalizer.Normalize(ConfigurationFilePath);
                     if (string.Equals(normalizedSerializedFilePath, normalizedDetectedFilePath, FilePathComparison.Instance))
                     {
                         _projectRazorJson = deserializedProjectRazorJson;

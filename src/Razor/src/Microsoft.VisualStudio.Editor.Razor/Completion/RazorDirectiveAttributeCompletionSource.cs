@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
@@ -26,12 +25,12 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
     internal class RazorDirectiveAttributeCompletionSource : IAsyncCompletionSource
     {
         // Internal for testing
-        internal static readonly object DescriptionKey = new object();
+        internal static readonly object DescriptionKey = new();
 
         // Hardcoding the Guid here to avoid a reference to Microsoft.VisualStudio.ImageCatalog.dll
         // that is not present in Visual Studio for Mac
-        private static readonly Guid s_imageCatalogGuid = new Guid("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
-        private static readonly ImageElement s_directiveAttributeImageGlyph = new ImageElement(
+        private static readonly Guid s_imageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
+        private static readonly ImageElement s_directiveAttributeImageGlyph = new(
             new ImageId(s_imageCatalogGuid, 3564), // KnownImageIds.Type = 3564
             "Razor Directive Attribute.");
         private static readonly ImmutableArray<CompletionFilter> s_directiveAttributeCompletionFilters = new[] {
@@ -94,10 +93,11 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
                 var syntaxTree = codeDocument.GetSyntaxTree();
                 var tagHelperDocumentContext = codeDocument.GetTagHelperContext();
-                var location = new SourceSpan(triggerLocation.Position, 0);
-
-                var razorCompletionContext = new RazorCompletionContext(syntaxTree, tagHelperDocumentContext);
-                var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext, location);
+                var absoluteIndex = triggerLocation.Position;
+                var queryableChange = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
+                var owner = syntaxTree.Root.LocateOwner(queryableChange);
+                var razorCompletionContext = new RazorCompletionContext(absoluteIndex, owner, syntaxTree, tagHelperDocumentContext);
+                var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext);
 
                 if (razorCompletionItems.Count == 0)
                 {
@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.Editor.Razor.Completion
 
                     // Legacy completion is also active, we need to dismiss it.
 
-                    await _joinableTaskFactory.SwitchToMainThreadAsync();
+                    await _joinableTaskFactory.SwitchToMainThreadAsync(token);
 
                     activeSession.Dismiss();
                 }

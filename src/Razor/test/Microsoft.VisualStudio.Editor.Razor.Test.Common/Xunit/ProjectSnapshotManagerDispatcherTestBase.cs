@@ -5,21 +5,18 @@
 
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.VisualStudio.Threading;
+using Xunit.Abstractions;
 
 namespace Xunit
 {
     public abstract class ProjectSnapshotManagerDispatcherTestBase : ParserTestBase
     {
-        internal ProjectSnapshotManagerDispatcher Dispatcher { get; } = new TestProjectSnapshotManagerDispatcher();
+        internal ProjectSnapshotManagerDispatcher Dispatcher { get; }
 
-        internal static JoinableTaskFactory JoinableTaskFactory
+        protected ProjectSnapshotManagerDispatcherTestBase(ITestOutputHelper testOutput)
+            : base(testOutput)
         {
-            get
-            {
-                var joinableTaskContext = new JoinableTaskContextNode(new JoinableTaskContext());
-                return new JoinableTaskFactory(joinableTaskContext.Context);
-            }
+            Dispatcher = new TestProjectSnapshotManagerDispatcher();
         }
     }
 }

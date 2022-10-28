@@ -5,22 +5,27 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using OmniSharp.Extensions.LanguageServer.Protocol.Models;
 using Xunit;
-using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     public class ComponentAccessibilityCodeActionProviderTest : LanguageServerTestBase
     {
+        public ComponentAccessibilityCodeActionProviderTest(ITestOutputHelper testOutput)
+            : base(testOutput)
+        {
+        }
+
         [Fact]
         public async Task Handle_NoTagName_DoesNotProvideLightBulb()
         {
@@ -29,14 +34,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "<";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 1), new Position(0, 1)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range{ Start = new Position(0, 1), End = new Position(0, 1), },
             };
 
             var location = new SourceLocation(1, -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(0, 1));
 
-            var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService(), FilePathNormalizer);
+            var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService());
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -53,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
                 Range = new Range(),
             };
 
@@ -61,7 +66,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(0, 0));
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
-            var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService(), FilePathNormalizer);
+            var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService());
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -78,14 +83,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = " <Component></Component>";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 0), new Position(0, 0)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
             };
 
             var location = new SourceLocation(0, -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9));
 
-            var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService(), FilePathNormalizer);
+            var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService());
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -102,14 +107,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "<Component></Component>";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 0), new Position(0, 0)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
             };
 
             var location = new SourceLocation(1, -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: true);
 
-            var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService(), FilePathNormalizer);
+            var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService());
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -145,14 +150,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "<NewComponent></NewComponent>";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 0), new Position(0, 0)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
             };
 
             var location = new SourceLocation(1, -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: true);
 
-            var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService(), FilePathNormalizer);
+            var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService());
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -171,14 +176,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "<NewComponent></NewComponent>";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 0), new Position(0, 0)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
             };
 
             var location = new SourceLocation(1, -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: false);
 
-            var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService(), FilePathNormalizer);
+            var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService());
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -195,14 +200,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = "<Component></Component>";
             var request = new CodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier(new Uri(documentPath)),
-                Range = new Range(new Position(0, 0), new Position(0, 0)),
+                TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+                Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
             };
 
             var location = new SourceLocation(1, -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: false);
 
-            var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService(), FilePathNormalizer);
+            var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService());
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);

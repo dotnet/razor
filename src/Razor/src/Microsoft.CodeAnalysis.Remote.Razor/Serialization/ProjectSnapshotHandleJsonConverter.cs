@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -20,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
             return typeof(ProjectSnapshotHandle).IsAssignableFrom(objectType);
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType != JsonToken.StartObject)
             {
@@ -35,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
                     case nameof(ProjectSnapshotHandle.FilePath):
                         if (reader.Read())
                         {
-                            filePath = (string)reader.Value;
+                            filePath = (string)reader.Value!;
                         }
 
                         break;
@@ -49,21 +47,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
                     case nameof(ProjectSnapshotHandle.RootNamespace):
                         if (reader.Read())
                         {
-                            rootNamespace = (string)reader.Value;
+                            rootNamespace = (string)reader.Value!;
                         }
 
                         break;
                 }
 
                 return (reader, objectType, existingValue, serializer, filePath, configuration, rootNamespace);
-            }, (reader, objectType, existingValue, serializer, filePath: (string)null, configuration: (RazorConfiguration)null, rootNamespace: (string)null));
+            }, (reader, objectType, existingValue, serializer, filePath: (string?)null, configuration: (RazorConfiguration?)null, rootNamespace: (string?)null));
 
-            return new ProjectSnapshotHandle(filePath, configuration, rootNamespace);
+            return new ProjectSnapshotHandle(filePath!, configuration, rootNamespace);
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
-            var handle = (ProjectSnapshotHandle)value;
+            var handle = (ProjectSnapshotHandle)value!;
 
             writer.WriteStartObject();
 

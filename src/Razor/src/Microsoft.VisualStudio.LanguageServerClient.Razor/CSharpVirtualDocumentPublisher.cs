@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         }
 
         // Internal for testing
-        public override void Changed(LSPDocumentSnapshot old, LSPDocumentSnapshot @new, VirtualDocumentSnapshot virtualOld, VirtualDocumentSnapshot virtualNew, LSPDocumentChangeKind kind)
+        public override void Changed(LSPDocumentSnapshot? old, LSPDocumentSnapshot? @new, VirtualDocumentSnapshot? virtualOld, VirtualDocumentSnapshot? virtualNew, LSPDocumentChangeKind kind)
         {
             // We need the below check to address a race condition between when a request is sent to the C# server
             // for a generated document and when the C# server receives a document/didOpen notification. This race
@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             // workaround until a longer-term solution is implemented in the future.
             if (kind == LSPDocumentChangeKind.Added && _dynamicFileInfoProvider is DefaultRazorDynamicFileInfoProvider defaultProvider)
             {
-                defaultProvider.PromoteBackgroundDocument(@new.Uri, CSharpDocumentPropertiesService.Instance);
+                defaultProvider.PromoteBackgroundDocument(@new!.Uri, CSharpDocumentPropertiesService.Instance);
             }
 
             if (kind != LSPDocumentChangeKind.VirtualDocumentChanged)
@@ -64,8 +64,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             if (virtualNew is CSharpVirtualDocumentSnapshot)
             {
-                var csharpContainer = new CSharpVirtualDocumentContainer(_lspDocumentMappingProvider, @new, virtualNew.Snapshot);
-                _dynamicFileInfoProvider.UpdateLSPFileInfo(@new.Uri, csharpContainer);
+                var csharpContainer = new CSharpVirtualDocumentContainer(_lspDocumentMappingProvider, @new!, virtualNew.Snapshot);
+                _dynamicFileInfoProvider.UpdateLSPFileInfo(@new!.Uri, csharpContainer);
             }
         }
 
@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     _filePath = filePath;
                 }
 
-                public override Task<TextAndVersion> LoadTextAndVersionAsync(CodeAnalysisWorkspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+                public override Task<TextAndVersion> LoadTextAndVersionAsync(CodeAnalysisWorkspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
                 {
                     return Task.FromResult(TextAndVersion.Create(_sourceText, VersionStamp.Default, _filePath));
                 }
