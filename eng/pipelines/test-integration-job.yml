@@ -62,9 +62,6 @@ steps:
     displayName: Build and Deploy VSIX
     condition: succeeded()
 
-  - powershell: eng\SetupVSHive.ps1
-    displayName: Setup VS Hive
-
   - task: PublishBuildArtifacts@1
     displayName: Upload Build VSIX BinLog
     condition: always()
