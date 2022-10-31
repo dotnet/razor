@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Razor.Common.Telemetry;
-
 namespace Microsoft.CodeAnalysis.Razor
 {
     // Provides access to Razor language and workspace services that are avialable in the OOP host.
@@ -11,10 +9,10 @@ namespace Microsoft.CodeAnalysis.Razor
     // that we can construct directly.
     internal sealed class RazorServices
     {
-        public RazorServices(ITelemetryReporter telemetryReporter)
+        public RazorServices()
         {
             FallbackProjectEngineFactory = new FallbackProjectEngineFactory();
-            TagHelperResolver = new RemoteTagHelperResolver(FallbackProjectEngineFactory, telemetryReporter);
+            TagHelperResolver = new RemoteTagHelperResolver(FallbackProjectEngineFactory);
         }
 
         public IFallbackProjectEngineFactory FallbackProjectEngineFactory { get; }

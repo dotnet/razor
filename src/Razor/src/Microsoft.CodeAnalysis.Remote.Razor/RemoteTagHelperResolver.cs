@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -16,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Razor
 
         private readonly IFallbackProjectEngineFactory _fallbackFactory;
 
-        public RemoteTagHelperResolver(IFallbackProjectEngineFactory fallbackFactory, ITelemetryReporter telemetryReporter)
-            : base(telemetryReporter)
+        public RemoteTagHelperResolver(IFallbackProjectEngineFactory fallbackFactory)
+            : base()
         {
             if (fallbackFactory is null)
             {
