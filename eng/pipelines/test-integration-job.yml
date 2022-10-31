@@ -93,7 +93,7 @@ steps:
       mergeTestResults: true
       testRunTitle: '$(System.JobAttempt)-Integration ${{ parameters.configuration }}'
     condition: succeededOrFailed()
-  - task: PublishBuildResults@2
+  - task: PublishBuildArtifacts@2
     displayName: Publish TestResults
     inputs:
       PathtoPublish: $(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}
