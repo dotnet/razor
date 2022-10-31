@@ -99,7 +99,7 @@ steps:
       PathtoPublish: $(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}
       ArtifactName: '$(System.JobAttempt)-TestResults $(Build.BuildNumber)'
       publishLocation: Container
-    continueOnError: testResultsFiles
+    continueOnError: true
     condition: succeededOrFailed()
   - task: PublishBuildArtifacts@1
     displayName: Publish Logs
