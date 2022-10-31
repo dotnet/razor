@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -17,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
     {
         protected readonly ServiceBrokerClient ServiceBrokerClient;
 
-        public RazorServiceBase(IServiceBroker serviceBroker, ITelemetryReporter telemetryReporter)
+        public RazorServiceBase(IServiceBroker serviceBroker)
         {
-            RazorServices = new RazorServices(telemetryReporter);
+            RazorServices = new RazorServices();
 
 #pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
             ServiceBrokerClient = new ServiceBrokerClient(serviceBroker);
