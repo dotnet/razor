@@ -54,11 +54,11 @@
   -->
   <!-- TODO: https://github.com/dotnet/razor-tooling/issues/6760 -->
   <PropertyGroup Label="Automated">
-    <MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>7.0.0-preview.5.22471.1</MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>
-    <MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>7.0.0-preview.5.22471.1</MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>7.0.0-preview.5.22471.1</MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>7.0.0-preview.5.22471.1</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>
-    <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>7.0.0-preview.5.22471.1</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>
+    <MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>7.0.0-preview.5.22528.1</MicrosoftCodeAnalysisRazorToolingInternalPackageVersion>
+    <MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>7.0.0-preview.5.22528.1</MicrosoftAspNetCoreRazorSymbolsTransportPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>7.0.0-preview.5.22528.1</MicrosoftAspNetCoreMvcRazorExtensionsToolingInternalPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>7.0.0-preview.5.22528.1</MicrosoftAspNetCoreMvcRazorExtensionsVersion1_XInternalTransportPackageVersion>
+    <MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>7.0.0-preview.5.22528.1</MicrosoftAspNetCoreMvcRazorExtensionsVersion2_XInternalTransportPackageVersion>
     <MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>6.0.2-servicing.22064.6</MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>
     <MicrosoftNETCorePlatformsPackageVersion>6.0.1</MicrosoftNETCorePlatformsPackageVersion>
   </PropertyGroup>

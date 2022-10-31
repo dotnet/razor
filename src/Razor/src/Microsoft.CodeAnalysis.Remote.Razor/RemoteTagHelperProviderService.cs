@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
@@ -19,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor
     {
         private readonly RemoteTagHelperDeltaProvider _tagHelperDeltaProvider;
 
-        internal RemoteTagHelperProviderService(IServiceBroker serviceBroker, ITelemetryReporter telemetryReporter)
-            : base(serviceBroker, telemetryReporter)
+        internal RemoteTagHelperProviderService(IServiceBroker serviceBroker)
+            : base(serviceBroker)
         {
             _tagHelperDeltaProvider = new RemoteTagHelperDeltaProvider();
         }

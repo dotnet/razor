@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,11 +17,11 @@ namespace Microsoft.CodeAnalysis.Razor
 {
     internal abstract class TagHelperResolver : IWorkspaceService
     {
-        private readonly ITelemetryReporter _telemetryReporter;
+        private readonly ITelemetryReporter? _telemetryReporter;
 
-        public TagHelperResolver(ITelemetryReporter telemetryReporter)
+        public TagHelperResolver(ITelemetryReporter? telemetryReporter = null)
         {
-            _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
+            _telemetryReporter = telemetryReporter;
         }
 
         public abstract Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default);
@@ -71,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Razor
                 timingDictionary[propertyName] = stopWatch.ElapsedMilliseconds;
             }
 
-            _telemetryReporter.ReportEvent("taghelperresolver/gettaghelpers", VisualStudio.Telemetry.TelemetrySeverity.Normal, timingDictionary.ToImmutableDictionary());
+            _telemetryReporter?.ReportEvent("taghelperresolver/gettaghelpers", VisualStudio.Telemetry.TelemetrySeverity.Normal, timingDictionary.ToImmutableDictionary());
             return new TagHelperResolutionResult(results, Array.Empty<RazorDiagnostic>());
         }
 

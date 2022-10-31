@@ -12,10 +12,22 @@ using Nerdbank.Streams;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor
 {
+    /// <summary>
+    /// </summary>
+    /// <typeparam name="TService"></typeparam>
+    /// <remarks>
+    /// Implementors of <see cref="IServiceHubServiceFactory" /> (and thus this class) MUST provide a parameterless constructor or ServiceHub will fail to construct them.
+    /// </remarks>
     internal abstract class RazorServiceFactoryBase<TService> : IServiceHubServiceFactory where TService : class
     {
         private readonly RazorServiceDescriptorsWrapper _razorServiceDescriptors;
 
+        /// <summary>
+        /// </summary>
+        /// <param name="razorServiceDescriptors"></param>
+        /// <remarks>
+        /// Implementors of <see cref="IServiceHubServiceFactory" /> (and thus this class) MUST provide a parameterless constructor or ServiceHub will fail to construct them.
+        /// </remarks>
         public RazorServiceFactoryBase(RazorServiceDescriptorsWrapper razorServiceDescriptors)
         {
             _razorServiceDescriptors = razorServiceDescriptors;
