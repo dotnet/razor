@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -31,6 +32,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var dispatcher = new LSPProjectSnapshotManagerDispatcher(loggerFactory);
             var versionCache = new DefaultDocumentVersionCache(dispatcher);
+
+            var workspaceFactory = TestAdhocWorkspaceFactory.Instance;
+            var globalOptions = RazorGlobalOptions.GetGlobalOptions(workspaceFactory.Create());
+
             if (documentSnapshot is not null)
             {
                 await dispatcher.RunOnDispatcherThreadAsync(() =>
@@ -46,7 +51,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             {
                 new HtmlFormattingPass(mappingService, client, versionCache, loggerFactory),
                 new CSharpFormattingPass(mappingService, client, loggerFactory),
-                new CSharpOnTypeFormattingPass(mappingService, client, loggerFactory),
+                new CSharpOnTypeFormattingPass(mappingService, client, globalOptions, loggerFactory),
                 new RazorFormattingPass(mappingService, client, loggerFactory),
                 new FormattingDiagnosticValidationPass(mappingService, client, loggerFactory),
                 new FormattingContentValidationPass(mappingService, client, loggerFactory),
