@@ -19,9 +19,9 @@
     <!-- Don't automatically include dependencies -->
     <IncludePackageReferencesInVSIXContainer>false</IncludePackageReferencesInVSIXContainer>
 
-    <CreateVsixContainer>true</CreateVsixContainer>
+    <CreateVsixContainer Condition="'$(BuildDependencyVsix)' == 'true'">true</CreateVsixContainer>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
-    <DeployExtension>true</DeployExtension>
+    <DeployExtension Condition="'$(BuildDependencyVsix)' == 'true'">true</DeployExtension>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>

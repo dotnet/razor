@@ -72,6 +72,7 @@ steps:
       -msbuildEngine vs
       -prepareMachine
       -integrationTest
+      /p:BuildDependencyVsix=false
       /p:BuildProjectReferences=false
     name: RunIntegrationTests
     displayName: Run Integration Tests
