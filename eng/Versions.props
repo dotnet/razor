@@ -164,7 +164,7 @@
     <BenchmarkDotNetVersion>0.13.0.1555</BenchmarkDotNetVersion>
     <DiffPlexVersion>1.5.0</DiffPlexVersion>
     <FluentAssertionsVersion>6.7.0</FluentAssertionsVersion>
-    <MicrosoftBuildVersion>17.2.0-preview-22178-03</MicrosoftBuildVersion>
+    <MicrosoftBuildVersion>17.3.0-preview-22364-05</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>$(MicrosoftBuildVersion)</MicrosoftBuildFrameworkVersion>
     <MicrosoftBuildUtilitiesCoreVersion>$(MicrosoftBuildVersion)</MicrosoftBuildUtilitiesCoreVersion>
     <MicrosoftCodeAnalysisCommonVersion>4.0.0-4.final</MicrosoftCodeAnalysisCommonVersion>
