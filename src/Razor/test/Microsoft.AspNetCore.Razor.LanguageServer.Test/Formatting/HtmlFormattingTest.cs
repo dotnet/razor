@@ -78,6 +78,34 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
         }
 
         [Fact]
+        public async Task FormatsSimpleHtmlTag_OnType()
+        {
+            await RunOnTypeFormattingTestAsync(
+                input: """
+                    <html>
+                    <head>
+                        <title>Hello</title>
+                            <script>
+                                var x = 2;$$
+                            </script>
+                    </head>
+                    </html>
+                    """,
+                expected: """
+                    <html>
+                    <head>
+                        <title>Hello</title>
+                        <script>
+                            var x = 2;
+                        </script>
+                    </head>
+                    </html>
+                    """,
+                triggerCharacter: ';',
+                fileKind: FileKinds.Legacy);
+        }
+
+        [Fact]
         public async Task FormatsRazorHtmlBlock()
         {
             await RunFormattingTestAsync(
