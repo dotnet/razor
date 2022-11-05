@@ -1,10 +1,14 @@
 # How to contribute
 
-One of the easiest ways to contribute is to participate in discussions on GitHub issues. You can also contribute by submitting pull requests with code changes.
+One of the easiest ways to contribute is to participate in discussions on GitHub issues and provide feedback. You can also contribute by submitting pull requests with code changes.
 
 ## Feedback, bug reports, and feature requests
 
-Please start a discussion in the [dotnet/razor-tooling issue tracker](https://github.com/dotnet/razor-tooling/issues).
+You can report issues and make suggestions in the [dotnet/razor issue tracker](https://github.com/dotnet/razor/issues).
+
+If you're hitting issues with the Razor tooling in Visual Studio, you can let us know using the Visual Studio "Send Feedback" feature (Help > Send Feedback), which will automatically include helpful logs and diagnostic information for troubleshooting purposes. Most Visual Studio feedback issues will then get migrated to the dotnet/razor GitHub repo for tracking purposes.
+
+If someone has already reported your issue or suggestion, be sure to give it a :+1: on the original post so that we know it's important to you! You can also comment on issues  with clarifying details on your scenarios and the impact the issue has.
 
 ## Reporting security issues and bugs
 
@@ -14,11 +18,10 @@ Security issues and bugs should be reported privately, via email, to the Microso
 
 For non-Razor tooling related bugs, please log a new issue in the appropriate GitHub repo. Here are some of the most common repos:
 
-* [Razor compiler](https://github.com/dotnet/razor-compiler)
 * [ASP.NET Core (runtime)](https://github.com/dotnet/aspnetcore)
-* [Docs](https://github.com/aspnet/Docs)
+* [Docs](https://github.com/dotnet/aspnetcore.docs)
 * [Entity Framework Core](https://github.com/dotnet/efcore)
-* [Extensions](https://github.com/dotnet/extensions)
+* [.NET Runtime](https://github.com/dotnet/runtime)
 * [Roslyn (C#/VB IDE and compiler)](https://github.com/dotnet/roslyn)
 
 Or browse the full list of repos in the [dotnet](https://github.com/dotnet/) and [aspnet](https://github.com/aspnet/) organizations.
@@ -27,7 +30,7 @@ Or browse the full list of repos in the [dotnet](https://github.com/dotnet/) and
 
 Our team members also monitor several other discussion forums:
 
-* [ASP.NET Core forum](https://forums.asp.net/1255.aspx/1?ASP+NET+5)
+* [ASP.NET Core Q&A](https://learn.microsoft.com/answers/topics/dotnet-aspnet-core-general.html)
 * [Stack Overflow](https://stackoverflow.com/) with the [`asp.net-core`](https://stackoverflow.com/questions/tagged/asp.net-core), [`asp.net-core-mvc`](https://stackoverflow.com/questions/tagged/asp.net-core-mvc), or [`entity-framework-core`](https://stackoverflow.com/questions/tagged/entity-framework-core) tags.
 
 ## Contributing code and content
