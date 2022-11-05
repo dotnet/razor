@@ -8,6 +8,8 @@ You can report issues and make suggestions in the [dotnet/razor issue tracker](h
 
 If you're hitting issues with the Razor tooling in Visual Studio, you can let us know using the Visual Studio "Send Feedback" feature (Help > Send Feedback), which will automatically include helpful logs and diagnostic information for troubleshooting purposes. Most Visual Studio feedback issues will then get migrated to the dotnet/razor GitHub repo for tracking purposes.
 
+If you hit a Razor tooling issue in Visual Studio Code, you can report the issue using the **Report a Razor Issue** command form the command palette and then follow the instructions.
+
 If someone has already reported your issue or suggestion, be sure to give it a :+1: on the original post so that we know it's important to you! You can also comment on issues with clarifying details on your scenarios and the impact the issue has.
 
 ## Reporting security issues and bugs
