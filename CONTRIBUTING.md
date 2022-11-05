@@ -19,7 +19,7 @@ Security issues and bugs should be reported privately, via email, to the Microso
 For non-Razor tooling related bugs, please log a new issue in the appropriate GitHub repo. Here are some of the most common repos:
 
 * [ASP.NET Core (runtime)](https://github.com/dotnet/aspnetcore)
-* [Docs](https://github.com/dotnet/aspnetcore.docs)
+* [ASP.NET Core Docs](https://github.com/dotnet/aspnetcore.docs)
 * [Entity Framework Core](https://github.com/dotnet/efcore)
 * [.NET Runtime](https://github.com/dotnet/runtime)
 * [Roslyn (C#/VB IDE and compiler)](https://github.com/dotnet/roslyn)
