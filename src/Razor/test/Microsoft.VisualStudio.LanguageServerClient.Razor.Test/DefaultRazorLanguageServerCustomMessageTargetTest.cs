@@ -236,9 +236,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, documentSynchronizer);
             var request = new DelegatedCodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier()
+                HostDocumentVersion = 1,
+                CodeActionParams = new CodeActionParams()
                 {
-                    Uri = new Uri("C:/path/to/file.razor")
+                    TextDocument = new TextDocumentIdentifier()
+                    {
+                        Uri = new Uri("C:/path/to/file.razor")
+                    }
                 }
             };
 
@@ -296,9 +300,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var request = new DelegatedCodeActionParams()
             {
-                TextDocument = new TextDocumentIdentifier()
+                HostDocumentVersion = 1,
+                CodeActionParams = new CodeActionParams()
                 {
-                    Uri = testDocUri
+                    TextDocument = new TextDocumentIdentifier()
+                    {
+                        Uri = testDocUri
+                    }
                 }
             };
 

@@ -524,7 +524,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             // Act
-            var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext);
+            var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot);
 
             // Assert
             Assert.NotNull(razorCodeActionContext);
@@ -562,7 +562,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             };
 
             // Act
-            var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext);
+            var razorCodeActionContext = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot);
 
             // Assert
             Assert.NotNull(razorCodeActionContext);
@@ -600,10 +600,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Context = new VSInternalCodeActionContext()
             };
 
-            var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext);
+            var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot);
 
             // Act
-            var results = await codeActionEndpoint.GetCSharpCodeActionsFromLanguageServerAsync(context, default);
+            var results = await codeActionEndpoint.GetCSharpCodeActionsFromLanguageServerAsync(documentContext, context, default);
 
             // Assert
             Assert.Empty(results);
@@ -643,10 +643,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 }
             };
 
-            var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext);
+            var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot);
 
             // Act
-            var results = await codeActionEndpoint.GetCSharpCodeActionsFromLanguageServerAsync(context, default);
+            var results = await codeActionEndpoint.GetCSharpCodeActionsFromLanguageServerAsync(documentContext, context, default);
 
             // Assert
             Assert.Single(results);
@@ -770,7 +770,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     throw new InvalidOperationException($"Unexpected method {method}");
                 }
 
-                if (@params is not CodeActionParams codeActionParams || codeActionParams.Context is not VSInternalCodeActionContext codeActionContext)
+                if (@params is not DelegatedCodeActionParams delegatedCodeActionParams ||
+                    delegatedCodeActionParams.CodeActionParams is not CodeActionParams codeActionParams ||
+                    codeActionParams.Context is not VSInternalCodeActionContext codeActionContext)
                 {
                     throw new InvalidOperationException(@params.GetType().FullName);
                 }

@@ -305,7 +305,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var (synchronized, csharpDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                 codeActionParams.HostDocumentVersion,
-                codeActionParams.TextDocument.Uri,
+                codeActionParams.CodeActionParams.TextDocument.Uri,
                 cancellationToken);
 
             if (csharpDoc is null)
@@ -314,14 +314,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return null;
             }
 
-            codeActionParams.TextDocument.Uri = csharpDoc.Uri;
+            codeActionParams.CodeActionParams.TextDocument.Uri = csharpDoc.Uri;
 
             var textBuffer = csharpDoc.Snapshot.TextBuffer;
             var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
                 textBuffer,
                 Methods.TextDocumentCodeActionName,
                 SupportsCSharpCodeActions,
-                codeActionParams,
+                codeActionParams.CodeActionParams,
                 cancellationToken).ConfigureAwait(false);
 
             var codeActions = new List<VSInternalCodeAction>();
@@ -436,7 +436,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             }
 
             var (synchronized, htmlDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
-                documentColorParams.RequiredHostDocumentVersion, documentColorParams.TextDocument.Uri, cancellationToken);
+                documentColorParams.HostDocumentVersion, documentColorParams.TextDocument.Uri, cancellationToken);
 
             documentColorParams.TextDocument.Uri = htmlDoc.Uri;
             var htmlTextBuffer = htmlDoc.Snapshot.TextBuffer;
