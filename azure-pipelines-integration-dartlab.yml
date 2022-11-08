@@ -17,9 +17,9 @@ resources:
     name: DartLab.Templates
     ref: main
   - repository: RazorMirror
-    endpoint: dnceng/internal dotnet-razor-tooling
+    endpoint: dnceng/internal dotnet-razor
     type: git
-    name: internal/dotnet-razor-tooling
+    name: internal/dotnet-razor
     ref: $(Build.SourceBranch)
     trigger:
     - main
