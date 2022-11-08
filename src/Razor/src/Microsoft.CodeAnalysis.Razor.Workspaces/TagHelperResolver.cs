@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Razor
     {
         private readonly ITelemetryReporter? _telemetryReporter;
 
-        public TagHelperResolver(ITelemetryReporter? telemetryReporter = null)
+        public TagHelperResolver(ITelemetryReporter? telemetryReporter)
         {
             _telemetryReporter = telemetryReporter;
         }
