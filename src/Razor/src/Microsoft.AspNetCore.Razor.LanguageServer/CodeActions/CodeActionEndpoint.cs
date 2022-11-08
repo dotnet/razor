@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -58,7 +59,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, requestContext.DocumentContext).ConfigureAwait(false);
+            var documentContext = requestContext.DocumentContext;
+            if (documentContext is null)
+            {
+                return null;
+            }
+
+            var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot).ConfigureAwait(false);
             if (razorCodeActionContext is null)
             {
                 return null;
@@ -70,7 +77,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var csharpCodeActions = await GetCSharpCodeActionsAsync(razorCodeActionContext, cancellationToken).ConfigureAwait(false);
+            var csharpCodeActions = await GetCSharpCodeActionsAsync(documentContext, razorCodeActionContext, cancellationToken).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -111,15 +118,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         // internal for testing
-        internal async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(CodeActionParams request, DocumentContext? documentContext)
+        internal async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(CodeActionParams request, DocumentSnapshot documentSnapshot)
         {
-            if(documentContext is null)
-            {
-                return null;
-            }
-
-            var documentSnapshot = documentContext.Snapshot;
-
             var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
             if (codeDocument.IsUnsupported())
             {
@@ -163,9 +163,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return context;
         }
 
-        private async Task<IEnumerable<RazorVSInternalCodeAction>?> GetCSharpCodeActionsAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+        private async Task<IEnumerable<RazorVSInternalCodeAction>?> GetCSharpCodeActionsAsync(DocumentContext documentContext, RazorCodeActionContext context, CancellationToken cancellationToken)
         {
-            var csharpCodeActions = await GetCSharpCodeActionsFromLanguageServerAsync(context, cancellationToken);
+            var csharpCodeActions = await GetCSharpCodeActionsFromLanguageServerAsync(documentContext, context, cancellationToken);
             if (csharpCodeActions is null || !csharpCodeActions.Any())
             {
                 return null;
@@ -227,7 +227,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         // Internal for testing
-        internal async Task<IEnumerable<RazorVSInternalCodeAction>> GetCSharpCodeActionsFromLanguageServerAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+        internal async Task<IEnumerable<RazorVSInternalCodeAction>> GetCSharpCodeActionsFromLanguageServerAsync(DocumentContext documentContext, RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             if (!_documentMappingService.TryMapToProjectedDocumentRange(
                     context.CodeDocument,
@@ -254,7 +254,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            return await _languageServer.SendRequestAsync<CodeActionParams, RazorVSInternalCodeAction[]>(RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint, context.Request, cancellationToken);
+            var delegatedParams = new DelegatedCodeActionParams()
+            {
+                HostDocumentVersion = documentContext.Version,
+                CodeActionParams = context.Request
+            };
+
+            return await _languageServer.SendRequestAsync<DelegatedCodeActionParams, RazorVSInternalCodeAction[]>(RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint, delegatedParams, cancellationToken);
         }
 
         private async Task<IEnumerable<RazorVSInternalCodeAction>?> GetRazorCodeActionsAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
