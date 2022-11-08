@@ -131,6 +131,9 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<RazorCodeActionProvider, ComponentAccessibilityCodeActionProvider>();
         services.AddSingleton<RazorCodeActionResolver, CreateComponentCodeActionResolver>();
         services.AddSingleton<RazorCodeActionResolver, AddUsingsCodeActionResolver>();
+
+        // Html Code actions
+        services.AddSingleton<HtmlCodeActionProvider, DefaultHtmlCodeActionProvider>();
     }
 
     public static void AddTextDocumentServices(this IServiceCollection services)

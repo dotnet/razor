@@ -303,20 +303,40 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(codeActionParams));
             }
 
-            var (synchronized, csharpDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
-                codeActionParams.HostDocumentVersion,
-                codeActionParams.CodeActionParams.TextDocument.Uri,
-                cancellationToken);
+            Uri projectedUri;
+            bool synchronized;
+            VirtualDocumentSnapshot virtualDocumentSnapshot;
+            if (codeActionParams.LanguageKind == RazorLanguageKind.Html)
+            {
+                (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+                    codeActionParams.HostDocumentVersion,
+                    codeActionParams.CodeActionParams.TextDocument.Uri,
+                    cancellationToken);
+                projectedUri = virtualDocumentSnapshot.Uri;
+            }
+            else if (codeActionParams.LanguageKind == RazorLanguageKind.CSharp)
+            {
+                (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                    codeActionParams.HostDocumentVersion,
+                    codeActionParams.CodeActionParams.TextDocument.Uri,
+                    cancellationToken);
+                projectedUri = virtualDocumentSnapshot.Uri;
+            }
+            else
+            {
+                Debug.Fail("Unexpected RazorLanguageKind. This shouldn't really happen in a real scenario.");
+                return null;
+            }
 
-            if (csharpDoc is null)
+            if (!synchronized || virtualDocumentSnapshot is null)
             {
                 // Document could not synchronize
                 return null;
             }
 
-            codeActionParams.CodeActionParams.TextDocument.Uri = csharpDoc.Uri;
+            codeActionParams.CodeActionParams.TextDocument.Uri = virtualDocumentSnapshot.Uri;
 
-            var textBuffer = csharpDoc.Snapshot.TextBuffer;
+            var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
             var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
                 textBuffer,
                 Methods.TextDocumentCodeActionName,
