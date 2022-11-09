@@ -9,19 +9,13 @@ variables:
   value: AspNetCore
 - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
   value: true
-- name: _PublishUsingPipelines
-  value: true
-- name: _DotNetArtifactsCategory
-  value: .NETCORE
-- name: _DotNetValidationArtifactsCategory
-  value: .NETCOREVALIDATION
 - name: Codeql.Enabled
   value: true
 - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-  - group: DotNet-MSRC-Storage
+  - group: DotNetBuilds storage account read tokens
   - name: _InternalRuntimeDownloadArgs
-    value: /p:DotNetRuntimeSourceFeed=https://dotnetclimsrc.blob.core.windows.net/dotnet
-           /p:DotNetRuntimeSourceFeedKey=$(dotnetclimsrc-read-sas-token-base64)
+    value: /p:DotNetRuntimeSourceFeed=https://dotnetbuilds.blob.core.windows.net/internal
+            /p:DotNetRuntimeSourceFeedKey=$(dotnetbuilds-internal-container-read-token-base64)
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
   - name: _InternalRuntimeDownloadArgs
     value: ''
@@ -103,7 +97,7 @@ stages:
       # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
       ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
         enableMicrobuild: true
-        enablePublishUsingPipelines: ${{ variables._PublishUsingPipelines }}
+        enablePublishUsingPipelines: true
 
       jobs:
       - job: Windows
@@ -130,20 +124,9 @@ stages:
                 ${{ if in(variables['Build.Reason'], 'PullRequest') }}:
                   _PublishArgs: ''
                 ${{ if notin(variables['Build.Reason'], 'PullRequest') }}:
-                  _DotNetPublishToBlobFeed: true
-                  _PublishArgs: /p:PublishToSymbolServer=true
-                    /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
-                    /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
-                    /p:PublishToAzure=true
-                    /p:DotNetPublishUsingPipelines=$(_PublishUsingPipelines)
-                    /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
-                    /p:DotNetPublishBlobFeedKey=$(dotnetfeed-storage-access-key-1)
-                    /p:DotNetPublishBlobFeedUrl=$(_PublishBlobFeedUrl)
-                    /p:DotNetPublishToBlobFeed=$(_DotNetPublishToBlobFeed)
+                  _PublishArgs: /p:DotNetPublishUsingPipelines=true
 
         variables:
-        - _DotNetPublishToBlobFeed: false
-        - _PublishBlobFeedUrl: https://dotnetfeed.blob.core.windows.net/aspnet-aspnetcore-tooling/index.json
         - _BuildArgs: ''
         - XUNIT_LOGS: '$(Build.SourcesDirectory)\artifacts\log\$(_BuildConfig)'
         - __VSNeverShowWhatsNew: 1
@@ -157,10 +140,6 @@ stages:
               /p:ManifestBuildNumber=$(Build.BuildNumber)
               /p:VisualStudioDropName=Products/dotnet/razor-tooling/$(Build.SourceBranchName)/$(Build.BuildNumber)
               /p:GenerateSbom=true
-
-        - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-          - group: DotNet-Blob-Feed
-          - group: DotNet-Symbol-Server-Pats
 
         steps:
         - task: NodeTool@0
@@ -343,95 +322,96 @@ stages:
           continueOnError: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
-      - job: macOS
-        pool:
-          vmImage: macOS-11
-        strategy:
-          matrix:
-            debug:
-              _BuildConfig: Debug
-            release:
-              _BuildConfig: Release
-        steps:
-        - task: NodeTool@0
-          displayName: Install Node 10.x
-          inputs:
-            versionSpec: 10.x
-        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - task: Bash@3
-            displayName: Setup Private Feeds Credentials
+      - ${{ if eq(variables['System.TeamProject'], 'public') }}:
+        - job: macOS
+          pool:
+            vmImage: macOS-11
+          strategy:
+            matrix:
+              debug:
+                _BuildConfig: Debug
+              release:
+                _BuildConfig: Release
+          steps:
+          - task: NodeTool@0
+            displayName: Install Node 10.x
             inputs:
-              filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.sh
-              arguments: $(Build.SourcesDirectory)/NuGet.config $Token
-            env:
-              Token: $(dn-bot-dnceng-artifact-feeds-rw)
-        - script: eng/common/cibuild.sh
-            --configuration $(_BuildConfig)
-            --prepareMachine
-            $(_InternalRuntimeDownloadArgs)
-          name: Build
-          displayName: Build
-          condition: succeeded()
-        - task: PublishBuildArtifacts@1
-          displayName: Upload TestResults
-          condition: always()
-          continueOnError: true
-          inputs:
-            pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
-            artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
-            artifactType: Container
-            parallel: true
-
-      - job: Linux
-        container:
-          image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7
-          options: --init # This ensures all the stray defunct processes are reaped.
-        pool:
-          ${{ if eq(variables['System.TeamProject'], 'public') }}:
-            vmImage: ubuntu-latest
-          ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-            name: NetCore1ESPool-Internal
-            demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
-
-        variables:
-        - LC_ALL: 'en_US.UTF-8'
-        - LANG: 'en_US.UTF-8'
-        - LANGUAGE: 'en_US.UTF-8'
-        strategy:
-          matrix:
-            debug:
-              _BuildConfig: Debug
-            release:
-              _BuildConfig: Release
-        steps:
-        - task: NodeTool@0
-          displayName: Install Node 10.x
-          inputs:
-            versionSpec: 10.x
-        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - task: Bash@3
-            displayName: Setup Private Feeds Credentials
+              versionSpec: 10.x
+          - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+            - task: Bash@3
+              displayName: Setup Private Feeds Credentials
+              inputs:
+                filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.sh
+                arguments: $(Build.SourcesDirectory)/NuGet.config $Token
+              env:
+                Token: $(dn-bot-dnceng-artifact-feeds-rw)
+          - script: eng/common/cibuild.sh
+              --configuration $(_BuildConfig)
+              --prepareMachine
+              $(_InternalRuntimeDownloadArgs)
+            name: Build
+            displayName: Build
+            condition: succeeded()
+          - task: PublishBuildArtifacts@1
+            displayName: Upload TestResults
+            condition: always()
+            continueOnError: true
             inputs:
-              filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.sh
-              arguments: $(Build.SourcesDirectory)/NuGet.config $Token
-            env:
-              Token: $(dn-bot-dnceng-artifact-feeds-rw)
-        - script: eng/common/cibuild.sh
-            --configuration $(_BuildConfig)
-            --prepareMachine
-            $(_InternalRuntimeDownloadArgs)
-          name: Build
-          displayName: Build
-          condition: succeeded()
-        - task: PublishBuildArtifacts@1
-          displayName: Upload Test Results
-          condition: always()
-          continueOnError: true
-          inputs:
-            pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
-            artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
-            artifactType: Container
-            parallel: true
+              pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
+              artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
+              artifactType: Container
+              parallel: true
+
+        - job: Linux
+          container:
+            image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7
+            options: --init # This ensures all the stray defunct processes are reaped.
+          pool:
+            ${{ if eq(variables['System.TeamProject'], 'public') }}:
+              vmImage: ubuntu-latest
+            ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+              name: NetCore1ESPool-Internal
+              demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+
+          variables:
+          - LC_ALL: 'en_US.UTF-8'
+          - LANG: 'en_US.UTF-8'
+          - LANGUAGE: 'en_US.UTF-8'
+          strategy:
+            matrix:
+              debug:
+                _BuildConfig: Debug
+              release:
+                _BuildConfig: Release
+          steps:
+          - task: NodeTool@0
+            displayName: Install Node 10.x
+            inputs:
+              versionSpec: 10.x
+          - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+            - task: Bash@3
+              displayName: Setup Private Feeds Credentials
+              inputs:
+                filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.sh
+                arguments: $(Build.SourcesDirectory)/NuGet.config $Token
+              env:
+                Token: $(dn-bot-dnceng-artifact-feeds-rw)
+          - script: eng/common/cibuild.sh
+              --configuration $(_BuildConfig)
+              --prepareMachine
+              $(_InternalRuntimeDownloadArgs)
+            name: Build
+            displayName: Build
+            condition: succeeded()
+          - task: PublishBuildArtifacts@1
+            displayName: Upload Test Results
+            condition: always()
+            continueOnError: true
+            inputs:
+              pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
+              artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
+              artifactType: Container
+              parallel: true
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - stage: publishBuildAssets
