@@ -50,7 +50,7 @@ stages:
       parameters:
         LclSource: lclFilesfromPackage
         LclPackageId: 'LCL-JUNO-PROD-RAZORTOOL'
-        MirrorRepo: razor-tooling
+        MirrorRepo: razor
 
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
@@ -98,7 +98,7 @@ stages:
       enablePublishBuildArtifacts: true
       enablePublishTestResults: true
       enableTelemetry: true
-      helixRepo: dotnet/razor-tooling
+      helixRepo: dotnet/razor
       helixType: build.product/
       # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
       ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
