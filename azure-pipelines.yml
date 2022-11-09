@@ -232,6 +232,9 @@ stages:
               artifactType: Container
               parallel: true
 
+        - powershell: eng\SetupVSHive.ps1
+          displayName: Setup VS Hive
+
         - script: eng\CIBuild.cmd
             -configuration $(_BuildConfig)
             -prepareMachine

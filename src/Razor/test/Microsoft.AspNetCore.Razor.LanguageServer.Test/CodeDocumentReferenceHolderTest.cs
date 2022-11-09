@@ -193,7 +193,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
             }
 
             public override Task<TextAndVersion> LoadTextAndVersionAsync(
-                Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+                Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
             {
                 return Task.FromResult(TextAndVersion.Create(_sourceText, VersionStamp.Default, _filePath));
             }

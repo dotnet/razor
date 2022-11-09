@@ -428,7 +428,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return response;
         }
 
-        public override async Task<IReadOnlyList<ColorInformation>> ProvideHtmlDocumentColorAsync(DelegatedDocumentColorParams documentColorParams, CancellationToken cancellationToken)
+        public override async Task<IReadOnlyList<ColorInformation>?> ProvideHtmlDocumentColorAsync(DelegatedDocumentColorParams documentColorParams, CancellationToken cancellationToken)
         {
             if (documentColorParams is null)
             {
