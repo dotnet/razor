@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
@@ -237,6 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var request = new DelegatedCodeActionParams()
             {
                 HostDocumentVersion = 1,
+                LanguageKind = RazorLanguageKind.CSharp,
                 CodeActionParams = new CodeActionParams()
                 {
                     TextDocument = new TextDocumentIdentifier()
@@ -301,6 +303,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var request = new DelegatedCodeActionParams()
             {
                 HostDocumentVersion = 1,
+                LanguageKind = RazorLanguageKind.CSharp,
                 CodeActionParams = new CodeActionParams()
                 {
                     TextDocument = new TextDocumentIdentifier()
@@ -349,7 +352,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
             var expectedResponses = GetExpectedResultsAsync();
             requestInvoker
-                .Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<VSInternalCodeAction, VSInternalCodeAction>(
+                .Setup(invoker => invoker.ReinvokeRequestOnMultipleServersAsync<CodeAction, VSInternalCodeAction>(
                     It.IsAny<ITextBuffer>(),
                     Methods.CodeActionResolveName,
                     It.IsAny<Func<JToken, bool>>(),
@@ -358,6 +361,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 .Returns(expectedResponses);
 
             var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
+            documentSynchronizer
+                .Setup(r => r.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                    1,
+                    It.IsAny<Uri>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
 
             var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager, JoinableTaskContext, requestInvoker.Object,
@@ -367,7 +376,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             {
                 Title = "Something",
             };
-            var request = new RazorResolveCodeActionParams(razorUri, codeAction);
+            var request = new RazorResolveCodeActionParams(razorUri, HostDocumentVersion: 1, RazorLanguageKind.CSharp, codeAction);
 
             // Act
             var result = await target.ResolveCodeActionsAsync(request, DisposalToken);

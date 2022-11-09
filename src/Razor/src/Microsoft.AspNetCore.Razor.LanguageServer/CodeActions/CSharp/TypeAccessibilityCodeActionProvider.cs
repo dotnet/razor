@@ -193,7 +193,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         action = LanguageServerConstants.CodeActions.Default;
                     }
 
-                    typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCSharpCodeAction(context, action));
+                    typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCodeAction(context, action));
                 }
                 // For add using suggestions, the code action title is of the form:
                 // `using System.Net;`
@@ -201,7 +201,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     AddUsingsCodeActionProviderHelper.TryExtractNamespace(codeAction.Title, out var @namespace))
                 {
                     codeAction.Title = $"@using {@namespace}";
-                    typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCSharpCodeAction(context, LanguageServerConstants.CodeActions.AddUsing));
+                    typeAccessibilityCodeActions.Add(codeAction.WrapResolvableCodeAction(context, LanguageServerConstants.CodeActions.AddUsing));
                 }
                 // Not a type accessibility code action
                 else

@@ -33,6 +33,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockRazorCodeActionResolver("Test"),
                 },
                 Array.Empty<CSharpCodeActionResolver>(),
+                Array.Empty<HtmlCodeActionResolver>(),
                 LoggerFactory);
             var requestParams = new RazorCodeActionResolutionParams()
             {
@@ -67,12 +68,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 new CSharpCodeActionResolver[] {
                     new MockCSharpCodeActionResolver("Test"),
                 },
+                Array.Empty<HtmlCodeActionResolver>(),
                 LoggerFactory);
             var requestParams = new RazorCodeActionResolutionParams()
             {
                 Action = "Test",
                 Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-                Data = JObject.FromObject(new CSharpCodeActionParams()
+                Data = JObject.FromObject(new CodeActionResolveParams()
                 {
                     RazorFileUri = new Uri("C:/path/to/Page.razor"),
                 })
@@ -102,12 +104,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 new CSharpCodeActionResolver[] {
                     new MockCSharpCodeActionResolver("TestCSharp"),
                 },
+                Array.Empty<HtmlCodeActionResolver>(),
                 LoggerFactory);
             var requestParams = new RazorCodeActionResolutionParams()
             {
                 Action = "TestCSharp",
                 Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-                Data = JObject.FromObject(new CSharpCodeActionParams()
+                Data = JObject.FromObject(new CodeActionResolveParams()
                 {
                     RazorFileUri = new Uri("C:/path/to/Page.razor"),
                 })
@@ -133,6 +136,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeActionEndpoint = new CodeActionResolutionEndpoint(
                 Array.Empty<RazorCodeActionResolver>(),
                 Array.Empty<CSharpCodeActionResolver>(),
+                Array.Empty<HtmlCodeActionResolver>(),
                 LoggerFactory);
             var requestParams = new RazorCodeActionResolutionParams()
             {
@@ -170,12 +174,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var codeActionEndpoint = new CodeActionResolutionEndpoint(
                 Array.Empty<RazorCodeActionResolver>(),
                 Array.Empty<CSharpCodeActionResolver>(),
+                Array.Empty<HtmlCodeActionResolver>(),
                 LoggerFactory);
             var requestParams = new RazorCodeActionResolutionParams()
             {
                 Action = "Test",
                 Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-                Data = JObject.FromObject(new CSharpCodeActionParams()
+                Data = JObject.FromObject(new CodeActionResolveParams()
                 {
                     RazorFileUri = new Uri("C:/path/to/Page.razor"),
                 })
@@ -208,6 +213,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 new CSharpCodeActionResolver[] {
                     new MockCSharpCodeActionResolver("Test"),
                 },
+                Array.Empty<HtmlCodeActionResolver>(),
                 LoggerFactory);
             var requestParams = new RazorCodeActionResolutionParams()
             {
@@ -247,12 +253,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockRazorCodeActionResolver("Test"),
                 },
                 Array.Empty<CSharpCodeActionResolver>(),
+                Array.Empty<HtmlCodeActionResolver>(),
                 LoggerFactory);
             var requestParams = new RazorCodeActionResolutionParams()
             {
                 Action = "Test",
                 Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-                Data = JObject.FromObject(new CSharpCodeActionParams()
+                Data = JObject.FromObject(new CodeActionResolveParams()
                 {
                     RazorFileUri = new Uri("C:/path/to/Page.razor"),
                 })
@@ -286,6 +293,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockRazorNullCodeActionResolver("B"),
                 },
                 Array.Empty<CSharpCodeActionResolver>(),
+                Array.Empty<HtmlCodeActionResolver>(),
                 LoggerFactory);
             var codeAction = new CodeAction();
             var request = new RazorCodeActionResolutionParams()
@@ -316,6 +324,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockRazorCodeActionResolver("B"),
                 },
                 Array.Empty<CSharpCodeActionResolver>(),
+                Array.Empty<HtmlCodeActionResolver>(),
                 LoggerFactory);
             var codeAction = new CodeAction();
             var request = new RazorCodeActionResolutionParams()
@@ -346,13 +355,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockCSharpCodeActionResolver("A"),
                     new MockCSharpNullCodeActionResolver("B"),
                 },
+                Array.Empty<HtmlCodeActionResolver>(),
                 LoggerFactory);
             var codeAction = new CodeAction();
             var request = new RazorCodeActionResolutionParams()
             {
                 Action = "A",
                 Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-                Data = JObject.FromObject(new CSharpCodeActionParams()
+                Data = JObject.FromObject(new CodeActionResolveParams()
                 {
                     RazorFileUri = new Uri("C:/path/to/Page.razor"),
                 })
@@ -375,13 +385,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockCSharpNullCodeActionResolver("A"),
                     new MockCSharpCodeActionResolver("B"),
                 },
+                Array.Empty<HtmlCodeActionResolver>(),
                 LoggerFactory);
             var codeAction = new CodeAction();
             var request = new RazorCodeActionResolutionParams()
             {
                 Action = "B",
                 Language = LanguageServerConstants.CodeActions.Languages.Razor,
-                Data = JObject.FromObject(new CSharpCodeActionParams()
+                Data = JObject.FromObject(new CodeActionResolveParams()
                 {
                     RazorFileUri = new Uri("C:/path/to/Page.razor"),
                 })
@@ -407,13 +418,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockCSharpNullCodeActionResolver("C"),
                     new MockCSharpCodeActionResolver("D"),
                 },
+                Array.Empty<HtmlCodeActionResolver>(),
                 LoggerFactory);
             var codeAction = new CodeAction();
             var request = new RazorCodeActionResolutionParams()
             {
                 Action = "D",
                 Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-                Data = JObject.FromObject(new CSharpCodeActionParams()
+                Data = JObject.FromObject(new CodeActionResolveParams()
                 {
                     RazorFileUri = new Uri("C:/path/to/Page.razor"),
                 })
@@ -435,6 +447,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 new CSharpCodeActionResolver[] {
                     new MockCSharpCodeActionResolver("Test"),
                 },
+                Array.Empty<HtmlCodeActionResolver>(),
                 LoggerFactory);
             var requestParams = new RazorCodeActionResolutionParams()
             {
@@ -497,7 +510,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Action = action;
             }
 
-            public override Task<CodeAction> ResolveAsync(CSharpCodeActionParams csharpParams, CodeAction codeAction, CancellationToken cancellationToken)
+            public override Task<CodeAction> ResolveAsync(CodeActionResolveParams csharpParams, CodeAction codeAction, CancellationToken cancellationToken)
             {
                 codeAction.Edit = new WorkspaceEdit();
                 return Task.FromResult(codeAction);
@@ -514,7 +527,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 Action = action;
             }
 
-            public override Task<CodeAction> ResolveAsync(CSharpCodeActionParams csharpParams, CodeAction codeAction, CancellationToken cancellationToken)
+            public override Task<CodeAction> ResolveAsync(CodeActionResolveParams csharpParams, CodeAction codeAction, CancellationToken cancellationToken)
             {
                 return Task.FromResult<CodeAction>(null);
             }

@@ -8,9 +8,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
-    internal abstract class CSharpCodeActionResolver : BaseDelegatedCodeActionResolver
+    internal abstract class HtmlCodeActionResolver : BaseDelegatedCodeActionResolver
     {
-        public CSharpCodeActionResolver(ClientNotifierServiceBase languageServer)
+        public HtmlCodeActionResolver(ClientNotifierServiceBase languageServer)
             : base(languageServer)
         {
         }

@@ -183,7 +183,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         private void CreateCodeActionResolver(
-            out CSharpCodeActionParams codeActionParams,
+            out CodeActionResolveParams codeActionParams,
             out DefaultCSharpCodeActionResolver csharpCodeActionResolver,
             ClientNotifierServiceBase languageServer = null,
             RazorFormattingService razorFormattingService = null)
@@ -193,7 +193,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = string.Empty;
             var codeDocument = CreateCodeDocument(contents, documentPath);
 
-            codeActionParams = new CSharpCodeActionParams()
+            codeActionParams = new CodeActionResolveParams()
             {
                 Data = new JObject(),
                 RazorFileUri = documentUri

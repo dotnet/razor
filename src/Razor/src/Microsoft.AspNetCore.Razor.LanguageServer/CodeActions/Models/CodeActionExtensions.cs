@@ -43,10 +43,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
             };
         }
 
-        public static RazorVSInternalCodeAction WrapResolvableCSharpCodeAction(
+        public static RazorVSInternalCodeAction WrapResolvableCodeAction(
             this RazorVSInternalCodeAction razorCodeAction,
             RazorCodeActionContext context,
-            string action = LanguageServerConstants.CodeActions.Default)
+            string action = LanguageServerConstants.CodeActions.Default,
+            string language = LanguageServerConstants.CodeActions.Languages.CSharp)
         {
             if (razorCodeAction is null)
             {
@@ -58,7 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
                 throw new ArgumentNullException(nameof(context));
             }
 
-            var csharpParams = new CSharpCodeActionParams()
+            var resolveParams = new CodeActionResolveParams()
             {
                 Data = razorCodeAction.Data,
                 RazorFileUri = context.Request.TextDocument.Uri
@@ -67,8 +68,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
             var resolutionParams = new RazorCodeActionResolutionParams()
             {
                 Action = action,
-                Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-                Data = csharpParams
+                Language = language,
+                Data = resolveParams
             };
             razorCodeAction.Data = JToken.FromObject(resolutionParams);
 
@@ -76,29 +77,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
             {
                 for (var i = 0; i < razorCodeAction.Children.Length; i++)
                 {
-                    razorCodeAction.Children[i] = razorCodeAction.Children[i].WrapResolvableCSharpCodeAction(context, action);
+                    razorCodeAction.Children[i] = razorCodeAction.Children[i].WrapResolvableCodeAction(context, action, language);
                 }
             }
 
             return razorCodeAction;
         }
 
-        public static VSInternalCodeAction WrapResolvableCSharpCodeAction(
+        private static VSInternalCodeAction WrapResolvableCodeAction(
             this VSInternalCodeAction razorCodeAction,
             RazorCodeActionContext context,
-            string action = LanguageServerConstants.CodeActions.Default)
+            string action,
+            string language)
         {
-            if (razorCodeAction is null)
-            {
-                throw new ArgumentNullException(nameof(razorCodeAction));
-            }
-
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            var csharpParams = new CSharpCodeActionParams()
+            var resolveParams = new CodeActionResolveParams()
             {
                 Data = razorCodeAction.Data,
                 RazorFileUri = context.Request.TextDocument.Uri
@@ -107,8 +99,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
             var resolutionParams = new RazorCodeActionResolutionParams()
             {
                 Action = action,
-                Language = LanguageServerConstants.CodeActions.Languages.CSharp,
-                Data = csharpParams
+                Language = language,
+                Data = resolveParams
             };
             razorCodeAction.Data = JToken.FromObject(resolutionParams);
 
@@ -116,7 +108,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
             {
                 for (var i = 0; i < razorCodeAction.Children.Length; i++)
                 {
-                    razorCodeAction.Children[i] = razorCodeAction.Children[i].WrapResolvableCSharpCodeAction(context, action);
+                    razorCodeAction.Children[i] = razorCodeAction.Children[i].WrapResolvableCodeAction(context, action, language);
                 }
             }
 

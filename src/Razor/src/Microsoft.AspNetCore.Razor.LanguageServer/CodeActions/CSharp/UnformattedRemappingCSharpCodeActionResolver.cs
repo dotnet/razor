@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
@@ -35,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public override string Action => LanguageServerConstants.CodeActions.UnformattedRemap;
 
         public async override Task<CodeAction> ResolveAsync(
-            CSharpCodeActionParams csharpParams,
+            CodeActionResolveParams csharpParams,
             CodeAction codeAction,
             CancellationToken cancellationToken)
         {
@@ -51,7 +52,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, codeAction, cancellationToken).ConfigureAwait(false);
+            var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null)
+            {
+                return codeAction;
+            }
+
+            var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, documentContext.Version, RazorLanguageKind.CSharp, codeAction, cancellationToken).ConfigureAwait(false);
             if (resolvedCodeAction?.Edit?.DocumentChanges is null)
             {
                 // Unable to resolve code action with server, return original code action
@@ -76,12 +83,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             if (textEdit is null)
             {
                 // No text edit available
-                return codeAction;
-            }
-
-            var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
-            if (documentContext is null)
-            {
                 return codeAction;
             }
 

@@ -58,7 +58,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public override string Action => LanguageServerConstants.CodeActions.Default;
 
         public async override Task<CodeAction> ResolveAsync(
-            CSharpCodeActionParams csharpParams,
+            CodeActionResolveParams csharpParams,
             CodeAction codeAction,
             CancellationToken cancellationToken)
         {
@@ -72,7 +72,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 throw new ArgumentNullException(nameof(codeAction));
             }
 
-            var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, codeAction, cancellationToken).ConfigureAwait(false);
+            var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
+            if( documentContext is null)
+            {
+                return codeAction;
+            }
+
+            var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, documentContext.Version, RazorLanguageKind.CSharp, codeAction, cancellationToken).ConfigureAwait(false);
             if (resolvedCodeAction?.Edit?.DocumentChanges is null)
             {
                 // Unable to resolve code action with server, return original code action
@@ -86,12 +92,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-
-            var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
-            if( documentContext is null)
-            {
-                return codeAction;
-            }
 
             var documentChanged = resolvedCodeAction.Edit.DocumentChanges.Value.First();
             if (!documentChanged.TryGetFirst(out var textDocumentEdit))

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
@@ -28,10 +29,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             {
                 if (codeAction.Edit is not null)
                 {
+                    // TODO: Do the ~ rewriting from WrapWithTag handler
                     codeAction.Edit = await _documentMappingService.RemapWorkspaceEditAsync(codeAction.Edit, cancellationToken).ConfigureAwait(false);
+                    results.Add(codeAction);
                 }
-
-                results.Add(codeAction);
+                else
+                {
+                    results.Add(codeAction.WrapResolvableCodeAction(context, language: LanguageServerConstants.CodeActions.Languages.Html));
+                }
             }
 
             return results;

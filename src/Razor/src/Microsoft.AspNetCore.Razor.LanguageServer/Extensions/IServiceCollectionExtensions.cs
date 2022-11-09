@@ -134,6 +134,7 @@ internal static class IServiceCollectionExtensions
 
         // Html Code actions
         services.AddSingleton<HtmlCodeActionProvider, DefaultHtmlCodeActionProvider>();
+        services.AddSingleton<HtmlCodeActionResolver, DefaultHtmlCodeActionResolver>();
     }
 
     public static void AddTextDocumentServices(this IServiceCollection services)

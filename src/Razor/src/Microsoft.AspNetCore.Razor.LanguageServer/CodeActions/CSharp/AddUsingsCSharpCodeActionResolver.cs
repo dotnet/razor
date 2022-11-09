@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -34,7 +35,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public override string Action => LanguageServerConstants.CodeActions.AddUsing;
 
         public async override Task<CodeAction> ResolveAsync(
-            CSharpCodeActionParams csharpParams,
+            CodeActionResolveParams csharpParams,
             CodeAction codeAction,
             CancellationToken cancellationToken)
         {
@@ -50,7 +51,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, codeAction, cancellationToken).ConfigureAwait(false);
+            var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
+            if (documentContext is null || cancellationToken.IsCancellationRequested)
+            {
+                return codeAction;
+            }
+
+            var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, documentContext.Version, RazorLanguageKind.CSharp, codeAction, cancellationToken).ConfigureAwait(false);
 
             // TODO: Move this higher, so it happens on any code action.
             //       For that though, we need a deeper understanding of applying workspace edits to documents, rather than
@@ -64,12 +71,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             if (documentChanges!.Length != 1)
             {
                 Debug.Fail("We don't yet support multi-document code actions! If you're seeing this, something about Roslyn changed and we should react.");
-                return codeAction;
-            }
-
-            var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
-            if (documentContext is null || cancellationToken.IsCancellationRequested)
-            {
                 return codeAction;
             }
 

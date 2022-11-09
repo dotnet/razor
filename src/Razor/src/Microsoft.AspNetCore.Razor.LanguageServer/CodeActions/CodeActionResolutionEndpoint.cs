@@ -19,6 +19,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
     {
         private readonly IReadOnlyDictionary<string, RazorCodeActionResolver> _razorCodeActionResolvers;
         private readonly IReadOnlyDictionary<string, CSharpCodeActionResolver> _csharpCodeActionResolvers;
+        private readonly IReadOnlyDictionary<string, HtmlCodeActionResolver> _htmlCodeActionResolvers;
         private readonly ILogger _logger;
 
         public bool MutatesSolutionState => false;
@@ -26,11 +27,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         public CodeActionResolutionEndpoint(
             IEnumerable<RazorCodeActionResolver> razorCodeActionResolvers,
             IEnumerable<CSharpCodeActionResolver> csharpCodeActionResolvers,
+            IEnumerable<HtmlCodeActionResolver> htmlCodeActionResolvers,
             ILoggerFactory loggerFactory)
         {
             if (razorCodeActionResolvers is null)
             {
                 throw new ArgumentNullException(nameof(razorCodeActionResolvers));
+            }
+
+            if (htmlCodeActionResolvers is null)
+            {
+                throw new ArgumentNullException(nameof(htmlCodeActionResolvers));
             }
 
             if (csharpCodeActionResolvers is null)
@@ -47,6 +54,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 
             _razorCodeActionResolvers = CreateResolverMap(razorCodeActionResolvers);
             _csharpCodeActionResolvers = CreateResolverMap(csharpCodeActionResolvers);
+            _htmlCodeActionResolvers = CreateResolverMap(htmlCodeActionResolvers);
         }
 
         public async Task<CodeAction> HandleRequestAsync(CodeAction request, RazorRequestContext requestContext, CancellationToken cancellationToken)
@@ -93,6 +101,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                         request,
                         resolutionParams,
                         cancellationToken);
+                case LanguageServerConstants.CodeActions.Languages.Html:
+                    return await ResolveHtmlCodeActionAsync(
+                        request,
+                        resolutionParams,
+                        cancellationToken).ConfigureAwait(false);
                 default:
                     _logger.LogError("Invalid CodeAction.Data.Language. Received {codeActionId}.", codeActionId);
                     return request;
@@ -136,10 +149,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 return codeAction;
             }
 
-            var csharpParams = csharpParamsObj.ToObject<CSharpCodeActionParams>();
+            var csharpParams = csharpParamsObj.ToObject<CodeActionResolveParams>();
             if (csharpParams is null)
             {
-                throw new ArgumentOutOfRangeException($"Data was not convertible to {nameof(CSharpCodeActionParams)}");
+                throw new ArgumentOutOfRangeException($"Data was not convertible to {nameof(CodeActionResolveParams)}");
             }
 
             codeAction.Data = csharpParams.Data as JToken;
@@ -153,6 +166,39 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
 
             var resolvedCodeAction = await resolver.ResolveAsync(csharpParams, codeAction, cancellationToken);
+            return resolvedCodeAction;
+        }
+
+        // Internal for testing
+        internal async Task<CodeAction> ResolveHtmlCodeActionAsync(
+            CodeAction codeAction,
+            RazorCodeActionResolutionParams resolutionParams,
+            CancellationToken cancellationToken)
+        {
+            if (resolutionParams.Data is not JObject htmlParamsObj)
+            {
+                _logger.LogError("Invalid CodeAction Received.");
+                Debug.Fail($"Invalid CSharp CodeAction Received.");
+                return codeAction;
+            }
+
+            var htmlParams = htmlParamsObj.ToObject<CodeActionResolveParams>();
+            if (htmlParams is null)
+            {
+                throw new ArgumentOutOfRangeException($"Data was not convertible to {nameof(CodeActionResolveParams)}");
+            }
+
+            codeAction.Data = htmlParams.Data as JToken;
+
+            if (!_htmlCodeActionResolvers.TryGetValue(resolutionParams.Action, out var resolver))
+            {
+                var codeActionId = GetCodeActionId(resolutionParams);
+                _logger.LogWarning("No resolver registered for {codeActionId}", codeActionId);
+                Debug.Fail($"No resolver registered for {codeActionId}.");
+                return codeAction;
+            }
+
+            var resolvedCodeAction = await resolver.ResolveAsync(htmlParams, codeAction, cancellationToken);
             return resolvedCodeAction;
         }
 

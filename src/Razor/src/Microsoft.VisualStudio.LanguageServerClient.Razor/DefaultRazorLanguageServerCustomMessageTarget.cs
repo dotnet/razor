@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
@@ -22,7 +23,6 @@ using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -303,7 +303,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 throw new ArgumentNullException(nameof(codeActionParams));
             }
 
-            Uri projectedUri;
             bool synchronized;
             VirtualDocumentSnapshot virtualDocumentSnapshot;
             if (codeActionParams.LanguageKind == RazorLanguageKind.Html)
@@ -312,7 +311,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     codeActionParams.HostDocumentVersion,
                     codeActionParams.CodeActionParams.TextDocument.Uri,
                     cancellationToken);
-                projectedUri = virtualDocumentSnapshot.Uri;
             }
             else if (codeActionParams.LanguageKind == RazorLanguageKind.CSharp)
             {
@@ -320,7 +318,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                     codeActionParams.HostDocumentVersion,
                     codeActionParams.CodeActionParams.TextDocument.Uri,
                     cancellationToken);
-                projectedUri = virtualDocumentSnapshot.Uri;
             }
             else
             {
@@ -340,7 +337,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
                 textBuffer,
                 Methods.TextDocumentCodeActionName,
-                SupportsCSharpCodeActions,
+                SupportsCodeActionResolve,
                 codeActionParams.CodeActionParams,
                 cancellationToken).ConfigureAwait(false);
 
@@ -369,12 +366,40 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
                 return null;
             }
 
-            var csharpTextBuffer = LanguageServerKind.CSharp.GetTextBuffer(documentSnapshot);
+            bool synchronized;
+            VirtualDocumentSnapshot virtualDocumentSnapshot;
+            if (resolveCodeActionParams.LanguageKind == RazorLanguageKind.Html)
+            {
+                (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+                    resolveCodeActionParams.HostDocumentVersion,
+                    resolveCodeActionParams.Uri,
+                    cancellationToken);
+            }
+            else if (resolveCodeActionParams.LanguageKind == RazorLanguageKind.CSharp)
+            {
+                (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                    resolveCodeActionParams.HostDocumentVersion,
+                    resolveCodeActionParams.Uri,
+                    cancellationToken);
+            }
+            else
+            {
+                Debug.Fail("Unexpected RazorLanguageKind. This shouldn't really happen in a real scenario.");
+                return null;
+            }
+
+            if (!synchronized || virtualDocumentSnapshot is null)
+            {
+                // Document could not synchronize
+                return null;
+            }
+
+            var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
             var codeAction = resolveCodeActionParams.CodeAction;
-            var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSInternalCodeAction, VSInternalCodeAction?>(
-                csharpTextBuffer,
+            var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeAction, VSInternalCodeAction?>(
+                textBuffer,
                 Methods.CodeActionResolveName,
-                SupportsCSharpCodeActions,
+                SupportsCodeActionResolve,
                 codeAction,
                 cancellationToken).ConfigureAwait(false);
 
@@ -479,7 +504,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return colorInformation;
         }
 
-        private static bool SupportsCSharpCodeActions(JToken token)
+        private static bool SupportsCodeActionResolve(JToken token)
         {
             var serverCapabilities = token.ToObject<ServerCapabilities>();
 
