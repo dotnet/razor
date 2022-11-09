@@ -21,7 +21,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingPackageVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutablePackageVersion)" />
-    <PackageReference Include="System.Composition.AttributedModel" Version="$(SystemComponentModelPackageVersion)" />
+    <PackageReference Include="System.Composition.AttributedModel" Version="$(SystemCompositionPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>
