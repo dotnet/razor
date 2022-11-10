@@ -146,7 +146,7 @@ internal readonly struct Index : IEquatable<Index>
 
     [DoesNotReturn]
     private static void ThrowValueArgumentOutOfRange_NeedNonNegNumException()
-        => throw new ArgumentOutOfRangeException("value", SR.ArgumentOutOfRange_NeedNonNegNum);
+        => throw new ArgumentOutOfRangeException("value", "Non-negative number required.");
 }
 
 #endif
