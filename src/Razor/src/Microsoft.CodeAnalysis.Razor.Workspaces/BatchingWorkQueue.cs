@@ -9,271 +9,270 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces
+namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+
+internal sealed class BatchingWorkQueue : IDisposable
 {
-    internal sealed class BatchingWorkQueue : IDisposable
+    // Interactions with this collection should always take a lock on the collection and
+    // be careful about interactions it may have with the on-going timer. The reasons
+    // stem from the transactional manner that we use to modify the collection. For instance
+    // we'll capture workloads and then after processing a lot of work items we'll leave open
+    // the opportunity to re-start our processing loop to ensure things get processed at an
+    // efficient pace.
+    private readonly Dictionary<string, BatchableWorkItem> _work;
+    private readonly TimeSpan _batchingTimeSpan;
+    private readonly ErrorReporter _errorReporter;
+    private readonly CancellationTokenSource _disposalCts;
+    private Timer? _timer;
+    private bool _disposed;
+
+    public BatchingWorkQueue(
+        TimeSpan batchingTimeSpan,
+        StringComparer keyComparer,
+        ErrorReporter errorReporter)
     {
-        // Interactions with this collection should always take a lock on the collection and
-        // be careful about interactions it may have with the on-going timer. The reasons
-        // stem from the transactional manner that we use to modify the collection. For instance
-        // we'll capture workloads and then after processing a lot of work items we'll leave open
-        // the opportunity to re-start our processing loop to ensure things get processed at an
-        // efficient pace.
-        private readonly Dictionary<string, BatchableWorkItem> _work;
-        private readonly TimeSpan _batchingTimeSpan;
-        private readonly ErrorReporter _errorReporter;
-        private readonly CancellationTokenSource _disposalCts;
-        private Timer? _timer;
-        private bool _disposed;
-
-        public BatchingWorkQueue(
-            TimeSpan batchingTimeSpan,
-            StringComparer keyComparer,
-            ErrorReporter errorReporter)
+        if (keyComparer is null)
         {
-            if (keyComparer is null)
-            {
-                throw new ArgumentNullException(nameof(keyComparer));
-            }
-
-            if (errorReporter is null)
-            {
-                throw new ArgumentNullException(nameof(errorReporter));
-            }
-
-            _batchingTimeSpan = batchingTimeSpan;
-            _errorReporter = errorReporter;
-            _disposalCts = new CancellationTokenSource();
-            _work = new Dictionary<string, BatchableWorkItem>(keyComparer);
+            throw new ArgumentNullException(nameof(keyComparer));
         }
 
-        private bool IsScheduledOrRunning => _timer != null;
-
-        // Used in unit tests to ensure we can control when background work starts.
-        private ManualResetEventSlim? BlockBackgroundWorkStart { get; set; }
-
-        // Used in unit tests to ensure we can know when background work finishes.
-        private ManualResetEventSlim? NotifyBackgroundWorkStarting { get; set; }
-
-        // Used in unit tests to ensure we can know when background has captured its current workload.
-        private ManualResetEventSlim? NotifyBackgroundCapturedWorkload { get; set; }
-
-        // Used in unit tests to ensure we can control when background work completes.
-        private ManualResetEventSlim? BlockBackgroundWorkCompleting { get; set; }
-
-        // Used in unit tests to ensure we can know when background work finishes.
-        private ManualResetEventSlim? NotifyBackgroundWorkCompleted { get; set; }
-
-        // Used in unit tests to ensure we can know when errors are reported
-        private ManualResetEventSlim? NotifyErrorBeingReported { get; set; }
-
-        // Used in unit tests to ensure we can know when background workloads are completing
-        private ManualResetEventSlim? NotifyBackgroundWorkCompleting { get; set; }
-
-        /// <summary>
-        /// Adds the provided <paramref name="workItem"/> to a work queue under the specified <paramref name="key"/>.
-        /// Multiple enqueues under the same <paramref name="key"/> will use the last enqueued <paramref name="workItem"/>.
-        /// </summary>
-        /// <param name="key">An identifier used to track <paramref name="workItem"/>'s.</param>
-        /// <param name="workItem">An item to process</param>
-        public void Enqueue(string key, BatchableWorkItem workItem)
+        if (errorReporter is null)
         {
-            lock (_work)
-            {
-                if (_disposed)
-                {
-                    throw new ObjectDisposedException(nameof(BatchingWorkQueue));
-                }
-
-                // We only want to store the last 'seen' work item. That way when we pick one to process it's
-                // always the latest version to use.
-                _work[key] = workItem;
-
-                StartWorker();
-            }
+            throw new ArgumentNullException(nameof(errorReporter));
         }
 
-        public void Dispose()
+        _batchingTimeSpan = batchingTimeSpan;
+        _errorReporter = errorReporter;
+        _disposalCts = new CancellationTokenSource();
+        _work = new Dictionary<string, BatchableWorkItem>(keyComparer);
+    }
+
+    private bool IsScheduledOrRunning => _timer != null;
+
+    // Used in unit tests to ensure we can control when background work starts.
+    private ManualResetEventSlim? BlockBackgroundWorkStart { get; set; }
+
+    // Used in unit tests to ensure we can know when background work finishes.
+    private ManualResetEventSlim? NotifyBackgroundWorkStarting { get; set; }
+
+    // Used in unit tests to ensure we can know when background has captured its current workload.
+    private ManualResetEventSlim? NotifyBackgroundCapturedWorkload { get; set; }
+
+    // Used in unit tests to ensure we can control when background work completes.
+    private ManualResetEventSlim? BlockBackgroundWorkCompleting { get; set; }
+
+    // Used in unit tests to ensure we can know when background work finishes.
+    private ManualResetEventSlim? NotifyBackgroundWorkCompleted { get; set; }
+
+    // Used in unit tests to ensure we can know when errors are reported
+    private ManualResetEventSlim? NotifyErrorBeingReported { get; set; }
+
+    // Used in unit tests to ensure we can know when background workloads are completing
+    private ManualResetEventSlim? NotifyBackgroundWorkCompleting { get; set; }
+
+    /// <summary>
+    /// Adds the provided <paramref name="workItem"/> to a work queue under the specified <paramref name="key"/>.
+    /// Multiple enqueues under the same <paramref name="key"/> will use the last enqueued <paramref name="workItem"/>.
+    /// </summary>
+    /// <param name="key">An identifier used to track <paramref name="workItem"/>'s.</param>
+    /// <param name="workItem">An item to process</param>
+    public void Enqueue(string key, BatchableWorkItem workItem)
+    {
+        lock (_work)
         {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(BatchingWorkQueue));
+            }
+
+            // We only want to store the last 'seen' work item. That way when we pick one to process it's
+            // always the latest version to use.
+            _work[key] = workItem;
+
+            StartWorker();
+        }
+    }
+
+    public void Dispose()
+    {
+        lock (_work)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _timer?.Dispose();
+            _timer = null;
+            _work.Clear();
+            _disposalCts.Cancel();
+            _disposalCts.Dispose();
+        }
+    }
+
+    private void StartWorker()
+    {
+        // Access to the timer is protected by the lock in Enqueue and in Timer_TickAsync
+        if (_timer is null)
+        {
+            // Timer will fire after a fixed delay, but only once.
+            _timer = NonCapturingTimer.Create(
+                state => _ = ((BatchingWorkQueue)state).Timer_TickAsync(),
+                this,
+                _batchingTimeSpan,
+                Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    private async Task Timer_TickAsync()
+    {
+        try
+        {
+            _timer?.Change(Timeout.Infinite, Timeout.Infinite);
+
+            OnStartingBackgroundWork();
+
+            KeyValuePair<string, BatchableWorkItem>[] work;
             lock (_work)
             {
-                if (_disposed)
-                {
-                    return;
-                }
+                work = _work.ToArray();
+                _work.Clear();
+            }
 
-                _disposed = true;
+            OnBackgroundCapturedWorkload();
+
+            for (var i = 0; i < work.Length; i++)
+            {
+                var workItem = work[i].Value;
+                try
+                {
+                    await workItem.ProcessAsync(_disposalCts.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (_disposalCts.IsCancellationRequested)
+                {
+                    // Expected shutdown case, lets not log an error.
+                }
+                catch (Exception ex)
+                {
+                    // Work item failed to process, allow the other process events to continue.
+                    _errorReporter.ReportError(ex);
+                }
+            }
+
+            OnCompletingBackgroundWork();
+
+            lock (_work)
+            {
+                // Resetting the timer allows another batch of work to start.
                 _timer?.Dispose();
                 _timer = null;
-                _work.Clear();
-                _disposalCts.Cancel();
-                _disposalCts.Dispose();
-            }
-        }
 
-        private void StartWorker()
-        {
-            // Access to the timer is protected by the lock in Enqueue and in Timer_TickAsync
-            if (_timer is null)
-            {
-                // Timer will fire after a fixed delay, but only once.
-                _timer = NonCapturingTimer.Create(
-                    state => _ = ((BatchingWorkQueue)state).Timer_TickAsync(),
-                    this,
-                    _batchingTimeSpan,
-                    Timeout.InfiniteTimeSpan);
-            }
-        }
-
-        private async Task Timer_TickAsync()
-        {
-            try
-            {
-                _timer?.Change(Timeout.Infinite, Timeout.Infinite);
-
-                OnStartingBackgroundWork();
-
-                KeyValuePair<string, BatchableWorkItem>[] work;
-                lock (_work)
+                // If more work came in while we were running start the worker again if we're still alive
+                if (_work.Count > 0 && !_disposed)
                 {
-                    work = _work.ToArray();
-                    _work.Clear();
+                    StartWorker();
                 }
-
-                OnBackgroundCapturedWorkload();
-
-                for (var i = 0; i < work.Length; i++)
-                {
-                    var workItem = work[i].Value;
-                    try
-                    {
-                        await workItem.ProcessAsync(_disposalCts.Token).ConfigureAwait(false);
-                    }
-                    catch (OperationCanceledException) when (_disposalCts.IsCancellationRequested)
-                    {
-                        // Expected shutdown case, lets not log an error.
-                    }
-                    catch (Exception ex)
-                    {
-                        // Work item failed to process, allow the other process events to continue.
-                        _errorReporter.ReportError(ex);
-                    }
-                }
-
-                OnCompletingBackgroundWork();
-
-                lock (_work)
-                {
-                    // Resetting the timer allows another batch of work to start.
-                    _timer?.Dispose();
-                    _timer = null;
-
-                    // If more work came in while we were running start the worker again if we're still alive
-                    if (_work.Count > 0 && !_disposed)
-                    {
-                        StartWorker();
-                    }
-                }
-
-                OnCompletedBackgroundWork();
             }
-            catch (Exception ex)
-            {
-                // This is something totally unexpected
-                Debug.Fail("Batching work queue failed unexpectedly");
-                _errorReporter.ReportError(ex);
-            }
+
+            OnCompletedBackgroundWork();
+        }
+        catch (Exception ex)
+        {
+            // This is something totally unexpected
+            Debug.Fail("Batching work queue failed unexpectedly");
+            _errorReporter.ReportError(ex);
+        }
+    }
+
+    private void OnStartingBackgroundWork()
+    {
+        NotifyBackgroundWorkStarting?.Set();
+
+        if (BlockBackgroundWorkStart != null)
+        {
+            BlockBackgroundWorkStart.Wait();
+            BlockBackgroundWorkStart.Reset();
+        }
+    }
+
+    private void OnCompletingBackgroundWork()
+    {
+        NotifyBackgroundWorkCompleting?.Set();
+
+        if (BlockBackgroundWorkCompleting != null)
+        {
+            BlockBackgroundWorkCompleting.Wait();
+            BlockBackgroundWorkCompleting.Reset();
+        }
+    }
+
+    private void OnCompletedBackgroundWork()
+    {
+        NotifyBackgroundWorkCompleted?.Set();
+    }
+
+    private void OnBackgroundCapturedWorkload()
+    {
+        NotifyBackgroundCapturedWorkload?.Set();
+    }
+
+    internal TestAccessor GetTestAccessor()
+        => new(this);
+
+    internal class TestAccessor
+    {
+        private readonly BatchingWorkQueue _queue;
+
+        public TestAccessor(BatchingWorkQueue queue)
+        {
+            _queue = queue;
         }
 
-        private void OnStartingBackgroundWork()
-        {
-            NotifyBackgroundWorkStarting?.Set();
+        public bool IsScheduledOrRunning => _queue.IsScheduledOrRunning;
 
-            if (BlockBackgroundWorkStart != null)
-            {
-                BlockBackgroundWorkStart.Wait();
-                BlockBackgroundWorkStart.Reset();
-            }
+        public Dictionary<string, BatchableWorkItem> Work => _queue._work;
+
+        public ManualResetEventSlim? BlockBackgroundWorkStart
+        {
+            get => _queue.BlockBackgroundWorkStart;
+            set => _queue.BlockBackgroundWorkStart = value;
         }
 
-        private void OnCompletingBackgroundWork()
+        public ManualResetEventSlim? NotifyBackgroundWorkStarting
         {
-            NotifyBackgroundWorkCompleting?.Set();
-
-            if (BlockBackgroundWorkCompleting != null)
-            {
-                BlockBackgroundWorkCompleting.Wait();
-                BlockBackgroundWorkCompleting.Reset();
-            }
+            get => _queue.NotifyBackgroundWorkStarting;
+            set => _queue.NotifyBackgroundWorkStarting = value;
         }
 
-        private void OnCompletedBackgroundWork()
+        public ManualResetEventSlim? NotifyBackgroundCapturedWorkload
         {
-            NotifyBackgroundWorkCompleted?.Set();
+            get => _queue.NotifyBackgroundCapturedWorkload;
+            set => _queue.NotifyBackgroundCapturedWorkload = value;
         }
 
-        private void OnBackgroundCapturedWorkload()
+        public ManualResetEventSlim? BlockBackgroundWorkCompleting
         {
-            NotifyBackgroundCapturedWorkload?.Set();
+            get => _queue.BlockBackgroundWorkCompleting;
+            set => _queue.BlockBackgroundWorkCompleting = value;
         }
 
-        internal TestAccessor GetTestAccessor()
-            => new(this);
-
-        internal class TestAccessor
+        public ManualResetEventSlim? NotifyBackgroundWorkCompleted
         {
-            private readonly BatchingWorkQueue _queue;
+            get => _queue.NotifyBackgroundWorkCompleted;
+            set => _queue.NotifyBackgroundWorkCompleted = value;
+        }
 
-            public TestAccessor(BatchingWorkQueue queue)
-            {
-                _queue = queue;
-            }
+        public ManualResetEventSlim? NotifyErrorBeingReported
+        {
+            get => _queue.NotifyErrorBeingReported;
+            set => _queue.NotifyErrorBeingReported = value;
+        }
 
-            public bool IsScheduledOrRunning => _queue.IsScheduledOrRunning;
-
-            public Dictionary<string, BatchableWorkItem> Work => _queue._work;
-
-            public ManualResetEventSlim? BlockBackgroundWorkStart
-            {
-                get => _queue.BlockBackgroundWorkStart;
-                set => _queue.BlockBackgroundWorkStart = value;
-            }
-
-            public ManualResetEventSlim? NotifyBackgroundWorkStarting
-            {
-                get => _queue.NotifyBackgroundWorkStarting;
-                set => _queue.NotifyBackgroundWorkStarting = value;
-            }
-
-            public ManualResetEventSlim? NotifyBackgroundCapturedWorkload
-            {
-                get => _queue.NotifyBackgroundCapturedWorkload;
-                set => _queue.NotifyBackgroundCapturedWorkload = value;
-            }
-
-            public ManualResetEventSlim? BlockBackgroundWorkCompleting
-            {
-                get => _queue.BlockBackgroundWorkCompleting;
-                set => _queue.BlockBackgroundWorkCompleting = value;
-            }
-
-            public ManualResetEventSlim? NotifyBackgroundWorkCompleted
-            {
-                get => _queue.NotifyBackgroundWorkCompleted;
-                set => _queue.NotifyBackgroundWorkCompleted = value;
-            }
-
-            public ManualResetEventSlim? NotifyErrorBeingReported
-            {
-                get => _queue.NotifyErrorBeingReported;
-                set => _queue.NotifyErrorBeingReported = value;
-            }
-
-            public ManualResetEventSlim? NotifyBackgroundWorkCompleting
-            {
-                get => _queue.NotifyBackgroundWorkCompleting;
-                set => _queue.NotifyBackgroundWorkCompleting = value;
-            }
+        public ManualResetEventSlim? NotifyBackgroundWorkCompleting
+        {
+            get => _queue.NotifyBackgroundWorkCompleting;
+            set => _queue.NotifyBackgroundWorkCompleting = value;
         }
     }
 }

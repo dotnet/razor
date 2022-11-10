@@ -6,12 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
+internal abstract class RazorCodeActionProvider
 {
-    internal abstract class RazorCodeActionProvider
-    {
-        public abstract Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
-            RazorCodeActionContext context,
-            CancellationToken cancellationToken);
-    }
+    public abstract Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
+        RazorCodeActionContext context,
+        CancellationToken cancellationToken);
 }

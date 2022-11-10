@@ -3,10 +3,9 @@
 
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal interface IRazorFileChangeListener
 {
-    internal interface IRazorFileChangeListener
-    {
-        void RazorFileChanged(string filePath, RazorFileChangeKind kind);
-    }
+    void RazorFileChanged(string filePath, RazorFileChangeKind kind);
 }

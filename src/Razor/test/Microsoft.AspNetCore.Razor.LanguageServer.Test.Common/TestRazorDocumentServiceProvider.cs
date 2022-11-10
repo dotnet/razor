@@ -6,43 +6,42 @@
 using System;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+
+internal class TestRazorDocumentServiceProvider : IRazorDocumentServiceProvider
 {
-    internal class TestRazorDocumentServiceProvider : IRazorDocumentServiceProvider
+    private readonly IRazorSpanMappingService _razorSpanMappingService;
+
+    public TestRazorDocumentServiceProvider(IRazorSpanMappingService razorSpanMappingService)
     {
-        private readonly IRazorSpanMappingService _razorSpanMappingService;
+        _razorSpanMappingService = razorSpanMappingService;
+    }
 
-        public TestRazorDocumentServiceProvider(IRazorSpanMappingService razorSpanMappingService)
+    public bool CanApplyChange => throw new NotImplementedException();
+
+    public bool SupportDiagnostics => throw new NotImplementedException();
+
+    TService IRazorDocumentServiceProvider.GetService<TService>()
+    {
+        var serviceType = typeof(TService);
+
+        if (serviceType == typeof(IRazorSpanMappingService))
         {
-            _razorSpanMappingService = razorSpanMappingService;
+            return (TService)_razorSpanMappingService;
         }
 
-        public bool CanApplyChange => throw new NotImplementedException();
-
-        public bool SupportDiagnostics => throw new NotImplementedException();
-
-        TService IRazorDocumentServiceProvider.GetService<TService>()
+        if (serviceType == typeof(IRazorDocumentPropertiesService))
         {
-            var serviceType = typeof(TService);
-
-            if (serviceType == typeof(IRazorSpanMappingService))
-            {
-                return (TService)_razorSpanMappingService;
-            }
-
-            if (serviceType == typeof(IRazorDocumentPropertiesService))
-            {
-                return (TService)(IRazorDocumentPropertiesService)new TestRazorDocumentPropertiesService();
-            }
-
-            return this as TService;
+            return (TService)(IRazorDocumentPropertiesService)new TestRazorDocumentPropertiesService();
         }
 
-        private class TestRazorDocumentPropertiesService : IRazorDocumentPropertiesService
-        {
-            public bool DesignTimeOnly => false;
+        return this as TService;
+    }
 
-            public string DiagnosticsLspClientName => "RazorCSharp";
-        }
+    private class TestRazorDocumentPropertiesService : IRazorDocumentPropertiesService
+    {
+        public bool DesignTimeOnly => false;
+
+        public string DiagnosticsLspClientName => "RazorCSharp";
     }
 }

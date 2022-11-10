@@ -11,29 +11,28 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+public class DocumentSnapshotTextLoaderTest : TestBase
 {
-    public class DocumentSnapshotTextLoaderTest : TestBase
+    public DocumentSnapshotTextLoaderTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        public DocumentSnapshotTextLoaderTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+    }
 
-        [Fact]
-        public async Task LoadTextAndVersionAsync_CreatesTextAndVersionFromDocumentsText()
-        {
-            // Arrange
-            var expectedSourceText = SourceText.From("Hello World");
-            var result = Task.FromResult(expectedSourceText);
-            var snapshot = Mock.Of<DocumentSnapshot>(doc => doc.GetTextAsync() == result, MockBehavior.Strict);
-            var textLoader = new DocumentSnapshotTextLoader(snapshot);
+    [Fact]
+    public async Task LoadTextAndVersionAsync_CreatesTextAndVersionFromDocumentsText()
+    {
+        // Arrange
+        var expectedSourceText = SourceText.From("Hello World");
+        var result = Task.FromResult(expectedSourceText);
+        var snapshot = Mock.Of<DocumentSnapshot>(doc => doc.GetTextAsync() == result, MockBehavior.Strict);
+        var textLoader = new DocumentSnapshotTextLoader(snapshot);
 
-            // Act
-            var actual = await textLoader.LoadTextAndVersionAsync(default, default, default);
+        // Act
+        var actual = await textLoader.LoadTextAndVersionAsync(default, default, default);
 
-            // Assert
-            Assert.Same(expectedSourceText, actual.Text);
-        }
+        // Assert
+        Assert.Same(expectedSourceText, actual.Text);
     }
 }

@@ -16,203 +16,202 @@ using Mvc1_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X;
 using Mvc2_X = Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 using MvcLatest = Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+// Testing this here because we need references to the MVC factories.
+public class DefaultProjectSnapshotProjectEngineFactoryTest : TestBase
 {
-    // Testing this here because we need references to the MVC factories.
-    public class DefaultProjectSnapshotProjectEngineFactoryTest : TestBase
+    private readonly Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] _customFactories;
+    private readonly IFallbackProjectEngineFactory _fallbackFactory;
+    private readonly HostProject _hostProject_For_1_0;
+    private readonly HostProject _hostProject_For_1_1;
+    private readonly HostProject _hostProject_For_2_0;
+    private readonly HostProject _hostProject_For_2_1;
+    private readonly HostProject _hostProject_For_3_0;
+    private readonly HostProject _hostProject_For_UnknownConfiguration;
+    private readonly ProjectSnapshot _snapshot_For_1_0;
+    private readonly ProjectSnapshot _snapshot_For_1_1;
+    private readonly ProjectSnapshot _snapshot_For_2_0;
+    private readonly ProjectSnapshot _snapshot_For_2_1;
+    private readonly ProjectSnapshot _snapshot_For_3_0;
+    private readonly ProjectSnapshot _snapshot_For_UnknownConfiguration;
+    private readonly ProjectWorkspaceState _projectWorkspaceState;
+    private readonly Workspace _workspace;
+
+    public DefaultProjectSnapshotProjectEngineFactoryTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] _customFactories;
-        private readonly IFallbackProjectEngineFactory _fallbackFactory;
-        private readonly HostProject _hostProject_For_1_0;
-        private readonly HostProject _hostProject_For_1_1;
-        private readonly HostProject _hostProject_For_2_0;
-        private readonly HostProject _hostProject_For_2_1;
-        private readonly HostProject _hostProject_For_3_0;
-        private readonly HostProject _hostProject_For_UnknownConfiguration;
-        private readonly ProjectSnapshot _snapshot_For_1_0;
-        private readonly ProjectSnapshot _snapshot_For_1_1;
-        private readonly ProjectSnapshot _snapshot_For_2_0;
-        private readonly ProjectSnapshot _snapshot_For_2_1;
-        private readonly ProjectSnapshot _snapshot_For_3_0;
-        private readonly ProjectSnapshot _snapshot_For_UnknownConfiguration;
-        private readonly ProjectWorkspaceState _projectWorkspaceState;
-        private readonly Workspace _workspace;
+        _workspace = TestWorkspace.Create();
+        AddDisposable(_workspace);
 
-        public DefaultProjectSnapshotProjectEngineFactoryTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+        _projectWorkspaceState = ProjectWorkspaceState.Default;
+
+        _hostProject_For_1_0 = new HostProject("/TestPath/SomePath/Test.csproj", FallbackRazorConfiguration.MVC_1_0, "Test");
+        _hostProject_For_1_1 = new HostProject("/TestPath/SomePath/Test.csproj", FallbackRazorConfiguration.MVC_1_1, "Test");
+        _hostProject_For_2_0 = new HostProject("/TestPath/SomePath/Test.csproj", FallbackRazorConfiguration.MVC_2_0, "Test");
+
+        _hostProject_For_2_1 = new HostProject(
+            "/TestPath/SomePath/Test.csproj",
+            new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_2_1, "MVC-2.1", Array.Empty<RazorExtension>()), "Test");
+
+        _hostProject_For_3_0 = new HostProject(
+            "/TestPath/SomePath/Test.csproj",
+            new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_3_0, "MVC-3.0", Array.Empty<RazorExtension>()), "Test");
+
+        _hostProject_For_UnknownConfiguration = new HostProject(
+            "/TestPath/SomePath/Test.csproj",
+            new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_2_1, "Random-0.1", Array.Empty<RazorExtension>()), rootNamespace: null);
+
+        _snapshot_For_1_0 = new DefaultProjectSnapshot(ProjectState.Create(_workspace.Services, _hostProject_For_1_0, _projectWorkspaceState));
+        _snapshot_For_1_1 = new DefaultProjectSnapshot(ProjectState.Create(_workspace.Services, _hostProject_For_1_1, _projectWorkspaceState));
+        _snapshot_For_2_0 = new DefaultProjectSnapshot(ProjectState.Create(_workspace.Services, _hostProject_For_2_0, _projectWorkspaceState));
+        _snapshot_For_2_1 = new DefaultProjectSnapshot(ProjectState.Create(_workspace.Services, _hostProject_For_2_1, _projectWorkspaceState));
+        _snapshot_For_3_0 = new DefaultProjectSnapshot(ProjectState.Create(_workspace.Services, _hostProject_For_3_0, _projectWorkspaceState));
+        _snapshot_For_UnknownConfiguration = new DefaultProjectSnapshot(ProjectState.Create(_workspace.Services, _hostProject_For_UnknownConfiguration, _projectWorkspaceState));
+
+        _customFactories = new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[]
         {
-            _workspace = TestWorkspace.Create();
-            AddDisposable(_workspace);
+            new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(
+                () => new LegacyProjectEngineFactory_1_0(),
+                typeof(LegacyProjectEngineFactory_1_0).GetCustomAttribute<ExportCustomProjectEngineFactoryAttribute>()),
+            new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(
+                () => new LegacyProjectEngineFactory_1_1(),
+                typeof(LegacyProjectEngineFactory_1_1).GetCustomAttribute<ExportCustomProjectEngineFactoryAttribute>()),
+            new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(
+                () => new LegacyProjectEngineFactory_2_0(),
+                typeof(LegacyProjectEngineFactory_2_0).GetCustomAttribute<ExportCustomProjectEngineFactoryAttribute>()),
+            new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(
+                () => new LegacyProjectEngineFactory_2_1(),
+                typeof(LegacyProjectEngineFactory_2_1).GetCustomAttribute<ExportCustomProjectEngineFactoryAttribute>()),
+            new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(
+                () => new LegacyProjectEngineFactory_3_0(),
+                typeof(LegacyProjectEngineFactory_3_0).GetCustomAttribute<ExportCustomProjectEngineFactoryAttribute>()),
+        };
 
-            _projectWorkspaceState = ProjectWorkspaceState.Default;
+        _fallbackFactory = new FallbackProjectEngineFactory();
+    }
 
-            _hostProject_For_1_0 = new HostProject("/TestPath/SomePath/Test.csproj", FallbackRazorConfiguration.MVC_1_0, "Test");
-            _hostProject_For_1_1 = new HostProject("/TestPath/SomePath/Test.csproj", FallbackRazorConfiguration.MVC_1_1, "Test");
-            _hostProject_For_2_0 = new HostProject("/TestPath/SomePath/Test.csproj", FallbackRazorConfiguration.MVC_2_0, "Test");
+    [Fact]
+    public void Create_CreatesDesignTimeTemplateEngine_ForVersion3_0()
+    {
+        // Arrange
+        var snapshot = _snapshot_For_3_0;
 
-            _hostProject_For_2_1 = new HostProject(
-                "/TestPath/SomePath/Test.csproj",
-                new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_2_1, "MVC-2.1", Array.Empty<RazorExtension>()), "Test");
+        var factory = new DefaultProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
 
-            _hostProject_For_3_0 = new HostProject(
-                "/TestPath/SomePath/Test.csproj",
-                new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_3_0, "MVC-3.0", Array.Empty<RazorExtension>()), "Test");
+        // Act
+        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
 
-            _hostProject_For_UnknownConfiguration = new HostProject(
-                "/TestPath/SomePath/Test.csproj",
-                new ProjectSystemRazorConfiguration(RazorLanguageVersion.Version_2_1, "Random-0.1", Array.Empty<RazorExtension>()), rootNamespace: null);
+        // Assert
+        Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
+        Assert.Single(engine.Engine.Features.OfType<MvcLatest.ViewComponentTagHelperDescriptorProvider>());
+        Assert.Single(engine.Engine.Features.OfType<MvcLatest.MvcViewDocumentClassifierPass>());
+        Assert.Single(engine.Engine.Features.OfType<MvcLatest.ViewComponentTagHelperPass>());
+    }
 
-            _snapshot_For_1_0 = new DefaultProjectSnapshot(ProjectState.Create(_workspace.Services, _hostProject_For_1_0, _projectWorkspaceState));
-            _snapshot_For_1_1 = new DefaultProjectSnapshot(ProjectState.Create(_workspace.Services, _hostProject_For_1_1, _projectWorkspaceState));
-            _snapshot_For_2_0 = new DefaultProjectSnapshot(ProjectState.Create(_workspace.Services, _hostProject_For_2_0, _projectWorkspaceState));
-            _snapshot_For_2_1 = new DefaultProjectSnapshot(ProjectState.Create(_workspace.Services, _hostProject_For_2_1, _projectWorkspaceState));
-            _snapshot_For_3_0 = new DefaultProjectSnapshot(ProjectState.Create(_workspace.Services, _hostProject_For_3_0, _projectWorkspaceState));
-            _snapshot_For_UnknownConfiguration = new DefaultProjectSnapshot(ProjectState.Create(_workspace.Services, _hostProject_For_UnknownConfiguration, _projectWorkspaceState));
+    [Fact]
+    public void Create_CreatesDesignTimeTemplateEngine_ForVersion2_1()
+    {
+        // Arrange
+        var snapshot = _snapshot_For_2_1;
 
-            _customFactories = new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[]
-            {
-                new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(
-                    () => new LegacyProjectEngineFactory_1_0(),
-                    typeof(LegacyProjectEngineFactory_1_0).GetCustomAttribute<ExportCustomProjectEngineFactoryAttribute>()),
-                new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(
-                    () => new LegacyProjectEngineFactory_1_1(),
-                    typeof(LegacyProjectEngineFactory_1_1).GetCustomAttribute<ExportCustomProjectEngineFactoryAttribute>()),
-                new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(
-                    () => new LegacyProjectEngineFactory_2_0(),
-                    typeof(LegacyProjectEngineFactory_2_0).GetCustomAttribute<ExportCustomProjectEngineFactoryAttribute>()),
-                new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(
-                    () => new LegacyProjectEngineFactory_2_1(),
-                    typeof(LegacyProjectEngineFactory_2_1).GetCustomAttribute<ExportCustomProjectEngineFactoryAttribute>()),
-                new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(
-                    () => new LegacyProjectEngineFactory_3_0(),
-                    typeof(LegacyProjectEngineFactory_3_0).GetCustomAttribute<ExportCustomProjectEngineFactoryAttribute>()),
-            };
+        var factory = new DefaultProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
 
-            _fallbackFactory = new FallbackProjectEngineFactory();
-        }
+        // Act
+        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
 
-        [Fact]
-        public void Create_CreatesDesignTimeTemplateEngine_ForVersion3_0()
-        {
-            // Arrange
-            var snapshot = _snapshot_For_3_0;
+        // Assert
+        Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
+        Assert.Empty(engine.Engine.Features.OfType<MvcLatest.MvcViewDocumentClassifierPass>());
 
-            var factory = new DefaultProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
+        Assert.Single(engine.Engine.Features.OfType<Mvc2_X.ViewComponentTagHelperDescriptorProvider>());
+        Assert.Single(engine.Engine.Features.OfType<Mvc2_X.MvcViewDocumentClassifierPass>());
+        Assert.Single(engine.Engine.Features.OfType<Mvc2_X.ViewComponentTagHelperPass>());
+    }
 
-            // Act
-            var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+    [Fact]
+    public void Create_CreatesDesignTimeTemplateEngine_ForVersion2_0()
+    {
+        // Arrange
+        var snapshot = _snapshot_For_2_0;
 
-            // Assert
-            Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
-            Assert.Single(engine.Engine.Features.OfType<MvcLatest.ViewComponentTagHelperDescriptorProvider>());
-            Assert.Single(engine.Engine.Features.OfType<MvcLatest.MvcViewDocumentClassifierPass>());
-            Assert.Single(engine.Engine.Features.OfType<MvcLatest.ViewComponentTagHelperPass>());
-        }
+        var factory = new DefaultProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
 
-        [Fact]
-        public void Create_CreatesDesignTimeTemplateEngine_ForVersion2_1()
-        {
-            // Arrange
-            var snapshot = _snapshot_For_2_1;
+        // Act
+        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
 
-            var factory = new DefaultProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
+        // Assert
+        Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
+        Assert.Single(engine.Engine.Features.OfType<Mvc2_X.ViewComponentTagHelperDescriptorProvider>());
+        Assert.Single(engine.Engine.Features.OfType<Mvc2_X.MvcViewDocumentClassifierPass>());
+        Assert.Single(engine.Engine.Features.OfType<Mvc2_X.ViewComponentTagHelperPass>());
+    }
 
-            // Act
-            var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+    [Fact]
+    public void Create_CreatesTemplateEngine_ForVersion1_1()
+    {
+        // Arrange
+        var snapshot = _snapshot_For_1_1;
 
-            // Assert
-            Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
-            Assert.Empty(engine.Engine.Features.OfType<MvcLatest.MvcViewDocumentClassifierPass>());
+        var factory = new DefaultProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
 
-            Assert.Single(engine.Engine.Features.OfType<Mvc2_X.ViewComponentTagHelperDescriptorProvider>());
-            Assert.Single(engine.Engine.Features.OfType<Mvc2_X.MvcViewDocumentClassifierPass>());
-            Assert.Single(engine.Engine.Features.OfType<Mvc2_X.ViewComponentTagHelperPass>());
-        }
+        // Act
+        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
 
-        [Fact]
-        public void Create_CreatesDesignTimeTemplateEngine_ForVersion2_0()
-        {
-            // Arrange
-            var snapshot = _snapshot_For_2_0;
+        // Assert
+        Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
+        Assert.Single(engine.Engine.Features.OfType<Mvc1_X.ViewComponentTagHelperDescriptorProvider>());
+        Assert.Single(engine.Engine.Features.OfType<Mvc1_X.MvcViewDocumentClassifierPass>());
+        Assert.Single(engine.Engine.Features.OfType<Mvc1_X.ViewComponentTagHelperPass>());
+    }
 
-            var factory = new DefaultProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
+    [Fact]
+    public void Create_DoesNotSupportViewComponentTagHelpers_ForVersion1_0()
+    {
+        // Arrange
+        var snapshot = _snapshot_For_1_0;
 
-            // Act
-            var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+        var factory = new DefaultProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
 
-            // Assert
-            Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
-            Assert.Single(engine.Engine.Features.OfType<Mvc2_X.ViewComponentTagHelperDescriptorProvider>());
-            Assert.Single(engine.Engine.Features.OfType<Mvc2_X.MvcViewDocumentClassifierPass>());
-            Assert.Single(engine.Engine.Features.OfType<Mvc2_X.ViewComponentTagHelperPass>());
-        }
+        // Act
+        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
 
-        [Fact]
-        public void Create_CreatesTemplateEngine_ForVersion1_1()
-        {
-            // Arrange
-            var snapshot = _snapshot_For_1_1;
+        // Assert
+        Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
+        Assert.Single(engine.Engine.Features.OfType<Mvc1_X.MvcViewDocumentClassifierPass>());
 
-            var factory = new DefaultProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
+        Assert.Empty(engine.Engine.Features.OfType<MvcLatest.ViewComponentTagHelperDescriptorProvider>());
+        Assert.Empty(engine.Engine.Features.OfType<MvcLatest.MvcViewDocumentClassifierPass>());
+        Assert.Empty(engine.Engine.Features.OfType<MvcLatest.ViewComponentTagHelperPass>());
 
-            // Act
-            var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+        Assert.Empty(engine.Engine.Features.OfType<Mvc2_X.ViewComponentTagHelperDescriptorProvider>());
+        Assert.Empty(engine.Engine.Features.OfType<Mvc2_X.MvcViewDocumentClassifierPass>());
+        Assert.Empty(engine.Engine.Features.OfType<Mvc2_X.ViewComponentTagHelperPass>());
 
-            // Assert
-            Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
-            Assert.Single(engine.Engine.Features.OfType<Mvc1_X.ViewComponentTagHelperDescriptorProvider>());
-            Assert.Single(engine.Engine.Features.OfType<Mvc1_X.MvcViewDocumentClassifierPass>());
-            Assert.Single(engine.Engine.Features.OfType<Mvc1_X.ViewComponentTagHelperPass>());
-        }
+        Assert.Empty(engine.Engine.Features.OfType<Mvc1_X.ViewComponentTagHelperDescriptorProvider>());
+        Assert.Empty(engine.Engine.Features.OfType<Mvc1_X.ViewComponentTagHelperPass>());
+    }
 
-        [Fact]
-        public void Create_DoesNotSupportViewComponentTagHelpers_ForVersion1_0()
-        {
-            // Arrange
-            var snapshot = _snapshot_For_1_0;
+    [Fact]
+    public void Create_ForUnknownConfiguration_UsesFallbackFactory()
+    {
+        var snapshot = _snapshot_For_UnknownConfiguration;
 
-            var factory = new DefaultProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
+        var factory = new DefaultProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
 
-            // Act
-            var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
+        // Act
+        var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
 
-            // Assert
-            Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
-            Assert.Single(engine.Engine.Features.OfType<Mvc1_X.MvcViewDocumentClassifierPass>());
+        // Assert
+        Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
+        Assert.Empty(engine.Engine.Features.OfType<DefaultTagHelperDescriptorProvider>());
+        Assert.Empty(engine.Engine.Features.OfType<MvcLatest.ViewComponentTagHelperDescriptorProvider>());
+        Assert.Empty(engine.Engine.Features.OfType<MvcLatest.MvcViewDocumentClassifierPass>());
+        Assert.Empty(engine.Engine.Features.OfType<MvcLatest.ViewComponentTagHelperPass>());
+    }
 
-            Assert.Empty(engine.Engine.Features.OfType<MvcLatest.ViewComponentTagHelperDescriptorProvider>());
-            Assert.Empty(engine.Engine.Features.OfType<MvcLatest.MvcViewDocumentClassifierPass>());
-            Assert.Empty(engine.Engine.Features.OfType<MvcLatest.ViewComponentTagHelperPass>());
-
-            Assert.Empty(engine.Engine.Features.OfType<Mvc2_X.ViewComponentTagHelperDescriptorProvider>());
-            Assert.Empty(engine.Engine.Features.OfType<Mvc2_X.MvcViewDocumentClassifierPass>());
-            Assert.Empty(engine.Engine.Features.OfType<Mvc2_X.ViewComponentTagHelperPass>());
-
-            Assert.Empty(engine.Engine.Features.OfType<Mvc1_X.ViewComponentTagHelperDescriptorProvider>());
-            Assert.Empty(engine.Engine.Features.OfType<Mvc1_X.ViewComponentTagHelperPass>());
-        }
-
-        [Fact]
-        public void Create_ForUnknownConfiguration_UsesFallbackFactory()
-        {
-            var snapshot = _snapshot_For_UnknownConfiguration;
-
-            var factory = new DefaultProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
-
-            // Act
-            var engine = factory.Create(snapshot, b => b.Features.Add(new MyCoolNewFeature()));
-
-            // Assert
-            Assert.Single(engine.Engine.Features.OfType<MyCoolNewFeature>());
-            Assert.Empty(engine.Engine.Features.OfType<DefaultTagHelperDescriptorProvider>());
-            Assert.Empty(engine.Engine.Features.OfType<MvcLatest.ViewComponentTagHelperDescriptorProvider>());
-            Assert.Empty(engine.Engine.Features.OfType<MvcLatest.MvcViewDocumentClassifierPass>());
-            Assert.Empty(engine.Engine.Features.OfType<MvcLatest.ViewComponentTagHelperPass>());
-        }
-
-        private class MyCoolNewFeature : IRazorEngineFeature
-        {
-            public RazorEngine Engine { get; set; }
-        }
+    private class MyCoolNewFeature : IRazorEngineFeature
+    {
+        public RazorEngine Engine { get; set; }
     }
 }

@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
+
+internal abstract class LSPBreakpointSpanProvider
 {
-    internal abstract class LSPBreakpointSpanProvider
-    {
-        public abstract Task<Range?> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken);
-    }
+    public abstract Task<Range?> GetBreakpointSpanAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken);
 }

@@ -4,18 +4,17 @@
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+
+internal class RazorDocumentRangeFormattingParams
 {
-    internal class RazorDocumentRangeFormattingParams
-    {
-        public RazorLanguageKind Kind { get; init; }
+    public RazorLanguageKind Kind { get; init; }
 
-        public required string HostDocumentFilePath { get; init; }
+    public required string HostDocumentFilePath { get; init; }
 
-        public required Range ProjectedRange { get; init; }
+    public required Range ProjectedRange { get; init; }
 
-        public required FormattingOptions Options { get; init; }
+    public required FormattingOptions Options { get; init; }
 
-        public int HostDocumentVersion { get; set; }
-    }
+    public int HostDocumentVersion { get; set; }
 }

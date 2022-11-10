@@ -3,10 +3,9 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+internal abstract class VisualStudioHostServicesProvider
 {
-    internal abstract class VisualStudioHostServicesProvider
-    {
-        public abstract HostServices GetServices();
-    }
+    public abstract HostServices GetServices();
 }

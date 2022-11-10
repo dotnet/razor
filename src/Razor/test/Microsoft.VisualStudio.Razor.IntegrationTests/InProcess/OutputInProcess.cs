@@ -9,73 +9,72 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.Extensibility.Testing
+namespace Microsoft.VisualStudio.Extensibility.Testing;
+
+[TestService]
+internal partial class OutputInProcess
 {
-    [TestService]
-    internal partial class OutputInProcess
+    private const string RazorPaneName = "Razor Language Server Client";
+
+    public async Task<bool> HasErrorsAsync(CancellationToken cancellationToken)
     {
-        private const string RazorPaneName = "Razor Language Server Client";
+        var content = await GetRazorOutputPaneContentAsync(cancellationToken);
 
-        public async Task<bool> HasErrorsAsync(CancellationToken cancellationToken)
+        return content is null || content.Contains("Error");
+    }
+
+    /// <summary>
+    /// This method returns the current content of the "Razor Language Server Client" output pane.
+    /// </summary>
+    /// <param name="cancellationToken">A cancellation token.</param>
+    /// <returns>The contents of the RLSC output pane.</returns>
+    public async Task<string?> GetRazorOutputPaneContentAsync(CancellationToken cancellationToken)
+    {
+        var outputPaneTextView = await GetOutputPaneTextViewAsync(RazorPaneName, cancellationToken);
+
+        if (outputPaneTextView is null)
         {
-            var content = await GetRazorOutputPaneContentAsync(cancellationToken);
-
-            return content is null || content.Contains("Error");
+            return null;
         }
 
-        /// <summary>
-        /// This method returns the current content of the "Razor Language Server Client" output pane.
-        /// </summary>
-        /// <param name="cancellationToken">A cancellation token.</param>
-        /// <returns>The contents of the RLSC output pane.</returns>
-        public async Task<string?> GetRazorOutputPaneContentAsync(CancellationToken cancellationToken)
+        return await outputPaneTextView.GetContentAsync(JoinableTaskFactory, cancellationToken);
+    }
+
+    private async Task<IVsTextView?> GetOutputPaneTextViewAsync(string paneName, CancellationToken cancellationToken)
+    {
+        var sVSOutputWindow = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsOutputWindow, IVsOutputWindow>(cancellationToken);
+        var extensibleObject = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsOutputWindow, IVsExtensibleObject>(cancellationToken);
+
+        // The null propName gives use the OutputWindow object
+        ErrorHandler.ThrowOnFailure(extensibleObject.GetAutomationObject(pszPropName: null, out var outputWindowObj));
+        var outputWindow = (EnvDTE.OutputWindow)outputWindowObj;
+
+        // This is a public entry point to COutputWindow::GetPaneByName
+        EnvDTE.OutputWindowPane? pane = null;
+        try
         {
-            var outputPaneTextView = await GetOutputPaneTextViewAsync(RazorPaneName, cancellationToken);
-
-            if (outputPaneTextView is null)
-            {
-                return null;
-            }
-
-            return await outputPaneTextView.GetContentAsync(JoinableTaskFactory, cancellationToken);
+            pane = outputWindow.OutputWindowPanes.Item(paneName);
+        }
+        catch (ArgumentException)
+        {
+            return null;
         }
 
-        private async Task<IVsTextView?> GetOutputPaneTextViewAsync(string paneName, CancellationToken cancellationToken)
+        var textView = OutputWindowPaneToIVsTextView(pane, sVSOutputWindow);
+
+        return textView;
+
+        static IVsTextView OutputWindowPaneToIVsTextView(EnvDTE.OutputWindowPane outputWindowPane, IVsOutputWindow sVsOutputWindow)
         {
-            var sVSOutputWindow = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsOutputWindow, IVsOutputWindow>(cancellationToken);
-            var extensibleObject = await TestServices.Shell.GetRequiredGlobalServiceAsync<SVsOutputWindow, IVsExtensibleObject>(cancellationToken);
+            var guid = Guid.Parse(outputWindowPane.Guid);
+            ErrorHandler.ThrowOnFailure(sVsOutputWindow.GetPane(guid, out var result));
 
-            // The null propName gives use the OutputWindow object
-            ErrorHandler.ThrowOnFailure(extensibleObject.GetAutomationObject(pszPropName: null, out var outputWindowObj));
-            var outputWindow = (EnvDTE.OutputWindow)outputWindowObj;
-
-            // This is a public entry point to COutputWindow::GetPaneByName
-            EnvDTE.OutputWindowPane? pane = null;
-            try
+            if (result is not IVsTextView textView)
             {
-                pane = outputWindow.OutputWindowPanes.Item(paneName);
+                throw new InvalidOperationException($"{nameof(IVsOutputWindowPane)} should implement {nameof(IVsTextView)}");
             }
-            catch (ArgumentException)
-            {
-                return null;
-            }
-
-            var textView = OutputWindowPaneToIVsTextView(pane, sVSOutputWindow);
 
             return textView;
-
-            static IVsTextView OutputWindowPaneToIVsTextView(EnvDTE.OutputWindowPane outputWindowPane, IVsOutputWindow sVsOutputWindow)
-            {
-                var guid = Guid.Parse(outputWindowPane.Guid);
-                ErrorHandler.ThrowOnFailure(sVsOutputWindow.GetPane(guid, out var result));
-
-                if (result is not IVsTextView textView)
-                {
-                    throw new InvalidOperationException($"{nameof(IVsOutputWindowPane)} should implement {nameof(IVsTextView)}");
-                }
-
-                return textView;
-            }
         }
     }
 }

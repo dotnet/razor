@@ -4,14 +4,13 @@
 using System;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+internal abstract class ImportDocumentManager : ILanguageService
 {
-    internal abstract class ImportDocumentManager : ILanguageService
-    {
-        public abstract event EventHandler<ImportChangedEventArgs>? Changed;
+    public abstract event EventHandler<ImportChangedEventArgs>? Changed;
 
-        public abstract void OnSubscribed(VisualStudioDocumentTracker tracker);
+    public abstract void OnSubscribed(VisualStudioDocumentTracker tracker);
 
-        public abstract void OnUnsubscribed(VisualStudioDocumentTracker tracker);
-    }
+    public abstract void OnUnsubscribed(VisualStudioDocumentTracker tracker);
 }

@@ -3,16 +3,15 @@
 
 using Microsoft.ServiceHub.Framework;
 
-namespace Microsoft.CodeAnalysis.Remote.Razor
-{
-    internal sealed class RemoteTagHelperProviderServiceFactory : RazorServiceFactoryBase<IRemoteTagHelperProviderService>
-    {
-        // WARNING: We must always have a parameterless constructor in order to be properly handled by ServiceHub.
-        public RemoteTagHelperProviderServiceFactory() : base(RazorServiceDescriptors.TagHelperProviderServiceDescriptors)
-        {
-        }
+namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-        protected override IRemoteTagHelperProviderService CreateService(IServiceBroker serviceBroker)
-                => new RemoteTagHelperProviderService(serviceBroker);
+internal sealed class RemoteTagHelperProviderServiceFactory : RazorServiceFactoryBase<IRemoteTagHelperProviderService>
+{
+    // WARNING: We must always have a parameterless constructor in order to be properly handled by ServiceHub.
+    public RemoteTagHelperProviderServiceFactory() : base(RazorServiceDescriptors.TagHelperProviderServiceDescriptors)
+    {
     }
+
+    protected override IRemoteTagHelperProviderService CreateService(IServiceBroker serviceBroker)
+            => new RemoteTagHelperProviderService(serviceBroker);
 }

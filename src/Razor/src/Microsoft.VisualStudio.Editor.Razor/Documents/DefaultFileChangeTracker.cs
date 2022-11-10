@@ -3,38 +3,37 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Documents
+namespace Microsoft.VisualStudio.Editor.Razor.Documents;
+
+// A noop implementation for non-ide cases
+internal class DefaultFileChangeTracker : FileChangeTracker
 {
-    // A noop implementation for non-ide cases
-    internal class DefaultFileChangeTracker : FileChangeTracker
+    public override event EventHandler<FileChangeEventArgs>? Changed
     {
-        public override event EventHandler<FileChangeEventArgs>? Changed
+        // Do nothing (the handlers would never be used anyway)
+        add { }
+        remove { }
+    }
+
+    public DefaultFileChangeTracker(string filePath)
+    {
+        if (filePath is null)
         {
-            // Do nothing (the handlers would never be used anyway)
-            add { }
-            remove { }
+            throw new ArgumentNullException(nameof(filePath));
         }
 
-        public DefaultFileChangeTracker(string filePath)
-        {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
+        FilePath = filePath;
+    }
 
-            FilePath = filePath;
-        }
+    public override string FilePath { get; }
 
-        public override string FilePath { get; }
+    public override void StartListening()
+    {
+        // Do nothing
+    }
 
-        public override void StartListening()
-        {
-            // Do nothing
-        }
-
-        public override void StopListening()
-        {
-            // Do nothing
-        }
+    public override void StopListening()
+    {
+        // Do nothing
     }
 }

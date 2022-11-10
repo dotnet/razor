@@ -4,21 +4,20 @@
 using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+
+internal class ProvideSemanticTokensRangeParams : SemanticTokensParams
 {
-    internal class ProvideSemanticTokensRangeParams : SemanticTokensParams
+    [DataMember(Name = "requiredHostDocumentVersion", IsRequired = true)]
+    public long RequiredHostDocumentVersion { get; }
+
+    [DataMember(Name = "range", IsRequired = true)]
+    public Range Range { get; }
+
+    public ProvideSemanticTokensRangeParams(TextDocumentIdentifier textDocument, long requiredHostDocumentVersion, Range range)
     {
-        [DataMember(Name = "requiredHostDocumentVersion", IsRequired = true)]
-        public long RequiredHostDocumentVersion { get; }
-
-        [DataMember(Name = "range", IsRequired = true)]
-        public Range Range { get; }
-
-        public ProvideSemanticTokensRangeParams(TextDocumentIdentifier textDocument, long requiredHostDocumentVersion, Range range)
-        {
-            TextDocument = textDocument;
-            RequiredHostDocumentVersion = requiredHostDocumentVersion;
-            Range = range;
-        }
+        TextDocument = textDocument;
+        RequiredHostDocumentVersion = requiredHostDocumentVersion;
+        Range = range;
     }
 }

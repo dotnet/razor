@@ -6,14 +6,13 @@
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed.Serialization
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed.Serialization;
+
+public static class JsonConverterCollectionExtensions
 {
-    public static class JsonConverterCollectionExtensions
+    public static void RegisterOmniSharpRazorConverters(this JsonConverterCollection collection)
     {
-        public static void RegisterOmniSharpRazorConverters(this JsonConverterCollection collection)
-        {
-            collection.RegisterRazorConverters();
-            collection.Add(OmniSharpProjectSnapshotHandleJsonConverter.Instance);
-        }
+        collection.RegisterRazorConverters();
+        collection.Add(OmniSharpProjectSnapshotHandleJsonConverter.Instance);
     }
 }

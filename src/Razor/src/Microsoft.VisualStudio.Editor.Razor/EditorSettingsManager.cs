@@ -4,14 +4,13 @@
 using System;
 using Microsoft.CodeAnalysis.Razor.Editor;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+public abstract class EditorSettingsManager
 {
-    public abstract class EditorSettingsManager
-    {
-        public abstract event EventHandler<EditorSettingsChangedEventArgs>? Changed;
+    public abstract event EventHandler<EditorSettingsChangedEventArgs>? Changed;
 
-        public abstract EditorSettings Current { get; }
+    public abstract EditorSettings Current { get; }
 
-        public abstract void Update(EditorSettings updateSettings);
-    }
+    public abstract void Update(EditorSettings updateSettings);
 }

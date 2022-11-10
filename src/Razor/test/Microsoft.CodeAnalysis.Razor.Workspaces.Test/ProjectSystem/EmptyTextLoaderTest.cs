@@ -9,28 +9,27 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+
+public class EmptyTextLoaderTest : TestBase
 {
-    public class EmptyTextLoaderTest : TestBase
+    public EmptyTextLoaderTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        public EmptyTextLoaderTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+    }
 
-        // See https://github.com/dotnet/aspnetcore/issues/7997
-        [Fact]
-        public async Task LoadAsync_SpecifiesEncoding()
-        {
-            // Arrange
-            var loader = new EmptyTextLoader("file.cshtml");
+    // See https://github.com/dotnet/aspnetcore/issues/7997
+    [Fact]
+    public async Task LoadAsync_SpecifiesEncoding()
+    {
+        // Arrange
+        var loader = new EmptyTextLoader("file.cshtml");
 
-            // Act
-            var textAndVersion = await loader.LoadTextAndVersionAsync(default, default, default);
+        // Act
+        var textAndVersion = await loader.LoadTextAndVersionAsync(default, default, default);
 
-            // Assert
-            Assert.True(textAndVersion.Text.CanBeEmbedded);
-            Assert.Same(Encoding.UTF8, textAndVersion.Text.Encoding);
-        }
+        // Assert
+        Assert.True(textAndVersion.Text.CanBeEmbedded);
+        Assert.Same(Encoding.UTF8, textAndVersion.Text.Encoding);
     }
 }

@@ -5,18 +5,17 @@ using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+
+internal abstract class TrackingLSPDocumentManager : LSPDocumentManager
 {
-    internal abstract class TrackingLSPDocumentManager : LSPDocumentManager
-    {
-        public abstract void TrackDocument(ITextBuffer buffer);
+    public abstract void TrackDocument(ITextBuffer buffer);
 
-        public abstract void UntrackDocument(ITextBuffer buffer);
+    public abstract void UntrackDocument(ITextBuffer buffer);
 
-        public abstract void UpdateVirtualDocument<TVirtualDocument>(
-            Uri hostDocumentUri,
-            IReadOnlyList<ITextChange> changes,
-            int hostDocumentVersion,
-            object? state) where TVirtualDocument : VirtualDocument;
-    }
+    public abstract void UpdateVirtualDocument<TVirtualDocument>(
+        Uri hostDocumentUri,
+        IReadOnlyList<ITextChange> changes,
+        int hostDocumentVersion,
+        object? state) where TVirtualDocument : VirtualDocument;
 }

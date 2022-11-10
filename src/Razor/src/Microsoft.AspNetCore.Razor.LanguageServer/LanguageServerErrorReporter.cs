@@ -7,35 +7,34 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal class LanguageServerErrorReporter : ErrorReporter
 {
-    internal class LanguageServerErrorReporter : ErrorReporter
+    private readonly ILogger _logger;
+
+    public LanguageServerErrorReporter(ILoggerFactory loggerFactory)
     {
-        private readonly ILogger _logger;
-
-        public LanguageServerErrorReporter(ILoggerFactory loggerFactory)
+        if (loggerFactory is null)
         {
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            _logger = loggerFactory.CreateLogger<LanguageServerErrorReporter>();
+            throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        public override void ReportError(Exception exception)
-        {
-            _logger.LogError(exception, "Error thrown from LanguageServer");
-        }
+        _logger = loggerFactory.CreateLogger<LanguageServerErrorReporter>();
+    }
 
-        public override void ReportError(Exception exception, ProjectSnapshot? project)
-        {
-            _logger.LogError(exception, "Error thrown from project {projectFilePath}", project?.FilePath);
-        }
+    public override void ReportError(Exception exception)
+    {
+        _logger.LogError(exception, "Error thrown from LanguageServer");
+    }
 
-        public override void ReportError(Exception exception, Project workspaceProject)
-        {
-            _logger.LogError(exception, "Error thrown from project {workspaceProjectFilePath}", workspaceProject.FilePath);
-        }
+    public override void ReportError(Exception exception, ProjectSnapshot? project)
+    {
+        _logger.LogError(exception, "Error thrown from project {projectFilePath}", project?.FilePath);
+    }
+
+    public override void ReportError(Exception exception, Project workspaceProject)
+    {
+        _logger.LogError(exception, "Error thrown from project {workspaceProjectFilePath}", workspaceProject.FilePath);
     }
 }

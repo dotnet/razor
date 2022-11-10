@@ -13,43 +13,42 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Utilities;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+
+[Export(typeof(MessageInterceptor))]
+[InterceptMethod(Methods.WorkspaceSemanticTokensRefreshName)]
+[ContentType(RazorLSPConstants.CSharpContentTypeName)]
+internal class RazorCSharpSemanticTokensInterceptor : MessageInterceptor
 {
-    [Export(typeof(MessageInterceptor))]
-    [InterceptMethod(Methods.WorkspaceSemanticTokensRefreshName)]
-    [ContentType(RazorLSPConstants.CSharpContentTypeName)]
-    internal class RazorCSharpSemanticTokensInterceptor : MessageInterceptor
+    private readonly LSPRequestInvoker _requestInvoker;
+
+    [ImportingConstructor]
+    public RazorCSharpSemanticTokensInterceptor(LSPRequestInvoker requestInvoker)
     {
-        private readonly LSPRequestInvoker _requestInvoker;
-
-        [ImportingConstructor]
-        public RazorCSharpSemanticTokensInterceptor(LSPRequestInvoker requestInvoker)
+        if (requestInvoker is null)
         {
-            if (requestInvoker is null)
-            {
-                throw new ArgumentNullException(nameof(requestInvoker));
-            }
-
-            _requestInvoker = requestInvoker;
+            throw new ArgumentNullException(nameof(requestInvoker));
         }
 
-        public async override Task<InterceptionResult> ApplyChangesAsync(
-            JToken message, string containedLanguageName, CancellationToken cancellationToken)
-        {
-            var refreshParams = new SemanticTokensRefreshParams();
-            await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRefreshParams, Unit>(
-                RazorLanguageServerCustomMessageTargets.RazorSemanticTokensRefreshEndpoint,
-                RazorLSPConstants.RazorLanguageServerName,
-                refreshParams,
-                cancellationToken).ConfigureAwait(false);
+        _requestInvoker = requestInvoker;
+    }
 
-            return InterceptionResult.NoChange;
-        }
+    public async override Task<InterceptionResult> ApplyChangesAsync(
+        JToken message, string containedLanguageName, CancellationToken cancellationToken)
+    {
+        var refreshParams = new SemanticTokensRefreshParams();
+        await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRefreshParams, Unit>(
+            RazorLanguageServerCustomMessageTargets.RazorSemanticTokensRefreshEndpoint,
+            RazorLSPConstants.RazorLanguageServerName,
+            refreshParams,
+            cancellationToken).ConfigureAwait(false);
 
-        // A basic POCO which will handle the lack of data in the response.
-        private class Unit
-        {
+        return InterceptionResult.NoChange;
+    }
 
-        }
+    // A basic POCO which will handle the lack of data in the response.
+    private class Unit
+    {
+
     }
 }

@@ -4,14 +4,13 @@
 using System;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+internal class ValidateBreakpointRangeParamsBridge : VSInternalValidateBreakableRangeParams, ITextDocumentPositionParams
 {
-    internal class ValidateBreakpointRangeParamsBridge : VSInternalValidateBreakableRangeParams, ITextDocumentPositionParams
+    public Position Position
     {
-        public Position Position
-        {
-            get { return Range.Start; }
-            set { throw new NotImplementedException(); }
-        }
+        get { return Range.Start; }
+        set { throw new NotImplementedException(); }
     }
 }

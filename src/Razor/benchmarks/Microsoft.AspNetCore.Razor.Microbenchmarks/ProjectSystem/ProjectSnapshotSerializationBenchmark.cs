@@ -11,42 +11,41 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNetCore.Razor.Microbenchmarks
-{
-    public class ProjectSnapshotSerializationBenchmark : ProjectSnapshotManagerBenchmarkBase
-    {
-        public ProjectSnapshotSerializationBenchmark()
-        {
-            // Deserialize from json file.
-            Serializer = new JsonSerializer();
-            Serializer.Converters.RegisterRazorConverters();
+namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 
-            var snapshotManager = CreateProjectSnapshotManager();
-            snapshotManager.ProjectAdded(HostProject);
-            ProjectSnapshot = snapshotManager.GetLoadedProject(HostProject.FilePath);
-            Debug.Assert(ProjectSnapshot != null);
+public class ProjectSnapshotSerializationBenchmark : ProjectSnapshotManagerBenchmarkBase
+{
+    public ProjectSnapshotSerializationBenchmark()
+    {
+        // Deserialize from json file.
+        Serializer = new JsonSerializer();
+        Serializer.Converters.RegisterRazorConverters();
+
+        var snapshotManager = CreateProjectSnapshotManager();
+        snapshotManager.ProjectAdded(HostProject);
+        ProjectSnapshot = snapshotManager.GetLoadedProject(HostProject.FilePath);
+        Debug.Assert(ProjectSnapshot != null);
+    }
+
+    public JsonSerializer Serializer { get; set; }
+    private ProjectSnapshot ProjectSnapshot { get; }
+
+    [Benchmark(Description = "Razor ProjectSnapshot Roundtrip JsonConverter Serialization")]
+    public void TagHelper_JsonConvert_Serialization_RoundTrip()
+    {
+        MemoryStream originalStream;
+        using (originalStream = new MemoryStream())
+        using (var writer = new StreamWriter(originalStream, Encoding.UTF8, bufferSize: 4096))
+        {
+            Serializer.Serialize(writer, ProjectSnapshot);
         }
 
-        public JsonSerializer Serializer { get; set; }
-        private ProjectSnapshot ProjectSnapshot { get; }
-
-        [Benchmark(Description = "Razor ProjectSnapshot Roundtrip JsonConverter Serialization")]
-        public void TagHelper_JsonConvert_Serialization_RoundTrip()
+        ProjectSnapshotHandle deserializedResult;
+        var stream = new MemoryStream(originalStream.GetBuffer());
+        using (stream)
+        using (var reader = new JsonTextReader(new StreamReader(stream)))
         {
-            MemoryStream originalStream;
-            using (originalStream = new MemoryStream())
-            using (var writer = new StreamWriter(originalStream, Encoding.UTF8, bufferSize: 4096))
-            {
-                Serializer.Serialize(writer, ProjectSnapshot);
-            }
-
-            ProjectSnapshotHandle deserializedResult;
-            var stream = new MemoryStream(originalStream.GetBuffer());
-            using (stream)
-            using (var reader = new JsonTextReader(new StreamReader(stream)))
-            {
-                deserializedResult = Serializer.Deserialize<ProjectSnapshotHandle>(reader);
-            }
+            deserializedResult = Serializer.Deserialize<ProjectSnapshotHandle>(reader);
         }
     }
 }

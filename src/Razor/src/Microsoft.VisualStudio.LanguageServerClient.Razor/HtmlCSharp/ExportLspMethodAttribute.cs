@@ -4,24 +4,23 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+
+/// <summary>
+/// Defines an attribute for LSP request handlers to map to LSP methods.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class), MetadataAttribute]
+internal class ExportLspMethodAttribute : ExportAttribute, IRequestHandlerMetadata
 {
-    /// <summary>
-    /// Defines an attribute for LSP request handlers to map to LSP methods.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
-    internal class ExportLspMethodAttribute : ExportAttribute, IRequestHandlerMetadata
+    public string MethodName { get; }
+
+    public ExportLspMethodAttribute(string methodName) : base(typeof(IRequestHandler))
     {
-        public string MethodName { get; }
-
-        public ExportLspMethodAttribute(string methodName) : base(typeof(IRequestHandler))
+        if (methodName is null)
         {
-            if (methodName is null)
-            {
-                throw new ArgumentNullException(nameof(methodName));
-            }
-
-            MethodName = methodName;
+            throw new ArgumentNullException(nameof(methodName));
         }
+
+        MethodName = methodName;
     }
 }

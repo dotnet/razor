@@ -6,61 +6,60 @@
 using System;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+public sealed class OmniSharpDocumentSnapshot
 {
-    public sealed class OmniSharpDocumentSnapshot
+    private readonly DocumentSnapshot _documentSnapshot;
+    private readonly object _projectLock;
+    private OmniSharpHostDocument _hostDocument;
+    private OmniSharpProjectSnapshot _project;
+
+    internal OmniSharpDocumentSnapshot(DocumentSnapshot documentSnapshot)
     {
-        private readonly DocumentSnapshot _documentSnapshot;
-        private readonly object _projectLock;
-        private OmniSharpHostDocument _hostDocument;
-        private OmniSharpProjectSnapshot _project;
-
-        internal OmniSharpDocumentSnapshot(DocumentSnapshot documentSnapshot)
+        if (documentSnapshot is null)
         {
-            if (documentSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(documentSnapshot));
-            }
-
-            _documentSnapshot = documentSnapshot;
-            _projectLock = new object();
+            throw new ArgumentNullException(nameof(documentSnapshot));
         }
 
-        public OmniSharpHostDocument HostDocument
-        {
-            get
-            {
-                if (_hostDocument is null)
-                {
-                    var defaultDocumentSnapshot = (DefaultDocumentSnapshot)_documentSnapshot;
-                    var hostDocument = defaultDocumentSnapshot.State.HostDocument;
-                    _hostDocument = new OmniSharpHostDocument(hostDocument.FilePath, hostDocument.TargetPath, hostDocument.FileKind);
-                }
+        _documentSnapshot = documentSnapshot;
+        _projectLock = new object();
+    }
 
-                return _hostDocument;
+    public OmniSharpHostDocument HostDocument
+    {
+        get
+        {
+            if (_hostDocument is null)
+            {
+                var defaultDocumentSnapshot = (DefaultDocumentSnapshot)_documentSnapshot;
+                var hostDocument = defaultDocumentSnapshot.State.HostDocument;
+                _hostDocument = new OmniSharpHostDocument(hostDocument.FilePath, hostDocument.TargetPath, hostDocument.FileKind);
             }
+
+            return _hostDocument;
         }
+    }
 
-        public string FileKind => _documentSnapshot.FileKind;
+    public string FileKind => _documentSnapshot.FileKind;
 
-        public string FilePath => _documentSnapshot.FilePath;
+    public string FilePath => _documentSnapshot.FilePath;
 
-        public string TargetPath => _documentSnapshot.TargetPath;
+    public string TargetPath => _documentSnapshot.TargetPath;
 
-        public OmniSharpProjectSnapshot Project
+    public OmniSharpProjectSnapshot Project
+    {
+        get
         {
-            get
+            lock (_projectLock)
             {
-                lock (_projectLock)
+                if (_project is null)
                 {
-                    if (_project is null)
-                    {
-                        _project = new OmniSharpProjectSnapshot(_documentSnapshot.Project);
-                    }
+                    _project = new OmniSharpProjectSnapshot(_documentSnapshot.Project);
                 }
-
-                return _project;
             }
+
+            return _project;
         }
     }
 }

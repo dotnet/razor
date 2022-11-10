@@ -6,10 +6,9 @@ using Microsoft.VisualStudio.Editor.Razor;
 using MonoDevelop.Projects;
 using Workspace = Microsoft.CodeAnalysis.Workspace;
 
-namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
+namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor;
+
+internal abstract class VisualStudioMacWorkspaceAccessor : VisualStudioWorkspaceAccessor
 {
-    internal abstract class VisualStudioMacWorkspaceAccessor : VisualStudioWorkspaceAccessor
-    {
-        public abstract bool TryGetWorkspace(Solution solution, [NotNullWhen(returnValue: true)] out Workspace? workspace);
-    }
+    public abstract bool TryGetWorkspace(Solution solution, [NotNullWhen(returnValue: true)] out Workspace? workspace);
 }

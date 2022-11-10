@@ -3,23 +3,22 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
-{
-    internal class ProjectConfigurationFilePathChangedEventArgs : EventArgs
-    {
-        public ProjectConfigurationFilePathChangedEventArgs(string projectFilePath, string? configurationFilePath)
-        {
-            if (projectFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(projectFilePath));
-            }
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-            ProjectFilePath = projectFilePath;
-            ConfigurationFilePath = configurationFilePath;
+internal class ProjectConfigurationFilePathChangedEventArgs : EventArgs
+{
+    public ProjectConfigurationFilePathChangedEventArgs(string projectFilePath, string? configurationFilePath)
+    {
+        if (projectFilePath is null)
+        {
+            throw new ArgumentNullException(nameof(projectFilePath));
         }
 
-        public string ProjectFilePath { get; }
-
-        public string? ConfigurationFilePath { get; }
+        ProjectFilePath = projectFilePath;
+        ConfigurationFilePath = configurationFilePath;
     }
+
+    public string ProjectFilePath { get; }
+
+    public string? ConfigurationFilePath { get; }
 }

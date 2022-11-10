@@ -3,15 +3,14 @@
 
 using System.Windows.Forms;
 
-namespace Microsoft.VisualStudio.Extensibility.Testing
+namespace Microsoft.VisualStudio.Extensibility.Testing;
+
+[TestService]
+internal partial class InputInProcess
 {
-    [TestService]
-    internal partial class InputInProcess
+    internal void Send(string keys)
     {
-        internal void Send(string keys)
-        {
-            SendKeys.Send(keys);
-        }
+        SendKeys.Send(keys);
     }
 }
 

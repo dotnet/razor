@@ -3,13 +3,12 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
-{
-    // Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
-    internal class RazorMapToDocumentEditsResponse
-    {
-        public required TextEdit[] TextEdits { get; init; }
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 
-        public long HostDocumentVersion { get; init; }
-    }
+// Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
+internal class RazorMapToDocumentEditsResponse
+{
+    public required TextEdit[] TextEdits { get; init; }
+
+    public long HostDocumentVersion { get; init; }
 }

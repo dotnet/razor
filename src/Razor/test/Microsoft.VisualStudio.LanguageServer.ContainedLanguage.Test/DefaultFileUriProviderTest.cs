@@ -11,127 +11,126 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+
+public class DefaultFileUriProviderTest : TestBase
 {
-    public class DefaultFileUriProviderTest : TestBase
+    private readonly ITextBuffer _textBuffer;
+
+    public DefaultFileUriProviderTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly ITextBuffer _textBuffer;
+        _textBuffer = new TestTextBuffer(StringTextSnapshot.Empty);
+    }
 
-        public DefaultFileUriProviderTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-            _textBuffer = new TestTextBuffer(StringTextSnapshot.Empty);
-        }
+    [Fact]
+    public void AddOrUpdate_Adds()
+    {
+        // Arrange
+        var expectedUri = new Uri("C:/path/to/file.razor");
+        var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
 
-        [Fact]
-        public void AddOrUpdate_Adds()
-        {
-            // Arrange
-            var expectedUri = new Uri("C:/path/to/file.razor");
-            var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
+        // Act
+        uriProvider.AddOrUpdate(_textBuffer, expectedUri);
 
-            // Act
-            uriProvider.AddOrUpdate(_textBuffer, expectedUri);
+        // Assert
+        Assert.True(uriProvider.TryGet(_textBuffer, out var uri));
+        Assert.Same(expectedUri, uri);
+    }
 
-            // Assert
-            Assert.True(uriProvider.TryGet(_textBuffer, out var uri));
-            Assert.Same(expectedUri, uri);
-        }
+    [Fact]
+    public void AddOrUpdate_Updates()
+    {
+        // Arrange
+        var expectedUri = new Uri("C:/path/to/file.razor");
+        var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
+        uriProvider.AddOrUpdate(_textBuffer, new Uri("C:/original/uri.razor"));
 
-        [Fact]
-        public void AddOrUpdate_Updates()
-        {
-            // Arrange
-            var expectedUri = new Uri("C:/path/to/file.razor");
-            var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
-            uriProvider.AddOrUpdate(_textBuffer, new Uri("C:/original/uri.razor"));
+        // Act
+        uriProvider.AddOrUpdate(_textBuffer, expectedUri);
 
-            // Act
-            uriProvider.AddOrUpdate(_textBuffer, expectedUri);
+        // Assert
+        Assert.True(uriProvider.TryGet(_textBuffer, out var uri));
+        Assert.Same(expectedUri, uri);
+    }
 
-            // Assert
-            Assert.True(uriProvider.TryGet(_textBuffer, out var uri));
-            Assert.Same(expectedUri, uri);
-        }
+    [Fact]
+    public void TryGet_Exists_ReturnsTrue()
+    {
+        // Arrange
+        var expectedUri = new Uri("C:/path/to/file.razor");
+        var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
+        uriProvider.AddOrUpdate(_textBuffer, expectedUri);
 
-        [Fact]
-        public void TryGet_Exists_ReturnsTrue()
-        {
-            // Arrange
-            var expectedUri = new Uri("C:/path/to/file.razor");
-            var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
-            uriProvider.AddOrUpdate(_textBuffer, expectedUri);
+        // Act
+        var result = uriProvider.TryGet(_textBuffer, out var uri);
 
-            // Act
-            var result = uriProvider.TryGet(_textBuffer, out var uri);
+        // Assert
+        Assert.True(result);
+        Assert.Same(expectedUri, uri);
+    }
 
-            // Assert
-            Assert.True(result);
-            Assert.Same(expectedUri, uri);
-        }
+    [Fact]
+    public void TryGet_DoesNotExist_ReturnsFalse()
+    {
+        // Arrange
+        var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
 
-        [Fact]
-        public void TryGet_DoesNotExist_ReturnsFalse()
-        {
-            // Arrange
-            var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
+        // Act
+        var result = uriProvider.TryGet(_textBuffer, out var uri);
 
-            // Act
-            var result = uriProvider.TryGet(_textBuffer, out var uri);
+        // Assert
+        Assert.False(result);
+        Assert.Null(uri);
+    }
 
-            // Assert
-            Assert.False(result);
-            Assert.Null(uri);
-        }
+    [Fact]
+    public void GetOrCreate_NoTextDocument_Creates()
+    {
+        // Arrange
+        var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict);
+        textDocumentFactoryService.Setup(s => s.TryGetTextDocument(_textBuffer, out It.Ref<ITextDocument>.IsAny)).Returns(false);
+        var uriProvider = new DefaultFileUriProvider(textDocumentFactoryService.Object);
 
-        [Fact]
-        public void GetOrCreate_NoTextDocument_Creates()
-        {
-            // Arrange
-            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict);
-            textDocumentFactoryService.Setup(s => s.TryGetTextDocument(_textBuffer, out It.Ref<ITextDocument>.IsAny)).Returns(false);
-            var uriProvider = new DefaultFileUriProvider(textDocumentFactoryService.Object);
+        // Act
+        var uri = uriProvider.GetOrCreate(_textBuffer);
 
-            // Act
-            var uri = uriProvider.GetOrCreate(_textBuffer);
+        // Assert
+        Assert.NotNull(uri);
+    }
 
-            // Assert
-            Assert.NotNull(uri);
-        }
+    [Fact]
+    public void GetOrCreate_NoTextDocument_MemoizesGeneratedUri()
+    {
+        // Arrange
+        var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict);
+        textDocumentFactoryService.Setup(s => s.TryGetTextDocument(_textBuffer, out It.Ref<ITextDocument>.IsAny)).Returns(false);
+        var uriProvider = new DefaultFileUriProvider(textDocumentFactoryService.Object);
 
-        [Fact]
-        public void GetOrCreate_NoTextDocument_MemoizesGeneratedUri()
-        {
-            // Arrange
-            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict);
-            textDocumentFactoryService.Setup(s => s.TryGetTextDocument(_textBuffer, out It.Ref<ITextDocument>.IsAny)).Returns(false);
-            var uriProvider = new DefaultFileUriProvider(textDocumentFactoryService.Object);
+        // Act
+        var uri1 = uriProvider.GetOrCreate(_textBuffer);
+        var uri2 = uriProvider.GetOrCreate(_textBuffer);
 
-            // Act
-            var uri1 = uriProvider.GetOrCreate(_textBuffer);
-            var uri2 = uriProvider.GetOrCreate(_textBuffer);
+        // Assert
+        Assert.NotNull(uri1);
+        Assert.Same(uri1, uri2);
+    }
 
-            // Assert
-            Assert.NotNull(uri1);
-            Assert.Same(uri1, uri2);
-        }
+    [Fact]
+    public void GetOrCreate_TurnsTextDocumentFilePathIntoUri()
+    {
+        // Arrange
+        var factory = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict);
+        var expectedFilePath = "C:/path/to/file.razor";
+        var textDocument = Mock.Of<ITextDocument>(document => document.FilePath == expectedFilePath, MockBehavior.Strict);
+        factory.Setup(f => f.TryGetTextDocument(_textBuffer, out textDocument))
+            .Returns(true);
+        var uriProvider = new DefaultFileUriProvider(factory.Object);
 
-        [Fact]
-        public void GetOrCreate_TurnsTextDocumentFilePathIntoUri()
-        {
-            // Arrange
-            var factory = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict);
-            var expectedFilePath = "C:/path/to/file.razor";
-            var textDocument = Mock.Of<ITextDocument>(document => document.FilePath == expectedFilePath, MockBehavior.Strict);
-            factory.Setup(f => f.TryGetTextDocument(_textBuffer, out textDocument))
-                .Returns(true);
-            var uriProvider = new DefaultFileUriProvider(factory.Object);
+        // Act
+        var uri = uriProvider.GetOrCreate(_textBuffer);
 
-            // Act
-            var uri = uriProvider.GetOrCreate(_textBuffer);
-
-            // Assert
-            Assert.Equal(expectedFilePath, uri.OriginalString);
-        }
+        // Assert
+        Assert.Equal(expectedFilePath, uri.OriginalString);
     }
 }

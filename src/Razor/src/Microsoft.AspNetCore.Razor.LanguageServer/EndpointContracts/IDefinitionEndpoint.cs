@@ -8,11 +8,10 @@ using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
     Microsoft.VisualStudio.LanguageServer.Protocol.DocumentLink[]>;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+[LanguageServerEndpoint(Methods.TextDocumentDefinitionName)]
+internal interface IDefinitionEndpoint : IRazorRequestHandler<TextDocumentPositionParamsBridge, DefinitionResult?>,
+    IRegistrationExtension
 {
-    [LanguageServerEndpoint(Methods.TextDocumentDefinitionName)]
-    internal interface IDefinitionEndpoint : IRazorRequestHandler<TextDocumentPositionParamsBridge, DefinitionResult?>,
-        IRegistrationExtension
-    {
-    }
 }

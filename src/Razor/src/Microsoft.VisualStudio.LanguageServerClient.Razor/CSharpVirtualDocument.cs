@@ -5,14 +5,13 @@ using System;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
-{
-    internal class CSharpVirtualDocument : VirtualDocumentBase<CSharpVirtualDocumentSnapshot>
-    {
-        public CSharpVirtualDocument(Uri uri, ITextBuffer textBuffer) : base(uri, textBuffer)
-        {
-        }
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-        protected override CSharpVirtualDocumentSnapshot GetUpdatedSnapshot(object? state) => new(Uri, TextBuffer.CurrentSnapshot, HostDocumentVersion);
+internal class CSharpVirtualDocument : VirtualDocumentBase<CSharpVirtualDocumentSnapshot>
+{
+    public CSharpVirtualDocument(Uri uri, ITextBuffer textBuffer) : base(uri, textBuffer)
+    {
     }
+
+    protected override CSharpVirtualDocumentSnapshot GetUpdatedSnapshot(object? state) => new(Uri, TextBuffer.CurrentSnapshot, HostDocumentVersion);
 }

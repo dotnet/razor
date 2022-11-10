@@ -8,15 +8,14 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 
-namespace BenchmarkDotNet.Attributes
-{
-    internal class DefaultCoreValidationConfig : ManualConfig
-    {
-        public DefaultCoreValidationConfig()
-        {
-            AddLogger(ConsoleLogger.Default);
+namespace BenchmarkDotNet.Attributes;
 
-            AddJob(Job.Dry.WithToolchain(InProcessNoEmitToolchain.Instance));
-        }
+internal class DefaultCoreValidationConfig : ManualConfig
+{
+    public DefaultCoreValidationConfig()
+    {
+        AddLogger(ConsoleLogger.Default);
+
+        AddJob(Job.Dry.WithToolchain(InProcessNoEmitToolchain.Instance));
     }
 }

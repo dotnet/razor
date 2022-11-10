@@ -4,7 +4,6 @@
 using System;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
-{
-    internal record RazorResolveCodeActionParams(Uri Uri, VSInternalCodeAction CodeAction);
-}
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+
+internal record RazorResolveCodeActionParams(Uri Uri, VSInternalCodeAction CodeAction);

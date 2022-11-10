@@ -5,10 +5,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+[LanguageServerEndpoint(LanguageServerConstants.RazorMonitorProjectConfigurationFilePathEndpoint)]
+internal interface IMonitorProjectConfigurationFilePathHandler : IRazorNotificationHandler<MonitorProjectConfigurationFilePathParams>
 {
-    [LanguageServerEndpoint(LanguageServerConstants.RazorMonitorProjectConfigurationFilePathEndpoint)]
-    internal interface IMonitorProjectConfigurationFilePathHandler : IRazorNotificationHandler<MonitorProjectConfigurationFilePathParams>
-    {
-    }
 }

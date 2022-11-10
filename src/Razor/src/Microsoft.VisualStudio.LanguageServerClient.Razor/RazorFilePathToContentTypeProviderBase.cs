@@ -7,41 +7,40 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+
+internal abstract class RazorFilePathToContentTypeProviderBase : IFilePathToContentTypeProvider
 {
-    internal abstract class RazorFilePathToContentTypeProviderBase : IFilePathToContentTypeProvider
+    private readonly IContentTypeRegistryService _contentTypeRegistryService;
+    private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
+
+    public RazorFilePathToContentTypeProviderBase(
+        IContentTypeRegistryService contentTypeRegistryService,
+        LSPEditorFeatureDetector lspEditorFeatureDetector)
     {
-        private readonly IContentTypeRegistryService _contentTypeRegistryService;
-        private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
-
-        public RazorFilePathToContentTypeProviderBase(
-            IContentTypeRegistryService contentTypeRegistryService,
-            LSPEditorFeatureDetector lspEditorFeatureDetector)
+        if (contentTypeRegistryService is null)
         {
-            if (contentTypeRegistryService is null)
-            {
-                throw new ArgumentNullException(nameof(contentTypeRegistryService));
-            }
-
-            if (lspEditorFeatureDetector is null)
-            {
-                throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
-            }
-
-            _contentTypeRegistryService = contentTypeRegistryService;
-            _lspEditorFeatureDetector = lspEditorFeatureDetector;
+            throw new ArgumentNullException(nameof(contentTypeRegistryService));
         }
 
-        public bool TryGetContentTypeForFilePath(string filePath, [NotNullWhen(true)] out IContentType? contentType)
+        if (lspEditorFeatureDetector is null)
         {
-            if (_lspEditorFeatureDetector.IsLSPEditorAvailable(filePath, hierarchy: null))
-            {
-                contentType = _contentTypeRegistryService.GetContentType(RazorConstants.RazorLSPContentTypeName);
-                return true;
-            }
-
-            contentType = null;
-            return false;
+            throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
         }
+
+        _contentTypeRegistryService = contentTypeRegistryService;
+        _lspEditorFeatureDetector = lspEditorFeatureDetector;
+    }
+
+    public bool TryGetContentTypeForFilePath(string filePath, [NotNullWhen(true)] out IContentType? contentType)
+    {
+        if (_lspEditorFeatureDetector.IsLSPEditorAvailable(filePath, hierarchy: null))
+        {
+            contentType = _contentTypeRegistryService.GetContentType(RazorConstants.RazorLSPContentTypeName);
+            return true;
+        }
+
+        contentType = null;
+        return false;
     }
 }

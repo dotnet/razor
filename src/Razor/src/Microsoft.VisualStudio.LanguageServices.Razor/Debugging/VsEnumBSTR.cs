@@ -4,59 +4,58 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor
+namespace Microsoft.VisualStudio.LanguageServices.Razor;
+
+internal class VsEnumBSTR : IVsEnumBSTR
 {
-    internal class VsEnumBSTR : IVsEnumBSTR
+    // Internal for testing
+    internal readonly IReadOnlyList<string> Values;
+
+    private int _currentIndex;
+
+    public VsEnumBSTR(IReadOnlyList<string> values)
     {
-        // Internal for testing
-        internal readonly IReadOnlyList<string> Values;
+        Values = values;
+        _currentIndex = 0;
+    }
 
-        private int _currentIndex;
+    public int Clone(out IVsEnumBSTR ppEnum)
+    {
+        ppEnum = new VsEnumBSTR(Values);
+        return VSConstants.S_OK;
+    }
 
-        public VsEnumBSTR(IReadOnlyList<string> values)
+    public int GetCount(out uint pceltCount)
+    {
+        pceltCount = (uint)Values.Count;
+        return VSConstants.S_OK;
+    }
+
+    public int Next(uint celt, string[] rgelt, out uint pceltFetched)
+    {
+        var i = 0;
+        for (; i < celt && _currentIndex < Values.Count; i++, _currentIndex++)
         {
-            Values = values;
-            _currentIndex = 0;
+            rgelt[i] = Values[_currentIndex];
         }
 
-        public int Clone(out IVsEnumBSTR ppEnum)
-        {
-            ppEnum = new VsEnumBSTR(Values);
-            return VSConstants.S_OK;
-        }
+        pceltFetched = (uint)i;
+        return i < celt
+            ? VSConstants.S_FALSE
+            : VSConstants.S_OK;
+    }
 
-        public int GetCount(out uint pceltCount)
-        {
-            pceltCount = (uint)Values.Count;
-            return VSConstants.S_OK;
-        }
+    public int Reset()
+    {
+        _currentIndex = 0;
+        return VSConstants.S_OK;
+    }
 
-        public int Next(uint celt, string[] rgelt, out uint pceltFetched)
-        {
-            var i = 0;
-            for (; i < celt && _currentIndex < Values.Count; i++, _currentIndex++)
-            {
-                rgelt[i] = Values[_currentIndex];
-            }
-
-            pceltFetched = (uint)i;
-            return i < celt
-                ? VSConstants.S_FALSE
-                : VSConstants.S_OK;
-        }
-
-        public int Reset()
-        {
-            _currentIndex = 0;
-            return VSConstants.S_OK;
-        }
-
-        public int Skip(uint celt)
-        {
-            _currentIndex += (int)celt;
-            return _currentIndex < Values.Count
-                ? VSConstants.S_OK
-                : VSConstants.S_FALSE;
-        }
+    public int Skip(uint celt)
+    {
+        _currentIndex += (int)celt;
+        return _currentIndex < Values.Count
+            ? VSConstants.S_OK
+            : VSConstants.S_FALSE;
     }
 }

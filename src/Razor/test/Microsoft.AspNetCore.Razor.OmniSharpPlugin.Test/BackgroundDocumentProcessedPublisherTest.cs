@@ -10,280 +10,279 @@ using Microsoft.CodeAnalysis;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+public class BackgroundDocumentProcessedPublisherTest : OmniSharpWorkspaceTestBase
 {
-    public class BackgroundDocumentProcessedPublisherTest : OmniSharpWorkspaceTestBase
+    private readonly RazorCodeDocument _codeDocument;
+
+    public BackgroundDocumentProcessedPublisherTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly RazorCodeDocument _codeDocument;
+        _codeDocument = CreateCodeDocument("<p>Hello World</p>");
+    }
 
-        public BackgroundDocumentProcessedPublisherTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+    [Fact]
+    public async Task DocumentProcessed_Import_Noops()
+    {
+        // Arrange
+        var project = CreateProjectSnapshot(Project.FilePath, new[] { "/path/to/_Imports.razor" });
+        var document = project.GetDocument("/path/to/_Imports.razor");
+        var originalSolution = Workspace.CurrentSolution;
+        var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
+
+        // Act
+        await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(_codeDocument, document));
+
+        // Assert
+        Assert.Same(originalSolution, Workspace.CurrentSolution);
+    }
+
+    [Fact]
+    public async Task DocumentProcessed_WorkspaceHasActiveDocument_Noops()
+    {
+        // Arrange
+        var project = CreateProjectSnapshot(Project.FilePath, new[] { "/path/to/Counter.razor" });
+        var document = project.GetDocument("/path/to/Counter.razor");
+        var activeDocumentFilePath = document.FilePath + BackgroundDocumentProcessedPublisher.ActiveVirtualDocumentSuffix;
+        AddRoslynDocument(activeDocumentFilePath);
+        var originalSolution = Workspace.CurrentSolution;
+        var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
+
+        // Act
+        await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(_codeDocument, document));
+
+        // Assert
+        Assert.Same(originalSolution, Workspace.CurrentSolution);
+    }
+
+    [Fact]
+    public async Task DocumentProcessed_NoActiveDocument_UnknownProject_Noops()
+    {
+        // Arrange
+        var project = CreateProjectSnapshot("/path/to/unknownproject.csproj", new[] { "/path/to/Counter.razor" });
+        var document = project.GetDocument("/path/to/Counter.razor");
+        var originalSolution = Workspace.CurrentSolution;
+        var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
+
+        // Act
+        await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(_codeDocument, document));
+
+        // Assert
+        Assert.Same(originalSolution, Workspace.CurrentSolution);
+    }
+
+    [Fact]
+    public async Task DocumentProcessed_NoActiveDocument_AddsRazorDocument()
+    {
+        // Arrange
+        var projectSnapshot = CreateProjectSnapshot(Project.FilePath, new[] { "/path/to/Counter.razor" });
+        var document = projectSnapshot.GetDocument("/path/to/Counter.razor");
+        var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
+
+        // Act
+        await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(_codeDocument, document));
+
+        // Assert
+        var project = Assert.Single(Workspace.CurrentSolution.Projects);
+        Assert.Contains(project.Documents, roslynDocument => roslynDocument.FilePath.StartsWith(document.FilePath, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task DocumentProcessed_NoActiveDocument_AddsCSHTMLDocument()
+    {
+        // Arrange
+        var projectSnapshot = CreateProjectSnapshot(Project.FilePath, new[] { "/path/to/Index.cshtml" });
+        var document = projectSnapshot.GetDocument("/path/to/Index.cshtml");
+        var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
+
+        // Act
+        await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(_codeDocument, document));
+
+        // Assert
+        var project = Assert.Single(Workspace.CurrentSolution.Projects);
+        Assert.Contains(project.Documents, roslynDocument => roslynDocument.FilePath.StartsWith(document.FilePath, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task DocumentProcessed_NoActiveDocument_ExistingBGDoc_UpdatesDocument()
+    {
+        // Arrange
+        var project = CreateProjectSnapshot(Project.FilePath, new[] { "/path/to/Counter.razor" });
+        var document = project.GetDocument("/path/to/Counter.razor");
+        var backgroundDocumentFilePath = document.FilePath + BackgroundDocumentProcessedPublisher.BackgroundVirtualDocumentSuffix;
+        var currentDocument = AddRoslynDocument(backgroundDocumentFilePath);
+        var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
+
+        // Act
+        await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(_codeDocument, document));
+
+        // Assert
+        var afterProcessedDocument = Workspace.GetDocument(backgroundDocumentFilePath);
+        Assert.NotSame(currentDocument, afterProcessedDocument);
+    }
+
+    [Fact]
+    public async Task PSM_DocumentRemoved_UnknownProjectForDocument_Noops()
+    {
+        // Arrange
+        var projectSnapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
+        var hostProject = new OmniSharpHostProject("/path/to/unknownproject.csproj", RazorConfiguration.Default, rootNamespace: "TestRootNamespace");
+        var hostDocument = new OmniSharpHostDocument("/path/to/Counter.razor", "path\\to\\Counter.razor", FileKinds.Component);
+        await RunOnDispatcherThreadAsync(() =>
         {
-            _codeDocument = CreateCodeDocument("<p>Hello World</p>");
-        }
+            projectSnapshotManager.ProjectAdded(hostProject);
+            projectSnapshotManager.DocumentAdded(hostProject, hostDocument);
+        });
+        var originalSolution = Workspace.CurrentSolution;
+        var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
+        processedPublisher.Initialize(projectSnapshotManager);
 
-        [Fact]
-        public async Task DocumentProcessed_Import_Noops()
+        // Act
+        await RunOnDispatcherThreadAsync(() => projectSnapshotManager.DocumentRemoved(hostProject, hostDocument));
+
+        // Assert
+        Assert.Same(originalSolution, Workspace.CurrentSolution);
+    }
+
+    [Fact]
+    public async Task PSM_DocumentRemoved_NoBackgroundDocument_Noops()
+    {
+        // Arrange
+        var projectSnapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
+        var hostProject = new OmniSharpHostProject(Project.FilePath, RazorConfiguration.Default, rootNamespace: "TestRootNamespace");
+        var hostDocument = new OmniSharpHostDocument("/path/to/Counter.razor", "path\\to\\Counter.razor", FileKinds.Component);
+        await RunOnDispatcherThreadAsync(() =>
         {
-            // Arrange
-            var project = CreateProjectSnapshot(Project.FilePath, new[] { "/path/to/_Imports.razor" });
-            var document = project.GetDocument("/path/to/_Imports.razor");
-            var originalSolution = Workspace.CurrentSolution;
-            var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
+            projectSnapshotManager.ProjectAdded(hostProject);
+            projectSnapshotManager.DocumentAdded(hostProject, hostDocument);
+        });
+        var originalSolution = Workspace.CurrentSolution;
+        var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
+        processedPublisher.Initialize(projectSnapshotManager);
 
-            // Act
-            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(_codeDocument, document));
+        // Act
+        await RunOnDispatcherThreadAsync(() => projectSnapshotManager.DocumentRemoved(hostProject, hostDocument));
 
-            // Assert
-            Assert.Same(originalSolution, Workspace.CurrentSolution);
-        }
+        // Assert
+        Assert.Same(originalSolution, Workspace.CurrentSolution);
+    }
 
-        [Fact]
-        public async Task DocumentProcessed_WorkspaceHasActiveDocument_Noops()
+    [Fact]
+    public async Task PSM_DocumentRemoved_RemovesAssociatedBackgroundDocument()
+    {
+        // Arrange
+        var projectSnapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
+        var hostProject = new OmniSharpHostProject(Project.FilePath, RazorConfiguration.Default, rootNamespace: "TestRootNamespace");
+        var hostDocument = new OmniSharpHostDocument("/path/to/Counter.razor", "path\\to\\Counter.razor", FileKinds.Component);
+        await RunOnDispatcherThreadAsync(() =>
         {
-            // Arrange
-            var project = CreateProjectSnapshot(Project.FilePath, new[] { "/path/to/Counter.razor" });
-            var document = project.GetDocument("/path/to/Counter.razor");
-            var activeDocumentFilePath = document.FilePath + BackgroundDocumentProcessedPublisher.ActiveVirtualDocumentSuffix;
-            AddRoslynDocument(activeDocumentFilePath);
-            var originalSolution = Workspace.CurrentSolution;
-            var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
+            projectSnapshotManager.ProjectAdded(hostProject);
+            projectSnapshotManager.DocumentAdded(hostProject, hostDocument);
+        });
+        var backgroundDocumentFilePath = hostDocument.FilePath + BackgroundDocumentProcessedPublisher.BackgroundVirtualDocumentSuffix;
+        AddRoslynDocument(backgroundDocumentFilePath);
+        var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
+        processedPublisher.Initialize(projectSnapshotManager);
 
-            // Act
-            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(_codeDocument, document));
+        // Act
+        await RunOnDispatcherThreadAsync(() => projectSnapshotManager.DocumentRemoved(hostProject, hostDocument));
 
-            // Assert
-            Assert.Same(originalSolution, Workspace.CurrentSolution);
-        }
+        // Assert
+        var project = Assert.Single(Workspace.CurrentSolution.Projects);
+        Assert.Empty(project.Documents);
+    }
 
-        [Fact]
-        public async Task DocumentProcessed_NoActiveDocument_UnknownProject_Noops()
-        {
-            // Arrange
-            var project = CreateProjectSnapshot("/path/to/unknownproject.csproj", new[] { "/path/to/Counter.razor" });
-            var document = project.GetDocument("/path/to/Counter.razor");
-            var originalSolution = Workspace.CurrentSolution;
-            var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
+    [Fact]
+    public void WorkspaceChanged_DocumentAdded_NoFilePathRoslynDocument_Noops()
+    {
+        // Arrange
+        var originalSolution = Workspace.CurrentSolution;
+        var addedDocument = AddRoslynDocument(filePath: null);
+        var newSolution = Workspace.CurrentSolution;
+        var workspaceChangeEventArgs = new WorkspaceChangeEventArgs(
+            WorkspaceChangeKind.DocumentAdded,
+            originalSolution,
+            newSolution,
+            addedDocument.Project.Id,
+            addedDocument.Id);
+        var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
 
-            // Act
-            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(_codeDocument, document));
+        // Act
+        processedPublisher.Workspace_WorkspaceChanged(sender: null, workspaceChangeEventArgs);
 
-            // Assert
-            Assert.Same(originalSolution, Workspace.CurrentSolution);
-        }
+        // Assert
+        Assert.Same(newSolution, Workspace.CurrentSolution);
+    }
 
-        [Fact]
-        public async Task DocumentProcessed_NoActiveDocument_AddsRazorDocument()
-        {
-            // Arrange
-            var projectSnapshot = CreateProjectSnapshot(Project.FilePath, new[] { "/path/to/Counter.razor" });
-            var document = projectSnapshot.GetDocument("/path/to/Counter.razor");
-            var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
+    [Fact]
+    public void WorkspaceChanged_BackgroundDocument_Noops()
+    {
+        // Arrange
+        var originalSolution = Workspace.CurrentSolution;
+        var addedDocument = AddRoslynDocument("/path/to/Counter.razor" + BackgroundDocumentProcessedPublisher.BackgroundVirtualDocumentSuffix);
+        var newSolution = Workspace.CurrentSolution;
+        var workspaceChangeEventArgs = new WorkspaceChangeEventArgs(
+            WorkspaceChangeKind.DocumentAdded,
+            originalSolution,
+            newSolution,
+            addedDocument.Project.Id,
+            addedDocument.Id);
+        var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
 
-            // Act
-            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(_codeDocument, document));
+        // Act
+        processedPublisher.Workspace_WorkspaceChanged(sender: null, workspaceChangeEventArgs);
 
-            // Assert
-            var project = Assert.Single(Workspace.CurrentSolution.Projects);
-            Assert.Contains(project.Documents, roslynDocument => roslynDocument.FilePath.StartsWith(document.FilePath, StringComparison.Ordinal));
-        }
+        // Assert
+        Assert.Same(newSolution, Workspace.CurrentSolution);
+    }
 
-        [Fact]
-        public async Task DocumentProcessed_NoActiveDocument_AddsCSHTMLDocument()
-        {
-            // Arrange
-            var projectSnapshot = CreateProjectSnapshot(Project.FilePath, new[] { "/path/to/Index.cshtml" });
-            var document = projectSnapshot.GetDocument("/path/to/Index.cshtml");
-            var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
+    [Fact]
+    public void WorkspaceChanged_ActiveDocument_NoBackgroundDocument_Noops()
+    {
+        // Arrange
+        var originalSolution = Workspace.CurrentSolution;
+        var addedDocument = AddRoslynDocument("/path/to/Counter.razor" + BackgroundDocumentProcessedPublisher.ActiveVirtualDocumentSuffix);
+        var newSolution = Workspace.CurrentSolution;
+        var workspaceChangeEventArgs = new WorkspaceChangeEventArgs(
+            WorkspaceChangeKind.DocumentAdded,
+            originalSolution,
+            newSolution,
+            addedDocument.Project.Id,
+            addedDocument.Id);
+        var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
 
-            // Act
-            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(_codeDocument, document));
+        // Act
+        processedPublisher.Workspace_WorkspaceChanged(sender: null, workspaceChangeEventArgs);
 
-            // Assert
-            var project = Assert.Single(Workspace.CurrentSolution.Projects);
-            Assert.Contains(project.Documents, roslynDocument => roslynDocument.FilePath.StartsWith(document.FilePath, StringComparison.Ordinal));
-        }
+        // Assert
+        Assert.Same(newSolution, Workspace.CurrentSolution);
+    }
 
-        [Fact]
-        public async Task DocumentProcessed_NoActiveDocument_ExistingBGDoc_UpdatesDocument()
-        {
-            // Arrange
-            var project = CreateProjectSnapshot(Project.FilePath, new[] { "/path/to/Counter.razor" });
-            var document = project.GetDocument("/path/to/Counter.razor");
-            var backgroundDocumentFilePath = document.FilePath + BackgroundDocumentProcessedPublisher.BackgroundVirtualDocumentSuffix;
-            var currentDocument = AddRoslynDocument(backgroundDocumentFilePath);
-            var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
+    [Fact]
+    public void WorkspaceChanged_ActiveDocument_RemovesBackgroundDocument()
+    {
+        // Arrange
+        var originalSolution = Workspace.CurrentSolution;
+        var filePath = "/path/to/Counter.razor";
+        var backgroundDocumentFilePath = filePath + BackgroundDocumentProcessedPublisher.BackgroundVirtualDocumentSuffix;
+        var backgroundDocument = AddRoslynDocument(backgroundDocumentFilePath);
+        var activeDocument = AddRoslynDocument(filePath + BackgroundDocumentProcessedPublisher.ActiveVirtualDocumentSuffix);
+        var newSolution = Workspace.CurrentSolution;
+        var workspaceChangeEventArgs = new WorkspaceChangeEventArgs(
+            WorkspaceChangeKind.DocumentAdded,
+            originalSolution,
+            newSolution,
+            activeDocument.Project.Id,
+            activeDocument.Id);
+        var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
 
-            // Act
-            await RunOnDispatcherThreadAsync(() => processedPublisher.DocumentProcessed(_codeDocument, document));
+        // Act
+        processedPublisher.Workspace_WorkspaceChanged(sender: null, workspaceChangeEventArgs);
 
-            // Assert
-            var afterProcessedDocument = Workspace.GetDocument(backgroundDocumentFilePath);
-            Assert.NotSame(currentDocument, afterProcessedDocument);
-        }
-
-        [Fact]
-        public async Task PSM_DocumentRemoved_UnknownProjectForDocument_Noops()
-        {
-            // Arrange
-            var projectSnapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
-            var hostProject = new OmniSharpHostProject("/path/to/unknownproject.csproj", RazorConfiguration.Default, rootNamespace: "TestRootNamespace");
-            var hostDocument = new OmniSharpHostDocument("/path/to/Counter.razor", "path\\to\\Counter.razor", FileKinds.Component);
-            await RunOnDispatcherThreadAsync(() =>
-            {
-                projectSnapshotManager.ProjectAdded(hostProject);
-                projectSnapshotManager.DocumentAdded(hostProject, hostDocument);
-            });
-            var originalSolution = Workspace.CurrentSolution;
-            var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
-            processedPublisher.Initialize(projectSnapshotManager);
-
-            // Act
-            await RunOnDispatcherThreadAsync(() => projectSnapshotManager.DocumentRemoved(hostProject, hostDocument));
-
-            // Assert
-            Assert.Same(originalSolution, Workspace.CurrentSolution);
-        }
-
-        [Fact]
-        public async Task PSM_DocumentRemoved_NoBackgroundDocument_Noops()
-        {
-            // Arrange
-            var projectSnapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
-            var hostProject = new OmniSharpHostProject(Project.FilePath, RazorConfiguration.Default, rootNamespace: "TestRootNamespace");
-            var hostDocument = new OmniSharpHostDocument("/path/to/Counter.razor", "path\\to\\Counter.razor", FileKinds.Component);
-            await RunOnDispatcherThreadAsync(() =>
-            {
-                projectSnapshotManager.ProjectAdded(hostProject);
-                projectSnapshotManager.DocumentAdded(hostProject, hostDocument);
-            });
-            var originalSolution = Workspace.CurrentSolution;
-            var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
-            processedPublisher.Initialize(projectSnapshotManager);
-
-            // Act
-            await RunOnDispatcherThreadAsync(() => projectSnapshotManager.DocumentRemoved(hostProject, hostDocument));
-
-            // Assert
-            Assert.Same(originalSolution, Workspace.CurrentSolution);
-        }
-
-        [Fact]
-        public async Task PSM_DocumentRemoved_RemovesAssociatedBackgroundDocument()
-        {
-            // Arrange
-            var projectSnapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
-            var hostProject = new OmniSharpHostProject(Project.FilePath, RazorConfiguration.Default, rootNamespace: "TestRootNamespace");
-            var hostDocument = new OmniSharpHostDocument("/path/to/Counter.razor", "path\\to\\Counter.razor", FileKinds.Component);
-            await RunOnDispatcherThreadAsync(() =>
-            {
-                projectSnapshotManager.ProjectAdded(hostProject);
-                projectSnapshotManager.DocumentAdded(hostProject, hostDocument);
-            });
-            var backgroundDocumentFilePath = hostDocument.FilePath + BackgroundDocumentProcessedPublisher.BackgroundVirtualDocumentSuffix;
-            AddRoslynDocument(backgroundDocumentFilePath);
-            var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
-            processedPublisher.Initialize(projectSnapshotManager);
-
-            // Act
-            await RunOnDispatcherThreadAsync(() => projectSnapshotManager.DocumentRemoved(hostProject, hostDocument));
-
-            // Assert
-            var project = Assert.Single(Workspace.CurrentSolution.Projects);
-            Assert.Empty(project.Documents);
-        }
-
-        [Fact]
-        public void WorkspaceChanged_DocumentAdded_NoFilePathRoslynDocument_Noops()
-        {
-            // Arrange
-            var originalSolution = Workspace.CurrentSolution;
-            var addedDocument = AddRoslynDocument(filePath: null);
-            var newSolution = Workspace.CurrentSolution;
-            var workspaceChangeEventArgs = new WorkspaceChangeEventArgs(
-                WorkspaceChangeKind.DocumentAdded,
-                originalSolution,
-                newSolution,
-                addedDocument.Project.Id,
-                addedDocument.Id);
-            var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
-
-            // Act
-            processedPublisher.Workspace_WorkspaceChanged(sender: null, workspaceChangeEventArgs);
-
-            // Assert
-            Assert.Same(newSolution, Workspace.CurrentSolution);
-        }
-
-        [Fact]
-        public void WorkspaceChanged_BackgroundDocument_Noops()
-        {
-            // Arrange
-            var originalSolution = Workspace.CurrentSolution;
-            var addedDocument = AddRoslynDocument("/path/to/Counter.razor" + BackgroundDocumentProcessedPublisher.BackgroundVirtualDocumentSuffix);
-            var newSolution = Workspace.CurrentSolution;
-            var workspaceChangeEventArgs = new WorkspaceChangeEventArgs(
-                WorkspaceChangeKind.DocumentAdded,
-                originalSolution,
-                newSolution,
-                addedDocument.Project.Id,
-                addedDocument.Id);
-            var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
-
-            // Act
-            processedPublisher.Workspace_WorkspaceChanged(sender: null, workspaceChangeEventArgs);
-
-            // Assert
-            Assert.Same(newSolution, Workspace.CurrentSolution);
-        }
-
-        [Fact]
-        public void WorkspaceChanged_ActiveDocument_NoBackgroundDocument_Noops()
-        {
-            // Arrange
-            var originalSolution = Workspace.CurrentSolution;
-            var addedDocument = AddRoslynDocument("/path/to/Counter.razor" + BackgroundDocumentProcessedPublisher.ActiveVirtualDocumentSuffix);
-            var newSolution = Workspace.CurrentSolution;
-            var workspaceChangeEventArgs = new WorkspaceChangeEventArgs(
-                WorkspaceChangeKind.DocumentAdded,
-                originalSolution,
-                newSolution,
-                addedDocument.Project.Id,
-                addedDocument.Id);
-            var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
-
-            // Act
-            processedPublisher.Workspace_WorkspaceChanged(sender: null, workspaceChangeEventArgs);
-
-            // Assert
-            Assert.Same(newSolution, Workspace.CurrentSolution);
-        }
-
-        [Fact]
-        public void WorkspaceChanged_ActiveDocument_RemovesBackgroundDocument()
-        {
-            // Arrange
-            var originalSolution = Workspace.CurrentSolution;
-            var filePath = "/path/to/Counter.razor";
-            var backgroundDocumentFilePath = filePath + BackgroundDocumentProcessedPublisher.BackgroundVirtualDocumentSuffix;
-            var backgroundDocument = AddRoslynDocument(backgroundDocumentFilePath);
-            var activeDocument = AddRoslynDocument(filePath + BackgroundDocumentProcessedPublisher.ActiveVirtualDocumentSuffix);
-            var newSolution = Workspace.CurrentSolution;
-            var workspaceChangeEventArgs = new WorkspaceChangeEventArgs(
-                WorkspaceChangeKind.DocumentAdded,
-                originalSolution,
-                newSolution,
-                activeDocument.Project.Id,
-                activeDocument.Id);
-            var processedPublisher = new BackgroundDocumentProcessedPublisher(Dispatcher, Workspace, LoggerFactory);
-
-            // Act
-            processedPublisher.Workspace_WorkspaceChanged(sender: null, workspaceChangeEventArgs);
-
-            // Assert
-            Assert.NotSame(newSolution, Workspace.CurrentSolution);
-            var currentBackgroundDocument = Workspace.CurrentSolution.GetDocument(backgroundDocument.Id);
-            Assert.Null(currentBackgroundDocument);
-        }
+        // Assert
+        Assert.NotSame(newSolution, Workspace.CurrentSolution);
+        var currentBackgroundDocument = Workspace.CurrentSolution.GetDocument(backgroundDocument.Id);
+        Assert.Null(currentBackgroundDocument);
     }
 }

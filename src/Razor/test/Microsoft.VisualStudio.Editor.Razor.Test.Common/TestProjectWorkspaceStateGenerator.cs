@@ -9,27 +9,26 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using System.Threading;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Test
+namespace Microsoft.VisualStudio.Editor.Razor.Test;
+
+internal class TestProjectWorkspaceStateGenerator : ProjectWorkspaceStateGenerator
 {
-    internal class TestProjectWorkspaceStateGenerator : ProjectWorkspaceStateGenerator
+    private readonly List<(Project workspaceProject, ProjectSnapshot projectSnapshot)> _updates;
+
+    public TestProjectWorkspaceStateGenerator()
     {
-        private readonly List<(Project workspaceProject, ProjectSnapshot projectSnapshot)> _updates;
+        _updates = new List<(Project workspaceProject, ProjectSnapshot projectSnapshot)>();
+    }
 
-        public TestProjectWorkspaceStateGenerator()
-        {
-            _updates = new List<(Project workspaceProject, ProjectSnapshot projectSnapshot)>();
-        }
+    public IReadOnlyList<(Project workspaceProject, ProjectSnapshot projectSnapshot)> UpdateQueue => _updates;
 
-        public IReadOnlyList<(Project workspaceProject, ProjectSnapshot projectSnapshot)> UpdateQueue => _updates;
+    public override void Initialize(ProjectSnapshotManagerBase projectManager)
+    {
+    }
 
-        public override void Initialize(ProjectSnapshotManagerBase projectManager)
-        {
-        }
-
-        public override void Update(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
-        {
-            var update = (workspaceProject, projectSnapshot);
-            _updates.Add(update);
-        }
+    public override void Update(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+    {
+        var update = (workspaceProject, projectSnapshot);
+        _updates.Add(update);
     }
 }

@@ -3,10 +3,9 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Documents
+namespace Microsoft.VisualStudio.Editor.Razor.Documents;
+
+internal abstract class FileChangeTrackerFactory : IWorkspaceService
 {
-    internal abstract class FileChangeTrackerFactory : IWorkspaceService
-    {
-        public abstract FileChangeTracker Create(string filePath);
-    }
+    public abstract FileChangeTracker Create(string filePath);
 }

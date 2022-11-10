@@ -5,10 +5,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
+namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
+
+[LanguageServerEndpoint(VSInternalMethods.TextDocumentTextPresentationName)]
+internal interface ITextDocumentTextPresentationHandler : IRazorRequestHandler<TextPresentationParams, WorkspaceEdit?>, IRegistrationExtension
 {
-    [LanguageServerEndpoint(VSInternalMethods.TextDocumentTextPresentationName)]
-    internal interface ITextDocumentTextPresentationHandler : IRazorRequestHandler<TextPresentationParams, WorkspaceEdit?>, IRegistrationExtension
-    {
-    }
 }

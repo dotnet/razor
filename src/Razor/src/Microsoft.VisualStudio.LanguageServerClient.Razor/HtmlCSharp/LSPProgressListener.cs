@@ -7,15 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+
+internal abstract class LSPProgressListener
 {
-    internal abstract class LSPProgressListener
-    {
-        public abstract bool TryListenForProgress(
-            string token,
-            Func<JToken, CancellationToken, Task> onProgressNotifyAsync,
-            Func<CancellationToken, Task> delayAfterLastNotifyAsync,
-            CancellationToken handlerCancellationToken,
-            [NotNullWhen(returnValue: true)] out Task? onCompleted);
-    }
+    public abstract bool TryListenForProgress(
+        string token,
+        Func<JToken, CancellationToken, Task> onProgressNotifyAsync,
+        Func<CancellationToken, Task> delayAfterLastNotifyAsync,
+        CancellationToken handlerCancellationToken,
+        [NotNullWhen(returnValue: true)] out Task? onCompleted);
 }

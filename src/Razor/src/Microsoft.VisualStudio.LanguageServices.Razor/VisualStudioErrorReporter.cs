@@ -9,71 +9,70 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor
+namespace Microsoft.VisualStudio.LanguageServices.Razor;
+
+[Export(typeof(ErrorReporter))]
+internal class VisualStudioErrorReporter : ErrorReporter
 {
-    [Export(typeof(ErrorReporter))]
-    internal class VisualStudioErrorReporter : ErrorReporter
+    private readonly SVsServiceProvider _services;
+
+    [ImportingConstructor]
+    public VisualStudioErrorReporter(SVsServiceProvider services)
     {
-        private readonly SVsServiceProvider _services;
-
-        [ImportingConstructor]
-        public VisualStudioErrorReporter(SVsServiceProvider services)
+        if (services is null)
         {
-            if (services is null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            _services = services;
+            throw new ArgumentNullException(nameof(services));
         }
 
-        public override void ReportError(Exception exception)
-        {
-            if (exception is null)
-            {
-                return;
-            }
+        _services = services;
+    }
 
-            var activityLog = GetActivityLog();
-            if (activityLog != null)
-            {
-                var hr = activityLog.LogEntry(
-                    (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
-                    "Razor Language Services",
-                    $"Error encountered:{Environment.NewLine}{exception}");
-                ErrorHandler.ThrowOnFailure(hr);
-            }
+    public override void ReportError(Exception exception)
+    {
+        if (exception is null)
+        {
+            return;
         }
 
-        public override void ReportError(Exception exception, ProjectSnapshot? project)
+        var activityLog = GetActivityLog();
+        if (activityLog != null)
         {
-            var activityLog = GetActivityLog();
-            if (activityLog is not null)
-            {
-                var hr = activityLog.LogEntry(
-                    (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
-                    "Razor Language Services",
-                    $"Error encountered from project '{project?.FilePath}':{Environment.NewLine}{exception}");
-                ErrorHandler.ThrowOnFailure(hr);
-            }
+            var hr = activityLog.LogEntry(
+                (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
+                "Razor Language Services",
+                $"Error encountered:{Environment.NewLine}{exception}");
+            ErrorHandler.ThrowOnFailure(hr);
         }
+    }
 
-        public override void ReportError(Exception exception, Project workspaceProject)
+    public override void ReportError(Exception exception, ProjectSnapshot? project)
+    {
+        var activityLog = GetActivityLog();
+        if (activityLog is not null)
         {
-            var activityLog = GetActivityLog();
-            if (activityLog is not null)
-            {
-                var hr = activityLog.LogEntry(
-                    (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
-                    "Razor Language Services",
-                    $"Error encountered from project '{workspaceProject?.Name}' '{workspaceProject?.FilePath}':{Environment.NewLine}{exception}");
-                ErrorHandler.ThrowOnFailure(hr);
-            }
+            var hr = activityLog.LogEntry(
+                (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
+                "Razor Language Services",
+                $"Error encountered from project '{project?.FilePath}':{Environment.NewLine}{exception}");
+            ErrorHandler.ThrowOnFailure(hr);
         }
+    }
 
-        private IVsActivityLog? GetActivityLog()
+    public override void ReportError(Exception exception, Project workspaceProject)
+    {
+        var activityLog = GetActivityLog();
+        if (activityLog is not null)
         {
-            return _services.GetService(typeof(SVsActivityLog)) as IVsActivityLog;
+            var hr = activityLog.LogEntry(
+                (uint)__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR,
+                "Razor Language Services",
+                $"Error encountered from project '{workspaceProject?.Name}' '{workspaceProject?.FilePath}':{Environment.NewLine}{exception}");
+            ErrorHandler.ThrowOnFailure(hr);
         }
+    }
+
+    private IVsActivityLog? GetActivityLog()
+    {
+        return _services.GetService(typeof(SVsActivityLog)) as IVsActivityLog;
     }
 }

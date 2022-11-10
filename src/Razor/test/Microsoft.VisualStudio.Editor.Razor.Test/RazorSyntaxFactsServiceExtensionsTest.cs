@@ -9,111 +9,110 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor
-{
-    public class RazorSyntaxFactsServiceExtensionsTest : TestBase
-    {
-        public RazorSyntaxFactsServiceExtensionsTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+namespace Microsoft.VisualStudio.Editor.Razor;
 
-        [Fact]
-        public void IsTagHelperSpan_ReturnsTrue()
-        {
-            var str =
+public class RazorSyntaxFactsServiceExtensionsTest : TestBase
+{
+    public RazorSyntaxFactsServiceExtensionsTest(ITestOutputHelper testOutput)
+        : base(testOutput)
+    {
+    }
+
+    [Fact]
+    public void IsTagHelperSpan_ReturnsTrue()
+    {
+        var str =
 @"<div>
     <taghelper />
 </div>";
 
-            // Arrange
-            var syntaxTree = GetSyntaxTree(str);
+        // Arrange
+        var syntaxTree = GetSyntaxTree(str);
 
-            var location = new SourceSpan(str.IndexOf("tag", StringComparison.Ordinal) - 1, 13);
-            var service = new DefaultRazorSyntaxFactsService();
+        var location = new SourceSpan(str.IndexOf("tag", StringComparison.Ordinal) - 1, 13);
+        var service = new DefaultRazorSyntaxFactsService();
 
-            // Act
-            var result = service.IsTagHelperSpan(syntaxTree, location);
+        // Act
+        var result = service.IsTagHelperSpan(syntaxTree, location);
 
-            // Assert
-            Assert.True(result);
-        }
+        // Assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void IsTagHelperSpan_ReturnsFalse()
-        {
-            // Arrange
-            var syntaxTree = GetSyntaxTree(
+    [Fact]
+    public void IsTagHelperSpan_ReturnsFalse()
+    {
+        // Arrange
+        var syntaxTree = GetSyntaxTree(
 @"<div>
     <taghelper></taghelper>
 </div>");
-            var location = new SourceSpan(0, 4);
-            var service = new DefaultRazorSyntaxFactsService();
+        var location = new SourceSpan(0, 4);
+        var service = new DefaultRazorSyntaxFactsService();
 
-            // Act
-            var result = service.IsTagHelperSpan(syntaxTree, location);
+        // Act
+        var result = service.IsTagHelperSpan(syntaxTree, location);
 
-            // Assert
-            Assert.False(result);
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void IsTagHelperSpan_NullSyntaxTree_ReturnsFalse()
+    {
+        // Arrange
+        var location = new SourceSpan(0, 4);
+        var service = new DefaultRazorSyntaxFactsService();
+
+        // Act
+        var result = service.IsTagHelperSpan(null, location);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    private static RazorSyntaxTree GetSyntaxTree(string source)
+    {
+        var taghelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly")
+            .TagMatchingRuleDescriptor(rule => rule.RequireTagName("taghelper"))
+            .TypeName("TestTagHelper")
+            .Build();
+        var projectEngine = RazorProjectEngine.Create(builder =>
+        {
+            builder.AddTagHelpers(taghelper);
+            builder.Features.Add(new DesignTimeOptionsFeature(designTime: true));
+        });
+
+        var sourceDocument = RazorSourceDocument.Create(source, "test.cshtml");
+        var addTagHelperImport = RazorSourceDocument.Create("@addTagHelper *, TestAssembly", "import.cshtml");
+        var codeDocument = RazorCodeDocument.Create(sourceDocument, new[] { addTagHelperImport });
+
+        projectEngine.Engine.Process(codeDocument);
+
+        return codeDocument.GetSyntaxTree();
+    }
+
+    private class DesignTimeOptionsFeature : IConfigureRazorParserOptionsFeature, IConfigureRazorCodeGenerationOptionsFeature
+    {
+        private readonly bool _designTime;
+
+        public DesignTimeOptionsFeature(bool designTime)
+        {
+            _designTime = designTime;
         }
 
-        [Fact]
-        public void IsTagHelperSpan_NullSyntaxTree_ReturnsFalse()
+        public int Order { get; }
+
+        public RazorEngine Engine { get; set; }
+
+        public void Configure(RazorParserOptionsBuilder options)
         {
-            // Arrange
-            var location = new SourceSpan(0, 4);
-            var service = new DefaultRazorSyntaxFactsService();
-
-            // Act
-            var result = service.IsTagHelperSpan(null, location);
-
-            // Assert
-            Assert.False(result);
+            options.SetDesignTime(_designTime);
         }
 
-        private static RazorSyntaxTree GetSyntaxTree(string source)
+        public void Configure(RazorCodeGenerationOptionsBuilder options)
         {
-            var taghelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly")
-                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("taghelper"))
-                .TypeName("TestTagHelper")
-                .Build();
-            var projectEngine = RazorProjectEngine.Create(builder =>
-            {
-                builder.AddTagHelpers(taghelper);
-                builder.Features.Add(new DesignTimeOptionsFeature(designTime: true));
-            });
-
-            var sourceDocument = RazorSourceDocument.Create(source, "test.cshtml");
-            var addTagHelperImport = RazorSourceDocument.Create("@addTagHelper *, TestAssembly", "import.cshtml");
-            var codeDocument = RazorCodeDocument.Create(sourceDocument, new[] { addTagHelperImport });
-
-            projectEngine.Engine.Process(codeDocument);
-
-            return codeDocument.GetSyntaxTree();
-        }
-
-        private class DesignTimeOptionsFeature : IConfigureRazorParserOptionsFeature, IConfigureRazorCodeGenerationOptionsFeature
-        {
-            private readonly bool _designTime;
-
-            public DesignTimeOptionsFeature(bool designTime)
-            {
-                _designTime = designTime;
-            }
-
-            public int Order { get; }
-
-            public RazorEngine Engine { get; set; }
-
-            public void Configure(RazorParserOptionsBuilder options)
-            {
-                options.SetDesignTime(_designTime);
-            }
-
-            public void Configure(RazorCodeGenerationOptionsBuilder options)
-            {
-                options.SetDesignTime(_designTime);
-            }
+            options.SetDesignTime(_designTime);
         }
     }
 }

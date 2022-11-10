@@ -6,14 +6,13 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+public abstract class OmniSharpProjectSnapshotManager
 {
-    public abstract class OmniSharpProjectSnapshotManager
-    {
-        public abstract event EventHandler<OmniSharpProjectChangeEventArgs> Changed;
+    public abstract event EventHandler<OmniSharpProjectChangeEventArgs> Changed;
 
-        public abstract IReadOnlyList<OmniSharpProjectSnapshot> Projects { get; }
+    public abstract IReadOnlyList<OmniSharpProjectSnapshot> Projects { get; }
 
-        public abstract OmniSharpProjectSnapshot GetLoadedProject(string filePath);
-    }
+    public abstract OmniSharpProjectSnapshot GetLoadedProject(string filePath);
 }

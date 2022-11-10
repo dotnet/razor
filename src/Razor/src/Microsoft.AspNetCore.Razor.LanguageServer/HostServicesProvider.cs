@@ -3,10 +3,9 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal abstract class HostServicesProvider
 {
-    internal abstract class HostServicesProvider
-    {
-        public abstract HostServices GetServices();
-    }
+    public abstract HostServices GetServices();
 }

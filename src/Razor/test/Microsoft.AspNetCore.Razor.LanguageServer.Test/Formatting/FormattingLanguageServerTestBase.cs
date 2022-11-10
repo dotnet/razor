@@ -15,66 +15,65 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
+public abstract class FormattingLanguageServerTestBase : LanguageServerTestBase
 {
-    public abstract class FormattingLanguageServerTestBase : LanguageServerTestBase
+    internal DocumentContextFactory EmptyDocumentContextFactory { get; }
+
+    public FormattingLanguageServerTestBase(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        internal DocumentContextFactory EmptyDocumentContextFactory { get; }
+        EmptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(
+            r => r.TryCreateAsync(
+                It.IsAny<Uri>(),
+                It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext?>(null),
+            MockBehavior.Strict);
+    }
 
-        public FormattingLanguageServerTestBase(ITestOutputHelper testOutput)
-            : base(testOutput)
+    internal static RazorCodeDocument CreateCodeDocument(string content, IReadOnlyList<SourceMapping> sourceMappings)
+    {
+        var sourceDocument = TestRazorSourceDocument.Create(content);
+        var codeDocument = RazorCodeDocument.Create(sourceDocument);
+        var syntaxTree = RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.CreateDefault());
+        var razorCSharpDocument = RazorCSharpDocument.Create(
+            content, RazorCodeGenerationOptions.CreateDefault(), Array.Empty<RazorDiagnostic>(), sourceMappings, Array.Empty<LinePragma>());
+        codeDocument.SetSyntaxTree(syntaxTree);
+        codeDocument.SetCSharpDocument(razorCSharpDocument);
+
+        return codeDocument;
+    }
+
+    internal static IOptionsMonitor<RazorLSPOptions> GetOptionsMonitor(bool enableFormatting)
+    {
+        var monitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
+        monitor.SetupGet(m => m.CurrentValue).Returns(new RazorLSPOptions(default, enableFormatting, true, insertSpaces: true, tabSize: 4));
+        return monitor.Object;
+    }
+
+    internal class DummyRazorFormattingService : RazorFormattingService
+    {
+        public bool Called { get; private set; }
+
+        public override Task<TextEdit[]> FormatAsync(DocumentContext documentContext, Range? range, FormattingOptions options, CancellationToken cancellationToken)
         {
-            EmptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(
-                r => r.TryCreateAsync(
-                    It.IsAny<Uri>(),
-                    It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext?>(null),
-                MockBehavior.Strict);
+            Called = true;
+            return Task.FromResult(Array.Empty<TextEdit>());
         }
 
-        internal static RazorCodeDocument CreateCodeDocument(string content, IReadOnlyList<SourceMapping> sourceMappings)
+        public override Task<TextEdit[]> FormatCodeActionAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
         {
-            var sourceDocument = TestRazorSourceDocument.Create(content);
-            var codeDocument = RazorCodeDocument.Create(sourceDocument);
-            var syntaxTree = RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.CreateDefault());
-            var razorCSharpDocument = RazorCSharpDocument.Create(
-                content, RazorCodeGenerationOptions.CreateDefault(), Array.Empty<RazorDiagnostic>(), sourceMappings, Array.Empty<LinePragma>());
-            codeDocument.SetSyntaxTree(syntaxTree);
-            codeDocument.SetCSharpDocument(razorCSharpDocument);
-
-            return codeDocument;
+            return Task.FromResult(formattedEdits);
         }
 
-        internal static IOptionsMonitor<RazorLSPOptions> GetOptionsMonitor(bool enableFormatting)
+        public override Task<TextEdit[]> FormatOnTypeAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
         {
-            var monitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
-            monitor.SetupGet(m => m.CurrentValue).Returns(new RazorLSPOptions(default, enableFormatting, true, insertSpaces: true, tabSize: 4));
-            return monitor.Object;
+            return Task.FromResult(formattedEdits);
         }
 
-        internal class DummyRazorFormattingService : RazorFormattingService
+        public override Task<TextEdit[]> FormatSnippetAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
         {
-            public bool Called { get; private set; }
-
-            public override Task<TextEdit[]> FormatAsync(DocumentContext documentContext, Range? range, FormattingOptions options, CancellationToken cancellationToken)
-            {
-                Called = true;
-                return Task.FromResult(Array.Empty<TextEdit>());
-            }
-
-            public override Task<TextEdit[]> FormatCodeActionAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(formattedEdits);
-            }
-
-            public override Task<TextEdit[]> FormatOnTypeAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, int hostDocumentIndex, char triggerCharacter, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(formattedEdits);
-            }
-
-            public override Task<TextEdit[]> FormatSnippetAsync(DocumentContext documentContext, RazorLanguageKind kind, TextEdit[] formattedEdits, FormattingOptions options, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(formattedEdits);
-            }
+            return Task.FromResult(formattedEdits);
         }
     }
 }

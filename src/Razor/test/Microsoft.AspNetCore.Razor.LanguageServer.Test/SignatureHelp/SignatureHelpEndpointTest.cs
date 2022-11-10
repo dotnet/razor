@@ -15,19 +15,19 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.SignatureHelp
-{
-    public class SignatureHelpEndpointTest : SingleServerDelegatingEndpointTestBase
-    {
-        public SignatureHelpEndpointTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.SignatureHelp;
 
-        [Fact]
-        public async Task Handle_SingleServer_CSharpSignature()
-        {
-            var input = """
+public class SignatureHelpEndpointTest : SingleServerDelegatingEndpointTestBase
+{
+    public SignatureHelpEndpointTest(ITestOutputHelper testOutput)
+        : base(testOutput)
+    {
+    }
+
+    [Fact]
+    public async Task Handle_SingleServer_CSharpSignature()
+    {
+        var input = """
                 <div></div>
 
                 @{
@@ -40,13 +40,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.SignatureHelp
                 }
                 """;
 
-            await VerifySignatureHelpAsync(input, "string M1(int i)");
-        }
+        await VerifySignatureHelpAsync(input, "string M1(int i)");
+    }
 
-        [Fact]
-        public async Task Handle_SingleServer_CSharpSignature_Razor()
-        {
-            var input = """
+    [Fact]
+    public async Task Handle_SingleServer_CSharpSignature_Razor()
+    {
+        var input = """
                 <div>@GetDiv($$)</div>
 
                 @{
@@ -54,66 +54,65 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.SignatureHelp
                 }
                 """;
 
-            await VerifySignatureHelpAsync(input, "string GetDiv()");
-        }
+        await VerifySignatureHelpAsync(input, "string GetDiv()");
+    }
 
-        [Fact]
-        public async Task Handle_SingleServer_ReturnNull()
-        {
-            var input = """
+    [Fact]
+    public async Task Handle_SingleServer_ReturnNull()
+    {
+        var input = """
                 <div>@GetDiv($$)</div>
 
                 @{
                 }
                 """;
 
-            await VerifySignatureHelpAsync(input);
+        await VerifySignatureHelpAsync(input);
+    }
+
+    private async Task VerifySignatureHelpAsync(string input, params string[] signatures)
+    {
+        // Arrange
+        TestFileMarkupParser.GetPositionAndSpans(input, out var output, out int cursorPosition, out ImmutableArray<TextSpan> _);
+        var codeDocument = CreateCodeDocument(output);
+        var razorFilePath = "C:/path/to/file.razor";
+
+        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+
+        var endpoint = new SignatureHelpEndpoint(
+            LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, LoggerFactory);
+
+        codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
+        var request = new SignatureHelpParamsBridge
+        {
+            TextDocument = new TextDocumentIdentifier
+            {
+                Uri = new Uri(razorFilePath)
+            },
+            Position = new Position(line, offset)
+        };
+
+        var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, DisposalToken);
+
+        var requestContext = CreateRazorRequestContext(documentContext);
+
+        // Act
+        var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
+
+        // Assert
+        if (signatures.Length == 0)
+        {
+            Assert.Null(result);
+            return;
         }
 
-        private async Task VerifySignatureHelpAsync(string input, params string[] signatures)
+        Assert.Equal(signatures.Length, result.Signatures.Length);
+        for (var i = 0; i < signatures.Length; i++)
         {
-            // Arrange
-            TestFileMarkupParser.GetPositionAndSpans(input, out var output, out int cursorPosition, out ImmutableArray<TextSpan> _);
-            var codeDocument = CreateCodeDocument(output);
-            var razorFilePath = "C:/path/to/file.razor";
+            var expected = signatures[i];
+            var actual = result.Signatures[i];
 
-            await CreateLanguageServerAsync(codeDocument, razorFilePath);
-
-            var endpoint = new SignatureHelpEndpoint(
-                LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, LoggerFactory);
-
-            codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
-            var request = new SignatureHelpParamsBridge
-            {
-                TextDocument = new TextDocumentIdentifier
-                {
-                    Uri = new Uri(razorFilePath)
-                },
-                Position = new Position(line, offset)
-            };
-
-            var documentContext = await DocumentContextFactory.TryCreateAsync(request.TextDocument.Uri, DisposalToken);
-
-            var requestContext = CreateRazorRequestContext(documentContext);
-
-            // Act
-            var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
-
-            // Assert
-            if (signatures.Length == 0)
-            {
-                Assert.Null(result);
-                return;
-            }
-
-            Assert.Equal(signatures.Length, result.Signatures.Length);
-            for (var i = 0; i < signatures.Length; i++)
-            {
-                var expected = signatures[i];
-                var actual = result.Signatures[i];
-
-                Assert.Equal(expected, actual.Label);
-            }
+            Assert.Equal(expected, actual.Label);
         }
     }
 }

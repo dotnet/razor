@@ -3,20 +3,19 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion
+namespace Microsoft.CodeAnalysis.Razor.Completion;
+
+internal class MarkupTransitionCompletionDescription : CompletionDescription
 {
-    internal class MarkupTransitionCompletionDescription : CompletionDescription
+    public override string Description { get; }
+
+    public MarkupTransitionCompletionDescription(string description)
     {
-        public override string Description { get; }
-
-        public MarkupTransitionCompletionDescription(string description)
+        if (description is null)
         {
-            if (description is null)
-            {
-                throw new ArgumentNullException(nameof(description));
-            }
-
-            Description = description;
+            throw new ArgumentNullException(nameof(description));
         }
+
+        Description = description;
     }
 }

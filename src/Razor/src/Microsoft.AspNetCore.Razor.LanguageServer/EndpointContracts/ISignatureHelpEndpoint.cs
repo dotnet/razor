@@ -6,11 +6,10 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+[LanguageServerEndpoint(Methods.TextDocumentSignatureHelpName)]
+internal interface ISignatureHelpEndpoint : IRazorRequestHandler<SignatureHelpParamsBridge, LS.SignatureHelp?>,
+    IRegistrationExtension
 {
-    [LanguageServerEndpoint(Methods.TextDocumentSignatureHelpName)]
-    internal interface ISignatureHelpEndpoint : IRazorRequestHandler<SignatureHelpParamsBridge, LS.SignatureHelp?>,
-        IRegistrationExtension
-    {
-    }
 }

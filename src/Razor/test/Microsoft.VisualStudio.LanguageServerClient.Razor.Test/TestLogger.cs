@@ -6,25 +6,24 @@
 using System;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
+
+internal class TestLogger : ILogger
 {
-    internal class TestLogger : ILogger
+    public static readonly TestLogger Instance = new();
+
+    public IDisposable BeginScope<TState>(TState state)
     {
-        public static readonly TestLogger Instance = new();
+        return default;
+    }
 
-        public IDisposable BeginScope<TState>(TState state)
-        {
-            return default;
-        }
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        return true;
+    }
 
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return true;
-        }
-
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-        {
-            // noop
-        }
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+    {
+        // noop
     }
 }
