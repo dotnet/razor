@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var owner = syntaxTree.Root.LocateOwner(change);
             if (owner is null)
             {
-                Debug.Fail("Owner should never be null.");
+                Debug.Assert("Owner should never be null.");
                 return s_emptyResult;
             }
 
