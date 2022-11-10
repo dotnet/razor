@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectToBuild Condition="'$(SdkTaskProjects)'==''" Include="$(MSBuildThisFileDirectory)..\razor-compiler.sln" />
+    <ProjectToBuild Condition="'$(SdkTaskProjects)'=='' and '$(BuildCompilerSln)'==''" Include="$(MSBuildThisFileDirectory)..\razor-compiler.sln" />
 
     <!-- TODO: Try not to build Microsoft.VisualStudio.RazorExtension.Dependencies.csproj if BuildDependencyVsix is false -->
     <ProjectToBuild Condition="'$(OS)'=='WINDOWS_NT' and '$(SdkTaskProjects)'==''" Include="$(MSBuildThisFileDirectory)..\src\Razor\Razor.sln" />

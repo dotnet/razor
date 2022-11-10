@@ -134,12 +134,14 @@ stages:
         # Variables for internal Official builds
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
           - _SignType: real
-          - _BuildArgs: /p:DotNetSignType=$(_SignType) /p:TeamName=$(_TeamName)
+          - _BuildArgs: /p:DotNetSignType=$(_SignType)
+              /p:TeamName=$(_TeamName)
               /p:OfficialBuildId=$(Build.BuildNumber)
               /p:ManifestBuildBranch=$(Build.SourceBranchName)
               /p:ManifestBuildNumber=$(Build.BuildNumber)
               /p:VisualStudioDropName=Products/dotnet/razor-tooling/$(Build.SourceBranchName)/$(Build.BuildNumber)
               /p:GenerateSbom=true
+              /p:BuildCompilerSln=false
 
         steps:
         - task: NodeTool@0
