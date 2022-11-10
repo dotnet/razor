@@ -61,6 +61,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Shared Dependencies -->
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageSupport\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.LanguageSupport.dll" />
+
+    <!-- Compiler Dependencies -->
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />

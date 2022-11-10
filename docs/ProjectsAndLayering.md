@@ -4,7 +4,7 @@
 
 - Target Framework: `netstandard2.0`
 - Projects:
-  - Microsoft.AspNetCore.Razor.Common
+  - Microsoft.AspNetCore.Razor.LanguageSupport
 
 ## Compiler
 
@@ -21,6 +21,7 @@
 
 - Target Framework: `netstandard2.0`
 - Projects:
+  - Microsoft.AspNetCore.Razor.Common
   - Microsoft.AspNetCore.Razor.LanguageServer
   - Microsoft.AspNetCore.Razor.LanguageServer.Common
   - Microsoft.AspNetCore.Razor.LanguageServer.Protocol
