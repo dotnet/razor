@@ -58,7 +58,7 @@ Before opening the `src/Razor/Razor.sln` file in Visual Studio or VS Code, you n
    You can do so by running the `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` command
    in PowerShell. For more information on execution policies, you can read the [execution policy docs](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-executionpolicy).
 
-2. Use the `startvs.cmd src/Razor/Razor.sln` script to open Visual Studio with the Razor solution. This script first sets the required
+2. Use the `.\startvs.cmd src/Razor/Razor.sln` script to open Visual Studio with the Razor solution. This script first sets the required
 environment variables.
 
 3. Set `Microsoft.VisualStudio.RazorExtension` as the startup project.
