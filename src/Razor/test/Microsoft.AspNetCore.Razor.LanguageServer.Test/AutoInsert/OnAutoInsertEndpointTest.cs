@@ -354,7 +354,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             await VerifyCSharpOnAutoInsertAsync(input, expected, character);
         }
 
-        [Fact(Skip = "Roslyn only responds to the Razor server kind for this request, but uses the C# server kind in tests")]
+        [Fact]
         public async Task Handle_SingleServer_CSharpBraceMatching()
         {
             // Arrange
