@@ -5,24 +5,23 @@ using System;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal class LSPProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcherBase
 {
-    internal class LSPProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcherBase
+    private const string ThreadName = "Razor." + nameof(LSPProjectSnapshotManagerDispatcher);
+
+    private readonly ILogger<LSPProjectSnapshotManagerDispatcher> _logger;
+
+    public LSPProjectSnapshotManagerDispatcher(ILoggerFactory loggerFactory) : base(ThreadName)
     {
-        private const string ThreadName = "Razor." + nameof(LSPProjectSnapshotManagerDispatcher);
-
-        private readonly ILogger<LSPProjectSnapshotManagerDispatcher> _logger;
-
-        public LSPProjectSnapshotManagerDispatcher(ILoggerFactory loggerFactory) : base(ThreadName)
+        if (loggerFactory is null)
         {
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            _logger = loggerFactory.CreateLogger<LSPProjectSnapshotManagerDispatcher>();
+            throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        public override void LogException(Exception ex) => _logger.LogError(ex, ThreadName + " encountered an exception.");
+        _logger = loggerFactory.CreateLogger<LSPProjectSnapshotManagerDispatcher>();
     }
+
+    public override void LogException(Exception ex) => _logger.LogError(ex, ThreadName + " encountered an exception.");
 }

@@ -13,69 +13,68 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.VisualStudio.Editor.Razor;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+
+[Export(typeof(IRazorDocumentOptionsService))]
+internal sealed class RazorDocumentOptionsService : IRazorDocumentOptionsService
 {
-    [Export(typeof(IRazorDocumentOptionsService))]
-    internal sealed class RazorDocumentOptionsService : IRazorDocumentOptionsService
+    private readonly EditorSettingsManager _editorSettingsManager;
+
+    [ImportingConstructor]
+    public RazorDocumentOptionsService(EditorSettingsManager editorSettingsManager)
     {
-        private readonly EditorSettingsManager _editorSettingsManager;
-
-        [ImportingConstructor]
-        public RazorDocumentOptionsService(EditorSettingsManager editorSettingsManager)
+        if (editorSettingsManager is null)
         {
-            if (editorSettingsManager is null)
-            {
-                throw new ArgumentNullException(nameof(editorSettingsManager));
-            }
-
-            _editorSettingsManager = editorSettingsManager;
+            throw new ArgumentNullException(nameof(editorSettingsManager));
         }
 
-        public Task<IRazorDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
-        {
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
+        _editorSettingsManager = editorSettingsManager;
+    }
 
-            // TO-DO: We should switch to a per-document implementation once Razor starts supporting .editorconfig.
-            var editorSettings = _editorSettingsManager.Current;
-            return Task.FromResult<IRazorDocumentOptions>(new RazorDocumentOptions(document, editorSettings));
+    public Task<IRazorDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
+    {
+        if (document is null)
+        {
+            throw new ArgumentNullException(nameof(document));
         }
 
-        private sealed class RazorDocumentOptions : IRazorDocumentOptions
+        // TO-DO: We should switch to a per-document implementation once Razor starts supporting .editorconfig.
+        var editorSettings = _editorSettingsManager.Current;
+        return Task.FromResult<IRazorDocumentOptions>(new RazorDocumentOptions(document, editorSettings));
+    }
+
+    private sealed class RazorDocumentOptions : IRazorDocumentOptions
+    {
+        private readonly EditorSettings _editorSettings;
+        private readonly OptionKey _useTabsOptionKey;
+        private readonly OptionKey _tabSizeOptionKey;
+        private readonly OptionKey _indentationSizeOptionKey;
+
+        public RazorDocumentOptions(Document document, EditorSettings editorSettings)
         {
-            private readonly EditorSettings _editorSettings;
-            private readonly OptionKey _useTabsOptionKey;
-            private readonly OptionKey _tabSizeOptionKey;
-            private readonly OptionKey _indentationSizeOptionKey;
+            _editorSettings = editorSettings;
 
-            public RazorDocumentOptions(Document document, EditorSettings editorSettings)
+            _useTabsOptionKey = new OptionKey(FormattingOptions.UseTabs, document.Project.Language);
+            _tabSizeOptionKey = new OptionKey(FormattingOptions.TabSize, document.Project.Language);
+            _indentationSizeOptionKey = new OptionKey(FormattingOptions.IndentationSize, document.Project.Language);
+        }
+
+        public bool TryGetDocumentOption(OptionKey option, [NotNullWhen(true)] out object? value)
+        {
+            if (option == _useTabsOptionKey)
             {
-                _editorSettings = editorSettings;
-
-                _useTabsOptionKey = new OptionKey(FormattingOptions.UseTabs, document.Project.Language);
-                _tabSizeOptionKey = new OptionKey(FormattingOptions.TabSize, document.Project.Language);
-                _indentationSizeOptionKey = new OptionKey(FormattingOptions.IndentationSize, document.Project.Language);
+                value = _editorSettings.IndentWithTabs;
+                return true;
             }
-
-            public bool TryGetDocumentOption(OptionKey option, [NotNullWhen(true)] out object? value)
+            else if (option == _tabSizeOptionKey || option == _indentationSizeOptionKey)
             {
-                if (option == _useTabsOptionKey)
-                {
-                    value = _editorSettings.IndentWithTabs;
-                    return true;
-                }
-                else if (option == _tabSizeOptionKey || option == _indentationSizeOptionKey)
-                {
-                    value = _editorSettings.IndentSize;
-                    return true;
-                }
-                else
-                {
-                    value = null;
-                    return false;
-                }
+                value = _editorSettings.IndentSize;
+                return true;
+            }
+            else
+            {
+                value = null;
+                return false;
             }
         }
     }

@@ -5,18 +5,17 @@ using System;
 using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Text.Projection;
 
-namespace Microsoft.VisualStudio.Text
-{
-    internal static class BufferGraphExtensions
-    {
-        public static Collection<ITextBuffer> GetRazorBuffers(this IBufferGraph bufferGraph)
-        {
-            if (bufferGraph is null)
-            {
-                throw new ArgumentNullException(nameof(bufferGraph));
-            }
+namespace Microsoft.VisualStudio.Text;
 
-            return bufferGraph.GetTextBuffers(TextBufferExtensions.IsLegacyCoreRazorBuffer);
+internal static class BufferGraphExtensions
+{
+    public static Collection<ITextBuffer> GetRazorBuffers(this IBufferGraph bufferGraph)
+    {
+        if (bufferGraph is null)
+        {
+            throw new ArgumentNullException(nameof(bufferGraph));
         }
+
+        return bufferGraph.GetTextBuffers(TextBufferExtensions.IsLegacyCoreRazorBuffer);
     }
 }

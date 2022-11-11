@@ -7,54 +7,53 @@ using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.Razor.Serialization
-{
-    internal class RazorExtensionJsonConverter : JsonConverter
-    {
-        public static readonly RazorExtensionJsonConverter Instance = new RazorExtensionJsonConverter();
+namespace Microsoft.CodeAnalysis.Razor.Serialization;
 
-        public override bool CanConvert(Type objectType)
+internal class RazorExtensionJsonConverter : JsonConverter
+{
+    public static readonly RazorExtensionJsonConverter Instance = new RazorExtensionJsonConverter();
+
+    public override bool CanConvert(Type objectType)
+    {
+        return typeof(RazorExtension).IsAssignableFrom(objectType);
+    }
+
+    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+    {
+        if (reader.TokenType != JsonToken.StartObject)
         {
-            return typeof(RazorExtension).IsAssignableFrom(objectType);
+            return null;
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        var (_, extensionName) = reader.ReadProperties(static (propertyName, arg) =>
         {
-            if (reader.TokenType != JsonToken.StartObject)
+            var (reader, extensionName) = (arg.reader, arg.extensionName);
+            switch (propertyName)
             {
-                return null;
+                case nameof(RazorExtension.ExtensionName):
+                    if (reader.Read())
+                    {
+                        extensionName = (string)reader.Value;
+                    }
+
+                    break;
             }
 
-            var (_, extensionName) = reader.ReadProperties(static (propertyName, arg) =>
-            {
-                var (reader, extensionName) = (arg.reader, arg.extensionName);
-                switch (propertyName)
-                {
-                    case nameof(RazorExtension.ExtensionName):
-                        if (reader.Read())
-                        {
-                            extensionName = (string)reader.Value;
-                        }
+            return (reader, extensionName);
+        }, (reader, extensionName: string.Empty));
 
-                        break;
-                }
+        return new SerializedRazorExtension(extensionName);
+    }
 
-                return (reader, extensionName);
-            }, (reader, extensionName: string.Empty));
+    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    {
+        var extension = (RazorExtension)value;
 
-            return new SerializedRazorExtension(extensionName);
-        }
+        writer.WriteStartObject();
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            var extension = (RazorExtension)value;
+        writer.WritePropertyName(nameof(RazorExtension.ExtensionName));
+        writer.WriteValue(extension.ExtensionName);
 
-            writer.WriteStartObject();
-
-            writer.WritePropertyName(nameof(RazorExtension.ExtensionName));
-            writer.WriteValue(extension.ExtensionName);
-
-            writer.WriteEndObject();
-        }
+        writer.WriteEndObject();
     }
 }

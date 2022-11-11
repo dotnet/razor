@@ -6,63 +6,62 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+internal class DefaultVisualStudioRazorParserFactory : VisualStudioRazorParserFactory
 {
-    internal class DefaultVisualStudioRazorParserFactory : VisualStudioRazorParserFactory
+    private readonly JoinableTaskContext _joinableTaskContext;
+    private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
+    private readonly VisualStudioCompletionBroker _completionBroker;
+    private readonly ErrorReporter _errorReporter;
+
+    public DefaultVisualStudioRazorParserFactory(
+        JoinableTaskContext joinableTaskContext,
+        ErrorReporter errorReporter,
+        VisualStudioCompletionBroker completionBroker,
+        ProjectSnapshotProjectEngineFactory projectEngineFactory)
     {
-        private readonly JoinableTaskContext _joinableTaskContext;
-        private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
-        private readonly VisualStudioCompletionBroker _completionBroker;
-        private readonly ErrorReporter _errorReporter;
-
-        public DefaultVisualStudioRazorParserFactory(
-            JoinableTaskContext joinableTaskContext,
-            ErrorReporter errorReporter,
-            VisualStudioCompletionBroker completionBroker,
-            ProjectSnapshotProjectEngineFactory projectEngineFactory)
+        if (joinableTaskContext is null)
         {
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            if (errorReporter is null)
-            {
-                throw new ArgumentNullException(nameof(errorReporter));
-            }
-
-            if (completionBroker is null)
-            {
-                throw new ArgumentNullException(nameof(completionBroker));
-            }
-
-            if (projectEngineFactory is null)
-            {
-                throw new ArgumentNullException(nameof(projectEngineFactory));
-            }
-
-            _joinableTaskContext = joinableTaskContext;
-            _errorReporter = errorReporter;
-            _completionBroker = completionBroker;
-            _projectEngineFactory = projectEngineFactory;
+            throw new ArgumentNullException(nameof(joinableTaskContext));
         }
 
-        public override VisualStudioRazorParser Create(VisualStudioDocumentTracker documentTracker)
+        if (errorReporter is null)
         {
-            if (documentTracker is null)
-            {
-                throw new ArgumentNullException(nameof(documentTracker));
-            }
-
-            _joinableTaskContext.AssertUIThread();
-
-            var parser = new DefaultVisualStudioRazorParser(
-                _joinableTaskContext,
-                documentTracker,
-                _projectEngineFactory,
-                _errorReporter,
-                _completionBroker);
-            return parser;
+            throw new ArgumentNullException(nameof(errorReporter));
         }
+
+        if (completionBroker is null)
+        {
+            throw new ArgumentNullException(nameof(completionBroker));
+        }
+
+        if (projectEngineFactory is null)
+        {
+            throw new ArgumentNullException(nameof(projectEngineFactory));
+        }
+
+        _joinableTaskContext = joinableTaskContext;
+        _errorReporter = errorReporter;
+        _completionBroker = completionBroker;
+        _projectEngineFactory = projectEngineFactory;
+    }
+
+    public override VisualStudioRazorParser Create(VisualStudioDocumentTracker documentTracker)
+    {
+        if (documentTracker is null)
+        {
+            throw new ArgumentNullException(nameof(documentTracker));
+        }
+
+        _joinableTaskContext.AssertUIThread();
+
+        var parser = new DefaultVisualStudioRazorParser(
+            _joinableTaskContext,
+            documentTracker,
+            _projectEngineFactory,
+            _errorReporter,
+            _completionBroker);
+        return parser;
     }
 }

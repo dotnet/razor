@@ -7,16 +7,15 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.Remote.Razor
+namespace Microsoft.CodeAnalysis.Remote.Razor;
+
+internal static class RazorServiceDescriptors
 {
-    internal static class RazorServiceDescriptors
-    {
-        private const string ComponentName = "Razor";
+    private const string ComponentName = "Razor";
 
-        private static readonly ImmutableArray<JsonConverter> s_jsonConverters = new JsonConverterCollection()
-            .RegisterRazorConverters()
-            .ToImmutableArray();
+    private static readonly ImmutableArray<JsonConverter> s_jsonConverters = new JsonConverterCollection()
+        .RegisterRazorConverters()
+        .ToImmutableArray();
 
-        public static readonly RazorServiceDescriptorsWrapper TagHelperProviderServiceDescriptors = new(ComponentName, _ => "Razor TagHelper Provider", s_jsonConverters, new (Type, Type?)[] { (typeof(IRemoteTagHelperProviderService), null) });
-    }
+    public static readonly RazorServiceDescriptorsWrapper TagHelperProviderServiceDescriptors = new(ComponentName, _ => "Razor TagHelper Provider", s_jsonConverters, new (Type, Type?)[] { (typeof(IRemoteTagHelperProviderService), null) });
 }

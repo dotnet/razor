@@ -9,69 +9,68 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using System.Linq;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+
+internal class AggregateCompletionItemResolver
 {
-    internal class AggregateCompletionItemResolver
+    private readonly IReadOnlyList<CompletionItemResolver> _completionItemResolvers;
+    private readonly ILogger<AggregateCompletionItemResolver> _logger;
+
+    public AggregateCompletionItemResolver(IEnumerable<CompletionItemResolver> completionItemResolvers, ILoggerFactory loggerFactory)
     {
-        private readonly IReadOnlyList<CompletionItemResolver> _completionItemResolvers;
-        private readonly ILogger<AggregateCompletionItemResolver> _logger;
+        _completionItemResolvers = completionItemResolvers.ToArray();
+        _logger = loggerFactory.CreateLogger<AggregateCompletionItemResolver>();
+    }
 
-        public AggregateCompletionItemResolver(IEnumerable<CompletionItemResolver> completionItemResolvers, ILoggerFactory loggerFactory)
+    public async Task<VSInternalCompletionItem?> ResolveAsync(
+        VSInternalCompletionItem item,
+        VSInternalCompletionList containingCompletionList,
+        object? originalRequestContext,
+        VSInternalClientCapabilities? clientCapabilities,
+        CancellationToken cancellationToken)
+    {
+        var completionItemResolverTasks = new List<Task<VSInternalCompletionItem?>>(_completionItemResolvers.Count);
+
+        foreach (var completionItemResolver in _completionItemResolvers)
         {
-            _completionItemResolvers = completionItemResolvers.ToArray();
-            _logger = loggerFactory.CreateLogger<AggregateCompletionItemResolver>();
+            try
+            {
+                var task = completionItemResolver.ResolveAsync(item, containingCompletionList, originalRequestContext, clientCapabilities, cancellationToken);
+                completionItemResolverTasks.Add(task);
+            }
+            catch (Exception ex) when (ex is not TaskCanceledException)
+            {
+                _logger.LogError(ex, "Resolving completion item failed synchronously unexpectedly.");
+            }
         }
 
-        public async Task<VSInternalCompletionItem?> ResolveAsync(
-            VSInternalCompletionItem item,
-            VSInternalCompletionList containingCompletionList,
-            object? originalRequestContext,
-            VSInternalClientCapabilities? clientCapabilities,
-            CancellationToken cancellationToken)
+        var resolvedCompletionItems = new Queue<VSInternalCompletionItem>();
+        foreach (var completionItemResolverTask in completionItemResolverTasks)
         {
-            var completionItemResolverTasks = new List<Task<VSInternalCompletionItem?>>(_completionItemResolvers.Count);
-
-            foreach (var completionItemResolver in _completionItemResolvers)
+            try
             {
-                try
+                var resolvedCompletionItem = await completionItemResolverTask.ConfigureAwait(false);
+                if (resolvedCompletionItem is not null)
                 {
-                    var task = completionItemResolver.ResolveAsync(item, containingCompletionList, originalRequestContext, clientCapabilities, cancellationToken);
-                    completionItemResolverTasks.Add(task);
+                    resolvedCompletionItems.Enqueue(resolvedCompletionItem);
                 }
-                catch (Exception ex) when (ex is not TaskCanceledException)
-                {
-                    _logger.LogError(ex, "Resolving completion item failed synchronously unexpectedly.");
-                }
-            }
 
-            var resolvedCompletionItems = new Queue<VSInternalCompletionItem>();
-            foreach (var completionItemResolverTask in completionItemResolverTasks)
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                try
-                {
-                    var resolvedCompletionItem = await completionItemResolverTask.ConfigureAwait(false);
-                    if (resolvedCompletionItem is not null)
-                    {
-                        resolvedCompletionItems.Enqueue(resolvedCompletionItem);
-                    }
-
-                    cancellationToken.ThrowIfCancellationRequested();
-                }
-                catch (Exception ex) when (ex is not OperationCanceledException)
-                {
-                    _logger.LogError(ex, "Resolving completion item failed unexpectedly.");
-                }
+                _logger.LogError(ex, "Resolving completion item failed unexpectedly.");
             }
-
-            if (resolvedCompletionItems.Count == 0)
-            {
-                return null;
-            }
-
-            // We don't currently handle merging completion items because it's very rare for more than one resolution to take place.
-            // Instead we'll prioritized the last completion item resolved.
-            var finalCompletionItem = resolvedCompletionItems.Last();
-            return finalCompletionItem;
         }
+
+        if (resolvedCompletionItems.Count == 0)
+        {
+            return null;
+        }
+
+        // We don't currently handle merging completion items because it's very rare for more than one resolution to take place.
+        // Instead we'll prioritized the last completion item resolved.
+        var finalCompletionItem = resolvedCompletionItems.Last();
+        return finalCompletionItem;
     }
 }

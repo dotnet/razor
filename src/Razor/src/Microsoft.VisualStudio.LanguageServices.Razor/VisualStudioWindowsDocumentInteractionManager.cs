@@ -7,17 +7,16 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor
-{
-    [Shared]
-    [Export(typeof(DocumentInteractionManager))]
-    internal class VisualStudioWindowsDocumentInteractionManager : DocumentInteractionManager
-    {
-        public override Task OpenDocumentAsync(string filePath, CancellationToken cancellationToken)
-        {
-            VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, filePath);
+namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
-            return Task.CompletedTask;
-        }
+[Shared]
+[Export(typeof(DocumentInteractionManager))]
+internal class VisualStudioWindowsDocumentInteractionManager : DocumentInteractionManager
+{
+    public override Task OpenDocumentAsync(string filePath, CancellationToken cancellationToken)
+    {
+        VsShellUtilities.OpenDocument(ServiceProvider.GlobalProvider, filePath);
+
+        return Task.CompletedTask;
     }
 }

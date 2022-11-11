@@ -5,14 +5,13 @@ using System;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+internal abstract class ErrorReporter : IWorkspaceService
 {
-    internal abstract class ErrorReporter : IWorkspaceService
-    {
-        public abstract void ReportError(Exception exception);
+    public abstract void ReportError(Exception exception);
 
-        public abstract void ReportError(Exception exception, ProjectSnapshot? project);
+    public abstract void ReportError(Exception exception, ProjectSnapshot? project);
 
-        public abstract void ReportError(Exception exception, Project workspaceProject);
-    }
+    public abstract void ReportError(Exception exception, Project workspaceProject);
 }

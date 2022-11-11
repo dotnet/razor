@@ -3,10 +3,9 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion
+namespace Microsoft.CodeAnalysis.Razor.Completion;
+
+internal abstract class RazorCompletionItemProvider
 {
-    internal abstract class RazorCompletionItemProvider
-    {
-        public abstract IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context);
-    }
+    public abstract IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context);
 }

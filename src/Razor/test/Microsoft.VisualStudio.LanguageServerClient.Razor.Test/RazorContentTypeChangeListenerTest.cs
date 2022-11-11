@@ -17,219 +17,218 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+
+public class RazorContentTypeChangeListenerTest : TestBase
 {
-    public class RazorContentTypeChangeListenerTest : TestBase
+    private readonly IContentType _nonRazorContentType;
+    private readonly IContentType _razorContentType;
+    private readonly ITextBuffer _razorBuffer;
+    private readonly ITextDocument _razorTextDocument;
+    private readonly ITextBuffer _disposedRazorBuffer;
+
+    public RazorContentTypeChangeListenerTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly IContentType _nonRazorContentType;
-        private readonly IContentType _razorContentType;
-        private readonly ITextBuffer _razorBuffer;
-        private readonly ITextDocument _razorTextDocument;
-        private readonly ITextBuffer _disposedRazorBuffer;
+        _nonRazorContentType = Mock.Of<IContentType>(
+            c => c.IsOfType(It.IsAny<string>()) == false,
+            MockBehavior.Strict);
 
-        public RazorContentTypeChangeListenerTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-            _nonRazorContentType = Mock.Of<IContentType>(
-                c => c.IsOfType(It.IsAny<string>()) == false,
-                MockBehavior.Strict);
+        _razorContentType = Mock.Of<IContentType>(
+            c => c.IsOfType(RazorConstants.RazorLSPContentTypeName) == true,
+            MockBehavior.Strict);
 
-            _razorContentType = Mock.Of<IContentType>(
-                c => c.IsOfType(RazorConstants.RazorLSPContentTypeName) == true,
-                MockBehavior.Strict);
+        _razorBuffer ??= Mock.Of<ITextBuffer>(
+            b => b.ContentType == _razorContentType && b.Properties == new PropertyCollection(),
+            MockBehavior.Strict);
 
-            _razorBuffer ??= Mock.Of<ITextBuffer>(
-                b => b.ContentType == _razorContentType && b.Properties == new PropertyCollection(),
-                MockBehavior.Strict);
+        _disposedRazorBuffer ??= Mock.Of<ITextBuffer>(
+            b => b.ContentType == _nonRazorContentType && b.Properties == new PropertyCollection(),
+            MockBehavior.Strict);
 
-            _disposedRazorBuffer ??= Mock.Of<ITextBuffer>(
-                b => b.ContentType == _nonRazorContentType && b.Properties == new PropertyCollection(),
-                MockBehavior.Strict);
+        _razorTextDocument = Mock.Of<ITextDocument>(
+            td => td.TextBuffer == _razorBuffer && td.FilePath == "C:/path/to/file.razor",
+            MockBehavior.Strict);
+    }
 
-            _razorTextDocument = Mock.Of<ITextDocument>(
-                td => td.TextBuffer == _razorBuffer && td.FilePath == "C:/path/to/file.razor",
-                MockBehavior.Strict);
-        }
+    [Fact]
+    public void RazorBufferCreated_TracksDocument()
+    {
+        // Arrange
+        var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+        lspDocumentManager.Setup(manager => manager.TrackDocument(It.IsAny<ITextBuffer>()))
+            .Verifiable();
+        var listener = CreateListener(lspDocumentManager.Object);
 
-        [Fact]
-        public void RazorBufferCreated_TracksDocument()
-        {
-            // Arrange
-            var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-            lspDocumentManager.Setup(manager => manager.TrackDocument(It.IsAny<ITextBuffer>()))
-                .Verifiable();
-            var listener = CreateListener(lspDocumentManager.Object);
+        // Act
+        listener.RazorBufferCreated(_razorBuffer);
 
-            // Act
-            listener.RazorBufferCreated(_razorBuffer);
+        // Assert
+        lspDocumentManager.VerifyAll();
+    }
 
-            // Assert
-            lspDocumentManager.VerifyAll();
-        }
+    [Fact]
+    public void RazorBufferCreated_RemoteClient_DoesNotTrackDocument()
+    {
+        // Arrange
+        var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+        lspDocumentManager.Setup(manager => manager.TrackDocument(It.IsAny<ITextBuffer>()))
+            .Throws<XunitException>();
+        var featureDetector = Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsRemoteClient() == true, MockBehavior.Strict);
+        var listener = CreateListener(lspDocumentManager.Object, featureDetector);
 
-        [Fact]
-        public void RazorBufferCreated_RemoteClient_DoesNotTrackDocument()
-        {
-            // Arrange
-            var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-            lspDocumentManager.Setup(manager => manager.TrackDocument(It.IsAny<ITextBuffer>()))
-                .Throws<XunitException>();
-            var featureDetector = Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsRemoteClient() == true, MockBehavior.Strict);
-            var listener = CreateListener(lspDocumentManager.Object, featureDetector);
+        // Act & Assert
+        listener.RazorBufferCreated(_razorBuffer);
+    }
 
-            // Act & Assert
-            listener.RazorBufferCreated(_razorBuffer);
-        }
+    [Fact]
+    public void RazorBufferDisposed_Untracks()
+    {
+        // Arrange
+        var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+        lspDocumentManager.Setup(manager => manager.UntrackDocument(It.IsAny<ITextBuffer>()))
+            .Verifiable();
+        var listener = CreateListener(lspDocumentManager.Object);
 
-        [Fact]
-        public void RazorBufferDisposed_Untracks()
-        {
-            // Arrange
-            var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-            lspDocumentManager.Setup(manager => manager.UntrackDocument(It.IsAny<ITextBuffer>()))
-                .Verifiable();
-            var listener = CreateListener(lspDocumentManager.Object);
+        // Act
+        listener.RazorBufferDisposed(_disposedRazorBuffer);
 
-            // Act
-            listener.RazorBufferDisposed(_disposedRazorBuffer);
+        // Assert
+        lspDocumentManager.VerifyAll();
+    }
 
-            // Assert
-            lspDocumentManager.VerifyAll();
-        }
+    [Theory]
+    [InlineData(FileActionTypes.ContentSavedToDisk)]
+    [InlineData(FileActionTypes.ContentLoadedFromDisk)]
+    public void TextDocument_FileActionOccurred_NonRenameEvent_Noops(FileActionTypes fileActionType)
+    {
+        // Arrange
+        var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+        lspDocumentManager.Setup(manager => manager.TrackDocument(It.IsAny<ITextBuffer>()))
+            .Throws<XunitException>();
+        lspDocumentManager.Setup(manager => manager.UntrackDocument(It.IsAny<ITextBuffer>()))
+            .Throws<XunitException>();
+        var listener = CreateListener(lspDocumentManager.Object);
+        var args = new TextDocumentFileActionEventArgs("C:/path/to/file.razor", DateTime.UtcNow, fileActionType);
 
-        [Theory]
-        [InlineData(FileActionTypes.ContentSavedToDisk)]
-        [InlineData(FileActionTypes.ContentLoadedFromDisk)]
-        public void TextDocument_FileActionOccurred_NonRenameEvent_Noops(FileActionTypes fileActionType)
-        {
-            // Arrange
-            var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-            lspDocumentManager.Setup(manager => manager.TrackDocument(It.IsAny<ITextBuffer>()))
-                .Throws<XunitException>();
-            lspDocumentManager.Setup(manager => manager.UntrackDocument(It.IsAny<ITextBuffer>()))
-                .Throws<XunitException>();
-            var listener = CreateListener(lspDocumentManager.Object);
-            var args = new TextDocumentFileActionEventArgs("C:/path/to/file.razor", DateTime.UtcNow, fileActionType);
+        // Act & Assert
+        listener.TextDocument_FileActionOccurred(_razorTextDocument, args);
+    }
 
-            // Act & Assert
-            listener.TextDocument_FileActionOccurred(_razorTextDocument, args);
-        }
+    [Fact]
+    public void TextDocument_FileActionOccurred_NonTextDocument_Noops()
+    {
+        // Arrange
+        var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+        lspDocumentManager.Setup(manager => manager.TrackDocument(It.IsAny<ITextBuffer>()))
+            .Throws<XunitException>();
+        lspDocumentManager.Setup(manager => manager.UntrackDocument(It.IsAny<ITextBuffer>()))
+            .Throws<XunitException>();
+        var listener = CreateListener(lspDocumentManager.Object);
+        var args = new TextDocumentFileActionEventArgs("C:/path/to/file.razor", DateTime.UtcNow, FileActionTypes.DocumentRenamed);
 
-        [Fact]
-        public void TextDocument_FileActionOccurred_NonTextDocument_Noops()
-        {
-            // Arrange
-            var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-            lspDocumentManager.Setup(manager => manager.TrackDocument(It.IsAny<ITextBuffer>()))
-                .Throws<XunitException>();
-            lspDocumentManager.Setup(manager => manager.UntrackDocument(It.IsAny<ITextBuffer>()))
-                .Throws<XunitException>();
-            var listener = CreateListener(lspDocumentManager.Object);
-            var args = new TextDocumentFileActionEventArgs("C:/path/to/file.razor", DateTime.UtcNow, FileActionTypes.DocumentRenamed);
+        // Act & Assert
+        listener.TextDocument_FileActionOccurred(_razorBuffer, args);
+    }
 
-            // Act & Assert
-            listener.TextDocument_FileActionOccurred(_razorBuffer, args);
-        }
+    [Fact]
+    public void TextDocument_FileActionOccurred_NoAssociatedBuffer_Noops()
+    {
+        // Arrange
+        var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+        lspDocumentManager.Setup(manager => manager.TrackDocument(It.IsAny<ITextBuffer>()))
+            .Throws<XunitException>();
+        lspDocumentManager.Setup(manager => manager.UntrackDocument(It.IsAny<ITextBuffer>()))
+            .Throws<XunitException>();
+        var listener = CreateListener(lspDocumentManager.Object);
+        var args = new TextDocumentFileActionEventArgs("C:/path/to/file.razor", DateTime.UtcNow, FileActionTypes.DocumentRenamed);
+        var textDocument = new Mock<ITextDocument>(MockBehavior.Strict).Object;
+        Mock.Get(textDocument).SetupGet(d => d.TextBuffer).Returns(value: null);
 
-        [Fact]
-        public void TextDocument_FileActionOccurred_NoAssociatedBuffer_Noops()
-        {
-            // Arrange
-            var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-            lspDocumentManager.Setup(manager => manager.TrackDocument(It.IsAny<ITextBuffer>()))
-                .Throws<XunitException>();
-            lspDocumentManager.Setup(manager => manager.UntrackDocument(It.IsAny<ITextBuffer>()))
-                .Throws<XunitException>();
-            var listener = CreateListener(lspDocumentManager.Object);
-            var args = new TextDocumentFileActionEventArgs("C:/path/to/file.razor", DateTime.UtcNow, FileActionTypes.DocumentRenamed);
-            var textDocument = new Mock<ITextDocument>(MockBehavior.Strict).Object;
-            Mock.Get(textDocument).SetupGet(d => d.TextBuffer).Returns(value: null);
+        // Act & Assert
+        listener.TextDocument_FileActionOccurred(textDocument, args);
+    }
 
-            // Act & Assert
-            listener.TextDocument_FileActionOccurred(textDocument, args);
-        }
+    [Fact]
+    public void TextDocument_FileActionOccurred_Rename_UntracksAndThenTracks()
+    {
+        // Arrange
+        var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+        var tracked = false;
+        var untracked = false;
+        lspDocumentManager.Setup(manager => manager.TrackDocument(It.IsAny<ITextBuffer>()))
+            .Callback(() =>
+            {
+                Assert.False(tracked);
+                Assert.True(untracked);
 
-        [Fact]
-        public void TextDocument_FileActionOccurred_Rename_UntracksAndThenTracks()
-        {
-            // Arrange
-            var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-            var tracked = false;
-            var untracked = false;
-            lspDocumentManager.Setup(manager => manager.TrackDocument(It.IsAny<ITextBuffer>()))
-                .Callback(() =>
-                {
-                    Assert.False(tracked);
-                    Assert.True(untracked);
+                tracked = true;
+            })
+            .Verifiable();
+        lspDocumentManager.Setup(manager => manager.UntrackDocument(It.IsAny<ITextBuffer>()))
+            .Callback(() =>
+            {
+                Assert.False(tracked);
+                Assert.False(untracked);
+                untracked = true;
+            })
+            .Verifiable();
+        var listener = CreateListener(lspDocumentManager.Object);
+        var args = new TextDocumentFileActionEventArgs("C:/path/to/file.razor", DateTime.UtcNow, FileActionTypes.DocumentRenamed);
 
-                    tracked = true;
-                })
-                .Verifiable();
-            lspDocumentManager.Setup(manager => manager.UntrackDocument(It.IsAny<ITextBuffer>()))
-                .Callback(() =>
-                {
-                    Assert.False(tracked);
-                    Assert.False(untracked);
-                    untracked = true;
-                })
-                .Verifiable();
-            var listener = CreateListener(lspDocumentManager.Object);
-            var args = new TextDocumentFileActionEventArgs("C:/path/to/file.razor", DateTime.UtcNow, FileActionTypes.DocumentRenamed);
+        // Act
+        listener.TextDocument_FileActionOccurred(_razorTextDocument, args);
 
-            // Act
-            listener.TextDocument_FileActionOccurred(_razorTextDocument, args);
+        // Assert
+        lspDocumentManager.VerifyAll();
+    }
 
-            // Assert
-            lspDocumentManager.VerifyAll();
-        }
+    [Fact]
+    public void TextDocument_FileActionOccurred_Rename_UntracksOnlyIfNotRenamedToRazorContentType()
+    {
+        // Arrange
+        var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+        var fileToContentTypeService = Mock.Of<IFileToContentTypeService>(detector => detector.GetContentTypeForFilePath(It.IsAny<string>()) == _nonRazorContentType, MockBehavior.Strict);
+        var tracked = false;
+        var untracked = false;
+        lspDocumentManager.Setup(manager => manager.UntrackDocument(It.IsAny<ITextBuffer>()))
+            .Callback(() =>
+            {
+                Assert.False(tracked);
+                Assert.False(untracked);
+                untracked = true;
+            })
+            .Verifiable();
+        var listener = CreateListener(lspDocumentManager.Object, fileToContentTypeService: fileToContentTypeService);
+        var args = new TextDocumentFileActionEventArgs("C:/path/to/file.razor", DateTime.UtcNow, FileActionTypes.DocumentRenamed);
 
-        [Fact]
-        public void TextDocument_FileActionOccurred_Rename_UntracksOnlyIfNotRenamedToRazorContentType()
-        {
-            // Arrange
-            var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-            var fileToContentTypeService = Mock.Of<IFileToContentTypeService>(detector => detector.GetContentTypeForFilePath(It.IsAny<string>()) == _nonRazorContentType, MockBehavior.Strict);
-            var tracked = false;
-            var untracked = false;
-            lspDocumentManager.Setup(manager => manager.UntrackDocument(It.IsAny<ITextBuffer>()))
-                .Callback(() =>
-                {
-                    Assert.False(tracked);
-                    Assert.False(untracked);
-                    untracked = true;
-                })
-                .Verifiable();
-            var listener = CreateListener(lspDocumentManager.Object, fileToContentTypeService: fileToContentTypeService);
-            var args = new TextDocumentFileActionEventArgs("C:/path/to/file.razor", DateTime.UtcNow, FileActionTypes.DocumentRenamed);
+        // Act
+        listener.TextDocument_FileActionOccurred(_razorTextDocument, args);
 
-            // Act
-            listener.TextDocument_FileActionOccurred(_razorTextDocument, args);
+        // Assert
+        lspDocumentManager.VerifyAll();
+    }
 
-            // Assert
-            lspDocumentManager.VerifyAll();
-        }
+    private RazorContentTypeChangeListener CreateListener(
+        TrackingLSPDocumentManager lspDocumentManager = null,
+        LSPEditorFeatureDetector lspEditorFeatureDetector = null,
+        IFileToContentTypeService fileToContentTypeService = null)
+    {
+        var textDocumentFactory = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict).Object;
+        Mock.Get(textDocumentFactory).Setup(f => f.TryGetTextDocument(It.IsAny<ITextBuffer>(), out It.Ref<ITextDocument>.IsAny)).Returns(false);
 
-        private RazorContentTypeChangeListener CreateListener(
-            TrackingLSPDocumentManager lspDocumentManager = null,
-            LSPEditorFeatureDetector lspEditorFeatureDetector = null,
-            IFileToContentTypeService fileToContentTypeService = null)
-        {
-            var textDocumentFactory = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict).Object;
-            Mock.Get(textDocumentFactory).Setup(f => f.TryGetTextDocument(It.IsAny<ITextBuffer>(), out It.Ref<ITextDocument>.IsAny)).Returns(false);
+        lspDocumentManager ??= Mock.Of<TrackingLSPDocumentManager>(MockBehavior.Strict);
+        lspEditorFeatureDetector ??= Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsLSPEditorAvailable(It.IsAny<string>(), null) == true && detector.IsRemoteClient() == false, MockBehavior.Strict);
+        fileToContentTypeService ??= Mock.Of<IFileToContentTypeService>(detector => detector.GetContentTypeForFilePath(It.IsAny<string>()) == _razorContentType, MockBehavior.Strict);
+        var textManager = new Mock<IVsTextManager2>(MockBehavior.Strict);
+        textManager.Setup(m => m.GetUserPreferences2(null, null, It.IsAny<LANGPREFERENCES2[]>(), null)).Returns(VSConstants.E_NOTIMPL);
+        var listener = new RazorContentTypeChangeListener(
+            textDocumentFactory,
+            lspDocumentManager,
+            lspEditorFeatureDetector,
+            Mock.Of<IEditorOptionsFactoryService>(s => s.GetOptions(It.IsAny<ITextBuffer>()) == Mock.Of<IEditorOptions>(MockBehavior.Strict), MockBehavior.Strict),
+            fileToContentTypeService);
 
-            lspDocumentManager ??= Mock.Of<TrackingLSPDocumentManager>(MockBehavior.Strict);
-            lspEditorFeatureDetector ??= Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsLSPEditorAvailable(It.IsAny<string>(), null) == true && detector.IsRemoteClient() == false, MockBehavior.Strict);
-            fileToContentTypeService ??= Mock.Of<IFileToContentTypeService>(detector => detector.GetContentTypeForFilePath(It.IsAny<string>()) == _razorContentType, MockBehavior.Strict);
-            var textManager = new Mock<IVsTextManager2>(MockBehavior.Strict);
-            textManager.Setup(m => m.GetUserPreferences2(null, null, It.IsAny<LANGPREFERENCES2[]>(), null)).Returns(VSConstants.E_NOTIMPL);
-            var listener = new RazorContentTypeChangeListener(
-                textDocumentFactory,
-                lspDocumentManager,
-                lspEditorFeatureDetector,
-                Mock.Of<IEditorOptionsFactoryService>(s => s.GetOptions(It.IsAny<ITextBuffer>()) == Mock.Of<IEditorOptions>(MockBehavior.Strict), MockBehavior.Strict),
-                fileToContentTypeService);
-
-            return listener;
-        }
+        return listener;
     }
 }

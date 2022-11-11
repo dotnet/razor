@@ -12,47 +12,46 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+public class RazorDidOpenTextDocumentEndpointTest : LanguageServerTestBase
 {
-    public class RazorDidOpenTextDocumentEndpointTest : LanguageServerTestBase
+    public RazorDidOpenTextDocumentEndpointTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        public RazorDidOpenTextDocumentEndpointTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+    }
 
-        // This is more of an integration test to validate that all the pieces work together
-        [Fact]
-        public async Task Handle_DidOpenTextDocument_AddsDocument()
-        {
-            // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
-            var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.OpenDocument(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<int>()))
-                .Callback<string, SourceText, int>((path, text, version) =>
-                {
-                    var resultString = GetString(text);
-                    Assert.Equal("hello", resultString);
-                    Assert.Equal(documentPath, path);
-                    Assert.Equal(1337, version);
-                });
-            var endpoint = new RazorDidOpenTextDocumentEndpoint(Dispatcher, projectService.Object);
-            var request = new DidOpenTextDocumentParams()
+    // This is more of an integration test to validate that all the pieces work together
+    [Fact]
+    public async Task Handle_DidOpenTextDocument_AddsDocument()
+    {
+        // Arrange
+        var documentPath = "C:/path/to/document.cshtml";
+        var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
+        projectService.Setup(service => service.OpenDocument(It.IsAny<string>(), It.IsAny<SourceText>(), It.IsAny<int>()))
+            .Callback<string, SourceText, int>((path, text, version) =>
             {
-                TextDocument = new TextDocumentItem()
-                {
-                    Text = "hello",
-                    Uri = new Uri(documentPath),
-                    Version = 1337,
-                }
-            };
-            var requestContext = CreateRazorRequestContext(documentContext: null);
+                var resultString = GetString(text);
+                Assert.Equal("hello", resultString);
+                Assert.Equal(documentPath, path);
+                Assert.Equal(1337, version);
+            });
+        var endpoint = new RazorDidOpenTextDocumentEndpoint(Dispatcher, projectService.Object);
+        var request = new DidOpenTextDocumentParams()
+        {
+            TextDocument = new TextDocumentItem()
+            {
+                Text = "hello",
+                Uri = new Uri(documentPath),
+                Version = 1337,
+            }
+        };
+        var requestContext = CreateRazorRequestContext(documentContext: null);
 
-            // Act
-            await endpoint.HandleNotificationAsync(request, requestContext, default);
+        // Act
+        await endpoint.HandleNotificationAsync(request, requestContext, default);
 
-            // Assert
-            projectService.VerifyAll();
-        }
+        // Assert
+        projectService.VerifyAll();
     }
 }

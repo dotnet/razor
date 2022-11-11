@@ -7,11 +7,10 @@ using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumT
     Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]>;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+[LanguageServerEndpoint(Methods.TextDocumentImplementationName)]
+internal interface IImplementationEndpoint : IRazorRequestHandler<TextDocumentPositionParamsBridge, ImplementationResult>,
+    IRegistrationExtension
 {
-    [LanguageServerEndpoint(Methods.TextDocumentImplementationName)]
-    internal interface IImplementationEndpoint : IRazorRequestHandler<TextDocumentPositionParamsBridge, ImplementationResult>,
-        IRegistrationExtension
-    {
-    }
 }

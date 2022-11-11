@@ -8,72 +8,71 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.LiveShare.Razor
+namespace Microsoft.VisualStudio.LiveShare.Razor;
+
+internal class RemoteHierarchyService : IRemoteHierarchyService
 {
-    internal class RemoteHierarchyService : IRemoteHierarchyService
+    private readonly CollaborationSession _session;
+    private readonly JoinableTaskFactory _joinableTaskFactory;
+
+    internal RemoteHierarchyService(CollaborationSession session, JoinableTaskFactory joinableTaskFactory)
     {
-        private readonly CollaborationSession _session;
-        private readonly JoinableTaskFactory _joinableTaskFactory;
-
-        internal RemoteHierarchyService(CollaborationSession session, JoinableTaskFactory joinableTaskFactory)
+        if (session is null)
         {
-            if (session is null)
-            {
-                throw new ArgumentNullException(nameof(session));
-            }
-
-            if (joinableTaskFactory is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskFactory));
-            }
-
-            _session = session;
-            _joinableTaskFactory = joinableTaskFactory;
+            throw new ArgumentNullException(nameof(session));
         }
 
-        public async Task<bool> HasCapabilityAsync(Uri pathOfFileInProject, string capability, CancellationToken cancellationToken)
+        if (joinableTaskFactory is null)
         {
-            if (pathOfFileInProject is null)
-            {
-                throw new ArgumentNullException(nameof(pathOfFileInProject));
-            }
+            throw new ArgumentNullException(nameof(joinableTaskFactory));
+        }
 
-            if (capability is null)
-            {
-                throw new ArgumentNullException(nameof(capability));
-            }
+        _session = session;
+        _joinableTaskFactory = joinableTaskFactory;
+    }
 
-            await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+    public async Task<bool> HasCapabilityAsync(Uri pathOfFileInProject, string capability, CancellationToken cancellationToken)
+    {
+        if (pathOfFileInProject is null)
+        {
+            throw new ArgumentNullException(nameof(pathOfFileInProject));
+        }
 
-            var hostPathOfFileInProject = _session.ConvertSharedUriToLocalPath(pathOfFileInProject);
-            if (ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShellOpenDocument)) is not IVsUIShellOpenDocument vsUIShellOpenDocument)
-            {
-                return false;
-            }
+        if (capability is null)
+        {
+            throw new ArgumentNullException(nameof(capability));
+        }
 
-            var hr = vsUIShellOpenDocument.IsDocumentInAProject(hostPathOfFileInProject, out var hierarchy, out _, out _, out _);
-            if (!ErrorHandler.Succeeded(hr) || hierarchy is null)
-            {
-                return false;
-            }
+        await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            try
-            {
-                var isCapabilityMatch = hierarchy.IsCapabilityMatch(capability);
-                return isCapabilityMatch;
-            }
-            catch (NotSupportedException)
-            {
-                // IsCapabilityMatch throws a NotSupportedException if it can't create a
-                // BooleanSymbolExpressionEvaluator COM object
-            }
-            catch (ObjectDisposedException)
-            {
-                // IsCapabilityMatch throws an ObjectDisposedException if the underlying
-                //    hierarchy has been disposed (Bug 253462)
-            }
-
+        var hostPathOfFileInProject = _session.ConvertSharedUriToLocalPath(pathOfFileInProject);
+        if (ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShellOpenDocument)) is not IVsUIShellOpenDocument vsUIShellOpenDocument)
+        {
             return false;
         }
+
+        var hr = vsUIShellOpenDocument.IsDocumentInAProject(hostPathOfFileInProject, out var hierarchy, out _, out _, out _);
+        if (!ErrorHandler.Succeeded(hr) || hierarchy is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            var isCapabilityMatch = hierarchy.IsCapabilityMatch(capability);
+            return isCapabilityMatch;
+        }
+        catch (NotSupportedException)
+        {
+            // IsCapabilityMatch throws a NotSupportedException if it can't create a
+            // BooleanSymbolExpressionEvaluator COM object
+        }
+        catch (ObjectDisposedException)
+        {
+            // IsCapabilityMatch throws an ObjectDisposedException if the underlying
+            //    hierarchy has been disposed (Bug 253462)
+        }
+
+        return false;
     }
 }

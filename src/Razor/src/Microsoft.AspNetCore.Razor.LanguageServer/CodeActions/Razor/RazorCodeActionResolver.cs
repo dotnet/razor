@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
+internal abstract class RazorCodeActionResolver : BaseCodeActionResolver
 {
-    internal abstract class RazorCodeActionResolver : BaseCodeActionResolver
-    {
-        public abstract Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken);
-    }
+    public abstract Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken);
 }

@@ -3,36 +3,35 @@
 
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+/// <summary>
+/// Sends a 'workspace\semanticTokens\refresh' request each time the project changes.
+/// </summary>
+internal class DefaultWorkspaceSemanticTokensRefreshTrigger : ProjectSnapshotChangeTrigger
 {
-    /// <summary>
-    /// Sends a 'workspace\semanticTokens\refresh' request each time the project changes.
-    /// </summary>
-    internal class DefaultWorkspaceSemanticTokensRefreshTrigger : ProjectSnapshotChangeTrigger
+    private readonly WorkspaceSemanticTokensRefreshPublisher _publisher;
+    private ProjectSnapshotManagerBase? _projectSnapshotManager;
+
+    public DefaultWorkspaceSemanticTokensRefreshTrigger(WorkspaceSemanticTokensRefreshPublisher workspaceSemanticTokensRefreshPublisher)
     {
-        private readonly WorkspaceSemanticTokensRefreshPublisher _publisher;
-        private ProjectSnapshotManagerBase? _projectSnapshotManager;
+        _publisher = workspaceSemanticTokensRefreshPublisher;
+    }
 
-        public DefaultWorkspaceSemanticTokensRefreshTrigger(WorkspaceSemanticTokensRefreshPublisher workspaceSemanticTokensRefreshPublisher)
-        {
-            _publisher = workspaceSemanticTokensRefreshPublisher;
-        }
+    public override void Initialize(ProjectSnapshotManagerBase projectManager)
+    {
+        _projectSnapshotManager = projectManager;
+        _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
+    }
 
-        public override void Initialize(ProjectSnapshotManagerBase projectManager)
+    // Does not handle C# files
+    private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
+    {
+        // Don't send for a simple Document edit. The platform should re-request any range that
+        // is edited and if a parameter or type change is made it should be reflected as a ProjectChanged.
+        if (args.Kind != ProjectChangeKind.DocumentChanged)
         {
-            _projectSnapshotManager = projectManager;
-            _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
-        }
-
-        // Does not handle C# files
-        private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
-        {
-            // Don't send for a simple Document edit. The platform should re-request any range that
-            // is edited and if a parameter or type change is made it should be reflected as a ProjectChanged.
-            if (args.Kind != ProjectChangeKind.DocumentChanged)
-            {
-                _publisher.EnqueueWorkspaceSemanticTokensRefresh();
-            }
+            _publisher.EnqueueWorkspaceSemanticTokensRefresh();
         }
     }
 }

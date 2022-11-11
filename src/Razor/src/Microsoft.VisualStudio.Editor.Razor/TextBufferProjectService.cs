@@ -3,18 +3,17 @@
 
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+internal abstract class TextBufferProjectService
 {
-    internal abstract class TextBufferProjectService
-    {
-        public abstract object? GetHostProject(ITextBuffer textBuffer);
+    public abstract object? GetHostProject(ITextBuffer textBuffer);
 
-        public abstract object? GetHostProject(string documentFilePath);
+    public abstract object? GetHostProject(string documentFilePath);
 
-        public abstract bool IsSupportedProject(object project);
+    public abstract bool IsSupportedProject(object project);
 
-        public abstract string GetProjectPath(object project);
+    public abstract string GetProjectPath(object project);
 
-        public abstract string? GetProjectName(object project);
-    }
+    public abstract string? GetProjectName(object project);
 }

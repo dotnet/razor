@@ -4,16 +4,15 @@
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+
+internal class RazorLanguageQueryResponse
 {
-    internal class RazorLanguageQueryResponse
-    {
-        public RazorLanguageKind Kind { get; init; }
+    public RazorLanguageKind Kind { get; init; }
 
-        public int PositionIndex { get; init; }
+    public int PositionIndex { get; init; }
 
-        public required Position Position { get; init; }
+    public required Position Position { get; init; }
 
-        public int? HostDocumentVersion { get; init; }
-    }
+    public int? HostDocumentVersion { get; init; }
 }

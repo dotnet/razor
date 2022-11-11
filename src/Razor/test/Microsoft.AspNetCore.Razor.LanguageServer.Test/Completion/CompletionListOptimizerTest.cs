@@ -8,78 +8,77 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+
+public class CompletionListOptimizerTest : TestBase
 {
-    public class CompletionListOptimizerTest : TestBase
+    public CompletionListOptimizerTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        public CompletionListOptimizerTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+    }
+
+    [Fact]
+    public void Convert_CommitCharactersTrue_RemovesCommitCharactersFromItems()
+    {
+        // Arrange
+        var commitCharacters = new[] { "<" };
+        var completionList = new VSInternalCompletionList()
         {
-        }
-
-        [Fact]
-        public void Convert_CommitCharactersTrue_RemovesCommitCharactersFromItems()
+            Items = new[]
+            {
+                new VSInternalCompletionItem()
+                {
+                    Label = "Test",
+                    VsCommitCharacters = commitCharacters
+                }
+            }
+        };
+        var capabilities = new VSInternalCompletionSetting()
         {
-            // Arrange
-            var commitCharacters = new[] { "<" };
-            var completionList = new VSInternalCompletionList()
+            CompletionList = new VSInternalCompletionListSetting()
             {
-                Items = new[]
-                {
-                    new VSInternalCompletionItem()
-                    {
-                        Label = "Test",
-                        VsCommitCharacters = commitCharacters
-                    }
-                }
-            };
-            var capabilities = new VSInternalCompletionSetting()
-            {
-                CompletionList = new VSInternalCompletionListSetting()
-                {
-                    CommitCharacters = true,
-                }
-            };
+                CommitCharacters = true,
+            }
+        };
 
-            // Act
-            var vsCompletionList = CompletionListOptimizer.Optimize(completionList, capabilities);
+        // Act
+        var vsCompletionList = CompletionListOptimizer.Optimize(completionList, capabilities);
 
-            // Assert
-            Assert.Collection(vsCompletionList.Items, (item) => Assert.Null(item.CommitCharacters));
+        // Assert
+        Assert.Collection(vsCompletionList.Items, (item) => Assert.Null(item.CommitCharacters));
 
-            Assert.Collection(vsCompletionList.CommitCharacters.Value.First, (e) => Assert.Equal("<", e));
-        }
+        Assert.Collection(vsCompletionList.CommitCharacters.Value.First, (e) => Assert.Equal("<", e));
+    }
 
-        [Fact]
-        public void Convert_CommitCharactersFalse_DoesNotTouchCommitCharacters()
+    [Fact]
+    public void Convert_CommitCharactersFalse_DoesNotTouchCommitCharacters()
+    {
+        // Arrange
+        var commitCharacters = new[] { "<" };
+        var completionList = new VSInternalCompletionList()
         {
-            // Arrange
-            var commitCharacters = new[] { "<" };
-            var completionList = new VSInternalCompletionList()
+            Items = new[]
             {
-                Items = new[]
+                new VSInternalCompletionItem()
                 {
-                    new VSInternalCompletionItem()
-                    {
-                        Label = "Test",
-                        VsCommitCharacters = commitCharacters
-                    }
+                    Label = "Test",
+                    VsCommitCharacters = commitCharacters
                 }
-            };
-            var capabilities = new VSInternalCompletionSetting()
+            }
+        };
+        var capabilities = new VSInternalCompletionSetting()
+        {
+            CompletionList = new VSInternalCompletionListSetting()
             {
-                CompletionList = new VSInternalCompletionListSetting()
-                {
-                    CommitCharacters = false,
-                }
-            };
+                CommitCharacters = false,
+            }
+        };
 
-            // Act
-            var vsCompletionList = CompletionListOptimizer.Optimize(completionList, capabilities);
+        // Act
+        var vsCompletionList = CompletionListOptimizer.Optimize(completionList, capabilities);
 
-            // Assert
-            Assert.Collection(vsCompletionList.Items, item => Assert.Equal(commitCharacters, ((VSInternalCompletionItem)item).VsCommitCharacters));
-            Assert.Null(vsCompletionList.CommitCharacters);
-        }
+        // Assert
+        Assert.Collection(vsCompletionList.Items, item => Assert.Equal(commitCharacters, ((VSInternalCompletionItem)item).VsCommitCharacters));
+        Assert.Null(vsCompletionList.CommitCharacters);
     }
 }

@@ -3,20 +3,19 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Razor.Editor
-{
-    public sealed class EditorSettingsChangedEventArgs : EventArgs
-    {
-        public EditorSettingsChangedEventArgs(EditorSettings settings)
-        {
-            if (settings is null)
-            {
-                throw new ArgumentNullException(nameof(settings));
-            }
+namespace Microsoft.CodeAnalysis.Razor.Editor;
 
-            Settings = settings;
+public sealed class EditorSettingsChangedEventArgs : EventArgs
+{
+    public EditorSettingsChangedEventArgs(EditorSettings settings)
+    {
+        if (settings is null)
+        {
+            throw new ArgumentNullException(nameof(settings));
         }
 
-        public EditorSettings Settings { get; }
+        Settings = settings;
     }
+
+    public EditorSettings Settings { get; }
 }

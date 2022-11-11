@@ -18,155 +18,154 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
+public class CreateComponentCodeActionResolverTest : LanguageServerTestBase
 {
-    public class CreateComponentCodeActionResolverTest : LanguageServerTestBase
+    private readonly DocumentContextFactory _emptyDocumentContextFactory;
+
+    public CreateComponentCodeActionResolverTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly DocumentContextFactory _emptyDocumentContextFactory;
+        _emptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(
+            r => r.TryCreateAsync(
+                It.IsAny<Uri>(),
+                It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(null),
+            MockBehavior.Strict);
+    }
 
-        public CreateComponentCodeActionResolverTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+    [Fact]
+    public async Task Handle_MissingFile()
+    {
+        // Arrange
+        var resolver = new CreateComponentCodeActionResolver(_emptyDocumentContextFactory);
+        var data = JObject.FromObject(new CreateComponentCodeActionParams()
         {
-            _emptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(
-                r => r.TryCreateAsync(
-                    It.IsAny<Uri>(),
-                    It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(null),
-                MockBehavior.Strict);
-        }
+            Uri = new Uri("c:/Test.razor"),
+            Path = "c:/Another.razor",
+        });
 
-        [Fact]
-        public async Task Handle_MissingFile()
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
+
+        // Assert
+        Assert.Null(workspaceEdit);
+    }
+
+    [Fact]
+    public async Task Handle_Unsupported()
+    {
+        // Arrange
+        var documentPath = new Uri("c:/Test.razor");
+        var contents = $"@page \"/test\"";
+        var codeDocument = CreateCodeDocument(contents);
+        codeDocument.SetUnsupported();
+
+        var resolver = new CreateComponentCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
+        var data = JObject.FromObject(new CreateComponentCodeActionParams()
         {
-            // Arrange
-            var resolver = new CreateComponentCodeActionResolver(_emptyDocumentContextFactory);
-            var data = JObject.FromObject(new CreateComponentCodeActionParams()
-            {
-                Uri = new Uri("c:/Test.razor"),
-                Path = "c:/Another.razor",
-            });
+            Uri = documentPath,
+            Path = "c:/Another.razor",
+        });
 
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
 
-            // Assert
-            Assert.Null(workspaceEdit);
-        }
+        // Assert
+        Assert.Null(workspaceEdit);
+    }
 
-        [Fact]
-        public async Task Handle_Unsupported()
+    [Fact]
+    public async Task Handle_InvalidFileKind()
+    {
+        // Arrange
+        var documentPath = new Uri("c:/Test.razor");
+        var contents = $"@page \"/test\"";
+        var codeDocument = CreateCodeDocument(contents);
+        codeDocument.SetFileKind(FileKinds.Legacy);
+
+        var resolver = new CreateComponentCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
+        var data = JObject.FromObject(new CreateComponentCodeActionParams()
         {
-            // Arrange
-            var documentPath = new Uri("c:/Test.razor");
-            var contents = $"@page \"/test\"";
-            var codeDocument = CreateCodeDocument(contents);
-            codeDocument.SetUnsupported();
+            Uri = documentPath,
+            Path = "c:/Another.razor",
+        });
 
-            var resolver = new CreateComponentCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
-            var data = JObject.FromObject(new CreateComponentCodeActionParams()
-            {
-                Uri = documentPath,
-                Path = "c:/Another.razor",
-            });
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
 
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
+        // Assert
+        Assert.Null(workspaceEdit);
+    }
 
-            // Assert
-            Assert.Null(workspaceEdit);
-        }
+    [Fact]
+    public async Task Handle_CreateComponent()
+    {
+        // Arrange
+        var documentPath = new Uri("c:/Test.razor");
+        var contents = $"@page \"/test\"";
+        var codeDocument = CreateCodeDocument(contents);
 
-        [Fact]
-        public async Task Handle_InvalidFileKind()
+        var resolver = new CreateComponentCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
+        var actionParams = new CreateComponentCodeActionParams
         {
-            // Arrange
-            var documentPath = new Uri("c:/Test.razor");
-            var contents = $"@page \"/test\"";
-            var codeDocument = CreateCodeDocument(contents);
-            codeDocument.SetFileKind(FileKinds.Legacy);
+            Uri = documentPath,
+            Path = "c:/Another.razor",
+        };
+        var data = JObject.FromObject(actionParams);
 
-            var resolver = new CreateComponentCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
-            var data = JObject.FromObject(new CreateComponentCodeActionParams()
-            {
-                Uri = documentPath,
-                Path = "c:/Another.razor",
-            });
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
 
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
+        // Assert
+        Assert.NotNull(workspaceEdit);
+        Assert.NotNull(workspaceEdit.DocumentChanges);
+        Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            // Assert
-            Assert.Null(workspaceEdit);
-        }
+        var createFileChange = workspaceEdit.DocumentChanges.Value.First();
+        Assert.True(createFileChange.TryGetSecond(out var _));
+    }
 
-        [Fact]
-        public async Task Handle_CreateComponent()
+    [Fact]
+    public async Task Handle_CreateComponentWithNamespace()
+    {
+        // Arrange
+        var documentPath = new Uri("c:/Test.razor");
+        var contents = $"@page \"/test\"{Environment.NewLine}@namespace Another.Namespace";
+        var codeDocument = CreateCodeDocument(contents);
+
+        var resolver = new CreateComponentCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
+        var actionParams = new CreateComponentCodeActionParams
         {
-            // Arrange
-            var documentPath = new Uri("c:/Test.razor");
-            var contents = $"@page \"/test\"";
-            var codeDocument = CreateCodeDocument(contents);
+            Uri = documentPath,
+            Path = "c:/Another.razor",
+        };
+        var data = JObject.FromObject(actionParams);
 
-            var resolver = new CreateComponentCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
-            var actionParams = new CreateComponentCodeActionParams
-            {
-                Uri = documentPath,
-                Path = "c:/Another.razor",
-            };
-            var data = JObject.FromObject(actionParams);
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
 
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
+        // Assert
+        Assert.NotNull(workspaceEdit);
+        Assert.NotNull(workspaceEdit.DocumentChanges);
+        Assert.Equal(2, workspaceEdit.DocumentChanges.Value.Count());
 
-            // Assert
-            Assert.NotNull(workspaceEdit);
-            Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
+        var createFileChange = workspaceEdit.DocumentChanges.Value.First();
+        Assert.True(createFileChange.TryGetSecond(out var _));
 
-            var createFileChange = workspaceEdit.DocumentChanges.Value.First();
-            Assert.True(createFileChange.TryGetSecond(out var _));
-        }
+        var editNewComponentChange = workspaceEdit.DocumentChanges.Value.Last();
+        var editNewComponentEdit = editNewComponentChange.First.Edits.First();
+        Assert.Contains("@namespace Another.Namespace", editNewComponentEdit.NewText, StringComparison.Ordinal);
+    }
 
-        [Fact]
-        public async Task Handle_CreateComponentWithNamespace()
-        {
-            // Arrange
-            var documentPath = new Uri("c:/Test.razor");
-            var contents = $"@page \"/test\"{Environment.NewLine}@namespace Another.Namespace";
-            var codeDocument = CreateCodeDocument(contents);
+    private static RazorCodeDocument CreateCodeDocument(string text)
+    {
+        var projectItem = new TestRazorProjectItem("c:/Test.razor", "c:/Test.razor", "Test.razor") { Content = text };
+        var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty, (builder) => builder.SetRootNamespace("test.Pages"));
 
-            var resolver = new CreateComponentCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
-            var actionParams = new CreateComponentCodeActionParams
-            {
-                Uri = documentPath,
-                Path = "c:/Another.razor",
-            };
-            var data = JObject.FromObject(actionParams);
+        var codeDocument = projectEngine.Process(projectItem);
+        codeDocument.SetFileKind(FileKinds.Component);
 
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
-
-            // Assert
-            Assert.NotNull(workspaceEdit);
-            Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(2, workspaceEdit.DocumentChanges.Value.Count());
-
-            var createFileChange = workspaceEdit.DocumentChanges.Value.First();
-            Assert.True(createFileChange.TryGetSecond(out var _));
-
-            var editNewComponentChange = workspaceEdit.DocumentChanges.Value.Last();
-            var editNewComponentEdit = editNewComponentChange.First.Edits.First();
-            Assert.Contains("@namespace Another.Namespace", editNewComponentEdit.NewText, StringComparison.Ordinal);
-        }
-
-        private static RazorCodeDocument CreateCodeDocument(string text)
-        {
-            var projectItem = new TestRazorProjectItem("c:/Test.razor", "c:/Test.razor", "Test.razor") { Content = text };
-            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty, (builder) => builder.SetRootNamespace("test.Pages"));
-
-            var codeDocument = projectEngine.Process(projectItem);
-            codeDocument.SetFileKind(FileKinds.Component);
-
-            return codeDocument;
-        }
+        return codeDocument;
     }
 }

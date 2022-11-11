@@ -3,10 +3,9 @@
 
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal interface IProjectFileChangeListener
 {
-    internal interface IProjectFileChangeListener
-    {
-        void ProjectFileChanged(string filePath, RazorFileChangeKind kind);
-    }
+    void ProjectFileChanged(string filePath, RazorFileChangeKind kind);
 }

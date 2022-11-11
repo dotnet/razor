@@ -5,44 +5,43 @@ using System;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal class RemoteProjectItem : RazorProjectItem
 {
-    internal class RemoteProjectItem : RazorProjectItem
+    public RemoteProjectItem(string filePath, string physicalPath, string? fileKind)
     {
-        public RemoteProjectItem(string filePath, string physicalPath, string? fileKind)
-        {
-            FilePath = filePath;
-            PhysicalPath = physicalPath;
-            FileKind = fileKind ?? FileKinds.GetFileKindFromFilePath(FilePath);
-            RelativePhysicalPath = FilePath.StartsWith("/", StringComparison.Ordinal)
-                ? FilePath.Substring(1)
-                : FilePath;
-        }
-
-        public override string BasePath => "/";
-
-        public override string? FilePath { get; }
-
-        public override string PhysicalPath { get; }
-
-        public override string FileKind { get; }
-
-        public override string RelativePhysicalPath { get; }
-
-        public override bool Exists
-        {
-            get
-            {
-                var platformPath = PhysicalPath.Substring(1);
-                if (Path.IsPathRooted(platformPath))
-                {
-                    return File.Exists(platformPath);
-                }
-
-                return File.Exists(PhysicalPath);
-            }
-        }
-
-        public override Stream Read() => throw new NotImplementedException();
+        FilePath = filePath;
+        PhysicalPath = physicalPath;
+        FileKind = fileKind ?? FileKinds.GetFileKindFromFilePath(FilePath);
+        RelativePhysicalPath = FilePath.StartsWith("/", StringComparison.Ordinal)
+            ? FilePath.Substring(1)
+            : FilePath;
     }
+
+    public override string BasePath => "/";
+
+    public override string? FilePath { get; }
+
+    public override string PhysicalPath { get; }
+
+    public override string FileKind { get; }
+
+    public override string RelativePhysicalPath { get; }
+
+    public override bool Exists
+    {
+        get
+        {
+            var platformPath = PhysicalPath.Substring(1);
+            if (Path.IsPathRooted(platformPath))
+            {
+                return File.Exists(platformPath);
+            }
+
+            return File.Exists(PhysicalPath);
+        }
+    }
+
+    public override Stream Read() => throw new NotImplementedException();
 }

@@ -4,12 +4,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
-{
-    internal interface IFileChangeDetector
-    {
-        Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken);
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-        void Stop();
-    }
+internal interface IFileChangeDetector
+{
+    Task StartAsync(string workspaceDirectory, CancellationToken cancellationToken);
+
+    void Stop();
 }

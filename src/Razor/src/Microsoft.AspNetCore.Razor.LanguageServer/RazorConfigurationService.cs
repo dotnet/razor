@@ -4,10 +4,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal abstract class RazorConfigurationService
 {
-    internal abstract class RazorConfigurationService
-    {
-        public abstract Task<RazorLSPOptions?> GetLatestOptionsAsync(CancellationToken cancellationToken);
-    }
+    public abstract Task<RazorLSPOptions?> GetLatestOptionsAsync(CancellationToken cancellationToken);
 }

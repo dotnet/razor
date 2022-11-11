@@ -18,329 +18,328 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
+public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
 {
-    public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
+    private readonly DocumentContextFactory _emptyDocumentContextFactory;
+
+    public AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly DocumentContextFactory _emptyDocumentContextFactory;
+        _emptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(
+            r => r.TryCreateAsync(
+                It.IsAny<Uri>(),
+                It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(null),
+            MockBehavior.Strict);
+    }
 
-        public AddUsingsCodeActionResolverTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+    [Fact]
+    public async Task Handle_MissingFile()
+    {
+        // Arrange
+        var resolver = new AddUsingsCodeActionResolver(_emptyDocumentContextFactory);
+        var data = JObject.FromObject(new AddUsingsCodeActionParams()
         {
-            _emptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(
-                r => r.TryCreateAsync(
-                    It.IsAny<Uri>(),
-                    It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(null),
-                MockBehavior.Strict);
-        }
+            Uri = new Uri("c:/Test.razor"),
+            Namespace = "System",
+        });
 
-        [Fact]
-        public async Task Handle_MissingFile()
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
+
+        // Assert
+        Assert.Null(workspaceEdit);
+    }
+
+    [Fact]
+    public async Task Handle_Unsupported()
+    {
+        // Arrange
+        var documentPath = new Uri("c:/Test.razor");
+        var contents = "@page \"/test\"";
+        var codeDocument = CreateCodeDocument(contents);
+        codeDocument.SetUnsupported();
+
+        var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
+        var data = JObject.FromObject(new AddUsingsCodeActionParams()
         {
-            // Arrange
-            var resolver = new AddUsingsCodeActionResolver(_emptyDocumentContextFactory);
-            var data = JObject.FromObject(new AddUsingsCodeActionParams()
-            {
-                Uri = new Uri("c:/Test.razor"),
-                Namespace = "System",
-            });
+            Uri = documentPath,
+            Namespace = "System",
+        });
 
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
 
-            // Assert
-            Assert.Null(workspaceEdit);
-        }
+        // Assert
+        Assert.Null(workspaceEdit);
+    }
 
-        [Fact]
-        public async Task Handle_Unsupported()
+    [Fact]
+    public async Task Handle_AddOneUsingToEmpty()
+    {
+        // Arrange
+        var documentPath = new Uri("c:/Test.razor");
+        var contents = string.Empty;
+        var codeDocument = CreateCodeDocument(contents);
+
+        var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
+        var actionParams = new AddUsingsCodeActionParams
         {
-            // Arrange
-            var documentPath = new Uri("c:/Test.razor");
-            var contents = "@page \"/test\"";
-            var codeDocument = CreateCodeDocument(contents);
-            codeDocument.SetUnsupported();
+            Uri = documentPath,
+            Namespace = "System",
+        };
+        var data = JObject.FromObject(actionParams);
 
-            var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
-            var data = JObject.FromObject(new AddUsingsCodeActionParams()
-            {
-                Uri = documentPath,
-                Namespace = "System",
-            });
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
 
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
+        // Assert
+        Assert.NotNull(workspaceEdit);
+        Assert.NotNull(workspaceEdit.DocumentChanges);
+        Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            // Assert
-            Assert.Null(workspaceEdit);
-        }
+        var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+        Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+        Assert.Single(textDocumentEdit.Edits);
+        var firstEdit = textDocumentEdit.Edits.First();
+        Assert.Equal(0, firstEdit.Range.Start.Line);
+        Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
+    }
 
-        [Fact]
-        public async Task Handle_AddOneUsingToEmpty()
+    [Fact]
+    public async Task Handle_AddOneUsingToComponentPageDirective()
+    {
+        // Arrange
+        var documentPath = new Uri("c:/Test.razor");
+        var contents = $"@page \"/\"{Environment.NewLine}";
+        var codeDocument = CreateCodeDocument(contents);
+
+        var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
+        var actionParams = new AddUsingsCodeActionParams
         {
-            // Arrange
-            var documentPath = new Uri("c:/Test.razor");
-            var contents = string.Empty;
-            var codeDocument = CreateCodeDocument(contents);
+            Uri = documentPath,
+            Namespace = "System",
+        };
+        var data = JObject.FromObject(actionParams);
 
-            var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
-            var actionParams = new AddUsingsCodeActionParams
-            {
-                Uri = documentPath,
-                Namespace = "System",
-            };
-            var data = JObject.FromObject(actionParams);
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
 
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
+        // Assert
+        Assert.NotNull(workspaceEdit);
+        Assert.NotNull(workspaceEdit.DocumentChanges);
+        Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            // Assert
-            Assert.NotNull(workspaceEdit);
-            Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
+        var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+        Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+        var firstEdit = Assert.Single(textDocumentEdit.Edits);
+        Assert.Equal(1, firstEdit.Range.Start.Line);
+        Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
+    }
 
-            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
-            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
-            Assert.Single(textDocumentEdit.Edits);
-            var firstEdit = textDocumentEdit.Edits.First();
-            Assert.Equal(0, firstEdit.Range.Start.Line);
-            Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
-        }
+    [Fact]
+    public async Task Handle_AddOneUsingToPageDirective()
+    {
+        // Arrange
+        var documentPath = new Uri("c:/Test.cshtml");
+        var contents = $"@page{Environment.NewLine}@model IndexModel";
 
-        [Fact]
-        public async Task Handle_AddOneUsingToComponentPageDirective()
+        var projectItem = new TestRazorProjectItem("c:/Test.cshtml", "c:/Test.cshtml", "Test.cshtml") { Content = contents };
+        var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty, (builder) =>
         {
-            // Arrange
-            var documentPath = new Uri("c:/Test.razor");
-            var contents = $"@page \"/\"{Environment.NewLine}";
-            var codeDocument = CreateCodeDocument(contents);
+            PageDirective.Register(builder);
+            ModelDirective.Register(builder);
+        });
+        var codeDocument = projectEngine.Process(projectItem);
+        codeDocument.SetFileKind(FileKinds.Legacy);
 
-            var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
-            var actionParams = new AddUsingsCodeActionParams
-            {
-                Uri = documentPath,
-                Namespace = "System",
-            };
-            var data = JObject.FromObject(actionParams);
-
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
-
-            // Assert
-            Assert.NotNull(workspaceEdit);
-            Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
-
-            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
-            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
-            var firstEdit = Assert.Single(textDocumentEdit.Edits);
-            Assert.Equal(1, firstEdit.Range.Start.Line);
-            Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
-        }
-
-        [Fact]
-        public async Task Handle_AddOneUsingToPageDirective()
+        var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
+        var actionParams = new AddUsingsCodeActionParams
         {
-            // Arrange
-            var documentPath = new Uri("c:/Test.cshtml");
-            var contents = $"@page{Environment.NewLine}@model IndexModel";
+            Uri = documentPath,
+            Namespace = "System",
+        };
+        var data = JObject.FromObject(actionParams);
 
-            var projectItem = new TestRazorProjectItem("c:/Test.cshtml", "c:/Test.cshtml", "Test.cshtml") { Content = contents };
-            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty, (builder) =>
-            {
-                PageDirective.Register(builder);
-                ModelDirective.Register(builder);
-            });
-            var codeDocument = projectEngine.Process(projectItem);
-            codeDocument.SetFileKind(FileKinds.Legacy);
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
 
-            var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
-            var actionParams = new AddUsingsCodeActionParams
-            {
-                Uri = documentPath,
-                Namespace = "System",
-            };
-            var data = JObject.FromObject(actionParams);
+        // Assert
+        Assert.NotNull(workspaceEdit);
+        Assert.NotNull(workspaceEdit.DocumentChanges);
+        Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
+        var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+        Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+        var firstEdit = Assert.Single(textDocumentEdit.Edits);
+        Assert.Equal(1, firstEdit.Range.Start.Line);
+        Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
+    }
 
-            // Assert
-            Assert.NotNull(workspaceEdit);
-            Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
+    [Fact]
+    public async Task Handle_AddOneUsingToHTML()
+    {
+        // Arrange
+        var documentPath = new Uri("c:/Test.razor");
+        var contents = $"<table>{Environment.NewLine}<tr>{Environment.NewLine}</tr>{Environment.NewLine}</table>";
+        var codeDocument = CreateCodeDocument(contents);
 
-            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
-            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
-            var firstEdit = Assert.Single(textDocumentEdit.Edits);
-            Assert.Equal(1, firstEdit.Range.Start.Line);
-            Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
-        }
-
-        [Fact]
-        public async Task Handle_AddOneUsingToHTML()
+        var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
+        var actionParams = new AddUsingsCodeActionParams
         {
-            // Arrange
-            var documentPath = new Uri("c:/Test.razor");
-            var contents = $"<table>{Environment.NewLine}<tr>{Environment.NewLine}</tr>{Environment.NewLine}</table>";
-            var codeDocument = CreateCodeDocument(contents);
+            Uri = documentPath,
+            Namespace = "System",
+        };
+        var data = JObject.FromObject(actionParams);
 
-            var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
-            var actionParams = new AddUsingsCodeActionParams
-            {
-                Uri = documentPath,
-                Namespace = "System",
-            };
-            var data = JObject.FromObject(actionParams);
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
 
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
+        // Assert
+        Assert.NotNull(workspaceEdit);
+        Assert.NotNull(workspaceEdit.DocumentChanges);
+        Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            // Assert
-            Assert.NotNull(workspaceEdit);
-            Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
+        var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+        Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+        var firstEdit = Assert.Single(textDocumentEdit.Edits);
+        Assert.Equal(0, firstEdit.Range.Start.Line);
+        Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
+    }
 
-            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
-            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
-            var firstEdit = Assert.Single(textDocumentEdit.Edits);
-            Assert.Equal(0, firstEdit.Range.Start.Line);
-            Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
-        }
+    [Fact]
+    public async Task Handle_AddOneUsingToNamespace()
+    {
+        // Arrange
+        var documentPath = new Uri("c:/Test.razor");
+        var contents = $"@namespace Testing{Environment.NewLine}";
+        var codeDocument = CreateCodeDocument(contents);
 
-        [Fact]
-        public async Task Handle_AddOneUsingToNamespace()
+        var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
+        var actionParams = new AddUsingsCodeActionParams
         {
-            // Arrange
-            var documentPath = new Uri("c:/Test.razor");
-            var contents = $"@namespace Testing{Environment.NewLine}";
-            var codeDocument = CreateCodeDocument(contents);
+            Uri = documentPath,
+            Namespace = "System",
+        };
+        var data = JObject.FromObject(actionParams);
 
-            var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
-            var actionParams = new AddUsingsCodeActionParams
-            {
-                Uri = documentPath,
-                Namespace = "System",
-            };
-            var data = JObject.FromObject(actionParams);
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
 
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
+        // Assert
+        Assert.NotNull(workspaceEdit);
+        Assert.NotNull(workspaceEdit.DocumentChanges);
+        Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            // Assert
-            Assert.NotNull(workspaceEdit);
-            Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
+        var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+        Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+        var firstEdit = Assert.Single(textDocumentEdit.Edits);
+        Assert.Equal(1, firstEdit.Range.Start.Line);
+        Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
+    }
 
-            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
-            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
-            var firstEdit = Assert.Single(textDocumentEdit.Edits);
-            Assert.Equal(1, firstEdit.Range.Start.Line);
-            Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
-        }
+    [Fact]
+    public async Task Handle_AddOneUsingToPageAndNamespace()
+    {
+        // Arrange
+        var documentPath = new Uri("c:/Test.razor");
+        var contents = $"@page \"/\"{Environment.NewLine}@namespace Testing{Environment.NewLine}";
+        var codeDocument = CreateCodeDocument(contents);
 
-        [Fact]
-        public async Task Handle_AddOneUsingToPageAndNamespace()
+        var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
+        var actionParams = new AddUsingsCodeActionParams
         {
-            // Arrange
-            var documentPath = new Uri("c:/Test.razor");
-            var contents = $"@page \"/\"{Environment.NewLine}@namespace Testing{Environment.NewLine}";
-            var codeDocument = CreateCodeDocument(contents);
+            Uri = documentPath,
+            Namespace = "System",
+        };
+        var data = JObject.FromObject(actionParams);
 
-            var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
-            var actionParams = new AddUsingsCodeActionParams
-            {
-                Uri = documentPath,
-                Namespace = "System",
-            };
-            var data = JObject.FromObject(actionParams);
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
 
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
+        // Assert
+        Assert.NotNull(workspaceEdit);
+        Assert.NotNull(workspaceEdit.DocumentChanges);
+        Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            // Assert
-            Assert.NotNull(workspaceEdit);
-            Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
+        var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+        Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+        var firstEdit = Assert.Single(textDocumentEdit.Edits);
+        Assert.Equal(2, firstEdit.Range.Start.Line);
+        Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
+    }
 
-            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
-            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
-            var firstEdit = Assert.Single(textDocumentEdit.Edits);
-            Assert.Equal(2, firstEdit.Range.Start.Line);
-            Assert.Equal($"@using System{Environment.NewLine}", firstEdit.NewText);
-        }
+    [Fact]
+    public async Task Handle_AddOneUsingToUsings()
+    {
+        // Arrange
+        var documentPath = new Uri("c:/Test.razor");
+        var contents = $"@using System";
+        var codeDocument = CreateCodeDocument(contents);
 
-        [Fact]
-        public async Task Handle_AddOneUsingToUsings()
+        var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
+        var actionParams = new AddUsingsCodeActionParams
         {
-            // Arrange
-            var documentPath = new Uri("c:/Test.razor");
-            var contents = $"@using System";
-            var codeDocument = CreateCodeDocument(contents);
+            Uri = documentPath,
+            Namespace = "System.Linq",
+        };
+        var data = JObject.FromObject(actionParams);
 
-            var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
-            var actionParams = new AddUsingsCodeActionParams
-            {
-                Uri = documentPath,
-                Namespace = "System.Linq",
-            };
-            var data = JObject.FromObject(actionParams);
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
 
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
+        // Assert
+        Assert.NotNull(workspaceEdit);
+        Assert.NotNull(workspaceEdit.DocumentChanges);
+        Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            // Assert
-            Assert.NotNull(workspaceEdit);
-            Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
+        var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+        Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+        var firstEdit = Assert.Single(textDocumentEdit.Edits);
+        Assert.Equal(1, firstEdit.Range.Start.Line);
+        Assert.Equal($"@using System.Linq{Environment.NewLine}", firstEdit.NewText);
+    }
 
-            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
-            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
-            var firstEdit = Assert.Single(textDocumentEdit.Edits);
-            Assert.Equal(1, firstEdit.Range.Start.Line);
-            Assert.Equal($"@using System.Linq{Environment.NewLine}", firstEdit.NewText);
-        }
+    [Fact]
+    public async Task Handle_AddOneNonSystemUsingToSystemUsings()
+    {
+        // Arrange
+        var documentPath = new Uri("c:/Test.razor");
+        var contents = $"@using System{Environment.NewLine}@using System.Linq{Environment.NewLine}";
+        var codeDocument = CreateCodeDocument(contents);
 
-        [Fact]
-        public async Task Handle_AddOneNonSystemUsingToSystemUsings()
+        var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
+        var actionParams = new AddUsingsCodeActionParams
         {
-            // Arrange
-            var documentPath = new Uri("c:/Test.razor");
-            var contents = $"@using System{Environment.NewLine}@using System.Linq{Environment.NewLine}";
-            var codeDocument = CreateCodeDocument(contents);
+            Uri = documentPath,
+            Namespace = "Microsoft.AspNetCore.Razor.Language",
+        };
+        var data = JObject.FromObject(actionParams);
 
-            var resolver = new AddUsingsCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument));
-            var actionParams = new AddUsingsCodeActionParams
-            {
-                Uri = documentPath,
-                Namespace = "Microsoft.AspNetCore.Razor.Language",
-            };
-            var data = JObject.FromObject(actionParams);
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
 
-            // Act
-            var workspaceEdit = await resolver.ResolveAsync(data, default);
+        // Assert
+        Assert.NotNull(workspaceEdit);
+        Assert.NotNull(workspaceEdit.DocumentChanges);
+        Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
 
-            // Assert
-            Assert.NotNull(workspaceEdit);
-            Assert.NotNull(workspaceEdit.DocumentChanges);
-            Assert.Equal(1, workspaceEdit.DocumentChanges.Value.Count());
+        var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
+        Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
+        var firstEdit = Assert.Single(textDocumentEdit.Edits);
+        Assert.Equal(2, firstEdit.Range.Start.Line);
+        Assert.Equal($"@using Microsoft.AspNetCore.Razor.Language{Environment.NewLine}", firstEdit.NewText);
+    }
 
-            var addUsingsChange = workspaceEdit.DocumentChanges.Value.First();
-            Assert.True(addUsingsChange.TryGetFirst(out var textDocumentEdit));
-            var firstEdit = Assert.Single(textDocumentEdit.Edits);
-            Assert.Equal(2, firstEdit.Range.Start.Line);
-            Assert.Equal($"@using Microsoft.AspNetCore.Razor.Language{Environment.NewLine}", firstEdit.NewText);
-        }
-
-        private static RazorCodeDocument CreateCodeDocument(string text)
-        {
-            var fileName = "Test.razor";
-            var filePath = $"c:/{fileName}";
-            var projectItem = new TestRazorProjectItem(filePath, filePath, fileName) { Content = text };
-            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty, (builder) => PageDirective.Register(builder));
-            var codeDocument = projectEngine.Process(projectItem);
-            codeDocument.SetFileKind(FileKinds.Component);
-            return codeDocument;
-        }
+    private static RazorCodeDocument CreateCodeDocument(string text)
+    {
+        var fileName = "Test.razor";
+        var filePath = $"c:/{fileName}";
+        var projectItem = new TestRazorProjectItem(filePath, filePath, fileName) { Content = text };
+        var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, TestRazorProjectFileSystem.Empty, (builder) => PageDirective.Register(builder));
+        var codeDocument = projectEngine.Process(projectItem);
+        codeDocument.SetFileKind(FileKinds.Component);
+        return codeDocument;
     }
 }

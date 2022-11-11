@@ -4,29 +4,28 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
-{
-    internal sealed class ProjectSnapshotHandle
-    {
-        public ProjectSnapshotHandle(
-            string filePath,
-            RazorConfiguration? configuration,
-            string? rootNamespace)
-        {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-            FilePath = filePath;
-            Configuration = configuration;
-            RootNamespace = rootNamespace;
+internal sealed class ProjectSnapshotHandle
+{
+    public ProjectSnapshotHandle(
+        string filePath,
+        RazorConfiguration? configuration,
+        string? rootNamespace)
+    {
+        if (filePath is null)
+        {
+            throw new ArgumentNullException(nameof(filePath));
         }
 
-        public RazorConfiguration? Configuration { get; }
-
-        public string FilePath { get; }
-
-        public string? RootNamespace { get; }
+        FilePath = filePath;
+        Configuration = configuration;
+        RootNamespace = rootNamespace;
     }
+
+    public RazorConfiguration? Configuration { get; }
+
+    public string FilePath { get; }
+
+    public string? RootNamespace { get; }
 }

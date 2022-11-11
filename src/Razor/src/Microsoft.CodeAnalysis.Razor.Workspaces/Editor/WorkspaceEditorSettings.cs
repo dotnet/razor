@@ -4,12 +4,11 @@
 using System;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Razor.Editor
-{
-    internal abstract class WorkspaceEditorSettings : ILanguageService
-    {
-        public abstract event EventHandler<EditorSettingsChangedEventArgs> Changed;
+namespace Microsoft.CodeAnalysis.Razor.Editor;
 
-        public abstract EditorSettings Current { get; }
-    }
+internal abstract class WorkspaceEditorSettings : ILanguageService
+{
+    public abstract event EventHandler<EditorSettingsChangedEventArgs> Changed;
+
+    public abstract EditorSettings Current { get; }
 }

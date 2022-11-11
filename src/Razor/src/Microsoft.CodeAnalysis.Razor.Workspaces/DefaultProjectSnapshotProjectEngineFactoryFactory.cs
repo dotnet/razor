@@ -6,41 +6,40 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces
+namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+
+[ExportWorkspaceServiceFactory(typeof(ProjectSnapshotProjectEngineFactory))]
+internal class DefaultProjectSnapshotProjectEngineFactoryFactory : IWorkspaceServiceFactory
 {
-    [ExportWorkspaceServiceFactory(typeof(ProjectSnapshotProjectEngineFactory))]
-    internal class DefaultProjectSnapshotProjectEngineFactoryFactory : IWorkspaceServiceFactory
+    private readonly IFallbackProjectEngineFactory _fallback;
+    private readonly Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] _factories;
+
+    [ImportingConstructor]
+    public DefaultProjectSnapshotProjectEngineFactoryFactory(
+        IFallbackProjectEngineFactory fallback,
+        [ImportMany] Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] factories)
     {
-        private readonly IFallbackProjectEngineFactory _fallback;
-        private readonly Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] _factories;
-
-        [ImportingConstructor]
-        public DefaultProjectSnapshotProjectEngineFactoryFactory(
-            IFallbackProjectEngineFactory fallback,
-            [ImportMany] Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] factories)
+        if (fallback is null)
         {
-            if (fallback is null)
-            {
-                throw new ArgumentNullException(nameof(fallback));
-            }
-
-            if (factories is null)
-            {
-                throw new ArgumentNullException(nameof(factories));
-            }
-
-            _fallback = fallback;
-            _factories = factories;
+            throw new ArgumentNullException(nameof(fallback));
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        if (factories is null)
         {
-            if (workspaceServices is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceServices));
-            }
-
-            return new DefaultProjectSnapshotProjectEngineFactory(_fallback, _factories);
+            throw new ArgumentNullException(nameof(factories));
         }
+
+        _fallback = fallback;
+        _factories = factories;
+    }
+
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+    {
+        if (workspaceServices is null)
+        {
+            throw new ArgumentNullException(nameof(workspaceServices));
+        }
+
+        return new DefaultProjectSnapshotProjectEngineFactory(_fallback, _factories);
     }
 }

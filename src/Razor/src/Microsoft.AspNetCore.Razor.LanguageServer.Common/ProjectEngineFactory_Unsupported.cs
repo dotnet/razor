@@ -6,17 +6,16 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+
+internal class ProjectEngineFactory_Unsupported : IProjectEngineFactory
 {
-    internal class ProjectEngineFactory_Unsupported : IProjectEngineFactory
+    public RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
     {
-        public RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
+        return RazorProjectEngine.Create(configuration, fileSystem, builder =>
         {
-            return RazorProjectEngine.Create(configuration, fileSystem, builder =>
-            {
-                var csharpLoweringIndex = builder.Phases.IndexOf(builder.Phases.OfType<IRazorCSharpLoweringPhase>().Single());
-                builder.Phases[csharpLoweringIndex] = new UnsupportedCSharpLoweringPhase();
-            });
-        }
+            var csharpLoweringIndex = builder.Phases.IndexOf(builder.Phases.OfType<IRazorCSharpLoweringPhase>().Single());
+            builder.Phases[csharpLoweringIndex] = new UnsupportedCSharpLoweringPhase();
+        });
     }
 }

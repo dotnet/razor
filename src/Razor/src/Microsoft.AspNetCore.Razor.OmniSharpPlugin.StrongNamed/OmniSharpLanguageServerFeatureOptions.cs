@@ -4,12 +4,11 @@
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
-{
-    public class OmniSharpLanguageServerFeatureOptions
-    {
-        private LanguageServerFeatureOptions _internalLanguageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
 
-        internal LanguageServerFeatureOptions InternalLanguageServerFeatureOptions => _internalLanguageServerFeatureOptions;
-    }
+public class OmniSharpLanguageServerFeatureOptions
+{
+    private LanguageServerFeatureOptions _internalLanguageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
+
+    internal LanguageServerFeatureOptions InternalLanguageServerFeatureOptions => _internalLanguageServerFeatureOptions;
 }

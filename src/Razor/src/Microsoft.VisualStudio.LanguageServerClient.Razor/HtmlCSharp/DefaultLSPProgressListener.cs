@@ -11,210 +11,209 @@ using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+
+[Shared]
+[Export(typeof(LSPProgressListener))]
+internal class DefaultLSPProgressListener : LSPProgressListener, IDisposable
 {
-    [Shared]
-    [Export(typeof(LSPProgressListener))]
-    internal class DefaultLSPProgressListener : LSPProgressListener, IDisposable
+    private const string ProgressNotificationValueName = "value";
+
+    private readonly ILanguageServiceBroker2 _languageServiceBroker;
+
+    private readonly ConcurrentDictionary<string, ProgressRequest> _activeRequests
+        = new();
+
+    [ImportingConstructor]
+    public DefaultLSPProgressListener(ILanguageServiceBroker2 languageServiceBroker)
     {
-        private const string ProgressNotificationValueName = "value";
-
-        private readonly ILanguageServiceBroker2 _languageServiceBroker;
-
-        private readonly ConcurrentDictionary<string, ProgressRequest> _activeRequests
-            = new();
-
-        [ImportingConstructor]
-        public DefaultLSPProgressListener(ILanguageServiceBroker2 languageServiceBroker)
+        if (languageServiceBroker is null)
         {
-            if (languageServiceBroker is null)
-            {
-                throw new ArgumentNullException(nameof(languageServiceBroker));
-            }
+            throw new ArgumentNullException(nameof(languageServiceBroker));
+        }
 
-            _languageServiceBroker = languageServiceBroker;
+        _languageServiceBroker = languageServiceBroker;
 
 #pragma warning disable CS0618 // Type or member is obsolete
-            _languageServiceBroker.ClientNotifyAsync += ClientNotifyAsyncListenerAsync;
+        _languageServiceBroker.ClientNotifyAsync += ClientNotifyAsyncListenerAsync;
 #pragma warning restore CS0618 // Type or member is obsolete
+    }
+
+    public override bool TryListenForProgress(
+        string token,
+        Func<JToken, CancellationToken, Task> onProgressNotifyAsync,
+        Func<CancellationToken, Task> delayAfterLastNotifyAsync,
+        CancellationToken handlerCancellationToken,
+        [NotNullWhen(true)] out Task? onCompleted)
+    {
+        var onCompletedSource = new TaskCompletionSource<bool>();
+        var request = new ProgressRequest(
+            onProgressNotifyAsync,
+            delayAfterLastNotifyAsync,
+            handlerCancellationToken,
+            onCompletedSource);
+
+        if (!_activeRequests.TryAdd(token, request))
+        {
+            onCompleted = null;
+            return false;
         }
 
-        public override bool TryListenForProgress(
-            string token,
-            Func<JToken, CancellationToken, Task> onProgressNotifyAsync,
-            Func<CancellationToken, Task> delayAfterLastNotifyAsync,
-            CancellationToken handlerCancellationToken,
-            [NotNullWhen(true)] out Task? onCompleted)
+        CompleteAfterDelay(token, request);
+        onCompleted = onCompletedSource.Task;
+        return true;
+    }
+
+    private Task ClientNotifyAsyncListenerAsync(object? sender, LanguageClientNotifyEventArgs args)
+        => ProcessProgressNotificationAsync(args.MethodName, args.ParameterToken);
+
+    // Internal for testing
+    internal async Task ProcessProgressNotificationAsync(string methodName, JToken parameterToken)
+    {
+        if (methodName != Methods.ProgressNotificationName ||
+           !parameterToken.HasValues ||
+           parameterToken[ProgressNotificationValueName] is null ||
+           parameterToken[Methods.ProgressNotificationTokenName] is null)
         {
-            var onCompletedSource = new TaskCompletionSource<bool>();
-            var request = new ProgressRequest(
-                onProgressNotifyAsync,
-                delayAfterLastNotifyAsync,
-                handlerCancellationToken,
-                onCompletedSource);
-
-            if (!_activeRequests.TryAdd(token, request))
-            {
-                onCompleted = null;
-                return false;
-            }
-
-            CompleteAfterDelay(token, request);
-            onCompleted = onCompletedSource.Task;
-            return true;
+            return;
         }
 
-        private Task ClientNotifyAsyncListenerAsync(object? sender, LanguageClientNotifyEventArgs args)
-            => ProcessProgressNotificationAsync(args.MethodName, args.ParameterToken);
+        var token = parameterToken[Methods.ProgressNotificationTokenName]?.ToObject<string>(); // IProgress<object>>();
 
-        // Internal for testing
-        internal async Task ProcessProgressNotificationAsync(string methodName, JToken parameterToken)
+        if (token is null || string.IsNullOrEmpty(token) || !_activeRequests.TryGetValue(token, out var request))
         {
-            if (methodName != Methods.ProgressNotificationName ||
-               !parameterToken.HasValues ||
-               parameterToken[ProgressNotificationValueName] is null ||
-               parameterToken[Methods.ProgressNotificationTokenName] is null)
-            {
-                return;
-            }
+            return;
+        }
 
-            var token = parameterToken[Methods.ProgressNotificationTokenName]?.ToObject<string>(); // IProgress<object>>();
+        var value = parameterToken[ProgressNotificationValueName]!;
 
-            if (token is null || string.IsNullOrEmpty(token) || !_activeRequests.TryGetValue(token, out var request))
-            {
-                return;
-            }
+        try
+        {
+            request.HandlerCancellationToken.ThrowIfCancellationRequested();
+            await request.OnProgressNotifyAsync(value, request.HandlerCancellationToken).ConfigureAwait(false);
+        }
+        catch (TaskCanceledException)
+        {
+            // Initial handle request has been cancelled
+            // We can deem this ProgressRequest complete
+            ProgressCompleted(token);
+            return;
+        }
 
-            var value = parameterToken[ProgressNotificationValueName]!;
+        CompleteAfterDelay(token, request);
+    }
 
+    private void CompleteAfterDelay(string token, ProgressRequest request)
+    {
+        CancellationTokenSource linkedCTS;
+
+        lock (request.RequestLock)
+        {
+            CancelAndDisposeToken(request.TimeoutCancellationTokenSource);
+
+            request.TimeoutCancellationTokenSource = new CancellationTokenSource();
+            linkedCTS = CancellationTokenSource.CreateLinkedTokenSource(
+                request.TimeoutCancellationTokenSource.Token,
+                request.HandlerCancellationToken);
+        }
+
+        _ = CompleteAfterDelayAsync(token, request.DelayAfterLastNotifyAsync, linkedCTS); // Fire and forget
+
+        async Task CompleteAfterDelayAsync(string token, Func<CancellationToken, Task> delayAfterLastNotifyAsync, CancellationTokenSource cts)
+        {
             try
             {
-                request.HandlerCancellationToken.ThrowIfCancellationRequested();
-                await request.OnProgressNotifyAsync(value, request.HandlerCancellationToken).ConfigureAwait(false);
+                await delayAfterLastNotifyAsync(cts.Token).ConfigureAwait(false);
             }
             catch (TaskCanceledException)
             {
-                // Initial handle request has been cancelled
-                // We can deem this ProgressRequest complete
-                ProgressCompleted(token);
+                // Task cancelled, new progress notification received.
+                // Don't allow handler to return
                 return;
             }
-
-            CompleteAfterDelay(token, request);
-        }
-
-        private void CompleteAfterDelay(string token, ProgressRequest request)
-        {
-            CancellationTokenSource linkedCTS;
-
-            lock (request.RequestLock)
+            finally
             {
-                CancelAndDisposeToken(request.TimeoutCancellationTokenSource);
-
-                request.TimeoutCancellationTokenSource = new CancellationTokenSource();
-                linkedCTS = CancellationTokenSource.CreateLinkedTokenSource(
-                    request.TimeoutCancellationTokenSource.Token,
-                    request.HandlerCancellationToken);
-            }
-
-            _ = CompleteAfterDelayAsync(token, request.DelayAfterLastNotifyAsync, linkedCTS); // Fire and forget
-
-            async Task CompleteAfterDelayAsync(string token, Func<CancellationToken, Task> delayAfterLastNotifyAsync, CancellationTokenSource cts)
-            {
-                try
-                {
-                    await delayAfterLastNotifyAsync(cts.Token).ConfigureAwait(false);
-                }
-                catch (TaskCanceledException)
-                {
-                    // Task cancelled, new progress notification received.
-                    // Don't allow handler to return
-                    return;
-                }
-                finally
-                {
-                    // Dispose of the Linked Cancellation Token Source
-                    // Note: The component TimeoutCancellationTokenSource & HandlerCancellationToken
-                    //       should not be impacted. Their lifecycle is managed using CancelAndDisposeToken
-                    //       and the platform handler, respectively.
-                    cts.Dispose();
-                }
-
-                ProgressCompleted(token);
-            }
-        }
-
-        private static void CancelAndDisposeToken(CancellationTokenSource? cts)
-        {
-            if (cts is not null &&
-                cts.Token.CanBeCanceled &&
-                !cts.Token.IsCancellationRequested)
-            {
-                cts.Cancel();
+                // Dispose of the Linked Cancellation Token Source
+                // Note: The component TimeoutCancellationTokenSource & HandlerCancellationToken
+                //       should not be impacted. Their lifecycle is managed using CancelAndDisposeToken
+                //       and the platform handler, respectively.
                 cts.Dispose();
             }
-        }
 
-        private void ProgressCompleted(string token)
-        {
-            if (_activeRequests.TryRemove(token, out var request))
-            {
-                // We're setting the result of a Task<bool>
-                // however we only return a Task to the
-                // handler/subscriber, so the bool is ignored
-                request.OnCompleted.SetResult(false);
-                CancelAndDisposeToken(request.TimeoutCancellationTokenSource);
-            }
+            ProgressCompleted(token);
         }
+    }
 
-        public void Dispose()
+    private static void CancelAndDisposeToken(CancellationTokenSource? cts)
+    {
+        if (cts is not null &&
+            cts.Token.CanBeCanceled &&
+            !cts.Token.IsCancellationRequested)
         {
+            cts.Cancel();
+            cts.Dispose();
+        }
+    }
+
+    private void ProgressCompleted(string token)
+    {
+        if (_activeRequests.TryRemove(token, out var request))
+        {
+            // We're setting the result of a Task<bool>
+            // however we only return a Task to the
+            // handler/subscriber, so the bool is ignored
+            request.OnCompleted.SetResult(false);
+            CancelAndDisposeToken(request.TimeoutCancellationTokenSource);
+        }
+    }
+
+    public void Dispose()
+    {
 #pragma warning disable CS0618 // Type or member is obsolete
-            _languageServiceBroker.ClientNotifyAsync -= ClientNotifyAsyncListenerAsync;
+        _languageServiceBroker.ClientNotifyAsync -= ClientNotifyAsyncListenerAsync;
 #pragma warning restore CS0618 // Type or member is obsolete
 
-            foreach (var token in _activeRequests.Keys)
-            {
-                ProgressCompleted(token);
-            }
-        }
-
-        private class ProgressRequest
+        foreach (var token in _activeRequests.Keys)
         {
-            public ProgressRequest(
-                Func<JToken, CancellationToken, Task> onProgressNotifyAsync,
-                Func<CancellationToken, Task> delayAfterLastNotifyAsync,
-                CancellationToken handlerCancellationToken,
-                TaskCompletionSource<bool> onCompleted)
+            ProgressCompleted(token);
+        }
+    }
+
+    private class ProgressRequest
+    {
+        public ProgressRequest(
+            Func<JToken, CancellationToken, Task> onProgressNotifyAsync,
+            Func<CancellationToken, Task> delayAfterLastNotifyAsync,
+            CancellationToken handlerCancellationToken,
+            TaskCompletionSource<bool> onCompleted)
+        {
+            if (onProgressNotifyAsync is null)
             {
-                if (onProgressNotifyAsync is null)
-                {
-                    throw new ArgumentNullException(nameof(onProgressNotifyAsync));
-                }
-
-                if (onCompleted is null)
-                {
-                    throw new ArgumentNullException(nameof(onCompleted));
-                }
-
-                if (delayAfterLastNotifyAsync is null)
-                {
-                    throw new ArgumentNullException(nameof(delayAfterLastNotifyAsync));
-                }
-
-                OnProgressNotifyAsync = onProgressNotifyAsync;
-                DelayAfterLastNotifyAsync = delayAfterLastNotifyAsync;
-                HandlerCancellationToken = handlerCancellationToken;
-                OnCompleted = onCompleted;
+                throw new ArgumentNullException(nameof(onProgressNotifyAsync));
             }
 
-            internal Func<JToken, CancellationToken, Task> OnProgressNotifyAsync { get; }
-            internal TaskCompletionSource<bool> OnCompleted { get; }
-            internal CancellationToken HandlerCancellationToken { get; }
+            if (onCompleted is null)
+            {
+                throw new ArgumentNullException(nameof(onCompleted));
+            }
 
-            internal Func<CancellationToken, Task> DelayAfterLastNotifyAsync { get; }
-            internal CancellationTokenSource? TimeoutCancellationTokenSource { get; set; }
-            internal object RequestLock { get; } = new object();
+            if (delayAfterLastNotifyAsync is null)
+            {
+                throw new ArgumentNullException(nameof(delayAfterLastNotifyAsync));
+            }
+
+            OnProgressNotifyAsync = onProgressNotifyAsync;
+            DelayAfterLastNotifyAsync = delayAfterLastNotifyAsync;
+            HandlerCancellationToken = handlerCancellationToken;
+            OnCompleted = onCompleted;
         }
+
+        internal Func<JToken, CancellationToken, Task> OnProgressNotifyAsync { get; }
+        internal TaskCompletionSource<bool> OnCompleted { get; }
+        internal CancellationToken HandlerCancellationToken { get; }
+
+        internal Func<CancellationToken, Task> DelayAfterLastNotifyAsync { get; }
+        internal CancellationTokenSource? TimeoutCancellationTokenSource { get; set; }
+        internal object RequestLock { get; } = new object();
     }
 }

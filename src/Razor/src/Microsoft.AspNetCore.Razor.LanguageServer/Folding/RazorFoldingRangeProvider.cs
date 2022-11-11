@@ -6,10 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
+
+internal abstract class RazorFoldingRangeProvider
 {
-    internal abstract class RazorFoldingRangeProvider
-    {
-        public abstract Task<ImmutableArray<FoldingRange>> GetFoldingRangesAsync(DocumentContext documentContext, CancellationToken cancellationToken);
-    }
+    public abstract Task<ImmutableArray<FoldingRange>> GetFoldingRangesAsync(DocumentContext documentContext, CancellationToken cancellationToken);
 }

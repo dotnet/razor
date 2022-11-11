@@ -6,18 +6,17 @@
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace Xunit
-{
-    internal class UIFactDiscoverer : FactDiscoverer
-    {
-        public UIFactDiscoverer(IMessageSink diagnosticMessageSink)
-            : base(diagnosticMessageSink)
-        {
-        }
+namespace Xunit;
 
-        protected override IXunitTestCase CreateTestCase(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo factAttribute)
-        {
-            return new UITestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod);
-        }
+internal class UIFactDiscoverer : FactDiscoverer
+{
+    public UIFactDiscoverer(IMessageSink diagnosticMessageSink)
+        : base(diagnosticMessageSink)
+    {
+    }
+
+    protected override IXunitTestCase CreateTestCase(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo factAttribute)
+    {
+        return new UITestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod);
     }
 }

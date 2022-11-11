@@ -5,31 +5,30 @@ using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+internal class ImportChangedEventArgs : EventArgs
 {
-    internal class ImportChangedEventArgs : EventArgs
+    public ImportChangedEventArgs(string filePath, FileChangeKind kind, IEnumerable<string> associatedDocuments)
     {
-        public ImportChangedEventArgs(string filePath, FileChangeKind kind, IEnumerable<string> associatedDocuments)
+        if (filePath is null)
         {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
-            if (associatedDocuments is null)
-            {
-                throw new ArgumentNullException(nameof(associatedDocuments));
-            }
-
-            FilePath = filePath;
-            Kind = kind;
-            AssociatedDocuments = associatedDocuments;
+            throw new ArgumentNullException(nameof(filePath));
         }
 
-        public string FilePath { get; }
+        if (associatedDocuments is null)
+        {
+            throw new ArgumentNullException(nameof(associatedDocuments));
+        }
 
-        public FileChangeKind Kind { get; }
-
-        public IEnumerable<string> AssociatedDocuments { get; }
+        FilePath = filePath;
+        Kind = kind;
+        AssociatedDocuments = associatedDocuments;
     }
+
+    public string FilePath { get; }
+
+    public FileChangeKind Kind { get; }
+
+    public IEnumerable<string> AssociatedDocuments { get; }
 }

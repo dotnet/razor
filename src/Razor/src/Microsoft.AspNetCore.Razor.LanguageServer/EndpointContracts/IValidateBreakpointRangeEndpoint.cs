@@ -4,11 +4,10 @@
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+[LanguageServerEndpoint(VSInternalMethods.TextDocumentValidateBreakableRangeName)]
+internal interface IValidateBreakpointRangeEndpoint : IRazorRequestHandler<ValidateBreakpointRangeParamsBridge, Range?>,
+    IRegistrationExtension
 {
-    [LanguageServerEndpoint(VSInternalMethods.TextDocumentValidateBreakableRangeName)]
-    internal interface IValidateBreakpointRangeEndpoint : IRazorRequestHandler<ValidateBreakpointRangeParamsBridge, Range?>,
-        IRegistrationExtension
-    {
-    }
 }

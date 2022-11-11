@@ -6,27 +6,26 @@
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.Microbenchmarks
+namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
+
+public class ProjectLoadBenchmark : ProjectSnapshotManagerBenchmarkBase
 {
-    public class ProjectLoadBenchmark : ProjectSnapshotManagerBenchmarkBase
+    [IterationSetup]
+    public void Setup()
     {
-        [IterationSetup]
-        public void Setup()
+        SnapshotManager = CreateProjectSnapshotManager();
+    }
+
+    private DefaultProjectSnapshotManager SnapshotManager { get; set; }
+
+    [Benchmark(Description = "Initializes a project and 100 files", OperationsPerInvoke = 100)]
+    public void ProjectLoad_AddProjectAnd100Files()
+    {
+        SnapshotManager.ProjectAdded(HostProject);
+
+        for (var i= 0; i < Documents.Length; i++)
         {
-            SnapshotManager = CreateProjectSnapshotManager();
-        }
-
-        private DefaultProjectSnapshotManager SnapshotManager { get; set; }
-
-        [Benchmark(Description = "Initializes a project and 100 files", OperationsPerInvoke = 100)]
-        public void ProjectLoad_AddProjectAnd100Files()
-        {
-            SnapshotManager.ProjectAdded(HostProject);
-
-            for (var i= 0; i < Documents.Length; i++)
-            {
-                SnapshotManager.DocumentAdded(HostProject, Documents[i], TextLoaders[i % 4]);
-            }
+            SnapshotManager.DocumentAdded(HostProject, Documents[i], TextLoaders[i % 4]);
         }
     }
 }

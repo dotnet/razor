@@ -12,35 +12,34 @@ using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
+namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization;
+
+public class RazorExtensionSerializationTest : TestBase
 {
-    public class RazorExtensionSerializationTest : TestBase
+    public RazorExtensionSerializationTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        public RazorExtensionSerializationTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+        var converters = new JsonConverterCollection
         {
-            var converters = new JsonConverterCollection
-            {
-                RazorExtensionJsonConverter.Instance
-            };
+            RazorExtensionJsonConverter.Instance
+        };
 
-            Converters = converters.ToArray();
-        }
+        Converters = converters.ToArray();
+    }
 
-        private JsonConverter[] Converters { get; }
+    private JsonConverter[] Converters { get; }
 
-        [Fact]
-        public void RazorExensionJsonConverter_Serialization_CanRoundTrip()
-        {
-            // Arrange
-            var extension = new ProjectSystemRazorExtension("Test");
+    [Fact]
+    public void RazorExensionJsonConverter_Serialization_CanRoundTrip()
+    {
+        // Arrange
+        var extension = new ProjectSystemRazorExtension("Test");
 
-            // Act
-            var json = JsonConvert.SerializeObject(extension, Converters);
-            var obj = JsonConvert.DeserializeObject<RazorExtension>(json, Converters);
+        // Act
+        var json = JsonConvert.SerializeObject(extension, Converters);
+        var obj = JsonConvert.DeserializeObject<RazorExtension>(json, Converters);
 
-            // Assert
-            Assert.Equal(extension.ExtensionName, obj.ExtensionName);
-        }
+        // Assert
+        Assert.Equal(extension.ExtensionName, obj.ExtensionName);
     }
 }

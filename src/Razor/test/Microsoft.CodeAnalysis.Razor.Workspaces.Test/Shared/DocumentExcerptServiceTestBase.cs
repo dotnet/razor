@@ -14,101 +14,100 @@ using Xunit;
 using Xunit.Abstractions;
 using TestFileMarkupParser = Microsoft.CodeAnalysis.Testing.TestFileMarkupParser;
 
-namespace Microsoft.CodeAnalysis.Razor
-{
-    public abstract class DocumentExcerptServiceTestBase : WorkspaceTestBase
-    {
-        private readonly HostProject _hostProject;
-        private readonly HostDocument _hostDocument;
+namespace Microsoft.CodeAnalysis.Razor;
 
-        public DocumentExcerptServiceTestBase(ITestOutputHelper testOutput)
-            : base(testOutput)
+public abstract class DocumentExcerptServiceTestBase : WorkspaceTestBase
+{
+    private readonly HostProject _hostProject;
+    private readonly HostDocument _hostDocument;
+
+    public DocumentExcerptServiceTestBase(ITestOutputHelper testOutput)
+        : base(testOutput)
+    {
+        _hostProject = TestProjectData.SomeProject;
+        _hostDocument = TestProjectData.SomeProjectFile1;
+    }
+
+    public static (SourceText sourceText, TextSpan span) CreateText(string text)
+    {
+        if (text is null)
         {
-            _hostProject = TestProjectData.SomeProject;
-            _hostDocument = TestProjectData.SomeProjectFile1;
+            throw new ArgumentNullException(nameof(text));
         }
 
-        public static (SourceText sourceText, TextSpan span) CreateText(string text)
-        {
-            if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
-            // Since we're using positions, normalize to Windows style
+        // Since we're using positions, normalize to Windows style
 #pragma warning disable CA1307 // Specify StringComparison
-            text = text.Replace("\r", "").Replace("\n", "\r\n");
+        text = text.Replace("\r", "").Replace("\n", "\r\n");
 #pragma warning restore CA1307 // Specify StringComparison
 
-            TestFileMarkupParser.GetSpan(text, out text, out var span);
-            return (SourceText.From(text), span);
-        }
+        TestFileMarkupParser.GetSpan(text, out text, out var span);
+        return (SourceText.From(text), span);
+    }
 
-        // Adds the text to a ProjectSnapshot, generates code, and updates the workspace.
-        private (DocumentSnapshot primary, Document secondary) InitializeDocument(SourceText sourceText)
+    // Adds the text to a ProjectSnapshot, generates code, and updates the workspace.
+    private (DocumentSnapshot primary, Document secondary) InitializeDocument(SourceText sourceText)
+    {
+        var project = new DefaultProjectSnapshot(
+            ProjectState.Create(Workspace.Services, _hostProject)
+            .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
+
+        var primary = project.GetDocument(_hostDocument.FilePath);
+
+        var solution = Workspace.CurrentSolution.AddProject(ProjectInfo.Create(
+            ProjectId.CreateNewId(Path.GetFileNameWithoutExtension(_hostDocument.FilePath)),
+            VersionStamp.Create(),
+            Path.GetFileNameWithoutExtension(_hostDocument.FilePath),
+            Path.GetFileNameWithoutExtension(_hostDocument.FilePath),
+            LanguageNames.CSharp,
+            _hostDocument.FilePath));
+
+        solution = solution.AddDocument(
+            DocumentId.CreateNewId(solution.ProjectIds.Single(), _hostDocument.FilePath),
+            _hostDocument.FilePath,
+            new GeneratedDocumentTextLoader(primary, _hostDocument.FilePath));
+
+        var secondary = solution.Projects.Single().Documents.Single();
+        return (primary, secondary);
+    }
+
+    // Maps a span in the primary buffer to the secondary buffer. This is only valid for C# code
+    // that appears in the primary buffer.
+    private static async Task<TextSpan> GetSecondarySpanAsync(DocumentSnapshot primary, TextSpan primarySpan, Document secondary)
+    {
+        var output = await primary.GetGeneratedOutputAsync();
+
+        var mappings = output.GetCSharpDocument().SourceMappings;
+        for (var i = 0; i < mappings.Count; i++)
         {
-            var project = new DefaultProjectSnapshot(
-                ProjectState.Create(Workspace.Services, _hostProject)
-                .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(sourceText, VersionStamp.Create()))));
-
-            var primary = project.GetDocument(_hostDocument.FilePath);
-
-            var solution = Workspace.CurrentSolution.AddProject(ProjectInfo.Create(
-                ProjectId.CreateNewId(Path.GetFileNameWithoutExtension(_hostDocument.FilePath)),
-                VersionStamp.Create(),
-                Path.GetFileNameWithoutExtension(_hostDocument.FilePath),
-                Path.GetFileNameWithoutExtension(_hostDocument.FilePath),
-                LanguageNames.CSharp,
-                _hostDocument.FilePath));
-
-            solution = solution.AddDocument(
-                DocumentId.CreateNewId(solution.ProjectIds.Single(), _hostDocument.FilePath),
-                _hostDocument.FilePath,
-                new GeneratedDocumentTextLoader(primary, _hostDocument.FilePath));
-
-            var secondary = solution.Projects.Single().Documents.Single();
-            return (primary, secondary);
-        }
-
-        // Maps a span in the primary buffer to the secondary buffer. This is only valid for C# code
-        // that appears in the primary buffer.
-        private static async Task<TextSpan> GetSecondarySpanAsync(DocumentSnapshot primary, TextSpan primarySpan, Document secondary)
-        {
-            var output = await primary.GetGeneratedOutputAsync();
-
-            var mappings = output.GetCSharpDocument().SourceMappings;
-            for (var i = 0; i < mappings.Count; i++)
+            var mapping = mappings[i];
+            if (mapping.OriginalSpan.AbsoluteIndex <= primarySpan.Start &&
+                (mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length) >= primarySpan.End)
             {
-                var mapping = mappings[i];
-                if (mapping.OriginalSpan.AbsoluteIndex <= primarySpan.Start &&
-                    (mapping.OriginalSpan.AbsoluteIndex + mapping.OriginalSpan.Length) >= primarySpan.End)
-                {
-                    var offset = mapping.GeneratedSpan.AbsoluteIndex - mapping.OriginalSpan.AbsoluteIndex;
-                    var secondarySpan = new TextSpan(primarySpan.Start + offset, primarySpan.Length);
-                    Assert.Equal(
-                        (await primary.GetTextAsync()).GetSubText(primarySpan).ToString(),
-                        (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString());
-                    return secondarySpan;
-                }
+                var offset = mapping.GeneratedSpan.AbsoluteIndex - mapping.OriginalSpan.AbsoluteIndex;
+                var secondarySpan = new TextSpan(primarySpan.Start + offset, primarySpan.Length);
+                Assert.Equal(
+                    (await primary.GetTextAsync()).GetSubText(primarySpan).ToString(),
+                    (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString());
+                return secondarySpan;
             }
-
-            throw new InvalidOperationException("Could not map the primary span to the generated code.");
         }
 
-        public async Task<(Document generatedDocument, SourceText razorSourceText, TextSpan primarySpan, TextSpan generatedSpan)> InitializeAsync(string razorSource)
-        {
-            var (razorSourceText, primarySpan) = CreateText(razorSource);
-            var (primary, generatedDocument) = InitializeDocument(razorSourceText);
-            var generatedSpan = await DocumentExcerptServiceTestBase.GetSecondarySpanAsync(primary, primarySpan, generatedDocument);
-            return (generatedDocument, razorSourceText, primarySpan, generatedSpan);
-        }
+        throw new InvalidOperationException("Could not map the primary span to the generated code.");
+    }
 
-        internal async Task<(DocumentSnapshot primary, Document generatedDocument, TextSpan generatedSpan)> InitializeWithSnapshotAsync(string razorSource)
-        {
-            var (razorSourceText, primarySpan) = CreateText(razorSource);
-            var (primary, generatedDocument) = InitializeDocument(razorSourceText);
-            var generatedSpan = await DocumentExcerptServiceTestBase.GetSecondarySpanAsync(primary, primarySpan, generatedDocument);
-            return (primary, generatedDocument, generatedSpan);
-        }
+    public async Task<(Document generatedDocument, SourceText razorSourceText, TextSpan primarySpan, TextSpan generatedSpan)> InitializeAsync(string razorSource)
+    {
+        var (razorSourceText, primarySpan) = CreateText(razorSource);
+        var (primary, generatedDocument) = InitializeDocument(razorSourceText);
+        var generatedSpan = await DocumentExcerptServiceTestBase.GetSecondarySpanAsync(primary, primarySpan, generatedDocument);
+        return (generatedDocument, razorSourceText, primarySpan, generatedSpan);
+    }
+
+    internal async Task<(DocumentSnapshot primary, Document generatedDocument, TextSpan generatedSpan)> InitializeWithSnapshotAsync(string razorSource)
+    {
+        var (razorSourceText, primarySpan) = CreateText(razorSource);
+        var (primary, generatedDocument) = InitializeDocument(razorSourceText);
+        var generatedSpan = await DocumentExcerptServiceTestBase.GetSecondarySpanAsync(primary, primarySpan, generatedDocument);
+        return (primary, generatedDocument, generatedSpan);
     }
 }

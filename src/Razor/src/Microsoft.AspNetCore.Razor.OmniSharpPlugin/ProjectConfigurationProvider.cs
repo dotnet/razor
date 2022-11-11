@@ -3,10 +3,9 @@
 
 #nullable disable
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+public abstract class ProjectConfigurationProvider
 {
-    public abstract class ProjectConfigurationProvider
-    {
-        public abstract bool TryResolveConfiguration(ProjectConfigurationProviderContext context, out ProjectConfiguration configuration);
-    }
+    public abstract bool TryResolveConfiguration(ProjectConfigurationProviderContext context, out ProjectConfiguration configuration);
 }

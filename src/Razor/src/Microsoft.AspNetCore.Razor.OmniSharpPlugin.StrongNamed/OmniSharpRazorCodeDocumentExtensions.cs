@@ -5,13 +5,12 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+public static class OmniSharpRazorCodeDocumentExtensions
 {
-    public static class OmniSharpRazorCodeDocumentExtensions
+    public static SourceText GetInternalCSharpSourceText(this RazorCodeDocument codeDocument)
     {
-        public static SourceText GetInternalCSharpSourceText(this RazorCodeDocument codeDocument)
-        {
-            return codeDocument.GetCSharpSourceText();
-        }
+        return codeDocument.GetCSharpSourceText();
     }
 }

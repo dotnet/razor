@@ -3,10 +3,9 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal interface IRegistrationExtension
 {
-    internal interface IRegistrationExtension
-    {
-        RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities);
-    }
+    RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities);
 }

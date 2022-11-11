@@ -5,15 +5,14 @@ using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+// Note: This type should be kept in sync with the one in VisualStudio.LanguageServerClient assembly.
+internal class RazorDiagnosticsParams
 {
-    // Note: This type should be kept in sync with the one in VisualStudio.LanguageServerClient assembly.
-    internal class RazorDiagnosticsParams
-    {
-        public RazorLanguageKind Kind { get; init; }
+    public RazorLanguageKind Kind { get; init; }
 
-        public required Uri RazorDocumentUri { get; init; }
+    public required Uri RazorDocumentUri { get; init; }
 
-        public required VSDiagnostic[] Diagnostics { get; init; }
-    }
+    public required VSDiagnostic[] Diagnostics { get; init; }
 }

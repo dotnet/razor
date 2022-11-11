@@ -6,38 +6,37 @@
 using System;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+internal class DefaultErrorReporter : ErrorReporter
 {
-    internal class DefaultErrorReporter : ErrorReporter
+    public override void ReportError(Exception exception)
     {
-        public override void ReportError(Exception exception)
+        if (exception is null)
         {
-            if (exception is null)
-            {
-                throw new ArgumentNullException(nameof(exception));
-            }
-
-            // Do nothing.
+            throw new ArgumentNullException(nameof(exception));
         }
 
-        public override void ReportError(Exception exception, ProjectSnapshot project)
-        {
-            if (exception is null)
-            {
-                throw new ArgumentNullException(nameof(exception));
-            }
+        // Do nothing.
+    }
 
-            // Do nothing.
+    public override void ReportError(Exception exception, ProjectSnapshot project)
+    {
+        if (exception is null)
+        {
+            throw new ArgumentNullException(nameof(exception));
         }
 
-        public override void ReportError(Exception exception, Project workspaceProject)
-        {
-            if (exception is null)
-            {
-                throw new ArgumentNullException(nameof(exception));
-            }
+        // Do nothing.
+    }
 
-            // Do nothing.
+    public override void ReportError(Exception exception, Project workspaceProject)
+    {
+        if (exception is null)
+        {
+            throw new ArgumentNullException(nameof(exception));
         }
+
+        // Do nothing.
     }
 }
