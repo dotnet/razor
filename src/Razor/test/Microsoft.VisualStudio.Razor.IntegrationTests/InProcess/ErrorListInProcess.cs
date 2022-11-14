@@ -33,7 +33,11 @@ internal partial class ErrorListInProcess
             .ToImmutableArray();
     }
 
-    private async Task<ImmutableArray<ITableEntryHandle>> GetErrorItemsAsync(ErrorSource errorSource, __VSERRORCATEGORY minimumSeverity, string documentName, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<ITableEntryHandle>> GetErrorItemsAsync(
+        ErrorSource errorSource,
+        __VSERRORCATEGORY minimumSeverity,
+        string documentName,
+        CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
