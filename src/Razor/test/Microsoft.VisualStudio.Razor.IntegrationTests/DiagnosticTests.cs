@@ -25,7 +25,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
 ", ControlledHangMitigatingCancellationToken);
 
         // Act
-        var errors = await TestServices.ErrorList.WaitForErrorsAsync("Counter.razor", ControlledHangMitigatingCancellationToken);
+        var errors = await TestServices.ErrorList.WaitForErrorsAsync("Counter.razor", expectedCount: 3, ControlledHangMitigatingCancellationToken);
 
         // Assert
         Assert.Collection(errors,

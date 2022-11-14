@@ -18,12 +18,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing;
 [TestService]
 internal partial class ErrorListInProcess
 {
-    public async Task<ImmutableArray<string>> WaitForErrorsAsync(string fileName, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<string>> WaitForErrorsAsync(string fileName, int expectedCount, CancellationToken cancellationToken)
     {
         var errorSource = ErrorSource.Build | ErrorSource.Other;
         var minimumSeverity = __VSERRORCATEGORY.EC_WARNING;
 
-        var errorItems = await GetErrorItemsAsync(errorSource, minimumSeverity, fileName, cancellationToken);
+        var errorItems = await GetErrorItemsAsync(errorSource, minimumSeverity, fileName, expectedCount, cancellationToken);
 
         var list = errorItems.Select(GetMessage).ToList();
 
@@ -37,6 +37,7 @@ internal partial class ErrorListInProcess
         ErrorSource errorSource,
         __VSERRORCATEGORY minimumSeverity,
         string documentName,
+        int expectedCount,
         CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -52,7 +53,7 @@ internal partial class ErrorListInProcess
 
         var filteredEntries = FilterEntries(args, documentName, errorSource, minimumSeverity);
 
-        if (filteredEntries.Any())
+        if (EntriesReady(filteredEntries, expectedCount))
         {
             semaphore.Release();
             errorList.TableControl.EntriesChanged -= OnEntries_Changed;
@@ -78,10 +79,15 @@ internal partial class ErrorListInProcess
         void OnEntries_Changed(object sender, EntriesChangedEventArgs e)
         {
             var filteredEntries = FilterEntries(e, documentName, errorSource, minimumSeverity);
-            if (filteredEntries.Any())
+            if (EntriesReady(filteredEntries, expectedCount))
             {
                 semaphore.Release();
             }
+        }
+
+        static bool EntriesReady(ImmutableArray<ITableEntryHandle> entries, int expectedCount)
+        {
+            return entries.Any() && entries.Length >= expectedCount;
         }
 
         static ImmutableArray<ITableEntryHandle> FilterEntries(EntriesChangedEventArgs args, string documentName, ErrorSource errorSource, __VSERRORCATEGORY minimumSeverity)
