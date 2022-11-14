@@ -24,7 +24,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
     public RazorLanguageServerBenchmarkBase()
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current != null && !File.Exists(Path.Combine(current.FullName, "src", "Razor", "Razor.sln")))
+        while (current != null && !File.Exists(Path.Combine(current.FullName, "Razor.sln")))
         {
             current = current.Parent;
         }
