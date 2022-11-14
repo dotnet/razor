@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
             context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
-            var provider = new ExtractToCodeBehindCodeActionProvider();
+            var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -68,7 +68,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var location = new SourceLocation(contents.IndexOf("test", StringComparison.Ordinal), -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
-            var provider = new ExtractToCodeBehindCodeActionProvider();
+            var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -92,7 +92,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var location = new SourceLocation(contents.IndexOf("code", StringComparison.Ordinal) + 6, -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
-            var provider = new ExtractToCodeBehindCodeActionProvider();
+            var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -116,7 +116,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var location = new SourceLocation(contents.IndexOf("code", StringComparison.Ordinal), -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
-            var provider = new ExtractToCodeBehindCodeActionProvider();
+            var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -140,7 +140,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var location = new SourceLocation(contents.IndexOf("code", StringComparison.Ordinal), -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
-            var provider = new ExtractToCodeBehindCodeActionProvider();
+            var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -164,7 +164,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var location = new SourceLocation(contents.IndexOf("code", StringComparison.Ordinal), -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
 
-            var provider = new ExtractToCodeBehindCodeActionProvider();
+            var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -194,7 +194,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var location = new SourceLocation(contents.IndexOf("code", StringComparison.Ordinal), -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: false);
 
-            var provider = new ExtractToCodeBehindCodeActionProvider();
+            var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -218,7 +218,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var location = new SourceLocation(contents.IndexOf("functions", StringComparison.Ordinal), -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
-            var provider = new ExtractToCodeBehindCodeActionProvider();
+            var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
@@ -248,7 +248,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var location = new SourceLocation(contents.IndexOf("code", StringComparison.Ordinal), -1, -1);
             var context = CreateRazorCodeActionContext(request, location, documentPath, contents, relativePath: null);
 
-            var provider = new ExtractToCodeBehindCodeActionProvider();
+            var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
             // Act
             var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);

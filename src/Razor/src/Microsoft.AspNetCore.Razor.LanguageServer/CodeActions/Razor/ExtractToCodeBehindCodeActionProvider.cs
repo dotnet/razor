@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -16,12 +16,24 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
 {
     internal class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
     {
         private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult = Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(null);
+        private readonly ILogger<ExtractToCodeBehindCodeActionProvider> _logger;
+
+        public ExtractToCodeBehindCodeActionProvider(ILoggerFactory loggerFactory)
+        {
+            if (loggerFactory is null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            _logger = loggerFactory.CreateLogger<ExtractToCodeBehindCodeActionProvider>();
+        }
 
         public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
@@ -50,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var owner = syntaxTree.Root.LocateOwner(change);
             if (owner is null)
             {
-                Debug.Fail("Owner should never be null.");
+                _logger.LogWarning("Owner should never be null.");
                 return s_emptyResult;
             }
 
