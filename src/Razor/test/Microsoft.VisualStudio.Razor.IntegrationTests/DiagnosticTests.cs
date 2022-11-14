@@ -15,6 +15,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.SetTextAsync(@"
+<h1>
 <PageTitle>
 
 @code{
@@ -31,15 +32,19 @@ public class DiagnosticTests : AbstractRazorEditorTest
         Assert.Collection(errors,
             (error) =>
             {
-                Assert.Equal("Counter.razor(2, 2): error RZ1034: Found a malformed 'PageTitle' tag helper. Tag helpers must have a start and end tag or be self closing.", error);
+                Assert.Equal("Counter.razor(2, 1): error RZ9980: Unclosed tag 'h1' with no matching end tag.", error);
             },
             (error) =>
             {
-                Assert.Equal("Counter.razor(6, 18): error CS1002: ; expected", error);
+                Assert.Equal("Counter.razor(3, 2): error RZ1034: Found a malformed 'PageTitle' tag helper. Tag helpers must have a start and end tag or be self closing.", error);
             },
             (error) =>
             {
-                Assert.Equal("Counter.razor(6, 9): error CS0127: Since 'Counter.Function()' returns void, a return keyword must not be followed by an object expression", error);
+                Assert.Equal("Counter.razor(7, 18): error CS1002: ; expected", error);
+            },
+            (error) =>
+            {
+                Assert.Equal("Counter.razor(7, 9): error CS0127: Since 'Counter.Function()' returns void, a return keyword must not be followed by an object expression", error);
             });
     }
 }

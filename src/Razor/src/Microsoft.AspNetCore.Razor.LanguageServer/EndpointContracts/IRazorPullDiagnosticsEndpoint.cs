@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
 [LanguageServerEndpoint(VSInternalMethods.DocumentPullDiagnosticName)]
 internal interface IRazorPullDiagnosticsEndpoint :
-    IRazorRequestHandler<VSInternalDocumentDiagnosticsParamsBridge, IEnumerable<VSInternalDiagnosticReport>?>,
+    IRazorRequestHandler<VSInternalDocumentDiagnosticsParams, IEnumerable<VSInternalDiagnosticReport>?>,
     IRegistrationExtension
 {
 }

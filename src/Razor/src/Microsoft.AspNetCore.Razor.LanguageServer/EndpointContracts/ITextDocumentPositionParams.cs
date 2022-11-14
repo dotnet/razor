@@ -5,12 +5,9 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
-internal interface ITextDocumentParams
-{
-    public TextDocumentIdentifier TextDocument { get; set; }
-}
-
-internal interface ITextDocumentPositionParams : ITextDocumentParams
+internal interface ITextDocumentPositionParams
 {
     public Position Position { get; set; }
+
+    public TextDocumentIdentifier TextDocument { get; set; }
 }

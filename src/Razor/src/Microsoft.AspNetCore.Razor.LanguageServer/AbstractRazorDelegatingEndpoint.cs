@@ -14,11 +14,11 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : IRazorRequestHandler<TRequest, TResponse?>
-   where TRequest : ITextDocumentParams
+   where TRequest : ITextDocumentPositionParams
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ClientNotifierServiceBase _languageServer;
-    protected readonly RazorDocumentMappingService _documentMappingService;
+    protected readonly RazorDocumentMappingService DocumentMappingService;
     protected readonly ILogger Logger;
 
     protected AbstractRazorDelegatingEndpoint(
@@ -28,7 +28,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
         ILogger logger)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+        DocumentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
 
         Logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -51,12 +51,12 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
     /// <summary>
     /// The delegated object to send to the <see cref="CustomMessageTarget"/>
     /// </summary>
-    protected abstract Task<IDelegatedParams?> CreateDelegatedParamsAsync(TRequest request, RazorRequestContext requestContext, Projection? projection, CancellationToken cancellationToken);
+    protected abstract Task<IDelegatedParams?> CreateDelegatedParamsAsync(TRequest request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken);
 
     /// <summary>
     /// If the response needs to be handled, such as for remapping positions back, override and handle here
     /// </summary>
-    protected virtual Task<TResponse> HandleDelegatedResponseAsync(TResponse delegatedResponse, TRequest originalRequest, RazorRequestContext requestContext, Projection? projection, CancellationToken cancellationToken)
+    protected virtual Task<TResponse> HandleDelegatedResponseAsync(TResponse delegatedResponse, TRequest originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         => Task.FromResult(delegatedResponse);
 
     /// <summary>
@@ -64,7 +64,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
     /// value is returned the request will be delegated to C#/HTML servers, otherwise the response
     /// will be used in <see cref="HandleRequestAsync(TRequest, RazorRequestContext, CancellationToken)"/>
     /// </summary>
-    protected virtual Task<TResponse?> TryHandleAsync(TRequest request, RazorRequestContext requestContext, Projection? projection, CancellationToken cancellationToken)
+    protected virtual Task<TResponse?> TryHandleAsync(TRequest request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
         => Task.FromResult<TResponse?>(default);
 
     /// <summary>
@@ -96,18 +96,10 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
         }
 
         Projection? projection;
-        var usesPosition = request is ITextDocumentPositionParams;
-        if (request is ITextDocumentPositionParams positionParams)
+        projection = await DocumentMappingService.TryGetProjectionAsync(documentContext, request.Position, requestContext.Logger, cancellationToken).ConfigureAwait(false);
+        if (projection is null)
         {
-            projection = await _documentMappingService.TryGetProjectionAsync(documentContext, positionParams.Position, requestContext.Logger, cancellationToken).ConfigureAwait(false);
-            if (projection is null)
-            {
-                return default;
-            }
-        }
-        else
-        {
-            projection = null;
+            return default;
         }
 
         var response = await TryHandleAsync(request, requestContext, projection, cancellationToken).ConfigureAwait(false);
@@ -123,7 +115,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
 
         // We can only delegate to C# and HTML, so if we're in a Razor context and our inheritor didn't want to provide
         // any response then that's all we can do.
-        if ((projection is null || projection.LanguageKind == RazorLanguageKind.Razor) && usesPosition)
+        if (projection.LanguageKind == RazorLanguageKind.Razor)
         {
             return default;
         }

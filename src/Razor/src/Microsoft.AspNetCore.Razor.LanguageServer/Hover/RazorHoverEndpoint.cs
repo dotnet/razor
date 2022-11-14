@@ -5,7 +5,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -85,7 +84,7 @@ internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocument
     {
         if (projection is null)
         {
-            throw new ArgumentNullException($"{nameof(projection)} should not be null for {nameof(OnAutoInsertEndpoint)}.");
+            throw new ArgumentNullException($"{nameof(projection)} should not be null for {nameof(RazorHoverEndpoint)}.");
         }
 
         if (response?.Range is null)
@@ -96,7 +95,7 @@ internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocument
         var documentContext = requestContext.GetRequiredDocumentContext();
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, response.Range, out var projectedRange))
+        if (DocumentMappingService.TryMapFromProjectedDocumentRange(codeDocument, response.Range, out var projectedRange))
         {
             response.Range = projectedRange;
         }

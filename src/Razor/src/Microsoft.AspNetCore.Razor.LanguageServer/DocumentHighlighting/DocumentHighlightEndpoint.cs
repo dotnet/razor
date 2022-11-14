@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -72,7 +71,7 @@ internal class DocumentHighlightEndpoint : AbstractRazorDelegatingEndpoint<Docum
 
         foreach (var highlight in response)
         {
-            if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, highlight.Range, out var mappedRange))
+            if (DocumentMappingService.TryMapFromProjectedDocumentRange(codeDocument, highlight.Range, out var mappedRange))
             {
                 highlight.Range = mappedRange;
             }

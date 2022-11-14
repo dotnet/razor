@@ -4,7 +4,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -56,7 +55,7 @@ internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<TextDocu
     {
         if (projection is null)
         {
-            throw new ArgumentNullException($"{nameof(projection)} should not be null for {nameof(OnAutoInsertEndpoint)}.");
+            throw new ArgumentNullException($"{nameof(projection)} should not be null for {nameof(ImplementationEndpoint)}.");
         }
 
         // Not using .TryGetXXX because this does the null check for us too
@@ -64,7 +63,7 @@ internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<TextDocu
         {
             foreach (var loc in locations)
             {
-                (loc.Uri, loc.Range) = await _documentMappingService.MapFromProjectedDocumentRangeAsync(loc.Uri, loc.Range, cancellationToken).ConfigureAwait(false);
+                (loc.Uri, loc.Range) = await DocumentMappingService.MapFromProjectedDocumentRangeAsync(loc.Uri, loc.Range, cancellationToken).ConfigureAwait(false);
             }
 
             return locations;
@@ -73,7 +72,7 @@ internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<TextDocu
         {
             foreach (var item in referenceItems)
             {
-                (item.Location.Uri, item.Location.Range) = await _documentMappingService.MapFromProjectedDocumentRangeAsync(item.Location.Uri, item.Location.Range, cancellationToken).ConfigureAwait(false);
+                (item.Location.Uri, item.Location.Range) = await DocumentMappingService.MapFromProjectedDocumentRangeAsync(item.Location.Uri, item.Location.Range, cancellationToken).ConfigureAwait(false);
             }
 
             return referenceItems;

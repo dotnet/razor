@@ -11,12 +11,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -113,7 +111,7 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
             return null;
         }
 
-        return await _documentMappingService.RemapWorkspaceEditAsync(response, cancellationToken);
+        return await DocumentMappingService.RemapWorkspaceEditAsync(response, cancellationToken);
     }
 
     private async Task<WorkspaceEdit?> TryGetRazorComponentRenameEditsAsync(RenameParams request, int absoluteIndex, DocumentContext documentContext, CancellationToken cancellationToken)

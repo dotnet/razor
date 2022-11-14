@@ -51,7 +51,7 @@ internal class ValidateBreakpointRangeEndpoint : AbstractRazorDelegatingEndpoint
         var documentContext = requestContext.GetRequiredDocumentContext();
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        if (!_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, request.Range, out var projectedRange))
+        if (!DocumentMappingService.TryMapToProjectedDocumentRange(codeDocument, request.Range, out var projectedRange))
         {
             return null;
         }
@@ -72,7 +72,7 @@ internal class ValidateBreakpointRangeEndpoint : AbstractRazorDelegatingEndpoint
         var documentContext = requestContext.GetRequiredDocumentContext();
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, delegatedResponse, out var projectedRange))
+        if (DocumentMappingService.TryMapFromProjectedDocumentRange(codeDocument, delegatedResponse, out var projectedRange))
         {
             return projectedRange;
         }

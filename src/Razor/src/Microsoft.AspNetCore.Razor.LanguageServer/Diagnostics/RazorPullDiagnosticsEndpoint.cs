@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,46 +9,60 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
 internal class RazorPullDiagnosticsEndpoint
-    : AbstractRazorDelegatingEndpoint<VSInternalDocumentDiagnosticsParamsBridge, IEnumerable<VSInternalDiagnosticReport>>,
-    IRazorPullDiagnosticsEndpoint
+    : IRazorPullDiagnosticsEndpoint
 {
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly ClientNotifierServiceBase _languageServer;
+    protected readonly RazorDocumentMappingService DocumentMappingService;
+
     public RazorPullDiagnosticsEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         RazorDocumentMappingService documentMappingService,
-        ClientNotifierServiceBase languageServer,
-        ILoggerFactory loggerFactory)
-        : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RazorPullDiagnosticsEndpoint>())
+        ClientNotifierServiceBase languageServer)
     {
+        _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+        DocumentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+        _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
     }
 
-    protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName;
+    public bool MutatesSolutionState => false;
 
     public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
     {
         return new RegistrationExtensionResult("_vs_supportsDiagnosticRequests", options: true);
     }
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(
-        VSInternalDocumentDiagnosticsParamsBridge request,
-        RazorRequestContext requestContext,
-        Projection? projection,
-        CancellationToken cancellationToken)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
     {
-        var documentContext = requestContext.GetRequiredDocumentContext();
-        var delegatedParams = new DelegatedDiagnosticParams(documentContext.Identifier, RazorLanguageKind.CSharp);
+        if (request.TextDocument is null)
+        {
+            throw new ArgumentNullException(nameof(request.TextDocument));
+        }
 
-        return Task.FromResult<IDelegatedParams?>(delegatedParams);
+        return request.TextDocument;
     }
 
-    protected override async Task<IEnumerable<VSInternalDiagnosticReport>> HandleDelegatedResponseAsync(IEnumerable<VSInternalDiagnosticReport> delegatedResponse, VSInternalDocumentDiagnosticsParamsBridge originalRequest, RazorRequestContext requestContext, Projection? projection, CancellationToken cancellationToken)
+    public async Task<IEnumerable<VSInternalDiagnosticReport>?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {
-        var documentContext = requestContext.GetRequiredDocumentContext();
+        var documentContext = context.GetRequiredDocumentContext();
+
+        if (!_languageServerFeatureOptions.SingleServerSupport)
+        {
+            return default;
+        }
+
+        var delegatedParams = new DelegatedDiagnosticParams(documentContext.Identifier);
+
+        var delegatedResponse = await _languageServer.SendRequestAsync<DelegatedDiagnosticParams, IEnumerable<VSInternalDiagnosticReport>>(
+            RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName,
+            delegatedParams,
+            cancellationToken).ConfigureAwait(false);
+
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
 
         foreach(var report in delegatedResponse)
@@ -56,7 +71,7 @@ internal class RazorPullDiagnosticsEndpoint
             {
                 foreach(var diagnostic in report.Diagnostics)
                 {
-                    if(_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, diagnostic.Range, out var razorRange))
+                    if(DocumentMappingService.TryMapFromProjectedDocumentRange(codeDocument, diagnostic.Range, out var razorRange))
                     {
                         diagnostic.Range = razorRange;
                     }
