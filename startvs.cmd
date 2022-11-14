@@ -16,7 +16,7 @@ SET PATH=%DOTNET_ROOT%;%PATH%
 SET sln=%~1
 
 IF "%sln%"=="" (
-    SET sln=%~dp0\src\Razor\Razor.sln
+    SET sln=%~dp0\Razor.sln
 )
 
 IF NOT EXIST "%DOTNET_ROOT%\dotnet.exe" (

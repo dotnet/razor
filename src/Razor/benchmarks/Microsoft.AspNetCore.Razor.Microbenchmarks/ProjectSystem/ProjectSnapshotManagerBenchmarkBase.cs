@@ -27,7 +27,7 @@ public class ProjectSnapshotManagerBenchmarkBase
     public ProjectSnapshotManagerBenchmarkBase()
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current != null && !File.Exists(Path.Combine(current.FullName, "src", "Razor", "Razor.sln")))
+        while (current != null && !File.Exists(Path.Combine(current.FullName, "Razor.sln")))
         {
             current = current.Parent;
         }
