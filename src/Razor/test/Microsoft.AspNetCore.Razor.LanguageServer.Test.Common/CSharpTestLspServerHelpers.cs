@@ -61,8 +61,9 @@ internal class CSharpTestLspServerHelpers
                     {
                         SnippetSupport = true
                     }
-                }
-            }
+                },
+            },
+            SupportsDiagnosticRequests = true,
         };
 
         var testLspServer = await CSharpTestLspServer.CreateAsync(

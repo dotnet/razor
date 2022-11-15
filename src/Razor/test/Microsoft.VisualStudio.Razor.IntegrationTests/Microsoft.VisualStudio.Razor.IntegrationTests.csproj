@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\RazorDeployment\RazorDeployment.csproj" Private="False">
+    <ProjectReference Include="..\..\src\RazorDeployment\RazorDeployment.csproj" Private="False" Condition="'$(BuildDependencyVsix)' == 'true'">
       <PrivateAssets>All</PrivateAssets>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>

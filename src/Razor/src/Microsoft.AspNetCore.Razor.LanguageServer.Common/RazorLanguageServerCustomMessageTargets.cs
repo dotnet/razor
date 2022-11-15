@@ -44,4 +44,6 @@ internal static class RazorLanguageServerCustomMessageTargets
     public const string RazorOnAutoInsertEndpointName = "razor/onAutoInsert";
 
     public const string RazorValidateBreakpointRangeName = "razor/validateBreakpointRange";
+
+    public const string RazorPullDiagnosticEndpointName = "razor/pullDiagnostics";
 }

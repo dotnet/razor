@@ -23,8 +23,8 @@ using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
-internal class RazorDiagnosticsEndpoint :
-    IRazorDiagnosticsEndpoint
+internal class RazorTranslateDiagnosticsEndpoint :
+    IRazorTranslateDiagnosticsEndpoint
 {
     // Internal for testing
     internal static readonly IReadOnlyCollection<string> CSharpDiagnosticsToIgnore = new HashSet<string>()
@@ -38,7 +38,7 @@ internal class RazorDiagnosticsEndpoint :
 
     public bool MutatesSolutionState { get; } = false;
 
-    public RazorDiagnosticsEndpoint(
+    public RazorTranslateDiagnosticsEndpoint(
         RazorDocumentMappingService documentMappingService,
         ILoggerFactory loggerFactory)
     {
@@ -53,7 +53,7 @@ internal class RazorDiagnosticsEndpoint :
         }
 
         _documentMappingService = documentMappingService;
-        _logger = loggerFactory.CreateLogger<RazorDiagnosticsEndpoint>();
+        _logger = loggerFactory.CreateLogger<RazorTranslateDiagnosticsEndpoint>();
     }
 
     public async Task<RazorDiagnosticsResponse> HandleRequestAsync(RazorDiagnosticsParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
