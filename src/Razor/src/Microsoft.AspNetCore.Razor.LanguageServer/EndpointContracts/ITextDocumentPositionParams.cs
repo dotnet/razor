@@ -10,5 +10,4 @@ internal interface ITextDocumentPositionParams
     public TextDocumentIdentifier TextDocument { get; set; }
 
     public Position Position { get; set; }
-
 }
