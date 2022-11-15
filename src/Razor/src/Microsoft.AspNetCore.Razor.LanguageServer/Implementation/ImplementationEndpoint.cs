@@ -18,6 +18,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 
 internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParamsBridge, ImplementationResult>, IImplementationEndpoint
 {
+    private readonly RazorDocumentMappingService _documentMappingService;
+
     public ImplementationEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         RazorDocumentMappingService documentMappingService,
@@ -25,6 +27,7 @@ internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<TextDocu
         ILoggerFactory loggerFactory)
         : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<ImplementationEndpoint>())
     {
+        _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     }
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName;
@@ -37,13 +40,8 @@ internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<TextDocu
         return new RegistrationExtensionResult(ServerCapability, option);
     }
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection? projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
-        if (projection is null)
-        {
-            throw new ArgumentNullException($"Projection should not be null for {nameof(ImplementationEndpoint)}.");
-        }
-
         var documentContext = requestContext.GetRequiredDocumentContext();
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
@@ -51,19 +49,14 @@ internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<TextDocu
                 projection.LanguageKind));
     }
 
-    protected async override Task<ImplementationResult> HandleDelegatedResponseAsync(ImplementationResult delegatedResponse, TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection? projection, CancellationToken cancellationToken)
+    protected async override Task<ImplementationResult> HandleDelegatedResponseAsync(ImplementationResult delegatedResponse, TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
-        if (projection is null)
-        {
-            throw new ArgumentNullException($"{nameof(projection)} should not be null for {nameof(ImplementationEndpoint)}.");
-        }
-
         // Not using .TryGetXXX because this does the null check for us too
         if (delegatedResponse.Value is Location[] locations)
         {
             foreach (var loc in locations)
             {
-                (loc.Uri, loc.Range) = await DocumentMappingService.MapFromProjectedDocumentRangeAsync(loc.Uri, loc.Range, cancellationToken).ConfigureAwait(false);
+                (loc.Uri, loc.Range) = await _documentMappingService.MapFromProjectedDocumentRangeAsync(loc.Uri, loc.Range, cancellationToken).ConfigureAwait(false);
             }
 
             return locations;
@@ -72,7 +65,7 @@ internal class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<TextDocu
         {
             foreach (var item in referenceItems)
             {
-                (item.Location.Uri, item.Location.Range) = await DocumentMappingService.MapFromProjectedDocumentRangeAsync(item.Location.Uri, item.Location.Range, cancellationToken).ConfigureAwait(false);
+                (item.Location.Uri, item.Location.Range) = await _documentMappingService.MapFromProjectedDocumentRangeAsync(item.Location.Uri, item.Location.Range, cancellationToken).ConfigureAwait(false);
             }
 
             return referenceItems;

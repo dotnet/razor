@@ -59,13 +59,8 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<OnAutoInse
         return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
     }
 
-    protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> TryHandleAsync(OnAutoInsertParamsBridge request, RazorRequestContext requestContext, Projection? projection, CancellationToken cancellationToken)
+    protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> TryHandleAsync(OnAutoInsertParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
-        if (projection is null)
-        {
-            throw new ArgumentNullException($"{nameof(projection)} should not be null for {nameof(OnAutoInsertEndpoint)}.");
-        }
-
         var documentContext = requestContext.GetRequiredDocumentContext();
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
@@ -117,13 +112,8 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<OnAutoInse
         return null;
     }
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(OnAutoInsertParamsBridge request, RazorRequestContext requestContext, Projection? projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(OnAutoInsertParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
-        if (projection is null)
-        {
-            throw new ArgumentNullException($"{nameof(projection)} should not be null for {nameof(OnAutoInsertEndpoint)}.");
-        }
-
         var documentContext = requestContext.GetRequiredDocumentContext();
         if (projection.LanguageKind == RazorLanguageKind.Html &&
            !s_htmlAllowedTriggerCharacters.Contains(request.Character))
@@ -150,14 +140,9 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<OnAutoInse
         VSInternalDocumentOnAutoInsertResponseItem? delegatedResponse,
         OnAutoInsertParamsBridge originalRequest,
         RazorRequestContext requestContext,
-        Projection? projection,
+        Projection projection,
         CancellationToken cancellationToken)
     {
-        if (projection is null)
-        {
-            throw new ArgumentNullException($"{nameof(projection)} should not be null for {nameof(OnAutoInsertEndpoint)}.");
-        }
-
         if (delegatedResponse is null)
         {
             return null;

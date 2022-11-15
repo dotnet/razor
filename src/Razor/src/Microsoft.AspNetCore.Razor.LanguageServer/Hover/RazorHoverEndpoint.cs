@@ -17,6 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParamsBridge, VSInternalHover?>, IVSHoverEndpoint
 {
     private readonly RazorHoverInfoService _hoverInfoService;
+    private readonly RazorDocumentMappingService _documentMappingService;
     private VSInternalClientCapabilities? _clientCapabilities;
 
     public RazorHoverEndpoint(
@@ -28,6 +29,7 @@ internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocument
         : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RazorHoverEndpoint>())
     {
         _hoverInfoService = hoverInfoService ?? throw new ArgumentNullException(nameof(hoverInfoService));
+        _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     }
 
     public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
@@ -45,13 +47,8 @@ internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocument
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection? projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
-        if (projection is null)
-        {
-            throw new ArgumentNullException($"{nameof(projection)} should not be null for {nameof(RazorHoverEndpoint)}.");
-        }
-
         var documentContext = requestContext.GetRequiredDocumentContext();
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
@@ -59,13 +56,8 @@ internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocument
                 projection.LanguageKind));
     }
 
-    protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection? projection, CancellationToken cancellationToken)
+    protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
-        if (projection is null)
-        {
-            throw new ArgumentNullException($"{nameof(projection)} should not be null for {nameof(RazorHoverEndpoint)}.");
-        }
-
         var documentContext = requestContext.GetRequiredDocumentContext();
         // HTML can still sometimes be handled by razor. For example hovering over
         // a component tag like <Counter /> will still be in an html context
@@ -80,13 +72,8 @@ internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocument
         return _hoverInfoService.GetHoverInfo(codeDocument, location, _clientCapabilities!);
     }
 
-    protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParamsBridge originalRequest, RazorRequestContext requestContext, Projection? projection, CancellationToken cancellationToken)
+    protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParamsBridge originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
-        if (projection is null)
-        {
-            throw new ArgumentNullException($"{nameof(projection)} should not be null for {nameof(RazorHoverEndpoint)}.");
-        }
-
         if (response?.Range is null)
         {
             return response;
@@ -95,7 +82,7 @@ internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocument
         var documentContext = requestContext.GetRequiredDocumentContext();
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        if (DocumentMappingService.TryMapFromProjectedDocumentRange(codeDocument, response.Range, out var projectedRange))
+        if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, response.Range, out var projectedRange))
         {
             response.Range = projectedRange;
         }

@@ -17,8 +17,8 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
    where TRequest : ITextDocumentPositionParams
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly RazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
-    protected readonly RazorDocumentMappingService DocumentMappingService;
     protected readonly ILogger Logger;
 
     protected AbstractRazorDelegatingEndpoint(
@@ -28,7 +28,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
         ILogger logger)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        DocumentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+        _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
 
         Logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -95,8 +95,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
             return default;
         }
 
-        Projection? projection;
-        projection = await DocumentMappingService.TryGetProjectionAsync(documentContext, request.Position, requestContext.Logger, cancellationToken).ConfigureAwait(false);
+        var projection = await _documentMappingService.TryGetProjectionAsync(documentContext, request.Position, requestContext.Logger, cancellationToken).ConfigureAwait(false);
         if (projection is null)
         {
             return default;
