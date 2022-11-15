@@ -141,7 +141,6 @@ public class CSharpCodeParserTest
         };
 
         var diagnostics = new List<RazorDiagnostic>();
-        var expected = new SourceLocation(assemblyLocation, 0, assemblyLocation);
 
         // Act
         var result = parser.ParseAddOrRemoveDirective(directive, SourceLocation.Zero, diagnostics);
