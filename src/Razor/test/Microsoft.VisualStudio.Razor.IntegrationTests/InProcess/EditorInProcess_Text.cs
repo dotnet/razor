@@ -84,6 +84,13 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             Assert.Contains(text, content);
         }
 
+        public async Task VerifyTextDoesntContainAsync(string text, CancellationToken cancellationToken)
+        {
+            var view = await GetActiveTextViewAsync(cancellationToken);
+            var content = view.TextBuffer.CurrentSnapshot.GetText();
+            Assert.DoesNotContain(text, content);
+        }
+
         public async Task WaitForCurrentLineTextAsync(string text, CancellationToken cancellationToken)
         {
             await Helper.RetryAsync(async ct =>
