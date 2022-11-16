@@ -4,14 +4,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
+internal interface IFormattingPass
 {
-    internal interface IFormattingPass
-    {
-        int Order { get; }
+    int Order { get; }
 
-        bool IsValidationPass { get; }
+    bool IsValidationPass { get; }
 
-        Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken);
-    }
+    Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken);
 }

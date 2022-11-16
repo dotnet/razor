@@ -15,8 +15,8 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
     public class CodeActionResolutionEndpointTest : LanguageServerTestBase
     {
         public CodeActionResolutionEndpointTest(ITestOutputHelper testOutput)
@@ -533,4 +533,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
         }
     }
-}

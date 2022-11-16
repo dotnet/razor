@@ -6,12 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
-{
-    internal abstract class LSPProjectionProvider
-    {
-        public abstract Task<ProjectionResult?> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken);
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 
-        public abstract Task<ProjectionResult?> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken);
-    }
+internal abstract class LSPProjectionProvider
+{
+    public abstract Task<ProjectionResult?> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken);
+
+    public abstract Task<ProjectionResult?> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken);
 }

@@ -7,48 +7,47 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+internal sealed class TagHelperResolutionResultComparer : IEqualityComparer<TagHelperResolutionResult>
 {
-    internal sealed class TagHelperResolutionResultComparer : IEqualityComparer<TagHelperResolutionResult>
+    internal static readonly TagHelperResolutionResultComparer Default = new();
+
+    public bool Equals(TagHelperResolutionResult? x, TagHelperResolutionResult? y)
     {
-        internal static readonly TagHelperResolutionResultComparer Default = new();
-
-        public bool Equals(TagHelperResolutionResult? x, TagHelperResolutionResult? y)
+        if (x is null && y is null)
         {
-            if (x is null && y is null)
-            {
-                return true;
-            }
-            else if (x is null ^ y is null)
-            {
-                return false;
-            }
-
-            return x!.Descriptors.SequenceEqual(y!.Descriptors, TagHelperDescriptorComparer.Default) &&
-                x.Diagnostics.SequenceEqual(y.Diagnostics);
+            return true;
+        }
+        else if (x is null ^ y is null)
+        {
+            return false;
         }
 
-        public int GetHashCode(TagHelperResolutionResult obj)
+        return x!.Descriptors.SequenceEqual(y!.Descriptors, TagHelperDescriptorComparer.Default) &&
+            x.Diagnostics.SequenceEqual(y.Diagnostics);
+    }
+
+    public int GetHashCode(TagHelperResolutionResult obj)
+    {
+        var hash = new HashCodeCombiner();
+
+        if (obj.Descriptors is not null)
         {
-            var hash = new HashCodeCombiner();
-
-            if (obj.Descriptors is not null)
+            foreach (var descriptor in obj.Descriptors)
             {
-                foreach (var descriptor in obj.Descriptors)
-                {
-                    hash.Add(descriptor);
-                }
+                hash.Add(descriptor);
             }
-
-            if (obj.Diagnostics is not null)
-            {
-                for (var i = 0; i < obj.Diagnostics.Count; i++)
-                {
-                    hash.Add(obj.Diagnostics[i]);
-                }
-            }
-
-            return hash.CombinedHash;
         }
+
+        if (obj.Diagnostics is not null)
+        {
+            for (var i = 0; i < obj.Diagnostics.Count; i++)
+            {
+                hash.Add(obj.Diagnostics[i]);
+            }
+        }
+
+        return hash.CombinedHash;
     }
 }

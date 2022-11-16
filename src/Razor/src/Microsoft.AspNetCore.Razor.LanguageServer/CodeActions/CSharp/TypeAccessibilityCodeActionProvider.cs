@@ -18,8 +18,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
     internal class TypeAccessibilityCodeActionProvider : CSharpCodeActionProvider
     {
         private static readonly IEnumerable<string> s_supportedDiagnostics = new[]
@@ -290,4 +290,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return codeAction;
         }
     }
-}

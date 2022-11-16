@@ -3,11 +3,11 @@
 
 using System;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+
+
+internal sealed class CodeActionResolveParams
 {
-    internal sealed class CodeActionResolveParams
-    {
-        public object? Data { get; set; }
-        public required Uri RazorFileUri { get; set; }
-    }
+    public object? Data { get; set; }
+    public required Uri RazorFileUri { get; set; }
 }

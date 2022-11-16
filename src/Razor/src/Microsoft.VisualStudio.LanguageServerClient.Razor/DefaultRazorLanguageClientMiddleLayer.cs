@@ -7,22 +7,21 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+
+[Shared]
+[Export(typeof(RazorLanguageClientMiddleLayer))]
+internal class DefaultRazorLanguageClientMiddleLayer : RazorLanguageClientMiddleLayer
 {
-    [Shared]
-    [Export(typeof(RazorLanguageClientMiddleLayer))]
-    internal class DefaultRazorLanguageClientMiddleLayer : RazorLanguageClientMiddleLayer
+    public override bool CanHandle(string methodName) => false;
+
+    public override Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification)
     {
-        public override bool CanHandle(string methodName) => false;
+        return Task.CompletedTask;
+    }
 
-        public override Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification)
-        {
-            return Task.CompletedTask;
-        }
-
-        public override Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest)
-        {
-            throw new NotImplementedException();
-        }
+    public override Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest)
+    {
+        throw new NotImplementedException();
     }
 }

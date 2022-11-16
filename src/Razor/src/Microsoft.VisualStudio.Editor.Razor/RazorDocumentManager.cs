@@ -7,12 +7,11 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.VisualStudio.Editor.Razor
-{
-    internal abstract class RazorDocumentManager : ILanguageService
-    {
-        public abstract Task OnTextViewOpenedAsync(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers);
+namespace Microsoft.VisualStudio.Editor.Razor;
 
-        public abstract Task OnTextViewClosedAsync(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers);
-    }
+internal abstract class RazorDocumentManager : ILanguageService
+{
+    public abstract Task OnTextViewOpenedAsync(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers);
+
+    public abstract Task OnTextViewClosedAsync(ITextView textView, IEnumerable<ITextBuffer> subjectBuffers);
 }

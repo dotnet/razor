@@ -4,76 +4,75 @@
 using System;
 using Microsoft.CodeAnalysis.Razor.Editor;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+internal class DefaultWorkspaceEditorSettings : WorkspaceEditorSettings
 {
-    internal class DefaultWorkspaceEditorSettings : WorkspaceEditorSettings
+    private readonly EditorSettingsManager _editorSettingsManager;
+    private readonly EventHandler<EditorSettingsChangedEventArgs> _onChanged;
+    private EventHandler<EditorSettingsChangedEventArgs>? _changed;
+    private int _listenerCount = 0;
+
+    public DefaultWorkspaceEditorSettings(EditorSettingsManager editorSettingsManager)
     {
-        private readonly EditorSettingsManager _editorSettingsManager;
-        private readonly EventHandler<EditorSettingsChangedEventArgs> _onChanged;
-        private EventHandler<EditorSettingsChangedEventArgs>? _changed;
-        private int _listenerCount = 0;
-
-        public DefaultWorkspaceEditorSettings(EditorSettingsManager editorSettingsManager)
+        if (editorSettingsManager is null)
         {
-            if (editorSettingsManager is null)
-            {
-                throw new ArgumentNullException(nameof(editorSettingsManager));
-            }
-
-            _editorSettingsManager = editorSettingsManager;
-            _onChanged = OnChanged;
+            throw new ArgumentNullException(nameof(editorSettingsManager));
         }
 
-        public override event EventHandler<EditorSettingsChangedEventArgs> Changed
+        _editorSettingsManager = editorSettingsManager;
+        _onChanged = OnChanged;
+    }
+
+    public override event EventHandler<EditorSettingsChangedEventArgs> Changed
+    {
+        add
         {
-            add
-            {
-                _listenerCount++;
-                _changed += value;
+            _listenerCount++;
+            _changed += value;
 
-                if (_listenerCount == 1)
-                {
-                    // We bind to the editor settings manager only when we have listeners to avoid leaking memory.
-                    // Basically we're relying on anyone listening to us to have an understanding of when they're going
-                    // to be torn down. In Razor's case this will just be the document tracker factory (which does know).
-                    AttachToEditorSettingsManager();
-                }
-            }
-            remove
+            if (_listenerCount == 1)
             {
-                _listenerCount--;
-                _changed -= value;
-
-                if (_listenerCount == 0)
-                {
-                    // We detach from the editor settings manager when no one is listening to allow us to be garbage
-                    // collected in the case that the workspace is tearing down.
-                    DetachFromEditorSettingsManager();
-                }
+                // We bind to the editor settings manager only when we have listeners to avoid leaking memory.
+                // Basically we're relying on anyone listening to us to have an understanding of when they're going
+                // to be torn down. In Razor's case this will just be the document tracker factory (which does know).
+                AttachToEditorSettingsManager();
             }
         }
-
-        // Internal for testing
-        internal virtual void AttachToEditorSettingsManager()
+        remove
         {
-            _editorSettingsManager.Changed += _onChanged;
+            _listenerCount--;
+            _changed -= value;
+
+            if (_listenerCount == 0)
+            {
+                // We detach from the editor settings manager when no one is listening to allow us to be garbage
+                // collected in the case that the workspace is tearing down.
+                DetachFromEditorSettingsManager();
+            }
         }
+    }
 
-        // Internal for testing
-        internal virtual void DetachFromEditorSettingsManager()
-        {
-            _editorSettingsManager.Changed -= _onChanged;
-        }
+    // Internal for testing
+    internal virtual void AttachToEditorSettingsManager()
+    {
+        _editorSettingsManager.Changed += _onChanged;
+    }
 
-        public override EditorSettings Current => _editorSettingsManager.Current;
+    // Internal for testing
+    internal virtual void DetachFromEditorSettingsManager()
+    {
+        _editorSettingsManager.Changed -= _onChanged;
+    }
 
-        // Internal for testing
-        internal void OnChanged(object sender, EditorSettingsChangedEventArgs e)
-        {
-            Assumes.True(_changed is not null, nameof(OnChanged) + " should not be invoked when there are no listeners.");
+    public override EditorSettings Current => _editorSettingsManager.Current;
 
-            var args = new EditorSettingsChangedEventArgs(Current);
-            _changed.Invoke(this, args);
-        }
+    // Internal for testing
+    internal void OnChanged(object sender, EditorSettingsChangedEventArgs e)
+    {
+        Assumes.True(_changed is not null, nameof(OnChanged) + " should not be invoked when there are no listeners.");
+
+        var args = new EditorSettingsChangedEventArgs(Current);
+        _changed.Invoke(this, args);
     }
 }

@@ -5,14 +5,13 @@ using System;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
-{
-    internal class HtmlVirtualDocument : VirtualDocumentBase<HtmlVirtualDocumentSnapshot>
-    {
-        public HtmlVirtualDocument(Uri uri, ITextBuffer textBuffer) : base(uri, textBuffer)
-        {
-        }
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-        protected override HtmlVirtualDocumentSnapshot GetUpdatedSnapshot(object? state) => new(Uri, TextBuffer.CurrentSnapshot, HostDocumentVersion);
+internal class HtmlVirtualDocument : VirtualDocumentBase<HtmlVirtualDocumentSnapshot>
+{
+    public HtmlVirtualDocument(Uri uri, ITextBuffer textBuffer) : base(uri, textBuffer)
+    {
     }
+
+    protected override HtmlVirtualDocumentSnapshot GetUpdatedSnapshot(object? state) => new(Uri, TextBuffer.CurrentSnapshot, HostDocumentVersion);
 }

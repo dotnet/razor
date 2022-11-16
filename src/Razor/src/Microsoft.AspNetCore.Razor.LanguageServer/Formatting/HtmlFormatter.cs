@@ -10,8 +10,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
     internal class HtmlFormatter
     {
         private readonly DocumentVersionCache _documentVersionCache;
@@ -109,4 +109,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
             return minimalEdits;
         }
     }
-}

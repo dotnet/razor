@@ -4,30 +4,29 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.CodeAnalysis.Razor.Tooltip
+namespace Microsoft.CodeAnalysis.Razor.Tooltip;
+
+internal class BoundElementDescriptionInfo
 {
-    internal class BoundElementDescriptionInfo
+    public BoundElementDescriptionInfo(string tagHelperTypeName, string? documentation)
     {
-        public BoundElementDescriptionInfo(string tagHelperTypeName, string? documentation)
+        if (tagHelperTypeName is null)
         {
-            if (tagHelperTypeName is null)
-            {
-                throw new ArgumentNullException(nameof(tagHelperTypeName));
-            }
-
-            TagHelperTypeName = tagHelperTypeName;
-            Documentation = documentation;
+            throw new ArgumentNullException(nameof(tagHelperTypeName));
         }
 
-        public string TagHelperTypeName { get; }
+        TagHelperTypeName = tagHelperTypeName;
+        Documentation = documentation;
+    }
 
-        public string? Documentation { get; }
+    public string TagHelperTypeName { get; }
 
-        public static BoundElementDescriptionInfo From(TagHelperDescriptor tagHelper)
-        {
-            var tagHelperTypeName = tagHelper.GetTypeName();
-            var descriptionInfo = new BoundElementDescriptionInfo(tagHelperTypeName, tagHelper.Documentation);
-            return descriptionInfo;
-        }
+    public string? Documentation { get; }
+
+    public static BoundElementDescriptionInfo From(TagHelperDescriptor tagHelper)
+    {
+        var tagHelperTypeName = tagHelper.GetTypeName();
+        var descriptionInfo = new BoundElementDescriptionInfo(tagHelperTypeName, tagHelper.Documentation);
+        return descriptionInfo;
     }
 }

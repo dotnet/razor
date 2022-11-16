@@ -18,8 +18,8 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
     public class AddUsingsCSharpCodeActionResolverTest : LanguageServerTestBase
     {
         private static readonly CodeAction s_defaultUnresolvedCodeAction = new()
@@ -206,4 +206,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return codeDocument;
         }
     }
-}

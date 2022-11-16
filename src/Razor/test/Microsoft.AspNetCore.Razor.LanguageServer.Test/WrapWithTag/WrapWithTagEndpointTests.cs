@@ -18,8 +18,8 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
+
     public class WrapWithTagEndpointTest : LanguageServerTestBase
     {
         public WrapWithTagEndpointTest(ITestOutputHelper testOutput)
@@ -303,4 +303,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             Assert.Equal(expected, finalText.ToString());
         }
     }
-}

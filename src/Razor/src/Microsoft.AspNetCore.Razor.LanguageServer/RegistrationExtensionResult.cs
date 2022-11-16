@@ -3,28 +3,27 @@
 
 using System;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal sealed class RegistrationExtensionResult
 {
-    internal sealed class RegistrationExtensionResult
+    public RegistrationExtensionResult(string serverCapability, object options)
     {
-        public RegistrationExtensionResult(string serverCapability, object options)
+        if (serverCapability is null)
         {
-            if (serverCapability is null)
-            {
-                throw new ArgumentNullException(nameof(serverCapability));
-            }
-
-            if (options is null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            ServerCapability = serverCapability;
-            Options = options;
+            throw new ArgumentNullException(nameof(serverCapability));
         }
 
-        public string ServerCapability { get; }
+        if (options is null)
+        {
+            throw new ArgumentNullException(nameof(options));
+        }
 
-        public object Options { get; }
+        ServerCapability = serverCapability;
+        Options = options;
     }
+
+    public string ServerCapability { get; }
+
+    public object Options { get; }
 }

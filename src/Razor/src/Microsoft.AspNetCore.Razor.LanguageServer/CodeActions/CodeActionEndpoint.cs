@@ -22,8 +22,8 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
     internal class CodeActionEndpoint : IVSCodeActionEndpoint
     {
         private readonly RazorDocumentMappingService _documentMappingService;
@@ -357,4 +357,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return request.TextDocument;
         }
     }
-}

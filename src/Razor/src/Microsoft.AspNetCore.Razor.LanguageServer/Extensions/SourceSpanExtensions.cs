@@ -5,19 +5,18 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
-{
-    internal static class SourceSpanExtensions
-    {
-        public static Range AsRange(this SourceSpan sourceSpan, SourceText sourceText)
-        {
-            sourceText.GetLinesAndOffsets(sourceSpan, out var startLine, out var startChar, out var endLine, out var endChar);
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
-            return new Range
-            {
-                Start = new Position(startLine, startChar),
-                End = new Position(endLine, endChar),
-            };
-        }
+internal static class SourceSpanExtensions
+{
+    public static Range AsRange(this SourceSpan sourceSpan, SourceText sourceText)
+    {
+        sourceText.GetLinesAndOffsets(sourceSpan, out var startLine, out var startChar, out var endLine, out var endChar);
+
+        return new Range
+        {
+            Start = new Position(startLine, startChar),
+            End = new Position(endLine, endChar),
+        };
     }
 }

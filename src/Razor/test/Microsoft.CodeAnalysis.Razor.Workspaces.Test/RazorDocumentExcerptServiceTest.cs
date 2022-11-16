@@ -13,25 +13,25 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+public class RazorDocumentExcerptServiceTest : DocumentExcerptServiceTestBase
 {
-    public class RazorDocumentExcerptServiceTest : DocumentExcerptServiceTestBase
+    public RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        public RazorDocumentExcerptServiceTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+    }
 
-        protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
-        {
-            services.Add(new TestTagHelperResolver());
-        }
+    protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
+    {
+        services.Add(new TestTagHelperResolver());
+    }
 
-        [Fact]
-        public async Task TryGetExcerptInternalAsync_SingleLine_CanClassifyCSharp()
-        {
-            // Arrange
-            var razorSource = @"
+    [Fact]
+    public async Task TryGetExcerptInternalAsync_SingleLine_CanClassifyCSharp()
+    {
+        // Arrange
+        var razorSource = @"
 <html>
 @{
     var [|foo|] = ""Hello, World!"";
@@ -41,75 +41,75 @@ namespace Microsoft.CodeAnalysis.Razor
 </html>
 ";
 
-            var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
 
-            var service = CreateExcerptService(primary);
+        var service = CreateExcerptService(primary);
 
-            // Act
-            var options = RazorClassificationOptionsWrapper.Default;
-            var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.SingleLine, options, DisposalToken);
+        // Act
+        var options = RazorClassificationOptionsWrapper.Default;
+        var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.SingleLine, options, DisposalToken);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(secondarySpan, result.Value.Span);
-            Assert.Same(secondary, result.Value.Document);
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(secondarySpan, result.Value.Span);
+        Assert.Same(secondary, result.Value.Document);
 
-            // Verifies that the right part of the primary document will be highlighted.
-            Assert.Equal(
-                (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
-                result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
-                ignoreLineEndingDifferences: true);
+        // Verifies that the right part of the primary document will be highlighted.
+        Assert.Equal(
+            (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
+            result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
+            ignoreLineEndingDifferences: true);
 
-            Assert.Equal(@"var foo = ""Hello, World!"";", result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
-            Assert.Collection(
-                result.Value.ClassifiedSpans,
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Keyword, c.ClassificationType);
-                    Assert.Equal("var", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.LocalName, c.ClassificationType);
-                    Assert.Equal("foo", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Operator, c.ClassificationType);
-                    Assert.Equal("=", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.StringLiteral, c.ClassificationType);
-                    Assert.Equal("\"Hello, World!\"", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Punctuation, c.ClassificationType);
-                    Assert.Equal(";", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                });
-        }
+        Assert.Equal(@"var foo = ""Hello, World!"";", result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
+        Assert.Collection(
+            result.Value.ClassifiedSpans,
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Keyword, c.ClassificationType);
+                Assert.Equal("var", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.LocalName, c.ClassificationType);
+                Assert.Equal("foo", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Operator, c.ClassificationType);
+                Assert.Equal("=", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.StringLiteral, c.ClassificationType);
+                Assert.Equal("\"Hello, World!\"", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Punctuation, c.ClassificationType);
+                Assert.Equal(";", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            });
+    }
 
-        [Fact]
-        public async Task TryGetExcerptInternalAsync_SingleLine_CanClassifyCSharp_ImplicitExpression()
-        {
-            // Arrange
-            var razorSource = @"
+    [Fact]
+    public async Task TryGetExcerptInternalAsync_SingleLine_CanClassifyCSharp_ImplicitExpression()
+    {
+        // Arrange
+        var razorSource = @"
 <html>
 @{
     var foo = ""Hello, World!"";
@@ -119,50 +119,50 @@ namespace Microsoft.CodeAnalysis.Razor
 </html>
 ";
 
-            var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
 
-            var service = CreateExcerptService(primary);
+        var service = CreateExcerptService(primary);
 
-            // Act
-            var options = RazorClassificationOptionsWrapper.Default;
-            var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.SingleLine, options, DisposalToken);
+        // Act
+        var options = RazorClassificationOptionsWrapper.Default;
+        var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.SingleLine, options, DisposalToken);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(secondarySpan, result.Value.Span);
-            Assert.Same(secondary, result.Value.Document);
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(secondarySpan, result.Value.Span);
+        Assert.Same(secondary, result.Value.Document);
 
-            // Verifies that the right part of the primary document will be highlighted.
-            Assert.Equal(
-                (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
-                result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
-                ignoreLineEndingDifferences: true);
+        // Verifies that the right part of the primary document will be highlighted.
+        Assert.Equal(
+            (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
+            result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
+            ignoreLineEndingDifferences: true);
 
-            Assert.Equal(@"<body>@foo</body>", result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
-            Assert.Collection(
-                result.Value.ClassifiedSpans,
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal("<body>@", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.LocalName, c.ClassificationType);
-                    Assert.Equal("foo", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal("</body>", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                });
-        }
+        Assert.Equal(@"<body>@foo</body>", result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
+        Assert.Collection(
+            result.Value.ClassifiedSpans,
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal("<body>@", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.LocalName, c.ClassificationType);
+                Assert.Equal("foo", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal("</body>", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            });
+    }
 
-        [Fact]
-        public async Task TryGetExcerptInternalAsync_SingleLine_CanClassifyCSharp_ComplexLine()
-        {
-            // Arrange
-            var razorSource = @"
+    [Fact]
+    public async Task TryGetExcerptInternalAsync_SingleLine_CanClassifyCSharp_ComplexLine()
+    {
+        // Arrange
+        var razorSource = @"
 <html>
 @{
     var foo = ""Hello, World!"";
@@ -172,100 +172,100 @@ namespace Microsoft.CodeAnalysis.Razor
 </html>
 ";
 
-            var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
 
-            var service = CreateExcerptService(primary);
+        var service = CreateExcerptService(primary);
 
-            // Act
-            var options = RazorClassificationOptionsWrapper.Default;
-            var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.SingleLine, options, DisposalToken);
+        // Act
+        var options = RazorClassificationOptionsWrapper.Default;
+        var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.SingleLine, options, DisposalToken);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(secondarySpan, result.Value.Span);
-            Assert.Same(secondary, result.Value.Document);
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(secondarySpan, result.Value.Span);
+        Assert.Same(secondary, result.Value.Document);
 
-            Assert.Equal(
-                (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
-                result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
-                ignoreLineEndingDifferences: true);
+        Assert.Equal(
+            (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
+            result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
+            ignoreLineEndingDifferences: true);
 
-            // Verifies that the right part of the primary document will be highlighted.
-            Assert.Equal(@"<div>@(3 + 4)</div><div>@(foo + foo)</div>", result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
-            Assert.Collection(
-                result.Value.ClassifiedSpans,
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal("<div>@(", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.NumericLiteral, c.ClassificationType);
-                    Assert.Equal("3", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Operator, c.ClassificationType);
-                    Assert.Equal("+", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.NumericLiteral, c.ClassificationType);
-                    Assert.Equal("4", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(")</div><div>@(", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.LocalName, c.ClassificationType);
-                    Assert.Equal("foo", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Operator, c.ClassificationType);
-                    Assert.Equal("+", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.LocalName, c.ClassificationType);
-                    Assert.Equal("foo", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(")</div>", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                });
-        }
+        // Verifies that the right part of the primary document will be highlighted.
+        Assert.Equal(@"<div>@(3 + 4)</div><div>@(foo + foo)</div>", result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
+        Assert.Collection(
+            result.Value.ClassifiedSpans,
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal("<div>@(", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.NumericLiteral, c.ClassificationType);
+                Assert.Equal("3", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Operator, c.ClassificationType);
+                Assert.Equal("+", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.NumericLiteral, c.ClassificationType);
+                Assert.Equal("4", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(")</div><div>@(", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.LocalName, c.ClassificationType);
+                Assert.Equal("foo", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Operator, c.ClassificationType);
+                Assert.Equal("+", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.LocalName, c.ClassificationType);
+                Assert.Equal("foo", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(")</div>", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            });
+    }
 
-        [Fact]
-        public async Task TryGetExcerptInternalAsync_MultiLine_CanClassifyCSharp()
-        {
-            // Arrange
-            var razorSource = @"
+    [Fact]
+    public async Task TryGetExcerptInternalAsync_MultiLine_CanClassifyCSharp()
+    {
+        // Arrange
+        var razorSource = @"
 <html>
 @{
     var [|foo|] = ""Hello, World!"";
@@ -275,26 +275,26 @@ namespace Microsoft.CodeAnalysis.Razor
 </html>
 ";
 
-            var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
 
-            var service = CreateExcerptService(primary);
+        var service = CreateExcerptService(primary);
 
-            // Act
-            var options = RazorClassificationOptionsWrapper.Default;
-            var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.Tooltip, options, DisposalToken);
+        // Act
+        var options = RazorClassificationOptionsWrapper.Default;
+        var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.Tooltip, options, DisposalToken);
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(secondarySpan, result.Value.Span);
-            Assert.Same(secondary, result.Value.Document);
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(secondarySpan, result.Value.Span);
+        Assert.Same(secondary, result.Value.Document);
 
-            // Verifies that the right part of the primary document will be highlighted.
-            Assert.Equal(
-                (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
-                result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
-                ignoreLineEndingDifferences: true);
+        // Verifies that the right part of the primary document will be highlighted.
+        Assert.Equal(
+            (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
+            result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
+            ignoreLineEndingDifferences: true);
 
-            Assert.Equal(
+        Assert.Equal(
 @"
 <html>
 @{
@@ -302,178 +302,177 @@ namespace Microsoft.CodeAnalysis.Razor
 }
   <body></body>
   <div></div>",
-                result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
+            result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
 
-            Assert.Collection(
-                result.Value.ClassifiedSpans,
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(
+        Assert.Collection(
+            result.Value.ClassifiedSpans,
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(
 @"
 <html>
 @{",
-                            result.Value.Content.GetSubText(c.TextSpan).ToString(),
-                            ignoreLineEndingDifferences: true);
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal("\r\n    ", result.Value.Content.GetSubText(c.TextSpan).ToString(), ignoreLineEndingDifferences: true);
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Keyword, c.ClassificationType);
-                    Assert.Equal("var", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.LocalName, c.ClassificationType);
-                    Assert.Equal("foo", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Operator, c.ClassificationType);
-                    Assert.Equal("=", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.StringLiteral, c.ClassificationType);
-                    Assert.Equal("\"Hello, World!\"", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Punctuation, c.ClassificationType);
-                    Assert.Equal(";", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal("\r\n", result.Value.Content.GetSubText(c.TextSpan).ToString(), ignoreLineEndingDifferences: true);
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(
+                        result.Value.Content.GetSubText(c.TextSpan).ToString(),
+                        ignoreLineEndingDifferences: true);
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal("\r\n    ", result.Value.Content.GetSubText(c.TextSpan).ToString(), ignoreLineEndingDifferences: true);
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Keyword, c.ClassificationType);
+                Assert.Equal("var", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.LocalName, c.ClassificationType);
+                Assert.Equal("foo", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Operator, c.ClassificationType);
+                Assert.Equal("=", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.StringLiteral, c.ClassificationType);
+                Assert.Equal("\"Hello, World!\"", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Punctuation, c.ClassificationType);
+                Assert.Equal(";", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal("\r\n", result.Value.Content.GetSubText(c.TextSpan).ToString(), ignoreLineEndingDifferences: true);
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(
 @"}
   <body></body>
   <div></div>",
-                        result.Value.Content.GetSubText(c.TextSpan).ToString(),
-                        ignoreLineEndingDifferences: true);
-                });
-        }
+                    result.Value.Content.GetSubText(c.TextSpan).ToString(),
+                    ignoreLineEndingDifferences: true);
+            });
+    }
 
-        [Fact]
-        public async Task TryGetExcerptInternalAsync_MultiLine_Boundaries_CanClassifyCSharp()
-        {
-            // Arrange
-            var razorSource = @"@{ var [|foo|] = ""Hello, World!""; }";
+    [Fact]
+    public async Task TryGetExcerptInternalAsync_MultiLine_Boundaries_CanClassifyCSharp()
+    {
+        // Arrange
+        var razorSource = @"@{ var [|foo|] = ""Hello, World!""; }";
 
-            var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
+        var (primary, secondary, secondarySpan) = await InitializeWithSnapshotAsync(razorSource);
 
-            var service = CreateExcerptService(primary);
+        var service = CreateExcerptService(primary);
 
-            // Act
-            var options = RazorClassificationOptionsWrapper.Default;
-            var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.Tooltip, options, DisposalToken);
+        // Act
+        var options = RazorClassificationOptionsWrapper.Default;
+        var result = await service.TryGetExcerptInternalAsync(secondary, secondarySpan, ExcerptModeInternal.Tooltip, options, DisposalToken);
 
-            // Assert
-            // Verifies that the right part of the primary document will be highlighted.
-            Assert.NotNull(result);
-            Assert.Equal(secondarySpan, result.Value.Span);
-            Assert.Same(secondary, result.Value.Document);
+        // Assert
+        // Verifies that the right part of the primary document will be highlighted.
+        Assert.NotNull(result);
+        Assert.Equal(secondarySpan, result.Value.Span);
+        Assert.Same(secondary, result.Value.Document);
 
-            Assert.Equal(
-                (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
-                result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
-                ignoreLineEndingDifferences: true);
+        Assert.Equal(
+            (await secondary.GetTextAsync()).GetSubText(secondarySpan).ToString(),
+            result.Value.Content.GetSubText(result.Value.MappedSpan).ToString(),
+            ignoreLineEndingDifferences: true);
 
-            Assert.Equal(
+        Assert.Equal(
 @"@{ var foo = ""Hello, World!""; }",
-                result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
+            result.Value.Content.ToString(), ignoreLineEndingDifferences: true);
 
-            Assert.Collection(
-                result.Value.ClassifiedSpans,
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal("@{", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Keyword, c.ClassificationType);
-                    Assert.Equal("var", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.LocalName, c.ClassificationType);
-                    Assert.Equal("foo", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Operator, c.ClassificationType);
-                    Assert.Equal("=", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.StringLiteral, c.ClassificationType);
-                    Assert.Equal("\"Hello, World!\"", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Punctuation, c.ClassificationType);
-                    Assert.Equal(";", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                },
-                c =>
-                {
-                    Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
-                    Assert.Equal("}", result.Value.Content.GetSubText(c.TextSpan).ToString());
-                });
-        }
+        Assert.Collection(
+            result.Value.ClassifiedSpans,
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal("@{", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Keyword, c.ClassificationType);
+                Assert.Equal("var", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.LocalName, c.ClassificationType);
+                Assert.Equal("foo", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Operator, c.ClassificationType);
+                Assert.Equal("=", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.StringLiteral, c.ClassificationType);
+                Assert.Equal("\"Hello, World!\"", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Punctuation, c.ClassificationType);
+                Assert.Equal(";", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal(" ", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            },
+            c =>
+            {
+                Assert.Equal(ClassificationTypeNames.Text, c.ClassificationType);
+                Assert.Equal("}", result.Value.Content.GetSubText(c.TextSpan).ToString());
+            });
+    }
 
-        private RazorDocumentExcerptService CreateExcerptService(DocumentSnapshot document)
-        {
-            return new RazorDocumentExcerptService(document, new RazorSpanMappingService(document));
-        }
+    private RazorDocumentExcerptService CreateExcerptService(DocumentSnapshot document)
+    {
+        return new RazorDocumentExcerptService(document, new RazorSpanMappingService(document));
     }
 }

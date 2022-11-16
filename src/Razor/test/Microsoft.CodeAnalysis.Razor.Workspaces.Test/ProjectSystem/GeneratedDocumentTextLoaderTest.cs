@@ -9,39 +9,38 @@ using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+
+public class GeneratedDocumentTextLoaderTest : WorkspaceTestBase
 {
-    public class GeneratedDocumentTextLoaderTest : WorkspaceTestBase
+    private readonly HostProject _hostProject;
+    private readonly HostDocument _hostDocument;
+
+    public GeneratedDocumentTextLoaderTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly HostProject _hostProject;
-        private readonly HostDocument _hostDocument;
+        _hostProject = TestProjectData.SomeProject;
+        _hostDocument = TestProjectData.SomeProjectFile1;
+    }
 
-        public GeneratedDocumentTextLoaderTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-            _hostProject = TestProjectData.SomeProject;
-            _hostDocument = TestProjectData.SomeProjectFile1;
-        }
+    // See https://github.com/dotnet/aspnetcore/issues/7997
+    [Fact]
+    public async Task LoadAsync_SpecifiesEncoding()
+    {
+        // Arrange
+        var project = new DefaultProjectSnapshot(
+            ProjectState.Create(Workspace.Services, _hostProject)
+            .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(SourceText.From(""), VersionStamp.Create()))));
 
-        // See https://github.com/dotnet/aspnetcore/issues/7997
-        [Fact]
-        public async Task LoadAsync_SpecifiesEncoding()
-        {
-            // Arrange
-            var project = new DefaultProjectSnapshot(
-                ProjectState.Create(Workspace.Services, _hostProject)
-                .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(SourceText.From(""), VersionStamp.Create()))));
+        var document = project.GetDocument(_hostDocument.FilePath);
 
-            var document = project.GetDocument(_hostDocument.FilePath);
+        var loader = new GeneratedDocumentTextLoader(document, "file.cshtml");
 
-            var loader = new GeneratedDocumentTextLoader(document, "file.cshtml");
+        // Act
+        var textAndVersion = await loader.LoadTextAndVersionAsync(default, default, default);
 
-            // Act
-            var textAndVersion = await loader.LoadTextAndVersionAsync(default, default, default);
-
-            // Assert
-            Assert.True(textAndVersion.Text.CanBeEmbedded);
-            Assert.Same(Encoding.UTF8, textAndVersion.Text.Encoding);
-        }
+        // Assert
+        Assert.True(textAndVersion.Text.CanBeEmbedded);
+        Assert.Same(Encoding.UTF8, textAndVersion.Text.Encoding);
     }
 }

@@ -13,8 +13,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
     /// <summary>
     /// Resolves and remaps the code action, without running formatting passes.
     /// </summary>
@@ -119,4 +119,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return resolvedCodeAction;
         }
     }
-}

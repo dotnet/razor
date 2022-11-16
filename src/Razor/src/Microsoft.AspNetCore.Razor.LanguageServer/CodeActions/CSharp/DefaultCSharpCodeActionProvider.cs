@@ -12,8 +12,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
     internal class DefaultCSharpCodeActionProvider : CSharpCodeActionProvider
     {
         // Internal for testing
@@ -85,4 +85,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(results);
         }
     }
-}

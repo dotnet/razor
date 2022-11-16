@@ -9,67 +9,66 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Editor.Razor;
 using MonoDevelop.Projects;
 
-namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
+namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem;
+
+[System.Composition.Shared]
+[Export(typeof(DotNetProjectHostFactory))]
+internal class DotNetProjectHostFactory
 {
-    [System.Composition.Shared]
-    [Export(typeof(DotNetProjectHostFactory))]
-    internal class DotNetProjectHostFactory
+    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly VisualStudioMacWorkspaceAccessor _workspaceAccessor;
+    private readonly TextBufferProjectService _projectService;
+    private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+
+    [ImportingConstructor]
+    public DotNetProjectHostFactory(
+        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        VisualStudioMacWorkspaceAccessor workspaceAccessor,
+        TextBufferProjectService projectService,
+        ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+        LanguageServerFeatureOptions languageServerFeatureOptions)
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly VisualStudioMacWorkspaceAccessor _workspaceAccessor;
-        private readonly TextBufferProjectService _projectService;
-        private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
-        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-
-        [ImportingConstructor]
-        public DotNetProjectHostFactory(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            VisualStudioMacWorkspaceAccessor workspaceAccessor,
-            TextBufferProjectService projectService,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            LanguageServerFeatureOptions languageServerFeatureOptions)
+        if (projectSnapshotManagerDispatcher is null)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (workspaceAccessor is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceAccessor));
-            }
-
-            if (projectService is null)
-            {
-                throw new ArgumentNullException(nameof(projectService));
-            }
-
-            if (projectConfigurationFilePathStore is null)
-            {
-                throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
-            }
-
-            if (languageServerFeatureOptions is null)
-            {
-                throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-            }
-
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _workspaceAccessor = workspaceAccessor;
-            _projectService = projectService;
-            _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
-            _languageServerFeatureOptions = languageServerFeatureOptions;
+            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
         }
 
-        public DotNetProjectHost Create(DotNetProject project)
+        if (workspaceAccessor is null)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            var projectHost = new DefaultDotNetProjectHost(project, _projectSnapshotManagerDispatcher, _workspaceAccessor, _projectService, _projectConfigurationFilePathStore, _languageServerFeatureOptions);
-            return projectHost;
+            throw new ArgumentNullException(nameof(workspaceAccessor));
         }
+
+        if (projectService is null)
+        {
+            throw new ArgumentNullException(nameof(projectService));
+        }
+
+        if (projectConfigurationFilePathStore is null)
+        {
+            throw new ArgumentNullException(nameof(projectConfigurationFilePathStore));
+        }
+
+        if (languageServerFeatureOptions is null)
+        {
+            throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+        }
+
+        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _workspaceAccessor = workspaceAccessor;
+        _projectService = projectService;
+        _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
+        _languageServerFeatureOptions = languageServerFeatureOptions;
+    }
+
+    public DotNetProjectHost Create(DotNetProject project)
+    {
+        if (project is null)
+        {
+            throw new ArgumentNullException(nameof(project));
+        }
+
+        var projectHost = new DefaultDotNetProjectHost(project, _projectSnapshotManagerDispatcher, _workspaceAccessor, _projectService, _projectConfigurationFilePathStore, _languageServerFeatureOptions);
+        return projectHost;
     }
 }

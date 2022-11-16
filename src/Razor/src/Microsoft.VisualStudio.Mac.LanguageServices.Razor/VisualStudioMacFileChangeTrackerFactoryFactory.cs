@@ -8,33 +8,32 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
 
-namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
+namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor;
+
+[Shared]
+[ExportWorkspaceServiceFactory(typeof(FileChangeTrackerFactory), ServiceLayer.Host)]
+internal class VisualStudioMacFileChangeTrackerFactoryFactory : IWorkspaceServiceFactory
 {
-    [Shared]
-    [ExportWorkspaceServiceFactory(typeof(FileChangeTrackerFactory), ServiceLayer.Host)]
-    internal class VisualStudioMacFileChangeTrackerFactoryFactory : IWorkspaceServiceFactory
+    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+
+    [ImportingConstructor]
+    public VisualStudioMacFileChangeTrackerFactoryFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-
-        [ImportingConstructor]
-        public VisualStudioMacFileChangeTrackerFactoryFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+        if (projectSnapshotManagerDispatcher is null)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            if (workspaceServices is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceServices));
-            }
+        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+    }
 
-            return new VisualStudioMacFileChangeTrackerFactory(_projectSnapshotManagerDispatcher);
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+    {
+        if (workspaceServices is null)
+        {
+            throw new ArgumentNullException(nameof(workspaceServices));
         }
+
+        return new VisualStudioMacFileChangeTrackerFactory(_projectSnapshotManagerDispatcher);
     }
 }

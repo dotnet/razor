@@ -15,8 +15,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
+
     internal class WrapWithTagEndpoint : IWrapWithTagEndpoint
     {
         private readonly ClientNotifierServiceBase _languageServer;
@@ -110,4 +110,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
             return htmlResponse;
         }
     }
-}

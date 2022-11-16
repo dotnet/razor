@@ -9,8 +9,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Xunit;
 
-namespace Microsoft.VisualStudio.Extensibility.Testing
-{
+namespace Microsoft.VisualStudio.Extensibility.Testing;
+
     internal partial class EditorInProcess
     {
         public async Task UndoTextAsync(CancellationToken cancellationToken)
@@ -123,4 +123,3 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, cancellationToken);
         }
     }
-}

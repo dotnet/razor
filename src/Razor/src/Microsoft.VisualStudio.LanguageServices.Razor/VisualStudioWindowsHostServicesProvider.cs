@@ -6,24 +6,23 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Editor.Razor;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor
+namespace Microsoft.VisualStudio.LanguageServices.Razor;
+
+[Export(typeof(VisualStudioHostServicesProvider))]
+internal class VisualStudioWindowsHostServicesProvider : VisualStudioHostServicesProvider
 {
-    [Export(typeof(VisualStudioHostServicesProvider))]
-    internal class VisualStudioWindowsHostServicesProvider : VisualStudioHostServicesProvider
+    private readonly CodeAnalysis.Workspace _workspace;
+
+    [ImportingConstructor]
+    public VisualStudioWindowsHostServicesProvider([Import(typeof(VisualStudioWorkspace))] CodeAnalysis.Workspace workspace)
     {
-        private readonly CodeAnalysis.Workspace _workspace;
-
-        [ImportingConstructor]
-        public VisualStudioWindowsHostServicesProvider([Import(typeof(VisualStudioWorkspace))] CodeAnalysis.Workspace workspace)
+        if (workspace is null)
         {
-            if (workspace is null)
-            {
-                throw new ArgumentNullException(nameof(workspace));
-            }
-
-            _workspace = workspace;
+            throw new ArgumentNullException(nameof(workspace));
         }
 
-        public override HostServices GetServices() => _workspace.Services.HostServices;
+        _workspace = workspace;
     }
+
+    public override HostServices GetServices() => _workspace.Services.HostServices;
 }

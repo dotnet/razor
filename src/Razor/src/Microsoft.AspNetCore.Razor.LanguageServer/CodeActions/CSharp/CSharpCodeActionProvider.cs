@@ -7,16 +7,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
-{
-    internal abstract class CSharpCodeActionProvider : ICodeActionProvider
-    {
-        protected static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> EmptyResult =
-            Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(Array.Empty<RazorVSInternalCodeAction>());
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-        public abstract Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
-            RazorCodeActionContext context,
-            IEnumerable<RazorVSInternalCodeAction> codeActions,
-            CancellationToken cancellationToken);
-    }
+internal abstract class CSharpCodeActionProvider : ICodeActionProvider
+{
+    protected static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> EmptyResult =
+        Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(Array.Empty<RazorVSInternalCodeAction>());
+
+    public abstract Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
+        RazorCodeActionContext context,
+        IEnumerable<RazorVSInternalCodeAction> codeActions,
+        CancellationToken cancellationToken);
 }

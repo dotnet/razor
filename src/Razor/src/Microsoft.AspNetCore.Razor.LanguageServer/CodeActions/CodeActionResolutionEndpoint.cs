@@ -13,8 +13,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
     internal class CodeActionResolutionEndpoint : IVSCodeActionResolveEndpoint
     {
         private readonly IReadOnlyDictionary<string, RazorCodeActionResolver> _razorCodeActionResolvers;
@@ -222,4 +222,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         private static string GetCodeActionId(RazorCodeActionResolutionParams resolutionParams) =>
             $"`{resolutionParams.Language}.{resolutionParams.Action}`";
     }
-}

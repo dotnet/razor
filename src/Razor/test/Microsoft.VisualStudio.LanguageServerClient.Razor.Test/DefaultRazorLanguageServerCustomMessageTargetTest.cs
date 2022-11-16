@@ -29,8 +29,8 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
-{
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+
     public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
     {
         private readonly ITextBuffer _textBuffer;
@@ -524,4 +524,3 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
             return csharpDoc;
         }
     }
-}

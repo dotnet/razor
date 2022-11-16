@@ -4,12 +4,11 @@
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+[LanguageServerEndpoint(Methods.TextDocumentDidChangeName)]
+internal interface IVSDidChangeTextDocumentEndpoint : IRazorNotificationHandler<DidChangeTextDocumentParams>,
+    ITextDocumentIdentifierHandler<DidChangeTextDocumentParams, TextDocumentIdentifier>,
+    IRegistrationExtension
 {
-    [LanguageServerEndpoint(Methods.TextDocumentDidChangeName)]
-    internal interface IVSDidChangeTextDocumentEndpoint : IRazorNotificationHandler<DidChangeTextDocumentParams>,
-        ITextDocumentIdentifierHandler<DidChangeTextDocumentParams, TextDocumentIdentifier>,
-        IRegistrationExtension
-    {
-    }
 }

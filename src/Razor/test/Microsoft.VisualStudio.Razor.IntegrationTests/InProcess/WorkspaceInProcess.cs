@@ -5,22 +5,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 
-namespace Microsoft.VisualStudio.Extensibility.Testing
+namespace Microsoft.VisualStudio.Extensibility.Testing;
+
+internal partial class WorkspaceInProcess
 {
-    internal partial class WorkspaceInProcess
+    public Task WaitForAsyncOperationsAsync(string featuresToWaitFor, CancellationToken cancellationToken)
+        => WaitForAsyncOperationsAsync(featuresToWaitFor, waitForWorkspaceFirst: true, cancellationToken);
+
+    public async Task WaitForAsyncOperationsAsync(string featuresToWaitFor, bool waitForWorkspaceFirst, CancellationToken cancellationToken)
     {
-        public Task WaitForAsyncOperationsAsync(string featuresToWaitFor, CancellationToken cancellationToken)
-            => WaitForAsyncOperationsAsync(featuresToWaitFor, waitForWorkspaceFirst: true, cancellationToken);
-
-        public async Task WaitForAsyncOperationsAsync(string featuresToWaitFor, bool waitForWorkspaceFirst, CancellationToken cancellationToken)
+        if (waitForWorkspaceFirst || featuresToWaitFor == FeatureAttribute.Workspace)
         {
-            if (waitForWorkspaceFirst || featuresToWaitFor == FeatureAttribute.Workspace)
-            {
-                await WaitForProjectSystemAsync(cancellationToken);
-            }
-
-            // TODO: This currently no-ops on the FeaturesToWaitFor portion
-            // because we lack any system to wait on it with
+            await WaitForProjectSystemAsync(cancellationToken);
         }
+
+        // TODO: This currently no-ops on the FeaturesToWaitFor portion
+        // because we lack any system to wait on it with
     }
 }

@@ -4,17 +4,16 @@
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
-{
-    internal interface IPresentationParams
-    {
-        TextDocumentIdentifier TextDocument { get; set; }
-        Range Range { get; set; }
-    }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 
-    internal interface IRazorPresentationParams : IPresentationParams
-    {
-        int HostDocumentVersion { get; set; }
-        RazorLanguageKind Kind { get; set; }
-    }
+internal interface IPresentationParams
+{
+    TextDocumentIdentifier TextDocument { get; set; }
+    Range Range { get; set; }
+}
+
+internal interface IRazorPresentationParams : IPresentationParams
+{
+    int HostDocumentVersion { get; set; }
+    RazorLanguageKind Kind { get; set; }
 }

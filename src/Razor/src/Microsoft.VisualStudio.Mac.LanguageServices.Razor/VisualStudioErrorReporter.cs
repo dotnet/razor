@@ -9,48 +9,47 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using MonoDevelop.Core;
 
-namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
+namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor;
+
+[Export(typeof(ErrorReporter))]
+internal class VisualStudioErrorReporter : ErrorReporter
 {
-    [Export(typeof(ErrorReporter))]
-    internal class VisualStudioErrorReporter : ErrorReporter
+    public override void ReportError(Exception exception)
     {
-        public override void ReportError(Exception exception)
+        if (exception is null)
         {
-            if (exception is null)
-            {
-                Debug.Fail("Null exceptions should not be reported.");
-                return;
-            }
-
-            LoggingService.LogError(
-                Resources.RazorLanguageServiceGeneralError,
-                exception);
+            Debug.Fail("Null exceptions should not be reported.");
+            return;
         }
 
-        public override void ReportError(Exception exception, Project project)
-        {
-            if (exception is null)
-            {
-                Debug.Fail("Null exceptions should not be reported.");
-                return;
-            }
+        LoggingService.LogError(
+            Resources.RazorLanguageServiceGeneralError,
+            exception);
+    }
 
-            LoggingService.LogError(
-                Resources.FormatRazorLanguageServiceProjectError(project?.Name),
-                exception);
+    public override void ReportError(Exception exception, Project project)
+    {
+        if (exception is null)
+        {
+            Debug.Fail("Null exceptions should not be reported.");
+            return;
         }
 
-        public override void ReportError(Exception exception, ProjectSnapshot? project)
-        {
-            if (exception is null)
-            {
-                Debug.Fail("Null exceptions should not be reported.");
-                return;
-            }
+        LoggingService.LogError(
+            Resources.FormatRazorLanguageServiceProjectError(project?.Name),
+            exception);
+    }
 
-            LoggingService.LogError(
-                Resources.FormatRazorLanguageServiceProjectSnapshotError(project?.FilePath, exception),
-                exception);
+    public override void ReportError(Exception exception, ProjectSnapshot? project)
+    {
+        if (exception is null)
+        {
+            Debug.Fail("Null exceptions should not be reported.");
+            return;
         }
+
+        LoggingService.LogError(
+            Resources.FormatRazorLanguageServiceProjectSnapshotError(project?.FilePath, exception),
+            exception);
     }
 }

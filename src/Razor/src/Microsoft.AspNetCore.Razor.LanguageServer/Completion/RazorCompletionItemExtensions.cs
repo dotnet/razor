@@ -5,26 +5,25 @@ using System;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+
+internal static class RazorCompletionItemExtensions
 {
-    internal static class RazorCompletionItemExtensions
+    private readonly static string s_tagHelperElementCompletionDescriptionKey = "Razor.TagHelperElementDescription";
+
+    public static void SetTagHelperElementDescriptionInfo(this RazorCompletionItem completionItem, AggregateBoundElementDescription elementDescriptionInfo)
     {
-        private readonly static string s_tagHelperElementCompletionDescriptionKey = "Razor.TagHelperElementDescription";
+        completionItem.Items[s_tagHelperElementCompletionDescriptionKey] = elementDescriptionInfo;
+    }
 
-        public static void SetTagHelperElementDescriptionInfo(this RazorCompletionItem completionItem, AggregateBoundElementDescription elementDescriptionInfo)
+    public static AggregateBoundElementDescription? GetTagHelperElementDescriptionInfo(this RazorCompletionItem completionItem)
+    {
+        if (completionItem is null)
         {
-            completionItem.Items[s_tagHelperElementCompletionDescriptionKey] = elementDescriptionInfo;
+            throw new ArgumentNullException(nameof(completionItem));
         }
 
-        public static AggregateBoundElementDescription? GetTagHelperElementDescriptionInfo(this RazorCompletionItem completionItem)
-        {
-            if (completionItem is null)
-            {
-                throw new ArgumentNullException(nameof(completionItem));
-            }
-
-            var description = completionItem.Items[s_tagHelperElementCompletionDescriptionKey] as AggregateBoundElementDescription;
-            return description;
-        }
+        var description = completionItem.Items[s_tagHelperElementCompletionDescriptionKey] as AggregateBoundElementDescription;
+        return description;
     }
 }

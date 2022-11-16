@@ -7,30 +7,29 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Build.Execution;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+public sealed class ProjectConfigurationProviderContext
 {
-    public sealed class ProjectConfigurationProviderContext
+    public ProjectConfigurationProviderContext(
+        IReadOnlyList<string> projectCapabilities,
+        ProjectInstance projectInstance)
     {
-        public ProjectConfigurationProviderContext(
-            IReadOnlyList<string> projectCapabilities,
-            ProjectInstance projectInstance)
+        if (projectCapabilities is null)
         {
-            if (projectCapabilities is null)
-            {
-                throw new ArgumentNullException(nameof(projectCapabilities));
-            }
-
-            if (projectInstance is null)
-            {
-                throw new ArgumentNullException(nameof(projectInstance));
-            }
-
-            ProjectCapabilities = projectCapabilities;
-            ProjectInstance = projectInstance;
+            throw new ArgumentNullException(nameof(projectCapabilities));
         }
 
-        public IReadOnlyList<string> ProjectCapabilities { get; }
+        if (projectInstance is null)
+        {
+            throw new ArgumentNullException(nameof(projectInstance));
+        }
 
-        public ProjectInstance ProjectInstance { get; }
+        ProjectCapabilities = projectCapabilities;
+        ProjectInstance = projectInstance;
     }
+
+    public IReadOnlyList<string> ProjectCapabilities { get; }
+
+    public ProjectInstance ProjectInstance { get; }
 }

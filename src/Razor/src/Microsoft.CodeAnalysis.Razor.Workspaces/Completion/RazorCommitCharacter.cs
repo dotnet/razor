@@ -3,22 +3,21 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Razor.Completion
+namespace Microsoft.CodeAnalysis.Razor.Completion;
+
+internal sealed record RazorCommitCharacter(string Character, bool Insert = true)
 {
-    internal sealed record RazorCommitCharacter(string Character, bool Insert = true)
+    public static IReadOnlyList<RazorCommitCharacter> FromArray(IReadOnlyList<string> characters) => FromArray(characters, insert: true);
+
+    public static IReadOnlyList<RazorCommitCharacter> FromArray(IReadOnlyList<string> characters, bool insert)
     {
-        public static IReadOnlyList<RazorCommitCharacter> FromArray(IReadOnlyList<string> characters) => FromArray(characters, insert: true);
+        var converted = new RazorCommitCharacter[characters.Count];
 
-        public static IReadOnlyList<RazorCommitCharacter> FromArray(IReadOnlyList<string> characters, bool insert)
+        for (var i = 0; i < characters.Count; i++)
         {
-            var converted = new RazorCommitCharacter[characters.Count];
-
-            for (var i = 0; i < characters.Count; i++)
-            {
-                converted[i] = new RazorCommitCharacter(characters[i], insert);
-            }
-
-            return converted;
+            converted[i] = new RazorCommitCharacter(characters[i], insert);
         }
+
+        return converted;
     }
 }

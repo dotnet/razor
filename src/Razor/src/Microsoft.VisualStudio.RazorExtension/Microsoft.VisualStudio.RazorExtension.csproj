@@ -153,10 +153,7 @@
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Configuration.Binder.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Logging.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Logging.Abstractions.dll" />
-    <RazorNgendVSIXSourceItem Include="$(OutputPath)System.IO.Pipelines.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)System.Reactive.dll" />
-    <RazorNgendVSIXSourceItem Include="$(OutputPath)System.Runtime.CompilerServices.Unsafe.dll" />
-    <RazorNgendVSIXSourceItem Include="$(OutputPath)System.Threading.Channels.dll" />
 
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll" />
@@ -189,6 +186,7 @@
 
   <ItemGroup>
     <!-- Don't trim this list. It is used to feed into the binding redirects -->
+    <ProjectReference Include="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.LanguageSupport\Microsoft.AspNetCore.Razor.LanguageSupport.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Common\Microsoft.AspNetCore.Razor.Common.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj" />
     <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />

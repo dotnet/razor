@@ -11,40 +11,39 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using LS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp
+namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
+
+internal class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<SignatureHelpParamsBridge, LS.SignatureHelp?>, ISignatureHelpEndpoint
 {
-    internal class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<SignatureHelpParamsBridge, LS.SignatureHelp?>, ISignatureHelpEndpoint
+    public SignatureHelpEndpoint(
+        LanguageServerFeatureOptions languageServerFeatureOptions,
+        RazorDocumentMappingService documentMappingService,
+        ClientNotifierServiceBase languageServer,
+        ILoggerFactory loggerProvider)
+        : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerProvider.CreateLogger<SignatureHelpEndpoint>())
     {
-        public SignatureHelpEndpoint(
-            LanguageServerFeatureOptions languageServerFeatureOptions,
-            RazorDocumentMappingService documentMappingService,
-            ClientNotifierServiceBase languageServer,
-            ILoggerFactory loggerProvider)
-            : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerProvider.CreateLogger<SignatureHelpEndpoint>())
+    }
+
+    protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName;
+
+    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    {
+        const string ServerCapability = "signatureHelpProvider";
+        var option = new SignatureHelpOptions()
         {
-        }
+            TriggerCharacters = new[] { "(", ",", "<" },
+            RetriggerCharacters = new[] { ">", ")" }
+        };
 
-        protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName;
+        return new RegistrationExtensionResult(ServerCapability, option);
+    }
 
-        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
-        {
-            const string ServerCapability = "signatureHelpProvider";
-            var option = new SignatureHelpOptions()
-            {
-                TriggerCharacters = new[] { "(", ",", "<" },
-                RetriggerCharacters = new[] { ">", ")" }
-            };
-
-            return new RegistrationExtensionResult(ServerCapability, option);
-        }
-
-        protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(SignatureHelpParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
-        {
-            var documentContext = requestContext.GetRequiredDocumentContext();
-            return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
-                    documentContext.Identifier,
-                    projection.Position,
-                    projection.LanguageKind));
-        }
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(SignatureHelpParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    {
+        var documentContext = requestContext.GetRequiredDocumentContext();
+        return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
+                documentContext.Identifier,
+                projection.Position,
+                projection.LanguageKind));
     }
 }

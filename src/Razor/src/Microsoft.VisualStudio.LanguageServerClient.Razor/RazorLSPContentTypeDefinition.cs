@@ -6,20 +6,19 @@ using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
-{
-    internal sealed class RazorLSPContentTypeDefinition
-    {
-        /// <summary>
-        /// Exports the Razor LSP content type
-        /// </summary>
-        [Export]
-        [Name(RazorConstants.RazorLSPContentTypeName)]
-        [BaseDefinition(CodeRemoteContentDefinition.CodeRemoteContentTypeName)]
-        public ContentTypeDefinition? RazorLSPContentType { get; set; }
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-        // We can't associate the Razor LSP content type with the above file extensions because there's already a content type
-        // associated with them. Instead, we utilize our RazorEditorFactory to assign the RazorLSPContentType to .razor/.cshtml
-        // files.
-    }
+internal sealed class RazorLSPContentTypeDefinition
+{
+    /// <summary>
+    /// Exports the Razor LSP content type
+    /// </summary>
+    [Export]
+    [Name(RazorConstants.RazorLSPContentTypeName)]
+    [BaseDefinition(CodeRemoteContentDefinition.CodeRemoteContentTypeName)]
+    public ContentTypeDefinition? RazorLSPContentType { get; set; }
+
+    // We can't associate the Razor LSP content type with the above file extensions because there's already a content type
+    // associated with them. Instead, we utilize our RazorEditorFactory to assign the RazorLSPContentType to .razor/.cshtml
+    // files.
 }

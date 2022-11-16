@@ -6,48 +6,47 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+
+internal class HostDocument
 {
-    internal class HostDocument
+    public HostDocument(HostDocument other)
     {
-        public HostDocument(HostDocument other)
+        if (other is null)
         {
-            if (other is null)
-            {
-                throw new ArgumentNullException(nameof(other));
-            }
-
-            FileKind = other.FileKind;
-            FilePath = other.FilePath;
-            TargetPath = other.TargetPath;
+            throw new ArgumentNullException(nameof(other));
         }
 
-        public HostDocument(string filePath, string targetPath)
-            : this(filePath, targetPath, fileKind: null)
-        {
-        }
-
-        public HostDocument(string filePath, string targetPath, string fileKind)
-        {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
-            if (targetPath is null)
-            {
-                throw new ArgumentNullException(nameof(targetPath));
-            }
-
-            FilePath = filePath;
-            TargetPath = targetPath;
-            FileKind = fileKind ?? FileKinds.GetFileKindFromFilePath(filePath);
-        }
-
-        public string FileKind { get; }
-
-        public string FilePath { get; }
-
-        public string TargetPath { get; }
+        FileKind = other.FileKind;
+        FilePath = other.FilePath;
+        TargetPath = other.TargetPath;
     }
+
+    public HostDocument(string filePath, string targetPath)
+        : this(filePath, targetPath, fileKind: null)
+    {
+    }
+
+    public HostDocument(string filePath, string targetPath, string fileKind)
+    {
+        if (filePath is null)
+        {
+            throw new ArgumentNullException(nameof(filePath));
+        }
+
+        if (targetPath is null)
+        {
+            throw new ArgumentNullException(nameof(targetPath));
+        }
+
+        FilePath = filePath;
+        TargetPath = targetPath;
+        FileKind = fileKind ?? FileKinds.GetFileKindFromFilePath(filePath);
+    }
+
+    public string FileKind { get; }
+
+    public string FilePath { get; }
+
+    public string TargetPath { get; }
 }

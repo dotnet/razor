@@ -3,30 +3,29 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.LiveShare.Razor
+namespace Microsoft.VisualStudio.LiveShare.Razor;
+
+public sealed class ProjectChangeEventProxyArgs : EventArgs
 {
-    public sealed class ProjectChangeEventProxyArgs : EventArgs
+    public ProjectChangeEventProxyArgs(ProjectSnapshotHandleProxy? older, ProjectSnapshotHandleProxy? newer, ProjectProxyChangeKind kind)
     {
-        public ProjectChangeEventProxyArgs(ProjectSnapshotHandleProxy? older, ProjectSnapshotHandleProxy? newer, ProjectProxyChangeKind kind)
+        if (older is null && newer is null)
         {
-            if (older is null && newer is null)
-            {
-                throw new ArgumentException("Both projects cannot be null.");
-            }
-
-            Older = older;
-            Newer = newer;
-            Kind = kind;
-
-            ProjectFilePath = older?.FilePath ?? newer!.FilePath;
+            throw new ArgumentException("Both projects cannot be null.");
         }
 
-        public ProjectSnapshotHandleProxy? Older { get; }
+        Older = older;
+        Newer = newer;
+        Kind = kind;
 
-        public ProjectSnapshotHandleProxy? Newer { get; }
-
-        public Uri ProjectFilePath { get; }
-
-        public ProjectProxyChangeKind Kind { get; }
+        ProjectFilePath = older?.FilePath ?? newer!.FilePath;
     }
+
+    public ProjectSnapshotHandleProxy? Older { get; }
+
+    public ProjectSnapshotHandleProxy? Newer { get; }
+
+    public Uri ProjectFilePath { get; }
+
+    public ProjectProxyChangeKind Kind { get; }
 }

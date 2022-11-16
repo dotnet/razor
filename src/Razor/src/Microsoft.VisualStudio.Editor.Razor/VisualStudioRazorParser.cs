@@ -7,24 +7,23 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+public abstract class VisualStudioRazorParser
 {
-    public abstract class VisualStudioRazorParser
-    {
-        public abstract event EventHandler<DocumentStructureChangedEventArgs> DocumentStructureChanged;
+    public abstract event EventHandler<DocumentStructureChangedEventArgs> DocumentStructureChanged;
 
-        public abstract string FilePath { get; }
+    public abstract string FilePath { get; }
 
-        public abstract RazorCodeDocument? CodeDocument { get; }
+    public abstract RazorCodeDocument? CodeDocument { get; }
 
-        public abstract ITextSnapshot? Snapshot { get; }
+    public abstract ITextSnapshot? Snapshot { get; }
 
-        public abstract ITextBuffer TextBuffer { get; }
+    public abstract ITextBuffer TextBuffer { get; }
 
-        public abstract bool HasPendingChanges { get; }
+    public abstract bool HasPendingChanges { get; }
 
-        public abstract void QueueReparse();
+    public abstract void QueueReparse();
 
-        internal virtual Task<RazorCodeDocument?> GetLatestCodeDocumentAsync(ITextSnapshot atOrNewerSnapshot, CancellationToken cancellationToken = default) => throw new NotImplementedException();
-    }
+    internal virtual Task<RazorCodeDocument?> GetLatestCodeDocumentAsync(ITextSnapshot atOrNewerSnapshot, CancellationToken cancellationToken = default) => throw new NotImplementedException();
 }

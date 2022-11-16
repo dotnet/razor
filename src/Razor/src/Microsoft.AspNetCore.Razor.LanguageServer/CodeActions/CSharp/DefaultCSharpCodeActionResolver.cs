@@ -13,8 +13,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
     internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
     {
         // Usually when we need to format code, we utilize the formatting options provided
@@ -136,4 +136,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return resolvedCodeAction;
         }
     }
-}

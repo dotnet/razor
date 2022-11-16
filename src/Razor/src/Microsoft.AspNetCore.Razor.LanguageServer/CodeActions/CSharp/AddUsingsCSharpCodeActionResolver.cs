@@ -14,8 +14,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
     /// <summary>
     /// Resolves the C# Add Using Code Action by requesting edits from Roslyn
     /// and converting them to be Razor compatible.
@@ -106,4 +106,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return codeAction;
         }
     }
-}

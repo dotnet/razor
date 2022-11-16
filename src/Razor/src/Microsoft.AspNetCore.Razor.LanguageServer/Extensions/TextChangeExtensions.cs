@@ -5,26 +5,25 @@ using System;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+
+internal static class TextChangeExtensions
 {
-    internal static class TextChangeExtensions
+    public static TextEdit AsTextEdit(this TextChange textChange, SourceText sourceText)
     {
-        public static TextEdit AsTextEdit(this TextChange textChange, SourceText sourceText)
+        if (sourceText is null)
         {
-            if (sourceText is null)
-            {
-                throw new ArgumentNullException(nameof(sourceText));
-            }
-
-            var range = textChange.Span.AsRange(sourceText);
-
-            Assumes.NotNull(textChange.NewText);
-
-            return new TextEdit()
-            {
-                NewText = textChange.NewText,
-                Range = range
-            };
+            throw new ArgumentNullException(nameof(sourceText));
         }
+
+        var range = textChange.Span.AsRange(sourceText);
+
+        Assumes.NotNull(textChange.NewText);
+
+        return new TextEdit()
+        {
+            NewText = textChange.NewText,
+            Range = range
+        };
     }
 }

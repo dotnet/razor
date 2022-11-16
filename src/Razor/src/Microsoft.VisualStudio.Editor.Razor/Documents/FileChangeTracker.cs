@@ -3,16 +3,15 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Documents
+namespace Microsoft.VisualStudio.Editor.Razor.Documents;
+
+internal abstract class FileChangeTracker
 {
-    internal abstract class FileChangeTracker
-    {
-        public abstract event EventHandler<FileChangeEventArgs>? Changed;
+    public abstract event EventHandler<FileChangeEventArgs>? Changed;
 
-        public abstract string FilePath { get; }
+    public abstract string FilePath { get; }
 
-        public abstract void StartListening();
+    public abstract void StartListening();
 
-        public abstract void StopListening();
-    }
+    public abstract void StopListening();
 }

@@ -8,31 +8,30 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+public class DefaultOmniSharpProjectSnapshotManagerDispatcher : OmniSharpProjectSnapshotManagerDispatcher
 {
-    public class DefaultOmniSharpProjectSnapshotManagerDispatcher : OmniSharpProjectSnapshotManagerDispatcher
+    public DefaultOmniSharpProjectSnapshotManagerDispatcher()
     {
-        public DefaultOmniSharpProjectSnapshotManagerDispatcher()
+        InternalDispatcher = new OmniSharpProjectSnapshotManagerDispatcher();
+    }
+
+    public override TaskScheduler DispatcherScheduler => InternalDispatcher.DispatcherScheduler;
+
+    public override void AssertDispatcherThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertDispatcherThread(caller);
+
+    private class OmniSharpProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcherBase
+    {
+        private const string ThreadName = "Razor." + nameof(OmniSharpProjectSnapshotManagerDispatcher);
+
+        public OmniSharpProjectSnapshotManagerDispatcher() : base(ThreadName)
         {
-            InternalDispatcher = new OmniSharpProjectSnapshotManagerDispatcher();
         }
 
-        public override TaskScheduler DispatcherScheduler => InternalDispatcher.DispatcherScheduler;
-
-        public override void AssertDispatcherThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertDispatcherThread(caller);
-
-        private class OmniSharpProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcherBase
+        public override void LogException(Exception ex)
         {
-            private const string ThreadName = "Razor." + nameof(OmniSharpProjectSnapshotManagerDispatcher);
-
-            public OmniSharpProjectSnapshotManagerDispatcher() : base(ThreadName)
-            {
-            }
-
-            public override void LogException(Exception ex)
-            {
-                // We don't currently have logging mechanisms in place for O#.
-            }
+            // We don't currently have logging mechanisms in place for O#.
         }
     }
 }

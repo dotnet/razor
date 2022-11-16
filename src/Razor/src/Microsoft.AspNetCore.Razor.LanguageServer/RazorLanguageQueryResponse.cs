@@ -5,21 +5,20 @@ using System.Runtime.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+[DataContract]
+internal class RazorLanguageQueryResponse
 {
-    [DataContract]
-    internal class RazorLanguageQueryResponse
-    {
-        [DataMember(Name = "kind")]
-        public RazorLanguageKind Kind { get; set; }
+    [DataMember(Name = "kind")]
+    public RazorLanguageKind Kind { get; set; }
 
-        [DataMember(Name = "positionIndex")]
-        public int PositionIndex { get; set; }
+    [DataMember(Name = "positionIndex")]
+    public int PositionIndex { get; set; }
 
-        [DataMember(Name = "position")]
-        public required Position Position { get; set; }
+    [DataMember(Name = "position")]
+    public required Position Position { get; set; }
 
-        [DataMember(Name = "hostDocumentVersion")]
-        public int? HostDocumentVersion { get; set; }
-    }
+    [DataMember(Name = "hostDocumentVersion")]
+    public int? HostDocumentVersion { get; set; }
 }

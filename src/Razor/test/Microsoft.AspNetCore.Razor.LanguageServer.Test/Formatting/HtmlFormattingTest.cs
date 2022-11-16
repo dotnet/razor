@@ -10,24 +10,24 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
+public class HtmlFormattingTest : FormattingTestBase
 {
-    public class HtmlFormattingTest : FormattingTestBase
+    internal override bool UseTwoPhaseCompilation => true;
+
+    internal override bool DesignTime => true;
+
+    public HtmlFormattingTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        internal override bool UseTwoPhaseCompilation => true;
+    }
 
-        internal override bool DesignTime => true;
-
-        public HtmlFormattingTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
-
-        [Fact]
-        public async Task FormatsSimpleHtmlTag()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FormatsSimpleHtmlTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
                        <html>
                     <head>
                        <title>Hello</title></head>
@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                             </body>
                      </html>
                     """,
-                expected: """
+            expected: """
                     <html>
                     <head>
                         <title>Hello</title>
@@ -47,13 +47,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     </body>
                     </html>
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task FormatsSimpleHtmlTag_Range()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FormatsSimpleHtmlTag_Range()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     <html>
                     <head>
                         <title>Hello</title>
@@ -64,7 +64,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     </body>
                     </html>
                     """,
-                expected: """
+            expected: """
                     <html>
                     <head>
                         <title>Hello</title>
@@ -75,13 +75,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     </body>
                     </html>
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task FormatsSimpleHtmlTag_OnType()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FormatsSimpleHtmlTag_OnType()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     <html>
                     <head>
                         <title>Hello</title>
@@ -91,7 +91,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     </head>
                     </html>
                     """,
-                expected: """
+            expected: """
                     <html>
                     <head>
                         <title>Hello</title>
@@ -101,15 +101,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     </head>
                     </html>
                     """,
-                triggerCharacter: ';',
-                fileKind: FileKinds.Legacy);
-        }
+            triggerCharacter: ';',
+            fileKind: FileKinds.Legacy);
+    }
 
-        [Fact]
-        public async Task FormatsRazorHtmlBlock()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FormatsRazorHtmlBlock()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @page "/error"
 
                             <h1 class=
@@ -133,7 +133,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                             </div>
                     </p>
                     """,
-                expected: """
+            expected: """
                     @page "/error"
 
                     <h1 class="text-danger">
@@ -160,13 +160,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </div>
                     </p>
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task FormatsMixedHtmlBlock()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FormatsMixedHtmlBlock()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @page "/test"
                     @{
                     <p>
@@ -189,7 +189,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                             </div>
                     }
                     """,
-                expected: """
+            expected: """
                     @page "/test"
                     @{
                         <p>
@@ -212,13 +212,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </div>
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task FormatsMixedRazorBlock()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FormatsMixedRazorBlock()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @page "/test"
 
                     <div class=@className>Some Text</div>
@@ -240,7 +240,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                             </p>
                     }
                     """,
-                expected: """
+            expected: """
                     @page "/test"
 
                     <div class=@className>Some Text</div>
@@ -264,13 +264,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </p>
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task FormatsMixedContentWithMultilineExpressions()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FormatsMixedContentWithMultilineExpressions()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @page "/test"
 
                     <div
@@ -299,7 +299,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         })
                     )
                     """,
-                expected: """
+            expected: """
                     @page "/test"
 
                     <div attr='val'
@@ -330,13 +330,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         })
                     )
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task FormatsComplexBlock()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FormatsComplexBlock()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @page "/"
 
                     <h1>Hello, world!</h1>
@@ -373,7 +373,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @page "/"
 
                     <h1>Hello, world!</h1>
@@ -416,14 +416,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task FormatsComponentTags()
-        {
-            var tagHelpers = GetComponents();
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FormatsComponentTags()
+    {
+        var tagHelpers = GetComponents();
+        await RunFormattingTestAsync(
+            input: """
                        <Counter>
                         @if(true){
                             <p>@DateTime.Now</p>
@@ -438,7 +438,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     </GridTable>
                     """,
-                expected: """
+            expected: """
                     <Counter>
                         @if (true)
                         {
@@ -458,29 +458,29 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     </GridTable>
                     """,
-                tagHelpers: tagHelpers);
-        }
+            tagHelpers: tagHelpers);
+    }
 
-        [Fact]
-        public async Task FormatsShortBlock()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FormatsShortBlock()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @{<p></p>}
                     """,
-                expected: """
+            expected: """
                     @{
                         <p></p>
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/26836")]
-        public async Task FormatNestedBlock()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/26836")]
+    public async Task FormatNestedBlock()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @code {
                         public string DoSomething()
                         {
@@ -492,7 +492,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         public string DoSomething()
                         {
@@ -504,14 +504,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/26836")]
-        public async Task FormatNestedBlock_Tabs()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/26836")]
+    public async Task FormatNestedBlock_Tabs()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @code {
                         public string DoSomething()
                         {
@@ -523,7 +523,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                     	public string DoSomething()
                     	{
@@ -535,16 +535,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     	}
                     }
                     """,
-                tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
-                insertSpaces: false);
-        }
+            tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
+            insertSpaces: false);
+    }
 
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1273468/")]
-        public async Task FormatHtmlWithTabs1()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1273468/")]
+    public async Task FormatHtmlWithTabs1()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @page "/"
                     @{
                      ViewData["Title"] = "Create";
@@ -562,7 +562,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                      </div>
                     }
                     """,
-                expected: """
+            expected: """
                     @page "/"
                     @{
                     	ViewData["Title"] = "Create";
@@ -580,17 +580,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     	</div>
                     }
                     """,
-                tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
-                insertSpaces: false,
-                fileKind: FileKinds.Legacy);
-        }
+            tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
+            insertSpaces: false,
+            fileKind: FileKinds.Legacy);
+    }
 
-        [Fact]
-        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1273468/")]
-        public async Task FormatHtmlWithTabs2()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1273468/")]
+    public async Task FormatHtmlWithTabs2()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @page "/"
 
                      <hr />
@@ -606,7 +606,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                       </div>
                      </div>
                     """,
-                expected: """
+            expected: """
                     @page "/"
 
                     <hr />
@@ -622,17 +622,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     	</div>
                     </div>
                     """,
-                tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
-                insertSpaces: false,
-                fileKind: FileKinds.Legacy);
-        }
+            tabSize: 4, // Due to a bug in the HTML formatter, this needs to be 4
+            insertSpaces: false,
+            fileKind: FileKinds.Legacy);
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
-        public async Task FormatNestedComponents()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
+    public async Task FormatNestedComponents()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     <CascadingAuthenticationState>
                     <Router AppAssembly="@typeof(Program).Assembly">
                         <Found Context="routeData">
@@ -651,7 +651,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     </Router>
                     </CascadingAuthenticationState>
                     """,
-                expected: """
+            expected: """
                     <CascadingAuthenticationState>
                         <Router AppAssembly="@typeof(Program).Assembly">
                             <Found Context="routeData">
@@ -670,14 +670,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </Router>
                     </CascadingAuthenticationState>
                     """);
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
-        public async Task FormatNestedComponents2()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
+    public async Task FormatNestedComponents2()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     <GridTable>
                     <ChildContent>
                     <GridRow>
@@ -697,7 +697,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     </ChildContent>
                     </GridTable>
                     """,
-                expected: """
+            expected: """
                     <GridTable>
                         <ChildContent>
                             <GridRow>
@@ -717,15 +717,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </ChildContent>
                     </GridTable>
                     """,
-                tagHelpers: GetComponents());
-        }
+            tagHelpers: GetComponents());
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
-        public async Task FormatNestedComponents2_Range()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
+    public async Task FormatNestedComponents2_Range()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     <GridTable>
                     <ChildContent>
                     <GridRow>
@@ -745,7 +745,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     </ChildContent>
                     </GridTable>
                     """,
-                expected: """
+            expected: """
                     <GridTable>
                     <ChildContent>
                     <GridRow>
@@ -765,15 +765,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     </ChildContent>
                     </GridTable>
                     """,
-                tagHelpers: GetComponents());
-        }
+            tagHelpers: GetComponents());
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/29645")]
-        public async Task FormatHtmlInIf()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/29645")]
+    public async Task FormatHtmlInIf()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @if (true)
                     {
                         <p><em>Loading...</em></p>
@@ -792,7 +792,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </table>
                     }
                     """,
-                expected: """
+            expected: """
                     @if (true)
                     {
                         <p><em>Loading...</em></p>
@@ -811,14 +811,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </table>
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/29645")]
-        public async Task FormatHtmlInIf_Range()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/29645")]
+    public async Task FormatHtmlInIf_Range()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @if (true)
                     {
                         <p><em>Loading...</em></p>
@@ -837,7 +837,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </table>
                     }
                     """,
-                expected: """
+            expected: """
                     @if (true)
                     {
                         <p><em>Loading...</em></p>
@@ -856,20 +856,20 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </table>
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5749")]
-        public async Task FormatRenderFragmentInCSharpCodeBlock()
-        {
-            // Sadly the first thing the HTML formatter does with this input
-            // is put a newline after the @, which means <SurveyPrompt /> won't be
-            // seen as a component any more, so we have to turn off our validation,
-            // or the test fails before we have a chance to fix the formatting.
-            FormattingContext.SkipValidateComponents = true;
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/5749")]
+    public async Task FormatRenderFragmentInCSharpCodeBlock()
+    {
+        // Sadly the first thing the HTML formatter does with this input
+        // is put a newline after the @, which means <SurveyPrompt /> won't be
+        // seen as a component any more, so we have to turn off our validation,
+        // or the test fails before we have a chance to fix the formatting.
+        FormattingContext.SkipValidateComponents = true;
 
-            await RunFormattingTestAsync(
-                input: """
+        await RunFormattingTestAsync(
+            input: """
                     @code
                     {
                         public void DoStuff(RenderFragment renderFragment)
@@ -883,7 +883,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @code
                     {
                         public void DoStuff(RenderFragment renderFragment)
@@ -898,14 +898,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6090")]
-        public async Task FormatHtmlCommentsInsideCSharp1()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/6090")]
+    public async Task FormatHtmlCommentsInsideCSharp1()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @foreach (var num in Enumerable.Range(1, 10))
                     {
                         <span class="skill_result btn">
@@ -919,7 +919,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </span>
                     }
                     """,
-                expected: """
+            expected: """
                     @foreach (var num in Enumerable.Range(1, 10))
                     {
                         <span class="skill_result btn">
@@ -933,14 +933,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </span>
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6090")]
-        public async Task FormatHtmlCommentsInsideCSharp2()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/6090")]
+    public async Task FormatHtmlCommentsInsideCSharp2()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @foreach (var num in Enumerable.Range(1, 10))
                     {
                         <span class="skill_result btn">
@@ -950,7 +950,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </span>
                     }
                     """,
-                expected: """
+            expected: """
                     @foreach (var num in Enumerable.Range(1, 10))
                     {
                         <span class="skill_result btn">
@@ -960,14 +960,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </span>
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
-        public async Task FormatNestedCascadingValue()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
+    public async Task FormatNestedCascadingValue()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @if (Object1!= null)
@@ -994,7 +994,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     public bool VarBool {get;set;}
                     }
                     """,
-                expected: """
+            expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @if (Object1 != null)
@@ -1021,15 +1021,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         public bool VarBool { get; set; }
                     }
                     """,
-                fileKind: FileKinds.Component);
-        }
+            fileKind: FileKinds.Component);
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
-        public async Task FormatNestedCascadingValue2()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
+    public async Task FormatNestedCascadingValue2()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @if (Object1!= null)
@@ -1054,7 +1054,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     public bool VarBool {get;set;}
                     }
                     """,
-                expected: """
+            expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @if (Object1 != null)
@@ -1079,15 +1079,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         public bool VarBool { get; set; }
                     }
                     """,
-                fileKind: FileKinds.Component);
-        }
+            fileKind: FileKinds.Component);
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
-        public async Task FormatNestedCascadingValue3()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
+    public async Task FormatNestedCascadingValue3()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @if (Object1!= null)
@@ -1113,7 +1113,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     public bool VarBool {get;set;}
                     }
                     """,
-                expected: """
+            expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @if (Object1 != null)
@@ -1139,15 +1139,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         public bool VarBool { get; set; }
                     }
                     """,
-                fileKind: FileKinds.Component);
-        }
+            fileKind: FileKinds.Component);
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
-        public async Task FormatNestedCascadingValue4()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
+    public async Task FormatNestedCascadingValue4()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                         <CascadingValue Value="Variable1">
@@ -1169,7 +1169,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     public bool VarBool {get;set;}
                     }
                     """,
-                expected: """
+            expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     <CascadingValue Value="Variable1">
@@ -1191,15 +1191,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         public bool VarBool { get; set; }
                     }
                     """,
-                fileKind: FileKinds.Component);
-        }
+            fileKind: FileKinds.Component);
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
-        public async Task FormatNestedCascadingValue5()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/6001")]
+    public async Task FormatNestedCascadingValue5()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @if (Object1!= null)
@@ -1224,7 +1224,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     public bool VarBool {get;set;}
                     }
                     """,
-                expected: """
+            expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @if (Object1 != null)
@@ -1249,15 +1249,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         public bool VarBool { get; set; }
                     }
                     """,
-                fileKind: FileKinds.Component);
-        }
+            fileKind: FileKinds.Component);
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
-        public async Task FormatInputSelect()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
+    public async Task FormatInputSelect()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @code {
@@ -1278,7 +1278,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     </div>
                     """,
-                expected: """
+            expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @code {
@@ -1299,15 +1299,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     </div>
                     """,
-                fileKind: FileKinds.Component);
-        }
+            fileKind: FileKinds.Component);
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
-        public async Task FormatInputSelect2()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
+    public async Task FormatInputSelect2()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @code {
@@ -1325,7 +1325,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                             </div>
                     </div>
                     """,
-                expected: """
+            expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @code {
@@ -1343,15 +1343,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </div>
                     </div>
                     """,
-                fileKind: FileKinds.Component);
-        }
+            fileKind: FileKinds.Component);
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
-        public async Task FormatInputSelect3()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
+    public async Task FormatInputSelect3()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @code {
@@ -1366,7 +1366,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                             </div>
                     </div>
                     """,
-                expected: """
+            expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @code {
@@ -1381,15 +1381,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </div>
                     </div>
                     """,
-                fileKind: FileKinds.Component);
-        }
+            fileKind: FileKinds.Component);
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
-        public async Task FormatInputSelect4()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/5676")]
+    public async Task FormatInputSelect4()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @code {
@@ -1407,7 +1407,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     </div>
                     """,
-                expected: """
+            expected: """
                     @using Microsoft.AspNetCore.Components.Forms;
 
                     @code {
@@ -1425,49 +1425,49 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     </div>
                     """,
-                fileKind: FileKinds.Component);
-        }
+            fileKind: FileKinds.Component);
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6211")]
-        public async Task FormatCascadingValueWithCascadingTypeParameter()
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/6211")]
+    public async Task FormatCascadingValueWithCascadingTypeParameter()
+    {
+        await RunFormattingTestAsync(
+            input: """
+
+                    <div>
+                        @foreach ( var i in new int[] { 1, 23 } )
+                        {
+                            <div></div>
+                        }
+                    </div>
+                    <Select TValue="string">
+                        @foreach ( var i in new int[] { 1, 23 } )
+                        {
+                            <SelectItem Value="@i">@i</SelectItem>
+                        }
+                    </Select>
+                    """,
+            expected: """
+
+                    <div>
+                        @foreach (var i in new int[] { 1, 23 })
+                        {
+                            <div></div>
+                        }
+                    </div>
+                    <Select TValue="string">
+                        @foreach (var i in new int[] { 1, 23 })
+                        {
+                            <SelectItem Value="@i">@i</SelectItem>
+                        }
+                    </Select>
+                    """,
+            tagHelpers: CreateTagHelpers());
+
+        IReadOnlyList<TagHelperDescriptor> CreateTagHelpers()
         {
-            await RunFormattingTestAsync(
-                input: """
-
-                    <div>
-                        @foreach ( var i in new int[] { 1, 23 } )
-                        {
-                            <div></div>
-                        }
-                    </div>
-                    <Select TValue="string">
-                        @foreach ( var i in new int[] { 1, 23 } )
-                        {
-                            <SelectItem Value="@i">@i</SelectItem>
-                        }
-                    </Select>
-                    """,
-                expected: """
-
-                    <div>
-                        @foreach (var i in new int[] { 1, 23 })
-                        {
-                            <div></div>
-                        }
-                    </div>
-                    <Select TValue="string">
-                        @foreach (var i in new int[] { 1, 23 })
-                        {
-                            <SelectItem Value="@i">@i</SelectItem>
-                        }
-                    </Select>
-                    """,
-                tagHelpers: CreateTagHelpers());
-
-            IReadOnlyList<TagHelperDescriptor> CreateTagHelpers()
-            {
-                var select = """
+            var select = """
                     @typeparam TValue
                     @attribute [CascadingTypeParameter(nameof(TValue))]
                     <CascadingValue Value="@this" IsFixed>
@@ -1481,7 +1481,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         [Parameter] public TValue SelectedValue { get; set; }
                     }
                     """;
-                var selectItem = """
+            var selectItem = """
                     @typeparam TValue
                     <option value="@StringValue">@ChildContent</option>
 
@@ -1494,22 +1494,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     }
                     """;
 
-                var selectComponent = CompileToCSharp("Select.razor", select, throwOnFailure: true, fileKind: FileKinds.Component);
-                var selectItemComponent = CompileToCSharp("SelectItem.razor", selectItem, throwOnFailure: true, fileKind: FileKinds.Component);
+            var selectComponent = CompileToCSharp("Select.razor", select, throwOnFailure: true, fileKind: FileKinds.Component);
+            var selectItemComponent = CompileToCSharp("SelectItem.razor", selectItem, throwOnFailure: true, fileKind: FileKinds.Component);
 
-                var tagHelpers = new List<TagHelperDescriptor>();
-                tagHelpers.AddRange(selectComponent.CodeDocument.GetTagHelperContext().TagHelpers);
-                tagHelpers.AddRange(selectItemComponent.CodeDocument.GetTagHelperContext().TagHelpers);
-                return tagHelpers.AsReadOnly();
-            }
+            var tagHelpers = new List<TagHelperDescriptor>();
+            tagHelpers.AddRange(selectComponent.CodeDocument.GetTagHelperContext().TagHelpers);
+            tagHelpers.AddRange(selectItemComponent.CodeDocument.GetTagHelperContext().TagHelpers);
+            return tagHelpers.AsReadOnly();
         }
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6110")]
-        public async Task FormatExplicitCSharpInsideHtml()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/6110")]
+    public async Task FormatExplicitCSharpInsideHtml()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @using System.Text;
 
                     <div>
@@ -1552,7 +1552,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @using System.Text;
 
                     <div>
@@ -1595,14 +1595,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                fileKind: FileKinds.Legacy);
-        }
+            fileKind: FileKinds.Legacy);
+    }
 
-        [Fact]
-        public async Task RazorDiagnostics_SkipRangeFormatting()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task RazorDiagnostics_SkipRangeFormatting()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @page "Goo"
 
                     <div></div>
@@ -1612,7 +1612,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                      void M() { }
                     }
                     """,
-                expected: """
+            expected: """
                     @page "Goo"
 
                     <div></div>
@@ -1622,53 +1622,53 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                      void M() { }
                     }
                     """,
-                allowDiagnostics: true);
-        }
+            allowDiagnostics: true);
+    }
 
-        [Fact]
-        public async Task RazorDiagnostics_DontSkipDocumentFormatting()
-        {
-            // Yes this format result looks wrong, but this is only done in direct response
-            // to user action, and they can always undo it.
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task RazorDiagnostics_DontSkipDocumentFormatting()
+    {
+        // Yes this format result looks wrong, but this is only done in direct response
+        // to user action, and they can always undo it.
+        await RunFormattingTestAsync(
+            input: """
                     <button
                     @functions {
                      void M() { }
                     }
                     """,
-                expected: """
+            expected: """
                     <button @functions {
                             void M() { }
                             }
                     """,
-                allowDiagnostics: true);
-        }
+            allowDiagnostics: true);
+    }
 
-        [Fact]
-        public async Task RazorDiagnostics_SkipRangeFormatting_WholeDocumentRange()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task RazorDiagnostics_SkipRangeFormatting_WholeDocumentRange()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     [|<button
                     @functions {
                      void M() { }
                     }|]
                     """,
-                expected: """
+            expected: """
                     <button
                     @functions {
                      void M() { }
                     }
                     """,
-                allowDiagnostics: true);
-        }
+            allowDiagnostics: true);
+    }
 
-        [Fact]
-        public async Task RazorDiagnostics_DontSkipWhenOutsideOfRange()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task RazorDiagnostics_DontSkipWhenOutsideOfRange()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @page "Goo"
 
                     [|      <div></div>|]
@@ -1678,7 +1678,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                      void M() { }
                     }
                     """,
-                expected: """
+            expected: """
                     @page "Goo"
 
                     <div></div>
@@ -1688,14 +1688,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                      void M() { }
                     }
                     """,
-                allowDiagnostics: true);
-        }
+            allowDiagnostics: true);
+    }
 
-        [Fact]
-        public async Task FormatIndentedElementAttributes()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FormatIndentedElementAttributes()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     Welcome.
 
                     <div class="goo"
@@ -1735,7 +1735,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                        }
                     }
                     """,
-                expected: """
+            expected: """
                     Welcome.
 
                     <div class="goo"
@@ -1774,11 +1774,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """);
-        }
+    }
 
-        private IReadOnlyList<TagHelperDescriptor> GetComponents()
-        {
-            AdditionalSyntaxTrees.Add(Parse("""
+    private IReadOnlyList<TagHelperDescriptor> GetComponents()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
                 using Microsoft.AspNetCore.Components;
                 namespace Test
                 {
@@ -1802,9 +1802,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
                 """));
 
-            var generated = CompileToCSharp("Test.razor", string.Empty, throwOnFailure: false, fileKind: FileKinds.Component);
-            var tagHelpers = generated.CodeDocument.GetTagHelperContext().TagHelpers;
-            return tagHelpers;
-        }
+        var generated = CompileToCSharp("Test.razor", string.Empty, throwOnFailure: false, fileKind: FileKinds.Component);
+        var tagHelpers = generated.CodeDocument.GetTagHelperContext().TagHelpers;
+        return tagHelpers;
     }
 }

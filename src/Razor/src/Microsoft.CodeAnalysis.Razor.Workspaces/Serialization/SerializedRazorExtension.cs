@@ -4,20 +4,19 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.CodeAnalysis.Razor.Serialization
-{
-    internal class SerializedRazorExtension : RazorExtension
-    {
-        public SerializedRazorExtension(string extensionName)
-        {
-            if (extensionName is null)
-            {
-                throw new ArgumentNullException(nameof(extensionName));
-            }
+namespace Microsoft.CodeAnalysis.Razor.Serialization;
 
-            ExtensionName = extensionName;
+internal class SerializedRazorExtension : RazorExtension
+{
+    public SerializedRazorExtension(string extensionName)
+    {
+        if (extensionName is null)
+        {
+            throw new ArgumentNullException(nameof(extensionName));
         }
 
-        public override string ExtensionName { get; }
+        ExtensionName = extensionName;
     }
+
+    public override string ExtensionName { get; }
 }

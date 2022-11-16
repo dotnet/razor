@@ -22,8 +22,8 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
     public class CodeActionEndpointTest : LanguageServerTestBase
     {
         private readonly RazorDocumentMappingService _documentMappingService;
@@ -827,4 +827,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
         }
     }
-}

@@ -8,20 +8,19 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor;
 
-namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor
-{
-    [Shared]
-    [ExportLanguageServiceFactory(typeof(VisualStudioCompletionBroker), RazorLanguage.Name, ServiceLayer.Default)]
-    internal class DefaultVisualStudioCompletionBrokerFactory : ILanguageServiceFactory
-    {
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            if (languageServices is null)
-            {
-                throw new ArgumentNullException(nameof(languageServices));
-            }
+namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.Editor;
 
-            return new DefaultVisualStudioCompletionBroker();
+[Shared]
+[ExportLanguageServiceFactory(typeof(VisualStudioCompletionBroker), RazorLanguage.Name, ServiceLayer.Default)]
+internal class DefaultVisualStudioCompletionBrokerFactory : ILanguageServiceFactory
+{
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+    {
+        if (languageServices is null)
+        {
+            throw new ArgumentNullException(nameof(languageServices));
         }
+
+        return new DefaultVisualStudioCompletionBroker();
     }
 }

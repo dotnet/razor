@@ -7,8 +7,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+
     internal static class CodeActionExtensions
     {
         public static SumType<Command, CodeAction> AsVSCodeCommandOrCodeAction(this VSInternalCodeAction razorCodeAction)
@@ -115,4 +115,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
             return razorCodeAction;
         }
     }
-}

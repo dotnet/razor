@@ -3,10 +3,9 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
+internal class RazorDocumentOnTypeFormattingParams : DocumentOnTypeFormattingParams
 {
-    internal class RazorDocumentOnTypeFormattingParams : DocumentOnTypeFormattingParams
-    {
-        public int HostDocumentVersion { get; init; }
-    }
+    public int HostDocumentVersion { get; init; }
 }

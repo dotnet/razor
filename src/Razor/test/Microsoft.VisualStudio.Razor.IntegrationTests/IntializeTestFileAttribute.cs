@@ -4,25 +4,24 @@
 using System.Reflection;
 using Xunit.Sdk;
 
-namespace Microsoft.VisualStudio.Razor.IntegrationTests
-{
-    public class IntializeTestFileAttribute : BeforeAfterTestAttribute
-    {
-        public override void Before(MethodInfo methodUnderTest)
-        {
-            var typeName = methodUnderTest.ReflectedType.Name;
-            if (typeof(RazorSemanticTokensTests).GetTypeInfo().IsAssignableFrom(methodUnderTest.DeclaringType.GetTypeInfo()))
-            {
-                RazorSemanticTokensTests.FileName = $"Semantic/TestFiles/{typeName}/{methodUnderTest.Name}";
-            }
-        }
+namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
-        public override void After(MethodInfo methodUnderTest)
+public class IntializeTestFileAttribute : BeforeAfterTestAttribute
+{
+    public override void Before(MethodInfo methodUnderTest)
+    {
+        var typeName = methodUnderTest.ReflectedType.Name;
+        if (typeof(RazorSemanticTokensTests).GetTypeInfo().IsAssignableFrom(methodUnderTest.DeclaringType.GetTypeInfo()))
         {
-            if (typeof(RazorSemanticTokensTests).GetTypeInfo().IsAssignableFrom(methodUnderTest.DeclaringType.GetTypeInfo()))
-            {
-                RazorSemanticTokensTests.FileName = null;
-            }
+            RazorSemanticTokensTests.FileName = $"Semantic/TestFiles/{typeName}/{methodUnderTest.Name}";
+        }
+    }
+
+    public override void After(MethodInfo methodUnderTest)
+    {
+        if (typeof(RazorSemanticTokensTests).GetTypeInfo().IsAssignableFrom(methodUnderTest.DeclaringType.GetTypeInfo()))
+        {
+            RazorSemanticTokensTests.FileName = null;
         }
     }
 }

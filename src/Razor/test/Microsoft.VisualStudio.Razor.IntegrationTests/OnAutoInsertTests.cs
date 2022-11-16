@@ -4,17 +4,17 @@
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.VisualStudio.Razor.IntegrationTests
-{
-    public class OnAutoInsertTests : AbstractRazorEditorTest
-    {
-        [IdeFact]
-        public async Task CSharp_DocumentationComments()
-        {
-            // Open the file
-            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
+namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
-            await TestServices.Editor.SetTextAsync(@"
+public class OnAutoInsertTests : AbstractRazorEditorTest
+{
+    [IdeFact]
+    public async Task CSharp_DocumentationComments()
+    {
+        // Open the file
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.SetTextAsync(@"
 <div>
 </div>
 
@@ -27,13 +27,12 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
 }
 
 ", ControlledHangMitigatingCancellationToken);
-            await TestServices.Editor.PlaceCaretAsync("//", charsOffset: 1, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("//", charsOffset: 1, ControlledHangMitigatingCancellationToken);
 
-            // Act
-            TestServices.Input.Send("/");
+        // Act
+        TestServices.Input.Send("/");
 
-            // Assert
-            await TestServices.Editor.WaitForCurrentLineTextAsync("/// ", ControlledHangMitigatingCancellationToken);
-        }
+        // Assert
+        await TestServices.Editor.WaitForCurrentLineTextAsync("/// ", ControlledHangMitigatingCancellationToken);
     }
 }

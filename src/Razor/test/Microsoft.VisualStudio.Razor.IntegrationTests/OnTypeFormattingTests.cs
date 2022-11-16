@@ -4,24 +4,24 @@
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.VisualStudio.Razor.IntegrationTests
+namespace Microsoft.VisualStudio.Razor.IntegrationTests;
+
+public class OnTypeFormattingTests : AbstractRazorEditorTest
 {
-    public class OnTypeFormattingTests : AbstractRazorEditorTest
+    [IdeFact]
+    public async Task TypeScript_Semicolon()
     {
-        [IdeFact]
-        public async Task TypeScript_Semicolon()
+        var version = await TestServices.Shell.GetVersionAsync(HangMitigatingCancellationToken);
+        if (version < new System.Version(42, 42, 42, 42))
         {
-            var version = await TestServices.Shell.GetVersionAsync(HangMitigatingCancellationToken);
-            if (version < new System.Version(42, 42, 42, 42))
-            {
-                return;
-            }
+            return;
+        }
 
-            // Open the file
-            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
+        // Open the file
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
 
-            // Change text to refer back to Program class
-            await TestServices.Editor.SetTextAsync(@"
+        // Change text to refer back to Program class
+        await TestServices.Editor.SetTextAsync(@"
 <script>
     function F()
     {
@@ -29,13 +29,12 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests
     }
 </script>
 ", ControlledHangMitigatingCancellationToken);
-            await TestServices.Editor.PlaceCaretAsync("3", charsOffset: 1, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("3", charsOffset: 1, ControlledHangMitigatingCancellationToken);
 
-            // Act
-            TestServices.Input.Send(";");
+        // Act
+        TestServices.Input.Send(";");
 
-            // Assert
-            await TestServices.Editor.WaitForCurrentLineTextAsync("var x = 3;", ControlledHangMitigatingCancellationToken);
-        }
+        // Assert
+        await TestServices.Editor.WaitForCurrentLineTextAsync("var x = 3;", ControlledHangMitigatingCancellationToken);
     }
 }

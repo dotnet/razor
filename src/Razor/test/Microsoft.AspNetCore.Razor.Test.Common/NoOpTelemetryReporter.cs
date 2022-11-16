@@ -8,17 +8,16 @@ using System.Text;
 using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
-namespace Microsoft.CodeAnalysis.Razor.Test.Common
-{
-    public class NoOpTelemetryReporter : ITelemetryReporter
-    {
-        public static readonly NoOpTelemetryReporter Instance = new NoOpTelemetryReporter();
-        public void ReportEvent(string name, TelemetrySeverity severity)
-        {
-        }
+namespace Microsoft.CodeAnalysis.Razor.Test.Common;
 
-        public void ReportEvent<T>(string name, TelemetrySeverity severity, ImmutableDictionary<string, T> values)
-        {
-        }
+public class NoOpTelemetryReporter : ITelemetryReporter
+{
+    public static readonly NoOpTelemetryReporter Instance = new NoOpTelemetryReporter();
+    public void ReportEvent(string name, TelemetrySeverity severity)
+    {
+    }
+
+    public void ReportEvent<T>(string name, TelemetrySeverity severity, ImmutableDictionary<string, T> values)
+    {
     }
 }

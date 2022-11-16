@@ -4,15 +4,14 @@
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.VisualStudio.Razor.IntegrationTests
+namespace Microsoft.VisualStudio.Razor.IntegrationTests;
+
+public class ProjectTests : AbstractRazorEditorTest
 {
-    public class ProjectTests : AbstractRazorEditorTest
+    [IdeFact]
+    public async Task CreateFromTemplateAsync()
     {
-        [IdeFact]
-        public async Task CreateFromTemplateAsync()
-        {
-            await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.CloseSolutionAsync(ControlledHangMitigatingCancellationToken);
-        }
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.CloseSolutionAsync(ControlledHangMitigatingCancellationToken);
     }
 }

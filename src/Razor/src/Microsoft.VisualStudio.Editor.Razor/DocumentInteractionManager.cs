@@ -4,10 +4,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+internal abstract class DocumentInteractionManager
 {
-    internal abstract class DocumentInteractionManager
-    {
-        public abstract Task OpenDocumentAsync(string filePath, CancellationToken cancellationToken);
-    }
+    public abstract Task OpenDocumentAsync(string filePath, CancellationToken cancellationToken);
 }
