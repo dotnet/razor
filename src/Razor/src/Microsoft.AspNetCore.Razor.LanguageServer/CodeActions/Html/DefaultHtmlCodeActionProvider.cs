@@ -12,61 +12,60 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
+internal class DefaultHtmlCodeActionProvider : HtmlCodeActionProvider
 {
-    internal class DefaultHtmlCodeActionProvider : HtmlCodeActionProvider
+    private readonly RazorDocumentMappingService _documentMappingService;
+
+    public DefaultHtmlCodeActionProvider(RazorDocumentMappingService documentMappingService)
     {
-        private readonly RazorDocumentMappingService _documentMappingService;
+        _documentMappingService = documentMappingService;
+    }
 
-        public DefaultHtmlCodeActionProvider(RazorDocumentMappingService documentMappingService)
+    public override async Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
+        RazorCodeActionContext context,
+        IEnumerable<RazorVSInternalCodeAction> codeActions,
+        CancellationToken cancellationToken)
+    {
+        var results = new List<RazorVSInternalCodeAction>();
+
+        foreach (var codeAction in codeActions)
         {
-            _documentMappingService = documentMappingService;
+            if (codeAction.Edit is not null)
+            {
+                await RemapeAndFixHtmlCodeActionEditAsync(_documentMappingService, context.CodeDocument, codeAction, cancellationToken).ConfigureAwait(false);
+
+                results.Add(codeAction);
+            }
+            else
+            {
+                results.Add(codeAction.WrapResolvableCodeAction(context, language: LanguageServerConstants.CodeActions.Languages.Html));
+            }
         }
 
-        public override async Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
-            RazorCodeActionContext context,
-            IEnumerable<RazorVSInternalCodeAction> codeActions,
-            CancellationToken cancellationToken)
+        return results;
+    }
+
+    public static async Task RemapeAndFixHtmlCodeActionEditAsync(RazorDocumentMappingService documentMappingService, RazorCodeDocument codeDocument, CodeAction codeAction, CancellationToken cancellationToken)
+    {
+        Assumes.NotNull(codeAction.Edit);
+
+        codeAction.Edit = await documentMappingService.RemapWorkspaceEditAsync(codeAction.Edit, cancellationToken).ConfigureAwait(false);
+
+        if (codeAction.Edit.TryGetDocumentChanges(out var documentEdits) == true)
         {
-            var results = new List<RazorVSInternalCodeAction>();
+            var htmlSourceText = codeDocument.GetHtmlSourceText();
 
-            foreach (var codeAction in codeActions)
+            foreach (var edit in documentEdits)
             {
-                if (codeAction.Edit is not null)
-                {
-                    await RemapeAndFixHtmlCodeActionEditAsync(_documentMappingService, context.CodeDocument, codeAction, cancellationToken).ConfigureAwait(false);
-
-                    results.Add(codeAction);
-                }
-                else
-                {
-                    results.Add(codeAction.WrapResolvableCodeAction(context, language: LanguageServerConstants.CodeActions.Languages.Html));
-                }
+                edit.Edits = HtmlFormatter.FixHtmlTestEdits(htmlSourceText, edit.Edits);
             }
 
-            return results;
-        }
-
-        public static async Task RemapeAndFixHtmlCodeActionEditAsync(RazorDocumentMappingService documentMappingService, RazorCodeDocument codeDocument, CodeAction codeAction, CancellationToken cancellationToken)
-        {
-            Assumes.NotNull(codeAction.Edit);
-
-            codeAction.Edit = await documentMappingService.RemapWorkspaceEditAsync(codeAction.Edit, cancellationToken).ConfigureAwait(false);
-
-            if (codeAction.Edit.TryGetDocumentChanges(out var documentEdits) == true)
+            codeAction.Edit = new WorkspaceEdit
             {
-                var htmlSourceText = codeDocument.GetHtmlSourceText();
-
-                foreach (var edit in documentEdits)
-                {
-                    edit.Edits = HtmlFormatter.FixHtmlTestEdits(htmlSourceText, edit.Edits);
-                }
-
-                codeAction.Edit = new WorkspaceEdit
-                {
-                    DocumentChanges = documentEdits
-                };
-            }
+                DocumentChanges = documentEdits
+            };
         }
     }
 }

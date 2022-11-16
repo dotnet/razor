@@ -5,7 +5,6 @@ using System;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 
-
 internal sealed class CodeActionResolveParams
 {
     public object? Data { get; set; }

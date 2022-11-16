@@ -4,37 +4,35 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
+internal abstract class BaseDelegatedCodeActionResolver : BaseCodeActionResolver
 {
-    internal abstract class BaseDelegatedCodeActionResolver : BaseCodeActionResolver
+    protected readonly ClientNotifierServiceBase LanguageServer;
+
+    public BaseDelegatedCodeActionResolver(ClientNotifierServiceBase languageServer)
     {
-        protected readonly ClientNotifierServiceBase LanguageServer;
-
-        public BaseDelegatedCodeActionResolver(ClientNotifierServiceBase languageServer)
+        if (languageServer is null)
         {
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
-            LanguageServer = languageServer;
+            throw new ArgumentNullException(nameof(languageServer));
         }
 
-        protected async Task<CodeAction?> ResolveCodeActionWithServerAsync(Uri razorFileUri, int hostDocumentVersion, RazorLanguageKind languageKind, CodeAction codeAction, CancellationToken cancellationToken)
-        {
-            var resolveCodeActionParams = new RazorResolveCodeActionParams(razorFileUri, hostDocumentVersion, languageKind, codeAction);
+        LanguageServer = languageServer;
+    }
 
-            var resolvedCodeAction = await LanguageServer.SendRequestAsync<RazorResolveCodeActionParams, CodeAction?>(
-                RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint,
-                resolveCodeActionParams,
-                cancellationToken).ConfigureAwait(false);
+    protected async Task<CodeAction?> ResolveCodeActionWithServerAsync(Uri razorFileUri, int hostDocumentVersion, RazorLanguageKind languageKind, CodeAction codeAction, CancellationToken cancellationToken)
+    {
+        var resolveCodeActionParams = new RazorResolveCodeActionParams(razorFileUri, hostDocumentVersion, languageKind, codeAction);
 
-            return resolvedCodeAction;
-        }
+        var resolvedCodeAction = await LanguageServer.SendRequestAsync<RazorResolveCodeActionParams, CodeAction?>(
+            RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint,
+            resolveCodeActionParams,
+            cancellationToken).ConfigureAwait(false);
+
+        return resolvedCodeAction;
     }
 }
