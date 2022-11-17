@@ -64,7 +64,7 @@ internal static class AddUsingsCodeActionProviderHelper
             // the advantage of us not caring about chagnes to C# syntax, we just grab whatever Roslyn wanted to put in, so
             // we should still work in C# v26
             .Select(u => u.ToString().Substring("using ".Length));
-        
+
         return usings;
     }
 
