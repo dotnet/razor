@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
 [Shared]
 [Export(typeof(IMSBuildEventSink))]
-public class PrecompiledRazorPageSuppressor : IMSBuildEventSink
+internal class PrecompiledRazorPageSuppressor : IMSBuildEventSink
 {
     private readonly OmniSharpWorkspace _workspace;
 

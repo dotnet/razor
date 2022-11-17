@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterce
 /// <summary>
 /// Receives notification messages from the server and invokes any applicable message interception layers.
 /// </summary>
-public class InterceptionMiddleLayer : ILanguageClientMiddleLayer
+internal class InterceptionMiddleLayer : ILanguageClientMiddleLayer
 {
     private readonly InterceptorManager _interceptorManager;
     private readonly string _contentType;
