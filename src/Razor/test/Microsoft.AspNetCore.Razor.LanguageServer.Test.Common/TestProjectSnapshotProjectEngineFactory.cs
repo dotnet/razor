@@ -8,27 +8,26 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.Test.Common
+namespace Microsoft.AspNetCore.Razor.Test.Common;
+
+internal class TestProjectSnapshotProjectEngineFactory : ProjectSnapshotProjectEngineFactory
 {
-    internal class TestProjectSnapshotProjectEngineFactory : ProjectSnapshotProjectEngineFactory
+    public Action<RazorProjectEngineBuilder> Configure { get; set; }
+
+    public RazorProjectEngine Engine { get; set; }
+
+    public override RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
     {
-        public Action<RazorProjectEngineBuilder> Configure { get; set; }
+        return Engine ?? RazorProjectEngine.Create(configuration, fileSystem, configure ?? Configure);
+    }
 
-        public RazorProjectEngine Engine { get; set; }
+    public override IProjectEngineFactory FindFactory(ProjectSnapshot project)
+    {
+        throw new NotImplementedException();
+    }
 
-        public override RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
-        {
-            return Engine ?? RazorProjectEngine.Create(configuration, fileSystem, configure ?? Configure);
-        }
-
-        public override IProjectEngineFactory FindFactory(ProjectSnapshot project)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IProjectEngineFactory FindSerializableFactory(ProjectSnapshot project)
-        {
-            throw new NotImplementedException();
-        }
+    public override IProjectEngineFactory FindSerializableFactory(ProjectSnapshot project)
+    {
+        throw new NotImplementedException();
     }
 }

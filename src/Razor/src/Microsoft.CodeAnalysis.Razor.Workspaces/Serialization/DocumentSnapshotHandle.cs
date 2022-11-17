@@ -3,39 +3,38 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Serialization
+namespace Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
+
+internal sealed class DocumentSnapshotHandle
 {
-    internal sealed class DocumentSnapshotHandle
+    public DocumentSnapshotHandle(
+        string filePath,
+        string targetPath,
+        string fileKind)
     {
-        public DocumentSnapshotHandle(
-            string filePath,
-            string targetPath,
-            string fileKind)
+        if (filePath is null)
         {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
-            if (targetPath is null)
-            {
-                throw new ArgumentNullException(nameof(targetPath));
-            }
-
-            if (fileKind is null)
-            {
-                throw new ArgumentNullException(nameof(fileKind));
-            }
-
-            FilePath = filePath;
-            TargetPath = targetPath;
-            FileKind = fileKind;
+            throw new ArgumentNullException(nameof(filePath));
         }
 
-        public string FilePath { get; }
+        if (targetPath is null)
+        {
+            throw new ArgumentNullException(nameof(targetPath));
+        }
 
-        public string TargetPath { get; }
+        if (fileKind is null)
+        {
+            throw new ArgumentNullException(nameof(fileKind));
+        }
 
-        public string FileKind { get; }
+        FilePath = filePath;
+        TargetPath = targetPath;
+        FileKind = fileKind;
     }
+
+    public string FilePath { get; }
+
+    public string TargetPath { get; }
+
+    public string FileKind { get; }
 }

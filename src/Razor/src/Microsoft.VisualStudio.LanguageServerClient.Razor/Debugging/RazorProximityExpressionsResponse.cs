@@ -3,10 +3,9 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
+
+internal class RazorProximityExpressionsResponse
 {
-    internal class RazorProximityExpressionsResponse
-    {
-        public required IReadOnlyList<string> Expressions { get; init; }
-    }
+    public required IReadOnlyList<string> Expressions { get; init; }
 }

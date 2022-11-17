@@ -9,33 +9,32 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Language.Intellisense;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
+namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor;
+
+[Shared]
+[ExportLanguageServiceFactory(typeof(VisualStudioCompletionBroker), RazorLanguage.Name, ServiceLayer.Default)]
+internal class DefaultVisualStudioCompletionBrokerFactory : ILanguageServiceFactory
 {
-    [Shared]
-    [ExportLanguageServiceFactory(typeof(VisualStudioCompletionBroker), RazorLanguage.Name, ServiceLayer.Default)]
-    internal class DefaultVisualStudioCompletionBrokerFactory : ILanguageServiceFactory
+    private readonly ICompletionBroker _completionBroker;
+
+    [ImportingConstructor]
+    public DefaultVisualStudioCompletionBrokerFactory(ICompletionBroker completionBroker)
     {
-        private readonly ICompletionBroker _completionBroker;
-
-        [ImportingConstructor]
-        public DefaultVisualStudioCompletionBrokerFactory(ICompletionBroker completionBroker)
+        if (completionBroker is null)
         {
-            if (completionBroker is null)
-            {
-                throw new ArgumentNullException(nameof(completionBroker));
-            }
-
-            _completionBroker = completionBroker;
+            throw new ArgumentNullException(nameof(completionBroker));
         }
 
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            if (languageServices is null)
-            {
-                throw new ArgumentNullException(nameof(languageServices));
-            }
+        _completionBroker = completionBroker;
+    }
 
-            return new DefaultVisualStudioCompletionBroker(_completionBroker);
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+    {
+        if (languageServices is null)
+        {
+            throw new ArgumentNullException(nameof(languageServices));
         }
+
+        return new DefaultVisualStudioCompletionBroker(_completionBroker);
     }
 }

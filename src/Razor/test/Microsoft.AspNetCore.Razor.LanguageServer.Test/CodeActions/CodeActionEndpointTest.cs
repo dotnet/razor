@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -21,8 +22,8 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
     public class CodeActionEndpointTest : LanguageServerTestBase
     {
         private readonly RazorDocumentMappingService _documentMappingService;
@@ -36,7 +37,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 s => s.TryMapToProjectedDocumentRange(
                     It.IsAny<RazorCodeDocument>(),
                     It.IsAny<Range>(),
-                    out It.Ref<Range>.IsAny) == false,
+                    out It.Ref<Range>.IsAny) == false &&
+
+                    s.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp,
+
                 MockBehavior.Strict);
 
             _languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(
@@ -55,6 +59,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _documentMappingService,
                 Array.Empty<RazorCodeActionProvider>(),
                 Array.Empty<CSharpCodeActionProvider>(),
+                Array.Empty<HtmlCodeActionProvider>(),
                 _languageServer,
                 _languageServerFeatureOptions)
             {
@@ -88,6 +93,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _documentMappingService,
                 Array.Empty<RazorCodeActionProvider>(),
                 Array.Empty<CSharpCodeActionProvider>(),
+                Array.Empty<HtmlCodeActionProvider>(),
                 _languageServer,
                 _languageServerFeatureOptions)
             {
@@ -119,6 +125,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 _documentMappingService,
                 Array.Empty<RazorCodeActionProvider>(),
                 Array.Empty<CSharpCodeActionProvider>(),
+                Array.Empty<HtmlCodeActionProvider>(),
                 _languageServer,
                 _languageServerFeatureOptions)
             {
@@ -152,6 +159,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
+                Array.Empty<HtmlCodeActionProvider>(),
                 _languageServer,
                 _languageServerFeatureOptions)
             {
@@ -188,6 +196,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 new CSharpCodeActionProvider[] {
                     new MockCSharpCodeActionProvider()
                 },
+                Array.Empty<HtmlCodeActionProvider>(),
                 languageServer,
                 _languageServerFeatureOptions)
             {
@@ -222,6 +231,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockMultipleRazorCodeActionProvider(),
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
+                Array.Empty<HtmlCodeActionProvider>(),
                 _languageServer,
                 _languageServerFeatureOptions)
             {
@@ -263,6 +273,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockCSharpCodeActionProvider(),
                     new MockCSharpCodeActionProvider()
                 },
+                Array.Empty<HtmlCodeActionProvider>(),
                 languageServer,
                 _languageServerFeatureOptions)
             {
@@ -304,6 +315,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockCSharpCodeActionProvider(),
                     new MockCSharpCodeActionProvider()
                 },
+                Array.Empty<HtmlCodeActionProvider>(),
                 languageServer,
                 _languageServerFeatureOptions)
             {
@@ -338,6 +350,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockNullRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
+                Array.Empty<HtmlCodeActionProvider>(),
                 _languageServer,
                 _languageServerFeatureOptions)
             {
@@ -380,6 +393,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockCSharpCodeActionProvider(),
                     new MockCSharpCodeActionProvider()
                 },
+                Array.Empty<HtmlCodeActionProvider>(),
                 languageServer,
                 _languageServerFeatureOptions)
             {
@@ -416,6 +430,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockNullRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
+                Array.Empty<HtmlCodeActionProvider>(),
                 _languageServer,
                 _languageServerFeatureOptions)
             {
@@ -462,6 +477,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockNullRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
+                Array.Empty<HtmlCodeActionProvider>(),
                 _languageServer,
                 _languageServerFeatureOptions)
             {
@@ -505,6 +521,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
+                Array.Empty<HtmlCodeActionProvider>(),
                 _languageServer,
                 _languageServerFeatureOptions)
             {
@@ -544,6 +561,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                     new MockRazorCodeActionProvider()
                 },
                 Array.Empty<CSharpCodeActionProvider>(),
+                Array.Empty<HtmlCodeActionProvider>(),
                 _languageServer,
                 _languageServerFeatureOptions)
             {
@@ -586,6 +604,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 new CSharpCodeActionProvider[] {
                     new MockCSharpCodeActionProvider()
                 },
+                Array.Empty<HtmlCodeActionProvider>(),
                 _languageServer,
                 _languageServerFeatureOptions)
             {
@@ -603,7 +622,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot);
 
             // Act
-            var results = await codeActionEndpoint.GetCSharpCodeActionsFromLanguageServerAsync(documentContext, context, default);
+            var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, default);
 
             // Assert
             Assert.Empty(results);
@@ -626,6 +645,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
                 new CSharpCodeActionProvider[] {
                     new MockCSharpCodeActionProvider()
                 },
+                Array.Empty<HtmlCodeActionProvider>(),
                 languageServer,
                 _languageServerFeatureOptions)
             {
@@ -646,7 +666,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var context = await codeActionEndpoint.GenerateRazorCodeActionContextAsync(request, documentContext.Snapshot);
 
             // Act
-            var results = await codeActionEndpoint.GetCSharpCodeActionsFromLanguageServerAsync(documentContext, context, default);
+            var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, default);
 
             // Assert
             Assert.Single(results);
@@ -667,7 +687,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         {
             projectedRange ??= new Range { Start = new Position(5, 2), End = new Position(5, 2) };
             var documentMappingService = Mock.Of<DefaultRazorDocumentMappingService>(
-                d => d.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out projectedRange) == true
+                d => d.TryMapToProjectedDocumentRange(It.IsAny<RazorCodeDocument>(), It.IsAny<Range>(), out projectedRange) == true &&
+                     d.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp
             , MockBehavior.Strict);
             return documentMappingService;
         }
@@ -806,4 +827,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             }
         }
     }
-}

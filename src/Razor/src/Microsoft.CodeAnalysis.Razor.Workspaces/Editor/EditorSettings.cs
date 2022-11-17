@@ -4,50 +4,49 @@
 using System;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.CodeAnalysis.Razor.Editor
+namespace Microsoft.CodeAnalysis.Razor.Editor;
+
+public sealed class EditorSettings : IEquatable<EditorSettings>
 {
-    public sealed class EditorSettings : IEquatable<EditorSettings>
+    public static readonly EditorSettings Default = new(indentWithTabs: false, indentSize: 4);
+
+    public EditorSettings(bool indentWithTabs, int indentSize)
     {
-        public static readonly EditorSettings Default = new(indentWithTabs: false, indentSize: 4);
-
-        public EditorSettings(bool indentWithTabs, int indentSize)
+        if (indentSize < 0)
         {
-            if (indentSize < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(indentSize));
-            }
-
-            IndentWithTabs = indentWithTabs;
-            IndentSize = indentSize;
+            throw new ArgumentOutOfRangeException(nameof(indentSize));
         }
 
-        public bool IndentWithTabs { get; }
+        IndentWithTabs = indentWithTabs;
+        IndentSize = indentSize;
+    }
 
-        public int IndentSize { get; }
+    public bool IndentWithTabs { get; }
 
-        public bool Equals(EditorSettings? other)
+    public int IndentSize { get; }
+
+    public bool Equals(EditorSettings? other)
+    {
+        if (other is null)
         {
-            if (other is null)
-            {
-                return false;
-            }
-
-            return IndentWithTabs == other.IndentWithTabs &&
-                IndentSize == other.IndentSize;
+            return false;
         }
 
-        public override bool Equals(object other)
-        {
-            return Equals(other as EditorSettings);
-        }
+        return IndentWithTabs == other.IndentWithTabs &&
+            IndentSize == other.IndentSize;
+    }
 
-        public override int GetHashCode()
-        {
-            var combiner = HashCodeCombiner.Start();
-            combiner.Add(IndentWithTabs);
-            combiner.Add(IndentSize);
+    public override bool Equals(object other)
+    {
+        return Equals(other as EditorSettings);
+    }
 
-            return combiner.CombinedHash;
-        }
+    public override int GetHashCode()
+    {
+        var combiner = HashCodeCombiner.Start();
+        combiner.Add(IndentWithTabs);
+        combiner.Add(IndentSize);
+
+        return combiner.CombinedHash;
     }
 }

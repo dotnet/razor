@@ -6,20 +6,19 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
+namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor;
+
+[Export(typeof(ProjectSnapshotManagerDispatcher))]
+internal class VisualStudioProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcherBase
 {
-    [Export(typeof(ProjectSnapshotManagerDispatcher))]
-    internal class VisualStudioProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcherBase
+    private const string ThreadName = "Razor." + nameof(VisualStudioProjectSnapshotManagerDispatcher);
+    private readonly ErrorReporter _errorReporter;
+
+    [ImportingConstructor]
+    public VisualStudioProjectSnapshotManagerDispatcher(ErrorReporter errorReporter) : base(ThreadName)
     {
-        private const string ThreadName = "Razor." + nameof(VisualStudioProjectSnapshotManagerDispatcher);
-        private readonly ErrorReporter _errorReporter;
-
-        [ImportingConstructor]
-        public VisualStudioProjectSnapshotManagerDispatcher(ErrorReporter errorReporter) : base(ThreadName)
-        {
-            _errorReporter = errorReporter;
-        }
-
-        public override void LogException(Exception ex) => _errorReporter.ReportError(ex);
+        _errorReporter = errorReporter;
     }
+
+    public override void LogException(Exception ex) => _errorReporter.ReportError(ex);
 }

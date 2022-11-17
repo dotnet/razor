@@ -5,194 +5,193 @@ using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+
+internal static class SourceTextExtensions
 {
-    internal static class SourceTextExtensions
+    /// <summary>
+    /// Gets the minimal range of text that changed between the two versions.
+    /// </summary>
+    public static TextChangeRange GetEncompassingTextChangeRange(this SourceText newText, SourceText oldText)
     {
-        /// <summary>
-        /// Gets the minimal range of text that changed between the two versions.
-        /// </summary>
-        public static TextChangeRange GetEncompassingTextChangeRange(this SourceText newText, SourceText oldText)
+        if (newText is null)
         {
-            if (newText is null)
-            {
-                throw new ArgumentNullException(nameof(newText));
-            }
-
-            if (oldText is null)
-            {
-                throw new ArgumentNullException(nameof(oldText));
-            }
-
-            var ranges = newText.GetChangeRanges(oldText);
-            if (ranges.Count == 0)
-            {
-                return default;
-            }
-
-            // simple case.
-            if (ranges.Count == 1)
-            {
-                return ranges[0];
-            }
-
-            return TextChangeRange.Collapse(ranges);
+            throw new ArgumentNullException(nameof(newText));
         }
 
-        public static void GetLineAndOffset(this SourceText source, int position, out int lineNumber, out int offset)
+        if (oldText is null)
         {
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            var line = source.Lines.GetLineFromPosition(position);
-
-            lineNumber = line.LineNumber;
-            offset = position - line.Start;
+            throw new ArgumentNullException(nameof(oldText));
         }
 
-        public static void GetLinesAndOffsets(
-            this SourceText source,
-            TextSpan textSpan,
-            out int startLineNumber,
-            out int startOffset,
-            out int endLineNumber,
-            out int endOffset)
+        var ranges = newText.GetChangeRanges(oldText);
+        if (ranges.Count == 0)
         {
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            source.GetLineAndOffset(textSpan.Start, out startLineNumber, out startOffset);
-            source.GetLineAndOffset(textSpan.End, out endLineNumber, out endOffset);
+            return default;
         }
 
-        public static void GetLinesAndOffsets(
-            this SourceText source,
-            SourceSpan sourceSpan,
-            out int startLineNumber,
-            out int startOffset,
-            out int endLineNumber,
-            out int endOffset)
+        // simple case.
+        if (ranges.Count == 1)
         {
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            source.GetLineAndOffset(sourceSpan.AbsoluteIndex, out startLineNumber, out startOffset);
-            source.GetLineAndOffset(sourceSpan.AbsoluteIndex + sourceSpan.Length, out endLineNumber, out endOffset);
+            return ranges[0];
         }
 
-        public static string GetSubTextString(this SourceText source, TextSpan span)
-        {
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
+        return TextChangeRange.Collapse(ranges);
+    }
 
-            var charBuffer = new char[span.Length];
-            source.CopyTo(span.Start, charBuffer, 0, span.Length);
-            return new string(charBuffer);
+    public static void GetLineAndOffset(this SourceText source, int position, out int lineNumber, out int offset)
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
         }
 
-        public static bool NonWhitespaceContentEquals(this SourceText source, SourceText other)
+        var line = source.Lines.GetLineFromPosition(position);
+
+        lineNumber = line.LineNumber;
+        offset = position - line.Start;
+    }
+
+    public static void GetLinesAndOffsets(
+        this SourceText source,
+        TextSpan textSpan,
+        out int startLineNumber,
+        out int startOffset,
+        out int endLineNumber,
+        out int endOffset)
+    {
+        if (source is null)
         {
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
+            throw new ArgumentNullException(nameof(source));
+        }
 
-            if (other is null)
-            {
-                throw new ArgumentNullException(nameof(other));
-            }
+        source.GetLineAndOffset(textSpan.Start, out startLineNumber, out startOffset);
+        source.GetLineAndOffset(textSpan.End, out endLineNumber, out endOffset);
+    }
 
-            var i = 0;
-            var j = 0;
-            while (i < source.Length && j < other.Length)
-            {
-                if (char.IsWhiteSpace(source[i]))
-                {
-                    i++;
-                    continue;
-                }
-                else if (char.IsWhiteSpace(other[j]))
-                {
-                    j++;
-                    continue;
-                }
-                else if (source[i] != other[j])
-                {
-                    return false;
-                }
+    public static void GetLinesAndOffsets(
+        this SourceText source,
+        SourceSpan sourceSpan,
+        out int startLineNumber,
+        out int startOffset,
+        out int endLineNumber,
+        out int endOffset)
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
 
+        source.GetLineAndOffset(sourceSpan.AbsoluteIndex, out startLineNumber, out startOffset);
+        source.GetLineAndOffset(sourceSpan.AbsoluteIndex + sourceSpan.Length, out endLineNumber, out endOffset);
+    }
+
+    public static string GetSubTextString(this SourceText source, TextSpan span)
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        var charBuffer = new char[span.Length];
+        source.CopyTo(span.Start, charBuffer, 0, span.Length);
+        return new string(charBuffer);
+    }
+
+    public static bool NonWhitespaceContentEquals(this SourceText source, SourceText other)
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (other is null)
+        {
+            throw new ArgumentNullException(nameof(other));
+        }
+
+        var i = 0;
+        var j = 0;
+        while (i < source.Length && j < other.Length)
+        {
+            if (char.IsWhiteSpace(source[i]))
+            {
                 i++;
+                continue;
+            }
+            else if (char.IsWhiteSpace(other[j]))
+            {
                 j++;
+                continue;
+            }
+            else if (source[i] != other[j])
+            {
+                return false;
             }
 
-            while (i < source.Length && char.IsWhiteSpace(source[i])) i++;
-            while (j < other.Length && char.IsWhiteSpace(other[j])) j++;
-
-            return i == source.Length && j == other.Length;
+            i++;
+            j++;
         }
 
-        public static int? GetFirstNonWhitespaceOffset(this SourceText source, TextSpan? span, out int newLineCount)
+        while (i < source.Length && char.IsWhiteSpace(source[i])) i++;
+        while (j < other.Length && char.IsWhiteSpace(other[j])) j++;
+
+        return i == source.Length && j == other.Length;
+    }
+
+    public static int? GetFirstNonWhitespaceOffset(this SourceText source, TextSpan? span, out int newLineCount)
+    {
+        if (source is null)
         {
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            span ??= new TextSpan(0, source.Length);
-            newLineCount = 0;
-
-            for (var i = span.Value.Start; i < span.Value.End; i++)
-            {
-                if (!char.IsWhiteSpace(source[i]))
-                {
-                    return i - span.Value.Start;
-                }
-                else if (source[i] == '\n')
-                {
-                    newLineCount++;
-                }
-            }
-
-            return null;
+            throw new ArgumentNullException(nameof(source));
         }
 
-        // Given the source text and the current span, we start at the ending span location and iterate towards the start
-        // until we've reached a non-whitespace character.
-        // For instance "  abcdef  " would have a last non-whitespace offset of 7 to correspond to the charcter 'f'.
-        public static int? GetLastNonWhitespaceOffset(this SourceText source, TextSpan? span, out int newLineCount)
+        span ??= new TextSpan(0, source.Length);
+        newLineCount = 0;
+
+        for (var i = span.Value.Start; i < span.Value.End; i++)
         {
-            if (source is null)
+            if (!char.IsWhiteSpace(source[i]))
             {
-                throw new ArgumentNullException(nameof(source));
+                return i - span.Value.Start;
             }
-
-            span ??= new TextSpan(0, source.Length);
-            newLineCount = 0;
-
-            // If the span is at the end of the document it's common for the "End" to represent 1 past the end of the source
-            var indexableSpanEnd = Math.Min(span.Value.End, source.Length - 1);
-
-            for (var i = indexableSpanEnd; i >= span.Value.Start; i--)
+            else if (source[i] == '\n')
             {
-                if (!char.IsWhiteSpace(source[i]))
-                {
-                    return i - span.Value.Start;
-                }
-                else if (source[i] == '\n')
-                {
-                    newLineCount++;
-                }
+                newLineCount++;
             }
-
-            return null;
         }
+
+        return null;
+    }
+
+    // Given the source text and the current span, we start at the ending span location and iterate towards the start
+    // until we've reached a non-whitespace character.
+    // For instance "  abcdef  " would have a last non-whitespace offset of 7 to correspond to the charcter 'f'.
+    public static int? GetLastNonWhitespaceOffset(this SourceText source, TextSpan? span, out int newLineCount)
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        span ??= new TextSpan(0, source.Length);
+        newLineCount = 0;
+
+        // If the span is at the end of the document it's common for the "End" to represent 1 past the end of the source
+        var indexableSpanEnd = Math.Min(span.Value.End, source.Length - 1);
+
+        for (var i = indexableSpanEnd; i >= span.Value.Start; i--)
+        {
+            if (!char.IsWhiteSpace(source[i]))
+            {
+                return i - span.Value.Start;
+            }
+            else if (source[i] == '\n')
+            {
+                newLineCount++;
+            }
+        }
+
+        return null;
     }
 }

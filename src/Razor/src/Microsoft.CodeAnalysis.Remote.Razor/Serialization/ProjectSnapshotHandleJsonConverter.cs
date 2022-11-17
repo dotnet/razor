@@ -7,90 +7,89 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Newtonsoft.Json;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization
+namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization;
+
+internal class ProjectSnapshotHandleJsonConverter : JsonConverter
 {
-    internal class ProjectSnapshotHandleJsonConverter : JsonConverter
+    public static readonly ProjectSnapshotHandleJsonConverter Instance = new();
+
+    public override bool CanConvert(Type objectType)
     {
-        public static readonly ProjectSnapshotHandleJsonConverter Instance = new();
+        return typeof(ProjectSnapshotHandle).IsAssignableFrom(objectType);
+    }
 
-        public override bool CanConvert(Type objectType)
+    public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+    {
+        if (reader.TokenType != JsonToken.StartObject)
         {
-            return typeof(ProjectSnapshotHandle).IsAssignableFrom(objectType);
+            return null;
         }
 
-        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+        var (_, _, _, _, filePath, configuration, rootNamespace) = reader.ReadProperties(static (propertyName, arg) =>
         {
-            if (reader.TokenType != JsonToken.StartObject)
+            var (reader, objectType, existingValue, serializer, filePath, configuration, rootNamespace) = (arg.reader, arg.objectType, arg.existingValue, arg.serializer, arg.filePath, arg.configuration, arg.rootNamespace);
+            switch (propertyName)
             {
-                return null;
+                case nameof(ProjectSnapshotHandle.FilePath):
+                    if (reader.Read())
+                    {
+                        filePath = (string)reader.Value!;
+                    }
+
+                    break;
+                case nameof(ProjectSnapshotHandle.Configuration):
+                    if (reader.Read())
+                    {
+                        configuration = RazorConfigurationJsonConverter.Instance.ReadJson(reader, objectType, existingValue, serializer) as RazorConfiguration;
+                    }
+
+                    break;
+                case nameof(ProjectSnapshotHandle.RootNamespace):
+                    if (reader.Read())
+                    {
+                        rootNamespace = (string)reader.Value!;
+                    }
+
+                    break;
             }
 
-            var (_, _, _, _, filePath, configuration, rootNamespace) = reader.ReadProperties(static (propertyName, arg) =>
-            {
-                var (reader, objectType, existingValue, serializer, filePath, configuration, rootNamespace) = (arg.reader, arg.objectType, arg.existingValue, arg.serializer, arg.filePath, arg.configuration, arg.rootNamespace);
-                switch (propertyName)
-                {
-                    case nameof(ProjectSnapshotHandle.FilePath):
-                        if (reader.Read())
-                        {
-                            filePath = (string)reader.Value!;
-                        }
+            return (reader, objectType, existingValue, serializer, filePath, configuration, rootNamespace);
+        }, (reader, objectType, existingValue, serializer, filePath: (string?)null, configuration: (RazorConfiguration?)null, rootNamespace: (string?)null));
 
-                        break;
-                    case nameof(ProjectSnapshotHandle.Configuration):
-                        if (reader.Read())
-                        {
-                            configuration = RazorConfigurationJsonConverter.Instance.ReadJson(reader, objectType, existingValue, serializer) as RazorConfiguration;
-                        }
+        return new ProjectSnapshotHandle(filePath!, configuration, rootNamespace);
+    }
 
-                        break;
-                    case nameof(ProjectSnapshotHandle.RootNamespace):
-                        if (reader.Read())
-                        {
-                            rootNamespace = (string)reader.Value!;
-                        }
+    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+    {
+        var handle = (ProjectSnapshotHandle)value!;
 
-                        break;
-                }
+        writer.WriteStartObject();
 
-                return (reader, objectType, existingValue, serializer, filePath, configuration, rootNamespace);
-            }, (reader, objectType, existingValue, serializer, filePath: (string?)null, configuration: (RazorConfiguration?)null, rootNamespace: (string?)null));
+        writer.WritePropertyName(nameof(ProjectSnapshotHandle.FilePath));
+        writer.WriteValue(handle.FilePath);
 
-            return new ProjectSnapshotHandle(filePath!, configuration, rootNamespace);
+        if (handle.Configuration is null)
+        {
+            writer.WritePropertyName(nameof(ProjectSnapshotHandle.Configuration));
+            writer.WriteNull();
+        }
+        else
+        {
+            writer.WritePropertyName(nameof(ProjectSnapshotHandle.Configuration));
+            serializer.Serialize(writer, handle.Configuration);
         }
 
-        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        if (handle.RootNamespace is null)
         {
-            var handle = (ProjectSnapshotHandle)value!;
-
-            writer.WriteStartObject();
-
-            writer.WritePropertyName(nameof(ProjectSnapshotHandle.FilePath));
-            writer.WriteValue(handle.FilePath);
-
-            if (handle.Configuration is null)
-            {
-                writer.WritePropertyName(nameof(ProjectSnapshotHandle.Configuration));
-                writer.WriteNull();
-            }
-            else
-            {
-                writer.WritePropertyName(nameof(ProjectSnapshotHandle.Configuration));
-                serializer.Serialize(writer, handle.Configuration);
-            }
-
-            if (handle.RootNamespace is null)
-            {
-                writer.WritePropertyName(nameof(ProjectSnapshotHandle.RootNamespace));
-                writer.WriteNull();
-            }
-            else
-            {
-                writer.WritePropertyName(nameof(ProjectSnapshotHandle.RootNamespace));
-                writer.WriteValue(handle.RootNamespace);
-            }
-
-            writer.WriteEndObject();
+            writer.WritePropertyName(nameof(ProjectSnapshotHandle.RootNamespace));
+            writer.WriteNull();
         }
+        else
+        {
+            writer.WritePropertyName(nameof(ProjectSnapshotHandle.RootNamespace));
+            writer.WriteValue(handle.RootNamespace);
+        }
+
+        writer.WriteEndObject();
     }
 }

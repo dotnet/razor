@@ -8,29 +8,28 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal class RazorConfigurationEndpoint : IDidChangeConfigurationEndpoint
 {
-    internal class RazorConfigurationEndpoint : IDidChangeConfigurationEndpoint
+    private readonly RazorLSPOptionsMonitor _optionsMonitor;
+
+    public RazorConfigurationEndpoint(RazorLSPOptionsMonitor optionsMonitor)
     {
-        private readonly RazorLSPOptionsMonitor _optionsMonitor;
-
-        public RazorConfigurationEndpoint(RazorLSPOptionsMonitor optionsMonitor)
+        if (optionsMonitor is null)
         {
-            if (optionsMonitor is null)
-            {
-                throw new ArgumentNullException(nameof(optionsMonitor));
-            }
-
-            _optionsMonitor = optionsMonitor;
+            throw new ArgumentNullException(nameof(optionsMonitor));
         }
 
-        public bool MutatesSolutionState => true;
+        _optionsMonitor = optionsMonitor;
+    }
 
-        public async Task HandleNotificationAsync(DidChangeConfigurationParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
-        {
-            requestContext.Logger.LogInformation("Settings changed. Updating the server.");
+    public bool MutatesSolutionState => true;
 
-            await _optionsMonitor.UpdateAsync(cancellationToken);
-        }
+    public async Task HandleNotificationAsync(DidChangeConfigurationParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+    {
+        requestContext.Logger.LogInformation("Settings changed. Updating the server.");
+
+        await _optionsMonitor.UpdateAsync(cancellationToken);
     }
 }

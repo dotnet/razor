@@ -6,49 +6,48 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal class ProjectFileSynchronizer : IProjectFileChangeListener
 {
-    internal class ProjectFileSynchronizer : IProjectFileChangeListener
+    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly RazorProjectService _projectService;
+
+    public ProjectFileSynchronizer(
+        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        RazorProjectService projectService)
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private readonly RazorProjectService _projectService;
-
-        public ProjectFileSynchronizer(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            RazorProjectService projectService)
+        if (projectSnapshotManagerDispatcher is null)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (projectService is null)
-            {
-                throw new ArgumentNullException(nameof(projectService));
-            }
-
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _projectService = projectService;
+            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
         }
 
-        public void ProjectFileChanged(string filePath, RazorFileChangeKind kind)
+        if (projectService is null)
         {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
+            throw new ArgumentNullException(nameof(projectService));
+        }
 
-            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _projectService = projectService;
+    }
 
-            switch (kind)
-            {
-                case RazorFileChangeKind.Added:
-                    _projectService.AddProject(filePath);
-                    break;
-                case RazorFileChangeKind.Removed:
-                    _projectService.RemoveProject(filePath);
-                    break;
-            }
+    public void ProjectFileChanged(string filePath, RazorFileChangeKind kind)
+    {
+        if (filePath is null)
+        {
+            throw new ArgumentNullException(nameof(filePath));
+        }
+
+        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+
+        switch (kind)
+        {
+            case RazorFileChangeKind.Added:
+                _projectService.AddProject(filePath);
+                break;
+            case RazorFileChangeKind.Removed:
+                _projectService.RemoveProject(filePath);
+                break;
         }
     }
 }

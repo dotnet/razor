@@ -5,17 +5,16 @@ using System;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions
+namespace Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+
+internal static class JoinableTaskContextExtensions
 {
-    internal static class JoinableTaskContextExtensions
+    public static void AssertUIThread(this JoinableTaskContext joinableTaskContext, [CallerMemberName] string? caller = null)
     {
-        public static void AssertUIThread(this JoinableTaskContext joinableTaskContext, [CallerMemberName] string? caller = null)
+        if (!joinableTaskContext.IsOnMainThread)
         {
-            if (!joinableTaskContext.IsOnMainThread)
-            {
-                caller = caller is null ? "The method" : $"'{caller}'";
-                throw new InvalidOperationException($"{caller} must be called on the UI thread.");
-            }
+            caller = caller is null ? "The method" : $"'{caller}'";
+            throw new InvalidOperationException($"{caller} must be called on the UI thread.");
         }
     }
 }

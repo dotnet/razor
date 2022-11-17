@@ -6,27 +6,26 @@
 using System;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed.Serialization
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed.Serialization;
+
+internal class OmniSharpProjectSnapshotHandleJsonConverter : JsonConverter
 {
-    internal class OmniSharpProjectSnapshotHandleJsonConverter : JsonConverter
+    public static readonly OmniSharpProjectSnapshotHandleJsonConverter Instance = new();
+
+    public override bool CanConvert(Type objectType)
     {
-        public static readonly OmniSharpProjectSnapshotHandleJsonConverter Instance = new();
+        return typeof(OmniSharpProjectSnapshot).IsAssignableFrom(objectType);
+    }
 
-        public override bool CanConvert(Type objectType)
-        {
-            return typeof(OmniSharpProjectSnapshot).IsAssignableFrom(objectType);
-        }
+    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+    {
+        throw new NotImplementedException();
+    }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            throw new NotImplementedException();
-        }
+    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    {
+        var snapshot = (OmniSharpProjectSnapshot)value;
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            var snapshot = (OmniSharpProjectSnapshot)value;
-
-            serializer.Serialize(writer, snapshot.InternalProjectSnapshot);
-        }
+        serializer.Serialize(writer, snapshot.InternalProjectSnapshot);
     }
 }

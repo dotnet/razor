@@ -7,6 +7,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
 [LanguageServerEndpoint(LanguageServerConstants.RazorTranslateDiagnosticsEndpoint)]
-internal interface IRazorDiagnosticsEndpoint : IRazorRequestHandler<RazorDiagnosticsParams, RazorDiagnosticsResponse>
+internal interface IRazorTranslateDiagnosticsEndpoint : IRazorRequestHandler<RazorDiagnosticsParams, RazorDiagnosticsResponse>
 {
 }

@@ -7,68 +7,67 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LiveShare.Razor.Serialization
+namespace Microsoft.VisualStudio.LiveShare.Razor.Serialization;
+
+internal class ProjectSnapshotHandleProxyJsonConverter : JsonConverter
 {
-    internal class ProjectSnapshotHandleProxyJsonConverter : JsonConverter
+    public static readonly ProjectSnapshotHandleProxyJsonConverter Instance = new();
+
+    public override bool CanConvert(Type objectType)
     {
-        public static readonly ProjectSnapshotHandleProxyJsonConverter Instance = new();
+        return typeof(ProjectSnapshotHandleProxy).IsAssignableFrom(objectType);
+    }
 
-        public override bool CanConvert(Type objectType)
+    public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+    {
+        if (reader.TokenType != JsonToken.StartObject)
         {
-            return typeof(ProjectSnapshotHandleProxy).IsAssignableFrom(objectType);
+            return null;
         }
 
-        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+        var obj = JObject.Load(reader);
+        var filePath = obj[nameof(ProjectSnapshotHandleProxy.FilePath)]!.ToObject<Uri>(serializer);
+        var rootNamespace = obj[nameof(ProjectSnapshotHandleProxy.RootNamespace)]!.ToObject<string>(serializer);
+        var projectWorkspaceState = obj[nameof(ProjectSnapshotHandleProxy.ProjectWorkspaceState)]!.ToObject<ProjectWorkspaceState>(serializer);
+        var configuration = obj[nameof(ProjectSnapshotHandleProxy.Configuration)]!.ToObject<RazorConfiguration>(serializer);
+
+        return new ProjectSnapshotHandleProxy(filePath!, configuration!, rootNamespace, projectWorkspaceState);
+    }
+
+    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+    {
+        var handle = (ProjectSnapshotHandleProxy)value!;
+
+        writer.WriteStartObject();
+
+        writer.WritePropertyName(nameof(ProjectSnapshotHandleProxy.FilePath));
+        writer.WriteValue(handle.FilePath);
+
+        if (handle.RootNamespace is null)
         {
-            if (reader.TokenType != JsonToken.StartObject)
-            {
-                return null;
-            }
-
-            var obj = JObject.Load(reader);
-            var filePath = obj[nameof(ProjectSnapshotHandleProxy.FilePath)]!.ToObject<Uri>(serializer);
-            var rootNamespace = obj[nameof(ProjectSnapshotHandleProxy.RootNamespace)]!.ToObject<string>(serializer);
-            var projectWorkspaceState = obj[nameof(ProjectSnapshotHandleProxy.ProjectWorkspaceState)]!.ToObject<ProjectWorkspaceState>(serializer);
-            var configuration = obj[nameof(ProjectSnapshotHandleProxy.Configuration)]!.ToObject<RazorConfiguration>(serializer);
-
-            return new ProjectSnapshotHandleProxy(filePath!, configuration!, rootNamespace, projectWorkspaceState);
+            writer.WritePropertyName(nameof(ProjectSnapshotHandleProxy.RootNamespace));
+            writer.WriteNull();
+        }
+        else
+        {
+            writer.WritePropertyName(nameof(ProjectSnapshotHandleProxy.RootNamespace));
+            writer.WriteValue(handle.RootNamespace);
         }
 
-        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        if (handle.ProjectWorkspaceState is null)
         {
-            var handle = (ProjectSnapshotHandleProxy)value!;
-
-            writer.WriteStartObject();
-
-            writer.WritePropertyName(nameof(ProjectSnapshotHandleProxy.FilePath));
-            writer.WriteValue(handle.FilePath);
-
-            if (handle.RootNamespace is null)
-            {
-                writer.WritePropertyName(nameof(ProjectSnapshotHandleProxy.RootNamespace));
-                writer.WriteNull();
-            }
-            else
-            {
-                writer.WritePropertyName(nameof(ProjectSnapshotHandleProxy.RootNamespace));
-                writer.WriteValue(handle.RootNamespace);
-            }
-
-            if (handle.ProjectWorkspaceState is null)
-            {
-                writer.WritePropertyName(nameof(ProjectSnapshotHandleProxy.ProjectWorkspaceState));
-                writer.WriteNull();
-            }
-            else
-            {
-                writer.WritePropertyName(nameof(ProjectSnapshotHandleProxy.ProjectWorkspaceState));
-                serializer.Serialize(writer, handle.ProjectWorkspaceState);
-            }
-
-            writer.WritePropertyName(nameof(ProjectSnapshotHandleProxy.Configuration));
-            serializer.Serialize(writer, handle.Configuration);
-
-            writer.WriteEndObject();
+            writer.WritePropertyName(nameof(ProjectSnapshotHandleProxy.ProjectWorkspaceState));
+            writer.WriteNull();
         }
+        else
+        {
+            writer.WritePropertyName(nameof(ProjectSnapshotHandleProxy.ProjectWorkspaceState));
+            serializer.Serialize(writer, handle.ProjectWorkspaceState);
+        }
+
+        writer.WritePropertyName(nameof(ProjectSnapshotHandleProxy.Configuration));
+        serializer.Serialize(writer, handle.Configuration);
+
+        writer.WriteEndObject();
     }
 }

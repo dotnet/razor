@@ -22,265 +22,264 @@ using ItemReference = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectS
 using NoneItem = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.NoneItem;
 using ResolvedCompilationReference = Microsoft.CodeAnalysis.Razor.ProjectSystem.ManagedProjectSystemSchema.ResolvedCompilationReference;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+
+// Somewhat similar to https://github.com/dotnet/project-system/blob/fa074d228dcff6dae9e48ce43dd4a3a5aa22e8f0/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/LanguageServices/LanguageServiceHost.cs
+//
+// This class is responsible for intializing the Razor ProjectSnapshotManager for cases where
+// MSBuild does not provides configuration support (SDK < 2.1).
+[AppliesTo("(DotNetCoreRazor | DotNetCoreWeb) & !DotNetCoreRazorConfiguration")]
+[Export(ExportContractNames.Scopes.UnconfiguredProject, typeof(IProjectDynamicLoadComponent))]
+internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
 {
-    // Somewhat similar to https://github.com/dotnet/project-system/blob/fa074d228dcff6dae9e48ce43dd4a3a5aa22e8f0/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/LanguageServices/LanguageServiceHost.cs
-    //
-    // This class is responsible for intializing the Razor ProjectSnapshotManager for cases where
-    // MSBuild does not provides configuration support (SDK < 2.1).
-    [AppliesTo("(DotNetCoreRazor | DotNetCoreWeb) & !DotNetCoreRazorConfiguration")]
-    [Export(ExportContractNames.Scopes.UnconfiguredProject, typeof(IProjectDynamicLoadComponent))]
-    internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
+    private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private IDisposable? _subscription;
+
+    [ImportingConstructor]
+    public FallbackWindowsRazorProjectHost(
+        IUnconfiguredProjectCommonServices commonServices,
+        [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
+        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+        LanguageServerFeatureOptions languageServerFeatureOptions)
+        : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
     {
-        private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
-        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-        private IDisposable? _subscription;
+        _languageServerFeatureOptions = languageServerFeatureOptions;
+    }
 
-        [ImportingConstructor]
-        public FallbackWindowsRazorProjectHost(
-            IUnconfiguredProjectCommonServices commonServices,
-            [Import(typeof(VisualStudioWorkspace))] Workspace workspace,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            LanguageServerFeatureOptions languageServerFeatureOptions)
-            : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore)
-        {
-            _languageServerFeatureOptions = languageServerFeatureOptions;
-        }
-
-        // Internal for testing
+    // Internal for testing
 #pragma warning disable CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
-        internal FallbackWindowsRazorProjectHost(
+    internal FallbackWindowsRazorProjectHost(
 #pragma warning restore CS8618 // Non-nullable variable must contain a non-null value when exiting constructor. Consider declaring it as nullable.
-            IUnconfiguredProjectCommonServices commonServices,
-            Workspace workspace,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            ProjectSnapshotManagerBase projectManager)
-            : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore, projectManager)
+        IUnconfiguredProjectCommonServices commonServices,
+        Workspace workspace,
+        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+        ProjectSnapshotManagerBase projectManager)
+        : base(commonServices, workspace, projectSnapshotManagerDispatcher, projectConfigurationFilePathStore, projectManager)
+    {
+    }
+
+    protected override async Task InitializeCoreAsync(CancellationToken cancellationToken)
+    {
+        await base.InitializeCoreAsync(cancellationToken).ConfigureAwait(false);
+
+        // Don't try to evaluate any properties here since the project is still loading and we require access
+        // to the UI thread to push our updates.
+        //
+        // Just subscribe and handle the notification later.
+        var receiver = new ActionBlock<IProjectVersionedValue<IProjectSubscriptionUpdate>>(OnProjectChangedAsync);
+        _subscription = CommonServices.ActiveConfiguredProjectSubscription.JointRuleSource.SourceBlock.LinkTo(
+            receiver,
+            initialDataAsNew: true,
+            suppressVersionOnlyUpdates: true,
+            ruleNames: new string[]
+            {
+                ResolvedCompilationReference.SchemaName,
+                ContentItem.SchemaName,
+                NoneItem.SchemaName,
+            },
+            linkOptions: new DataflowLinkOptions() { PropagateCompletion = true });
+    }
+
+    protected override async Task DisposeCoreAsync(bool initialized)
+    {
+        await base.DisposeCoreAsync(initialized).ConfigureAwait(false);
+
+        if (initialized)
         {
+            _subscription?.Dispose();
+        }
+    }
+
+    // Internal for testing
+    internal async Task OnProjectChangedAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update)
+    {
+        if (IsDisposing || IsDisposed)
+        {
+            return;
         }
 
-        protected override async Task InitializeCoreAsync(CancellationToken cancellationToken)
+        await CommonServices.TasksService.LoadedProjectAsync(async () => await ExecuteWithLockAsync(async () =>
         {
-            await base.InitializeCoreAsync(cancellationToken).ConfigureAwait(false);
-
-            // Don't try to evaluate any properties here since the project is still loading and we require access
-            // to the UI thread to push our updates.
-            //
-            // Just subscribe and handle the notification later.
-            var receiver = new ActionBlock<IProjectVersionedValue<IProjectSubscriptionUpdate>>(OnProjectChangedAsync);
-            _subscription = CommonServices.ActiveConfiguredProjectSubscription.JointRuleSource.SourceBlock.LinkTo(
-                receiver,
-                initialDataAsNew: true,
-                suppressVersionOnlyUpdates: true,
-                ruleNames: new string[]
+            string? mvcReferenceFullPath = null;
+            if (update.Value.CurrentState.ContainsKey(ResolvedCompilationReference.SchemaName))
+            {
+                var references = update.Value.CurrentState[ResolvedCompilationReference.SchemaName].Items;
+                foreach (var reference in references)
                 {
-                    ResolvedCompilationReference.SchemaName,
-                    ContentItem.SchemaName,
-                    NoneItem.SchemaName,
-                },
-                linkOptions: new DataflowLinkOptions() { PropagateCompletion = true });
-        }
-
-        protected override async Task DisposeCoreAsync(bool initialized)
-        {
-            await base.DisposeCoreAsync(initialized).ConfigureAwait(false);
-
-            if (initialized)
-            {
-                _subscription?.Dispose();
+                    if (reference.Key.EndsWith(MvcAssemblyFileName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        mvcReferenceFullPath = reference.Key;
+                        break;
+                    }
+                }
             }
-        }
 
-        // Internal for testing
-        internal async Task OnProjectChangedAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update)
-        {
-            if (IsDisposing || IsDisposed)
+            if (mvcReferenceFullPath is null)
             {
+                // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
+                await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
                 return;
             }
 
-            await CommonServices.TasksService.LoadedProjectAsync(async () => await ExecuteWithLockAsync(async () =>
+            var version = GetAssemblyVersion(mvcReferenceFullPath);
+            if (version is null)
             {
-                string? mvcReferenceFullPath = null;
-                if (update.Value.CurrentState.ContainsKey(ResolvedCompilationReference.SchemaName))
+                // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
+                await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
+                return;
+            }
+
+            // We need to deal with the case where the project was uninitialized, but now
+            // is valid for Razor. In that case we might have previously seen all of the documents
+            // but ignored them because the project wasn't active.
+            //
+            // So what we do to deal with this, is that we 'remove' all changed and removed items
+            // and then we 'add' all current items. This allows minimal churn to the PSM, but still
+            // makes us up-to-date.
+            var documents = GetCurrentDocuments(update.Value);
+            var changedDocuments = GetChangedAndRemovedDocuments(update.Value);
+
+            await UpdateAsync(() =>
+            {
+                var configuration = FallbackRazorConfiguration.SelectConfiguration(version);
+                var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, configuration, rootNamespace: null);
+
+                if (TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
                 {
-                    var references = update.Value.CurrentState[ResolvedCompilationReference.SchemaName].Items;
-                    foreach (var reference in references)
-                    {
-                        if (reference.Key.EndsWith(MvcAssemblyFileName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            mvcReferenceFullPath = reference.Key;
-                            break;
-                        }
-                    }
+                    var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
+                    ProjectConfigurationFilePathStore.Set(hostProject.FilePath, projectConfigurationFile);
                 }
 
-                if (mvcReferenceFullPath is null)
+                UpdateProjectUnsafe(hostProject);
+
+                for (var i = 0; i < changedDocuments.Length; i++)
                 {
-                    // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-                    await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
-                    return;
+                    RemoveDocumentUnsafe(changedDocuments[i]);
                 }
 
-                var version = GetAssemblyVersion(mvcReferenceFullPath);
-                if (version is null)
+                for (var i = 0; i < documents.Length; i++)
                 {
-                    // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-                    await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
-                    return;
+                    AddDocumentUnsafe(documents[i]);
                 }
+            }, CancellationToken.None).ConfigureAwait(false);
+        }).ConfigureAwait(false), registerFaultHandler: true);
+    }
 
-                // We need to deal with the case where the project was uninitialized, but now
-                // is valid for Razor. In that case we might have previously seen all of the documents
-                // but ignored them because the project wasn't active.
-                //
-                // So what we do to deal with this, is that we 'remove' all changed and removed items
-                // and then we 'add' all current items. This allows minimal churn to the PSM, but still
-                // makes us up-to-date.
-                var documents = GetCurrentDocuments(update.Value);
-                var changedDocuments = GetChangedAndRemovedDocuments(update.Value);
+    // virtual for overriding in tests
+    protected virtual Version? GetAssemblyVersion(string filePath)
+    {
+        return ReadAssemblyVersion(filePath);
+    }
 
-                await UpdateAsync(() =>
+    // Internal for testing
+    internal HostDocument[] GetCurrentDocuments(IProjectSubscriptionUpdate update)
+    {
+        var documents = new List<HostDocument>();
+
+        // Content Razor files
+        if (update.CurrentState.TryGetValue(ContentItem.SchemaName, out var rule))
+        {
+            foreach (var kvp in rule.Items)
+            {
+                if (TryGetRazorDocument(kvp.Value, out var document))
                 {
-                    var configuration = FallbackRazorConfiguration.SelectConfiguration(version);
-                    var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, configuration, rootNamespace: null);
-
-                    if (TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
-                    {
-                        var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
-                        ProjectConfigurationFilePathStore.Set(hostProject.FilePath, projectConfigurationFile);
-                    }
-
-                    UpdateProjectUnsafe(hostProject);
-
-                    for (var i = 0; i < changedDocuments.Length; i++)
-                    {
-                        RemoveDocumentUnsafe(changedDocuments[i]);
-                    }
-
-                    for (var i = 0; i < documents.Length; i++)
-                    {
-                        AddDocumentUnsafe(documents[i]);
-                    }
-                }, CancellationToken.None).ConfigureAwait(false);
-            }).ConfigureAwait(false), registerFaultHandler: true);
+                    documents.Add(document);
+                }
+            }
         }
 
-        // virtual for overriding in tests
-        protected virtual Version? GetAssemblyVersion(string filePath)
+        // None Razor files, these are typically included when a user links a file in Visual Studio.
+        if (update.CurrentState.TryGetValue(NoneItem.SchemaName, out var nonRule))
         {
-            return ReadAssemblyVersion(filePath);
+            foreach (var kvp in nonRule.Items)
+            {
+                if (TryGetRazorDocument(kvp.Value, out var document))
+                {
+                    documents.Add(document);
+                }
+            }
         }
 
-        // Internal for testing
-        internal HostDocument[] GetCurrentDocuments(IProjectSubscriptionUpdate update)
+        return documents.ToArray();
+    }
+
+    // Internal for testing
+    internal HostDocument[] GetChangedAndRemovedDocuments(IProjectSubscriptionUpdate update)
+    {
+        var documents = new List<HostDocument>();
+
+        // Content Razor files
+        if (update.ProjectChanges.TryGetValue(ContentItem.SchemaName, out var rule))
         {
-            var documents = new List<HostDocument>();
-
-            // Content Razor files
-            if (update.CurrentState.TryGetValue(ContentItem.SchemaName, out var rule))
+            foreach (var key in rule.Difference.RemovedItems.Concat(rule.Difference.ChangedItems))
             {
-                foreach (var kvp in rule.Items)
+                if (rule.Before.Items.TryGetValue(key, out var value) &&
+                    TryGetRazorDocument(value, out var document))
                 {
-                    if (TryGetRazorDocument(kvp.Value, out var document))
-                    {
-                        documents.Add(document);
-                    }
+                    documents.Add(document);
                 }
             }
-
-            // None Razor files, these are typically included when a user links a file in Visual Studio.
-            if (update.CurrentState.TryGetValue(NoneItem.SchemaName, out var nonRule))
-            {
-                foreach (var kvp in nonRule.Items)
-                {
-                    if (TryGetRazorDocument(kvp.Value, out var document))
-                    {
-                        documents.Add(document);
-                    }
-                }
-            }
-
-            return documents.ToArray();
         }
 
-        // Internal for testing
-        internal HostDocument[] GetChangedAndRemovedDocuments(IProjectSubscriptionUpdate update)
+        // None Razor files, these are typically included when a user links a file in Visual Studio.
+        if (update.ProjectChanges.TryGetValue(NoneItem.SchemaName, out var nonRule))
         {
-            var documents = new List<HostDocument>();
-
-            // Content Razor files
-            if (update.ProjectChanges.TryGetValue(ContentItem.SchemaName, out var rule))
+            foreach (var key in nonRule.Difference.RemovedItems.Concat(nonRule.Difference.ChangedItems))
             {
-                foreach (var key in rule.Difference.RemovedItems.Concat(rule.Difference.ChangedItems))
+                if (nonRule.Before.Items.TryGetValue(key, out var value) &&
+                    TryGetRazorDocument(value, out var document))
                 {
-                    if (rule.Before.Items.TryGetValue(key, out var value) &&
-                        TryGetRazorDocument(value, out var document))
-                    {
-                        documents.Add(document);
-                    }
+                    documents.Add(document);
                 }
             }
-
-            // None Razor files, these are typically included when a user links a file in Visual Studio.
-            if (update.ProjectChanges.TryGetValue(NoneItem.SchemaName, out var nonRule))
-            {
-                foreach (var key in nonRule.Difference.RemovedItems.Concat(nonRule.Difference.ChangedItems))
-                {
-                    if (nonRule.Before.Items.TryGetValue(key, out var value) &&
-                        TryGetRazorDocument(value, out var document))
-                    {
-                        documents.Add(document);
-                    }
-                }
-            }
-
-            return documents.ToArray();
         }
 
-        // Internal for testing
-        internal bool TryGetRazorDocument(IImmutableDictionary<string, string> itemState, [NotNullWhen(returnValue: true)] out HostDocument? razorDocument)
-        {
-            if (itemState.TryGetValue(ItemReference.FullPathPropertyName, out var filePath))
-            {
-                // If there's no target path then we normalize the target path to the file path. In the end, all we care about
-                // is that the file being included in the primary project ends in .cshtml.
-                itemState.TryGetValue(ItemReference.LinkPropertyName, out var targetPath);
-                if (string.IsNullOrEmpty(targetPath))
-                {
-                    targetPath = filePath;
-                }
+        return documents.ToArray();
+    }
 
-                if (targetPath.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase))
-                {
-                    targetPath = CommonServices.UnconfiguredProject.MakeRooted(targetPath);
-                    razorDocument = new HostDocument(filePath, targetPath, FileKinds.Legacy);
-                    return true;
-                }
+    // Internal for testing
+    internal bool TryGetRazorDocument(IImmutableDictionary<string, string> itemState, [NotNullWhen(returnValue: true)] out HostDocument? razorDocument)
+    {
+        if (itemState.TryGetValue(ItemReference.FullPathPropertyName, out var filePath))
+        {
+            // If there's no target path then we normalize the target path to the file path. In the end, all we care about
+            // is that the file being included in the primary project ends in .cshtml.
+            itemState.TryGetValue(ItemReference.LinkPropertyName, out var targetPath);
+            if (string.IsNullOrEmpty(targetPath))
+            {
+                targetPath = filePath;
             }
 
-            razorDocument = null;
-            return false;
+            if (targetPath.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase))
+            {
+                targetPath = CommonServices.UnconfiguredProject.MakeRooted(targetPath);
+                razorDocument = new HostDocument(filePath, targetPath, FileKinds.Legacy);
+                return true;
+            }
         }
 
-        private static Version? ReadAssemblyVersion(string filePath)
-        {
-            try
-            {
-                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-                using var reader = new PEReader(stream);
-                var metadataReader = reader.GetMetadataReader();
+        razorDocument = null;
+        return false;
+    }
 
-                var assemblyDefinition = metadataReader.GetAssemblyDefinition();
-                return assemblyDefinition.Version;
-            }
-            catch
-            {
-                // We're purposely silencing any kinds of I/O exceptions here, just in case something wacky is going on.
-                return null;
-            }
+    private static Version? ReadAssemblyVersion(string filePath)
+    {
+        try
+        {
+            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using var reader = new PEReader(stream);
+            var metadataReader = reader.GetMetadataReader();
+
+            var assemblyDefinition = metadataReader.GetAssemblyDefinition();
+            return assemblyDefinition.Version;
+        }
+        catch
+        {
+            // We're purposely silencing any kinds of I/O exceptions here, just in case something wacky is going on.
+            return null;
         }
     }
 }

@@ -8,55 +8,54 @@ using System.Composition;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+
+[Shared]
+[Export(typeof(IRazorDocumentChangeListener))]
+[Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
+internal class DocumentChangedSynchronizationService : IRazorDocumentChangeListener, IOmniSharpProjectSnapshotManagerChangeTrigger
 {
-    [Shared]
-    [Export(typeof(IRazorDocumentChangeListener))]
-    [Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
-    internal class DocumentChangedSynchronizationService : IRazorDocumentChangeListener, IOmniSharpProjectSnapshotManagerChangeTrigger
+    private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private OmniSharpProjectSnapshotManagerBase _projectManager;
+
+    [ImportingConstructor]
+    public DocumentChangedSynchronizationService(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
     {
-        private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-        private OmniSharpProjectSnapshotManagerBase _projectManager;
-
-        [ImportingConstructor]
-        public DocumentChangedSynchronizationService(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+        if (projectSnapshotManagerDispatcher is null)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
         }
 
-        public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
-        {
-            if (projectManager is null)
-            {
-                throw new ArgumentNullException(nameof(projectManager));
-            }
+        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+    }
 
-            _projectManager = projectManager;
+    public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+    {
+        if (projectManager is null)
+        {
+            throw new ArgumentNullException(nameof(projectManager));
         }
 
-        public void RazorDocumentChanged(RazorFileChangeEventArgs args)
+        _projectManager = projectManager;
+    }
+
+    public void RazorDocumentChanged(RazorFileChangeEventArgs args)
+    {
+        if (args is null)
         {
-            if (args is null)
-            {
-                throw new ArgumentNullException(nameof(args));
-            }
-
-            if (args.Kind != RazorFileChangeKind.Changed)
-            {
-                return;
-            }
-
-            var projectFilePath = args.UnevaluatedProjectInstance.ProjectFileLocation.File;
-            var documentFilePath = args.FilePath;
-
-            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                () => _projectManager.DocumentChanged(projectFilePath, documentFilePath),
-                CancellationToken.None).ConfigureAwait(false);
+            throw new ArgumentNullException(nameof(args));
         }
+
+        if (args.Kind != RazorFileChangeKind.Changed)
+        {
+            return;
+        }
+
+        var projectFilePath = args.UnevaluatedProjectInstance.ProjectFileLocation.File;
+        var documentFilePath = args.FilePath;
+
+        _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+            () => _projectManager.DocumentChanged(projectFilePath, documentFilePath),
+            CancellationToken.None).ConfigureAwait(false);
     }
 }

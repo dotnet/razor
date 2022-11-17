@@ -7,14 +7,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+
+internal abstract class LSPDiagnosticsTranslator
 {
-    internal abstract class LSPDiagnosticsTranslator
-    {
-        public abstract Task<RazorDiagnosticsResponse?> TranslateAsync(
-            RazorLanguageKind languageKind,
-            Uri razorDocumentUri,
-            Diagnostic[] diagnostics,
-            CancellationToken cancellationToken);
-    }
+    public abstract Task<RazorDiagnosticsResponse?> TranslateAsync(
+        RazorLanguageKind languageKind,
+        Uri razorDocumentUri,
+        Diagnostic[] diagnostics,
+        CancellationToken cancellationToken);
 }

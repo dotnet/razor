@@ -6,36 +6,35 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal class DefaultWorkspaceDirectoryPathResolver : WorkspaceDirectoryPathResolver
 {
-    internal class DefaultWorkspaceDirectoryPathResolver : WorkspaceDirectoryPathResolver
+    private readonly IInitializeManager<InitializeParams, InitializeResult> _settingsManager;
+
+    public DefaultWorkspaceDirectoryPathResolver(IInitializeManager<InitializeParams, InitializeResult> settingsManager)
     {
-        private readonly IInitializeManager<InitializeParams, InitializeResult> _settingsManager;
-
-        public DefaultWorkspaceDirectoryPathResolver(IInitializeManager<InitializeParams, InitializeResult> settingsManager)
+        if (settingsManager is null)
         {
-            if (settingsManager is null)
-            {
-                throw new ArgumentNullException(nameof(settingsManager));
-            }
-
-            _settingsManager = settingsManager;
+            throw new ArgumentNullException(nameof(settingsManager));
         }
 
-        public override string Resolve()
+        _settingsManager = settingsManager;
+    }
+
+    public override string Resolve()
+    {
+        var clientSettings = _settingsManager.GetInitializeParams();
+        if (clientSettings.RootUri is null)
         {
-            var clientSettings = _settingsManager.GetInitializeParams();
-            if (clientSettings.RootUri is null)
-            {
 #pragma warning disable CS0618 // Type or member is obsolete
-                Assumes.NotNull(clientSettings.RootPath);
-                // RootUri was added in LSP3, fallback to RootPath
-                return clientSettings.RootPath;
+            Assumes.NotNull(clientSettings.RootPath);
+            // RootUri was added in LSP3, fallback to RootPath
+            return clientSettings.RootPath;
 #pragma warning restore CS0618 // Type or member is obsolete
-            }
-
-            var normalized = clientSettings.RootUri.GetAbsoluteOrUNCPath();
-            return normalized;
         }
+
+        var normalized = clientSettings.RootUri.GetAbsoluteOrUNCPath();
+        return normalized;
     }
 }

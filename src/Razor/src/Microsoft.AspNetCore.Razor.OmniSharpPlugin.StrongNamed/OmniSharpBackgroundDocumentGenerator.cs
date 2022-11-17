@@ -11,75 +11,74 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
+
+public class OmniSharpBackgroundDocumentGenerator : IOmniSharpProjectSnapshotManagerChangeTrigger
 {
-    public class OmniSharpBackgroundDocumentGenerator : IOmniSharpProjectSnapshotManagerChangeTrigger
+    private readonly BackgroundDocumentGenerator _backgroundDocumentGenerator;
+
+    public OmniSharpBackgroundDocumentGenerator(
+        OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        RemoteTextLoaderFactory remoteTextLoaderFactory,
+        IEnumerable<OmniSharpDocumentProcessedListener> documentProcessedListeners)
     {
-        private readonly BackgroundDocumentGenerator _backgroundDocumentGenerator;
-
-        public OmniSharpBackgroundDocumentGenerator(
-            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            RemoteTextLoaderFactory remoteTextLoaderFactory,
-            IEnumerable<OmniSharpDocumentProcessedListener> documentProcessedListeners)
+        if (projectSnapshotManagerDispatcher is null)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
+            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+        }
 
+        if (remoteTextLoaderFactory is null)
+        {
+            throw new ArgumentNullException(nameof(remoteTextLoaderFactory));
+        }
+
+        if (documentProcessedListeners is null)
+        {
+            throw new ArgumentNullException(nameof(documentProcessedListeners));
+        }
+
+        var wrappedListeners = documentProcessedListeners.Select(listener => new WrappedDocumentProcessedListener(remoteTextLoaderFactory, listener));
+        _backgroundDocumentGenerator = new BackgroundDocumentGenerator(projectSnapshotManagerDispatcher.InternalDispatcher, wrappedListeners);
+    }
+
+    public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+    {
+        _backgroundDocumentGenerator.Initialize(projectManager.InternalProjectSnapshotManager);
+    }
+
+    private class WrappedDocumentProcessedListener : DocumentProcessedListener
+    {
+        private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
+        private readonly OmniSharpDocumentProcessedListener _innerDocumentProcessedListener;
+
+        public WrappedDocumentProcessedListener(
+            RemoteTextLoaderFactory remoteTextLoaderFactory,
+            OmniSharpDocumentProcessedListener innerDocumentProcessedListener)
+        {
             if (remoteTextLoaderFactory is null)
             {
                 throw new ArgumentNullException(nameof(remoteTextLoaderFactory));
             }
 
-            if (documentProcessedListeners is null)
+            if (innerDocumentProcessedListener is null)
             {
-                throw new ArgumentNullException(nameof(documentProcessedListeners));
+                throw new ArgumentNullException(nameof(innerDocumentProcessedListener));
             }
 
-            var wrappedListeners = documentProcessedListeners.Select(listener => new WrappedDocumentProcessedListener(remoteTextLoaderFactory, listener));
-            _backgroundDocumentGenerator = new BackgroundDocumentGenerator(projectSnapshotManagerDispatcher.InternalDispatcher, wrappedListeners);
+            _remoteTextLoaderFactory = remoteTextLoaderFactory;
+            _innerDocumentProcessedListener = innerDocumentProcessedListener;
         }
 
-        public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+        public override void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot document)
         {
-            _backgroundDocumentGenerator.Initialize(projectManager.InternalProjectSnapshotManager);
+            var omniSharpDocument = new OmniSharpDocumentSnapshot(document);
+            _innerDocumentProcessedListener.DocumentProcessed(codeDocument, omniSharpDocument);
         }
 
-        private class WrappedDocumentProcessedListener : DocumentProcessedListener
+        public override void Initialize(ProjectSnapshotManager projectManager)
         {
-            private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
-            private readonly OmniSharpDocumentProcessedListener _innerDocumentProcessedListener;
-
-            public WrappedDocumentProcessedListener(
-                RemoteTextLoaderFactory remoteTextLoaderFactory,
-                OmniSharpDocumentProcessedListener innerDocumentProcessedListener)
-            {
-                if (remoteTextLoaderFactory is null)
-                {
-                    throw new ArgumentNullException(nameof(remoteTextLoaderFactory));
-                }
-
-                if (innerDocumentProcessedListener is null)
-                {
-                    throw new ArgumentNullException(nameof(innerDocumentProcessedListener));
-                }
-
-                _remoteTextLoaderFactory = remoteTextLoaderFactory;
-                _innerDocumentProcessedListener = innerDocumentProcessedListener;
-            }
-
-            public override void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot document)
-            {
-                var omniSharpDocument = new OmniSharpDocumentSnapshot(document);
-                _innerDocumentProcessedListener.DocumentProcessed(codeDocument, omniSharpDocument);
-            }
-
-            public override void Initialize(ProjectSnapshotManager projectManager)
-            {
-                var omniSharpProjectManager = new DefaultOmniSharpProjectSnapshotManager((ProjectSnapshotManagerBase)projectManager, _remoteTextLoaderFactory);
-                _innerDocumentProcessedListener.Initialize(omniSharpProjectManager);
-            }
+            var omniSharpProjectManager = new DefaultOmniSharpProjectSnapshotManager((ProjectSnapshotManagerBase)projectManager, _remoteTextLoaderFactory);
+            _innerDocumentProcessedListener.Initialize(omniSharpProjectManager);
         }
     }
 }

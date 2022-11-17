@@ -5,12 +5,11 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
-{
-    internal abstract class AdhocWorkspaceFactory
-    {
-        public abstract AdhocWorkspace Create();
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-        public abstract AdhocWorkspace Create(IEnumerable<IWorkspaceService> workspaceServices);
-    }
+internal abstract class AdhocWorkspaceFactory
+{
+    public abstract AdhocWorkspace Create();
+
+    public abstract AdhocWorkspace Create(IEnumerable<IWorkspaceService> workspaceServices);
 }

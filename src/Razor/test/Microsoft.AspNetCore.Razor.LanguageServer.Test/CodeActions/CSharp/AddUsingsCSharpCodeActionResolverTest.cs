@@ -18,8 +18,8 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
     public class AddUsingsCSharpCodeActionResolverTest : LanguageServerTestBase
     {
         private static readonly CodeAction s_defaultUnresolvedCodeAction = new()
@@ -166,7 +166,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
         }
 
         private void CreateCodeActionResolver(
-            out CSharpCodeActionParams codeActionParams,
+            out CodeActionResolveParams codeActionParams,
             out AddUsingsCSharpCodeActionResolver addUsingResolver,
             CodeAction resolvedCodeAction)
         {
@@ -174,7 +174,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             var contents = string.Empty;
             var codeDocument = CreateCodeDocument(contents, documentUri.AbsolutePath);
 
-            codeActionParams = new CSharpCodeActionParams()
+            codeActionParams = new CodeActionResolveParams()
             {
                 Data = new JObject(),
                 RazorFileUri = documentUri
@@ -206,4 +206,3 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
             return codeDocument;
         }
     }
-}

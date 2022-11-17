@@ -6,31 +6,30 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+
+public abstract class LSPDocumentSnapshot
 {
-    public abstract class LSPDocumentSnapshot
+    public abstract int Version { get; }
+
+    public abstract Uri Uri { get; }
+
+    public abstract ITextSnapshot Snapshot { get; }
+
+    public abstract IReadOnlyList<VirtualDocumentSnapshot> VirtualDocuments { get; }
+
+    public bool TryGetVirtualDocument<TVirtualDocument>([NotNullWhen(returnValue: true)] out TVirtualDocument? virtualDocument) where TVirtualDocument : VirtualDocumentSnapshot
     {
-        public abstract int Version { get; }
-
-        public abstract Uri Uri { get; }
-
-        public abstract ITextSnapshot Snapshot { get; }
-
-        public abstract IReadOnlyList<VirtualDocumentSnapshot> VirtualDocuments { get; }
-
-        public bool TryGetVirtualDocument<TVirtualDocument>([NotNullWhen(returnValue: true)] out TVirtualDocument? virtualDocument) where TVirtualDocument : VirtualDocumentSnapshot
+        for (var i = 0; i < VirtualDocuments.Count; i++)
         {
-            for (var i = 0; i < VirtualDocuments.Count; i++)
+            if (VirtualDocuments[i] is TVirtualDocument actualVirtualDocument)
             {
-                if (VirtualDocuments[i] is TVirtualDocument actualVirtualDocument)
-                {
-                    virtualDocument = actualVirtualDocument;
-                    return true;
-                }
+                virtualDocument = actualVirtualDocument;
+                return true;
             }
-
-            virtualDocument = null;
-            return false;
         }
+
+        virtualDocument = null;
+        return false;
     }
 }

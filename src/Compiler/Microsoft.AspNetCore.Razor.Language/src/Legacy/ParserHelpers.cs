@@ -69,7 +69,7 @@ internal static class ParserHelpers
                value == '\f' ||
                value == '\t' ||
                value == '\u000B' || // Vertical Tab
-               char.IsSeparator(value); ;
+               char.IsSeparator(value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

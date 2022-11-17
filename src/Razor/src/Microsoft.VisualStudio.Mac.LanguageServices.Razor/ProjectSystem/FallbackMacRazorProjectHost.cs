@@ -13,94 +13,93 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using MonoDevelop.Projects;
 using AssemblyReference = MonoDevelop.Projects.AssemblyReference;
 
-namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
+namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem;
+
+internal class FallbackMacRazorProjectHost : MacRazorProjectHostBase
 {
-    internal class FallbackMacRazorProjectHost : MacRazorProjectHostBase
+    private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+
+    public FallbackMacRazorProjectHost(
+        DotNetProject project,
+        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        ProjectSnapshotManagerBase projectSnapshotManager,
+        ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
+        LanguageServerFeatureOptions languageServerFeatureOptions)
+        : base(project, projectSnapshotManagerDispatcher, projectSnapshotManager, projectConfigurationFilePathStore)
     {
-        private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
-        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+        _languageServerFeatureOptions = languageServerFeatureOptions;
+    }
 
-        public FallbackMacRazorProjectHost(
-            DotNetProject project,
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            ProjectSnapshotManagerBase projectSnapshotManager,
-            ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
-            LanguageServerFeatureOptions languageServerFeatureOptions)
-            : base(project, projectSnapshotManagerDispatcher, projectSnapshotManager, projectConfigurationFilePathStore)
+    protected override async Task OnProjectChangedAsync()
+    {
+        await ExecuteWithLockAsync(async () =>
         {
-            _languageServerFeatureOptions = languageServerFeatureOptions;
-        }
+            var referencedAssemblies = await DotNetProject.GetReferencedAssemblies(ConfigurationSelector.Default);
+            var mvcReference = referencedAssemblies.FirstOrDefault(IsMvcAssembly);
+            var projectProperties = DotNetProject.MSBuildProject.EvaluatedProperties;
 
-        protected override async Task OnProjectChangedAsync()
-        {
-            await ExecuteWithLockAsync(async () =>
+            if (TryGetIntermediateOutputPath(projectProperties, out var intermediatePath))
             {
-                var referencedAssemblies = await DotNetProject.GetReferencedAssemblies(ConfigurationSelector.Default);
-                var mvcReference = referencedAssemblies.FirstOrDefault(IsMvcAssembly);
-                var projectProperties = DotNetProject.MSBuildProject.EvaluatedProperties;
-
-                if (TryGetIntermediateOutputPath(projectProperties, out var intermediatePath))
-                {
-                    var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
-                    ProjectConfigurationFilePathStore.Set(DotNetProject.FileName.FullPath, projectConfigurationFile);
-                }
-
-                if (mvcReference is null)
-                {
-                    // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-                    await UpdateHostProjectUnsafeAsync(null).ConfigureAwait(false);
-                    return;
-                }
-
-                var version = GetAssemblyVersion(mvcReference.FilePath);
-                if (version is null)
-                {
-                    // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-                    await UpdateHostProjectUnsafeAsync(null).ConfigureAwait(false);
-                    return;
-                }
-
-                var configuration = FallbackRazorConfiguration.SelectConfiguration(version);
-                var hostProject = new HostProject(DotNetProject.FileName.FullPath, configuration, rootNamespace: null);
-                await UpdateHostProjectUnsafeAsync(hostProject).ConfigureAwait(false);
-            });
-        }
-
-        // Internal for testing
-        internal static bool IsMvcAssembly(AssemblyReference reference)
-        {
-            var fileName = reference?.FilePath.FileName;
-
-            if (string.IsNullOrEmpty(fileName))
-            {
-                return false;
+                var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
+                ProjectConfigurationFilePathStore.Set(DotNetProject.FileName.FullPath, projectConfigurationFile);
             }
 
-            if (string.Equals(reference!.FilePath.FileName, MvcAssemblyFileName, StringComparison.OrdinalIgnoreCase))
+            if (mvcReference is null)
             {
-                // Mvc assembly
-                return true;
+                // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
+                await UpdateHostProjectUnsafeAsync(null).ConfigureAwait(false);
+                return;
             }
 
+            var version = GetAssemblyVersion(mvcReference.FilePath);
+            if (version is null)
+            {
+                // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
+                await UpdateHostProjectUnsafeAsync(null).ConfigureAwait(false);
+                return;
+            }
+
+            var configuration = FallbackRazorConfiguration.SelectConfiguration(version);
+            var hostProject = new HostProject(DotNetProject.FileName.FullPath, configuration, rootNamespace: null);
+            await UpdateHostProjectUnsafeAsync(hostProject).ConfigureAwait(false);
+        });
+    }
+
+    // Internal for testing
+    internal static bool IsMvcAssembly(AssemblyReference reference)
+    {
+        var fileName = reference?.FilePath.FileName;
+
+        if (string.IsNullOrEmpty(fileName))
+        {
             return false;
         }
 
-        private static Version? GetAssemblyVersion(string filePath)
+        if (string.Equals(reference!.FilePath.FileName, MvcAssemblyFileName, StringComparison.OrdinalIgnoreCase))
         {
-            try
-            {
-                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-                using var reader = new PEReader(stream);
-                var metadataReader = reader.GetMetadataReader();
+            // Mvc assembly
+            return true;
+        }
 
-                var assemblyDefinition = metadataReader.GetAssemblyDefinition();
-                return assemblyDefinition.Version;
-            }
-            catch
-            {
-                // We're purposely silencing any kinds of I/O exceptions here, just in case something wacky is going on.
-                return null;
-            }
+        return false;
+    }
+
+    private static Version? GetAssemblyVersion(string filePath)
+    {
+        try
+        {
+            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using var reader = new PEReader(stream);
+            var metadataReader = reader.GetMetadataReader();
+
+            var assemblyDefinition = metadataReader.GetAssemblyDefinition();
+            return assemblyDefinition.Version;
+        }
+        catch
+        {
+            // We're purposely silencing any kinds of I/O exceptions here, just in case something wacky is going on.
+            return null;
         }
     }
 }

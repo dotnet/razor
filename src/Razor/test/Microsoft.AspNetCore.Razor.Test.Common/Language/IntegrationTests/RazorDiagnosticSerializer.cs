@@ -3,13 +3,12 @@
 
 #nullable disable
 
-namespace Microsoft.AspNetCore.Razor.Language
+namespace Microsoft.AspNetCore.Razor.Language;
+
+public class RazorDiagnosticSerializer
 {
-    public class RazorDiagnosticSerializer
+    public static string Serialize(RazorDiagnostic diagnostic)
     {
-        public static string Serialize(RazorDiagnostic diagnostic)
-        {
-            return diagnostic.ToString();
-        }
+        return diagnostic.ToString();
     }
 }

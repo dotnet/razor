@@ -14,217 +14,216 @@ using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LiveShare.Razor.Host
+namespace Microsoft.VisualStudio.LiveShare.Razor.Host;
+
+public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDispatcherTestBase
 {
-    public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDispatcherTestBase
+    private readonly Workspace _workspace;
+    private readonly ProjectSnapshot _projectSnapshot1;
+    private readonly ProjectSnapshot _projectSnapshot2;
+
+    public DefaultProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly Workspace _workspace;
-        private readonly ProjectSnapshot _projectSnapshot1;
-        private readonly ProjectSnapshot _projectSnapshot2;
+        _workspace = TestWorkspace.Create();
+        AddDisposable(_workspace);
 
-        public DefaultProjectSnapshotManagerProxyTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+        var projectWorkspaceState1 = new ProjectWorkspaceState(new[]
         {
-            _workspace = TestWorkspace.Create();
-            AddDisposable(_workspace);
+            TagHelperDescriptorBuilder.Create("test1", "TestAssembly1").Build(),
+        },
+        default);
+        _projectSnapshot1 = new DefaultProjectSnapshot(
+            ProjectState.Create(
+                _workspace.Services,
+                new HostProject("/host/path/to/project1.csproj", RazorConfiguration.Default, "project1"),
+                projectWorkspaceState1));
+        var projectWorkspaceState2 = new ProjectWorkspaceState(new[]
+        {
+            TagHelperDescriptorBuilder.Create("test2", "TestAssembly2").Build(),
+        },
+        default);
+        _projectSnapshot2 = new DefaultProjectSnapshot(
+            ProjectState.Create(
+                _workspace.Services,
+                new HostProject("/host/path/to/project2.csproj", RazorConfiguration.Default, "project2"),
+                projectWorkspaceState2));
+    }
 
-            var projectWorkspaceState1 = new ProjectWorkspaceState(new[]
+    [Fact]
+    public async Task CalculateUpdatedStateAsync_ReturnsStateForAllProjects()
+    {
+        // Arrange
+        var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1, _projectSnapshot2);
+        using var proxy = new DefaultProjectSnapshotManagerProxy(
+            new TestCollaborationSession(true),
+            Dispatcher,
+            projectSnapshotManager,
+            JoinableTaskFactory);
+
+        // Act
+        var state = await JoinableTaskFactory.RunAsync(() => proxy.CalculateUpdatedStateAsync(projectSnapshotManager.Projects));
+
+        // Assert
+        Assert.Collection(
+            state.ProjectHandles,
+            handle =>
             {
-                TagHelperDescriptorBuilder.Create("test1", "TestAssembly1").Build(),
+                Assert.Equal("vsls:/path/to/project1.csproj", handle.FilePath.ToString());
+                Assert.Equal(_projectSnapshot1.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
             },
-            default);
-            _projectSnapshot1 = new DefaultProjectSnapshot(
-                ProjectState.Create(
-                    _workspace.Services,
-                    new HostProject("/host/path/to/project1.csproj", RazorConfiguration.Default, "project1"),
-                    projectWorkspaceState1));
-            var projectWorkspaceState2 = new ProjectWorkspaceState(new[]
+            handle =>
             {
-                TagHelperDescriptorBuilder.Create("test2", "TestAssembly2").Build(),
+                Assert.Equal("vsls:/path/to/project2.csproj", handle.FilePath.ToString());
+                Assert.Equal(_projectSnapshot2.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+            });
+    }
+
+    [Fact]
+    public async Task Changed_TriggersOnSnapshotManagerChanged()
+    {
+        // Arrange
+        var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
+        using var proxy = new DefaultProjectSnapshotManagerProxy(
+            new TestCollaborationSession(true),
+            Dispatcher,
+            projectSnapshotManager,
+            JoinableTaskFactory);
+        var changedArgs = new ProjectChangeEventArgs(_projectSnapshot1, _projectSnapshot1, ProjectChangeKind.ProjectChanged);
+        var called = false;
+        proxy.Changed += (sender, args) =>
+        {
+            called = true;
+            Assert.Equal($"vsls:/path/to/project1.csproj", args.ProjectFilePath.ToString());
+            Assert.Equal(ProjectProxyChangeKind.ProjectChanged, args.Kind);
+            Assert.Equal("vsls:/path/to/project1.csproj", args.Newer.FilePath.ToString());
+        };
+
+        // Act
+        projectSnapshotManager.TriggerChanged(changedArgs);
+        await proxy._processingChangedEventTestTask.JoinAsync();
+
+        // Assert
+        Assert.True(called);
+    }
+
+    [Fact]
+    public void Changed_NoopsIfProxyDisposed()
+    {
+        // Arrange
+        var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
+        var proxy = new DefaultProjectSnapshotManagerProxy(
+            new TestCollaborationSession(true),
+            Dispatcher,
+            projectSnapshotManager,
+            JoinableTaskFactory);
+        var changedArgs = new ProjectChangeEventArgs(_projectSnapshot1, _projectSnapshot1, ProjectChangeKind.ProjectChanged);
+        proxy.Changed += (sender, args) => throw new InvalidOperationException("Should not have been called.");
+        proxy.Dispose();
+
+        // Act
+        projectSnapshotManager.TriggerChanged(changedArgs);
+
+        // Assert
+        Assert.Null(proxy._processingChangedEventTestTask);
+    }
+
+    [Fact]
+    public async Task GetLatestProjectsAsync_ReturnsSnapshotManagerProjects()
+    {
+        // Arrange
+        var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
+        using var proxy = new DefaultProjectSnapshotManagerProxy(
+            new TestCollaborationSession(true),
+            Dispatcher,
+            projectSnapshotManager,
+            JoinableTaskFactory);
+
+        // Act
+        var projects = await proxy.GetLatestProjectsAsync();
+
+        // Assert
+        var project = Assert.Single(projects);
+        Assert.Same(_projectSnapshot1, project);
+    }
+
+    [Fact]
+    public async Task GetStateAsync_ReturnsProjectState()
+    {
+        // Arrange
+        var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1, _projectSnapshot2);
+        using var proxy = new DefaultProjectSnapshotManagerProxy(
+            new TestCollaborationSession(true),
+            Dispatcher,
+            projectSnapshotManager,
+            JoinableTaskFactory);
+
+        // Act
+        var state = await JoinableTaskFactory.RunAsync(() => proxy.GetProjectManagerStateAsync(DisposalToken));
+
+        // Assert
+        Assert.Collection(
+            state.ProjectHandles,
+            handle =>
+            {
+                Assert.Equal("vsls:/path/to/project1.csproj", handle.FilePath.ToString());
+                Assert.Equal(_projectSnapshot1.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
             },
-            default);
-            _projectSnapshot2 = new DefaultProjectSnapshot(
-                ProjectState.Create(
-                    _workspace.Services,
-                    new HostProject("/host/path/to/project2.csproj", RazorConfiguration.Default, "project2"),
-                    projectWorkspaceState2));
-        }
-
-        [Fact]
-        public async Task CalculateUpdatedStateAsync_ReturnsStateForAllProjects()
-        {
-            // Arrange
-            var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1, _projectSnapshot2);
-            using var proxy = new DefaultProjectSnapshotManagerProxy(
-                new TestCollaborationSession(true),
-                Dispatcher,
-                projectSnapshotManager,
-                JoinableTaskFactory);
-
-            // Act
-            var state = await JoinableTaskFactory.RunAsync(() => proxy.CalculateUpdatedStateAsync(projectSnapshotManager.Projects));
-
-            // Assert
-            Assert.Collection(
-                state.ProjectHandles,
-                handle =>
-                {
-                    Assert.Equal("vsls:/path/to/project1.csproj", handle.FilePath.ToString());
-                    Assert.Equal(_projectSnapshot1.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
-                },
-                handle =>
-                {
-                    Assert.Equal("vsls:/path/to/project2.csproj", handle.FilePath.ToString());
-                    Assert.Equal(_projectSnapshot2.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
-                });
-        }
-
-        [Fact]
-        public async Task Changed_TriggersOnSnapshotManagerChanged()
-        {
-            // Arrange
-            var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
-            using var proxy = new DefaultProjectSnapshotManagerProxy(
-                new TestCollaborationSession(true),
-                Dispatcher,
-                projectSnapshotManager,
-                JoinableTaskFactory);
-            var changedArgs = new ProjectChangeEventArgs(_projectSnapshot1, _projectSnapshot1, ProjectChangeKind.ProjectChanged);
-            var called = false;
-            proxy.Changed += (sender, args) =>
+            handle =>
             {
-                called = true;
-                Assert.Equal($"vsls:/path/to/project1.csproj", args.ProjectFilePath.ToString());
-                Assert.Equal(ProjectProxyChangeKind.ProjectChanged, args.Kind);
-                Assert.Equal("vsls:/path/to/project1.csproj", args.Newer.FilePath.ToString());
-            };
+                Assert.Equal("vsls:/path/to/project2.csproj", handle.FilePath.ToString());
+                Assert.Equal(_projectSnapshot2.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+            });
+    }
 
-            // Act
-            projectSnapshotManager.TriggerChanged(changedArgs);
-            await proxy._processingChangedEventTestTask.JoinAsync();
+    [Fact]
+    public async Task GetStateAsync_CachesState()
+    {
+        // Arrange
+        var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
+        using var proxy = new DefaultProjectSnapshotManagerProxy(
+            new TestCollaborationSession(true),
+            Dispatcher,
+            projectSnapshotManager,
+            JoinableTaskFactory);
 
-            // Assert
-            Assert.True(called);
+        // Act
+        var state1 = await JoinableTaskFactory.RunAsync(() => proxy.GetProjectManagerStateAsync(DisposalToken));
+        var state2 = await JoinableTaskFactory.RunAsync(() => proxy.GetProjectManagerStateAsync(DisposalToken));
+
+        // Assert
+        Assert.Same(state1, state2);
+    }
+
+    private class TestProjectSnapshotManager : ProjectSnapshotManager
+    {
+        public TestProjectSnapshotManager(params ProjectSnapshot[] projects)
+        {
+            Projects = projects;
         }
 
-        [Fact]
-        public void Changed_NoopsIfProxyDisposed()
+        public override IReadOnlyList<ProjectSnapshot> Projects { get; }
+
+        public override event EventHandler<ProjectChangeEventArgs> Changed;
+
+        public void TriggerChanged(ProjectChangeEventArgs args)
         {
-            // Arrange
-            var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
-            var proxy = new DefaultProjectSnapshotManagerProxy(
-                new TestCollaborationSession(true),
-                Dispatcher,
-                projectSnapshotManager,
-                JoinableTaskFactory);
-            var changedArgs = new ProjectChangeEventArgs(_projectSnapshot1, _projectSnapshot1, ProjectChangeKind.ProjectChanged);
-            proxy.Changed += (sender, args) => throw new InvalidOperationException("Should not have been called.");
-            proxy.Dispose();
-
-            // Act
-            projectSnapshotManager.TriggerChanged(changedArgs);
-
-            // Assert
-            Assert.Null(proxy._processingChangedEventTestTask);
+            Changed?.Invoke(this, args);
         }
 
-        [Fact]
-        public async Task GetLatestProjectsAsync_ReturnsSnapshotManagerProjects()
+        public override ProjectSnapshot GetLoadedProject(string filePath)
         {
-            // Arrange
-            var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
-            using var proxy = new DefaultProjectSnapshotManagerProxy(
-                new TestCollaborationSession(true),
-                Dispatcher,
-                projectSnapshotManager,
-                JoinableTaskFactory);
-
-            // Act
-            var projects = await proxy.GetLatestProjectsAsync();
-
-            // Assert
-            var project = Assert.Single(projects);
-            Assert.Same(_projectSnapshot1, project);
+            throw new NotImplementedException();
         }
 
-        [Fact]
-        public async Task GetStateAsync_ReturnsProjectState()
+        public override ProjectSnapshot GetOrCreateProject(string filePath)
         {
-            // Arrange
-            var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1, _projectSnapshot2);
-            using var proxy = new DefaultProjectSnapshotManagerProxy(
-                new TestCollaborationSession(true),
-                Dispatcher,
-                projectSnapshotManager,
-                JoinableTaskFactory);
-
-            // Act
-            var state = await JoinableTaskFactory.RunAsync(() => proxy.GetProjectManagerStateAsync(DisposalToken));
-
-            // Assert
-            Assert.Collection(
-                state.ProjectHandles,
-                handle =>
-                {
-                    Assert.Equal("vsls:/path/to/project1.csproj", handle.FilePath.ToString());
-                    Assert.Equal(_projectSnapshot1.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
-                },
-                handle =>
-                {
-                    Assert.Equal("vsls:/path/to/project2.csproj", handle.FilePath.ToString());
-                    Assert.Equal(_projectSnapshot2.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
-                });
+            throw new NotImplementedException();
         }
 
-        [Fact]
-        public async Task GetStateAsync_CachesState()
+        public override bool IsDocumentOpen(string documentFilePath)
         {
-            // Arrange
-            var projectSnapshotManager = new TestProjectSnapshotManager(_projectSnapshot1);
-            using var proxy = new DefaultProjectSnapshotManagerProxy(
-                new TestCollaborationSession(true),
-                Dispatcher,
-                projectSnapshotManager,
-                JoinableTaskFactory);
-
-            // Act
-            var state1 = await JoinableTaskFactory.RunAsync(() => proxy.GetProjectManagerStateAsync(DisposalToken));
-            var state2 = await JoinableTaskFactory.RunAsync(() => proxy.GetProjectManagerStateAsync(DisposalToken));
-
-            // Assert
-            Assert.Same(state1, state2);
-        }
-
-        private class TestProjectSnapshotManager : ProjectSnapshotManager
-        {
-            public TestProjectSnapshotManager(params ProjectSnapshot[] projects)
-            {
-                Projects = projects;
-            }
-
-            public override IReadOnlyList<ProjectSnapshot> Projects { get; }
-
-            public override event EventHandler<ProjectChangeEventArgs> Changed;
-
-            public void TriggerChanged(ProjectChangeEventArgs args)
-            {
-                Changed?.Invoke(this, args);
-            }
-
-            public override ProjectSnapshot GetLoadedProject(string filePath)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override ProjectSnapshot GetOrCreateProject(string filePath)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override bool IsDocumentOpen(string documentFilePath)
-            {
-                throw new NotImplementedException();
-            }
+            throw new NotImplementedException();
         }
     }
 }

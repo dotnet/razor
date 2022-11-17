@@ -7,47 +7,46 @@ using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+
+internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
 {
-    internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
+    public TestProjectSnapshotManager(Workspace workspace)
+        : base(CreateProjectSnapshotManagerDispatcher(), Mock.Of<ErrorReporter>(MockBehavior.Strict), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
     {
-        public TestProjectSnapshotManager(Workspace workspace)
-            : base(CreateProjectSnapshotManagerDispatcher(), Mock.Of<ErrorReporter>(MockBehavior.Strict), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
-        {
-        }
+    }
 
-        public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, Workspace workspace)
-            : base(projectSnapshotManagerDispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
-        {
-        }
+    public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, Workspace workspace)
+        : base(projectSnapshotManagerDispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
+    {
+    }
 
-        public bool AllowNotifyListeners { get; set; }
+    public bool AllowNotifyListeners { get; set; }
 
-        private static ProjectSnapshotManagerDispatcher CreateProjectSnapshotManagerDispatcher()
-        {
-            var dispatcher = new Mock<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
-            dispatcher.Setup(d => d.AssertDispatcherThread(It.IsAny<string>())).Verifiable();
-            dispatcher.Setup(d => d.IsDispatcherThread).Returns(true);
-            dispatcher.Setup(d => d.DispatcherScheduler).Returns(TaskScheduler.FromCurrentSynchronizationContext());
-            return dispatcher.Object;
-        }
+    private static ProjectSnapshotManagerDispatcher CreateProjectSnapshotManagerDispatcher()
+    {
+        var dispatcher = new Mock<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
+        dispatcher.Setup(d => d.AssertDispatcherThread(It.IsAny<string>())).Verifiable();
+        dispatcher.Setup(d => d.IsDispatcherThread).Returns(true);
+        dispatcher.Setup(d => d.DispatcherScheduler).Returns(TaskScheduler.FromCurrentSynchronizationContext());
+        return dispatcher.Object;
+    }
 
-        public DefaultProjectSnapshot GetSnapshot(HostProject hostProject)
-        {
-            return Projects.Cast<DefaultProjectSnapshot>().FirstOrDefault(s => s.FilePath == hostProject.FilePath);
-        }
+    public DefaultProjectSnapshot GetSnapshot(HostProject hostProject)
+    {
+        return Projects.Cast<DefaultProjectSnapshot>().FirstOrDefault(s => s.FilePath == hostProject.FilePath);
+    }
 
-        public DefaultProjectSnapshot GetSnapshot(Project workspaceProject)
-        {
-            return Projects.Cast<DefaultProjectSnapshot>().FirstOrDefault(s => s.FilePath == workspaceProject.FilePath);
-        }
+    public DefaultProjectSnapshot GetSnapshot(Project workspaceProject)
+    {
+        return Projects.Cast<DefaultProjectSnapshot>().FirstOrDefault(s => s.FilePath == workspaceProject.FilePath);
+    }
 
-        protected override void NotifyListeners(ProjectChangeEventArgs e)
+    protected override void NotifyListeners(ProjectChangeEventArgs e)
+    {
+        if (AllowNotifyListeners)
         {
-            if (AllowNotifyListeners)
-            {
-                base.NotifyListeners(e);
-            }
+            base.NotifyListeners(e);
         }
     }
 }

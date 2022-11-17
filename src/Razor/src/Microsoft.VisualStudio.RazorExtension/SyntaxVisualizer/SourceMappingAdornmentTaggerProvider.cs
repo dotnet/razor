@@ -10,44 +10,43 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
+namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer;
+
+[Export(typeof(IViewTaggerProvider))]
+[ContentType(RazorConstants.RazorLSPContentTypeName)]
+[TagType(typeof(IntraTextAdornmentTag))]
+internal sealed class SourceMappingAdornmentTaggerProvider : IViewTaggerProvider
 {
-    [Export(typeof(IViewTaggerProvider))]
-    [ContentType(RazorConstants.RazorLSPContentTypeName)]
-    [TagType(typeof(IntraTextAdornmentTag))]
-    internal sealed class SourceMappingAdornmentTaggerProvider : IViewTaggerProvider
+    private readonly IBufferTagAggregatorFactoryService _bufferTagAggregatorFactoryService;
+    private readonly Lazy<RazorCodeDocumentProvidingSnapshotChangeTrigger> _sourceMappingProjectChangeTrigger;
+
+    [ImportingConstructor]
+    public SourceMappingAdornmentTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, Lazy<RazorCodeDocumentProvidingSnapshotChangeTrigger> sourceMappingProjectChangeTrigger)
     {
-        private readonly IBufferTagAggregatorFactoryService _bufferTagAggregatorFactoryService;
-        private readonly Lazy<RazorCodeDocumentProvidingSnapshotChangeTrigger> _sourceMappingProjectChangeTrigger;
+        _bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
+        _sourceMappingProjectChangeTrigger = sourceMappingProjectChangeTrigger;
+    }
 
-        [ImportingConstructor]
-        public SourceMappingAdornmentTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, Lazy<RazorCodeDocumentProvidingSnapshotChangeTrigger> sourceMappingProjectChangeTrigger)
+    public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+    {
+        if (textView is null)
         {
-            _bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
-            _sourceMappingProjectChangeTrigger = sourceMappingProjectChangeTrigger;
+            throw new ArgumentNullException(nameof(textView));
         }
 
-        public ITagger<T>? CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+        if (buffer is null)
         {
-            if (textView is null)
-            {
-                throw new ArgumentNullException(nameof(textView));
-            }
-
-            if (buffer is null)
-            {
-                throw new ArgumentNullException(nameof(buffer));
-            }
-
-            if (buffer != textView.TextBuffer)
-                return null;
-
-            return SourceMappingAdornmentTagger.GetTagger(
-                (IWpfTextView)textView,
-                new Lazy<ITagAggregator<SourceMappingTag>>(
-                    () => _bufferTagAggregatorFactoryService.CreateTagAggregator<SourceMappingTag>(textView.TextBuffer)),
-                _sourceMappingProjectChangeTrigger)
-                as ITagger<T>;
+            throw new ArgumentNullException(nameof(buffer));
         }
+
+        if (buffer != textView.TextBuffer)
+            return null;
+
+        return SourceMappingAdornmentTagger.GetTagger(
+            (IWpfTextView)textView,
+            new Lazy<ITagAggregator<SourceMappingTag>>(
+                () => _bufferTagAggregatorFactoryService.CreateTagAggregator<SourceMappingTag>(textView.TextBuffer)),
+            _sourceMappingProjectChangeTrigger)
+            as ITagger<T>;
     }
 }

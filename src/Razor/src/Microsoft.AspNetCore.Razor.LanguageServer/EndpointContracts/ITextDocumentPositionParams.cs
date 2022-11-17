@@ -3,12 +3,11 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
-{
-    internal interface ITextDocumentPositionParams
-    {
-        public TextDocumentIdentifier TextDocument { get; set; }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
-        public Position Position { get; set; }
-    }
+internal interface ITextDocumentPositionParams
+{
+    public TextDocumentIdentifier TextDocument { get; set; }
+
+    public Position Position { get; set; }
 }

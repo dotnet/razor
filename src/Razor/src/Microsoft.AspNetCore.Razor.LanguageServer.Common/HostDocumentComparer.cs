@@ -6,44 +6,43 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+
+internal class HostDocumentComparer : IEqualityComparer<HostDocument>
 {
-    internal class HostDocumentComparer : IEqualityComparer<HostDocument>
+    public static readonly HostDocumentComparer Instance = new();
+
+    private HostDocumentComparer()
     {
-        public static readonly HostDocumentComparer Instance = new();
+    }
 
-        private HostDocumentComparer()
+    public bool Equals(HostDocument x, HostDocument y)
+    {
+        if (x.FileKind != y.FileKind)
         {
+            return false;
         }
 
-        public bool Equals(HostDocument x, HostDocument y)
+        if (!FilePathComparer.Instance.Equals(x.FilePath, y.FilePath))
         {
-            if (x.FileKind != y.FileKind)
-            {
-                return false;
-            }
-
-            if (!FilePathComparer.Instance.Equals(x.FilePath, y.FilePath))
-            {
-                return false;
-            }
-
-            if (!FilePathComparer.Instance.Equals(x.TargetPath, y.TargetPath))
-            {
-                return false;
-            }
-
-            return true;
+            return false;
         }
 
-        public int GetHashCode(HostDocument hostDocument)
+        if (!FilePathComparer.Instance.Equals(x.TargetPath, y.TargetPath))
         {
-            var combiner = HashCodeCombiner.Start();
-            combiner.Add(hostDocument.FilePath, FilePathComparer.Instance);
-            combiner.Add(hostDocument.TargetPath, FilePathComparer.Instance);
-            combiner.Add(hostDocument.FileKind);
-
-            return combiner.CombinedHash;
+            return false;
         }
+
+        return true;
+    }
+
+    public int GetHashCode(HostDocument hostDocument)
+    {
+        var combiner = HashCodeCombiner.Start();
+        combiner.Add(hostDocument.FilePath, FilePathComparer.Instance);
+        combiner.Add(hostDocument.TargetPath, FilePathComparer.Instance);
+        combiner.Add(hostDocument.FileKind);
+
+        return combiner.CombinedHash;
     }
 }

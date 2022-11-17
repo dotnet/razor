@@ -9,142 +9,141 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+
+public class DefaultLSPRequestInvokerTest : TestBase
 {
-    public class DefaultLSPRequestInvokerTest : TestBase
+    private readonly FallbackCapabilitiesFilterResolver _capabilitiesResolver;
+
+    public DefaultLSPRequestInvokerTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly FallbackCapabilitiesFilterResolver _capabilitiesResolver;
+        _capabilitiesResolver = new DefaultFallbackCapabilitiesFilterResolver();
+    }
 
-        public DefaultLSPRequestInvokerTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+    [Fact]
+    public async Task ReinvokeRequestOnServerAsync_InvokesRazorLanguageClient()
+    {
+        // Arrange
+        var called = false;
+        var expectedMethod = "razor/test";
+        var broker = new TestLanguageServiceBroker((method) =>
         {
-            _capabilitiesResolver = new DefaultFallbackCapabilitiesFilterResolver();
-        }
+            called = true;
+            Assert.Equal(expectedMethod, method);
+        });
+        var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
 
-        [Fact]
-        public async Task ReinvokeRequestOnServerAsync_InvokesRazorLanguageClient()
+        // Act
+        await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
+            expectedMethod, RazorLSPConstants.RazorLanguageServerName, new object(), DisposalToken);
+
+        // Assert
+        Assert.True(called);
+    }
+
+    [Fact]
+    public async Task ReinvokeRequestOnServerAsync_InvokesHtmlLanguageClient()
+    {
+        // Arrange
+        var called = false;
+        var expectedMethod = "textDocument/test";
+        var broker = new TestLanguageServiceBroker((method) =>
         {
-            // Arrange
-            var called = false;
-            var expectedMethod = "razor/test";
-            var broker = new TestLanguageServiceBroker((method) =>
-            {
-                called = true;
-                Assert.Equal(expectedMethod, method);
-            });
-            var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
+            called = true;
+            Assert.Equal(expectedMethod, method);
+        });
+        var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
 
-            // Act
-            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
-                expectedMethod, RazorLSPConstants.RazorLanguageServerName, new object(), DisposalToken);
+        // Act
+        await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
+            expectedMethod, RazorLSPConstants.HtmlLanguageServerName, new object(), DisposalToken);
 
-            // Assert
-            Assert.True(called);
-        }
+        // Assert
+        Assert.True(called);
+    }
 
-        [Fact]
-        public async Task ReinvokeRequestOnServerAsync_InvokesHtmlLanguageClient()
+    [Fact]
+    public async Task ReinvokeRequestOnServerAsync_InvokesCSharpLanguageClient()
+    {
+        // Arrange
+        var called = false;
+        var expectedMethod = "textDocument/test";
+        var broker = new TestLanguageServiceBroker((method) =>
         {
-            // Arrange
-            var called = false;
-            var expectedMethod = "textDocument/test";
-            var broker = new TestLanguageServiceBroker((method) =>
-            {
-                called = true;
-                Assert.Equal(expectedMethod, method);
-            });
-            var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
+            called = true;
+            Assert.Equal(expectedMethod, method);
+        });
+        var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
 
-            // Act
-            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
-                expectedMethod, RazorLSPConstants.HtmlLanguageServerName, new object(), DisposalToken);
+        // Act
+        await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
+            expectedMethod, RazorLSPConstants.RazorCSharpLanguageServerName, new object(), DisposalToken);
 
-            // Assert
-            Assert.True(called);
-        }
+        // Assert
+        Assert.True(called);
+    }
 
-        [Fact]
-        public async Task ReinvokeRequestOnServerAsync_InvokesCSharpLanguageClient()
+    [Fact]
+    public async Task CustomRequestServerAsync_InvokesRazorLanguageClient()
+    {
+        // Arrange
+        var called = false;
+        var expectedMethod = "razor/test";
+        var broker = new TestLanguageServiceBroker((method) =>
         {
-            // Arrange
-            var called = false;
-            var expectedMethod = "textDocument/test";
-            var broker = new TestLanguageServiceBroker((method) =>
-            {
-                called = true;
-                Assert.Equal(expectedMethod, method);
-            });
-            var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
+            called = true;
+            Assert.Equal(expectedMethod, method);
+        });
+        var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
 
-            // Act
-            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
-                expectedMethod, RazorLSPConstants.RazorCSharpLanguageServerName, new object(), DisposalToken);
+        // Act
+        await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
+            expectedMethod, RazorLSPConstants.RazorLanguageServerName, new object(), DisposalToken);
 
-            // Assert
-            Assert.True(called);
-        }
+        // Assert
+        Assert.True(called);
+    }
 
-        [Fact]
-        public async Task CustomRequestServerAsync_InvokesRazorLanguageClient()
+    [Fact]
+    public async Task CustomRequestServerAsync_InvokesHtmlLanguageClient()
+    {
+        // Arrange
+        var called = false;
+        var expectedMethod = "textDocument/test";
+        var broker = new TestLanguageServiceBroker((method) =>
         {
-            // Arrange
-            var called = false;
-            var expectedMethod = "razor/test";
-            var broker = new TestLanguageServiceBroker((method) =>
-            {
-                called = true;
-                Assert.Equal(expectedMethod, method);
-            });
-            var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
+            called = true;
+            Assert.Equal(expectedMethod, method);
+        });
+        var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
 
-            // Act
-            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
-                expectedMethod, RazorLSPConstants.RazorLanguageServerName, new object(), DisposalToken);
+        // Act
+        await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
+            expectedMethod, RazorLSPConstants.HtmlLanguageServerName, new object(), DisposalToken);
 
-            // Assert
-            Assert.True(called);
-        }
+        // Assert
+        Assert.True(called);
+    }
 
-        [Fact]
-        public async Task CustomRequestServerAsync_InvokesHtmlLanguageClient()
+    [Fact]
+    public async Task CustomRequestServerAsync_InvokesCSharpLanguageClient()
+    {
+        // Arrange
+        var called = false;
+        var expectedMethod = "textDocument/test";
+        var broker = new TestLanguageServiceBroker((method) =>
         {
-            // Arrange
-            var called = false;
-            var expectedMethod = "textDocument/test";
-            var broker = new TestLanguageServiceBroker((method) =>
-            {
-                called = true;
-                Assert.Equal(expectedMethod, method);
-            });
-            var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
+            called = true;
+            Assert.Equal(expectedMethod, method);
+        });
+        var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
 
-            // Act
-            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
-                expectedMethod, RazorLSPConstants.HtmlLanguageServerName, new object(), DisposalToken);
+        // Act
+        await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
+            expectedMethod, RazorLSPConstants.RazorCSharpLanguageServerName, new object(), DisposalToken);
 
-            // Assert
-            Assert.True(called);
-        }
-
-        [Fact]
-        public async Task CustomRequestServerAsync_InvokesCSharpLanguageClient()
-        {
-            // Arrange
-            var called = false;
-            var expectedMethod = "textDocument/test";
-            var broker = new TestLanguageServiceBroker((method) =>
-            {
-                called = true;
-                Assert.Equal(expectedMethod, method);
-            });
-            var requestInvoker = new DefaultLSPRequestInvoker(broker, _capabilitiesResolver);
-
-            // Act
-            await requestInvoker.ReinvokeRequestOnServerAsync<object, object>(
-                expectedMethod, RazorLSPConstants.RazorCSharpLanguageServerName, new object(), DisposalToken);
-
-            // Assert
-            Assert.True(called);
-        }
+        // Assert
+        Assert.True(called);
     }
 }

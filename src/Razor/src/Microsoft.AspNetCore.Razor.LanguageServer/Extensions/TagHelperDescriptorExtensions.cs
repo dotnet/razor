@@ -4,14 +4,13 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+
+internal static class TagHelperDescriptorExtensions
 {
-    internal static class TagHelperDescriptorExtensions
+    public static bool IsAttributeDescriptor(this TagHelperDescriptor d)
     {
-        public static bool IsAttributeDescriptor(this TagHelperDescriptor d)
-        {
-            return d.Metadata.TryGetValue(TagHelperMetadata.Common.ClassifyAttributesOnly, out var value) ||
-                string.Equals(value, bool.TrueString, StringComparison.OrdinalIgnoreCase);
-        }
+        return d.Metadata.TryGetValue(TagHelperMetadata.Common.ClassifyAttributesOnly, out var value) ||
+            string.Equals(value, bool.TrueString, StringComparison.OrdinalIgnoreCase);
     }
 }

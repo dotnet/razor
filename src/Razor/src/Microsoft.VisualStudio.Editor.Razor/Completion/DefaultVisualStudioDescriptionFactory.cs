@@ -8,109 +8,108 @@ using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Text.Adornments;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Completion
+namespace Microsoft.VisualStudio.Editor.Razor.Completion;
+
+[Shared]
+[Export(typeof(VisualStudioDescriptionFactory))]
+internal class DefaultVisualStudioDescriptionFactory : VisualStudioDescriptionFactory
 {
-    [Shared]
-    [Export(typeof(VisualStudioDescriptionFactory))]
-    internal class DefaultVisualStudioDescriptionFactory : VisualStudioDescriptionFactory
+    // Internal for testing
+    internal static readonly ContainerElement SeparatorElement = new(
+        ContainerElementStyle.Wrapped,
+        new ClassifiedTextElement(
+            new ClassifiedTextRun(PredefinedClassificationNames.Comment, "------------")));
+
+    // Hardcoding the Guid here to avoid a reference to Microsoft.VisualStudio.ImageCatalog.dll
+    // that is not present in Visual Studio for Mac
+    private static readonly Guid s_imageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
+    private static readonly ImageElement s_propertyGlyph = new(
+        new ImageId(s_imageCatalogGuid, 2429), // KnownImageIds.Type = 2429
+        "Razor Attribute Glyph");
+    private static readonly ClassifiedTextRun s_spaceLiteral = new(PredefinedClassificationNames.Literal, " ");
+    private static readonly ClassifiedTextRun s_dotLiteral = new(PredefinedClassificationNames.Literal, ".");
+
+    public override ContainerElement CreateClassifiedDescription(AggregateBoundAttributeDescription completionDescription)
     {
-        // Internal for testing
-        internal static readonly ContainerElement SeparatorElement = new(
-            ContainerElementStyle.Wrapped,
-            new ClassifiedTextElement(
-                new ClassifiedTextRun(PredefinedClassificationNames.Comment, "------------")));
-
-        // Hardcoding the Guid here to avoid a reference to Microsoft.VisualStudio.ImageCatalog.dll
-        // that is not present in Visual Studio for Mac
-        private static readonly Guid s_imageCatalogGuid = new("{ae27a6b0-e345-4288-96df-5eaf394ee369}");
-        private static readonly ImageElement s_propertyGlyph = new(
-            new ImageId(s_imageCatalogGuid, 2429), // KnownImageIds.Type = 2429
-            "Razor Attribute Glyph");
-        private static readonly ClassifiedTextRun s_spaceLiteral = new(PredefinedClassificationNames.Literal, " ");
-        private static readonly ClassifiedTextRun s_dotLiteral = new(PredefinedClassificationNames.Literal, ".");
-
-        public override ContainerElement CreateClassifiedDescription(AggregateBoundAttributeDescription completionDescription)
+        if (completionDescription is null)
         {
-            if (completionDescription is null)
+            throw new ArgumentNullException(nameof(completionDescription));
+        }
+
+        var descriptionElements = new List<object>();
+        foreach (var descriptionInfo in completionDescription.DescriptionInfos)
+        {
+            if (descriptionElements.Count > 0)
             {
-                throw new ArgumentNullException(nameof(completionDescription));
+                descriptionElements.Add(SeparatorElement);
             }
 
-            var descriptionElements = new List<object>();
-            foreach (var descriptionInfo in completionDescription.DescriptionInfos)
+            var returnTypeClassification = PredefinedClassificationNames.Type;
+            if (TypeNameStringResolver.TryGetSimpleName(descriptionInfo.ReturnTypeName, out var returnTypeName))
             {
-                if (descriptionElements.Count > 0)
-                {
-                    descriptionElements.Add(SeparatorElement);
-                }
+                returnTypeClassification = PredefinedClassificationNames.Keyword;
+            }
+            else
+            {
+                returnTypeName = descriptionInfo.ReturnTypeName;
+            }
 
-                var returnTypeClassification = PredefinedClassificationNames.Type;
-                if (TypeNameStringResolver.TryGetSimpleName(descriptionInfo.ReturnTypeName, out var returnTypeName))
-                {
-                    returnTypeClassification = PredefinedClassificationNames.Keyword;
-                }
-                else
-                {
-                    returnTypeName = descriptionInfo.ReturnTypeName;
-                }
+            var tagHelperTypeName = descriptionInfo.TypeName;
+            var tagHelperTypeNamePrefix = string.Empty;
+            var tagHelperTypeNameProper = tagHelperTypeName;
 
-                var tagHelperTypeName = descriptionInfo.TypeName;
-                var tagHelperTypeNamePrefix = string.Empty;
-                var tagHelperTypeNameProper = tagHelperTypeName;
+            var lastDot = tagHelperTypeName.LastIndexOf('.');
+            if (lastDot > 0)
+            {
+                var afterLastDot = lastDot + 1;
 
-                var lastDot = tagHelperTypeName.LastIndexOf('.');
-                if (lastDot > 0)
-                {
-                    var afterLastDot = lastDot + 1;
+                // We're pulling apart the type name so the prefix looks like:
+                //
+                // Microsoft.AspnetCore.Components.
+                tagHelperTypeNamePrefix = tagHelperTypeName.Substring(0, afterLastDot);
 
-                    // We're pulling apart the type name so the prefix looks like:
-                    //
-                    // Microsoft.AspnetCore.Components.
-                    tagHelperTypeNamePrefix = tagHelperTypeName.Substring(0, afterLastDot);
+                // And the type name looks like BindBinds
+                tagHelperTypeNameProper = tagHelperTypeName.Substring(afterLastDot);
+            }
 
-                    // And the type name looks like BindBinds
-                    tagHelperTypeNameProper = tagHelperTypeName.Substring(afterLastDot);
-                }
+            descriptionElements.Add(
+                new ContainerElement(
+                    ContainerElementStyle.Wrapped,
+                    s_propertyGlyph,
+                    new ClassifiedTextElement(
+                        new ClassifiedTextRun(returnTypeClassification, returnTypeName),
+                        s_spaceLiteral,
+                        new ClassifiedTextRun(PredefinedClassificationNames.Literal, tagHelperTypeNamePrefix),
+                        new ClassifiedTextRun(PredefinedClassificationNames.Type, tagHelperTypeNameProper),
+                        s_dotLiteral,
+                        new ClassifiedTextRun(PredefinedClassificationNames.Identifier, descriptionInfo.PropertyName))));
 
+            if (descriptionInfo.Documentation != null)
+            {
                 descriptionElements.Add(
                     new ContainerElement(
                         ContainerElementStyle.Wrapped,
-                        s_propertyGlyph,
                         new ClassifiedTextElement(
-                            new ClassifiedTextRun(returnTypeClassification, returnTypeName),
-                            s_spaceLiteral,
-                            new ClassifiedTextRun(PredefinedClassificationNames.Literal, tagHelperTypeNamePrefix),
-                            new ClassifiedTextRun(PredefinedClassificationNames.Type, tagHelperTypeNameProper),
-                            s_dotLiteral,
-                            new ClassifiedTextRun(PredefinedClassificationNames.Identifier, descriptionInfo.PropertyName))));
-
-                if (descriptionInfo.Documentation != null)
-                {
-                    descriptionElements.Add(
-                        new ContainerElement(
-                            ContainerElementStyle.Wrapped,
-                            new ClassifiedTextElement(
-                                new ClassifiedTextRun(PredefinedClassificationNames.NaturalLanguage, descriptionInfo.Documentation))));
-                }
+                            new ClassifiedTextRun(PredefinedClassificationNames.NaturalLanguage, descriptionInfo.Documentation))));
             }
-
-            var descriptionContainer = new ContainerElement(ContainerElementStyle.Stacked, descriptionElements);
-            return descriptionContainer;
         }
 
-        private static class PredefinedClassificationNames
-        {
-            public const string Keyword = "keyword";
+        var descriptionContainer = new ContainerElement(ContainerElementStyle.Stacked, descriptionElements);
+        return descriptionContainer;
+    }
 
-            public const string Literal = "literal";
+    private static class PredefinedClassificationNames
+    {
+        public const string Keyword = "keyword";
 
-            public const string Type = "Type";
+        public const string Literal = "literal";
 
-            public const string Identifier = "identifier";
+        public const string Type = "Type";
 
-            public const string Comment = "comment";
+        public const string Identifier = "identifier";
 
-            public const string NaturalLanguage = "natural language";
-        }
+        public const string Comment = "comment";
+
+        public const string NaturalLanguage = "natural language";
     }
 }

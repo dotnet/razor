@@ -13,79 +13,78 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+internal abstract class DocumentExcerptServiceBase : IRazorDocumentExcerptServiceImplementation
 {
-    internal abstract class DocumentExcerptServiceBase : IRazorDocumentExcerptServiceImplementation
+    public async Task<RazorExcerptResult?> TryExcerptAsync(
+                    Document document,
+                    TextSpan span,
+                    RazorExcerptMode mode,
+                    RazorClassificationOptionsWrapper options,
+                    CancellationToken cancellationToken)
     {
-        public async Task<RazorExcerptResult?> TryExcerptAsync(
-                        Document document,
-                        TextSpan span,
-                        RazorExcerptMode mode,
-                        RazorClassificationOptionsWrapper options,
-                        CancellationToken cancellationToken)
+        var result = await TryGetExcerptInternalAsync(document, span, (ExcerptModeInternal)mode, options, cancellationToken).ConfigureAwait(false);
+        return result?.ToExcerptResult();
+    }
+
+    internal abstract Task<ExcerptResultInternal?> TryGetExcerptInternalAsync(
+            Document document,
+            TextSpan span,
+            ExcerptModeInternal mode,
+            RazorClassificationOptionsWrapper options,
+            CancellationToken cancellationToken);
+
+    protected static TextSpan ChooseExcerptSpan(SourceText text, TextSpan span, ExcerptModeInternal mode)
+    {
+        var startLine = text.Lines.GetLineFromPosition(span.Start);
+        var endLine = text.Lines.GetLineFromPosition(span.End);
+
+        if (mode == ExcerptModeInternal.Tooltip)
         {
-            var result = await TryGetExcerptInternalAsync(document, span, (ExcerptModeInternal)mode, options, cancellationToken).ConfigureAwait(false);
-            return result?.ToExcerptResult();
+            // Expand the range by 3 in each direction (if possible).
+            var startIndex = Math.Max(startLine.LineNumber - 3, 0);
+            startLine = text.Lines[startIndex];
+
+            var endIndex = Math.Min(endLine.LineNumber + 3, text.Lines.Count - 1);
+            endLine = text.Lines[endIndex];
+            return CreateTextSpan(startLine, endLine);
+        }
+        else
+        {
+            // Trim leading whitespace in a single line excerpt
+            var excerptSpan = CreateTextSpan(startLine, endLine);
+            var trimmedExcerptSpan = excerptSpan.TrimLeadingWhitespace(text);
+            return trimmedExcerptSpan;
         }
 
-        internal abstract Task<ExcerptResultInternal?> TryGetExcerptInternalAsync(
-                Document document,
-                TextSpan span,
-                ExcerptModeInternal mode,
-                RazorClassificationOptionsWrapper options,
-                CancellationToken cancellationToken);
-
-        protected static TextSpan ChooseExcerptSpan(SourceText text, TextSpan span, ExcerptModeInternal mode)
+        static TextSpan CreateTextSpan(TextLine startLine, TextLine endLine)
         {
-            var startLine = text.Lines.GetLineFromPosition(span.Start);
-            var endLine = text.Lines.GetLineFromPosition(span.End);
+            return new TextSpan(startLine.Start, endLine.End - startLine.Start);
+        }
+    }
 
-            if (mode == ExcerptModeInternal.Tooltip)
-            {
-                // Expand the range by 3 in each direction (if possible).
-                var startIndex = Math.Max(startLine.LineNumber - 3, 0);
-                startLine = text.Lines[startIndex];
+    protected static SourceText GetTranslatedExcerptText(
+        SourceText razorDocumentText,
+        ref TextSpan razorDocumentSpan,
+        ref TextSpan excerptSpan,
+        ImmutableArray<ClassifiedSpan>.Builder classifiedSpans)
+    {
+        // Now translate everything to be relative to the excerpt
+        var offset = 0 - excerptSpan.Start;
+        var excerptText = razorDocumentText.GetSubText(excerptSpan);
+        excerptSpan = new TextSpan(0, excerptSpan.Length);
+        razorDocumentSpan = new TextSpan(razorDocumentSpan.Start + offset, razorDocumentSpan.Length);
 
-                var endIndex = Math.Min(endLine.LineNumber + 3, text.Lines.Count - 1);
-                endLine = text.Lines[endIndex];
-                return CreateTextSpan(startLine, endLine);
-            }
-            else
-            {
-                // Trim leading whitespace in a single line excerpt
-                var excerptSpan = CreateTextSpan(startLine, endLine);
-                var trimmedExcerptSpan = excerptSpan.TrimLeadingWhitespace(text);
-                return trimmedExcerptSpan;
-            }
+        for (var i = 0; i < classifiedSpans.Count; i++)
+        {
+            var classifiedSpan = classifiedSpans[i];
+            var updated = new TextSpan(classifiedSpan.TextSpan.Start + offset, classifiedSpan.TextSpan.Length);
+            Debug.Assert(excerptSpan.Contains(updated));
 
-            static TextSpan CreateTextSpan(TextLine startLine, TextLine endLine)
-            {
-                return new TextSpan(startLine.Start, endLine.End - startLine.Start);
-            }
+            classifiedSpans[i] = new ClassifiedSpan(classifiedSpan.ClassificationType, updated);
         }
 
-        protected static SourceText GetTranslatedExcerptText(
-            SourceText razorDocumentText,
-            ref TextSpan razorDocumentSpan,
-            ref TextSpan excerptSpan,
-            ImmutableArray<ClassifiedSpan>.Builder classifiedSpans)
-        {
-            // Now translate everything to be relative to the excerpt
-            var offset = 0 - excerptSpan.Start;
-            var excerptText = razorDocumentText.GetSubText(excerptSpan);
-            excerptSpan = new TextSpan(0, excerptSpan.Length);
-            razorDocumentSpan = new TextSpan(razorDocumentSpan.Start + offset, razorDocumentSpan.Length);
-
-            for (var i = 0; i < classifiedSpans.Count; i++)
-            {
-                var classifiedSpan = classifiedSpans[i];
-                var updated = new TextSpan(classifiedSpan.TextSpan.Start + offset, classifiedSpan.TextSpan.Length);
-                Debug.Assert(excerptSpan.Contains(updated));
-
-                classifiedSpans[i] = new ClassifiedSpan(classifiedSpan.ClassificationType, updated);
-            }
-
-            return excerptText;
-        }
+        return excerptText;
     }
 }

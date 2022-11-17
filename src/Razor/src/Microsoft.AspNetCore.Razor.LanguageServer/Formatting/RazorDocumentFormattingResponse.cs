@@ -3,10 +3,9 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
+internal class RazorDocumentFormattingResponse
 {
-    internal class RazorDocumentFormattingResponse
-    {
-        public TextEdit[]? Edits { get; set; }
-    }
+    public TextEdit[]? Edits { get; set; }
 }

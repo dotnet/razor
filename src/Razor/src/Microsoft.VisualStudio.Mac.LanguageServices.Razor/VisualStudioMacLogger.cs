@@ -6,26 +6,25 @@ using Microsoft.CodeAnalysis.Razor;
 using MonoDevelop.Core;
 using MonoDevelop.Core.Logging;
 
-namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
+namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor;
+
+[Export(typeof(RazorLogger))]
+internal class VisualStudioMacLogger : RazorLogger
 {
-    [Export(typeof(RazorLogger))]
-    internal class VisualStudioMacLogger : RazorLogger
+    public override void LogError(string message)
     {
-        public override void LogError(string message)
-        {
-            LoggingService.LogError(
-                Resources.RazorLanguageServiceGeneralError,
-                message);
-        }
+        LoggingService.LogError(
+            Resources.RazorLanguageServiceGeneralError,
+            message);
+    }
 
-        public override void LogVerbose(string message)
-        {
-            LoggingService.Log(LogLevel.Debug, message);
-        }
+    public override void LogVerbose(string message)
+    {
+        LoggingService.Log(LogLevel.Debug, message);
+    }
 
-        public override void LogWarning(string message)
-        {
-            LoggingService.LogWarning(message);
-        }
+    public override void LogWarning(string message)
+    {
+        LoggingService.LogWarning(message);
     }
 }

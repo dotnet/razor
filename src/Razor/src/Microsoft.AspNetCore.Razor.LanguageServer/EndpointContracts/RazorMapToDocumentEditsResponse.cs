@@ -4,15 +4,14 @@
 using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
-{
-    [DataContract]
-    internal class RazorMapToDocumentEditsResponse
-    {
-        [DataMember(Name = "textEdits")]
-        public required TextEdit[] TextEdits { get; init; }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
-        [DataMember(Name = "hostDocumentVersion")]
-        public int? HostDocumentVersion { get; init; }
-    }
+[DataContract]
+internal class RazorMapToDocumentEditsResponse
+{
+    [DataMember(Name = "textEdits")]
+    public required TextEdit[] TextEdits { get; init; }
+
+    [DataMember(Name = "hostDocumentVersion")]
+    public int? HostDocumentVersion { get; init; }
 }

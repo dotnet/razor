@@ -11,75 +11,74 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.ServiceHub.Framework;
 
-namespace Microsoft.CodeAnalysis.Remote.Razor
-{
-    internal abstract class RazorServiceBase : IDisposable
-    {
-        protected readonly ServiceBrokerClient ServiceBrokerClient;
+namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-        public RazorServiceBase(IServiceBroker serviceBroker, ITelemetryReporter telemetryReporter)
-        {
-            RazorServices = new RazorServices(telemetryReporter);
+internal abstract class RazorServiceBase : IDisposable
+{
+    protected readonly ServiceBrokerClient ServiceBrokerClient;
+
+    public RazorServiceBase(IServiceBroker serviceBroker, ITelemetryReporter telemetryReporter)
+    {
+        RazorServices = new RazorServices(telemetryReporter);
 
 #pragma warning disable VSTHRD012 // Provide JoinableTaskFactory where allowed
-            ServiceBrokerClient = new ServiceBrokerClient(serviceBroker);
+        ServiceBrokerClient = new ServiceBrokerClient(serviceBroker);
 #pragma warning restore
+    }
+
+    protected RazorServices RazorServices { get; }
+
+    public void Dispose()
+    {
+        ServiceBrokerClient.Dispose();
+    }
+
+    protected virtual Task<ProjectSnapshot> GetProjectSnapshotAsync(ProjectSnapshotHandle projectHandle, CancellationToken cancellationToken)
+    {
+        if (projectHandle is null)
+        {
+            throw new ArgumentNullException(nameof(projectHandle));
         }
 
-        protected RazorServices RazorServices { get; }
+        var snapshot = new SerializedProjectSnapshot(projectHandle.FilePath, projectHandle.Configuration, projectHandle.RootNamespace);
+        return Task.FromResult<ProjectSnapshot>(snapshot);
+    }
 
-        public void Dispose()
+    private class SerializedProjectSnapshot : ProjectSnapshot
+    {
+        public SerializedProjectSnapshot(string filePath, RazorConfiguration? configuration, string? rootNamespace)
         {
-            ServiceBrokerClient.Dispose();
+            FilePath = filePath;
+            Configuration = configuration;
+            RootNamespace = rootNamespace;
+
+            Version = VersionStamp.Default;
         }
 
-        protected virtual Task<ProjectSnapshot> GetProjectSnapshotAsync(ProjectSnapshotHandle projectHandle, CancellationToken cancellationToken)
+        public override RazorConfiguration? Configuration { get; }
+
+        public override IEnumerable<string> DocumentFilePaths => Array.Empty<string>();
+
+        public override string FilePath { get; }
+
+        public override string? RootNamespace { get; }
+
+        public override VersionStamp Version { get; }
+
+        public override DocumentSnapshot? GetDocument(string filePath)
         {
-            if (projectHandle is null)
+            if (filePath is null)
             {
-                throw new ArgumentNullException(nameof(projectHandle));
+                throw new ArgumentNullException(nameof(filePath));
             }
 
-            var snapshot = new SerializedProjectSnapshot(projectHandle.FilePath, projectHandle.Configuration, projectHandle.RootNamespace);
-            return Task.FromResult<ProjectSnapshot>(snapshot);
+            return null;
         }
 
-        private class SerializedProjectSnapshot : ProjectSnapshot
-        {
-            public SerializedProjectSnapshot(string filePath, RazorConfiguration? configuration, string? rootNamespace)
-            {
-                FilePath = filePath;
-                Configuration = configuration;
-                RootNamespace = rootNamespace;
+        public override bool IsImportDocument(DocumentSnapshot document) => throw new NotImplementedException();
 
-                Version = VersionStamp.Default;
-            }
+        public override IEnumerable<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document) => throw new NotImplementedException();
 
-            public override RazorConfiguration? Configuration { get; }
-
-            public override IEnumerable<string> DocumentFilePaths => Array.Empty<string>();
-
-            public override string FilePath { get; }
-
-            public override string? RootNamespace { get; }
-
-            public override VersionStamp Version { get; }
-
-            public override DocumentSnapshot? GetDocument(string filePath)
-            {
-                if (filePath is null)
-                {
-                    throw new ArgumentNullException(nameof(filePath));
-                }
-
-                return null;
-            }
-
-            public override bool IsImportDocument(DocumentSnapshot document) => throw new NotImplementedException();
-
-            public override IEnumerable<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document) => throw new NotImplementedException();
-
-            public override RazorProjectEngine GetProjectEngine() => throw new NotImplementedException();
-        }
+        public override RazorProjectEngine GetProjectEngine() => throw new NotImplementedException();
     }
 }

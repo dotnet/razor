@@ -3,16 +3,15 @@
 
 using System.Diagnostics;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+
+internal abstract class LogHubLogWriter
 {
-    internal abstract class LogHubLogWriter
-    {
-        public abstract TraceSource GetTraceSource();
+    public abstract TraceSource GetTraceSource();
 
-        public abstract void TraceInformation(string format, params object[] args);
+    public abstract void TraceInformation(string format, params object[] args);
 
-        public abstract void TraceWarning(string format, params object[] args);
+    public abstract void TraceWarning(string format, params object[] args);
 
-        public abstract void TraceError(string format, params object[] args);
-    }
+    public abstract void TraceError(string format, params object[] args);
 }

@@ -8,20 +8,20 @@ using Microsoft.AspNetCore.Razor.Language;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
-{
-    public class RazorFormattingTest : FormattingTestBase
-    {
-        public RazorFormattingTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-        [Fact]
-        public async Task CodeBlock_SpansMultipleLines()
-        {
-            await RunFormattingTestAsync(
-                input: """
+public class RazorFormattingTest : FormattingTestBase
+{
+    public RazorFormattingTest(ITestOutputHelper testOutput)
+        : base(testOutput)
+    {
+    }
+
+    [Fact]
+    public async Task CodeBlock_SpansMultipleLines()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @code
                             {
                         private int currentCount = 0;
@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @code
                     {
                         private int currentCount = 0;
@@ -43,13 +43,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task CodeBlock_IndentedBlock_MaintainsIndent()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CodeBlock_IndentedBlock_MaintainsIndent()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     <boo>
                         @code
                                 {
@@ -62,7 +62,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     </boo>
                     """,
-                expected: """
+            expected: """
                     <boo>
                         @code
                         {
@@ -75,13 +75,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     </boo>
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task CodeBlock_IndentedBlock_FixCloseBrace()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CodeBlock_IndentedBlock_FixCloseBrace()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     <boo>
                         @code
                                 {
@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                                             }
                     </boo>
                     """,
-                expected: """
+            expected: """
                     <boo>
                         @code
                         {
@@ -107,13 +107,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     </boo>
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task CodeBlock_IndentedBlock_FixCloseBrace2()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CodeBlock_IndentedBlock_FixCloseBrace2()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     <boo>
                     @code
                             {
@@ -126,7 +126,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     }
                     </boo>
                     """,
-                expected: """
+            expected: """
                     <boo>
                         @code
                         {
@@ -139,13 +139,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     </boo>
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task CodeBlock_FixCloseBrace()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CodeBlock_FixCloseBrace()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @code        {
                         private int currentCount = 0;
 
@@ -155,7 +155,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                         }
                     """,
-                expected: """
+            expected: """
                     @code {
                         private int currentCount = 0;
 
@@ -165,13 +165,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task CodeBlock_FixCloseBrace2()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CodeBlock_FixCloseBrace2()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @code        {
                         private int currentCount = 0;
 
@@ -180,7 +180,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                             currentCount++;
                         }                        }
                     """,
-                expected: """
+            expected: """
                     @code {
                         private int currentCount = 0;
 
@@ -190,13 +190,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task CodeBlock_TooMuchWhitespace()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CodeBlock_TooMuchWhitespace()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @code        {
                         private int currentCount = 0;
 
@@ -206,7 +206,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         private int currentCount = 0;
 
@@ -216,13 +216,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task CodeBlock_NonSpaceWhitespace()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CodeBlock_NonSpaceWhitespace()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @code	{
                         private int currentCount = 0;
 
@@ -232,7 +232,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         private int currentCount = 0;
 
@@ -242,13 +242,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task CodeBlock_NoWhitespace()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CodeBlock_NoWhitespace()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @code{
                         private int currentCount = 0;
 
@@ -258,7 +258,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         private int currentCount = 0;
 
@@ -268,13 +268,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task FunctionsBlock_BraceOnNewLine()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FunctionsBlock_BraceOnNewLine()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @functions
                             {
                         private int currentCount = 0;
@@ -285,7 +285,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @functions
                     {
                         private int currentCount = 0;
@@ -296,14 +296,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                fileKind: FileKinds.Legacy);
-        }
+            fileKind: FileKinds.Legacy);
+    }
 
-        [Fact]
-        public async Task FunctionsBlock_TooManySpaces()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FunctionsBlock_TooManySpaces()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @functions        {
                         private int currentCount = 0;
 
@@ -313,7 +313,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @functions {
                         private int currentCount = 0;
 
@@ -323,14 +323,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                fileKind: FileKinds.Legacy);
-        }
+            fileKind: FileKinds.Legacy);
+    }
 
-        [Fact]
-        public async Task FunctionsBlock_FixCloseBrace()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FunctionsBlock_FixCloseBrace()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @functions        {
                         private int currentCount = 0;
 
@@ -340,7 +340,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                              }
                     """,
-                expected: """
+            expected: """
                     @functions {
                         private int currentCount = 0;
 
@@ -350,14 +350,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                fileKind: FileKinds.Legacy);
-        }
+            fileKind: FileKinds.Legacy);
+    }
 
-        [Fact]
-        public async Task FunctionsBlock_FixCloseBrace2()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FunctionsBlock_FixCloseBrace2()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @functions        {
                         private int currentCount = 0;
 
@@ -366,7 +366,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                             currentCount++;
                         }                             }
                     """,
-                expected: """
+            expected: """
                     @functions {
                         private int currentCount = 0;
 
@@ -376,14 +376,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                fileKind: FileKinds.Legacy);
-        }
+            fileKind: FileKinds.Legacy);
+    }
 
-        [Fact]
-        public async Task FunctionsBlock_Tabs_FixCloseBrace()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task FunctionsBlock_Tabs_FixCloseBrace()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @functions        {
                     	private int currentCount = 0;
 
@@ -393,7 +393,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     	}
                     				}
                     """,
-                expected: """
+            expected: """
                     @functions {
                     	private int currentCount = 0;
 
@@ -403,177 +403,176 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     	}
                     }
                     """,
-                insertSpaces: false,
-                tabSize: 8,
-                fileKind: FileKinds.Legacy);
-        }
+            insertSpaces: false,
+            tabSize: 8,
+            fileKind: FileKinds.Legacy);
+    }
 
-        [Fact]
-        public async Task Layout()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task Layout()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @layout    MyLayout
                     """,
-                expected: """
+            expected: """
                     @layout MyLayout
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task Inherits()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task Inherits()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @inherits    MyBaseClass
                     """,
-                expected: """
+            expected: """
                     @inherits MyBaseClass
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task Implements()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task Implements()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @implements    IDisposable
                     """,
-                expected: """
+            expected: """
                     @implements IDisposable
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task PreserveWhitespace()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task PreserveWhitespace()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @preservewhitespace    true
                     """,
-                expected: """
+            expected: """
                     @preservewhitespace true
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task Inject()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task Inject()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @inject    MyClass     myClass
                     """,
-                expected: """
+            expected: """
                     @inject MyClass myClass
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task Inject_TrailingWhitespace()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task Inject_TrailingWhitespace()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @inject    MyClass     myClass
                     """,
-                expected: """
+            expected: """
                     @inject MyClass myClass
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task Attribute()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task Attribute()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @attribute     [Obsolete(   "asdf"   , error:    false)]
                     """,
-                expected: """
+            expected: """
                     @attribute [Obsolete("asdf", error: false)]
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task Model()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task Model()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @model    MyModel
                     """,
-                expected: """
+            expected: """
                     @model MyModel
                     """,
-                fileKind: FileKinds.Legacy);
-        }
+            fileKind: FileKinds.Legacy);
+    }
 
-        [Fact]
-        public async Task Page()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task Page()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @page    "MyPage"
                     """,
-                expected: """
+            expected: """
                     @page "MyPage"
                     """,
-                fileKind: FileKinds.Legacy);
-        }
+            fileKind: FileKinds.Legacy);
+    }
 
-        // Regression prevention tests:
-        [Fact]
-        public async Task Using()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    // Regression prevention tests:
+    [Fact]
+    public async Task Using()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @using   System;
                     """,
-                expected: """
+            expected: """
                     @using System;
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task UsingStatic()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task UsingStatic()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @using  static   System.Math;
                     """,
-                expected: """
+            expected: """
                     @using static System.Math;
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task UsingAlias()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task UsingAlias()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @using  M   =    System.Math;
                     """,
-                expected: """
+            expected: """
                     @using M = System.Math;
                     """);
-        }
+    }
 
-        [Fact]
-        public async Task TagHelpers()
-        {
-            await RunFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task TagHelpers()
+    {
+        await RunFormattingTestAsync(
+            input: """
                     @addTagHelper    *,    Microsoft.AspNetCore.Mvc.TagHelpers
                     @removeTagHelper    *,     Microsoft.AspNetCore.Mvc.TagHelpers
                     @addTagHelper    "*,  Microsoft.AspNetCore.Mvc.TagHelpers"
                     @removeTagHelper    "*,  Microsoft.AspNetCore.Mvc.TagHelpers"
                     @tagHelperPrefix    th:
                     """,
-                expected: """
+            expected: """
                     @addTagHelper    *,    Microsoft.AspNetCore.Mvc.TagHelpers
                     @removeTagHelper    *,     Microsoft.AspNetCore.Mvc.TagHelpers
                     @addTagHelper    "*,  Microsoft.AspNetCore.Mvc.TagHelpers"
                     @removeTagHelper    "*,  Microsoft.AspNetCore.Mvc.TagHelpers"
                     @tagHelperPrefix    th:
                     """,
-                fileKind: FileKinds.Legacy);
-        }
+            fileKind: FileKinds.Legacy);
     }
 }

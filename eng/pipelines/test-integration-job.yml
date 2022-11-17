@@ -30,6 +30,7 @@ steps:
       -build
       -pack
       -publish
+      /p:BuildDependencyVsix=false
     name: Build
     displayName: Build
     condition: succeeded()
@@ -44,11 +45,14 @@ steps:
         artifactType: Container
         parallel: true
 
+  # We want to build the VSIX but NOT the ".Dependencies" package.
+  # This way we get as close to a real deployment as possible in VSMain.
   - script: eng\cibuild.cmd
       -configuration ${{ parameters.configuration }}
       -msbuildEngine vs
       -prepareMachine
       /p:BuildVsix=true
+      /p:BuildDependencyVsix=false
       /p:BuildProjectReferences=false
     name: BuildVSIX
     displayName: Build and Deploy VSIX
@@ -69,6 +73,7 @@ steps:
       -msbuildEngine vs
       -prepareMachine
       -integrationTest
+      /p:BuildDependencyVsix=false
       /p:BuildProjectReferences=false
     name: RunIntegrationTests
     displayName: Run Integration Tests

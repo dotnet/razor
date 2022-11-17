@@ -9,7 +9,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using Microsoft.AspNetCore.Razor.Common;
 
 namespace System;
 
@@ -94,6 +93,15 @@ internal readonly struct Range : IEquatable<Range>
     [DoesNotReturn]
     private static void ThrowArgumentOutOfRange(string? paramName)
         => throw new ArgumentOutOfRangeException(paramName);
+
+    private static class Hash
+    {
+        public static int Combine(int newKey, int currentKey)
+            => unchecked((currentKey * (int)0xA5555529) + newKey);
+
+        public static int Combine(bool newKeyPart, int currentKey)
+            => Combine(currentKey, newKeyPart ? 1 : 0);
+    }
 }
 
 #endif

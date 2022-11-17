@@ -105,7 +105,7 @@ public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
     public override int GetHashCode()
     {
         // TagHelperDescriptors are immutable instances and it should be safe to cache it's hashes once.
-        return _hashCode ??= TagHelperDescriptorComparer.Default.GetHashCode(this);;
+        return _hashCode ??= TagHelperDescriptorComparer.Default.GetHashCode(this);
     }
 
     private static BoundAttributeDescriptor[] GetEditorRequiredAttributes(IReadOnlyList<BoundAttributeDescriptor> boundAttributeDescriptors)

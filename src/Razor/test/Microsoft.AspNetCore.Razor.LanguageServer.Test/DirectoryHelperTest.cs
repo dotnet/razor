@@ -12,109 +12,108 @@ using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.LanguageServer.DirectoryHelper;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
+
+public class DirectoryHelperTest : TagHelperServiceTestBase
 {
-    public class DirectoryHelperTest : TagHelperServiceTestBase
+    public DirectoryHelperTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        public DirectoryHelperTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+    }
 
-        [Fact]
-        public void GetFilteredFiles_FindsFiles()
-        {
-            // Arrange
-            var firstProjectRazorJson = @"HigherDirectory\project.razor.json";
-            var secondProjectRazorJson = @"HigherDirectory\RealDirectory\project.razor.json";
+    [Fact]
+    public void GetFilteredFiles_FindsFiles()
+    {
+        // Arrange
+        var firstProjectRazorJson = @"HigherDirectory\project.razor.json";
+        var secondProjectRazorJson = @"HigherDirectory\RealDirectory\project.razor.json";
 
-            var workspaceDirectory = Path.Combine("LowerDirectory");
-            var searchPattern = "project.razor.json";
-            var ignoredDirectories = new[] { "node_modules" };
-            var fileResults = new Dictionary<string, IEnumerable<string>>() {
-                { "HigherDirectory", new []{ firstProjectRazorJson } },
-                { "RealDirectory", new []{ secondProjectRazorJson } },
-                { "LongDirectory", new[]{ "LONGPATH", "LONGPATH\\project.razor.json"} },
-                { "node_modules", null },
-            };
-            var directoryResults = new Dictionary<string, IEnumerable<string>>() {
-                { "LowerDirectory", new[]{ "HigherDirectory" } },
-                { "HigherDirectory", new[]{ "node_modules", "RealDirectory", "FakeDirectory", "LongDirectory" } },
-                { "node_modules", null },
-            };
+        var workspaceDirectory = Path.Combine("LowerDirectory");
+        var searchPattern = "project.razor.json";
+        var ignoredDirectories = new[] { "node_modules" };
+        var fileResults = new Dictionary<string, IEnumerable<string>>() {
+            { "HigherDirectory", new []{ firstProjectRazorJson } },
+            { "RealDirectory", new []{ secondProjectRazorJson } },
+            { "LongDirectory", new[]{ "LONGPATH", "LONGPATH\\project.razor.json"} },
+            { "node_modules", null },
+        };
+        var directoryResults = new Dictionary<string, IEnumerable<string>>() {
+            { "LowerDirectory", new[]{ "HigherDirectory" } },
+            { "HigherDirectory", new[]{ "node_modules", "RealDirectory", "FakeDirectory", "LongDirectory" } },
+            { "node_modules", null },
+        };
 
 #pragma warning disable CS0612 // Type or member is obsolete
-            var fileSystem = new TestFileSystem(fileResults, directoryResults);
+        var fileSystem = new TestFileSystem(fileResults, directoryResults);
 #pragma warning restore CS0612 // Type or member is obsolete
 
-            // Act
-            var files = DirectoryHelper.GetFilteredFiles(workspaceDirectory, searchPattern, ignoredDirectories, fileSystem);
+        // Act
+        var files = DirectoryHelper.GetFilteredFiles(workspaceDirectory, searchPattern, ignoredDirectories, fileSystem);
 
-            // Assert
-            Assert.Collection(files,
-                result => result.Equals(firstProjectRazorJson),
-                result => result.Equals(secondProjectRazorJson)
-            );
+        // Assert
+        Assert.Collection(files,
+            result => result.Equals(firstProjectRazorJson),
+            result => result.Equals(secondProjectRazorJson)
+        );
+    }
+
+    [Obsolete]
+    private class TestFileSystem : IFileSystem
+    {
+        private readonly IDictionary<string, IEnumerable<string>> _fileResults;
+        private readonly IDictionary<string, IEnumerable<string>> _directoryResults;
+
+        public TestFileSystem(
+            IDictionary<string, IEnumerable<string>> fileResults,
+            IDictionary<string, IEnumerable<string>> directoryResults)
+        {
+            _fileResults = fileResults;
+            _directoryResults = directoryResults;
         }
 
-        [Obsolete]
-        private class TestFileSystem : IFileSystem
+        public IEnumerable<string> GetDirectories(string workspaceDirectory)
         {
-            private readonly IDictionary<string, IEnumerable<string>> _fileResults;
-            private readonly IDictionary<string, IEnumerable<string>> _directoryResults;
-
-            public TestFileSystem(
-                IDictionary<string, IEnumerable<string>> fileResults,
-                IDictionary<string, IEnumerable<string>> directoryResults)
+            var success = _directoryResults.TryGetValue(workspaceDirectory, out var results);
+            if (success)
             {
-                _fileResults = fileResults;
-                _directoryResults = directoryResults;
+                if (results is null)
+                {
+                    Assert.True(false, "Tried to walk a directory which should have been ignored");
+                }
+
+                if (results.Any(s => s.Equals("LONGPATH")))
+                {
+                    throw new PathTooLongException();
+                }
+
+                return results;
             }
-
-            public IEnumerable<string> GetDirectories(string workspaceDirectory)
+            else
             {
-                var success = _directoryResults.TryGetValue(workspaceDirectory, out var results);
-                if (success)
-                {
-                    if (results is null)
-                    {
-                        Assert.True(false, "Tried to walk a directory which should have been ignored");
-                    }
-
-                    if (results.Any(s => s.Equals("LONGPATH")))
-                    {
-                        throw new PathTooLongException();
-                    }
-
-                    return results;
-                }
-                else
-                {
-                    throw new DirectoryNotFoundException();
-                }
+                throw new DirectoryNotFoundException();
             }
+        }
 
-            public IEnumerable<string> GetFiles(string workspaceDirectory, string searchPattern, SearchOption searchOption)
+        public IEnumerable<string> GetFiles(string workspaceDirectory, string searchPattern, SearchOption searchOption)
+        {
+            var success = _fileResults.TryGetValue(workspaceDirectory, out var results);
+            if (success)
             {
-                var success = _fileResults.TryGetValue(workspaceDirectory, out var results);
-                if (success)
+                if (results is null)
                 {
-                    if (results is null)
-                    {
-                        Assert.True(false, "Tried to walk a directory which should have been ignored");
-                    }
-
-                    if (results.Any(s => s.Equals("LONGPATH")))
-                    {
-                        throw new PathTooLongException();
-                    }
-
-                    return results;
+                    Assert.True(false, "Tried to walk a directory which should have been ignored");
                 }
-                else
+
+                if (results.Any(s => s.Equals("LONGPATH")))
                 {
-                    throw new DirectoryNotFoundException();
+                    throw new PathTooLongException();
                 }
+
+                return results;
+            }
+            else
+            {
+                throw new DirectoryNotFoundException();
             }
         }
     }

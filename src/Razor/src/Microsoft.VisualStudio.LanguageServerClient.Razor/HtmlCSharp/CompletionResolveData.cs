@@ -3,13 +3,12 @@
 
 using Newtonsoft.Json;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
-{
-    internal class CompletionResolveData
-    {
-        public required long ResultId { get; init; }
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public required object OriginalData { get; init; }
-    }
+internal class CompletionResolveData
+{
+    public required long ResultId { get; init; }
+
+    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+    public required object OriginalData { get; init; }
 }

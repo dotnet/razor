@@ -4,11 +4,10 @@
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+[LanguageServerEndpoint(Methods.TextDocumentDidCloseName)]
+internal interface IVSDidCloseTextDocumentEndpoint: IRazorNotificationHandler<DidCloseTextDocumentParams>,
+    ITextDocumentIdentifierHandler<DidCloseTextDocumentParams, TextDocumentIdentifier>
 {
-    [LanguageServerEndpoint(Methods.TextDocumentDidCloseName)]
-    internal interface IVSDidCloseTextDocumentEndpoint: IRazorNotificationHandler<DidCloseTextDocumentParams>,
-        ITextDocumentIdentifierHandler<DidCloseTextDocumentParams, TextDocumentIdentifier>
-    {
-    }
 }

@@ -4,11 +4,10 @@
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+[LanguageServerEndpoint(Methods.TextDocumentDidSaveName)]
+internal interface IVSDidSaveTextDocumentEndpoint : IRazorNotificationHandler<DidSaveTextDocumentParams>,
+    ITextDocumentIdentifierHandler<DidSaveTextDocumentParams, TextDocumentIdentifier>
 {
-    [LanguageServerEndpoint(Methods.TextDocumentDidSaveName)]
-    internal interface IVSDidSaveTextDocumentEndpoint : IRazorNotificationHandler<DidSaveTextDocumentParams>,
-        ITextDocumentIdentifierHandler<DidSaveTextDocumentParams, TextDocumentIdentifier>
-    {
-    }
 }

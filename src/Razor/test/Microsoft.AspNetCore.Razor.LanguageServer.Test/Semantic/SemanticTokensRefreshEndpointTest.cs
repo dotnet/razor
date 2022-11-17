@@ -17,70 +17,69 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic;
+
+public class SemanticTokensRefreshEndpointTest : TestBase
 {
-    public class SemanticTokensRefreshEndpointTest : TestBase
+    public SemanticTokensRefreshEndpointTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        public SemanticTokensRefreshEndpointTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+    }
+
+    [Fact]
+    public async Task Handle_QueuesRefresh()
+    {
+        // Arrange
+        var clientSettings = GetInitializedParams(semanticRefreshEnabled: true);
+        var clientSettingsManager = new Mock<IInitializeManager<InitializeParams, InitializeResult>>(MockBehavior.Strict);
+        clientSettingsManager.Setup(m => m.GetInitializeParams()).Returns(clientSettings);
+        var serverClient = new TestClient();
+        var errorReporter = new TestErrorReporter();
+        using var semanticTokensRefreshPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(clientSettingsManager.Object, serverClient, errorReporter);
+        var refreshEndpoint = new SemanticTokensRefreshEndpoint(semanticTokensRefreshPublisher);
+        var refreshParams = new SemanticTokensRefreshParams();
+        var requestContext = new RazorRequestContext();
+
+        // Act
+        await refreshEndpoint.HandleNotificationAsync(refreshParams, requestContext, DisposalToken);
+        semanticTokensRefreshPublisher.GetTestAccessor().WaitForEmpty();
+
+        // Assert
+        Assert.Equal(Methods.WorkspaceSemanticTokensRefreshName, serverClient.Requests.Single().Method);
+    }
+
+    private static InitializeParams GetInitializedParams(bool semanticRefreshEnabled)
+    {
+        return new InitializeParams
         {
-        }
-
-        [Fact]
-        public async Task Handle_QueuesRefresh()
-        {
-            // Arrange
-            var clientSettings = GetInitializedParams(semanticRefreshEnabled: true);
-            var clientSettingsManager = new Mock<IInitializeManager<InitializeParams, InitializeResult>>(MockBehavior.Strict);
-            clientSettingsManager.Setup(m => m.GetInitializeParams()).Returns(clientSettings);
-            var serverClient = new TestClient();
-            var errorReporter = new TestErrorReporter();
-            using var semanticTokensRefreshPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(clientSettingsManager.Object, serverClient, errorReporter);
-            var refreshEndpoint = new SemanticTokensRefreshEndpoint(semanticTokensRefreshPublisher);
-            var refreshParams = new SemanticTokensRefreshParams();
-            var requestContext = new RazorRequestContext();
-
-            // Act
-            await refreshEndpoint.HandleNotificationAsync(refreshParams, requestContext, DisposalToken);
-            semanticTokensRefreshPublisher.GetTestAccessor().WaitForEmpty();
-
-            // Assert
-            Assert.Equal(Methods.WorkspaceSemanticTokensRefreshName, serverClient.Requests.Single().Method);
-        }
-
-        private static InitializeParams GetInitializedParams(bool semanticRefreshEnabled)
-        {
-            return new InitializeParams
+            Capabilities = new ClientCapabilities
             {
-                Capabilities = new ClientCapabilities
+                Workspace = new WorkspaceClientCapabilities
                 {
-                    Workspace = new WorkspaceClientCapabilities
+                    SemanticTokens = new SemanticTokensWorkspaceSetting
                     {
-                        SemanticTokens = new SemanticTokensWorkspaceSetting
-                        {
-                            RefreshSupport = semanticRefreshEnabled
-                        },
+                        RefreshSupport = semanticRefreshEnabled
                     },
                 },
-            };
+            },
+        };
+    }
+
+    private class TestErrorReporter : ErrorReporter
+    {
+        public override void ReportError(Exception exception)
+        {
+            throw new NotImplementedException();
         }
 
-        private class TestErrorReporter : ErrorReporter
+        public override void ReportError(Exception exception, ProjectSnapshot? project)
         {
-            public override void ReportError(Exception exception)
-            {
-                throw new NotImplementedException();
-            }
+            throw new NotImplementedException();
+        }
 
-            public override void ReportError(Exception exception, ProjectSnapshot? project)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override void ReportError(Exception exception, Project workspaceProject)
-            {
-                throw new NotImplementedException();
-            }
+        public override void ReportError(Exception exception, Project workspaceProject)
+        {
+            throw new NotImplementedException();
         }
     }
 }

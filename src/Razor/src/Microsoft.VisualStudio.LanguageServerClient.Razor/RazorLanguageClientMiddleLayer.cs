@@ -6,14 +6,13 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+
+public abstract class RazorLanguageClientMiddleLayer : ILanguageClientMiddleLayer
 {
-    public abstract class RazorLanguageClientMiddleLayer : ILanguageClientMiddleLayer
-    {
-        public abstract bool CanHandle(string methodName);
+    public abstract bool CanHandle(string methodName);
 
-        public abstract Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification);
+    public abstract Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification);
 
-        public abstract Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest);
-    }
+    public abstract Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest);
 }

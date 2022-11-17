@@ -5,18 +5,17 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+
+[FileExtension(RazorLSPConstants.RazorFileExtension)]
+[Name(nameof(RazorFilePathToContentTypeProvider))]
+[Export(typeof(IFilePathToContentTypeProvider))]
+internal class RazorFilePathToContentTypeProvider : RazorFilePathToContentTypeProviderBase
 {
-    [FileExtension(RazorLSPConstants.RazorFileExtension)]
-    [Name(nameof(RazorFilePathToContentTypeProvider))]
-    [Export(typeof(IFilePathToContentTypeProvider))]
-    internal class RazorFilePathToContentTypeProvider : RazorFilePathToContentTypeProviderBase
+    [ImportingConstructor]
+    public RazorFilePathToContentTypeProvider(
+        IContentTypeRegistryService contentTypeRegistryService,
+        LSPEditorFeatureDetector lspEditorFeatureDetector) : base(contentTypeRegistryService, lspEditorFeatureDetector)
     {
-        [ImportingConstructor]
-        public RazorFilePathToContentTypeProvider(
-            IContentTypeRegistryService contentTypeRegistryService,
-            LSPEditorFeatureDetector lspEditorFeatureDetector) : base(contentTypeRegistryService, lspEditorFeatureDetector)
-        {
-        }
     }
 }
