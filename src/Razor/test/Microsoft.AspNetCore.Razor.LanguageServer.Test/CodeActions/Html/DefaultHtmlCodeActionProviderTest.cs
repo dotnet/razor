@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,9 +54,10 @@ public class DefaultHtmlCodeActionProviderTest : LanguageServerTestBase
         var providedCodeActions = await provider.ProvideAsync(context, codeActions, DisposalToken);
 
         // Assert
+        Assert.NotNull(providedCodeActions);
         var action = Assert.Single(providedCodeActions);
         Assert.Equal("Test", action.Name);
-        Assert.Equal("Html", ((JObject)action.Data)["language"].ToString());
+        Assert.Equal("Html", ((JObject)action.Data!)["language"]!.ToString());
     }
 
     [Fact]
@@ -128,6 +127,7 @@ public class DefaultHtmlCodeActionProviderTest : LanguageServerTestBase
         var providedCodeActions = await provider.ProvideAsync(context, codeActions, DisposalToken);
 
         // Assert
+        Assert.NotNull(providedCodeActions);
         var action = Assert.Single(providedCodeActions);
         Assert.NotNull(action.Edit);
         Assert.True(action.Edit.TryGetDocumentChanges(out var changes));

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,6 +35,7 @@ public class DefaultHtmlCodeActionResolverTest : LanguageServerTestBase
         var documentUri = new Uri(documentPath);
         var documentContextFactory = CreateDocumentContextFactory(documentUri, contents);
         var context = await documentContextFactory.TryCreateAsync(documentUri, DisposalToken);
+        Assert.NotNull(context);
         var sourceText = await context.GetSourceTextAsync(DisposalToken);
         var remappedEdit = new WorkspaceEdit
         {
@@ -109,7 +108,7 @@ public class DefaultHtmlCodeActionResolverTest : LanguageServerTestBase
             });
     }
 
-    private static ClientNotifierServiceBase CreateLanguageServer(CodeAction resolvedCodeAction )
+    private static ClientNotifierServiceBase CreateLanguageServer(CodeAction resolvedCodeAction)
     {
         var response = resolvedCodeAction;
 
