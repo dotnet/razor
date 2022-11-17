@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -35,7 +36,7 @@ internal class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeActionRe
     public override string Action => LanguageServerConstants.CodeActions.UnformattedRemap;
 
     public async override Task<CodeAction> ResolveAsync(
-        CSharpCodeActionParams csharpParams,
+        CodeActionResolveParams csharpParams,
         CodeAction codeAction,
         CancellationToken cancellationToken)
     {
@@ -51,7 +52,13 @@ internal class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeActionRe
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, codeAction, cancellationToken).ConfigureAwait(false);
+        var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
+        if (documentContext is null)
+        {
+            return codeAction;
+        }
+
+        var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, documentContext.Version, RazorLanguageKind.CSharp, codeAction, cancellationToken).ConfigureAwait(false);
         if (resolvedCodeAction?.Edit?.DocumentChanges is null)
         {
             // Unable to resolve code action with server, return original code action
@@ -79,12 +86,6 @@ internal class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeActionRe
             return codeAction;
         }
 
-        var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
-        if (documentContext is null)
-        {
-            return codeAction;
-        }
-
         var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
         {
@@ -107,12 +108,12 @@ internal class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeActionRe
         resolvedCodeAction.Edit = new WorkspaceEdit()
         {
             DocumentChanges = new[] {
-                    new TextDocumentEdit()
-                    {
-                        TextDocument = codeDocumentIdentifier,
-                        Edits = new[] { textEdit },
-                    }
-            },
+                        new TextDocumentEdit()
+                        {
+                            TextDocument = codeDocumentIdentifier,
+                            Edits = new[] { textEdit },
+                        }
+                },
         };
 
         return resolvedCodeAction;

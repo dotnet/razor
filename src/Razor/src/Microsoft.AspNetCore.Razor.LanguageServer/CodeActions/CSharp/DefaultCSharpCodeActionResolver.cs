@@ -58,7 +58,7 @@ internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
     public override string Action => LanguageServerConstants.CodeActions.Default;
 
     public async override Task<CodeAction> ResolveAsync(
-        CSharpCodeActionParams csharpParams,
+        CodeActionResolveParams csharpParams,
         CodeAction codeAction,
         CancellationToken cancellationToken)
     {
@@ -72,7 +72,13 @@ internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
             throw new ArgumentNullException(nameof(codeAction));
         }
 
-        var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, codeAction, cancellationToken).ConfigureAwait(false);
+        var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
+        if (documentContext is null)
+        {
+            return codeAction;
+        }
+
+        var resolvedCodeAction = await ResolveCodeActionWithServerAsync(csharpParams.RazorFileUri, documentContext.Version, RazorLanguageKind.CSharp, codeAction, cancellationToken).ConfigureAwait(false);
         if (resolvedCodeAction?.Edit?.DocumentChanges is null)
         {
             // Unable to resolve code action with server, return original code action
@@ -86,12 +92,6 @@ internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-
-        var documentContext = await _documentContextFactory.TryCreateAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
-        if( documentContext is null)
-        {
-            return codeAction;
-        }
 
         var documentChanged = resolvedCodeAction.Edit.DocumentChanges.Value.First();
         if (!documentChanged.TryGetFirst(out var textDocumentEdit))
@@ -125,12 +125,12 @@ internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
         resolvedCodeAction.Edit = new WorkspaceEdit()
         {
             DocumentChanges = new TextDocumentEdit[] {
-                new TextDocumentEdit()
-                {
-                    TextDocument = codeDocumentIdentifier,
-                    Edits = formattedEdits,
+                    new TextDocumentEdit()
+                    {
+                        TextDocument = codeDocumentIdentifier,
+                        Edits = formattedEdits,
+                    }
                 }
-            }
         };
 
         return resolvedCodeAction;

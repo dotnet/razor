@@ -78,7 +78,7 @@ internal class DefaultCSharpCodeActionProvider : CSharpCodeActionProvider
         {
             if (codeAction.Name is not null && allowList.Contains(codeAction.Name))
             {
-                results.Add(codeAction.WrapResolvableCSharpCodeAction(context));
+                results.Add(codeAction.WrapResolvableCodeAction(context));
             }
         }
 

@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal abstract class CSharpCodeActionProvider
+internal abstract class CSharpCodeActionProvider : ICodeActionProvider
 {
     protected static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> EmptyResult =
         Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(Array.Empty<RazorVSInternalCodeAction>());
