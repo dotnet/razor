@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 public class RazorCodeActionsTests : AbstractRazorEditorTest
 {
     [IdeFact]
-    public async Task RazorCodeActions_Show()
+    public async Task RazorCodeActions_AddUsing()
     {
         // Create Warnings by removing usings
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ImportsRazorFile, ControlledHangMitigatingCancellationToken);
@@ -32,5 +32,25 @@ public class RazorCodeActionsTests : AbstractRazorEditorTest
         await TestServices.Editor.InvokeCodeActionAsync(codeAction, ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.VerifyTextContainsAsync(usingString, ControlledHangMitigatingCancellationToken);
+    }
+
+    [IdeFact]
+    public async Task RazorCodeActions_ExtractToCodeBehind()
+    {
+        // Open the file
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.PlaceCaretAsync("@code", 1, ControlledHangMitigatingCancellationToken);
+
+        // Act
+        var codeActions = await TestServices.Editor.InvokeCodeActionListAsync(ControlledHangMitigatingCancellationToken);
+
+        // Assert
+        var codeActionSet = Assert.Single(codeActions);
+        var codeAction = Assert.Single(codeActionSet.Actions, a => a.DisplayText.Equals("Extract block to code behind"));
+
+        await TestServices.Editor.InvokeCodeActionAsync(codeAction, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.WaitForActiveWindowByFileAsync("Counter.razor.cs", ControlledHangMitigatingCancellationToken);
     }
 }

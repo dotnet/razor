@@ -18,8 +18,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 internal class CodeActionResolutionEndpoint : IVSCodeActionResolveEndpoint
 {
     private readonly IReadOnlyDictionary<string, RazorCodeActionResolver> _razorCodeActionResolvers;
-    private readonly IReadOnlyDictionary<string, CSharpCodeActionResolver> _csharpCodeActionResolvers;
-    private readonly IReadOnlyDictionary<string, HtmlCodeActionResolver> _htmlCodeActionResolvers;
+    private readonly IReadOnlyDictionary<string, BaseDelegatedCodeActionResolver> _csharpCodeActionResolvers;
+    private readonly IReadOnlyDictionary<string, BaseDelegatedCodeActionResolver> _htmlCodeActionResolvers;
     private readonly ILogger _logger;
 
     public bool MutatesSolutionState => false;
@@ -53,8 +53,8 @@ internal class CodeActionResolutionEndpoint : IVSCodeActionResolveEndpoint
         _logger = loggerFactory.CreateLogger<CodeActionResolutionEndpoint>();
 
         _razorCodeActionResolvers = CreateResolverMap(razorCodeActionResolvers);
-        _csharpCodeActionResolvers = CreateResolverMap(csharpCodeActionResolvers);
-        _htmlCodeActionResolvers = CreateResolverMap(htmlCodeActionResolvers);
+        _csharpCodeActionResolvers = CreateResolverMap<BaseDelegatedCodeActionResolver>(csharpCodeActionResolvers);
+        _htmlCodeActionResolvers = CreateResolverMap<BaseDelegatedCodeActionResolver>(htmlCodeActionResolvers);
     }
 
     public async Task<CodeAction> HandleRequestAsync(CodeAction request, RazorRequestContext requestContext, CancellationToken cancellationToken)
@@ -137,10 +137,14 @@ internal class CodeActionResolutionEndpoint : IVSCodeActionResolveEndpoint
     }
 
     // Internal for testing
-    internal async Task<CodeAction> ResolveCSharpCodeActionAsync(
-        CodeAction codeAction,
-        RazorCodeActionResolutionParams resolutionParams,
-        CancellationToken cancellationToken)
+    internal Task<CodeAction> ResolveCSharpCodeActionAsync(CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+        => ResolveDelegatedCodeActionAsync(_csharpCodeActionResolvers, codeAction, resolutionParams, cancellationToken);
+
+    // Internal for testing
+    internal Task<CodeAction> ResolveHtmlCodeActionAsync(CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
+        => ResolveDelegatedCodeActionAsync(_htmlCodeActionResolvers, codeAction, resolutionParams, cancellationToken);
+
+    private async Task<CodeAction> ResolveDelegatedCodeActionAsync(IReadOnlyDictionary<string, BaseDelegatedCodeActionResolver> resolvers, CodeAction codeAction, RazorCodeActionResolutionParams resolutionParams, CancellationToken cancellationToken)
     {
         if (resolutionParams.Data is not JObject csharpParamsObj)
         {
@@ -157,7 +161,7 @@ internal class CodeActionResolutionEndpoint : IVSCodeActionResolveEndpoint
 
         codeAction.Data = csharpParams.Data as JToken;
 
-        if (!_csharpCodeActionResolvers.TryGetValue(resolutionParams.Action, out var resolver))
+        if (!resolvers.TryGetValue(resolutionParams.Action, out var resolver))
         {
             var codeActionId = GetCodeActionId(resolutionParams);
             _logger.LogWarning("No resolver registered for {codeActionId}", codeActionId);
@@ -166,39 +170,6 @@ internal class CodeActionResolutionEndpoint : IVSCodeActionResolveEndpoint
         }
 
         var resolvedCodeAction = await resolver.ResolveAsync(csharpParams, codeAction, cancellationToken);
-        return resolvedCodeAction;
-    }
-
-    // Internal for testing
-    internal async Task<CodeAction> ResolveHtmlCodeActionAsync(
-        CodeAction codeAction,
-        RazorCodeActionResolutionParams resolutionParams,
-        CancellationToken cancellationToken)
-    {
-        if (resolutionParams.Data is not JObject htmlParamsObj)
-        {
-            _logger.LogError("Invalid CodeAction Received.");
-            Debug.Fail($"Invalid CSharp CodeAction Received.");
-            return codeAction;
-        }
-
-        var htmlParams = htmlParamsObj.ToObject<CodeActionResolveParams>();
-        if (htmlParams is null)
-        {
-            throw new ArgumentOutOfRangeException($"Data was not convertible to {nameof(CodeActionResolveParams)}");
-        }
-
-        codeAction.Data = htmlParams.Data as JToken;
-
-        if (!_htmlCodeActionResolvers.TryGetValue(resolutionParams.Action, out var resolver))
-        {
-            var codeActionId = GetCodeActionId(resolutionParams);
-            _logger.LogWarning("No resolver registered for {codeActionId}", codeActionId);
-            Debug.Fail($"No resolver registered for {codeActionId}.");
-            return codeAction;
-        }
-
-        var resolvedCodeAction = await resolver.ResolveAsync(htmlParams, codeAction, cancellationToken);
         return resolvedCodeAction;
     }
 

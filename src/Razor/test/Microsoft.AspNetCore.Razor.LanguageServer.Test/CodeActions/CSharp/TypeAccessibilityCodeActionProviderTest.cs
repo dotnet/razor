@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
@@ -41,7 +39,8 @@ public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
             Range = new Range(),
             Context = new CodeActionContext()
             {
-                Diagnostics = null
+                // Even though the DTO declares this as non-null, we want to make sure we behave
+                Diagnostics = null!
             },
         };
 
@@ -61,6 +60,7 @@ public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
         var results = await provider.ProvideAsync(context, csharpCodeActions, default);
 
         // Assert
+        Assert.NotNull(results);
         Assert.Empty(results);
     }
 
@@ -115,7 +115,9 @@ public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
         var results = await provider.ProvideAsync(context, csharpCodeActions, default);
 
         // Assert
+        Assert.NotNull(results);
         Assert.Empty(results);
+
     }
 
     [Fact]
@@ -126,7 +128,7 @@ public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
         var contents = "";
         var request = new CodeActionParams()
         {
-            TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
+            TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
             Range = new Range(),
             Context = new CodeActionContext()
             {
@@ -151,7 +153,9 @@ public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
         var results = await provider.ProvideAsync(context, csharpCodeActions, default);
 
         // Assert
+        Assert.NotNull(results);
         Assert.Empty(results);
+
     }
 
     [Theory]
@@ -165,7 +169,7 @@ public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
         var contents = "@code { Path; }";
         var request = new CodeActionParams()
         {
-            TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
+            TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
             Range = new Range(),
             Context = new CodeActionContext()
             {
@@ -215,13 +219,15 @@ public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
         var results = await provider.ProvideAsync(context, csharpCodeActions, default);
 
         // Assert
+        Assert.NotNull(results);
         Assert.Collection(results,
             r =>
             {
                 Assert.Equal("@using System.IO", r.Title);
                 Assert.Null(r.Edit);
                 Assert.NotNull(r.Data);
-                var resolutionParams = (r.Data as JObject).ToObject<RazorCodeActionResolutionParams>();
+                var resolutionParams = ((JObject)r.Data).ToObject<RazorCodeActionResolutionParams>();
+                Assert.NotNull(resolutionParams);
                 Assert.Equal(LanguageServerConstants.CodeActions.AddUsing, resolutionParams.Action);
             },
             r =>
@@ -242,7 +248,7 @@ public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
         var contents = "@inject Path";
         var request = new CodeActionParams()
         {
-            TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
+            TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
             Range = new Range(),
             Context = new CodeActionContext()
             {
@@ -272,13 +278,15 @@ public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
         var results = await provider.ProvideAsync(context, csharpCodeActions, default);
 
         // Assert
+        Assert.NotNull(results);
         Assert.Collection(results,
             r =>
             {
                 Assert.Equal("@using System.IO", r.Title);
                 Assert.Null(r.Edit);
                 Assert.NotNull(r.Data);
-                var resolutionParams = (r.Data as JObject).ToObject<RazorCodeActionResolutionParams>();
+                var resolutionParams = ((JObject)r.Data).ToObject<RazorCodeActionResolutionParams>();
+                Assert.NotNull(resolutionParams);
                 Assert.Equal(LanguageServerConstants.CodeActions.AddUsing, resolutionParams.Action);
             }
         );
@@ -292,7 +300,7 @@ public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
         var contents = "@code { Path; }";
         var request = new CodeActionParams()
         {
-            TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
+            TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
             Range = new Range(),
             Context = new CodeActionContext()
             {
@@ -322,13 +330,15 @@ public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
         var results = await provider.ProvideAsync(context, csharpCodeActions, default);
 
         // Assert
+        Assert.NotNull(results);
         Assert.Collection(results,
             r =>
             {
                 Assert.Equal("@using System.IO", r.Title);
                 Assert.Null(r.Edit);
                 Assert.NotNull(r.Data);
-                var resolutionParams = (r.Data as JObject).ToObject<RazorCodeActionResolutionParams>();
+                var resolutionParams = ((JObject)r.Data).ToObject<RazorCodeActionResolutionParams>();
+                Assert.NotNull(resolutionParams);
                 Assert.Equal(LanguageServerConstants.CodeActions.AddUsing, resolutionParams.Action);
             },
             r =>
@@ -348,7 +358,7 @@ public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
         var contents = "@code { Path; }";
         var request = new CodeActionParams()
         {
-            TextDocument = new TextDocumentIdentifier{ Uri = new Uri(documentPath) },
+            TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
             Range = new Range(),
             Context = new CodeActionContext()
             {
@@ -398,13 +408,15 @@ public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
         var results = await provider.ProvideAsync(context, csharpCodeActions, default);
 
         // Assert
+        Assert.NotNull(results);
         Assert.Collection(results,
             r =>
             {
                 Assert.Equal("@using SuperSpecialNamespace", r.Title);
                 Assert.Null(r.Edit);
                 Assert.NotNull(r.Data);
-                var resolutionParams = (r.Data as JObject).ToObject<RazorCodeActionResolutionParams>();
+                var resolutionParams = ((JObject)r.Data).ToObject<RazorCodeActionResolutionParams>();
+                Assert.NotNull(resolutionParams);
                 Assert.Equal(LanguageServerConstants.CodeActions.AddUsing, resolutionParams.Action);
             },
             r =>
@@ -412,7 +424,8 @@ public class TypeAccessibilityCodeActionProviderTest : LanguageServerTestBase
                 Assert.Equal("@using System.IO", r.Title);
                 Assert.Null(r.Edit);
                 Assert.NotNull(r.Data);
-                var resolutionParams = (r.Data as JObject).ToObject<RazorCodeActionResolutionParams>();
+                var resolutionParams = ((JObject)r.Data).ToObject<RazorCodeActionResolutionParams>();
+                Assert.NotNull(resolutionParams);
                 Assert.Equal(LanguageServerConstants.CodeActions.AddUsing, resolutionParams.Action);
             },
             r =>
