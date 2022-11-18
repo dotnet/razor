@@ -21,6 +21,7 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <!-- Disable XLIFF tasks -->
     <UsingToolXliff>false</UsingToolXliff>
+    <DebugType>portable</DebugType>
   </PropertyGroup>
 
   <PropertyGroup Label="Warning Suppressions">
