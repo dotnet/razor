@@ -51,6 +51,6 @@ public class RazorCodeActionsTests : AbstractRazorEditorTest
 
         await TestServices.Editor.InvokeCodeActionAsync(codeAction, ControlledHangMitigatingCancellationToken);
 
-        Assert.Equal("Counter.razor.cs", await TestServices.Shell.GetActiveDocumentFileNameAsync(ControlledHangMitigatingCancellationToken));
+        await TestServices.Editor.WaitForActiveWindowByFileAsync("Counter.razor.cs", ControlledHangMitigatingCancellationToken);
     }
 }
