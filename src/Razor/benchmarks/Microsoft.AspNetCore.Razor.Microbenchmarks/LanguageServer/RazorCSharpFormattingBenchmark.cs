@@ -18,7 +18,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 
-public enum InputType
+internal enum InputType
 {
     Preformatted,
     Unformatted
@@ -45,7 +45,7 @@ public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
     public int Blocks { get; set; }
 
     [ParamsAllValues]
-    public InputType InputType { get; set; }
+    internal InputType InputType { get; set; }
 
     [GlobalSetup(Target = nameof(RazorCSharpFormattingAsync))]
     public async Task InitializeRazorCSharpFormattingAsync()

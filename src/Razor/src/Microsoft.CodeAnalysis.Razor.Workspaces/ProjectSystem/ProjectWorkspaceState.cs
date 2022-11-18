@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 public sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
 {
-    public static readonly ProjectWorkspaceState Default = new(Array.Empty<TagHelperDescriptor>(), LanguageVersion.Default);
+    internal static readonly ProjectWorkspaceState Default = new(Array.Empty<TagHelperDescriptor>(), LanguageVersion.Default);
 
     public ProjectWorkspaceState(
         IReadOnlyCollection<TagHelperDescriptor> tagHelpers,
@@ -36,9 +36,9 @@ public sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
         CSharpLanguageVersion = csharpLanguageVersion;
     }
 
-    public IReadOnlyList<TagHelperDescriptor> TagHelpers { get; }
+    internal IReadOnlyList<TagHelperDescriptor> TagHelpers { get; }
 
-    public LanguageVersion CSharpLanguageVersion { get; }
+    internal LanguageVersion CSharpLanguageVersion { get; }
 
     public override bool Equals(object obj)
     {

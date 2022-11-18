@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public sealed class DocumentStructureChangedEventArgs : EventArgs
+internal sealed class DocumentStructureChangedEventArgs : EventArgs
 {
     public DocumentStructureChangedEventArgs(
         SourceChange? change,
