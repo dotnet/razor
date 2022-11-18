@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,9 +90,9 @@ public abstract class LanguageServerTestBase : TestBase
         return CreateDocumentContextFactory(documentPath, codeDocument);
     }
 
-    internal static DocumentContext? CreateDocumentContext(Uri documentPath, RazorCodeDocument codeDocument, [NotNullWhen(true)] bool documentFound = true)
+    internal static DocumentContext CreateDocumentContext(Uri documentPath, RazorCodeDocument codeDocument)
     {
-        return documentFound ? TestDocumentContext.From(documentPath.GetAbsoluteOrUNCPath(), codeDocument, hostDocumentVersion: 1337) : null;
+        return TestDocumentContext.From(documentPath.GetAbsoluteOrUNCPath(), codeDocument, hostDocumentVersion: 1337);
     }
 
     internal static string GetString(SourceText sourceText)

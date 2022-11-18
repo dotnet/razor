@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -170,9 +168,12 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
+        Assert.NotNull(commandOrCodeActionContainer);
         var codeAction = Assert.Single(commandOrCodeActionContainer);
-        var razorCodeActionResolutionParams = ((JObject)codeAction.Data).ToObject<RazorCodeActionResolutionParams>();
-        var actionParams = (razorCodeActionResolutionParams.Data as JObject).ToObject<ExtractToCodeBehindCodeActionParams>();
+        var razorCodeActionResolutionParams = ((JObject)codeAction.Data!).ToObject<RazorCodeActionResolutionParams>();
+        Assert.NotNull(razorCodeActionResolutionParams);
+        var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
+        Assert.NotNull(actionParams);
         Assert.Equal(14, actionParams.RemoveStart);
         Assert.Equal(19, actionParams.ExtractStart);
         Assert.Equal(42, actionParams.ExtractEnd);
@@ -224,9 +225,12 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
+        Assert.NotNull(commandOrCodeActionContainer);
         var codeAction = Assert.Single(commandOrCodeActionContainer);
-        var razorCodeActionResolutionParams = ((JObject)codeAction.Data).ToObject<RazorCodeActionResolutionParams>();
-        var actionParams = (razorCodeActionResolutionParams.Data as JObject).ToObject<ExtractToCodeBehindCodeActionParams>();
+        var razorCodeActionResolutionParams = ((JObject)codeAction.Data!).ToObject<RazorCodeActionResolutionParams>();
+        Assert.NotNull(razorCodeActionResolutionParams);
+        var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
+        Assert.NotNull(actionParams);
         Assert.Equal(14, actionParams.RemoveStart);
         Assert.Equal(24, actionParams.ExtractStart);
         Assert.Equal(47, actionParams.ExtractEnd);
@@ -260,7 +264,7 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
     private static RazorCodeActionContext CreateRazorCodeActionContext(CodeActionParams request, SourceLocation location, string filePath, string text, bool supportsFileCreation = true)
         => CreateRazorCodeActionContext(request, location, filePath, text, relativePath: filePath, supportsFileCreation: supportsFileCreation);
 
-    private static RazorCodeActionContext CreateRazorCodeActionContext(CodeActionParams request, SourceLocation location, string filePath, string text, string relativePath, bool supportsFileCreation = true)
+    private static RazorCodeActionContext CreateRazorCodeActionContext(CodeActionParams request, SourceLocation location, string filePath, string text, string? relativePath, bool supportsFileCreation = true)
     {
         var sourceDocument = RazorSourceDocument.Create(text, new RazorSourceDocumentProperties(filePath, relativePath));
         var options = RazorParserOptions.Create(o =>

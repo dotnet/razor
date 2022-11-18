@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -65,6 +63,7 @@ public class DefaultCSharpCodeActionProviderTest : LanguageServerTestBase
         var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
         // Assert
+        Assert.NotNull(providedCodeActions);
         Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Count);
         var providedNames = providedCodeActions.Select(action => action.Name);
         var expectedNames = _supportedCodeActions.Select(action => action.Name);
@@ -96,6 +95,7 @@ public class DefaultCSharpCodeActionProviderTest : LanguageServerTestBase
         var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
         // Assert
+        Assert.NotNull(providedCodeActions);
         Assert.Empty(providedCodeActions);
     }
 
@@ -124,6 +124,7 @@ public class DefaultCSharpCodeActionProviderTest : LanguageServerTestBase
         var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
         // Assert
+        Assert.NotNull(providedCodeActions);
         Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Count);
         var providedNames = providedCodeActions.Select(action => action.Name);
         var expectedNames = _supportedCodeActions.Select(action => action.Name);
@@ -157,6 +158,7 @@ $$Path;
         var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
         // Assert
+        Assert.NotNull(providedCodeActions);
         Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Count);
         var providedNames = providedCodeActions.Select(action => action.Name);
         var expectedNames = _supportedCodeActions.Select(action => action.Name);
@@ -191,6 +193,7 @@ $$Path;
         var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
         // Assert
+        Assert.NotNull(providedCodeActions);
         Assert.Equal(_supportedCodeActions.Length, providedCodeActions.Count);
         var providedNames = providedCodeActions.Select(action => action.Name);
         var expectedNames = _supportedCodeActions.Select(action => action.Name);
@@ -231,6 +234,7 @@ $$Path;
         var providedCodeActions = await provider.ProvideAsync(context, codeActions, default);
 
         // Assert
+        Assert.NotNull(providedCodeActions);
         Assert.Empty(providedCodeActions);
     }
 
@@ -267,6 +271,7 @@ $$Path;
         var providedCodeActions = await provider.ProvideAsync(context, _supportedCodeActions, default);
 
         // Assert
+        Assert.NotNull(providedCodeActions);
         Assert.Equal(_supportedImplicitExpressionCodeActions.Length, providedCodeActions.Count);
         var providedNames = providedCodeActions.Select(action => action.Name);
         var expectedNames = _supportedImplicitExpressionCodeActions.Select(action => action.Name);

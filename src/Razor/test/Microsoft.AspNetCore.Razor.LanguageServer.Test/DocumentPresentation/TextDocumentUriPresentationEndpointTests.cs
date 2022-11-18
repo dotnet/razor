@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -608,26 +607,5 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         // Assert
         Assert.Null(result);
-    }
-
-    private static DocumentContext CreateDocumentContext(Uri documentPath, RazorCodeDocument codeDocument)
-    {
-        var documentContext = SetupDocumentContextFactory(documentPath, codeDocument);
-
-        return documentContext;
-
-        static DocumentContext SetupDocumentContextFactory(Uri documentPath, RazorCodeDocument codeDocument)
-        {
-            var sourceTextChars = new char[codeDocument.Source.Length];
-            codeDocument.Source.CopyTo(0, sourceTextChars, 0, codeDocument.Source.Length);
-            var sourceText = SourceText.From(new string(sourceTextChars));
-            var snapshot = Mock.Of<DocumentSnapshot>(document =>
-                document.GetGeneratedOutputAsync() == Task.FromResult(codeDocument) &&
-                document.GetTextAsync() == Task.FromResult(sourceText), MockBehavior.Strict);
-            var version = 1337;
-            var documentContext = new DocumentContext(documentPath, snapshot, version);
-
-            return documentContext;
-        }
     }
 }

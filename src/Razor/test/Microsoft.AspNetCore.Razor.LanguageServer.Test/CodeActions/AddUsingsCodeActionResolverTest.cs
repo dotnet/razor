@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -30,7 +28,7 @@ public class AddUsingsCodeActionResolverTest : LanguageServerTestBase
         _emptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(
             r => r.TryCreateAsync(
                 It.IsAny<Uri>(),
-                It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext>(null),
+                It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext?>(null),
             MockBehavior.Strict);
     }
 
