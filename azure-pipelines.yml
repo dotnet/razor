@@ -416,36 +416,65 @@ stages:
               artifactType: Container
               parallel: true
 
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-  - stage: publishBuildAssets
-    displayName: Publish to Build Asset Registry
-    dependsOn: build
-    jobs:
-      # Publish to Build Asset Registry
-      - template: /eng/common/templates/job/publish-build-assets.yml
-        parameters:
-          publishUsingPipelines: true
-          pool:
-            name: NetCore1ESPool-Svc-Internal
-            demands: ImageOverride -equals windows.vs2022.amd64
+# Commented out for testing only
+# - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+- stage: publishBuildAssets
+  displayName: Publish to Build Asset Registry
+  dependsOn: build
+  jobs:
+    # Publish to Build Asset Registry
+    - template: /eng/common/templates/job/publish-build-assets.yml
+      parameters:
+        publishUsingPipelines: true
+        pool:
+          name: NetCore1ESPool-Svc-Internal
+          demands: ImageOverride -equals windows.vs2022.amd64
 
-  - template: eng\common\templates\post-build\post-build.yml
-    parameters:
-      validateDependsOn:
-        - publishBuildAssets
-      publishingInfraVersion: 3
-      enableSigningValidation: false
-      enableNugetValidation: false
-      SDLValidationParameters:
-        enable: true
-        params: >-
-          -SourceToolsList @("policheck","credscan")
-          -TsaInstanceURL $(_TsaInstanceURL)
-          -TsaProjectName $(_TsaProjectName)
-          -TsaNotificationEmail $(_TsaNotificationEmail)
-          -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
-          -TsaBugAreaPath $(_TsaBugAreaPath)
-          -TsaIterationPath $(_TsaIterationPath)
-          -TsaRepositoryName "Razor-Tooling"
-          -TsaCodebaseName "Razor-Tooling"
-          -TsaPublish $True
+- stage: insert
+  dependsOn: publishBuildAssets
+  displayName: Insert to VS
+  jobs:
+  - job: insert
+    displayName: Insert to VS
+    pool:
+      name: NetCore1ESPool-Svc-Internal
+      demands: ImageOverride -equals windows.vs2022.amd64
+    steps:
+    - download: current
+      artifact: VSSetup
+    - powershell: |
+        $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
+        Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
+      displayName: Get Branch Name
+    - template: eng/pipelines/insert.yml
+      parameters:
+        buildUserName: "dn-bot@microsoft.com"
+        buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+        componentUserName: "dn-bot@microsoft.com"
+        componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
+        componentBuildProjectName: internal
+        sourceBranch: "$(ComponentBranchName)"
+        publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-razor/items?path=eng/config/PublishData.json"
+        publishDataAccessToken: "$(System.AccessToken)"
+        dropPath: '$(Pipeline.Workspace)\VSSetup'
+
+- template: eng\common\templates\post-build\post-build.yml
+  parameters:
+    validateDependsOn:
+      - publishBuildAssets
+    publishingInfraVersion: 3
+    enableSigningValidation: false
+    enableNugetValidation: false
+    SDLValidationParameters:
+      enable: true
+      params: >-
+        -SourceToolsList @("policheck","credscan")
+        -TsaInstanceURL $(_TsaInstanceURL)
+        -TsaProjectName $(_TsaProjectName)
+        -TsaNotificationEmail $(_TsaNotificationEmail)
+        -TsaCodebaseAdmin $(_TsaCodebaseAdmin)
+        -TsaBugAreaPath $(_TsaBugAreaPath)
+        -TsaIterationPath $(_TsaIterationPath)
+        -TsaRepositoryName "Razor-Tooling"
+        -TsaCodebaseName "Razor-Tooling"
+        -TsaPublish $True
