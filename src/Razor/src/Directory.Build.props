@@ -12,9 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(Tooling_MicrosoftCodeAnalysisPublicApiAnalyzersPackageVersion)">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(Tooling_MicrosoftCodeAnalysisPublicApiAnalyzersPackageVersion)" />
   </ItemGroup>
 </Project>
