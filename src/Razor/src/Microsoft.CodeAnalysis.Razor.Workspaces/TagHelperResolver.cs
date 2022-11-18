@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal abstract class TagHelperResolver : IWorkspaceService
 {
-    private readonly ITelemetryReporter? _telemetryReporter;
+    private readonly ITelemetryReporter _telemetryReporter;
 
-    public TagHelperResolver(ITelemetryReporter? telemetryReporter = null)
+    public TagHelperResolver(ITelemetryReporter telemetryReporter)
     {
         _telemetryReporter = telemetryReporter;
     }
