@@ -454,7 +454,7 @@ stages:
         componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
         componentBuildProjectName: internal
         sourceBranch: "$(ComponentBranchName)"
-        publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-razor/items?path=eng/config/PublishData.json"
+        publishDataURI: "https://github.com/dotnet/razor/blob/allichou/AutomateRazorInsertions/eng/config/PublishData.json"
         publishDataAccessToken: "$(System.AccessToken)"
         dropPath: '$(Pipeline.Workspace)\VSSetup'
 
