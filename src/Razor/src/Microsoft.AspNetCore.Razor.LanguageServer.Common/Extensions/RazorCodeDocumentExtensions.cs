@@ -10,7 +10,7 @@ internal static class RazorCodeDocumentExtensions
 {
     private static readonly object s_unsupportedKey = new();
 
-    public static bool IsUnsupported(this RazorCodeDocument document)
+    internal static bool IsUnsupported(this RazorCodeDocument document)
     {
         if (document is null)
         {
