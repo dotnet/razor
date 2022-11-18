@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public struct TagHelperSpan
+internal struct TagHelperSpan
 {
     public TagHelperSpan(SourceSpan span, TagHelperBinding binding)
     {

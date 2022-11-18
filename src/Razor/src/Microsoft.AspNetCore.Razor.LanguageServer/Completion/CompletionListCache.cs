@@ -68,5 +68,5 @@ internal sealed class CompletionListCache
         }
     }
 
-    public record CacheEntry(int ResultId, VSInternalCompletionList CompletionList, object? Context);
+    internal record CacheEntry(int ResultId, VSInternalCompletionList CompletionList, object? Context);
 }

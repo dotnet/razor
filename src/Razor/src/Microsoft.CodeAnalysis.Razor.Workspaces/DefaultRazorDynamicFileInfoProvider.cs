@@ -492,6 +492,6 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
             return new TestDynamicFileInfoResult(result.FilePath, result.TextLoader);
         }
 
-        public record TestDynamicFileInfoResult(string FilePath, TextLoader TextLoader);
+        internal record TestDynamicFileInfoResult(string FilePath, TextLoader TextLoader);
     }
 }
