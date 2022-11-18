@@ -16,7 +16,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization;
 
-public class CompletionListSerializationBenchmark : TagHelperBenchmarkBase
+internal class CompletionListSerializationBenchmark : TagHelperBenchmarkBase
 {
     private readonly byte[] _completionListBuffer;
 

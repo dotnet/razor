@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
 
-internal class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectSnapshotManagerChangeTrigger
+public class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectSnapshotManagerChangeTrigger
 {
     public OmniSharpWorkspaceProjectStateChangeDetector(
         OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,

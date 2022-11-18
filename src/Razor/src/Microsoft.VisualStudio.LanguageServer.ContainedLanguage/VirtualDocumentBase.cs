@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
-public abstract class VirtualDocumentBase<T> : VirtualDocument where T : VirtualDocumentSnapshot
+internal abstract class VirtualDocumentBase<T> : VirtualDocument where T : VirtualDocumentSnapshot
 {
     private T _currentSnapshot;
     private int _hostDocumentSyncVersion;

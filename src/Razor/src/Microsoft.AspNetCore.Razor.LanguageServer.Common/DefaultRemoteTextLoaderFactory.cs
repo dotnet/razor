@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
-internal class DefaultRemoteTextLoaderFactory : RemoteTextLoaderFactory
+public class DefaultRemoteTextLoaderFactory : RemoteTextLoaderFactory
 {
     public override TextLoader Create(string filePath)
     {

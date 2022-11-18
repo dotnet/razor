@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
 
-internal class OmniSharpLanguageServerFeatureOptions
+public class OmniSharpLanguageServerFeatureOptions
 {
     private LanguageServerFeatureOptions _internalLanguageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
 

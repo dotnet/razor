@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
-internal class DefaultOmniSharpProjectSnapshotManagerDispatcher : OmniSharpProjectSnapshotManagerDispatcher
+public class DefaultOmniSharpProjectSnapshotManagerDispatcher : OmniSharpProjectSnapshotManagerDispatcher
 {
     public DefaultOmniSharpProjectSnapshotManagerDispatcher()
     {

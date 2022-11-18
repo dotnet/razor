@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
-internal class DefaultOmniSharpProjectSnapshotManagerAccessor : OmniSharpProjectSnapshotManagerAccessor
+public class DefaultOmniSharpProjectSnapshotManagerAccessor : OmniSharpProjectSnapshotManagerAccessor
 {
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
     private readonly IEnumerable<IOmniSharpProjectSnapshotManagerChangeTrigger> _projectChangeTriggers;

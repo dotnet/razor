@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
-internal class FallbackRazorConfiguration
+public class FallbackRazorConfiguration
 {
     public static RazorConfiguration SelectConfiguration(Version version) => CodeAnalysis.Razor.ProjectSystem.FallbackRazorConfiguration.SelectConfiguration(version);
 }

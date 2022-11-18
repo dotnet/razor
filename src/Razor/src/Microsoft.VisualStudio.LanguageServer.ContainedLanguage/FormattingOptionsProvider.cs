@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
-public abstract class FormattingOptionsProvider
+internal abstract class FormattingOptionsProvider
 {
     public abstract FormattingOptions? GetOptions(Uri uri);
 }

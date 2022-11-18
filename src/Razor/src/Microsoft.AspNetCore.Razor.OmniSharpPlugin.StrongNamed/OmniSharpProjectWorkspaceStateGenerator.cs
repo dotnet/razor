@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
 
-internal class OmniSharpProjectWorkspaceStateGenerator : IOmniSharpProjectSnapshotManagerChangeTrigger
+public class OmniSharpProjectWorkspaceStateGenerator : IOmniSharpProjectSnapshotManagerChangeTrigger
 {
     // Internal for testing
     internal OmniSharpProjectWorkspaceStateGenerator()

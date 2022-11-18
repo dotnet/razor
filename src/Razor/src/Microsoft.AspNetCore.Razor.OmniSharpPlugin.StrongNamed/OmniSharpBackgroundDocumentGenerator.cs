@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
 
-internal class OmniSharpBackgroundDocumentGenerator : IOmniSharpProjectSnapshotManagerChangeTrigger
+public class OmniSharpBackgroundDocumentGenerator : IOmniSharpProjectSnapshotManagerChangeTrigger
 {
     private readonly BackgroundDocumentGenerator _backgroundDocumentGenerator;
 

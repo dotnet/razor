@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
-public abstract class LSPDocumentManager
+internal abstract class LSPDocumentManager
 {
     public abstract bool TryGetDocument(Uri uri, [NotNullWhen(returnValue: true)] out LSPDocumentSnapshot? lspDocumentSnapshot);
 }

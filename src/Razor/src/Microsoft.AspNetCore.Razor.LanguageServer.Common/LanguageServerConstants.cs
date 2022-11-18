@@ -3,47 +3,47 @@
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
-internal static class LanguageServerConstants
+public static class LanguageServerConstants
 {
-    public const int VSCompletionItemKindOffset = 118115;
+    internal const int VSCompletionItemKindOffset = 118115;
 
     public const string DefaultProjectConfigurationFile = "project.razor.json";
 
-    public const string RazorSemanticTokensLegendEndpoint = "_vs_/textDocument/semanticTokensLegend";
+    internal const string RazorSemanticTokensLegendEndpoint = "_vs_/textDocument/semanticTokensLegend";
 
-    public const string SemanticTokensProviderName = "semanticTokensProvider";
+    internal const string SemanticTokensProviderName = "semanticTokensProvider";
 
-    public const string RazorLanguageQueryEndpoint = "razor/languageQuery";
+    internal const string RazorLanguageQueryEndpoint = "razor/languageQuery";
 
-    public const string RazorBreakpointSpanEndpoint = "razor/breakpointSpan";
+    internal const string RazorBreakpointSpanEndpoint = "razor/breakpointSpan";
 
-    public const string RazorProximityExpressionsEndpoint = "razor/proximityExpressions";
+    internal const string RazorProximityExpressionsEndpoint = "razor/proximityExpressions";
 
-    public const string RazorMonitorProjectConfigurationFilePathEndpoint = "razor/monitorProjectConfigurationFilePath";
+    internal const string RazorMonitorProjectConfigurationFilePathEndpoint = "razor/monitorProjectConfigurationFilePath";
 
-    public const string RazorMapToDocumentRangesEndpoint = "razor/mapToDocumentRanges";
+    internal const string RazorMapToDocumentRangesEndpoint = "razor/mapToDocumentRanges";
 
-    public const string RazorTranslateDiagnosticsEndpoint = "razor/translateDiagnostics";
+    internal const string RazorTranslateDiagnosticsEndpoint = "razor/translateDiagnostics";
 
-    public const string RazorMapToDocumentEditsEndpoint = "razor/mapToDocumentEdits";
+    internal const string RazorMapToDocumentEditsEndpoint = "razor/mapToDocumentEdits";
 
-    public const string RazorCodeActionRunnerCommand = "razor/runCodeAction";
+    internal const string RazorCodeActionRunnerCommand = "razor/runCodeAction";
 
-    public const string RazorDocumentFormattingEndpoint = "textDocument/formatting";
+    internal const string RazorDocumentFormattingEndpoint = "textDocument/formatting";
 
-    public const string RazorDocumentOnTypeFormattingEndpoint = "textDocument/onTypeFormatting";
+    internal const string RazorDocumentOnTypeFormattingEndpoint = "textDocument/onTypeFormatting";
 
-    public const string RazorCompletionEndpointName = "razor/completion";
+    internal const string RazorCompletionEndpointName = "razor/completion";
 
-    public const string RazorCompletionResolveEndpointName = "razor/completionItem/resolve";
+    internal const string RazorCompletionResolveEndpointName = "razor/completionItem/resolve";
 
-    public const string RazorGetFormattingOptionsEndpointName = "razor/formatting/options";
+    internal const string RazorGetFormattingOptionsEndpointName = "razor/formatting/options";
 
     // This needs to be the same as in Web Tools, that is used by the HTML editor, because
     // we actually respond to the Web Tools "Wrap With Div" command handler, which sends this message
     // to all servers. We then take the message, get the HTML virtual document, and send it
     // straight back to Web Tools for them to do the work.
-    public const string RazorWrapWithTagEndpoint = "textDocument/_vsweb_wrapWithTag";
+    internal const string RazorWrapWithTagEndpoint = "textDocument/_vsweb_wrapWithTag";
 
     internal static class CodeActions
     {
