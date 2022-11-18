@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -17,9 +15,9 @@ public class DefaultOmniSharpProjectSnapshotManagerDispatcher : OmniSharpProject
         InternalDispatcher = new OmniSharpProjectSnapshotManagerDispatcher();
     }
 
-    public override TaskScheduler DispatcherScheduler => InternalDispatcher.DispatcherScheduler;
+    public override TaskScheduler DispatcherScheduler => InternalDispatcher!.DispatcherScheduler;
 
-    public override void AssertDispatcherThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertDispatcherThread(caller);
+    public override void AssertDispatcherThread([CallerMemberName] string? caller = null) => InternalDispatcher!.AssertDispatcherThread(caller);
 
     private class OmniSharpProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcherBase
     {

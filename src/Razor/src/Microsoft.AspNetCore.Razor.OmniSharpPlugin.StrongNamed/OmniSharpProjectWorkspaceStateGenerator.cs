@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -12,11 +10,6 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
 
 public class OmniSharpProjectWorkspaceStateGenerator : IOmniSharpProjectSnapshotManagerChangeTrigger
 {
-    // Internal for testing
-    internal OmniSharpProjectWorkspaceStateGenerator()
-    {
-    }
-
     public OmniSharpProjectWorkspaceStateGenerator(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
     {
         if (projectSnapshotManagerDispatcher is null)
