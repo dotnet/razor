@@ -26,7 +26,7 @@ internal enum InputType
 
 [CsvExporter]
 [RPlotExporter]
-public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
+internal class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
 {
     private string _filePath;
 
@@ -45,7 +45,7 @@ public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
     public int Blocks { get; set; }
 
     [ParamsAllValues]
-    internal InputType InputType { get; set; }
+    public InputType InputType { get; set; }
 
     [GlobalSetup(Target = nameof(RazorCSharpFormattingAsync))]
     public async Task InitializeRazorCSharpFormattingAsync()

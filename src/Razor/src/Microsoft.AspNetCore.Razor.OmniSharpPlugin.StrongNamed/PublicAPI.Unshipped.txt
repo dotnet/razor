@@ -1,6 +1,0 @@
-#nullable enable
-abstract Microsoft.AspNetCore.Razor.OmniSharpPlugin.OmniSharpProjectSnapshotManagerDispatcher.AssertDispatcherThread(string? caller = null) -> void
-Microsoft.AspNetCore.Razor.OmniSharpPlugin.OmniSharpProjectChangeEventArgs.DocumentFilePath.get -> string?
-Microsoft.AspNetCore.Razor.OmniSharpPlugin.OmniSharpProjectChangeEventArgs.Newer.get -> Microsoft.AspNetCore.Razor.OmniSharpPlugin.OmniSharpProjectSnapshot?
-Microsoft.AspNetCore.Razor.OmniSharpPlugin.OmniSharpProjectChangeEventArgs.Older.get -> Microsoft.AspNetCore.Razor.OmniSharpPlugin.OmniSharpProjectSnapshot?
-Microsoft.AspNetCore.Razor.OmniSharpPlugin.OmniSharpProjectSnapshot.GetDocument(string! filePath) -> Microsoft.AspNetCore.Razor.OmniSharpPlugin.OmniSharpDocumentSnapshot?

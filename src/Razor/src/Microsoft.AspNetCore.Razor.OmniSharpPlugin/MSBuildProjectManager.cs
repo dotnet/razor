@@ -193,7 +193,7 @@ internal class MSBuildProjectManager : IMSBuildEventSink, IOmniSharpProjectSnaps
         foreach (var documentFilePath in projectSnapshot.DocumentFilePaths)
         {
             OmniSharpHostDocument? associatedHostDocument = null;
-            var currentHostDocument = projectSnapshot.GetDocument(documentFilePath)!.HostDocument;
+            var currentHostDocument = projectSnapshot.GetDocument(documentFilePath).HostDocument;
 
             for (var i = 0; i < configuredHostDocuments.Count; i++)
             {

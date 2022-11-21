@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
@@ -25,7 +27,7 @@ public sealed class OmniSharpProjectSnapshot
 
     public ProjectWorkspaceState ProjectWorkspaceState => InternalProjectSnapshot.ProjectWorkspaceState;
 
-    public OmniSharpDocumentSnapshot? GetDocument(string filePath)
+    public OmniSharpDocumentSnapshot GetDocument(string filePath)
     {
         var documentSnapshot = InternalProjectSnapshot.GetDocument(filePath);
         if (documentSnapshot is null)
@@ -37,7 +39,7 @@ public sealed class OmniSharpProjectSnapshot
         return internalDocumentSnapshot;
     }
 
-    internal static OmniSharpProjectSnapshot? Convert(ProjectSnapshot? projectSnapshot)
+    internal static OmniSharpProjectSnapshot Convert(ProjectSnapshot projectSnapshot)
     {
         if (projectSnapshot is null)
         {

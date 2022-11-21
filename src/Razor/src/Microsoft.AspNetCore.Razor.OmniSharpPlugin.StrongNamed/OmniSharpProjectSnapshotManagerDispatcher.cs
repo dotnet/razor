@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -11,9 +13,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
 public abstract class OmniSharpProjectSnapshotManagerDispatcher
 {
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     internal ProjectSnapshotManagerDispatcher InternalDispatcher { get; private protected set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
     public abstract TaskScheduler DispatcherScheduler { get; }
 
@@ -23,5 +23,5 @@ public abstract class OmniSharpProjectSnapshotManagerDispatcher
     public Task<TResult> RunOnDispatcherThreadAsync<TResult>(Func<TResult> action, CancellationToken cancellationToken)
         => InternalDispatcher.RunOnDispatcherThreadAsync(action, cancellationToken);
 
-    public abstract void AssertDispatcherThread([CallerMemberName] string? caller = null);
+    public abstract void AssertDispatcherThread([CallerMemberName] string caller = null);
 }
