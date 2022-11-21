@@ -2,7 +2,7 @@
   <Import Project="AddinMetadata.props" />
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>$(DefaultNetFxTargetFramework)</TargetFramework>
     <IsMPackProject>true</IsMPackProject>
     <AddinName>Microsoft.VisualStudio.Mac.RazorAddin</AddinName>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
