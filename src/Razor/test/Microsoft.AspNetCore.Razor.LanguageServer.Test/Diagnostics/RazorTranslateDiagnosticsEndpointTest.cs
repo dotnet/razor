@@ -63,7 +63,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
                     new SourceSpan(4, 12),
                     new SourceSpan(10, 12))
             });
-        var documentContext = CreateDocumentContext(documentPath, codeDocument, documentFound: false);
+        var documentContext = (DocumentContext?)null;
 
         var diagnosticsEndpoint = new RazorTranslateDiagnosticsEndpoint(_mappingService, LoggerFactory);
         var request = new RazorDiagnosticsParams()

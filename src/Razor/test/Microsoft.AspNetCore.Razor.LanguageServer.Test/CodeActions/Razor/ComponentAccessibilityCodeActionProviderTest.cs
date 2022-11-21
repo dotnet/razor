@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -120,6 +118,7 @@ public class ComponentAccessibilityCodeActionProviderTest : LanguageServerTestBa
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
+        Assert.NotNull(commandOrCodeActionContainer);
         Assert.Collection(commandOrCodeActionContainer,
             e =>
             {
@@ -163,6 +162,7 @@ public class ComponentAccessibilityCodeActionProviderTest : LanguageServerTestBa
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
+        Assert.NotNull(commandOrCodeActionContainer);
         var command = Assert.Single(commandOrCodeActionContainer);
         Assert.Equal(RazorLS.Resources.Create_Component_FromTag_Title, command.Title);
         Assert.NotNull(command.Data);
@@ -189,6 +189,7 @@ public class ComponentAccessibilityCodeActionProviderTest : LanguageServerTestBa
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
+        Assert.NotNull(commandOrCodeActionContainer);
         Assert.Empty(commandOrCodeActionContainer);
     }
 
@@ -213,6 +214,7 @@ public class ComponentAccessibilityCodeActionProviderTest : LanguageServerTestBa
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
 
         // Assert
+        Assert.NotNull(commandOrCodeActionContainer);
         Assert.Collection(commandOrCodeActionContainer,
             e =>
             {

@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -23,6 +24,8 @@ internal abstract class BaseDelegatedCodeActionResolver : BaseCodeActionResolver
 
         LanguageServer = languageServer;
     }
+
+    public abstract Task<CodeAction> ResolveAsync(CodeActionResolveParams resolveParams, CodeAction codeAction, CancellationToken cancellationToken);
 
     protected async Task<CodeAction?> ResolveCodeActionWithServerAsync(Uri razorFileUri, int hostDocumentVersion, RazorLanguageKind languageKind, CodeAction codeAction, CancellationToken cancellationToken)
     {
