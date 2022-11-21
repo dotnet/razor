@@ -1,8 +1,1 @@
-﻿Microsoft.AspNetCore.Razor.OmniSharpPlugin.CoreProjectConfigurationProvider
-Microsoft.AspNetCore.Razor.OmniSharpPlugin.CoreProjectConfigurationProvider.CoreProjectConfigurationProvider() -> void
-Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectConfiguration
-Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectConfigurationProvider
-Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectConfigurationProvider.ProjectConfigurationProvider() -> void
-Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectConfigurationProviderContext
-Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectInstanceEvaluator
-Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectInstanceEvaluator.ProjectInstanceEvaluator() -> void
+﻿

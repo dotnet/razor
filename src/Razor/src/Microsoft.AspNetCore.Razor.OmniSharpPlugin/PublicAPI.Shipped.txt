@@ -9,3 +9,11 @@ Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectConfiguration.RootNamespace.ge
 Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectConfigurationProviderContext.ProjectCapabilities.get -> System.Collections.Generic.IReadOnlyList<string>
 Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectConfigurationProviderContext.ProjectConfigurationProviderContext(System.Collections.Generic.IReadOnlyList<string> projectCapabilities, Microsoft.Build.Execution.ProjectInstance projectInstance) -> void
 Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectConfigurationProviderContext.ProjectInstance.get -> Microsoft.Build.Execution.ProjectInstance
+Microsoft.AspNetCore.Razor.OmniSharpPlugin.CoreProjectConfigurationProvider
+Microsoft.AspNetCore.Razor.OmniSharpPlugin.CoreProjectConfigurationProvider.CoreProjectConfigurationProvider() -> void
+Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectConfiguration
+Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectConfigurationProvider
+Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectConfigurationProvider.ProjectConfigurationProvider() -> void
+Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectConfigurationProviderContext
+Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectInstanceEvaluator
+Microsoft.AspNetCore.Razor.OmniSharpPlugin.ProjectInstanceEvaluator.ProjectInstanceEvaluator() -> void
