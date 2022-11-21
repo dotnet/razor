@@ -36,9 +36,9 @@ public sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
         CSharpLanguageVersion = csharpLanguageVersion;
     }
 
-    internal IReadOnlyList<TagHelperDescriptor> TagHelpers { get; }
+    public IReadOnlyList<TagHelperDescriptor> TagHelpers { get; }
 
-    internal LanguageVersion CSharpLanguageVersion { get; }
+    public LanguageVersion CSharpLanguageVersion { get; }
 
     public override bool Equals(object obj)
     {
