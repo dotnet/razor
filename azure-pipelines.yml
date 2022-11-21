@@ -22,6 +22,24 @@ variables:
   - name: _InternalRuntimeDownloadArgs
     value: /p:DotNetRuntimeSourceFeed=https://dotnetclimsrc.blob.core.windows.net/dotnet
            /p:DotNetRuntimeSourceFeedKey=$(dotnetclimsrc-read-sas-token-base64)
+
+  - group: DotNet-DevDiv-Insertion-Workflow-Variables
+  - name: _DevDivDropAccessToken
+    value: $(dn-bot-devdiv-drop-rw-code-rw)
+
+  - group: DotNet-Roslyn-Insertion-Variables
+  - name: Razor.GitHubEmail
+    value: dotnet-build-bot@microsoft.com
+  - name: Razor.GitHubToken
+    value: $(AccessToken-dotnet-build-bot-public-repo)
+  - name: Razor.GitHubUserName
+    value: dotnet-build-bot
+  - name: Insertion.CreateDraftPR
+    value: true
+  - name: Insertion.TitlePrefix
+    value: '[Auto Insertion]'
+  - name: Insertion.TitleSuffix
+    value: ''
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
   - name: _InternalRuntimeDownloadArgs
     value: ''
@@ -153,7 +171,7 @@ stages:
               /p:OfficialBuildId=$(Build.BuildNumber)
               /p:ManifestBuildBranch=$(Build.SourceBranchName)
               /p:ManifestBuildNumber=$(Build.BuildNumber)
-              /p:VisualStudioDropName=Products/dotnet/razor-tooling/$(Build.SourceBranchName)/$(Build.BuildNumber)
+              /p:VisualStudioDropName=Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)
               /p:GenerateSbom=true
 
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
@@ -285,38 +303,51 @@ stages:
         #     searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)'
         #   continueOnError: true
         #   condition: always()
+
+        # Publish an artifact that the RoslynInsertionTool is able to find by its name.
         - task: PublishBuildArtifacts@1
-          displayName: Publish VSIX Artifacts
+          displayName: Publish Artifact VSSetup
           inputs:
-            PathtoPublish: '$(Build.SourcesDirectory)/artifacts/VSSetup/$(_BuildConfig)'
-            PublishLocation: Container
-            ArtifactName: VSIX_$(Agent.Os)_$(_BuildConfig)
+            PathtoPublish: 'artifacts\VSSetup\$(_BuildConfig)'
+            ArtifactName: 'VSSetup'
           continueOnError: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
         - task: PublishBuildArtifacts@1
           displayName: Publish VS for Mac Artifacts
           inputs:
-            PathtoPublish: '$(Build.SourcesDirectory)/artifacts/MPack/$(_BuildConfig)'
-            PublishLocation: Container
+            PathtoPublish: 'artifacts\MPack\$(_BuildConfig)'
             ArtifactName: MPack_$(Agent.Os)_$(_BuildConfig)
           continueOnError: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
         - task: PublishBuildArtifacts@1
           displayName: Publish package artifacts
           inputs:
-            PathtoPublish: $(Build.SourcesDirectory)/artifacts/packages/$(_BuildConfig)
-            PublishLocation: Container
+            PathtoPublish: 'artifacts\packages\$(_BuildConfig)'
             ArtifactName: Packages_$(Agent.Os)_$(_BuildConfig)
           continueOnError: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
         - task: PublishBuildArtifacts@1
           displayName: Publish VS Code extension artifacts
           inputs:
-            PathtoPublish: $(Build.SourcesDirectory)/artifacts/packages/VSCode/$(_BuildConfig)
-            PublishLocation: Container
+            PathtoPublish: 'artifacts\packages\VSCode\$(_BuildConfig)'
             ArtifactName: BlazorWasmDebuggingExtension
           continueOnError: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+
+        - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)"
+          displayName: Setting VisualStudio.DropName variable
+
+        # Publishes setup VSIXes to a drop.
+        # Note: The insertion tool looks for the display name of this task in the logs.
+        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+          - task: ms-vseng.MicroBuildTasks.4305a8de-ba66-4d8b-b2d1-0dc4ecbbf5e8.MicroBuildUploadVstsDropFolder@1
+            displayName: Upload VSTS Drop
+            inputs:
+              DropName: $(VisualStudio.DropName)
+              DropFolder: 'artifacts\VSSetup\$(_BuildConfig)\Insertion'
+              AccessToken: $(_DevDivDropAccessToken)
+            continueOnError: true
+            condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
       - job: macOS
         pool:
@@ -427,3 +458,59 @@ stages:
           -TsaRepositoryName "Razor-Tooling"
           -TsaCodebaseName "Razor-Tooling"
           -TsaPublish $True
+
+  - stage: insert
+    dependsOn: publish_using_darc
+    displayName: Insert to VS
+    jobs:
+    - job: insert
+      displayName: Insert to VS
+      pool:
+        name: NetCore1ESPool-Svc-Internal
+        demands: ImageOverride -equals windows.vs2022.amd64
+      steps:
+      - download: current
+        artifact: VSSetup
+      - powershell: |
+          $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
+          Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
+        displayName: Get Branch Name
+      - template: eng/pipelines/insert.yml
+        parameters:
+          buildUserName: "dn-bot@microsoft.com"
+          buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+          componentUserName: "dn-bot@microsoft.com"
+          componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
+          componentBuildProjectName: internal
+          sourceBranch: "$(ComponentBranchName)"
+          publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-razor/items?path=/eng/config/PublishData.json&versionType=commit&version=507dd3c0c9af56897c7d9f2830c82d690e0ef3d4&api-version=6.0"
+          publishDataAccessToken: "$(System.AccessToken)"
+          dropPath: '$(Pipeline.Workspace)\VSSetup'
+
+  - stage: insert
+    dependsOn: publish_using_darc
+    displayName: Insert to VS
+    jobs:
+    - job: insert
+      displayName: Insert to VS
+      pool:
+        name: NetCore1ESPool-Svc-Internal
+        demands: ImageOverride -equals windows.vs2022.amd64
+      steps:
+      - download: current
+        artifact: VSSetup
+      - powershell: |
+          $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
+          Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
+        displayName: Get Branch Name
+      - template: eng/pipelines/insert.yml
+        parameters:
+          buildUserName: "dn-bot@microsoft.com"
+          buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+          componentUserName: "dn-bot@microsoft.com"
+          componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
+          componentBuildProjectName: internal
+          sourceBranch: "$(ComponentBranchName)"
+          publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-razor/items?path=/eng/config/PublishData.json&versionType=commit&version=507dd3c0c9af56897c7d9f2830c82d690e0ef3d4&api-version=6.0"
+          publishDataAccessToken: "$(System.AccessToken)"
+          dropPath: '$(Pipeline.Workspace)\VSSetup'
