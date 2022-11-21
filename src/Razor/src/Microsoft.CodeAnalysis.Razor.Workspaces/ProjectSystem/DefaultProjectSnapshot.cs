@@ -59,6 +59,7 @@ internal class DefaultProjectSnapshot : ProjectSnapshot
                 _documents.Add(filePath, result);
             }
 
+            // TODO: Fix nullability of ProjectSnapshot.GetDocument(...) - https://github.com/dotnet/razor/issues/7945
             return result!;
         }
     }
