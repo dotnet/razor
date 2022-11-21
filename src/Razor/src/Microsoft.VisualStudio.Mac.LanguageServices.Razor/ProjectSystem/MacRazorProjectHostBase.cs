@@ -21,7 +21,6 @@ internal abstract class MacRazorProjectHostBase
 {
     // References changes are always triggered when project changes happen.
     private const string ProjectChangedHint = "References";
-    private const string BaseIntermediateOutputPathPropertyName = "BaseIntermediateOutputPath";
     private const string IntermediateOutputPathPropertyName = "IntermediateOutputPath";
     private const string MSBuildProjectDirectoryPropertyName = "MSBuildProjectDirectory";
 
@@ -204,24 +203,17 @@ internal abstract class MacRazorProjectHostBase
         }
     }
 
-    // Internal for testing
-    internal static bool TryGetIntermediateOutputPath(
+    protected bool TryGetIntermediateOutputPath(
         IMSBuildEvaluatedPropertyCollection projectProperties,
         [NotNullWhen(returnValue: true)] out string? path)
     {
-        if (!projectProperties.HasProperty(BaseIntermediateOutputPathPropertyName))
-        {
-            path = null;
-            return false;
-        }
-
         if (!projectProperties.HasProperty(IntermediateOutputPathPropertyName))
         {
             path = null;
             return false;
         }
 
-        var baseIntermediateOutputPathValue = projectProperties.GetValue(BaseIntermediateOutputPathPropertyName);
+        var baseIntermediateOutputPathValue = DotNetProject.BaseIntermediateOutputPath.ToString();
         if (string.IsNullOrEmpty(baseIntermediateOutputPathValue))
         {
             path = null;
@@ -264,15 +256,12 @@ internal abstract class MacRazorProjectHostBase
         return true;
     }
 
-    private static string? ResolveFallbackIntermediateOutputPath(IMSBuildEvaluatedPropertyCollection projectProperties, string intermediateOutputPathValue)
+    private string? ResolveFallbackIntermediateOutputPath(IMSBuildEvaluatedPropertyCollection projectProperties, string intermediateOutputPathValue)
     {
-        if (!projectProperties.HasProperty(MSBuildProjectDirectoryPropertyName))
-        {
-            // Can't resolve the project, bail.
-            return null;
-        }
+        var projectDirectory = projectProperties.HasProperty(MSBuildProjectDirectoryPropertyName)
+            ? projectProperties.GetValue(MSBuildProjectDirectoryPropertyName)
+            : DotNetProject.BaseDirectory.ToString();
 
-        var projectDirectory = projectProperties.GetValue(MSBuildProjectDirectoryPropertyName);
         var normalizedProjectDirectory = ToMacFilePath(projectDirectory);
         var joinedPath = Path.Combine(normalizedProjectDirectory, intermediateOutputPathValue);
         if (!Directory.Exists(joinedPath))
