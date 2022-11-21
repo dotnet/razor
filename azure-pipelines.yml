@@ -345,14 +345,15 @@ stages:
           
         # Publishes setup VSIXes to a drop.
         # Note: The insertion tool looks for the display name of this task in the logs.
-        - task: ms-vseng.MicroBuildTasks.4305a8de-ba66-4d8b-b2d1-0dc4ecbbf5e8.MicroBuildUploadVstsDropFolder@1
-          displayName: Upload VSTS Drop
-          inputs:
-            DropName: $(VisualStudio.DropName)
-            DropFolder: 'artifacts\VSSetup\$(_BuildConfig)\Insertion'
-            AccessToken: $(_DevDivDropAccessToken)
-          continueOnError: true
-          condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
+        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+          - task: ms-vseng.MicroBuildTasks.4305a8de-ba66-4d8b-b2d1-0dc4ecbbf5e8.MicroBuildUploadVstsDropFolder@1
+            displayName: Upload VSTS Drop
+            inputs:
+              DropName: $(VisualStudio.DropName)
+              DropFolder: 'artifacts\VSSetup\$(_BuildConfig)\Insertion'
+              AccessToken: $(_DevDivDropAccessToken)
+            continueOnError: true
+            condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
       - ${{ if eq(variables['System.TeamProject'], 'public') }}:
         - job: macOS
