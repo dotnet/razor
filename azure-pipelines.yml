@@ -69,7 +69,6 @@ stages:
       enablePublishBuildArtifacts: false
       enablePublishTestResults: false
       enablePublishUsingPipelines: false
-      enableSourceBuild: true
       jobs:
       # Code check
       - ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
@@ -111,6 +110,7 @@ stages:
       enablePublishBuildArtifacts: true
       enablePublishTestResults: true
       enableTelemetry: true
+      enableSourceBuild: true
       helixRepo: dotnet/razor
       helixType: build.product/
       # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
