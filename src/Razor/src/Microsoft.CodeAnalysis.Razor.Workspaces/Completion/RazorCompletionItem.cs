@@ -2,10 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Extensions.Internal;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -80,46 +80,31 @@ internal sealed class RazorCompletionItem : IEquatable<RazorCompletionItem>
         }
     }
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as RazorCompletionItem);
-    }
+    public override bool Equals(object? obj)
+        => Equals(obj as RazorCompletionItem);
 
     public bool Equals(RazorCompletionItem? other)
     {
-        if (other is null)
-        {
-            return false;
-        }
+        return other is not null &&
+               DisplayText == other.DisplayText &&
+               InsertText == other.InsertText &&
+               Kind == other.Kind &&
+               BothNullOrEqual(_items, other._items) &&
+               BothNullOrEqual(CommitCharacters, other.CommitCharacters);
 
-        if (!string.Equals(DisplayText, other.DisplayText, StringComparison.Ordinal))
+        static bool BothNullOrEqual<T>(IEnumerable<T>? first, IEnumerable<T>? second)
         {
-            return false;
-        }
+            if (first is null)
+            {
+                return second is null;
+            }
+            else if (second is null)
+            {
+                return false;
+            }
 
-        if (!string.Equals(InsertText, other.InsertText, StringComparison.Ordinal))
-        {
-            return false;
+            return first.SequenceEqual(second);
         }
-
-        if (Kind != other.Kind)
-        {
-            return false;
-        }
-
-        if (!Enumerable.SequenceEqual(Items, other.Items))
-        {
-            return false;
-        }
-
-        if ((CommitCharacters is null ^ other.CommitCharacters is null) ||
-            (CommitCharacters is not null && other.CommitCharacters is not null &&
-                !CommitCharacters.SequenceEqual(other.CommitCharacters)))
-        {
-            return false;
-        }
-
-        return true;
     }
 
     public override int GetHashCode()

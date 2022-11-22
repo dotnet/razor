@@ -15,17 +15,22 @@ internal sealed class TagHelperResolutionResultComparer : IEqualityComparer<TagH
 
     public bool Equals(TagHelperResolutionResult? x, TagHelperResolutionResult? y)
     {
-        if (x is null && y is null)
+        if (x is null)
         {
-            return true;
+            return y is null;
         }
-        else if (x is null ^ y is null)
+        else if (y is null)
         {
             return false;
         }
 
-        return x!.Descriptors.SequenceEqual(y!.Descriptors, TagHelperDescriptorComparer.Default) &&
-            x.Diagnostics.SequenceEqual(y.Diagnostics);
+        Assumes.NotNull(x.Descriptors);
+        Assumes.NotNull(x.Diagnostics);
+        Assumes.NotNull(y.Descriptors);
+        Assumes.NotNull(y.Diagnostics);
+
+        return x.Descriptors.SequenceEqual(y.Descriptors, TagHelperDescriptorComparer.Default) &&
+               x.Diagnostics.SequenceEqual(y.Diagnostics);
     }
 
     public int GetHashCode(TagHelperResolutionResult obj)

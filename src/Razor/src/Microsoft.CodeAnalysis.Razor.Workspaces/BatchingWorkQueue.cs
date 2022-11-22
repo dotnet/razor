@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Internal;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -114,15 +115,16 @@ internal sealed class BatchingWorkQueue : IDisposable
     private void StartWorker()
     {
         // Access to the timer is protected by the lock in Enqueue and in Timer_TickAsync
-        if (_timer is null)
-        {
-            // Timer will fire after a fixed delay, but only once.
-            _timer = NonCapturingTimer.Create(
-                state => _ = ((BatchingWorkQueue)state).Timer_TickAsync(),
-                this,
-                _batchingTimeSpan,
-                Timeout.InfiniteTimeSpan);
-        }
+        // Timer will fire after a fixed delay, but only once.
+        _timer ??= NonCapturingTimer.Create(
+            state =>
+            {
+                Assumes.NotNull(state);
+                ((BatchingWorkQueue)state).Timer_TickAsync().Forget();
+            },
+            this,
+            _batchingTimeSpan,
+            Timeout.InfiniteTimeSpan);
     }
 
     private async Task Timer_TickAsync()
@@ -164,9 +166,14 @@ internal sealed class BatchingWorkQueue : IDisposable
 
             lock (_work)
             {
+                // Suppress analyzer that suggests using DisposeAsync().
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
+
                 // Resetting the timer allows another batch of work to start.
                 _timer?.Dispose();
                 _timer = null;
+
+#pragma warning restore VSTHRD103
 
                 // If more work came in while we were running start the worker again if we're still alive
                 if (_work.Count > 0 && !_disposed)

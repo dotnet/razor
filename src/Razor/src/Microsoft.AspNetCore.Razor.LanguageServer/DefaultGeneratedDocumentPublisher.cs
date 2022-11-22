@@ -166,7 +166,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
         _ = _server.SendNotificationAsync(RazorLanguageServerCustomMessageTargets.RazorUpdateHtmlBufferEndpoint, request, CancellationToken.None);
     }
 
-    private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
+    private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         // Don't do any work if the solution is closing
         if (args.SolutionIsClosing)

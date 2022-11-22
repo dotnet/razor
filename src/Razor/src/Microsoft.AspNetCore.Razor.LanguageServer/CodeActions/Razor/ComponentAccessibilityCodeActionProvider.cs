@@ -45,7 +45,7 @@ internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvide
         }
 
         // Find start tag
-        var startTag = (MarkupStartTagSyntax)node.Ancestors().FirstOrDefault(n => n is MarkupStartTagSyntax);
+        var startTag = node.Ancestors().FirstOrDefault(n => n is MarkupStartTagSyntax) as MarkupStartTagSyntax;
         if (startTag is null)
         {
             return s_emptyResult;
@@ -96,7 +96,11 @@ internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvide
 
         var path = context.Request.TextDocument.Uri.GetAbsoluteOrUNCPath();
         path = FilePathNormalizer.Normalize(path);
-        var newComponentPath = Path.Combine(Path.GetDirectoryName(path), $"{startTag.Name.Content}.razor");
+
+        var directoryName = Path.GetDirectoryName(path);
+        Assumes.NotNull(directoryName);
+
+        var newComponentPath = Path.Combine(directoryName, $"{startTag.Name.Content}.razor");
         if (File.Exists(newComponentPath))
         {
             return;

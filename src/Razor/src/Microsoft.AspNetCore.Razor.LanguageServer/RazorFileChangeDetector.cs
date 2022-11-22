@@ -215,6 +215,8 @@ internal class RazorFileChangeDetector : IFileChangeDetector
             var result = PendingNotifications.TryGetValue(physicalFilePath, out var notification);
             Debug.Assert(result, "We should always have an associated notification after delaying an update.");
 
+            Assumes.NotNull(notification);
+
             PendingNotifications.Remove(physicalFilePath);
 
             if (notification.ChangeKind is null)

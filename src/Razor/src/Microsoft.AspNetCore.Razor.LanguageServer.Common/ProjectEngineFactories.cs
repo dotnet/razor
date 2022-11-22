@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
-internal class ProjectEngineFactories
+internal static class ProjectEngineFactories
 {
     public static readonly Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[] Factories =
         new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>[]
@@ -31,9 +31,9 @@ internal class ProjectEngineFactories
                 () => new ProjectEngineFactory_3_0(),
                 new ExportCustomProjectEngineFactoryAttribute("MVC-3.0") { SupportsSerialization = true }),
 
-            // Unsupported (Legacy/System.Web.Razor)
-            new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(
-                () => new ProjectEngineFactory_Unsupported(),
-                new ExportCustomProjectEngineFactoryAttribute(UnsupportedRazorConfiguration.Instance.ConfigurationName) { SupportsSerialization = true }),
-        };
+        // Unsupported (Legacy/System.Web.Razor)
+        new Lazy<IProjectEngineFactory, ICustomProjectEngineFactoryMetadata>(
+            () => new ProjectEngineFactory_Unsupported(),
+            new ExportCustomProjectEngineFactoryAttribute(UnsupportedRazorConfiguration.Instance.ConfigurationName) { SupportsSerialization = true }),
+    };
 }

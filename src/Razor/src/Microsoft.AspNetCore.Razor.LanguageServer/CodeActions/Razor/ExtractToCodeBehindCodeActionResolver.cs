@@ -146,11 +146,16 @@ internal class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
         do
         {
             var identifier = n > 0 ? n.ToString(CultureInfo.InvariantCulture) : string.Empty;  // Make it look nice
+            var directoryName = Path.GetDirectoryName(path);
+            Assumes.NotNull(directoryName);
+
             codeBehindPath = Path.Combine(
-                Path.GetDirectoryName(path),
+                directoryName,
                 $"{Path.GetFileNameWithoutExtension(path)}{identifier}{Path.GetExtension(path)}.cs");
             n++;
-        } while (File.Exists(codeBehindPath));
+        }
+        while (File.Exists(codeBehindPath));
+
         return codeBehindPath;
     }
 

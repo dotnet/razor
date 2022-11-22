@@ -83,6 +83,8 @@ internal class MonitorProjectConfigurationFilePathEndpoint : IMonitorProjectConf
         var workspaceDirectory = _workspaceDirectoryPathResolver.Resolve();
         var normalizedWorkspaceDirectory = FilePathNormalizer.NormalizeDirectory(workspaceDirectory);
 
+        Assumes.NotNull(configurationDirectory);
+
         var previousMonitorExists = _outputPathMonitors.TryGetValue(request.ProjectFilePath, out var entry);
 
         if (normalizedConfigurationDirectory.StartsWith(normalizedWorkspaceDirectory, FilePathComparison.Instance))

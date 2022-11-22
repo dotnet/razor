@@ -26,17 +26,11 @@ internal sealed class EditorSettings : IEquatable<EditorSettings>
     public int IndentSize { get; }
 
     public bool Equals(EditorSettings? other)
-    {
-        if (other is null)
-        {
-            return false;
-        }
+        => other is not null &&
+           IndentWithTabs == other.IndentWithTabs &&
+           IndentSize == other.IndentSize;
 
-        return IndentWithTabs == other.IndentWithTabs &&
-            IndentSize == other.IndentSize;
-    }
-
-    public override bool Equals(object other)
+    public override bool Equals(object? other)
     {
         return Equals(other as EditorSettings);
     }

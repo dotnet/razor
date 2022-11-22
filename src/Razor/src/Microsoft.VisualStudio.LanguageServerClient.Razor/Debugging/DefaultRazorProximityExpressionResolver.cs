@@ -21,7 +21,7 @@ internal class DefaultRazorProximityExpressionResolver : RazorProximityExpressio
     private readonly FileUriProvider _fileUriProvider;
     private readonly LSPDocumentManager _documentManager;
     private readonly LSPProximityExpressionsProvider _proximityExpressionsProvider;
-    private readonly MemoryCache<CacheKey, IReadOnlyList<string>?> _cache;
+    private readonly MemoryCache<CacheKey, IReadOnlyList<string>> _cache;
 
     [ImportingConstructor]
     public DefaultRazorProximityExpressionResolver(
@@ -50,7 +50,7 @@ internal class DefaultRazorProximityExpressionResolver : RazorProximityExpressio
 
         // 10 is a magic number where this effectively represents our ability to cache the last 10 "hit" breakpoint locations
         // corresponding proximity expressions which enables us not to go "async" in those re-hit scenarios.
-        _cache = new MemoryCache<CacheKey, IReadOnlyList<string>?>(sizeLimit: 10);
+        _cache = new MemoryCache<CacheKey, IReadOnlyList<string>>(sizeLimit: 10);
     }
 
     public override async Task<IReadOnlyList<string>?> TryResolveProximityExpressionsAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken)
@@ -98,7 +98,8 @@ internal class DefaultRazorProximityExpressionResolver : RazorProximityExpressio
         var proximityExpressions = await _proximityExpressionsProvider.GetProximityExpressionsAsync(documentSnapshot, position, cancellationToken).ConfigureAwait(false);
 
         // Cache range so if we're asked again for this document/line/character we don't have to go async.
-        _cache.Set(cacheKey, proximityExpressions);
+        // Note: If we didn't get any proximity expressions back--likely due to an error--we cache an empty array.
+        _cache.Set(cacheKey, proximityExpressions ?? Array.Empty<string>());
 
         return proximityExpressions;
     }

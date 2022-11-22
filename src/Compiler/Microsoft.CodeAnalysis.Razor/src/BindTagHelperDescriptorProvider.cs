@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 {
-    public string Name => nameof(BindTagHelperDescriptorProvider);
-
     // Run after the component tag helper provider, because we need to see the results.
     public int Order { get; set; } = 1000;
 

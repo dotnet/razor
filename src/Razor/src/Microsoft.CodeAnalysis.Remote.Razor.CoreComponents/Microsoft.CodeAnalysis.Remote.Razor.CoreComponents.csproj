@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <OutputType>Exe</OutputType>
 
     <!-- The purpose of this project is to include all dependecies of Microsoft.CodeAnalysis.Remote.Razor targeting .Net Core -->
     <IsShipping>false</IsShipping>
@@ -22,8 +22,11 @@
         Also only include dependencies exclusive to Razor. For any common dependencies between Roslyn and Razor, we want to share the ones
         loaded in Roslyn's ALC at runtime.
       -->
+
+      <_ExcludedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.*" />
+
       <_PublishedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Razor.*" />
-      <_PublishedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.Razor.*" />
+      <_PublishedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.Razor.*" Exclude="@(_ExcludedFiles)"/>
       <_PublishedFiles Include="$(PublishDir)**\Microsoft.AspNetCore.*" />
       <_PublishedFiles Include="$(PublishDir)**\Microsoft.Extensions.Logging.Abstractions.dll" />
 

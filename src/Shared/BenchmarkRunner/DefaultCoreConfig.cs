@@ -43,6 +43,8 @@ internal class DefaultCoreConfig : ManualConfig
             .WithToolchain(CsProjCoreToolchain.From(new NetCoreAppSettings("net5.0", null, ".NET Core 5.0")))
 #elif NET6_0
             .WithToolchain(CsProjCoreToolchain.From(new NetCoreAppSettings("net6.0", null, ".NET 6.0")))
+#elif NET7_0
+            .WithToolchain(CsProjCoreToolchain.From(new NetCoreAppSettings("net7.0", null, ".NET 7.0")))
 #elif NET472
             .WithToolchain(CsProjClassicNetToolchain.Net472)
 #else

@@ -230,27 +230,26 @@ internal class RazorTranslateDiagnosticsEndpoint :
             _ => false,
         };
 
-        static bool IsCSharpInStyleBlock(VSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
+        static bool IsCSharpInStyleBlock(VSDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
         {
             // C# in a style block causes diagnostics because the HTML background document replaces C# with "~"
-            var owner = syntaxTree.GetOwner(sourceText, d.Range.Start, logger);
+            var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.Start, logger);
             if (owner is null)
             {
                 return false;
             }
 
-            var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>(
-                n => n.StartTag?.Name.Content.Equals("style", StringComparison.Ordinal) == true);
-            var cSharp = owner.FirstAncestorOrSelf<CSharpCodeBlockSyntax>();
+            var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>(n => n.StartTag?.Name.Content == "style");
+            var csharp = owner.FirstAncestorOrSelf<CSharpCodeBlockSyntax>();
 
-            return element.Body.Any(c => c is CSharpCodeBlockSyntax) || cSharp is not null;
+            return element.Body.Any(c => c is CSharpCodeBlockSyntax) || csharp is not null;
         }
 
         // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
         // but we don't currently have a system to accomplish that
-        static bool IsAnyFilteredTooFewElementsError(VSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
+        static bool IsAnyFilteredTooFewElementsError(VSDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
         {
-            var owner = syntaxTree.GetOwner(sourceText, d.Range.Start, logger);
+            var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.Start, logger);
             if (owner is null)
             {
                 return false;
@@ -258,20 +257,24 @@ internal class RazorTranslateDiagnosticsEndpoint :
 
             var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
 
-            if (element.StartTag?.Name.Content.Equals("html", StringComparison.Ordinal) != true)
+            if (element.StartTag?.Name.Content != "html")
             {
                 return false;
             }
 
-            var bodyElement = (MarkupElementSyntax)element.ChildNodes().SingleOrDefault(c => c is MarkupElementSyntax tag && tag.StartTag?.Name.Content.Equals("body", StringComparison.Ordinal) == true);
-            return bodyElement is not null && bodyElement.StartTag?.Bang is not null;
+            var bodyElement = element
+                .ChildNodes()
+                .SingleOrDefault(c => c is MarkupElementSyntax tag && tag.StartTag?.Name.Content == "body") as MarkupElementSyntax;
+
+            return bodyElement is not null &&
+                   bodyElement.StartTag?.Bang is not null;
         }
 
         // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
         // but we don't currently have a system to accomplish that
-        static bool IsHtmlWithBangAndMatchingTags(VSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
+        static bool IsHtmlWithBangAndMatchingTags(VSDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
         {
-            var owner = syntaxTree.GetOwner(sourceText, d.Range.Start, logger);
+            var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.Start, logger);
             if (owner is null)
             {
                 return false;
@@ -287,21 +290,19 @@ internal class RazorTranslateDiagnosticsEndpoint :
                 return false;
             }
 
-            var haveBang = startNode.Bang != null && endNode.Bang != null;
-            var namesEquivilant = startNode.Name.Content.Equals(endNode.Name.Content, StringComparison.Ordinal);
+            var haveBang = startNode.Bang is not null && endNode.Bang is not null;
+            var namesEquivilant = startNode.Name.Content == endNode.Name.Content;
 
             return haveBang && namesEquivilant;
         }
 
-        static bool IsAnyFilteredInvalidNestingError(VSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
-        {
-            return IsInvalidNestingWarningWithinComponent(d, sourceText, syntaxTree, logger) ||
-                IsInvalidNestingFromBody(d, sourceText, syntaxTree, logger);
-        }
+        static bool IsAnyFilteredInvalidNestingError(VSDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
+            => IsInvalidNestingWarningWithinComponent(diagnostic, sourceText, syntaxTree, logger) ||
+               IsInvalidNestingFromBody(diagnostic, sourceText, syntaxTree, logger);
 
-        static bool IsInvalidNestingWarningWithinComponent(VSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
+        static bool IsInvalidNestingWarningWithinComponent(VSDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
         {
-            var owner = syntaxTree.GetOwner(sourceText, d.Range.Start, logger);
+            var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.Start, logger);
             if (owner is null)
             {
                 return false;
@@ -314,9 +315,9 @@ internal class RazorTranslateDiagnosticsEndpoint :
 
         // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
         // but we don't currently have a system to accomplish that
-        static bool IsInvalidNestingFromBody(VSDiagnostic d, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
+        static bool IsInvalidNestingFromBody(VSDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
         {
-            var owner = syntaxTree.GetOwner(sourceText, d.Range.Start, logger);
+            var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.Start, logger);
             if (owner is null)
             {
                 return false;
@@ -329,31 +330,31 @@ internal class RazorTranslateDiagnosticsEndpoint :
                 return false;
             }
 
-            if (d.Message is null)
+            if (diagnostic.Message is null)
             {
                 return false;
             }
 
-            return d.Message.EndsWith("cannot be nested inside element 'html'.") && body.StartTag?.Bang != null;
+            return diagnostic.Message.EndsWith("cannot be nested inside element 'html'.") && body.StartTag?.Bang is not null;
         }
     }
 
     private static bool InAttributeContainingCSharp(
-            VSDiagnostic d,
-            SourceText sourceText,
-            RazorSyntaxTree syntaxTree,
-            Dictionary<TextSpan, bool> processedAttributes,
-            ILogger logger)
+        VSDiagnostic diagnostic,
+        SourceText sourceText,
+        RazorSyntaxTree syntaxTree,
+        Dictionary<TextSpan, bool> processedAttributes,
+        ILogger logger)
     {
         // Examine the _end_ of the diagnostic to see if we're at the
         // start of an (im/ex)plicit expression. Looking at the start
         // of the diagnostic isn't sufficient.
-        if (d.Range is null)
+        if (diagnostic.Range is null)
         {
             return false;
         }
 
-        var owner = syntaxTree.GetOwner(sourceText, d.Range.End, logger);
+        var owner = syntaxTree.GetOwner(sourceText, diagnostic.Range.End, logger);
         if (owner is null)
         {
             return false;
@@ -364,7 +365,7 @@ internal class RazorTranslateDiagnosticsEndpoint :
             n is MarkupTagHelperAttributeSyntax ||
             n is MarkupMiscAttributeContentSyntax);
 
-        if (markupAttributeNode != null)
+        if (markupAttributeNode is not null)
         {
             if (!processedAttributes.TryGetValue(markupAttributeNode.FullSpan, out var doesAttributeContainNonMarkup))
             {
@@ -385,6 +386,7 @@ internal class RazorTranslateDiagnosticsEndpoint :
                     n is MarkupSyntaxNode ||
                     n is GenericBlockSyntax ||
                     (n is SyntaxNode sn && sn.IsToken && sn.Kind != SyntaxKind.RazorCommentTransition)));
+
             return containsNonMarkupNodes;
         }
     }

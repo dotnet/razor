@@ -21,7 +21,7 @@ internal class SemanticRange : IComparable<SemanticRange>
 
     public int Modifier { get; }
 
-    public int CompareTo(SemanticRange other)
+    public int CompareTo(SemanticRange? other)
     {
         if (other is null)
         {
@@ -29,11 +29,11 @@ internal class SemanticRange : IComparable<SemanticRange>
         }
 
         var startCompare = Range.Start.CompareTo(other.Range.Start);
-        return startCompare != 0 ? startCompare : Range.End.CompareTo(other.Range.End);
+        return startCompare != 0
+            ? startCompare
+            : Range.End.CompareTo(other.Range.End);
     }
 
     public override string ToString()
-    {
-        return $"[Kind: {Kind}, Range: {Range}]";
-    }
+        => $"[Kind: {Kind}, Range: {Range}]";
 }

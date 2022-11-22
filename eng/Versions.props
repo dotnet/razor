@@ -36,8 +36,8 @@
     imported. This OK because we want to just have an obvious salt for a local build.
   -->
   <PropertyGroup>
-    <VsixVersionPrefix>17.0.0</VsixVersionPrefix>
-    <AddinMajorVersion>17.3</AddinMajorVersion>
+    <VsixVersionPrefix>17.5.2</VsixVersionPrefix>
+    <AddinMajorVersion>17.5</AddinMajorVersion>
     <AddinVersion>$(AddinMajorVersion)</AddinVersion>
     <AddinVersion Condition="'$(OfficialBuildId)' != ''">$(AddinVersion).$(OfficialBuildId)</AddinVersion>
     <AddinVersion Condition="'$(OfficialBuildId)' == ''">$(AddinVersion).42424242.42</AddinVersion>
@@ -86,8 +86,8 @@
   <PropertyGroup Label="Manual">
     <!-- dotnet/runtime packages -->
     <MicrosoftExtensionsPackageVersion>6.0.0</MicrosoftExtensionsPackageVersion>
-    <SystemComponentModelPackageVersion>6.0.0</SystemComponentModelPackageVersion>
     <SystemCollectionsImmutablePackageVersion>6.0.0</SystemCollectionsImmutablePackageVersion>
+    <SystemCompositionPackageVersion>6.0.0</SystemCompositionPackageVersion>
     <SystemDiagnosticsDiagnosticSourcePackageVersion>6.0.0</SystemDiagnosticsDiagnosticSourcePackageVersion>
     <SystemResourcesExtensionsPackageVersion>6.0.0</SystemResourcesExtensionsPackageVersion>
     <SystemTextEncodingsWebPackageVersion>6.0.0</SystemTextEncodingsWebPackageVersion>

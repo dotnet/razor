@@ -64,7 +64,7 @@ internal abstract class TagHelperResolver : IWorkspaceService
             provider.Execute(context);
 
             stopWatch.Stop();
-            var propertyName = $"razor.{provider.Name}.elapsedtimems";
+            var propertyName = $"{provider.GetType().Name}.elapsedtimems";
             Debug.Assert(!timingDictionary.ContainsKey(propertyName));
             timingDictionary[propertyName] = stopWatch.ElapsedMilliseconds;
         }
