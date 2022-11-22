@@ -26,7 +26,6 @@ internal class DefaultMacRazorProjectHost : MacRazorProjectHostBase
     private const string RazorConfigurationItemType = "RazorConfiguration";
     private const string RazorConfigurationItemTypeExtensionsProperty = "Extensions";
     private const string RootNamespaceProperty = "RootNamespace";
-    private const string ContentItemType = "Content";
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private IReadOnlyList<string> _currentRazorFilePaths = Array.Empty<string>();
 
@@ -115,18 +114,12 @@ internal class DefaultMacRazorProjectHost : MacRazorProjectHostBase
             throw new ArgumentNullException(nameof(item));
         }
 
-        if (item.Name != ContentItemType)
-        {
-            // We only inspect content items for Razor documents.
-            return false;
-        }
-
         if (item.Include is null)
         {
             return false;
         }
 
-        if (!item.Include.EndsWith(".razor", StringComparison.Ordinal) && !item.Include.EndsWith(".cshtml", StringComparison.Ordinal))
+        if (!item.Include.EndsWith(".razor", StringComparison.OrdinalIgnoreCase) && !item.Include.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase))
         {
             // Doesn't have a Razor looking file extension
             return false;

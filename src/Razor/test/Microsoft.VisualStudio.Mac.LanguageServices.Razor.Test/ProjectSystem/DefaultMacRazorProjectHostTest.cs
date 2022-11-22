@@ -22,7 +22,23 @@ public class DefaultMacRazorProjectHostTest : TestBase
     }
 
     [Fact]
-    public void IsRazorDocumentItem_NonContentItem_ReturnsFalse()
+    public void IsRazorDocumentItem_UpperCaseExtension_ReturnsTrue()
+    {
+        // Arrange
+        var item = new TestMSBuildItem("NonContent")
+        {
+            Include = "\\Path\\To\\File.RAZOR",
+        };
+
+        // Act
+        var result = DefaultMacRazorProjectHost.IsRazorDocumentItem(item);
+
+        // Assert
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void IsRazorDocumentItem_NonContentItem_ReturnsTrue()
     {
         // Arrange
         var item = new TestMSBuildItem("NonContent")
@@ -34,7 +50,7 @@ public class DefaultMacRazorProjectHostTest : TestBase
         var result = DefaultMacRazorProjectHost.IsRazorDocumentItem(item);
 
         // Assert
-        Assert.False(result);
+        Assert.True(result);
     }
 
     [Fact]
