@@ -119,7 +119,7 @@ internal class DefaultMacRazorProjectHost : MacRazorProjectHostBase
             return false;
         }
 
-        if (!item.Include.EndsWith(".razor", StringComparison.Ordinal) && !item.Include.EndsWith(".cshtml", StringComparison.Ordinal))
+        if (!item.Include.EndsWith(".razor", StringComparison.OrdinalIgnoreCase) && !item.Include.EndsWith(".cshtml", StringComparison.OrdinalIgnoreCase))
         {
             // Doesn't have a Razor looking file extension
             return false;
