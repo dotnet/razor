@@ -307,7 +307,7 @@ stages:
         #     searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)'
         #   continueOnError: true
         #   condition: always()
-        
+
         # Publish an artifact that the RoslynInsertionTool is able to find by its name.
         - task: PublishBuildArtifacts@1
           displayName: Publish Artifact VSSetup
@@ -340,10 +340,10 @@ stages:
             ArtifactName: BlazorWasmDebuggingExtension
           continueOnError: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
-          
+
         - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)"
           displayName: Setting VisualStudio.DropName variable
-          
+
         # Publishes setup VSIXes to a drop.
         # Note: The insertion tool looks for the display name of this task in the logs.
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
@@ -446,6 +446,18 @@ stages:
               artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
               artifactType: Container
               parallel: true
+
+  # Enable source build
+  - template: eng/common/templates/jobs/source-build.yml
+    steps:
+    - task: NodeTool@0
+      displayName: Install Node 10.x
+      inputs:
+        versionSpec: 10.x
+
+    - powershell: npm install -g yarn
+      displayName: Install yarn
+      condition: succeeded()
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - stage: publishBuildAssets
