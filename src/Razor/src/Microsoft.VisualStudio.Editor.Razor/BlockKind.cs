@@ -3,7 +3,7 @@
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public enum BlockKind
+internal enum BlockKind
 {
     // Code
     Statement,

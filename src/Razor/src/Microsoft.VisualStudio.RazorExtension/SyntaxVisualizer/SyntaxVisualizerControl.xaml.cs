@@ -49,7 +49,7 @@ public partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTableEv
         }
     }
 
-    public SyntaxVisualizerControl()
+    internal SyntaxVisualizerControl()
     {
         InitializeComponent();
 
@@ -102,7 +102,7 @@ public partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTableEv
         }
     }
 
-    public void ShowGeneratedCode()
+    internal void ShowGeneratedCode()
     {
         if (_activeWpfTextView is null)
         {
@@ -142,7 +142,7 @@ public partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTableEv
         }
     }
 
-    public void ShowGeneratedHtml()
+    internal void ShowGeneratedHtml()
     {
         if (_activeWpfTextView is null)
         {
@@ -176,7 +176,7 @@ public partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTableEv
         return tempFileName;
     }
 
-    public void ShowSourceMappings()
+    internal void ShowSourceMappings()
     {
         if (_activeWpfTextView is null)
         {

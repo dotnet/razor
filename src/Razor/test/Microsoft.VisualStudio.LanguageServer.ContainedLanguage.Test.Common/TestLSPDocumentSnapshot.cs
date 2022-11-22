@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
-public class TestLSPDocumentSnapshot : LSPDocumentSnapshot
+internal class TestLSPDocumentSnapshot : LSPDocumentSnapshot
 {
     public TestLSPDocumentSnapshot(Uri uri, int version, params VirtualDocumentSnapshot[] virtualDocuments)
         : this(uri, version, snapshotContent: "Hello World", virtualDocuments)

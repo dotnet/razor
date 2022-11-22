@@ -11,4 +11,7 @@
     <PublishWindowsPdb Condition="'$(DotNetSymbolServerTokenMsdl)'!='' and '$(DotNetSymbolServerTokenSymWeb)'!=''">true</PublishWindowsPdb>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="$(Tooling_MicrosoftCodeAnalysisPublicApiAnalyzersPackageVersion)" />
+  </ItemGroup>
 </Project>

@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 
-public class TestVirtualDocumentSnapshot : VirtualDocumentSnapshot
+internal class TestVirtualDocumentSnapshot : VirtualDocumentSnapshot
 {
     private readonly long? _hostDocumentSyncVersion;
 

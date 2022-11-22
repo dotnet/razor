@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public static class RazorSyntaxFactsServiceExtensions
+internal static class RazorSyntaxFactsServiceExtensions
 {
     public static bool IsTagHelperSpan(this RazorSyntaxFactsService syntaxFactsService, RazorSyntaxTree syntaxTree, SourceSpan span)
     {

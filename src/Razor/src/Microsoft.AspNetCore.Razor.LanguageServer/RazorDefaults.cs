@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public static class RazorDefaults
+internal static class RazorDefaults
 {
     public static RazorConfiguration Configuration { get; } = FallbackRazorConfiguration.Latest;
 

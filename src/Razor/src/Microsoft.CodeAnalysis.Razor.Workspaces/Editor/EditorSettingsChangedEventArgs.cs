@@ -5,7 +5,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Razor.Editor;
 
-public sealed class EditorSettingsChangedEventArgs : EventArgs
+internal sealed class EditorSettingsChangedEventArgs : EventArgs
 {
     public EditorSettingsChangedEventArgs(EditorSettings settings)
     {

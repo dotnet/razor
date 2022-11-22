@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 [MetadataAttribute]
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-public class ExportCustomProjectEngineFactoryAttribute : ExportAttribute, ICustomProjectEngineFactoryMetadata
+internal class ExportCustomProjectEngineFactoryAttribute : ExportAttribute, ICustomProjectEngineFactoryMetadata
 {
     public ExportCustomProjectEngineFactoryAttribute(string configurationName)
         : base(typeof(IProjectEngineFactory))

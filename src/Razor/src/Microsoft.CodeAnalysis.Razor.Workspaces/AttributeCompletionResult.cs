@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public abstract class AttributeCompletionResult
+internal abstract class AttributeCompletionResult
 {
     private AttributeCompletionResult()
     {

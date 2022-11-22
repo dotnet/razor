@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public class AttributeCompletionContext
+internal class AttributeCompletionContext
 {
     public AttributeCompletionContext(
         TagHelperDocumentContext documentContext,
