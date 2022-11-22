@@ -136,7 +136,7 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
         ProjectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
     }
 
-    private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
+    private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         // Don't do any work if the solution is closing
         if (args.SolutionIsClosing)

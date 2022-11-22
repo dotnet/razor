@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
 public static class FilePathNormalizer
 {
-    public static string NormalizeDirectory(string directoryFilePath)
+    public static string NormalizeDirectory(string? directoryFilePath)
     {
         var normalized = Normalize(directoryFilePath);
 
@@ -22,12 +22,14 @@ public static class FilePathNormalizer
         return normalized;
     }
 
-    public static string Normalize(string filePath)
+    public static string Normalize(string? filePath)
     {
         if (string.IsNullOrEmpty(filePath))
         {
             return "/";
         }
+
+        Assumes.NotNullOrEmpty(filePath);
 
         var decodedPath = filePath.Contains("%") ? WebUtility.UrlDecode(filePath) : filePath;
         var normalized = decodedPath.Replace('\\', '/');

@@ -19,8 +19,10 @@ public static class ServerCapabilitiesExtensions
         var dictionary = new Dictionary<string, PropertyInfo>();
         foreach (var propertyInfo in propertyInfos)
         {
-            var dataMemeberAttribute = propertyInfo.GetCustomAttribute<DataMemberAttribute>();
-            var serverCapability = dataMemeberAttribute.Name;
+            var dataMemberAttribute = propertyInfo.GetCustomAttribute<DataMemberAttribute>();
+            Assumes.NotNull(dataMemberAttribute);
+            var serverCapability = dataMemberAttribute.Name;
+            Assumes.NotNull(serverCapability);
             dictionary[serverCapability] = propertyInfo;
         }
 

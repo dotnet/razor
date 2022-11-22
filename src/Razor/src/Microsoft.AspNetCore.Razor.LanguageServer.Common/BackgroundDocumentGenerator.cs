@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
@@ -155,16 +156,13 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     private void StartWorker()
     {
         // Access to the timer is protected by the lock in Synchronize and in Timer_Tick
-        if (_timer is null)
-        {
-            // Timer will fire after a fixed delay, but only once.
-            _timer = new Timer(Timer_Tick, null, Delay, Timeout.InfiniteTimeSpan);
-        }
+        // Timer will fire after a fixed delay, but only once.
+        _timer ??= new Timer(Timer_Tick, null, Delay, Timeout.InfiniteTimeSpan);
     }
 
-    private void Timer_Tick(object state)
+    private void Timer_Tick(object? state)
     {
-        _ = Timer_TickAsync(CancellationToken.None);
+        Timer_TickAsync(CancellationToken.None).Forget();
     }
 
     private async Task Timer_TickAsync(CancellationToken cancellationToken)
@@ -213,9 +211,14 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 
             lock (_work)
             {
+                // Suppress analyzer that suggests using DisposeAsync().
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
+
                 // Resetting the timer allows another batch of work to start.
                 _timer?.Dispose();
                 _timer = null;
+
+#pragma warning restore VSTHRD103
 
                 // If more work came in while we were running start the worker again.
                 if (_work.Count > 0 && !_solutionIsClosing)
@@ -231,8 +234,13 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
             // This is something totally unexpected, let's just send it over to the workspace.
             ReportError(ex);
 
+            // Suppress analyzer that suggests using DisposeAsync().
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
+
             _timer?.Dispose();
             _timer = null;
+
+#pragma warning restore VSTHRD103
         }
     }
 
@@ -250,7 +258,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
         }
     }
 
-    private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
+    private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         // Don't do any work if the solution is closing
         if (args.SolutionIsClosing)

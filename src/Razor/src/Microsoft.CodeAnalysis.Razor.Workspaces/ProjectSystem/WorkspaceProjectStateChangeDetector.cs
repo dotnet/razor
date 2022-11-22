@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -119,9 +120,9 @@ internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigge
     }
 
     // Internal for testing, virtual for temporary VSCode workaround
-    internal virtual void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    internal virtual void Workspace_WorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
     {
-        _ = Workspace_WorkspaceChangedAsync(e, CancellationToken.None);
+        Workspace_WorkspaceChangedAsync(e, CancellationToken.None).Forget();
     }
 
     private async Task Workspace_WorkspaceChangedAsync(WorkspaceChangeEventArgs e, CancellationToken cancellationToken)
@@ -377,7 +378,7 @@ internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigge
         }
     }
 
-    private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
+    private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         // Don't do any work if the solution is closing. Any work in the queue will be cancelled on disposal
         if (args.SolutionIsClosing)

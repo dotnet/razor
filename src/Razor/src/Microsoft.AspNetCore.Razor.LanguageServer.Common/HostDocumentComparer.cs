@@ -16,24 +16,20 @@ internal class HostDocumentComparer : IEqualityComparer<HostDocument>
     {
     }
 
-    public bool Equals(HostDocument x, HostDocument y)
+    public bool Equals(HostDocument? x, HostDocument? y)
     {
-        if (x.FileKind != y.FileKind)
+        if (x is null)
+        {
+            return y is null;
+        }
+        else if (y is null)
         {
             return false;
         }
 
-        if (!FilePathComparer.Instance.Equals(x.FilePath, y.FilePath))
-        {
-            return false;
-        }
-
-        if (!FilePathComparer.Instance.Equals(x.TargetPath, y.TargetPath))
-        {
-            return false;
-        }
-
-        return true;
+        return x.FileKind == y.FileKind &&
+               FilePathComparer.Instance.Equals(x.FilePath, y.FilePath) &&
+               FilePathComparer.Instance.Equals(x.TargetPath, y.TargetPath);
     }
 
     public int GetHashCode(HostDocument hostDocument)

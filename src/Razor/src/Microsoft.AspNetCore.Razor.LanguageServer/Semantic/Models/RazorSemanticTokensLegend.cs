@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
@@ -62,10 +63,24 @@ internal class RazorSemanticTokensLegend
     public static int CSharpVariable => TokenTypesLegend["variable"];
 
     // C# types + Razor types
-    public static readonly string[] TokenTypes = RazorSemanticTokensAccessor.RoslynTokenTypes.Concat(
-        typeof(RazorSemanticTokensLegend).GetFields(BindingFlags.NonPublic | BindingFlags.Static).Where(
-            field => field.GetValue(null) is string).Select(
-            field => (string)field.GetValue(null))).ToArray();
+    public static readonly ImmutableArray<string> TokenTypes = GetTokenTypes();
+
+    private static ImmutableArray<string> GetTokenTypes()
+    {
+        var builder = ImmutableArray.CreateBuilder<string>();
+
+        builder.AddRange(RazorSemanticTokensAccessor.RoslynTokenTypes);
+
+        foreach (var field in typeof(RazorSemanticTokensLegend).GetFields(BindingFlags.NonPublic | BindingFlags.Static))
+        {
+            if (field.GetValue(null) is string value)
+            {
+                builder.Add(value);
+            }
+        }
+
+        return builder.ToImmutable();
+    }
 
     private static readonly string[] s_tokenModifiers = new string[] {
         // Razor
@@ -79,7 +94,7 @@ internal class RazorSemanticTokensLegend
     public static readonly SemanticTokensLegend Instance = new()
     {
         TokenModifiers = s_tokenModifiers,
-        TokenTypes = TokenTypes,
+        TokenTypes = TokenTypes.ToArray(),
     };
 
     private static IReadOnlyDictionary<string, int> GetMap(IReadOnlyList<string> tokens)

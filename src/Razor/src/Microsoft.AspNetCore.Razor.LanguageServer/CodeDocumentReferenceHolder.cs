@@ -34,7 +34,7 @@ internal class CodeDocumentReferenceHolder : DocumentProcessedListener
         _projectManager.Changed += ProjectManager_Changed;
     }
 
-    private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
+    private void ProjectManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         // Goal here is to evict cache entries (really just references to code documents) of known documents when
         // related information changes for them

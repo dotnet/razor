@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.Razor;
 // We've created our own MemoryCache here, ideally we would use the one in Microsoft.Extensions.Caching.Memory,
 // but until we update O# that causes an Assembly load problem.
 internal class MemoryCache<TKey, TValue>
+    where TKey : notnull
+    where TValue : class
 {
     private const int DefaultSizeLimit = 50;
     private const int DefaultConcurrencyLevel = 2;
@@ -30,19 +32,15 @@ internal class MemoryCache<TKey, TValue>
 
     public bool TryGetValue(TKey key, [NotNullWhen(returnValue: true)] out TValue? result)
     {
-        var entryFound = _dict.TryGetValue(key, out var value);
-
-        if (entryFound)
+        if (_dict.TryGetValue(key, out var value))
         {
             value.LastAccess = DateTime.UtcNow;
             result = value.Value;
-        }
-        else
-        {
-            result = default;
+            return true;
         }
 
-        return entryFound;
+        result = default;
+        return false;
     }
 
     public void Set(TKey key, TValue value)

@@ -25,7 +25,7 @@ internal class DefaultWorkspaceSemanticTokensRefreshTrigger : ProjectSnapshotCha
     }
 
     // Does not handle C# files
-    private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
+    private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         // Don't send for a simple Document edit. The platform should re-request any range that
         // is edited and if a parameter or type change is made it should be reflected as a ProjectChanged.

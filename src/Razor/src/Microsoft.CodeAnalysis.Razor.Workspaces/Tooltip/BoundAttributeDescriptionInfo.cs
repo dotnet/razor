@@ -44,30 +44,15 @@ internal sealed class BoundAttributeDescriptionInfo : IEquatable<BoundAttributeD
 
     public string Documentation { get; }
 
-    public bool Equals(BoundAttributeDescriptionInfo other)
-    {
-        if (!string.Equals(ReturnTypeName, other.ReturnTypeName, StringComparison.Ordinal))
-        {
-            return false;
-        }
+    public override bool Equals(object? obj)
+        => Equals(obj as BoundAttributeDescriptionInfo);
 
-        if (!string.Equals(TypeName, other.TypeName, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        if (!string.Equals(PropertyName, other.PropertyName, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        if (!string.Equals(Documentation, other.Documentation, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        return true;
-    }
+    public bool Equals(BoundAttributeDescriptionInfo? other)
+        => other is not null &&
+           ReturnTypeName == other.ReturnTypeName &&
+           TypeName == other.TypeName &&
+           PropertyName == other.PropertyName &&
+           Documentation == other.Documentation;
 
     public override int GetHashCode()
     {

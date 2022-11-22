@@ -34,31 +34,24 @@ internal class RazorLSPOptions : IEquatable<RazorLSPOptions>
     public bool InsertSpaces { get; }
 
     public static LogLevel GetLogLevelForTrace(Trace trace)
-    {
-        return trace switch
+        => trace switch
         {
             Trace.Off => LogLevel.None,
             Trace.Messages => LogLevel.Information,
             Trace.Verbose => LogLevel.Trace,
             _ => LogLevel.None,
         };
-    }
 
     public bool Equals(RazorLSPOptions? other)
-    {
-        return
-            other != null &&
-            Trace == other.Trace &&
-            EnableFormatting == other.EnableFormatting &&
-            AutoClosingTags == other.AutoClosingTags &&
-            InsertSpaces == other.InsertSpaces &&
-            TabSize == other.TabSize;
-    }
+        => other is not null &&
+           Trace == other.Trace &&
+           EnableFormatting == other.EnableFormatting &&
+           AutoClosingTags == other.AutoClosingTags &&
+           InsertSpaces == other.InsertSpaces &&
+           TabSize == other.TabSize;
 
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as RazorLSPOptions);
-    }
+    public override bool Equals(object? obj)
+        => Equals(obj as RazorLSPOptions);
 
     public override int GetHashCode()
     {
