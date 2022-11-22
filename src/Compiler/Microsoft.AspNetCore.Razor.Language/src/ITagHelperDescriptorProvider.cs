@@ -7,7 +7,6 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public interface ITagHelperDescriptorProvider : IRazorEngineFeature
 {
-    string Name { get; }
     int Order { get; }
 
     void Execute(TagHelperDescriptorProviderContext context);
