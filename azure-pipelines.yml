@@ -447,18 +447,12 @@ stages:
               artifactType: Container
               parallel: true
 
-  # Enable source build
-  - template: eng/common/templates/jobs/source-build.yml
-    jobs:
-      steps:
-      - task: NodeTool@0
-        displayName: Install Node 10.x
-        inputs:
-          versionSpec: 10.x
-
-      - powershell: npm install -g yarn
-        displayName: Install yarn
-        condition: succeeded()
+        - job: SourceBuild_Managed
+          displayName: Source-Build (Managed)
+          steps:
+          - template: /eng/common/templates/steps/source-build.yml
+            parameters:
+              enablePublishTestResults: true
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - stage: publishBuildAssets
