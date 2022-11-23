@@ -118,8 +118,8 @@
     <!-- Language Server Dependencies-->
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServerClient.Razor\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServerClient.Razor.pdb" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServer.ContainedLanguage\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.pdb" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer.Protocol\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.LanguageServer.Protocol.pdb" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.LanguageServer.pdb" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer.Protocol\$(Configuration)\net472\Microsoft.AspNetCore.Razor.LanguageServer.Protocol.pdb" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer\$(Configuration)\net472\Microsoft.AspNetCore.Razor.LanguageServer.pdb" />
   </ItemGroup>
 
   <ItemGroup>
