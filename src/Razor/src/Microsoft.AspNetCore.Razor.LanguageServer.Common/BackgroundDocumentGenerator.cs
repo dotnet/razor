@@ -344,7 +344,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
                 }
 
             default:
-                throw new InvalidOperationException(RazorLSCommon.Resources.FormatUnknown_ProjectChangeKind(args.Kind));
+                throw new InvalidOperationException(SR.FormatUnknown_ProjectChangeKind(args.Kind));
         }
     }
 

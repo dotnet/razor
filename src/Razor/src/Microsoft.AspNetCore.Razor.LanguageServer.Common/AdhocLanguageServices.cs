@@ -40,7 +40,7 @@ internal class AdhocLanguageServices : HostLanguageServices
 
         if (service is null)
         {
-            throw new InvalidOperationException(RazorLSCommon.Resources.FormatLanguage_Services_Missing_Service(typeof(TLanguageService).FullName));
+            throw new InvalidOperationException(SR.FormatLanguage_Services_Missing_Service(typeof(TLanguageService).FullName));
         }
 
         return service;
