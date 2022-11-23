@@ -20,6 +20,7 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 using Span = Microsoft.VisualStudio.Text.Span;
+using WorkspacesSR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Completion;
 
@@ -177,7 +178,7 @@ public class RazorDirectiveCompletionSourceTest : ProjectSnapshotManagerDispatch
 
         var description = isSnippet ? "@" + DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive.Directive].DisplayText
                          + Environment.NewLine
-                         + CodeAnalysis.Razor.Workspaces.Resources.DirectiveSnippetDescription
+                         + WorkspacesSR.DirectiveSnippetDescription
                          : directive.Description;
         Assert.Equal(description, actualDescription.Description);
 

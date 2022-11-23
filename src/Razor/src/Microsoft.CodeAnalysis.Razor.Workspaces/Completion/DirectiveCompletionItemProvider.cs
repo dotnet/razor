@@ -10,7 +10,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Resources = Microsoft.CodeAnalysis.Razor.Workspaces.Resources;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -158,7 +157,7 @@ internal class DirectiveCompletionItemProvider : RazorCompletionItemProvider
                 
                 var snippetDescription = "@" + snippetTexts.DisplayText
                                              + Environment.NewLine
-                                             + Resources.DirectiveSnippetDescription;
+                                             + SR.DirectiveSnippetDescription;
 
                 snippetCompletionItem.SetDirectiveCompletionDescription(new(snippetDescription));
                 completionItems.Add(snippetCompletionItem);
