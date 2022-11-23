@@ -501,7 +501,7 @@ repository:
       - include: '#while-statement'
       - include: '#switch-statement'
       - include: '#lock-statement'
-      - include: '#do-statement'
+      - include: '#do-statement-with-optional-transition'
       - include: '#try-statement'
 
   transitioned-csharp-control-structures:
@@ -647,7 +647,19 @@ repository:
 
   do-statement:
     name: 'meta.statement.do.razor'
-    begin: '(?:^\s*|(@))(do)\b\s*'
+    begin: '(?:(@))(do)\b\s'
+    beginCaptures:
+      1: { patterns: [ include: '#transition' ] }
+      2: { name: 'keyword.control.loop.do.cs' }
+    patterns:
+      - include: '#csharp-condition'
+      - include: '#csharp-code-block'
+      - include: '#razor-codeblock-body'
+    end: '(?<=})'
+
+  do-statement-with-optional-transition:
+    name: 'meta.statement.do.razor'
+    begin: '(?:^\s*|(@))(do)\b\s'
     beginCaptures:
       1: { patterns: [ include: '#transition' ] }
       2: { name: 'keyword.control.loop.do.cs' }

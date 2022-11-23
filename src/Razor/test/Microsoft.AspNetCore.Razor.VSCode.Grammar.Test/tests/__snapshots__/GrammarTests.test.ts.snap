@@ -833,20 +833,12 @@ exports[`Grammar tests @do { ... } while ( ... ); Not in HTML 1`] = `
  - token from 4 to 5 (>) with scopes text.aspnetcorerazor, meta.tag.structure.div.start.html, punctuation.definition.tag.end.html
 
 Line:     do not classify this
- - token from 0 to 4 (    ) with scopes text.aspnetcorerazor, meta.statement.do.razor
- - token from 4 to 6 (do) with scopes text.aspnetcorerazor, meta.statement.do.razor, keyword.control.loop.do.cs
- - token from 6 to 7 ( ) with scopes text.aspnetcorerazor, meta.statement.do.razor
- - token from 7 to 10 (not) with scopes text.aspnetcorerazor, meta.statement.do.razor, variable.other.readwrite.cs
- - token from 10 to 11 ( ) with scopes text.aspnetcorerazor, meta.statement.do.razor
- - token from 11 to 19 (classify) with scopes text.aspnetcorerazor, meta.statement.do.razor, variable.other.readwrite.cs
- - token from 19 to 20 ( ) with scopes text.aspnetcorerazor, meta.statement.do.razor
- - token from 20 to 24 (this) with scopes text.aspnetcorerazor, meta.statement.do.razor, keyword.other.this.cs
+ - token from 0 to 25 (    do not classify this) with scopes text.aspnetcorerazor
 
 Line: </div>
- - token from 0 to 1 (<) with scopes text.aspnetcorerazor, meta.statement.do.razor, keyword.operator.relational.cs
- - token from 1 to 2 (/) with scopes text.aspnetcorerazor, meta.statement.do.razor, keyword.operator.arithmetic.cs
- - token from 2 to 5 (div) with scopes text.aspnetcorerazor, meta.statement.do.razor, variable.other.readwrite.cs
- - token from 5 to 6 (>) with scopes text.aspnetcorerazor, meta.statement.do.razor, keyword.operator.relational.cs
+ - token from 0 to 2 (</) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, punctuation.definition.tag.begin.html
+ - token from 2 to 5 (div) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, entity.name.tag.html
+ - token from 5 to 6 (>) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, punctuation.definition.tag.end.html
 "
 `;
 
