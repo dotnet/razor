@@ -130,7 +130,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
                 Assert.Equal(1, manager._parseCount);
 
                 VerifyPartialParseTree(manager, changed.GetText(), expectedCode);
-            };
+            }
 
             await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
 
@@ -174,7 +174,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
                 manager.ApplyEdit(testEdit);
                 Assert.Equal(1, manager._parseCount);
                 VerifyPartialParseTree(manager, changed.GetText(), expectedCode);
-            };
+            }
 
             await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
 
@@ -206,7 +206,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
                 Assert.Equal(1, manager._parseCount);
 
                 VerifyPartialParseTree(manager, testEdit.NewSnapshot.GetText(), expectedCode);
-            };
+            }
 
             await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
 
@@ -241,7 +241,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
                 Assert.Equal(1, manager._parseCount);
 
                 VerifyPartialParseTree(manager, testEdit.NewSnapshot.GetText(), expectedCode);
-            };
+            }
 
             await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
             var codeDocumentTask = manager.InnerParser.GetLatestCodeDocumentAsync(changed);
@@ -270,7 +270,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
                 Assert.Equal(1, manager._parseCount);
 
                 VerifyPartialParseTree(manager, testEdit.NewSnapshot.GetText(), expectedCode);
-            };
+            }
 
             await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
 
@@ -312,7 +312,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
                 Assert.Equal(1, manager._parseCount);
 
                 VerifyPartialParseTree(manager, changed.GetText(), expectedCode);
-            };
+            }
 
             await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
 

@@ -71,7 +71,6 @@ csharp_space_before_colon_in_inheritance_clause = true
 csharp_space_after_colon_in_inheritance_clause = true
 
 # Newline settings
-dotnet_style_allow_multiple_blank_lines_experimental = false:warning
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true
 csharp_new_line_before_catch = true
@@ -79,16 +78,24 @@ csharp_new_line_before_finally = true
 csharp_new_line_before_members_in_object_initializers = true
 csharp_new_line_before_members_in_anonymous_types = true
 
+# Roslyn experimental formatting settings
+# IDE2000, AllowMultipleBlankLines
+dotnet_style_allow_multiple_blank_lines_experimental = false:warning
+# IDE2001, AllowEmbeddedStatementsOnSameLine
+csharp_style_allow_embedded_statements_on_same_line_experimental = false:warning
+# IDE2002, AllowBlankLinesBetweenConsecutiveBraces
+csharp_style_allow_blank_lines_between_consecutive_braces_experimental = false:warning
+# IDE2003, AllowStatementImmediatelyAfterBlock
+dotnet_style_allow_statement_immediately_after_block_experimental = false:warning
+# IDE2004, AllowBlankLineAfterColonInConstructorInitializer
+csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = false:warning
+# IDE2005, AllowBlankLineAfterTokenInConditionalExpression
+csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental = false:warning
+# IDE2006, AllowBlankLineAfterTokenInArrowExpressionClause
+# TODO: csharp_style_allow_blank_line_after_token_in_arrow_expression_clause_experimental = false:warning
+
 # CA2254: The logging message template should not vary between calls to 'ILogger.Log*'
 dotnet_diagnostic.CA2254.severity = warning
-# csharp_style_allow_blank_lines_between_consecutive_braces_experimental
-dotnet_diagnostic.IDE2002.severity = warning
-# csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental
-dotnet_diagnostic.IDE2004.severity = warning
-# csharp_style_allow_embedded_statements_on_same_line_experimental
-dotnet_diagnostic.IDE2001.severity = none
-dotnet_style_allow_statement_immediately_after_block_experimental = false:warning
-
 
 # IDE0058
 csharp_style_unused_value_expression_statement_preference = discard_variable:none

@@ -68,7 +68,11 @@ public class InterceptionMiddleLayerTest : TestBase
         var sut = new InterceptionMiddleLayer(fakeInterceptorManager, "testLanguage");
         var sentNotification = false;
 
-        await sut.HandleNotificationAsync("testMethod", token, (_) => { sentNotification = true; return Task.CompletedTask; });
+        await sut.HandleNotificationAsync("testMethod", token, (_) =>
+        {
+            sentNotification = true;
+            return Task.CompletedTask;
+        });
 
         Assert.False(sentNotification);
     }
@@ -92,7 +96,11 @@ public class InterceptionMiddleLayerTest : TestBase
             .ReturnsAsync(expected);
         var sut = new InterceptionMiddleLayer(fakeInterceptorManager, "testLanguage");
 
-        await sut.HandleNotificationAsync("testMethod", token, (t) => { actual = t; return Task.CompletedTask; });
+        await sut.HandleNotificationAsync("testMethod", token, (t) =>
+        {
+            actual = t;
+            return Task.CompletedTask;
+        });
 
         Assert.Equal(expected, actual);
     }

@@ -62,9 +62,9 @@ internal class TypeAccessibilityCodeActionProvider : CSharpCodeActionProvider
             return EmptyResult;
         }
 
-        var results = context.SupportsCodeActionResolve ?
-            ProcessCodeActionsVS(context, codeActions) :
-            ProcessCodeActionsVSCode(context, codeActions);
+        var results = context.SupportsCodeActionResolve
+            ? ProcessCodeActionsVS(context, codeActions)
+            : ProcessCodeActionsVSCode(context, codeActions);
 
         var orderedResults = results.OrderBy(codeAction => codeAction.Title).ToArray();
         return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(orderedResults);

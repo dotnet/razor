@@ -83,7 +83,7 @@ internal class RazorFormattingPass : FormattingPassBase
             // Disclaimer: CSharpCodeBlockSyntax is used a _lot_ in razor so these methods are probably
             // being overly careful to only try to format syntax forms they care about.
             TryFormatCSharpBlockStructure(context, edits, source, node);
-            TryFormatSingleLineDirective(context, edits, source, node);
+            TryFormatSingleLineDirective(edits, source, node);
             TryFormatBlocks(context, edits, source, node);
         }
 
@@ -248,7 +248,7 @@ internal class RazorFormattingPass : FormattingPassBase
         }
     }
 
-    private static void TryFormatSingleLineDirective(FormattingContext context, List<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
+    private static void TryFormatSingleLineDirective(List<TextEdit> edits, RazorSourceDocument source, SyntaxNode node)
     {
         // Looking for single line directives like
         //

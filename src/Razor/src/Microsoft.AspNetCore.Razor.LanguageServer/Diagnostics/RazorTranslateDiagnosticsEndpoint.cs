@@ -94,9 +94,9 @@ internal class RazorTranslateDiagnosticsEndpoint :
 
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
         var unmappedDiagnostics = request.Diagnostics;
-        var filteredDiagnostics = request.Kind == RazorLanguageKind.CSharp ?
-            FilterCSharpDiagnostics(unmappedDiagnostics, codeDocument, sourceText) :
-            FilterHTMLDiagnostics(unmappedDiagnostics, codeDocument, sourceText, _logger);
+        var filteredDiagnostics = request.Kind == RazorLanguageKind.CSharp
+            ? FilterCSharpDiagnostics(unmappedDiagnostics, codeDocument, sourceText)
+            : FilterHTMLDiagnostics(unmappedDiagnostics, codeDocument, sourceText, _logger);
         if (!filteredDiagnostics.Any())
         {
             _logger.LogInformation("No diagnostics remaining after filtering.");
