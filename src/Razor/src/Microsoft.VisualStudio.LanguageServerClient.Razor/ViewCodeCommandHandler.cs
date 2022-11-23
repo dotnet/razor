@@ -15,7 +15,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
-using Resources = Microsoft.VisualStudio.LanguageServerClient.Razor.VS.LSClientRazor.Resources;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
@@ -31,7 +30,7 @@ internal sealed class ViewCodeCommandHandler : ICommandHandler<ViewCodeCommandAr
 
     private static readonly ImmutableHashSet<string> s_relatedRazorFileSuffixes = ImmutableHashSet.CreateRange(StringComparer.OrdinalIgnoreCase, new[] { RazorLSPConstants.CSHTMLFileExtension, RazorLSPConstants.RazorFileExtension });
 
-    private static readonly CommandState s_availableCommandState = new(isAvailable: true, displayText: Resources.View_Code);
+    private static readonly CommandState s_availableCommandState = new(isAvailable: true, displayText: SR.View_Code);
     private readonly DocumentInteractionManager _documentInteractionManager;
     private readonly ITextDocumentFactoryService _textDocumentFactoryService;
     private readonly JoinableTaskContext _joinableTaskContext;
