@@ -14,7 +14,7 @@ internal class VisualStudioMacLogger : RazorLogger
     public override void LogError(string message)
     {
         LoggingService.LogError(
-            Resources.RazorLanguageServiceGeneralError,
+            SR.RazorLanguageServiceGeneralError,
             message);
     }
 
