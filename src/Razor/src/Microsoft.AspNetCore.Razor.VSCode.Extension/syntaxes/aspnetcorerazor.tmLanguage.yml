@@ -504,7 +504,7 @@ repository:
       - include: '#switch-statement-with-optional-transition'
       - include: '#lock-statement-with-optional-transition'
       - include: '#do-statement-with-optional-transition'
-      - include: '#try-statement'
+      - include: '#try-statement-with-optional-transition'
 
   transitioned-csharp-control-structures:
     patterns:
@@ -808,7 +808,25 @@ repository:
       - include: '#catch-clause'
       - include: '#finally-clause'
 
+  try-statement-with-optional-transition:
+    patterns:
+      - include: '#try-block-with-optional-transition'
+      - include: '#catch-clause'
+      - include: '#finally-clause'
+
   try-block:
+    name: 'meta.statement.try.razor'
+    begin: '(?:(@))(try)\b\s*'
+    beginCaptures:
+      1: { patterns: [ include: '#transition' ] }
+      2: { name: 'keyword.control.try.cs' }
+    patterns:
+      - include: '#csharp-condition'
+      - include: '#csharp-code-block'
+      - include: '#razor-codeblock-body'
+    end: '(?<=})'
+
+  try-block-with-optional-transition:
     name: 'meta.statement.try.razor'
     begin: '(?:^\s*|(@))(try)\b\s*'
     beginCaptures:
