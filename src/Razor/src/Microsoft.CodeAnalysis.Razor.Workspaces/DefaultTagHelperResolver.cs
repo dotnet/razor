@@ -6,14 +6,15 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Common.Telemetry;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
 internal class DefaultTagHelperResolver : TagHelperResolver
 {
-    public DefaultTagHelperResolver(ITelemetryReporter telemetryReporter) : base(telemetryReporter)
+    public DefaultTagHelperResolver(ITelemetryReporter telemetryReporter)
+        : base(telemetryReporter)
     {
     }
 

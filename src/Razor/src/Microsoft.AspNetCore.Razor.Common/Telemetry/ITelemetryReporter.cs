@@ -4,7 +4,7 @@
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.Telemetry;
 
-namespace Microsoft.AspNetCore.Razor.Common.Telemetry;
+namespace Microsoft.AspNetCore.Razor.Telemetry;
 
 internal interface ITelemetryReporter
 {

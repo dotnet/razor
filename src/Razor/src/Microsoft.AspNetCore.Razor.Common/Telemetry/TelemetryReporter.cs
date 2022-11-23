@@ -8,7 +8,7 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
 
-namespace Microsoft.AspNetCore.Razor.Common.Telemetry;
+namespace Microsoft.AspNetCore.Razor.Telemetry;
 
 [Shared]
 [Export(typeof(ITelemetryReporter))]
