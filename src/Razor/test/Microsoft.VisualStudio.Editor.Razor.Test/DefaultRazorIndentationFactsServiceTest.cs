@@ -123,7 +123,6 @@ public class DefaultRazorIndentationFactsServiceTest : TestBase
     {
         // Arrange
         var text = "\t\tHello\tWorld.\t";
-        var service = new DefaultRazorIndentationFactsService();
 
         // Act
         var indentLevel = DefaultRazorIndentationFactsService.GetIndentLevelOfLine(text, 4);
@@ -137,7 +136,6 @@ public class DefaultRazorIndentationFactsServiceTest : TestBase
     {
         // Arrange
         var text = "   Hello World. ";
-        var service = new DefaultRazorIndentationFactsService();
 
         // Act
         var indentLevel = DefaultRazorIndentationFactsService.GetIndentLevelOfLine(text, 4);
@@ -151,7 +149,6 @@ public class DefaultRazorIndentationFactsServiceTest : TestBase
     {
         // Arrange
         var text = "  \t \tHello\t World.\t ";
-        var service = new DefaultRazorIndentationFactsService();
 
         // Act
         var indentLevel = DefaultRazorIndentationFactsService.GetIndentLevelOfLine(text, 4);
@@ -165,7 +162,6 @@ public class DefaultRazorIndentationFactsServiceTest : TestBase
     {
         // Arrange
         var text = "Hello World.";
-        var service = new DefaultRazorIndentationFactsService();
 
         // Act
         var indentLevel = DefaultRazorIndentationFactsService.GetIndentLevelOfLine(text, 4);

@@ -93,7 +93,6 @@ public class ComponentDeclarationRazorIntegrationTest : RazorIntegrationTestBase
 ");
 
         // Assert
-        var type = component.GetType();
         Assert.Contains(typeof(IDoCoolThings), component.GetType().GetInterfaces());
     }
 
