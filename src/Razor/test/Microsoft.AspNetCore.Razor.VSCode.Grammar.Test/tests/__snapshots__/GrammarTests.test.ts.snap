@@ -2454,20 +2454,12 @@ exports[`Grammar tests @lock ( ... ) { ... } Not in HTML 1`] = `
  - token from 4 to 5 (>) with scopes text.aspnetcorerazor, meta.tag.structure.div.start.html, punctuation.definition.tag.end.html
 
 Line:     lock (the taskbar)
- - token from 0 to 4 (    ) with scopes text.aspnetcorerazor, meta.statement.lock.razor
- - token from 4 to 8 (lock) with scopes text.aspnetcorerazor, meta.statement.lock.razor, keyword.other.lock.cs
- - token from 8 to 9 ( ) with scopes text.aspnetcorerazor, meta.statement.lock.razor
- - token from 9 to 10 (() with scopes text.aspnetcorerazor, meta.statement.lock.razor, punctuation.parenthesis.open.cs
- - token from 10 to 13 (the) with scopes text.aspnetcorerazor, meta.statement.lock.razor, entity.name.type.cs
- - token from 13 to 14 ( ) with scopes text.aspnetcorerazor, meta.statement.lock.razor
- - token from 14 to 21 (taskbar) with scopes text.aspnetcorerazor, meta.statement.lock.razor, entity.name.variable.local.cs
- - token from 21 to 22 ()) with scopes text.aspnetcorerazor, meta.statement.lock.razor, punctuation.parenthesis.close.cs
+ - token from 0 to 23 (    lock (the taskbar)) with scopes text.aspnetcorerazor
 
 Line: </div>
- - token from 0 to 1 (<) with scopes text.aspnetcorerazor, meta.statement.lock.razor, keyword.operator.relational.cs
- - token from 1 to 2 (/) with scopes text.aspnetcorerazor, meta.statement.lock.razor, keyword.operator.arithmetic.cs
- - token from 2 to 5 (div) with scopes text.aspnetcorerazor, meta.statement.lock.razor, variable.other.readwrite.cs
- - token from 5 to 6 (>) with scopes text.aspnetcorerazor, meta.statement.lock.razor, keyword.operator.relational.cs
+ - token from 0 to 2 (</) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, punctuation.definition.tag.begin.html
+ - token from 2 to 5 (div) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, entity.name.tag.html
+ - token from 5 to 6 (>) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, punctuation.definition.tag.end.html
 "
 `;
 

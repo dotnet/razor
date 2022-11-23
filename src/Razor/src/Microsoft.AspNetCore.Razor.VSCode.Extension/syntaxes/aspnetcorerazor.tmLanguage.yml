@@ -502,7 +502,7 @@ repository:
   # one line at a time
       - include: '#while-statement'
       - include: '#switch-statement-with-optional-transition'
-      - include: '#lock-statement'
+      - include: '#lock-statement-with-optional-transition'
       - include: '#do-statement-with-optional-transition'
       - include: '#try-statement'
 
@@ -777,6 +777,18 @@ repository:
   #>>>>> @lock (...) { ... } <<<<<
 
   lock-statement:
+    name: 'meta.statement.lock.razor'
+    begin: '(?:(@))(lock)\b\s*(?=\()'
+    beginCaptures:
+      1: { patterns: [ include: '#transition' ] }
+      2: { name: 'keyword.other.lock.cs' }
+    patterns:
+      - include: '#csharp-condition'
+      - include: '#csharp-code-block'
+      - include: '#razor-codeblock-body'
+    end: '(?<=})'
+
+  lock-statement-with-optional-transition:
     name: 'meta.statement.lock.razor'
     begin: '(?:^\s*|(@))(lock)\b\s*(?=\()'
     beginCaptures:
