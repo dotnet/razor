@@ -1498,26 +1498,12 @@ exports[`Grammar tests @foreach ( ... ) { ... } Not in HTML 1`] = `
  - token from 4 to 5 (>) with scopes text.aspnetcorerazor, meta.tag.structure.div.start.html, punctuation.definition.tag.end.html
 
 Line:     foreach (is not) an English word
- - token from 0 to 4 (    ) with scopes text.aspnetcorerazor, meta.statement.foreach.razor
- - token from 4 to 11 (foreach) with scopes text.aspnetcorerazor, meta.statement.foreach.razor, keyword.control.loop.foreach.cs
- - token from 11 to 12 ( ) with scopes text.aspnetcorerazor, meta.statement.foreach.razor
- - token from 12 to 13 (() with scopes text.aspnetcorerazor, meta.statement.foreach.razor, punctuation.parenthesis.open.cs
- - token from 13 to 15 (is) with scopes text.aspnetcorerazor, meta.statement.foreach.razor, keyword.other.is.cs
- - token from 15 to 16 ( ) with scopes text.aspnetcorerazor, meta.statement.foreach.razor
- - token from 16 to 19 (not) with scopes text.aspnetcorerazor, meta.statement.foreach.razor, entity.name.type.cs
- - token from 19 to 20 ()) with scopes text.aspnetcorerazor, meta.statement.foreach.razor, punctuation.parenthesis.close.cs
- - token from 20 to 21 ( ) with scopes text.aspnetcorerazor, meta.statement.foreach.razor
- - token from 21 to 23 (an) with scopes text.aspnetcorerazor, meta.statement.foreach.razor, variable.other.readwrite.cs
- - token from 23 to 24 ( ) with scopes text.aspnetcorerazor, meta.statement.foreach.razor
- - token from 24 to 31 (English) with scopes text.aspnetcorerazor, meta.statement.foreach.razor, variable.other.readwrite.cs
- - token from 31 to 32 ( ) with scopes text.aspnetcorerazor, meta.statement.foreach.razor
- - token from 32 to 36 (word) with scopes text.aspnetcorerazor, meta.statement.foreach.razor, variable.other.readwrite.cs
+ - token from 0 to 37 (    foreach (is not) an English word) with scopes text.aspnetcorerazor
 
 Line: </div>
- - token from 0 to 1 (<) with scopes text.aspnetcorerazor, meta.statement.foreach.razor, keyword.operator.relational.cs
- - token from 1 to 2 (/) with scopes text.aspnetcorerazor, meta.statement.foreach.razor, keyword.operator.arithmetic.cs
- - token from 2 to 5 (div) with scopes text.aspnetcorerazor, meta.statement.foreach.razor, variable.other.readwrite.cs
- - token from 5 to 6 (>) with scopes text.aspnetcorerazor, meta.statement.foreach.razor, keyword.operator.relational.cs
+ - token from 0 to 2 (</) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, punctuation.definition.tag.begin.html
+ - token from 2 to 5 (div) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, entity.name.tag.html
+ - token from 5 to 6 (>) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, punctuation.definition.tag.end.html
 "
 `;
 

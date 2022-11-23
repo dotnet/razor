@@ -496,7 +496,7 @@ repository:
       - include: '#using-statement-with-optional-transition'
       - include: '#if-statement-with-optional-transition'
       - include: '#else-part'
-      - include: '#foreach-statement'
+      - include: '#foreach-statement-with-optional-transition'
       - include: '#for-statement'
       - include: '#while-statement'
       - include: '#switch-statement'
@@ -600,6 +600,19 @@ repository:
   #>>>>> @foreach (...) { ... } <<<<<
 
   foreach-statement:
+    name: 'meta.statement.foreach.razor'
+    begin: '(?:(@)(await\s+)?)(foreach)\b\s*(?=\()'
+    beginCaptures:
+      1: { patterns: [ include: '#transition' ] }
+      2: { patterns: [ include: '#await-prefix' ] }
+      3: { name: 'keyword.control.loop.foreach.cs' }
+    patterns:
+      - include: '#foreach-condition'
+      - include: '#csharp-code-block'
+      - include: '#razor-codeblock-body'
+    end: '(?<=})'
+
+  foreach-statement-with-optional-transition:
     name: 'meta.statement.foreach.razor'
     begin: '(?:^\s*|(@)(await\s+)?)(foreach)\b\s*(?=\()'
     beginCaptures:
