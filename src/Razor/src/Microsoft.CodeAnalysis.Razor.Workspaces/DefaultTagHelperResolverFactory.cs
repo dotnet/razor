@@ -3,7 +3,7 @@
 
 using System;
 using System.Composition;
-using Microsoft.AspNetCore.Razor.Common.Telemetry;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 

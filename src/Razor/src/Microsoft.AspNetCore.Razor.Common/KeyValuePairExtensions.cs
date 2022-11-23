@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.AspNetCore.Razor.Common;
+namespace Microsoft.AspNetCore.Razor;
 
 internal static class KeyValuePairExtensions
 {
