@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNetCore.Razor.LanguageServer.RazorLS;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -77,7 +76,7 @@ internal static class PositionExtensions
         {
 #pragma warning disable CA2254 // Template should be a static expression.
 // This is actually static, the compiler just doesn't know it.
-            logger?.LogError(Resources.GetResourceString("FormatPositionIndex_Outside_Range"), line, nameof(sourceText), sourceText.Lines.Count);
+            logger?.LogError(SR.FormatPositionIndex_Outside_Range(line, nameof(sourceText), sourceText.Lines.Count));
 #pragma warning restore CA2254 // Template should be a static expression
             absoluteIndex = -1;
             return false;

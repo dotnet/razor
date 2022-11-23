@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
+using LanguageServerSR = Microsoft.AspNetCore.Razor.LanguageServer.Resources.SR;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
@@ -135,7 +136,7 @@ public class ComponentAccessibilityCodeActionProviderTest : LanguageServerTestBa
             },
             e =>
             {
-                Assert.Equal(RazorLS.Resources.Create_Component_FromTag_Title, e.Title);
+                Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, e.Title);
                 Assert.NotNull(e.Data);
                 Assert.Null(e.Edit);
             });
@@ -164,7 +165,7 @@ public class ComponentAccessibilityCodeActionProviderTest : LanguageServerTestBa
         // Assert
         Assert.NotNull(commandOrCodeActionContainer);
         var command = Assert.Single(commandOrCodeActionContainer);
-        Assert.Equal(RazorLS.Resources.Create_Component_FromTag_Title, command.Title);
+        Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, command.Title);
         Assert.NotNull(command.Data);
     }
 

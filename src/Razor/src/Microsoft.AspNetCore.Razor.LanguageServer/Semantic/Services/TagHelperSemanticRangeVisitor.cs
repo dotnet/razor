@@ -186,7 +186,7 @@ internal class TagHelperSemanticRangeVisitor : SyntaxWalker
         }
         else
         {
-            throw new NotSupportedException(RazorLS.Resources.Unknown_RazorMetaCode);
+            throw new NotSupportedException(SR.Unknown_RazorMetaCode);
         }
     }
 

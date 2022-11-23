@@ -249,7 +249,7 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
         }
         else
         {
-            throw new InvalidOperationException(RazorLS.Resources.Unknown_mapping_behavior);
+            throw new InvalidOperationException(SR.Unknown_mapping_behavior);
         }
     }
 
