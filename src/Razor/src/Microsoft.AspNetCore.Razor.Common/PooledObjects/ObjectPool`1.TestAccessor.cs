@@ -19,6 +19,16 @@ internal partial class ObjectPool<T>
             _pool = pool;
         }
 
+        public void Clear()
+        {
+            var size = Size;
+
+            for (var i = 0; i < size; i++)
+            {
+                this[i] = null;
+            }
+        }
+
         public int Size
             => _pool._items.Length + 1;
 

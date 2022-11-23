@@ -21,6 +21,7 @@ public class ObjectPoolTests : TestBase
     public void ObjectPoolBehavior()
     {
         var accessor = StringBuilderPool.DefaultPool.GetTestAccessor();
+        accessor.Clear();
 
         // Verify that the pool is empty.
         Assert.Equal(0, accessor.UsedSlotCount);
@@ -60,9 +61,9 @@ public class ObjectPoolTests : TestBase
         Assert.Same(builder, builder2);
 
         // Add a bunch of characters to the "new" builder.
-        builder2.Append('x', StringBuilderPool.Threshold * 2);
-        Assert.Equal(StringBuilderPool.Threshold * 2, builder2.Length);
-        Assert.Equal(StringBuilderPool.Threshold * 2, builder2.Capacity);
+        builder2.Append('x', PooledObject.Threshold * 2);
+        Assert.Equal(PooledObject.Threshold * 2, builder2.Length);
+        Assert.Equal(PooledObject.Threshold * 2, builder2.Capacity);
 
         // Finally, dispose the new PooledObject<> to put the builder back in the pool again.
         pooledBuilder2.Dispose();
@@ -72,13 +73,14 @@ public class ObjectPoolTests : TestBase
         // The builder should be cleared. However, it's capacity should be 512, which
         // is the threshold used by StringBuilderPool.
         Assert.Equal(0, builder2.Length);
-        Assert.Equal(StringBuilderPool.Threshold, builder2.Capacity);
+        Assert.Equal(PooledObject.Threshold, builder2.Capacity);
     }
 
     [Fact]
     public void NestPooledStringBuilders()
     {
         var accessor = StringBuilderPool.DefaultPool.GetTestAccessor();
+        accessor.Clear();
 
         StringBuilder builder1, builder2;
 
@@ -102,6 +104,7 @@ public class ObjectPoolTests : TestBase
     public void BuildImmutableArray()
     {
         var accessor = ArrayBuilderPool<int>.DefaultPool.GetTestAccessor();
+        accessor.Clear();
 
         ImmutableArray<int> array;
 
