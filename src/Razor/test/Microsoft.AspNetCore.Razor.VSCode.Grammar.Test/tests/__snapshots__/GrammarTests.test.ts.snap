@@ -2041,30 +2041,12 @@ exports[`Grammar tests @if ( ... ) { ... } Not in HTML 1`] = `
  - token from 4 to 5 (>) with scopes text.aspnetcorerazor, meta.tag.structure.div.start.html, punctuation.definition.tag.end.html
 
 Line:     if (this is classified) we have a problem
- - token from 0 to 4 (    ) with scopes text.aspnetcorerazor, meta.statement.if.razor
- - token from 4 to 6 (if) with scopes text.aspnetcorerazor, meta.statement.if.razor, keyword.control.conditional.if.cs
- - token from 6 to 7 ( ) with scopes text.aspnetcorerazor, meta.statement.if.razor
- - token from 7 to 8 (() with scopes text.aspnetcorerazor, meta.statement.if.razor, punctuation.parenthesis.open.cs
- - token from 8 to 12 (this) with scopes text.aspnetcorerazor, meta.statement.if.razor, keyword.other.this.cs
- - token from 12 to 13 ( ) with scopes text.aspnetcorerazor, meta.statement.if.razor
- - token from 13 to 15 (is) with scopes text.aspnetcorerazor, meta.statement.if.razor, entity.name.type.cs
- - token from 15 to 16 ( ) with scopes text.aspnetcorerazor, meta.statement.if.razor
- - token from 16 to 26 (classified) with scopes text.aspnetcorerazor, meta.statement.if.razor, entity.name.variable.local.cs
- - token from 26 to 27 ()) with scopes text.aspnetcorerazor, meta.statement.if.razor, punctuation.parenthesis.close.cs
- - token from 27 to 28 ( ) with scopes text.aspnetcorerazor, meta.statement.if.razor
- - token from 28 to 30 (we) with scopes text.aspnetcorerazor, meta.statement.if.razor, variable.other.readwrite.cs
- - token from 30 to 31 ( ) with scopes text.aspnetcorerazor, meta.statement.if.razor
- - token from 31 to 35 (have) with scopes text.aspnetcorerazor, meta.statement.if.razor, variable.other.readwrite.cs
- - token from 35 to 36 ( ) with scopes text.aspnetcorerazor, meta.statement.if.razor
- - token from 36 to 37 (a) with scopes text.aspnetcorerazor, meta.statement.if.razor, variable.other.readwrite.cs
- - token from 37 to 38 ( ) with scopes text.aspnetcorerazor, meta.statement.if.razor
- - token from 38 to 45 (problem) with scopes text.aspnetcorerazor, meta.statement.if.razor, variable.other.readwrite.cs
+ - token from 0 to 46 (    if (this is classified) we have a problem) with scopes text.aspnetcorerazor
 
 Line: </div>
- - token from 0 to 1 (<) with scopes text.aspnetcorerazor, meta.statement.if.razor, keyword.operator.relational.cs
- - token from 1 to 2 (/) with scopes text.aspnetcorerazor, meta.statement.if.razor, keyword.operator.arithmetic.cs
- - token from 2 to 5 (div) with scopes text.aspnetcorerazor, meta.statement.if.razor, variable.other.readwrite.cs
- - token from 5 to 6 (>) with scopes text.aspnetcorerazor, meta.statement.if.razor, keyword.operator.relational.cs
+ - token from 0 to 2 (</) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, punctuation.definition.tag.begin.html
+ - token from 2 to 5 (div) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, entity.name.tag.html
+ - token from 5 to 6 (>) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, punctuation.definition.tag.end.html
 "
 `;
 

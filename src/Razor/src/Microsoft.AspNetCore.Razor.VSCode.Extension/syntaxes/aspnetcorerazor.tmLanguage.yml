@@ -494,7 +494,7 @@ repository:
   optionally-transitioned-csharp-control-structures:
     patterns:
       - include: '#using-statement-with-optional-transition'
-      - include: '#if-statement'
+      - include: '#if-statement-with-optional-transition'
       - include: '#else-part'
       - include: '#foreach-statement'
       - include: '#for-statement'
@@ -546,6 +546,18 @@ repository:
   #>>>>> @if (...) { ... } <<<<<
 
   if-statement:
+    name: 'meta.statement.if.razor'
+    begin: '(?:(@))(if)\b\s*(?=\()'
+    beginCaptures:
+      1: { patterns: [ include: '#transition' ] }
+      2: { name: 'keyword.control.conditional.if.cs' }
+    patterns:
+      - include: '#csharp-condition'
+      - include: '#csharp-code-block'
+      - include: '#razor-codeblock-body'
+    end: '(?<=})'
+
+  if-statement-with-optional-transition:
     name: 'meta.statement.if.razor'
     begin: '(?:^\s*|(@))(if)\b\s*(?=\()'
     beginCaptures:
