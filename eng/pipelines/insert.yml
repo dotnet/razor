@@ -62,7 +62,7 @@ steps:
       {
         Write-Host "No PublishData found for branch '$branchName'. Using PublishData for branch 'main' with draft PR status."
         $branchData = $response.branches.main
-        $branchData.insertionCreateDraftPR = true
+        $branchData.insertionCreateDraftPR = 'true'
         $branchData.insertionTitlePrefix = '[PR Validation]'
       }
 
