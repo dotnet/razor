@@ -8,6 +8,8 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 
+using Microsoft.VisualStudio.LanguageServices.Razor;
+
 internal class VisualStudioFileChangeTrackerFactory : FileChangeTrackerFactory
 {
     private readonly ErrorReporter _errorReporter;

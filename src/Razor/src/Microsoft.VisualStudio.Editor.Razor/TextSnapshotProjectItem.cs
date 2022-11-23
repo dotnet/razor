@@ -22,17 +22,17 @@ internal class TextSnapshotProjectItem : RazorProjectItem
 
         if (string.IsNullOrEmpty(projectDirectory))
         {
-            throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(projectDirectory));
+            throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(projectDirectory));
         }
 
         if (string.IsNullOrEmpty(relativeFilePath))
         {
-            throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(relativeFilePath));
+            throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(relativeFilePath));
         }
 
         if (string.IsNullOrEmpty(filePath))
         {
-            throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
+            throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(filePath));
         }
 
         if (fileKind is null)
