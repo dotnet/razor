@@ -11,8 +11,6 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 
-using Microsoft.VisualStudio.LanguageServices.Razor;
-
 internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreadedFileChangeEvents2
 {
     private const _VSFILECHANGEFLAGS FileChangeFlags = _VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Size | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Add;
@@ -38,7 +36,7 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
     {
         if (string.IsNullOrEmpty(filePath))
         {
-            throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
+            throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(filePath));
         }
 
         if (errorReporter is null)

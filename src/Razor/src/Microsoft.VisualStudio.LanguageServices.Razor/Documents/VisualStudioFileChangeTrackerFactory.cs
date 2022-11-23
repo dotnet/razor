@@ -8,8 +8,6 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 
-using Microsoft.VisualStudio.LanguageServices.Razor;
-
 internal class VisualStudioFileChangeTrackerFactory : FileChangeTrackerFactory
 {
     private readonly ErrorReporter _errorReporter;
@@ -53,7 +51,7 @@ internal class VisualStudioFileChangeTrackerFactory : FileChangeTrackerFactory
     {
         if (string.IsNullOrEmpty(filePath))
         {
-            throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
+            throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(filePath));
         }
 
         var fileChangeTracker = new VisualStudioFileChangeTracker(filePath, _errorReporter, _fileChangeService, _projectSnapshotManagerDispatcher, _joinableTaskContext);
