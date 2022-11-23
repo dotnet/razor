@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// </remarks>
 internal static class StringBuilderPool
 {
-    private const int Threshold = 512;
+    internal const int Threshold = 512;
 
     private static readonly Func<ObjectPool<StringBuilder>, StringBuilder> s_allocate = AllocateAndClear;
     private static readonly Action<ObjectPool<StringBuilder>, StringBuilder> s_release = ClearAndFree;

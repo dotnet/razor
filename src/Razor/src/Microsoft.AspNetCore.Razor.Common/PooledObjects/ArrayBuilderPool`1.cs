@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// </remarks>
 internal static class ArrayBuilderPool<T>
 {
-    private const int Threshold = 512;
+    internal const int Threshold = 512;
 
     private static readonly Func<ObjectPool<ImmutableArray<T>.Builder>, ImmutableArray<T>.Builder> s_allocate = AllocateAndClear;
     private static readonly Action<ObjectPool<ImmutableArray<T>.Builder>, ImmutableArray<T>.Builder> s_release = ClearAndFree;

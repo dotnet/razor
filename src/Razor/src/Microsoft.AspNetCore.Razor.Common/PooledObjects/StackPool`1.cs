@@ -16,7 +16,7 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// </remarks>
 internal static class StackPool<T>
 {
-    private const int Threshold = 512;
+    internal const int Threshold = 512;
 
     private static readonly Func<ObjectPool<Stack<T>>, Stack<T>> s_allocate = AllocateAndClear;
     private static readonly Action<ObjectPool<Stack<T>>, Stack<T>> s_release = ClearAndFree;

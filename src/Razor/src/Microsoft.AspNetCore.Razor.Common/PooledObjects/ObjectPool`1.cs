@@ -36,7 +36,7 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 ///  Rationale: If there is no intent for reusing the object, do not use pool - just use "new".
 ///  </para>
 /// </remarks>
-internal class ObjectPool<T>
+internal partial class ObjectPool<T>
     where T : class
 {
     [DebuggerDisplay("{Value,nq}")]
