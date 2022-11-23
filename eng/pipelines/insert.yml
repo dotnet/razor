@@ -60,8 +60,10 @@ steps:
       $branchData = $response.branches.$branchName
       if (!$branchData)
       {
-        Write-Host "No PublishData found for branch '$branchName'. Using PublishData for branch 'main'."
+        Write-Host "No PublishData found for branch '$branchName'. Using PublishData for branch 'main' with draft PR status."
         $branchData = $response.branches.main
+        $branchData.insertionCreateDraftPR = true
+        $branchData.insertionTitlePrefix = '[PR Validation]'
       }
 
       # Set our template variables to reasonable defaults
