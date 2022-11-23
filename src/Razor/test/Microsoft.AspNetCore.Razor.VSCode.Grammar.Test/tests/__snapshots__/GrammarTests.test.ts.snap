@@ -3090,24 +3090,12 @@ exports[`Grammar tests @switch ( ... ) { ... } Not in HTML 1`] = `
  - token from 4 to 5 (>) with scopes text.aspnetcorerazor, meta.tag.structure.div.start.html, punctuation.definition.tag.end.html
 
 Line:     switch (over to better classifications)
- - token from 0 to 4 (    ) with scopes text.aspnetcorerazor, meta.statement.switch.razor
- - token from 4 to 10 (switch) with scopes text.aspnetcorerazor, meta.statement.switch.razor, keyword.control.switch.cs
- - token from 10 to 11 ( ) with scopes text.aspnetcorerazor, meta.statement.switch.razor
- - token from 11 to 12 (() with scopes text.aspnetcorerazor, meta.statement.switch.razor, punctuation.parenthesis.open.cs
- - token from 12 to 16 (over) with scopes text.aspnetcorerazor, meta.statement.switch.razor, variable.other.readwrite.cs
- - token from 16 to 17 ( ) with scopes text.aspnetcorerazor, meta.statement.switch.razor
- - token from 17 to 19 (to) with scopes text.aspnetcorerazor, meta.statement.switch.razor, variable.other.readwrite.cs
- - token from 19 to 20 ( ) with scopes text.aspnetcorerazor, meta.statement.switch.razor
- - token from 20 to 26 (better) with scopes text.aspnetcorerazor, meta.statement.switch.razor, entity.name.type.cs
- - token from 26 to 27 ( ) with scopes text.aspnetcorerazor, meta.statement.switch.razor
- - token from 27 to 42 (classifications) with scopes text.aspnetcorerazor, meta.statement.switch.razor, entity.name.variable.local.cs
- - token from 42 to 43 ()) with scopes text.aspnetcorerazor, meta.statement.switch.razor, punctuation.parenthesis.close.cs
+ - token from 0 to 44 (    switch (over to better classifications)) with scopes text.aspnetcorerazor
 
 Line: </div>
- - token from 0 to 1 (<) with scopes text.aspnetcorerazor, meta.statement.switch.razor, keyword.operator.relational.cs
- - token from 1 to 2 (/) with scopes text.aspnetcorerazor, meta.statement.switch.razor, keyword.operator.arithmetic.cs
- - token from 2 to 5 (div) with scopes text.aspnetcorerazor, meta.statement.switch.razor, variable.other.readwrite.cs
- - token from 5 to 6 (>) with scopes text.aspnetcorerazor, meta.statement.switch.razor, keyword.operator.relational.cs
+ - token from 0 to 2 (</) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, punctuation.definition.tag.begin.html
+ - token from 2 to 5 (div) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, entity.name.tag.html
+ - token from 5 to 6 (>) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, punctuation.definition.tag.end.html
 "
 `;
 

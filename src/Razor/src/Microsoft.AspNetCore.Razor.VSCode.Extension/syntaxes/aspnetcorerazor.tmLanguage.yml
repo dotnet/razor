@@ -501,7 +501,7 @@ repository:
   # while is incompatible with optional transitions because @do { } \n while { } is valid everywhere, and textmate only matches
   # one line at a time
       - include: '#while-statement'
-      - include: '#switch-statement'
+      - include: '#switch-statement-with-optional-transition'
       - include: '#lock-statement'
       - include: '#do-statement-with-optional-transition'
       - include: '#try-statement'
@@ -739,6 +739,18 @@ repository:
   #>>>>> @switch (...) { ... } <<<<<
 
   switch-statement:
+    name: 'meta.statement.switch.razor'
+    begin: '(?:(@))(switch)\b\s*(?=\()'
+    beginCaptures:
+      1: { patterns: [ include: '#transition' ] }
+      2: { name: 'keyword.control.switch.cs' }
+    patterns:
+      - include: '#csharp-condition'
+      - include: '#switch-code-block'
+      - include: '#razor-codeblock-body'
+    end: '(?<=})'
+
+  switch-statement-with-optional-transition:
     name: 'meta.statement.switch.razor'
     begin: '(?:^\s*|(@))(switch)\b\s*(?=\()'
     beginCaptures:
