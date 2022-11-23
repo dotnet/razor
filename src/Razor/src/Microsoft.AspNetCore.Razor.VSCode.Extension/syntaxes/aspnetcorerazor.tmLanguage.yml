@@ -497,7 +497,7 @@ repository:
       - include: '#if-statement-with-optional-transition'
       - include: '#else-part'
       - include: '#foreach-statement-with-optional-transition'
-      - include: '#for-statement'
+      - include: '#for-statement-with-optional-transition'
       - include: '#while-statement'
       - include: '#switch-statement'
       - include: '#lock-statement'
@@ -586,6 +586,18 @@ repository:
   #>>>>> @for (...) { ... } <<<<<
 
   for-statement:
+    name: 'meta.statement.for.razor'
+    begin: '(?:(@))(for)\b\s*(?=\()'
+    beginCaptures:
+      1: { patterns: [ include: '#transition' ] }
+      2: { name: 'keyword.control.loop.for.cs' }
+    patterns:
+      - include: '#csharp-condition'
+      - include: '#csharp-code-block'
+      - include: '#razor-codeblock-body'
+    end: '(?<=})'
+
+  for-statement-with-optional-transition:
     name: 'meta.statement.for.razor'
     begin: '(?:^\s*|(@))(for)\b\s*(?=\()'
     beginCaptures:

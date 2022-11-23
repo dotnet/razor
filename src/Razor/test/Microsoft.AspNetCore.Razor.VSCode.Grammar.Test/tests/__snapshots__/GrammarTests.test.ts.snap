@@ -1148,26 +1148,12 @@ exports[`Grammar tests @for ( ... ) { ... } Not in HTML 1`] = `
  - token from 4 to 5 (>) with scopes text.aspnetcorerazor, meta.tag.structure.div.start.html, punctuation.definition.tag.end.html
 
 Line:     for (this) is the best classification
- - token from 0 to 4 (    ) with scopes text.aspnetcorerazor, meta.statement.for.razor
- - token from 4 to 7 (for) with scopes text.aspnetcorerazor, meta.statement.for.razor, keyword.control.loop.for.cs
- - token from 7 to 8 ( ) with scopes text.aspnetcorerazor, meta.statement.for.razor
- - token from 8 to 9 (() with scopes text.aspnetcorerazor, meta.statement.for.razor, punctuation.parenthesis.open.cs
- - token from 9 to 13 (this) with scopes text.aspnetcorerazor, meta.statement.for.razor, keyword.other.this.cs
- - token from 13 to 14 ()) with scopes text.aspnetcorerazor, meta.statement.for.razor, punctuation.parenthesis.close.cs
- - token from 14 to 15 ( ) with scopes text.aspnetcorerazor, meta.statement.for.razor
- - token from 15 to 17 (is) with scopes text.aspnetcorerazor, meta.statement.for.razor, keyword.other.is.cs
- - token from 17 to 18 ( ) with scopes text.aspnetcorerazor, meta.statement.for.razor
- - token from 18 to 21 (the) with scopes text.aspnetcorerazor, meta.statement.for.razor, entity.name.type.cs
- - token from 21 to 22 ( ) with scopes text.aspnetcorerazor, meta.statement.for.razor
- - token from 22 to 26 (best) with scopes text.aspnetcorerazor, meta.statement.for.razor, variable.other.readwrite.cs
- - token from 26 to 27 ( ) with scopes text.aspnetcorerazor, meta.statement.for.razor
- - token from 27 to 41 (classification) with scopes text.aspnetcorerazor, meta.statement.for.razor, variable.other.readwrite.cs
+ - token from 0 to 42 (    for (this) is the best classification) with scopes text.aspnetcorerazor
 
 Line: </div>
- - token from 0 to 1 (<) with scopes text.aspnetcorerazor, meta.statement.for.razor, keyword.operator.relational.cs
- - token from 1 to 2 (/) with scopes text.aspnetcorerazor, meta.statement.for.razor, keyword.operator.arithmetic.cs
- - token from 2 to 5 (div) with scopes text.aspnetcorerazor, meta.statement.for.razor, variable.other.readwrite.cs
- - token from 5 to 6 (>) with scopes text.aspnetcorerazor, meta.statement.for.razor, keyword.operator.relational.cs
+ - token from 0 to 2 (</) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, punctuation.definition.tag.begin.html
+ - token from 2 to 5 (div) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, entity.name.tag.html
+ - token from 5 to 6 (>) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, punctuation.definition.tag.end.html
 "
 `;
 
