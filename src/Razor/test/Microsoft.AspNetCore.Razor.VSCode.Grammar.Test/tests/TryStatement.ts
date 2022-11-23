@@ -50,5 +50,23 @@ catch (
     </div>
 }finally{}`);
         });
+
+        it('Nested inside if', async () => {
+            await assertMatchesSnapshot(
+`@if (true)
+{
+    try {
+        <p></p>
+    } catch(Exception ex) {
+    }
+}`);
+        });
+
+        it('Not in HTML', async () => {
+            await assertMatchesSnapshot(
+`<div>
+    try not to classify this
+</div>`);
+        });
     });
 }

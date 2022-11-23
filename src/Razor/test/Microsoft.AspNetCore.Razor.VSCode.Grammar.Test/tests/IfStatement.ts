@@ -45,5 +45,22 @@ export function RunIfStatementSuite() {
     </div>
 }else if (true){}`);
         });
+
+        it('Nested inside if', async () => {
+            await assertMatchesSnapshot(
+`@if (true)
+{
+    if (true) {
+        <p></p>
+    }
+}`);
+        });
+
+        it('Not in HTML', async () => {
+            await assertMatchesSnapshot(
+`<div>
+    if (this is classified) we have a problem
+</div>`);
+        });
     });
 }
