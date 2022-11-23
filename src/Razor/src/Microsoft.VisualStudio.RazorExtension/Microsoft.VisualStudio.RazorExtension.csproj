@@ -236,6 +236,9 @@
     <PackageReference Include="System.Resources.Extensions" Version="$(SystemResourcesExtensionsPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150PackageVersion)" />
 
+    <!-- Workaround until WebTools doesn't depend on us -->
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
+
     <!--
       Pinning packages to avoid misaligned reference CI failures.
       CI builds here: https://github.com/dotnet/razor-tooling/issues/4327
