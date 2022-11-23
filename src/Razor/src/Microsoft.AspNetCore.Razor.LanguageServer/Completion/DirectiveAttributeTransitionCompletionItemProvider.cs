@@ -32,7 +32,7 @@ internal class DirectiveAttributeTransitionCompletionItemProvider : DirectiveAtt
                     // where this directive attribute transition character ("@...") gets provided and then typing
                     // `@` should re-trigger OR typing `/` should re-trigger.
                     commitCharacters: RazorCommitCharacter.FromArray(new[] { "@", "/", ">" }));
-                s_transitionCompletionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(RazorLS.Resources.Blazor_directive_attributes));
+                s_transitionCompletionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(SR.Blazor_directive_attributes));
             }
 
             return s_transitionCompletionItem;

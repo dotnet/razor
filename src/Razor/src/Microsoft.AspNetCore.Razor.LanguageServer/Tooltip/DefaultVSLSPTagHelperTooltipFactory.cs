@@ -19,12 +19,12 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
     // Internal for testing
     internal static readonly ImageElement ClassGlyph = new(
         new ImageId(s_imageCatalogGuid, 463), // KnownImageIds.Type = 463
-        RazorLS.Resources.TagHelper_Element_Glyph);
+        SR.TagHelper_Element_Glyph);
 
     // Internal for testing
     internal static readonly ImageElement PropertyGlyph = new(
         new ImageId(s_imageCatalogGuid, 2429), // KnownImageIds.Type = 2429
-        RazorLS.Resources.TagHelper_Attribute_Glyph);
+        SR.TagHelper_Attribute_Glyph);
 
     private static readonly IReadOnlyList<string> s_cSharpPrimitiveTypes =
         new string[] { "bool", "byte", "sbyte", "char", "decimal", "double", "float", "int", "uint",

@@ -23,7 +23,7 @@ internal class VisualStudioMacFileChangeTracker : FileChangeTracker
     {
         if (string.IsNullOrEmpty(filePath))
         {
-            throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
+            throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(filePath));
         }
 
         if (projectSnapshotManagerDispatcher is null)

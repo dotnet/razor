@@ -54,7 +54,7 @@ internal static class TextLineExtensions
     {
         if (startOffset > line.SpanIncludingLineBreak.Length)
         {
-            throw new ArgumentOutOfRangeException(nameof(startOffset), RazorLS.Resources.Invalid_Offset);
+            throw new ArgumentOutOfRangeException(nameof(startOffset), SR.Invalid_Offset);
         }
 
         return line.Text!.GetFirstNonWhitespaceOffset(TextSpan.FromBounds(line.Start + startOffset, line.EndIncludingLineBreak), out _);

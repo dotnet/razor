@@ -34,6 +34,15 @@
     <Reference Include="System.Xaml" />
   </ItemGroup>
 
+  <ItemGroup Label="String Resources">
+    <EmbeddedResource Update="Resources\SR.resx">
+      <GenerateSource>true</GenerateSource>
+      <Namespace>$(ProjectName).Resources</Namespace>
+    </EmbeddedResource>
+
+    <Using Include="$(ProjectName).Resources" />
+  </ItemGroup>
+
   <!--
     The ProjectSystem.SDK tasks that handle XamlPropertyRule don't work on the dotnet core version
     of MSBuild. The workaround here is to only hardcode the generated code location such that it gets

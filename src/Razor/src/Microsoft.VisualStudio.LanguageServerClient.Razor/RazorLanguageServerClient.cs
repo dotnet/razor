@@ -232,7 +232,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
     {
         var initializationFailureContext = new InitializationFailureContext
         {
-            FailureMessage = string.Format(VS.LSClientRazor.Resources.LanguageServer_Initialization_Failed,
+            FailureMessage = string.Format(SR.LanguageServer_Initialization_Failed,
                 Name, initializationState.StatusMessage, initializationState.InitializationException?.ToString())
         };
         return Task.FromResult<InitializationFailureContext?>(initializationFailureContext);

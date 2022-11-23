@@ -4,11 +4,11 @@
 using System;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Editor.Razor.Debugging;
+using Microsoft.VisualStudio.LanguageServices.Razor.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
-using Microsoft.VisualStudio.LanguageServices.Razor.Extensions;
 using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor;
@@ -79,8 +79,8 @@ internal partial class RazorLanguageService : IVsLanguageDebugInfo
         }
 
         var proximityExpressions = _uiThreadOperationExecutor.Execute(
-            title: Resources.ProximityExpression_Dialog_Title,
-            description: Resources.ProximityExpression_Dialog_Description,
+            title: SR.ProximityExpression_Dialog_Title,
+            description: SR.ProximityExpression_Dialog_Description,
             allowCancellation: true,
             showProgress: true,
             (cancellationToken) => _proximityExpressionResolver.TryResolveProximityExpressionsAsync(textBuffer, iLine, iCol, cancellationToken), _joinableTaskFactory);

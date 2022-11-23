@@ -23,7 +23,7 @@ internal class VisualStudioErrorReporter : ErrorReporter
         }
 
         LoggingService.LogError(
-            Resources.RazorLanguageServiceGeneralError,
+            SR.RazorLanguageServiceGeneralError,
             exception);
     }
 
@@ -36,7 +36,7 @@ internal class VisualStudioErrorReporter : ErrorReporter
         }
 
         LoggingService.LogError(
-            Resources.FormatRazorLanguageServiceProjectError(project?.Name),
+            SR.FormatRazorLanguageServiceProjectError(project?.Name),
             exception);
     }
 
@@ -49,7 +49,7 @@ internal class VisualStudioErrorReporter : ErrorReporter
         }
 
         LoggingService.LogError(
-            Resources.FormatRazorLanguageServiceProjectSnapshotError(project?.FilePath, exception),
+            SR.FormatRazorLanguageServiceProjectSnapshotError(project?.FilePath, exception),
             exception);
     }
 }

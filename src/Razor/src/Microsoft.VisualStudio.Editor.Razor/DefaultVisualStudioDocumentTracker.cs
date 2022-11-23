@@ -58,7 +58,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
 
         if (string.IsNullOrEmpty(filePath))
         {
-            throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
+            throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(filePath));
         }
 
         if (projectPath is null)

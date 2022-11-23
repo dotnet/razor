@@ -36,7 +36,7 @@ internal class VisualStudioFileChangeTracker : FileChangeTracker, IVsFreeThreade
     {
         if (string.IsNullOrEmpty(filePath))
         {
-            throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
+            throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(filePath));
         }
 
         if (errorReporter is null)

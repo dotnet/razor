@@ -56,7 +56,7 @@ public class DefaultRemoteTextLoaderFactory : RemoteTextLoaderFactory
                 var newLastWriteTime = File.GetLastWriteTimeUtc(_filePath);
                 if (!newLastWriteTime.Equals(prevLastWriteTime))
                 {
-                    throw new IOException(RazorLSCommon.Resources.FormatFile_Externally_Modified(_filePath));
+                    throw new IOException(SR.FormatFile_Externally_Modified(_filePath));
                 }
             }
             catch (IOException)

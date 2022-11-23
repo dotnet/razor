@@ -26,7 +26,7 @@ internal class RazorCompletionListProvider
     private static readonly Command s_retriggerCompletionCommand = new()
     {
         CommandIdentifier = "editor.action.triggerSuggest",
-        Title = RazorLS.Resources.ReTrigger_Completions_Title,
+        Title = SR.ReTrigger_Completions_Title,
     };
 
     public RazorCompletionListProvider(
