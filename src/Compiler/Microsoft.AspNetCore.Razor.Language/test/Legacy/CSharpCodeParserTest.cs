@@ -120,13 +120,13 @@ public class CSharpCodeParserTest
     }
 
     [Theory]
-    [InlineData("foo,assemblyName", 4)]
-    [InlineData("foo, assemblyName", 5)]
-    [InlineData("   foo, assemblyName", 8)]
-    [InlineData("   foo   , assemblyName", 11)]
-    [InlineData("foo,    assemblyName", 8)]
-    [InlineData("   foo   ,    assemblyName   ", 14)]
-    public void ParseAddOrRemoveDirective_CalculatesAssemblyLocationInLookupText(string text, int assemblyLocation)
+    [InlineData("foo,assemblyName")]
+    [InlineData("foo, assemblyName")]
+    [InlineData("   foo, assemblyName")]
+    [InlineData("   foo   , assemblyName")]
+    [InlineData("foo,    assemblyName")]
+    [InlineData("   foo   ,    assemblyName   ")]
+    public void ParseAddOrRemoveDirective_CalculatesAssemblyLocationInLookupText(string text)
     {
         // Arrange
         var source = TestRazorSourceDocument.Create();
