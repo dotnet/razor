@@ -139,6 +139,7 @@
     ***************************************************************************************************************************************
     -->
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Options.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Options.ConfigurationExtensions.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.Primitives.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.DependencyInjection.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
