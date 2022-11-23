@@ -3768,22 +3768,12 @@ exports[`Grammar tests @using ( ... ) { ... } Not in HTML 1`] = `
  - token from 4 to 5 (>) with scopes text.aspnetcorerazor, meta.tag.structure.div.start.html, punctuation.definition.tag.end.html
 
 Line:     using (the best potatoes)
- - token from 0 to 4 (    ) with scopes text.aspnetcorerazor, meta.statement.using.razor
- - token from 4 to 9 (using) with scopes text.aspnetcorerazor, meta.statement.using.razor, keyword.other.using.cs
- - token from 9 to 10 ( ) with scopes text.aspnetcorerazor, meta.statement.using.razor
- - token from 10 to 11 (() with scopes text.aspnetcorerazor, meta.statement.using.razor, punctuation.parenthesis.open.cs
- - token from 11 to 14 (the) with scopes text.aspnetcorerazor, meta.statement.using.razor, variable.other.readwrite.cs
- - token from 14 to 15 ( ) with scopes text.aspnetcorerazor, meta.statement.using.razor
- - token from 15 to 19 (best) with scopes text.aspnetcorerazor, meta.statement.using.razor, entity.name.type.cs
- - token from 19 to 20 ( ) with scopes text.aspnetcorerazor, meta.statement.using.razor
- - token from 20 to 28 (potatoes) with scopes text.aspnetcorerazor, meta.statement.using.razor, entity.name.variable.local.cs
- - token from 28 to 29 ()) with scopes text.aspnetcorerazor, meta.statement.using.razor, punctuation.parenthesis.close.cs
+ - token from 0 to 30 (    using (the best potatoes)) with scopes text.aspnetcorerazor
 
 Line: </div>
- - token from 0 to 1 (<) with scopes text.aspnetcorerazor, meta.statement.using.razor, keyword.operator.relational.cs
- - token from 1 to 2 (/) with scopes text.aspnetcorerazor, meta.statement.using.razor, keyword.operator.arithmetic.cs
- - token from 2 to 5 (div) with scopes text.aspnetcorerazor, meta.statement.using.razor, variable.other.readwrite.cs
- - token from 5 to 6 (>) with scopes text.aspnetcorerazor, meta.statement.using.razor, keyword.operator.relational.cs
+ - token from 0 to 2 (</) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, punctuation.definition.tag.begin.html
+ - token from 2 to 5 (div) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, entity.name.tag.html
+ - token from 5 to 6 (>) with scopes text.aspnetcorerazor, meta.tag.structure.div.end.html, punctuation.definition.tag.end.html
 "
 `;
 

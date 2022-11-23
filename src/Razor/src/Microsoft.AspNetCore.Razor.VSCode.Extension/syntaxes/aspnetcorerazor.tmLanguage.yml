@@ -493,7 +493,7 @@ repository:
 
   optionally-transitioned-csharp-control-structures:
     patterns:
-      - include: '#using-statement'
+      - include: '#using-statement-with-optional-transition'
       - include: '#if-statement'
       - include: '#else-part'
       - include: '#foreach-statement'
@@ -520,6 +520,18 @@ repository:
   #>>>>> @using (...) { ... } <<<<<
 
   using-statement:
+    name: 'meta.statement.using.razor'
+    begin: '(?:(@))(using)\b\s*(?=\()'
+    beginCaptures:
+      1: { patterns: [ include: '#transition' ] }
+      2: { name: 'keyword.other.using.cs' }
+    patterns:
+      - include: '#csharp-condition'
+      - include: '#csharp-code-block'
+      - include: '#razor-codeblock-body'
+    end: '(?<=})'
+
+  using-statement-with-optional-transition:
     name: 'meta.statement.using.razor'
     begin: '(?:^\s*|(@))(using)\b\s*(?=\()'
     beginCaptures:
