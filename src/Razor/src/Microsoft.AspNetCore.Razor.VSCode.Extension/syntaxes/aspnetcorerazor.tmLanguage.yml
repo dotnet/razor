@@ -8,6 +8,8 @@ patterns:
   - include: 'text.html.basic'
 
 repository:
+
+ # Razor control structures, including C# control structures that require an '@'
   razor-control-structures:
     patterns:
       - include: '#razor-comment'
@@ -16,6 +18,17 @@ repository:
       - include: '#escaped-transition'
       - include: '#directives'
       - include: '#transitioned-csharp-control-structures'
+      - include: '#implicit-expression'
+
+# Razor control structures, including C# control structures that don't require an '@' (ie, are nested in a C# context)
+  optionally-transitioned-razor-control-structures:
+    patterns:
+      - include: '#razor-comment'
+      - include: '#razor-codeblock'
+      - include: '#explicit-razor-expression'
+      - include: '#escaped-transition'
+      - include: '#directives'
+      - include: '#optionally-transitioned-csharp-control-structures'
       - include: '#implicit-expression'
 
   escaped-transition:
@@ -46,7 +59,7 @@ repository:
       - include: '#text-tag'
       - include: '#wellformed-html'
       - include: '#razor-single-line-markup'
-      - include: '#razor-control-structures'
+      - include: '#optionally-transitioned-razor-control-structures'
       - include: 'source.cs'
 
   razor-single-line-markup:
@@ -477,6 +490,19 @@ repository:
       1: { name: 'entity.name.type.namespace.cs' }
 
   # ----------  Razor C# Control Structures ------------
+
+  optionally-transitioned-csharp-control-structures:
+    patterns:
+      - include: '#using-statement'
+      - include: '#if-statement'
+      - include: '#else-part'
+      - include: '#foreach-statement'
+      - include: '#for-statement'
+      - include: '#while-statement'
+      - include: '#switch-statement'
+      - include: '#lock-statement'
+      - include: '#do-statement'
+      - include: '#try-statement'
 
   transitioned-csharp-control-structures:
     patterns:
