@@ -285,6 +285,7 @@ internal class RazorHtmlCSharpLanguageServer : IDisposable
         return ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, IReadOnlyList<VSInternalDiagnosticReport>>(VSInternalMethods.DocumentPullDiagnosticName, documentDiagnosticsParams, ClientCapabilities, cancellationToken);
     }
 
+#pragma warning disable IDE0060 // Remove unused parameter
     // Razor tooling doesn't utilize workspace pull diagnostics as it doesn't really make sense for our use case.
     // However, without the workspace pull diagnostics endpoint, a bunch of unnecessary exceptions are
     // triggered. Thus we add the following no-op handler until a server capability is available.
@@ -306,6 +307,7 @@ internal class RazorHtmlCSharpLanguageServer : IDisposable
     {
         return Task.FromResult<WrapWithTagResponse?>(null);
     }
+#pragma warning restore IDE0060 // Remove unused parameter
 
     // Internal for testing
     internal Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(

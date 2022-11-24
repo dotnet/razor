@@ -356,7 +356,9 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
 
             public abstract Task<object> OnCompletionResolveDelegationAsync(object parameters);
 
+#pragma warning disable IDE0060 // Remove unused parameter
             public Task<object> OnGetFormattingOptionsAsync(object parameters)
+#pragma warning restore IDE0060 // Remove unused parameter
             {
                 var formattingOptions = new FormattingOptions()
                 {

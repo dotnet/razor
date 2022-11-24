@@ -44,10 +44,10 @@ internal class RazorTextViewConnectionListener : ITextViewConnectionListener
 
     public void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
     {
-        _ = SubjectBuffersConnectedAsync(textView, reason, subjectBuffers, CancellationToken.None);
+        _ = SubjectBuffersConnectedAsync(textView, subjectBuffers);
     }
 
-    private async Task SubjectBuffersConnectedAsync(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers, CancellationToken cancellationToken)
+    private async Task SubjectBuffersConnectedAsync(ITextView textView, IReadOnlyCollection<ITextBuffer> subjectBuffers)
     {
         try
         {

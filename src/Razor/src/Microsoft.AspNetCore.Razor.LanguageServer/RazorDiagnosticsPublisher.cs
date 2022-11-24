@@ -203,10 +203,10 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
 
     private void WorkTimer_Tick(object? state)
     {
-        WorkTimer_TickAsync(CancellationToken.None).Forget();
+        WorkTimer_TickAsync().Forget();
     }
 
-    private async Task WorkTimer_TickAsync(CancellationToken cancellationToken)
+    private async Task WorkTimer_TickAsync()
     {
         try
         {

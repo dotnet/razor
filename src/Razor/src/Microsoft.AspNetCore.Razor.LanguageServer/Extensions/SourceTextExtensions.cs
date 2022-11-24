@@ -133,8 +133,15 @@ internal static class SourceTextExtensions
             j++;
         }
 
-        while (i < source.Length && char.IsWhiteSpace(source[i])) i++;
-        while (j < other.Length && char.IsWhiteSpace(other[j])) j++;
+        while (i < source.Length && char.IsWhiteSpace(source[i]))
+        {
+            i++;
+        }
+
+        while (j < other.Length && char.IsWhiteSpace(other[j]))
+        {
+            j++;
+        }
 
         return i == source.Length && j == other.Length;
     }

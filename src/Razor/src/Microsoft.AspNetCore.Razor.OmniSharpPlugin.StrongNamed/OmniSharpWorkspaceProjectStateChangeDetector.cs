@@ -93,10 +93,10 @@ public class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectSna
         // that abnormality.
         internal override void Workspace_WorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
         {
-            Workspace_WorkspaceChangedAsync(sender, args, CancellationToken.None).Forget();
+            Workspace_WorkspaceChangedAsync(sender, args).Forget();
         }
 
-        private async Task Workspace_WorkspaceChangedAsync(object? sender, WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
+        private async Task Workspace_WorkspaceChangedAsync(object? sender, WorkspaceChangeEventArgs args)
         {
             try
             {

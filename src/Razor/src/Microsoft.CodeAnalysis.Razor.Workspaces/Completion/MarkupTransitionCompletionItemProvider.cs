@@ -95,10 +95,12 @@ internal class MarkupTransitionCompletionItemProvider : RazorCompletionItemProvi
         */
         var encapsulatingMarkupElementNodeSeen = false;
 
-        foreach (var ancestor in owner.Ancestors()) {
+        foreach (var ancestor in owner.Ancestors())
+        {
             if (ancestor is MarkupElementSyntax markupNode)
             {
-                if (encapsulatingMarkupElementNodeSeen) {
+                if (encapsulatingMarkupElementNodeSeen)
+                {
                     return false;
                 }
 
