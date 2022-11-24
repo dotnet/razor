@@ -38,6 +38,7 @@
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.CommonLanguageServerProtocol.Framework.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Options.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Options.ConfigurationExtensions.dll" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Configuration.Binder.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.Primitives.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.DependencyInjection.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
