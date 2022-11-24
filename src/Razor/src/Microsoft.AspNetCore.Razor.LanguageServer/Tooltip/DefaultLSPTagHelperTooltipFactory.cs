@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -36,7 +37,9 @@ internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
         //
         // Additional description infos result in a triple `---` to separate the markdown entries.
 
-        var descriptionBuilder = new StringBuilder();
+        using var pooledBuilder = StringBuilderPool.GetPooledObject();
+        var descriptionBuilder = pooledBuilder.Object;
+
         for (var i = 0; i < associatedTagHelperInfos.Count; i++)
         {
             var descriptionInfo = associatedTagHelperInfos[i];
@@ -70,6 +73,7 @@ internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
             Kind = markupKind,
             Value = descriptionBuilder.ToString(),
         };
+
         return true;
     }
 
@@ -97,7 +101,9 @@ internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
         //
         // Additional description infos result in a triple `---` to separate the markdown entries.
 
-        var descriptionBuilder = new StringBuilder();
+        using var pooledBuilder = StringBuilderPool.GetPooledObject();
+        var descriptionBuilder = pooledBuilder.Object;
+
         for (var i = 0; i < associatedAttributeInfos.Count; i++)
         {
             var descriptionInfo = associatedAttributeInfos[i];
@@ -117,11 +123,11 @@ internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
             var reducedReturnTypeName = ReduceTypeName(returnTypeName);
             descriptionBuilder.Append(reducedReturnTypeName);
             StartOrEndBold(descriptionBuilder, markupKind);
-            descriptionBuilder.Append(" ");
+            descriptionBuilder.Append(' ');
             var tagHelperTypeName = descriptionInfo.TypeName;
             var reducedTagHelperTypeName = ReduceTypeName(tagHelperTypeName);
             descriptionBuilder.Append(reducedTagHelperTypeName);
-            descriptionBuilder.Append(".");
+            descriptionBuilder.Append('.');
             StartOrEndBold(descriptionBuilder, markupKind);
             descriptionBuilder.Append(descriptionInfo.PropertyName);
             StartOrEndBold(descriptionBuilder, markupKind);
@@ -143,6 +149,7 @@ internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
             Kind = markupKind,
             Value = descriptionBuilder.ToString(),
         };
+
         return true;
     }
 
@@ -155,7 +162,11 @@ internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
         // it'll be serialized as html (wont show).
         summaryContent = summaryContent.Trim();
         var crefMatches = ExtractCrefMatches(summaryContent);
-        var summaryBuilder = new StringBuilder(summaryContent);
+
+        using var pooledBuilder = StringBuilderPool.GetPooledObject();
+        var summaryBuilder = pooledBuilder.Object;
+
+        summaryBuilder.Append(summaryContent);
 
         for (var i = crefMatches.Count - 1; i >= 0; i--)
         {
@@ -175,11 +186,11 @@ internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
         return finalSummaryContent;
     }
 
-    private void StartOrEndBold(StringBuilder stringBuilder, MarkupKind markupKind)
+    private static void StartOrEndBold(StringBuilder builder, MarkupKind markupKind)
     {
         if (markupKind == MarkupKind.Markdown)
         {
-            stringBuilder.Append("**");
+            builder.Append("**");
         }
     }
 }

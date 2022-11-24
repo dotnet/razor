@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -14,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -401,7 +401,16 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
 
     private static string PrependLines(string text, string newLine, int count)
     {
-        var builder = new StringBuilder((newLine.Length * count) + text.Length);
+        using var pooledBuilder = StringBuilderPool.GetPooledObject();
+        var builder = pooledBuilder.Object;
+
+        var capacity = (newLine.Length * count) + text.Length;
+
+        if (builder.Capacity < capacity)
+        {
+            builder.Capacity = capacity;
+        }
+
         for (var i = 0; i < count; i++)
         {
             builder.Append(newLine);

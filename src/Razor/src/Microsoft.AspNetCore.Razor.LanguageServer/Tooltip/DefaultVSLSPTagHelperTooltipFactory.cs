@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -243,7 +244,9 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
 
     private static void ClassifyReducedTypeName(List<ClassifiedTextRun> runs, string reducedTypeName)
     {
-        var currentTextRun = new StringBuilder();
+        using var pooledBuilder = StringBuilderPool.GetPooledObject();
+        var currentTextRun = pooledBuilder.Object;
+
         for (var i = 0; i < reducedTypeName.Length; i++)
         {
             var ch = reducedTypeName[i];
@@ -352,7 +355,9 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
             return;
         }
 
-        var currentTextRun = new StringBuilder();
+        using var pooledBuilder = StringBuilderPool.GetPooledObject();
+        var currentTextRun = pooledBuilder.Object;
+
         var currentCrefMatchIndex = 0;
         var currentCodeMatchIndex = 0;
         for (var i = 0; i < summaryContent.Length; i++)

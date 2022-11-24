@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using System.Text;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
 
@@ -225,7 +225,9 @@ public HostServices GetHostServices()
     {
         var configuration = CompositionConfiguration.Create(GetCatalog());
 
-        var sb = new StringBuilder();
+        using var pooledBuilder = StringBuilderPool.GetPooledObject();
+        var sb = pooledBuilder.Object;
+
         foreach (var errorGroup in configuration.CompositionErrors)
         {
             foreach (var error in errorGroup)

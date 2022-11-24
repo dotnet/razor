@@ -3,8 +3,8 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Outlining;
@@ -93,7 +93,9 @@ public class CodeFoldingTests : AbstractRazorEditorTest
 
         static string PrintLines(ImmutableArray<CollapsibleBlock> lines, ITextView textView)
         {
-            var sb = new StringBuilder();
+            using var pooledBuilder = StringBuilderPool.GetPooledObject();
+            var sb = pooledBuilder.Object;
+
             foreach (var line in lines)
             {
                 sb.AppendLine();

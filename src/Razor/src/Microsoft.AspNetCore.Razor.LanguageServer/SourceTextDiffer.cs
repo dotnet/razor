@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -84,7 +84,10 @@ internal class SourceTextDiffer : TextDiffer
 
         var start = 0;
         var end = 0;
-        var builder = new StringBuilder();
+
+        using var pooledBuilder = StringBuilderPool.GetPooledObject();
+        var builder = pooledBuilder.Object;
+
         foreach (var edit in edits)
         {
             var startPosition = _lineDiffOnly ? OldText.Lines[edit.Position].Start : edit.Position;
