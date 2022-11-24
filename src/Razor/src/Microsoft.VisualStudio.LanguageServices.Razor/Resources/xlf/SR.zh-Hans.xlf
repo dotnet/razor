@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="ArgumentCannotBeNullOrEmpty">
         <source>Value cannot be null or an empty string.</source>
-        <target state="translated">值不能为 null 或空字符串。</target>
+        <target state="new">Value cannot be null or an empty string.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProximityExpression_Dialog_Description">
         <source>Razor Debugger</source>
-        <target state="translated">Razor 调试程序</target>
+        <target state="new">Razor Debugger</target>
         <note />
       </trans-unit>
       <trans-unit id="ProximityExpression_Dialog_Title">
         <source>Determining proximity expressions...</source>
-        <target state="translated">正在确定邻近表达式…</target>
+        <target state="new">Determining proximity expressions...</target>
         <note />
       </trans-unit>
     </body>

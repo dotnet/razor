@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ArgumentCannotBeNullOrEmpty">
         <source>Value cannot be null or an empty string.</source>
-        <target state="translated">Değer null veya boş bir dize olamaz.</target>
+        <target state="new">Value cannot be null or an empty string.</target>
         <note />
       </trans-unit>
     </body>

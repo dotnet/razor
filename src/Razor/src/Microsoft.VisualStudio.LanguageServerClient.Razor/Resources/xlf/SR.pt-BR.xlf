@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="LanguageServer_Initialization_Failed">
         <source>{0} failed to initialize.  Please report a problem via Help -&gt; Send Feedback -&gt; Report a Problem.  Status = {1}.  Exception = {2}</source>
-        <target state="translated">Falha ao inicializar {0}. Relate um problema via Ajuda -&gt; Enviar Comentários -&gt; Relatar um Problema. Status = {1}.  Exceção = {2}</target>
+        <target state="new">{0} failed to initialize.  Please report a problem via Help -&gt; Send Feedback -&gt; Report a Problem.  Status = {1}.  Exception = {2}</target>
         <note>{0} is the language server name. Status is the status of the initialization. Exception is the exception encountered during initialization.</note>
       </trans-unit>
       <trans-unit id="View Code">
         <source>View Code</source>
-        <target state="translated">Exibir Código</target>
+        <target state="new">View Code</target>
         <note />
       </trans-unit>
     </body>

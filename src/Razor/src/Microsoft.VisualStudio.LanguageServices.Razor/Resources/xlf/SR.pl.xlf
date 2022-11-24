@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="ArgumentCannotBeNullOrEmpty">
         <source>Value cannot be null or an empty string.</source>
-        <target state="translated">Wartość nie może być wartością null ani pustym ciągiem.</target>
+        <target state="new">Value cannot be null or an empty string.</target>
         <note />
       </trans-unit>
       <trans-unit id="ProximityExpression_Dialog_Description">
         <source>Razor Debugger</source>
-        <target state="translated">Debuger składni Razor</target>
+        <target state="new">Razor Debugger</target>
         <note />
       </trans-unit>
       <trans-unit id="ProximityExpression_Dialog_Title">
         <source>Determining proximity expressions...</source>
-        <target state="translated">Trwa określanie wyrażeń bliskości...</target>
+        <target state="new">Determining proximity expressions...</target>
         <note />
       </trans-unit>
     </body>

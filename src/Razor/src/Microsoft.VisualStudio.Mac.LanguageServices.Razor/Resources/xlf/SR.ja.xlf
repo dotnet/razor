@@ -4,23 +4,23 @@
     <body>
       <trans-unit id="ArgumentCannotBeNullOrEmpty">
         <source>Value cannot be null or an empty string.</source>
-        <target state="translated">値を null または空の文字列にすることはできません。</target>
+        <target state="new">Value cannot be null or an empty string.</target>
         <note />
       </trans-unit>
       <trans-unit id="RazorLanguageServiceGeneralError">
         <source>Razor Language Service error encountered.</source>
-        <target state="translated">Razor 言語サービス エラーが発生しました。</target>
+        <target state="new">Razor Language Service error encountered.</target>
         <note />
       </trans-unit>
       <trans-unit id="RazorLanguageServiceProjectError">
         <source>Razor Language Service error encountered from project '{0}'.</source>
-        <target state="translated">プロジェクト '{0}' から Razor 言語サービス エラーが発生しました。</target>
+        <target state="new">Razor Language Service error encountered from project '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="RazorLanguageServiceProjectSnapshotError">
         <source>Error encountered from project '{0}':
 {1}</source>
-        <target state="translated">プロジェクト '{0}' でエラーが発生しました:
+        <target state="new">Error encountered from project '{0}':
 {1}</target>
         <note />
       </trans-unit>
