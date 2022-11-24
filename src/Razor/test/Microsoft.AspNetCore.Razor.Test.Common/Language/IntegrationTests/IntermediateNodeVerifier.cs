@@ -242,8 +242,7 @@ public static class IntermediateNodeVerifier
 
             private static string Format(IntermediateNode[] ancestors, string expected, string actual, string userMessage)
             {
-                using var pooledBuilder = StringBuilderPool.GetPooledObject();
-                var builder = pooledBuilder.Object;
+                using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
                 builder.AppendLine(userMessage);
                 builder.AppendLine();

@@ -100,8 +100,7 @@ public static class IntermediateNodeAssert
         {
             var html = Assert.IsType<HtmlContentIntermediateNode>(node);
 
-            using var pooledBuilder = StringBuilderPool.GetPooledObject();
-            var content = pooledBuilder.Object;
+            using var _ = StringBuilderPool.GetPooledObject(out var content);
 
             for (var i = 0; i < html.Children.Count; i++)
             {
@@ -124,8 +123,7 @@ public static class IntermediateNodeAssert
         {
             var statement = Assert.IsType<CSharpCodeIntermediateNode>(node);
 
-            using var pooledBuilder = StringBuilderPool.GetPooledObject();
-            var content = pooledBuilder.Object;
+            using var _ = StringBuilderPool.GetPooledObject(out var content);
 
             for (var i = 0; i < statement.Children.Count; i++)
             {
@@ -213,8 +211,7 @@ public static class IntermediateNodeAssert
 
         try
         {
-            using var pooledBuilder = StringBuilderPool.GetPooledObject();
-            var content = pooledBuilder.Object;
+            using var _ = StringBuilderPool.GetPooledObject(out var content);
 
             for (var i = 0; i < attributeValue.Children.Count; i++)
             {
@@ -238,8 +235,7 @@ public static class IntermediateNodeAssert
 
         try
         {
-            using var pooledBuilder = StringBuilderPool.GetPooledObject();
-            var content = pooledBuilder.Object;
+            using var _ = StringBuilderPool.GetPooledObject(out var content);
 
             for (var i = 0; i < attributeValue.Children.Count; i++)
             {
@@ -263,8 +259,7 @@ public static class IntermediateNodeAssert
         {
             var cSharp = Assert.IsType<CSharpExpressionIntermediateNode>(node);
 
-            using var pooledBuilder = StringBuilderPool.GetPooledObject();
-            var content = pooledBuilder.Object;
+            using var _ = StringBuilderPool.GetPooledObject(out var content);
 
             for (var i = 0; i < cSharp.Children.Count; i++)
             {
@@ -287,8 +282,7 @@ public static class IntermediateNodeAssert
         {
             var beginNode = Assert.IsType<CSharpCodeIntermediateNode>(node);
 
-            using var pooledBuilder = StringBuilderPool.GetPooledObject();
-            var content = pooledBuilder.Object;
+            using var _ = StringBuilderPool.GetPooledObject(out var content);
 
             for (var i = 0; i < beginNode.Children.Count; i++)
             {
@@ -311,8 +305,7 @@ public static class IntermediateNodeAssert
         {
             var endNode = Assert.IsType<CSharpCodeIntermediateNode>(node);
 
-            using var pooledBuilder = StringBuilderPool.GetPooledObject();
-            var content = pooledBuilder.Object;
+            using var _ = StringBuilderPool.GetPooledObject(out var content);
 
             for (var i = 0; i < endNode.Children.Count; i++)
             {
@@ -476,8 +469,7 @@ public static class IntermediateNodeAssert
 
         private static string Format(IntermediateNode[] ancestors, IEnumerable<IntermediateNode> nodes, string userMessage)
         {
-            using var pooledBuilder = StringBuilderPool.GetPooledObject();
-            var builder = pooledBuilder.Object;
+            using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
             builder.AppendLine(userMessage);
             builder.AppendLine();

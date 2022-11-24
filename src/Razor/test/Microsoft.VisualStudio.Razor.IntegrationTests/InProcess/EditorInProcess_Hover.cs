@@ -69,8 +69,7 @@ internal partial class EditorInProcess
     {
         var hoverContent = await HoverAsync(position, cancellationToken);
 
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var sb = pooledBuilder.Object;
+        using var _ = StringBuilderPool.GetPooledObject(out var sb);
 
         TraverseContent(hoverContent, sb);
         return sb.ToString();

@@ -19,4 +19,7 @@ internal static class ArrayBuilderPool<T>
 
     public static PooledObject<ImmutableArray<T>.Builder> GetPooledObject()
         => DefaultPool.GetPooledObject();
+
+    public static PooledObject<ImmutableArray<T>.Builder> GetPooledObject(out ImmutableArray<T>.Builder builder)
+        => DefaultPool.GetPooledObject(out builder);
 }

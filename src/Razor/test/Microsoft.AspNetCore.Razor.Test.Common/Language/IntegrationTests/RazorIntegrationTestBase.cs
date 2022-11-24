@@ -398,8 +398,7 @@ public class RazorIntegrationTestBase : TestBase
         {
             get
             {
-                using var pooledBuilder = StringBuilderPool.GetPooledObject();
-                var builder = pooledBuilder.Object;
+                using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
                 builder.AppendLine("Compilation failed: ");
 

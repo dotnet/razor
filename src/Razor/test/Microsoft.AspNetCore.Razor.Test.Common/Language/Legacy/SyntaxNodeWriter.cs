@@ -114,8 +114,7 @@ internal class SyntaxNodeWriter : SyntaxRewriter
             return;
         }
 
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var builder = pooledBuilder.Object;
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
         builder.Append("Directive:{");
         builder.Append(node.DirectiveDescriptor.Directive);

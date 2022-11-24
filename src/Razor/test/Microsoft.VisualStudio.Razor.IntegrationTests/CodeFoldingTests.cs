@@ -93,8 +93,7 @@ public class CodeFoldingTests : AbstractRazorEditorTest
 
         static string PrintLines(ImmutableArray<CollapsibleBlock> lines, ITextView textView)
         {
-            using var pooledBuilder = StringBuilderPool.GetPooledObject();
-            var sb = pooledBuilder.Object;
+            using var _ = StringBuilderPool.GetPooledObject(out var sb);
 
             foreach (var line in lines)
             {

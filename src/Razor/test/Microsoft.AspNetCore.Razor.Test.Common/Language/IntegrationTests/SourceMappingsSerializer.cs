@@ -12,8 +12,7 @@ public static class SourceMappingsSerializer
 {
     public static string Serialize(RazorCSharpDocument csharpDocument, RazorSourceDocument sourceDocument)
     {
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var builder = pooledBuilder.Object;
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
         var charBuffer = new char[sourceDocument.Length];
         sourceDocument.CopyTo(0, charBuffer, 0, sourceDocument.Length);

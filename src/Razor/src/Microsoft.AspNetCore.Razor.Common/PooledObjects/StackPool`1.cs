@@ -18,4 +18,7 @@ internal static class StackPool<T>
     public static readonly ObjectPool<Stack<T>> DefaultPool = ObjectPool.Default<Stack<T>>();
 
     public static PooledObject<Stack<T>> GetPooledObject() => DefaultPool.GetPooledObject();
+
+    public static PooledObject<Stack<T>> GetPooledObject(out Stack<T> stack)
+        => DefaultPool.GetPooledObject(out stack);
 }

@@ -160,8 +160,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
 
     private static void GenerateSemanticBaseline(IEnumerable<int>? actual, string baselineFileName)
     {
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var builder = pooledBuilder.Object;
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
         if (actual != null)
         {

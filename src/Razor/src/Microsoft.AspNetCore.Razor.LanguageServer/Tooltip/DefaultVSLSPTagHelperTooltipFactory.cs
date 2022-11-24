@@ -244,8 +244,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
 
     private static void ClassifyReducedTypeName(List<ClassifiedTextRun> runs, string reducedTypeName)
     {
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var currentTextRun = pooledBuilder.Object;
+        using var _ = StringBuilderPool.GetPooledObject(out var currentTextRun);
 
         for (var i = 0; i < reducedTypeName.Length; i++)
         {
@@ -355,8 +354,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
             return;
         }
 
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var currentTextRun = pooledBuilder.Object;
+        using var _ = StringBuilderPool.GetPooledObject(out var currentTextRun);
 
         var currentCrefMatchIndex = 0;
         var currentCodeMatchIndex = 0;

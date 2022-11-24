@@ -23,6 +23,10 @@ internal static class StringDictionaryPool<TValue>
 
         public static PooledObject<Dictionary<string, TValue>> GetPooledObject()
             => DefaultPool.GetPooledObject();
+
+        public static PooledObject<Dictionary<string, TValue>> GetPooledObject(out Dictionary<string, TValue> map)
+            => DefaultPool.GetPooledObject(out map);
+
     }
 
     public static class OrdinalIgnoreCase
@@ -32,5 +36,8 @@ internal static class StringDictionaryPool<TValue>
 
         public static PooledObject<Dictionary<string, TValue>> GetPooledObject()
             => DefaultPool.GetPooledObject();
+
+        public static PooledObject<Dictionary<string, TValue>> GetPooledObject(out Dictionary<string, TValue> map)
+            => DefaultPool.GetPooledObject(out map);
     }
 }

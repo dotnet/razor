@@ -143,8 +143,7 @@ public class RazorSemanticTokensTests : AbstractRazorEditorTest
 
     private static void GenerateSemanticBaseline(IEnumerable<ClassificationSpan> actual, string baselineFileName)
     {
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var builder = pooledBuilder.Object;
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
         foreach (var baseline in actual)
         {

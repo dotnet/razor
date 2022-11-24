@@ -99,8 +99,7 @@ internal static class VisualStudioLogging
     {
         var hiveDirectory = GetHiveDirectory();
 
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var fileBuilder = pooledBuilder.Object;
+        using var _ = StringBuilderPool.GetPooledObject(out var fileBuilder);
 
         var extensionsDir = Path.Combine(hiveDirectory, "Extensions");
         var compatListFile = Path.Combine(extensionsDir, "CompatibilityList.xml");

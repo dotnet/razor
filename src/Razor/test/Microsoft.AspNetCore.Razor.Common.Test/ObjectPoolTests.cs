@@ -27,8 +27,7 @@ public class ObjectPoolTests : TestBase
         Assert.Equal(0, accessor.UsedSlotCount);
 
         // Acquire a StringBuilder.
-        var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var builder = pooledBuilder.Object;
+        var pooledBuilder = StringBuilderPool.GetPooledObject(out var builder);
 
         // Verify that the pool is still empty.
         Assert.Equal(0, accessor.UsedSlotCount);
@@ -52,8 +51,7 @@ public class ObjectPoolTests : TestBase
         Assert.Same(builder, accessor[0]);
 
         // Acquire another StringBuilder.
-        var pooledBuilder2 = StringBuilderPool.GetPooledObject();
-        var builder2 = pooledBuilder2.Object;
+        var pooledBuilder2 = StringBuilderPool.GetPooledObject(out var builder2);
 
         Assert.Equal(0, accessor.UsedSlotCount);
 
@@ -84,12 +82,9 @@ public class ObjectPoolTests : TestBase
 
         StringBuilder builder1, builder2;
 
-        using (var pooledBuilder1 = StringBuilderPool.GetPooledObject())
+        using (StringBuilderPool.GetPooledObject(out builder1))
+        using (StringBuilderPool.GetPooledObject(out builder2))
         {
-            builder1 = pooledBuilder1.Object;
-
-            using var pooledBuilder2 = StringBuilderPool.GetPooledObject();
-            builder2 = pooledBuilder2.Object;
         }
 
         Assert.Equal(2, accessor.UsedSlotCount);

@@ -165,8 +165,7 @@ internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresent
 
         // TODO: Add @using statements if required, or fully qualify (GetTypeName())
 
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var sb = pooledBuilder.Object;
+        using var _ = StringBuilderPool.GetPooledObject(out var sb);
 
         sb.Append('<');
         sb.Append(typeName);

@@ -90,8 +90,7 @@ internal class ClassifiedSpanVerifier
 
             private static string Format(string expected, string actual, string userMessage)
             {
-                using var pooledBuilder = StringBuilderPool.GetPooledObject();
-                var builder = pooledBuilder.Object;
+                using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
                 builder.AppendLine(userMessage);
                 builder.AppendLine();

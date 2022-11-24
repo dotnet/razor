@@ -19,4 +19,7 @@ internal static class StringBuilderPool
 
     public static PooledObject<StringBuilder> GetPooledObject()
         => DefaultPool.GetPooledObject();
+
+    public static PooledObject<StringBuilder> GetPooledObject(out StringBuilder builder)
+        => DefaultPool.GetPooledObject(out builder);
 }

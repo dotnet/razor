@@ -85,8 +85,7 @@ internal class SourceTextDiffer : TextDiffer
         var start = 0;
         var end = 0;
 
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var builder = pooledBuilder.Object;
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
         foreach (var edit in edits)
         {

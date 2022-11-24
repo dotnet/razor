@@ -20,4 +20,7 @@ internal static class DictionaryPool<TKey, TValue>
 
     public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject()
         => DefaultPool.GetPooledObject();
+
+    public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject(out Dictionary<TKey, TValue> map)
+        => DefaultPool.GetPooledObject(out map);
 }

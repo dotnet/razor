@@ -401,8 +401,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
 
     private static string PrependLines(string text, string newLine, int count)
     {
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var builder = pooledBuilder.Object;
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
         var capacity = (newLine.Length * count) + text.Length;
 

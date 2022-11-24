@@ -225,8 +225,7 @@ public HostServices GetHostServices()
     {
         var configuration = CompositionConfiguration.Create(GetCatalog());
 
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var sb = pooledBuilder.Object;
+        using var _ = StringBuilderPool.GetPooledObject(out var sb);
 
         foreach (var errorGroup in configuration.CompositionErrors)
         {

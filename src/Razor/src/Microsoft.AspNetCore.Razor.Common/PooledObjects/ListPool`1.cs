@@ -19,4 +19,7 @@ internal static class ListPool<T>
 
     public static PooledObject<List<T>> GetPooledObject()
         => DefaultPool.GetPooledObject();
+
+    public static PooledObject<List<T>> GetPooledObject(out List<T> list)
+        => DefaultPool.GetPooledObject(out list);
 }

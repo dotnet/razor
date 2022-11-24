@@ -37,8 +37,7 @@ internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
         //
         // Additional description infos result in a triple `---` to separate the markdown entries.
 
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var descriptionBuilder = pooledBuilder.Object;
+        using var _ = StringBuilderPool.GetPooledObject(out var descriptionBuilder);
 
         for (var i = 0; i < associatedTagHelperInfos.Count; i++)
         {
@@ -101,8 +100,7 @@ internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
         //
         // Additional description infos result in a triple `---` to separate the markdown entries.
 
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var descriptionBuilder = pooledBuilder.Object;
+        using var _ = StringBuilderPool.GetPooledObject(out var descriptionBuilder);
 
         for (var i = 0; i < associatedAttributeInfos.Count; i++)
         {
@@ -163,8 +161,7 @@ internal class DefaultLSPTagHelperTooltipFactory : LSPTagHelperTooltipFactory
         summaryContent = summaryContent.Trim();
         var crefMatches = ExtractCrefMatches(summaryContent);
 
-        using var pooledBuilder = StringBuilderPool.GetPooledObject();
-        var summaryBuilder = pooledBuilder.Object;
+        using var _ = StringBuilderPool.GetPooledObject(out var summaryBuilder);
 
         summaryBuilder.Append(summaryContent);
 

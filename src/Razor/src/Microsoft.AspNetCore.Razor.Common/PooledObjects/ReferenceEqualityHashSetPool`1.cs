@@ -21,4 +21,7 @@ internal static class ReferenceEqualityHashSetPool<T>
         ObjectPool.Default(() => new HashSet<T>(ReferenceEqualityComparer<T>.Instance));
 
     public static PooledObject<HashSet<T>> GetPooledObject() => DefaultPool.GetPooledObject();
+
+    public static PooledObject<HashSet<T>> GetPooledObject(out HashSet<T> set)
+        => DefaultPool.GetPooledObject(out set);
 }

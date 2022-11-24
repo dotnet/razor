@@ -19,4 +19,7 @@ internal static class StopwatchPool
 
     public static PooledObject<Stopwatch> GetPooledObject()
         => DefaultPool.GetPooledObject();
+
+    public static PooledObject<Stopwatch> GetPooledObject(out Stopwatch watch)
+        => DefaultPool.GetPooledObject(out watch);
 }

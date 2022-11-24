@@ -19,4 +19,7 @@ internal static class HashSetPool<T>
 
     public static PooledObject<HashSet<T>> GetPooledObject()
         => DefaultPool.GetPooledObject();
+
+    public static PooledObject<HashSet<T>> GetPooledObject(out HashSet<T> set)
+        => DefaultPool.GetPooledObject(out set);
 }
