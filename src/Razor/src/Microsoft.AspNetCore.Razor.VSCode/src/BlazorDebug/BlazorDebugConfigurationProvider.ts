@@ -27,7 +27,7 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
             url: string,
             inspectUri: string,
             debuggingPort: number,
-        }>('blazorwasm-companion.launchDebugProxy');
+        }>('blazorwasm-companion.launchDebugProxy', folder);
 
         await this.launchBrowser(
             folder,
