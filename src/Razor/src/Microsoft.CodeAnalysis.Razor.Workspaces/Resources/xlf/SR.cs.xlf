@@ -4,14 +4,14 @@
     <body>
       <trans-unit id="ArgumentCannotBeNullOrEmpty">
         <source>Value cannot be null or an empty string.</source>
-        <target state="translated">Hodnota nesmí být null ani prázdný řetězec.</target>
+        <target state="new">Value cannot be null or an empty string.</target>
         <note />
       </trans-unit>
       <trans-unit id="DirectiveSnippetDescription">
         <source>Insert a directive code snippet
 [Tab] to navigate between elements, [Enter] to complete</source>
-        <target state="translated">Vložení fragmentu kódu direktivy
-[Tab] pro navigaci mezi elementy, [Enter] pro dokončení</target>
+        <target state="new">Insert a directive code snippet
+[Tab] to navigate between elements, [Enter] to complete</target>
         <note />
       </trans-unit>
     </body>

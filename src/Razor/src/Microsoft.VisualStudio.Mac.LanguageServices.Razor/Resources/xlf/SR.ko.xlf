@@ -4,23 +4,23 @@
     <body>
       <trans-unit id="ArgumentCannotBeNullOrEmpty">
         <source>Value cannot be null or an empty string.</source>
-        <target state="translated">값은 null이거나 빈 문자열일 수 없습니다.</target>
+        <target state="new">Value cannot be null or an empty string.</target>
         <note />
       </trans-unit>
       <trans-unit id="RazorLanguageServiceGeneralError">
         <source>Razor Language Service error encountered.</source>
-        <target state="translated">Razor 언어 서비스 오류가 발생 했습니다.</target>
+        <target state="new">Razor Language Service error encountered.</target>
         <note />
       </trans-unit>
       <trans-unit id="RazorLanguageServiceProjectError">
         <source>Razor Language Service error encountered from project '{0}'.</source>
-        <target state="translated">'{0}' 프로젝트에서 Razor 언어 서비스 오류가 발생했습니다.</target>
+        <target state="new">Razor Language Service error encountered from project '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="RazorLanguageServiceProjectSnapshotError">
         <source>Error encountered from project '{0}':
 {1}</source>
-        <target state="translated">'{0}' 프로젝트에서 오류가 발생 했습니다.
+        <target state="new">Error encountered from project '{0}':
 {1}</target>
         <note />
       </trans-unit>

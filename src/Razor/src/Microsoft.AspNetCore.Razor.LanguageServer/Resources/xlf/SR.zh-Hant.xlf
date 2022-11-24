@@ -4,62 +4,62 @@
     <body>
       <trans-unit id="Blazor_directive_attributes">
         <source>Blazor directive attributes</source>
-        <target state="translated">Blazor 指示詞屬性</target>
+        <target state="new">Blazor directive attributes</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_Component_FromTag_Title">
         <source>Create component from tag</source>
-        <target state="translated">從標籤建立元件</target>
+        <target state="new">Create component from tag</target>
         <note />
       </trans-unit>
       <trans-unit id="Document_Not_Found">
         <source>Document {0} was not found.</source>
-        <target state="translated">找不到文件 {0}。</target>
+        <target state="new">Document {0} was not found.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
         <source>Extract block to code behind</source>
-        <target state="translated">擷取區塊以在後方編碼</target>
+        <target state="new">Extract block to code behind</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_Offset">
         <source>Invalid offset.</source>
-        <target state="translated">位移無效。</target>
+        <target state="new">Invalid offset.</target>
         <note />
       </trans-unit>
       <trans-unit id="PositionIndex_Outside_Range">
         <source>Line '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</source>
-        <target state="translated">已查詢 '{2}' 之 {1} 範圍以外的行 '{0}'。文件可能不是最新狀態。</target>
+        <target state="new">Line '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</target>
         <note />
       </trans-unit>
       <trans-unit id="ReTrigger_Completions_Title">
         <source>"Re-trigger completions..."</source>
-        <target state="translated">"重新觸發完成..."</target>
+        <target state="new">"Re-trigger completions..."</target>
         <note />
       </trans-unit>
       <trans-unit id="TagHelper_Attribute_Glyph">
         <source>Razor TagHelper Attribute Glyph</source>
-        <target state="translated">Razor TagHelper 屬性字元</target>
+        <target state="new">Razor TagHelper Attribute Glyph</target>
         <note />
       </trans-unit>
       <trans-unit id="TagHelper_Element_Glyph">
         <source>Razor TagHelper Element Glyph</source>
-        <target state="translated">Razor TagHelper 元素字符</target>
+        <target state="new">Razor TagHelper Element Glyph</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_RazorMetaCode">
         <source>Attempted to visit a RazorMetaCode other than '{' or '}'.</source>
-        <target state="translated">嘗試瀏覽 '{' or '}' 除外的 RazorMetaCode。</target>
+        <target state="new">Attempted to visit a RazorMetaCode other than '{' or '}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_mapping_behavior">
         <source>Unknown mapping behavior</source>
-        <target state="translated">未知的對應行為</target>
+        <target state="new">Unknown mapping behavior</target>
         <note />
       </trans-unit>
       <trans-unit id="Version_Should_Not_Be_Null">
         <source>Provided version should not be null.</source>
-        <target state="translated">提供的版本不應為 Null。</target>
+        <target state="new">Provided version should not be null.</target>
         <note />
       </trans-unit>
     </body>
