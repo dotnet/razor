@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -33,6 +33,8 @@ public abstract class CodeRenderingContext
     public abstract RazorSourceDocument SourceDocument { get; }
 
     public abstract void AddSourceMappingFor(IntermediateNode node);
+
+    public abstract void AddSourceMappingFor(SourceSpan node);
 
     public abstract void RenderNode(IntermediateNode node);
 
