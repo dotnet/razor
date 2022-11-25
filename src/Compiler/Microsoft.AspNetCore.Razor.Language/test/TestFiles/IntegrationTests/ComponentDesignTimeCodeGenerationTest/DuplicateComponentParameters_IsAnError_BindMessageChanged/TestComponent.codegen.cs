@@ -29,6 +29,15 @@ namespace Test
 #line hidden
 #nullable disable
             ));
+            ((global::Test.MyComponent)null).
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+             MessageChanged
+
+#line default
+#line hidden
+#nullable disable
+            = default;
             __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"

@@ -1,0 +1,5 @@
+Source Location: (13:0,13 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyAttr|
+Generated Location: (951:26,13 [6] )
+|MyAttr|
+

@@ -33,6 +33,15 @@ global::System.Object __typeHelper = "/";
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __o = "";
+            ((global::Test.SurveyPrompt)null).
+#nullable restore
+#line 7 "x:\dir\subdir\Test\TestComponent.cshtml"
+              Title
+
+#line default
+#line hidden
+#nullable disable
+            = default;
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));

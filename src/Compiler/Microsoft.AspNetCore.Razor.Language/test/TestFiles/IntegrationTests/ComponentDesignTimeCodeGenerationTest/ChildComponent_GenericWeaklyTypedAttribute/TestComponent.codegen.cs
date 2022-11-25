@@ -38,6 +38,15 @@ namespace Test
 #line hidden
 #nullable disable
             );
+            ((global::Test.MyComponent<TItem>)null).
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+                          Item
+
+#line default
+#line hidden
+#nullable disable
+            = default;
             __o = 
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"

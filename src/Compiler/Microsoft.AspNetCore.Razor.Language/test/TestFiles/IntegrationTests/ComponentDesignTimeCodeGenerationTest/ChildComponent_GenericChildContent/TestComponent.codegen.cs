@@ -38,6 +38,15 @@ namespace Test
 #line hidden
 #nullable disable
             );
+            ((global::Test.MyComponent<TItem>)null).
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+                          Item
+
+#line default
+#line hidden
+#nullable disable
+            = default;
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment<string>)((context) => (__builder2) => {
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"

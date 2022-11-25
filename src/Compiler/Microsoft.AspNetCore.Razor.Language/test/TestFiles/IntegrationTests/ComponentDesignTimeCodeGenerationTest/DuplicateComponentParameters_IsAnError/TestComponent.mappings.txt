@@ -1,0 +1,5 @@
+Source Location: (13:0,13 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|Message|
+Generated Location: (951:26,13 [7] )
+|Message|
+

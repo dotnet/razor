@@ -29,6 +29,15 @@ namespace Test
 #line hidden
 #nullable disable
             );
+            ((global::Test.MyComponent)null).
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+    IntProperty
+
+#line default
+#line hidden
+#nullable disable
+            = default;
             __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Boolean>(
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -38,7 +47,25 @@ namespace Test
 #line hidden
 #nullable disable
             );
+            ((global::Test.MyComponent)null).
+#nullable restore
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
+    BoolProperty
+
+#line default
+#line hidden
+#nullable disable
+            = default;
             __o = "";
+            ((global::Test.MyComponent)null).
+#nullable restore
+#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
+    StringProperty
+
+#line default
+#line hidden
+#nullable disable
+            = default;
             __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Test.SomeType>(
 #nullable restore
 #line 5 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -48,6 +75,15 @@ namespace Test
 #line hidden
 #nullable disable
             );
+            ((global::Test.MyComponent)null).
+#nullable restore
+#line 5 "x:\dir\subdir\Test\TestComponent.cshtml"
+    ObjectProperty
+
+#line default
+#line hidden
+#nullable disable
+            = default;
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
