@@ -594,6 +594,54 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
         context.CodeWriter.Write(";");
         context.CodeWriter.WriteLine();
+
+        WritePropertyAccess(context, node);
+    }
+
+    private static void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node)
+    {
+        if (node?.TagHelper?.Name is null || !node.Source.HasValue)
+        {
+            return;
+        }
+
+        // Write the name of the property, for rename support. 
+        // ((global::ComponentName)null).PropertyName = default;
+        //
+        // We could just use nameof(..) to reference the property, but assigning it is a little nicer
+        // as it means Find All Refs will show the reference as a Write, which is logically correct for setting
+        // an attribute.
+        var originalAttributeName = node.Annotations[ComponentMetadata.Common.OriginalAttributeName]?.ToString() ?? node.AttributeName;
+
+        // We don't currently support anything but simple attributes
+        if (originalAttributeName != node.PropertyName)
+        {
+            return;
+        }
+
+        // The source span is for the attribute value, but we want to map the attribute name, so we have to offset by the right amount
+        var offset = originalAttributeName.Length + 2;
+
+        var originalSourceSpan = node.Source.Value;
+
+        var sourceSpan = new SourceSpan(originalSourceSpan.FilePath, originalSourceSpan.AbsoluteIndex - offset, originalSourceSpan.LineIndex, originalSourceSpan.CharacterIndex - offset, originalAttributeName.Length, 0, originalSourceSpan.EndCharacterIndex - offset);
+
+        context.CodeWriter.Write("((global::");
+        context.CodeWriter.Write(node.TagHelper.Name);
+        context.CodeWriter.Write(")null).");
+        context.CodeWriter.WriteLine();
+
+        using (context.CodeWriter.BuildLinePragma(sourceSpan, context))
+        {
+            context.CodeWriter.WritePadding(0, sourceSpan, context);
+            context.AddSourceMappingFor(sourceSpan);
+            context.CodeWriter.WriteLine(node.PropertyName);
+        }
+
+        // When doing a Find All Refs, sometimes the text content of the generated file shows up,
+        // so being able to see "= default" in there would confuse users, so keep it on a separate line
+        context.CodeWriter.Write("= default;");
+        context.CodeWriter.WriteLine();
     }
 
     private void WriteComponentAttributeInnards(CodeRenderingContext context, ComponentAttributeIntermediateNode node, bool canTypeCheck)
