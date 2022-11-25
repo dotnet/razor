@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Linq;
 using Xunit;
 using Xunit.Sdk;
 
@@ -78,13 +77,13 @@ Exception:
         }
     }
 
-    [Fact] // Regression test for #1068
+    [Fact(Skip = "Incomplete test - no asserts")] // Regression test for #1068
     public void Regression_1068()
     {
         // Arrange
 
         // Act
-        var generated = CompileToCSharp(@"
+        _ = CompileToCSharp(@"
 <input type=""text"" bind="" />
 @functions {
     Test.ModelState ModelState { get; set; }
@@ -94,7 +93,7 @@ Exception:
         // Assert
     }
 
-    [Fact]
+    [Fact(Skip = "Incomplete test - no asserts")]
     public void MalformedAttributeContent()
     {
         // Act
@@ -118,7 +117,7 @@ namespace Test
     }
 }
 "));
-        var generated = CompileToCSharp(@"
+        _ = CompileToCSharp(@"
   <MyComponent Value=10 Something=@for
 
   <button disabled=@form.IsSubmitting type=""submit"" class=""btn btn-primary mt-3 mr-3 has-spinner @(form.IsSubmitting ? ""active"" :"""")"" onclick=@(async () => await SaveAsync(false))>

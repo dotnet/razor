@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Sdk;
 
@@ -36,7 +37,7 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
     }
 
 #if GENERATE_BASELINES
-        protected bool GenerateBaselines { get; } = true;
+    protected bool GenerateBaselines { get; } = true;
 #else
     protected bool GenerateBaselines { get; } = false;
 #endif
@@ -135,7 +136,7 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
         }
 
         var baseline = codegenFile.ReadAllText();
-        Assert.Equal(baseline, actualCode);
+        AssertEx.EqualOrDiff(baseline, actualCode);
 
         var baselineDiagnostics = string.Empty;
         var diagnosticsFile = TestFile.Create(baselineDiagnosticsFilePath, GetType().Assembly);
@@ -249,7 +250,6 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
 
     private static void WriteBaseline(string text, string filePath)
     {
-        var lines = text.Replace("\r", "").Replace("\n", "\r\n");
         File.WriteAllText(filePath, text);
     }
 
