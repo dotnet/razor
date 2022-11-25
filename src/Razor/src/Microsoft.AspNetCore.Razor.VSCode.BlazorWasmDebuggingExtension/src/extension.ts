@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 export async function activate(context: vscode.ExtensionContext) {
     const launchDebugProxy = vscode.commands.registerCommand('blazorwasm-companion.launchDebugProxy', async (folder: vscode.WorkspaceFolder) => {
         const launchSettings = JSON.parse(readFileSync(join(fileURLToPath(folder.uri.toString()), 'Properties', 'launchSettings.json'), 'utf8'));
-        if (launchSettings?.profiles[Object.keys(launchSettings.profiles)[0]]?.inspectUri) {
+        if (launchSettings?.profiles && launchSettings?.profiles[Object.keys(launchSettings.profiles)[0]]?.inspectUri) {
             return {
                 inspectUri: launchSettings.profiles[Object.keys(launchSettings.profiles)[0]].inspectUri,
             };
