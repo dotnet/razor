@@ -1768,6 +1768,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                             IsIndexerNameMatch = indexerMatch,
                         };
 
+                        setTagHelperProperty.Annotations.Add("OriginalAttributeSpan", BuildSourceSpanFromNode(node.Name));
+
                         _builder.Add(setTagHelperProperty);
                     }
                 }
@@ -1906,6 +1908,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                             Source = BuildSourceSpanFromNode(attributeValueNode),
                             IsIndexerNameMatch = indexerMatch,
                         };
+
+                        setTagHelperProperty.Annotations.Add("OriginalAttributeSpan", BuildSourceSpanFromNode(node.Name));
 
                         _builder.Push(setTagHelperProperty);
                         VisitAttributeValue(attributeValueNode);

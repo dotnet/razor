@@ -600,7 +600,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
     private static void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node)
     {
-        if (node?.TagHelper?.Name is null || !node.Source.HasValue)
+        if (node?.TagHelper?.Name is null || node.Annotations["OriginalAttributeSpan"] is null)
         {
             return;
         }
@@ -619,22 +619,17 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             return;
         }
 
-        // The source span is for the attribute value, but we want to map the attribute name, so we have to offset by the right amount
-        var offset = originalAttributeName.Length + 2;
-
-        var originalSourceSpan = node.Source.Value;
-
-        var sourceSpan = new SourceSpan(originalSourceSpan.FilePath, originalSourceSpan.AbsoluteIndex - offset, originalSourceSpan.LineIndex, originalSourceSpan.CharacterIndex - offset, originalAttributeName.Length, 0, originalSourceSpan.EndCharacterIndex - offset);
+        var attributeSourceSpan = (SourceSpan)node.Annotations["OriginalAttributeSpan"];
 
         context.CodeWriter.Write("((global::");
         context.CodeWriter.Write(node.TagHelper.Name);
         context.CodeWriter.Write(")null).");
         context.CodeWriter.WriteLine();
 
-        using (context.CodeWriter.BuildLinePragma(sourceSpan, context))
+        using (context.CodeWriter.BuildLinePragma(attributeSourceSpan, context))
         {
-            context.CodeWriter.WritePadding(0, sourceSpan, context);
-            context.AddSourceMappingFor(sourceSpan);
+            context.CodeWriter.WritePadding(0, attributeSourceSpan, context);
+            context.AddSourceMappingFor(attributeSourceSpan);
             context.CodeWriter.WriteLine(node.PropertyName);
         }
 
