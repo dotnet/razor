@@ -54,6 +54,15 @@ __o = typeof(global::Test.Column<>);
 #line default
 #line hidden
 #nullable disable
+                __o = nameof(global::Test.Column<string>.
+#nullable restore
+#line 5 "x:\dir\subdir\Test\TestComponent.cshtml"
+                             FieldName
+
+#line default
+#line hidden
+#nullable disable
+                );
             }
             ));
 #nullable restore

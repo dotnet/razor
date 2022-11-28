@@ -23,6 +23,21 @@ Source Location: (80:2,8 [22] x:\dir\subdir\Test\UseTestComponent.cshtml)
 Generated Location: (1717:56,8 [22] )
 |context[0].description|
 
+Source Location: (28:1,15 [6] x:\dir\subdir\Test\UseTestComponent.cshtml)
+|Items1|
+Generated Location: (2141:73,15 [6] )
+|Items1|
+
+Source Location: (42:1,29 [6] x:\dir\subdir\Test\UseTestComponent.cshtml)
+|Items2|
+Generated Location: (2379:82,29 [6] )
+|Items2|
+
+Source Location: (56:1,43 [6] x:\dir\subdir\Test\UseTestComponent.cshtml)
+|Items3|
+Generated Location: (2631:91,43 [6] )
+|Items3|
+
 Source Location: (135:5,7 [208] x:\dir\subdir\Test\UseTestComponent.cshtml)
 |
     static Tag tag = new Tag() { description = "A description."};
@@ -30,7 +45,7 @@ Source Location: (135:5,7 [208] x:\dir\subdir\Test\UseTestComponent.cshtml)
     List<Tag[]> items2 = new List<Tag[]>() { new [] { tag } };
     Tag[] items3() => new [] { tag };
 |
-Generated Location: (2120:74,7 [208] )
+Generated Location: (2834:101,7 [208] )
 |
     static Tag tag = new Tag() { description = "A description."};
     Tag[] items1 = new [] { tag };

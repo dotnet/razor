@@ -12,7 +12,7 @@ Generated Location: (1266:34,69 [11] )
 
 Source Location: (66:1,62 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |Name|
-Generated Location: (1537:43,62 [4] )
+Generated Location: (1874:53,62 [4] )
 |Name|
 
 Source Location: (93:1,89 [3] x:\dir\subdir\Test\TestComponent.cshtml)

@@ -36,15 +36,6 @@ namespace Test
 #line hidden
 #nullable disable
             );
-            __o = nameof(global::Test.TestComponent.
-#nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-               TestDynamic
-
-#line default
-#line hidden
-#nullable disable
-            );
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
@@ -55,6 +46,15 @@ __o = typeof(global::Test.TestComponent);
 #line default
 #line hidden
 #nullable disable
+            __o = nameof(global::Test.TestComponent.
+#nullable restore
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
+               TestDynamic
+
+#line default
+#line hidden
+#nullable disable
+            );
         }
         #pragma warning restore 1998
 #nullable restore

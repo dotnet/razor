@@ -3,13 +3,28 @@ Source Location: (21:0,21 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (992:25,21 [4] )
 |"hi"|
 
+Source Location: (13:0,13 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Item|
+Generated Location: (1370:41,13 [4] )
+|Item|
+
 Source Location: (52:1,21 [14] x:\dir\subdir\Test\TestComponent.cshtml)
 |"how are you?"|
-Generated Location: (1421:41,21 [14] )
+Generated Location: (1636:50,21 [14] )
 |"how are you?"|
+
+Source Location: (44:1,13 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Item|
+Generated Location: (2024:66,13 [4] )
+|Item|
 
 Source Location: (93:2,21 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 |"bye!"|
-Generated Location: (1860:57,21 [6] )
+Generated Location: (2290:75,21 [6] )
 |"bye!"|
+
+Source Location: (85:2,13 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Item|
+Generated Location: (2670:91,13 [4] )
+|Item|
 

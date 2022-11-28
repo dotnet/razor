@@ -60,6 +60,24 @@ __o = typeof(global::Test.TestComponent<,>);
 #line default
 #line hidden
 #nullable disable
+            __o = nameof(global::Test.TestComponent<string,string>.
+#nullable restore
+#line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
+               Item1
+
+#line default
+#line hidden
+#nullable disable
+            );
+            __o = nameof(global::Test.TestComponent<string,string>.
+#nullable restore
+#line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
+                           Items2
+
+#line default
+#line hidden
+#nullable disable
+            );
         }
         #pragma warning restore 1998
 #nullable restore

@@ -76,6 +76,15 @@ __o = typeof(global::Test.TreeNode<>);
 #line default
 #line hidden
 #nullable disable
+                    __o = nameof(global::Test.TreeNode<string>.
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+              Item
+
+#line default
+#line hidden
+#nullable disable
+                    );
                     {
                         global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_4_CaptureParameters(__typeInferenceArg_0___arg0, out var __typeInferenceArg_1___syntheticArg0);
                         global::__Blazor.Test.TestComponent.TypeInference.CreateTreeNode_4(__builder2, -1, __typeInferenceArg_1___syntheticArg0);
@@ -97,6 +106,15 @@ __o = typeof(global::Test.TreeNode<>);
 #line default
 #line hidden
 #nullable disable
+            __o = nameof(global::Test.TreeNode<string>.
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+          Item
+
+#line default
+#line hidden
+#nullable disable
+            );
         }
         #pragma warning restore 1998
     }

@@ -59,6 +59,15 @@ __o = typeof(global::Test.Ancestor<>);
 #line default
 #line hidden
 #nullable disable
+            __o = nameof(global::Test.Ancestor<string>.
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+          Items
+
+#line default
+#line hidden
+#nullable disable
+            );
         }
         #pragma warning restore 1998
     }

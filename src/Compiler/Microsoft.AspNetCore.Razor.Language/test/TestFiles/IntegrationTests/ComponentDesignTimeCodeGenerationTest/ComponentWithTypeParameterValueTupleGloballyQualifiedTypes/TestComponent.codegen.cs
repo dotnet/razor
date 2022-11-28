@@ -69,6 +69,15 @@ __o = typeof(global::Test.TestComponent<>);
 #line default
 #line hidden
 #nullable disable
+            __o = nameof(global::Test.TestComponent<string>.
+#nullable restore
+#line 12 "x:\dir\subdir\Test\TestComponent.cshtml"
+               InferParam
+
+#line default
+#line hidden
+#nullable disable
+            );
         }
         #pragma warning restore 1998
 #nullable restore

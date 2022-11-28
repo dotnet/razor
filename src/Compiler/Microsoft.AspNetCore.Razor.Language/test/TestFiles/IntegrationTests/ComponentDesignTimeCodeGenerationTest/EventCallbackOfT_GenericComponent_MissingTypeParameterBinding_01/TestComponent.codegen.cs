@@ -36,6 +36,15 @@ __o = typeof(global::Test.MyComponent<,>);
 #line default
 #line hidden
 #nullable disable
+            __o = nameof(global::Test.MyComponent<string,string>.
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+             OnClick
+
+#line default
+#line hidden
+#nullable disable
+            );
         }
         #pragma warning restore 1998
 #nullable restore

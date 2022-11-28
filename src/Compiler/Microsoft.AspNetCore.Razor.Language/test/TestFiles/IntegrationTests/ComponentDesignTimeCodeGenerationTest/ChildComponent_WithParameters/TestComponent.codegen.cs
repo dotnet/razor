@@ -29,15 +29,6 @@ namespace Test
 #line hidden
 #nullable disable
             );
-            __o = nameof(global::Test.MyComponent.
-#nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-    IntProperty
-
-#line default
-#line hidden
-#nullable disable
-            );
             __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Boolean>(
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -47,38 +38,11 @@ namespace Test
 #line hidden
 #nullable disable
             );
-            __o = nameof(global::Test.MyComponent.
-#nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-    BoolProperty
-
-#line default
-#line hidden
-#nullable disable
-            );
             __o = "";
-            __o = nameof(global::Test.MyComponent.
-#nullable restore
-#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
-    StringProperty
-
-#line default
-#line hidden
-#nullable disable
-            );
             __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Test.SomeType>(
 #nullable restore
 #line 5 "x:\dir\subdir\Test\TestComponent.cshtml"
                     new SomeType()
-
-#line default
-#line hidden
-#nullable disable
-            );
-            __o = nameof(global::Test.MyComponent.
-#nullable restore
-#line 5 "x:\dir\subdir\Test\TestComponent.cshtml"
-    ObjectProperty
 
 #line default
 #line hidden
@@ -94,6 +58,42 @@ __o = typeof(global::Test.MyComponent);
 #line default
 #line hidden
 #nullable disable
+            __o = nameof(global::Test.MyComponent.
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+    IntProperty
+
+#line default
+#line hidden
+#nullable disable
+            );
+            __o = nameof(global::Test.MyComponent.
+#nullable restore
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
+    BoolProperty
+
+#line default
+#line hidden
+#nullable disable
+            );
+            __o = nameof(global::Test.MyComponent.
+#nullable restore
+#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
+    StringProperty
+
+#line default
+#line hidden
+#nullable disable
+            );
+            __o = nameof(global::Test.MyComponent.
+#nullable restore
+#line 5 "x:\dir\subdir\Test\TestComponent.cshtml"
+    ObjectProperty
+
+#line default
+#line hidden
+#nullable disable
+            );
         }
         #pragma warning restore 1998
     }

@@ -60,6 +60,15 @@ __o = typeof(global::Test.ParentTwo<>);
 #line default
 #line hidden
 #nullable disable
+                    __o = nameof(global::Test.ParentTwo<string>.
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+               Value
+
+#line default
+#line hidden
+#nullable disable
+                    );
                 }
                 );
             }
@@ -70,6 +79,15 @@ __o = typeof(global::Test.ParentOne<>);
 #line default
 #line hidden
 #nullable disable
+            __o = nameof(global::Test.ParentOne<string>.
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+           Value
+
+#line default
+#line hidden
+#nullable disable
+            );
         }
         #pragma warning restore 1998
     }

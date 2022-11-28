@@ -38,15 +38,6 @@ global::System.Object __typeHelper = nameof(AnotherTest);
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __o = "";
-            __o = nameof(global::Test.HeaderComponent.
-#nullable restore
-#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
-                 Header
-
-#line default
-#line hidden
-#nullable disable
-            );
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
@@ -57,16 +48,16 @@ __o = typeof(global::Test.HeaderComponent);
 #line default
 #line hidden
 #nullable disable
-            __o = "";
-            __o = nameof(global::AnotherTest.FooterComponent.
+            __o = nameof(global::Test.HeaderComponent.
 #nullable restore
-#line 6 "x:\dir\subdir\Test\TestComponent.cshtml"
-                 Footer
+#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
+                 Header
 
 #line default
 #line hidden
 #nullable disable
             );
+            __o = "";
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
@@ -77,6 +68,15 @@ __o = typeof(global::AnotherTest.FooterComponent);
 #line default
 #line hidden
 #nullable disable
+            __o = nameof(global::AnotherTest.FooterComponent.
+#nullable restore
+#line 6 "x:\dir\subdir\Test\TestComponent.cshtml"
+                 Footer
+
+#line default
+#line hidden
+#nullable disable
+            );
         }
         #pragma warning restore 1998
     }
