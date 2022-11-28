@@ -534,6 +534,14 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             context.CodeWriter.Write(");");
             context.CodeWriter.WriteLine();
         }
+
+        foreach (var child in node.Children)
+        {
+            if (child is ComponentAttributeIntermediateNode attribute)
+            {
+                WritePropertyAccess(context, attribute, node);
+            }
+        }
     }
 
     private void WriteTypeInferenceMethodParameterInnards(CodeRenderingContext context, TypeInferenceMethodParameter parameter)
@@ -594,11 +602,9 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
         context.CodeWriter.Write(";");
         context.CodeWriter.WriteLine();
-
-        WritePropertyAccess(context, node);
     }
 
-    private static void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node)
+    private static void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node, ComponentIntermediateNode componentNode)
     {
         if (node?.TagHelper?.Name is null || node.Annotations["OriginalAttributeSpan"] is null)
         {
@@ -610,32 +616,43 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         var originalAttributeName = node.Annotations[ComponentMetadata.Common.OriginalAttributeName]?.ToString() ?? node.AttributeName;
 
         // We don't currently support anything but simple attributes
-        if (originalAttributeName != node.PropertyName)
+        int offset;
+        if (originalAttributeName == node.PropertyName)
+        {
+            offset = 0;
+        }
+        else if (originalAttributeName.StartsWith($"@bind-{node.PropertyName}", StringComparison.Ordinal))
+        {
+            offset = 5;
+        }
+        else
         {
             return;
         }
 
         var attributeSourceSpan = (SourceSpan)node.Annotations["OriginalAttributeSpan"];
+        attributeSourceSpan = new SourceSpan(attributeSourceSpan.FilePath, attributeSourceSpan.AbsoluteIndex + offset, attributeSourceSpan.LineIndex, attributeSourceSpan.CharacterIndex + offset, node.PropertyName.Length, attributeSourceSpan.LineCount, attributeSourceSpan.CharacterIndex + offset + node.PropertyName.Length);
 
         context.CodeWriter.Write(DesignTimeVariable);
         context.CodeWriter.Write(" = ");
         context.CodeWriter.Write("nameof(global::");
 
-        context.CodeWriter.Write(node.TagHelper.GetTypeNamespace());
+        context.CodeWriter.Write(componentNode.Component.GetTypeNamespace());
         context.CodeWriter.Write(".");
-        context.CodeWriter.Write(node.TagHelper.GetTypeNameIdentifier());
-        if (node.TagHelper.IsGenericTypedComponent())
+        context.CodeWriter.Write(componentNode.Component.GetTypeNameIdentifier());
+        if (componentNode.Component.IsGenericTypedComponent())
         {
             context.CodeWriter.Write("<");
-            var typeArgumentCount = node.TagHelper.GetTypeParameters().Count();
+            var typeArgumentCount = componentNode.Component.GetTypeParameters().Count();
             for (var i = 0; i < typeArgumentCount; i++)
             {
                 if (i > 0)
                 {
                     context.CodeWriter.Write(",");
                 }
-                // we need to specify a type for the generic type parameters, but it doesn't matter which one, as we're just
-                // getting the property name from nameof
+                // We need to specify a type for the generic type parameters, but it doesn't matter which one, as we're just
+                // getting the property name from nameof. If nameof ever supports open generics (ie, nameof(List<>.Count) then we
+                // can remove this.
                 context.CodeWriter.Write("string");
             }
             context.CodeWriter.Write(">");
