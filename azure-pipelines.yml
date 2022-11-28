@@ -448,6 +448,9 @@ stages:
 
   # Source build
   - template: /eng/common/templates/jobs/source-build.yml
+    parameters:
+      platform:
+        buildScript: 'dotnet build Razor.Slim.slnf'
 
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
