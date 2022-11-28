@@ -38,7 +38,7 @@ namespace Test
 #line hidden
 #nullable disable
             );
-            ((global::Test.Grid<TItem>)null).
+            __o = nameof(global::Test.Grid<string>.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                        Items
@@ -46,7 +46,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            = default;
+            );
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
                 global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_0(__builder2, -1, default(DateTime));
 #nullable restore

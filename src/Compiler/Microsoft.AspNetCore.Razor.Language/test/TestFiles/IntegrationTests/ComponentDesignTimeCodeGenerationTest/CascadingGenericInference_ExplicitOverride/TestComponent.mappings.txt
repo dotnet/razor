@@ -10,11 +10,11 @@ Generated Location: (1246:34,32 [23] )
 
 Source Location: (23:0,23 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |Items|
-Generated Location: (1477:43,23 [5] )
+Generated Location: (1483:43,23 [5] )
 |Items|
 
 Source Location: (73:0,73 [19] x:\dir\subdir\Test\TestComponent.cshtml)
 |System.TimeZoneInfo|
-Generated Location: (1863:53,73 [19] )
+Generated Location: (1861:53,73 [19] )
 |System.TimeZoneInfo|
 
