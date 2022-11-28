@@ -84,6 +84,11 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
         TagHelper = directiveAttributeNode.TagHelper;
         TypeName = directiveAttributeNode.BoundAttribute.IsWeaklyTyped() ? null : directiveAttributeNode.BoundAttribute.TypeName;
 
+        foreach (var annotation in directiveAttributeNode.Annotations)
+        {
+            Annotations[annotation.Key] = annotation.Value;
+        }
+
         for (var i = 0; i < directiveAttributeNode.Children.Count; i++)
         {
             Children.Add(directiveAttributeNode.Children[i]);

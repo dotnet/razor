@@ -1988,6 +1988,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                             };
                         }
 
+                        attributeNode.Annotations.Add("OriginalAttributeSpan", BuildSourceSpanFromNode(node.Name));
+
                         _builder.Push(attributeNode);
                         VisitAttributeValue(attributeValueNode);
                         _builder.Pop();
