@@ -5,6 +5,6 @@ Generated Location: (1019:25,27 [11] )
 
 Source Location: (15:0,15 [8] x:\dir\subdir\Test\TestComponent.cshtml)
 |Coolness|
-Generated Location: (1232:34,15 [8] )
+Generated Location: (1237:34,15 [8] )
 |Coolness|
 

@@ -38,7 +38,7 @@ namespace Test
 #line hidden
 #nullable disable
                 );
-                ((global::Test.MyComponent)null).
+                __o = nameof(global::Test.MyComponent.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                                                               Name
@@ -46,7 +46,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-                = default;
+                );
                 __builder2.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder3) => {
                 }
                 ));

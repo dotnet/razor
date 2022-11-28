@@ -21,7 +21,7 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __o = "";
-            ((global::Test.MyComponent)null).
+            __o = nameof(global::Test.MyComponent.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
              MyAttr
@@ -29,7 +29,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            = default;
+            );
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment<System.String>)((item) => (__builder2) => {
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"

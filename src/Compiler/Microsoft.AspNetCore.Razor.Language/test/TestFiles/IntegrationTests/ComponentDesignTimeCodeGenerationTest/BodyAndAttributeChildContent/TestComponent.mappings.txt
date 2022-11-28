@@ -20,6 +20,6 @@ Generated Location: (1614:48,21 [6] )
 
 Source Location: (105:1,13 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 |Header|
-Generated Location: (1818:57,13 [6] )
+Generated Location: (1823:57,13 [6] )
 |Header|
 
