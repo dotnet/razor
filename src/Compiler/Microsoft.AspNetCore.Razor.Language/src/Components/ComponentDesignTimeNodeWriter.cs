@@ -606,11 +606,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         }
 
         // Write the name of the property, for rename support. 
-        // ((global::ComponentName)null).PropertyName = default;
-        //
-        // We could just use nameof(..) to reference the property, but assigning it is a little nicer
-        // as it means Find All Refs will show the reference as a Write, which is logically correct for setting
-        // an attribute.
+        // __o = nameof(global::ComponentName.PropertyName);
         var originalAttributeName = node.Annotations[ComponentMetadata.Common.OriginalAttributeName]?.ToString() ?? node.AttributeName;
 
         // We don't currently support anything but simple attributes
@@ -621,9 +617,31 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
         var attributeSourceSpan = (SourceSpan)node.Annotations["OriginalAttributeSpan"];
 
-        context.CodeWriter.Write("((global::");
-        context.CodeWriter.Write(node.TagHelper.Name);
-        context.CodeWriter.Write(")null).");
+        context.CodeWriter.Write(DesignTimeVariable);
+        context.CodeWriter.Write(" = ");
+        context.CodeWriter.Write("nameof(global::");
+
+        context.CodeWriter.Write(node.TagHelper.GetTypeNamespace());
+        context.CodeWriter.Write(".");
+        context.CodeWriter.Write(node.TagHelper.GetTypeNameIdentifier());
+        if (node.TagHelper.IsGenericTypedComponent())
+        {
+            context.CodeWriter.Write("<");
+            var typeArgumentCount = node.TagHelper.GetTypeParameters().Count();
+            for (var i = 0; i < typeArgumentCount; i++)
+            {
+                if (i > 0)
+                {
+                    context.CodeWriter.Write(",");
+                }
+                // we need to specify a type for the generic type parameters, but it doesn't matter which one, as we're just
+                // getting the property name from nameof
+                context.CodeWriter.Write("string");
+            }
+            context.CodeWriter.Write(">");
+        }
+
+        context.CodeWriter.Write(".");
         context.CodeWriter.WriteLine();
 
         using (context.CodeWriter.BuildLinePragma(attributeSourceSpan, context))
@@ -635,7 +653,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
         // When doing a Find All Refs, sometimes the text content of the generated file shows up,
         // so being able to see "= default" in there would confuse users, so keep it on a separate line
-        context.CodeWriter.Write("= default;");
+        context.CodeWriter.Write(");");
         context.CodeWriter.WriteLine();
     }
 
