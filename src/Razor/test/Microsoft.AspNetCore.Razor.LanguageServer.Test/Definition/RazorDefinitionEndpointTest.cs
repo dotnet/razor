@@ -195,7 +195,7 @@ public class RazorDefinitionEndpointTest : TagHelperServiceTestBase
         await VerifyOriginTagHelperBindingAsync(content);
     }
 
-    [Fact]
+    [Fact(Skip = "TODO: Rewrite as integration test")]
     public async Task GetOriginTagHelperBindingAsync_TagHelper_PropertyAttribute()
     {
         var content = """
@@ -259,7 +259,7 @@ public class RazorDefinitionEndpointTest : TagHelperServiceTestBase
         await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/razor-tooling/issues/6775")]
+    [Fact(Skip = "TODO: Rewrite as integration test"), WorkItem("https://github.com/dotnet/razor-tooling/issues/6775")]
     public async Task GetOriginTagHelperBindingAsync_TagHelper_PropertyAttributeEdge()
     {
         var content = """
