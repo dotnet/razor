@@ -446,11 +446,12 @@ stages:
               artifactType: Container
               parallel: true
 
-  # Source build
-  - template: /eng/common/templates/jobs/source-build.yml
-    parameters:
-      platform:
-        buildScript: 'dotnet build Razor.Slim.slnf'
+    # Source build
+    - template: /eng/common/templates/job/source-build.yml
+      parameters:
+        platform:
+          name: 'Managed'
+          container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8'
 
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
