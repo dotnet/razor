@@ -449,6 +449,10 @@ stages:
       # Source build
       - job: Source_Build_Managed
         displayName: Source-Build (Managed)
+        parameters:
+          artifacts:
+            publish:
+              logs: false
         pool:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
             name: NetCore-Public
