@@ -446,13 +446,17 @@ stages:
               artifactType: Container
               parallel: true
 
-  # Source build
-  - template: /eng/common/templates/job/source-build.yml
-    parameters:
-      platform:
-        name: 'Managed'
-        container: 'mcr.microsoft.com/mirror/docker/library/node:18-buster'
-        skipPublishValidation: true
+      # Source build
+    - job: Source_Build_Managed
+        displayName: Source-Build (Managed)
+        pool:
+          name: NetCore-Public
+          demands:
+          - ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
+        workspace:
+          clean: all
+        steps:
+          - template: /eng/common/templates/steps/source-build.yml
 
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
