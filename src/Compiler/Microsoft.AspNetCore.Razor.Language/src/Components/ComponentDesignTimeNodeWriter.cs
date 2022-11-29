@@ -356,6 +356,8 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
+        var writePropertyAccess = true;
+
         if (node.TypeInferenceNode == null)
         {
             // Writes something like:
@@ -464,6 +466,14 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             //
             // __Blazor.MyComponent.TypeInference.CreateMyComponent_0(__builder, 0, 1, ..., 2, ..., 3, ....);
 
+            // We don't need an instance of this component, but having its type information is useful later for allowing
+            // Roslyn to bind to properties that represent component attributes.
+            // It's a bit silly that this variable will be called __typeInference_CreateMyComponent_0 with "Create" in the
+            // name, but since we've already done the work to create a unique name, we should reuse it.
+            context.CodeWriter.Write("var __typeInference_");
+            context.CodeWriter.Write(node.TypeInferenceNode.MethodName);
+            context.CodeWriter.Write(" = ");
+
             context.CodeWriter.Write("global::");
             context.CodeWriter.Write(node.TypeInferenceNode.FullTypeName);
             context.CodeWriter.Write(".");
@@ -493,6 +503,18 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
             if (typeInferenceCaptureScope.HasValue)
             {
+                // If we're inside a scope for capturing parameters, then we need to write property access here, so our component
+                // is in scope, otherwise type inference won't work, so flag that we shouldn't write it again at the end.
+                writePropertyAccess = false;
+
+                foreach (var child in node.Children)
+                {
+                    if (child is ComponentAttributeIntermediateNode attribute)
+                    {
+                        WritePropertyAccess(context, attribute, node);
+                    }
+                }
+
                 typeInferenceCaptureScope.Value.Dispose();
             }
         }
@@ -535,13 +557,21 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             context.CodeWriter.WriteLine();
         }
 
-        foreach (var child in node.Children)
+        if (writePropertyAccess)
         {
-            if (child is ComponentAttributeIntermediateNode attribute)
+            foreach (var child in node.Children)
             {
-                WritePropertyAccess(context, attribute, node);
+                if (child is ComponentAttributeIntermediateNode attribute)
+                {
+                    WritePropertyAccess(context, attribute, node);
+                }
             }
         }
+    }
+
+    public override void WriteComponentTypeInferenceMethod(CodeRenderingContext context, ComponentTypeInferenceMethodIntermediateNode node)
+    {
+        base.WriteComponentTypeInferenceMethod(context, node, returnComponentType: true);
     }
 
     private void WriteTypeInferenceMethodParameterInnards(CodeRenderingContext context, TypeInferenceMethodParameter parameter)
@@ -604,7 +634,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         context.CodeWriter.WriteLine();
     }
 
-    private static void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node, ComponentIntermediateNode componentNode)
+    private void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node, ComponentIntermediateNode componentNode)
     {
         if (node?.TagHelper?.Name is null || node.Annotations["OriginalAttributeSpan"] is null)
         {
@@ -635,27 +665,38 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
         context.CodeWriter.Write(DesignTimeVariable);
         context.CodeWriter.Write(" = ");
-        context.CodeWriter.Write("nameof(global::");
+        context.CodeWriter.Write("nameof(");
 
-        context.CodeWriter.Write(componentNode.Component.GetTypeNamespace());
-        context.CodeWriter.Write(".");
-        context.CodeWriter.Write(componentNode.Component.GetTypeNameIdentifier());
-        if (componentNode.Component.IsGenericTypedComponent())
+        if (componentNode.TypeInferenceNode == null)
         {
-            context.CodeWriter.Write("<");
-            var typeArgumentCount = componentNode.Component.GetTypeParameters().Count();
-            for (var i = 0; i < typeArgumentCount; i++)
+            context.CodeWriter.Write("global::");
+            context.CodeWriter.Write(componentNode.Component.GetTypeNamespace());
+            context.CodeWriter.Write(".");
+            context.CodeWriter.Write(componentNode.Component.GetTypeNameIdentifier());
+            if (componentNode.Component.IsGenericTypedComponent())
             {
-                if (i > 0)
+                context.CodeWriter.Write("<");
+                var typeArgumentCount = componentNode.Component.GetTypeParameters().Count();
+                for (var i = 0; i < typeArgumentCount; i++)
                 {
-                    context.CodeWriter.Write(",");
+                    if (i > 0)
+                    {
+                        context.CodeWriter.Write(",");
+                    }
+                    // We need to specify a type for the generic type parameters, but it doesn't matter which one, as we're just
+                    // getting the property name from nameof. If nameof ever supports open generics (ie, nameof(List<>.Count) then we
+                    // can remove this.
+                    context.CodeWriter.Write("string");
                 }
-                // We need to specify a type for the generic type parameters, but it doesn't matter which one, as we're just
-                // getting the property name from nameof. If nameof ever supports open generics (ie, nameof(List<>.Count) then we
-                // can remove this.
-                context.CodeWriter.Write("string");
+                context.CodeWriter.Write(">");
             }
-            context.CodeWriter.Write(">");
+        }
+        else
+        {
+            // Earlier when we did the type inference stuff, we captured a variable which the compiler would know the type information
+            // for explicitly for the purposes of using it now
+            context.CodeWriter.Write("__typeInference_");
+            context.CodeWriter.Write(componentNode.TypeInferenceNode.MethodName);
         }
 
         context.CodeWriter.Write(".");
