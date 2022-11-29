@@ -447,7 +447,7 @@ stages:
               parallel: true
 
       # Source build
-    - job: Source_Build_Managed
+      - job: Source_Build_Managed
         displayName: Source-Build (Managed)
         pool:
           name: NetCore-Public
