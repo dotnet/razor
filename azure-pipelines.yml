@@ -472,7 +472,6 @@ stages:
 
           - template: /eng/common/templates/steps/source-build.yml
 
-
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - stage: publishBuildAssets
     displayName: Publish to Build Asset Registry
