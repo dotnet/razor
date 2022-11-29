@@ -29,13 +29,6 @@ namespace Test
 #line hidden
 #nullable disable
             );
-#nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(global::Test.MyComponent<>);
-
-#line default
-#line hidden
-#nullable disable
             __o = nameof(__typeInference_CreateMyComponent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -45,6 +38,13 @@ __o = typeof(global::Test.MyComponent<>);
 #line hidden
 #nullable disable
             );
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+__o = typeof(global::Test.MyComponent<>);
+
+#line default
+#line hidden
+#nullable disable
             var __typeInference_CreateMyComponent_1 = global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_1(__builder, -1, -1, 
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -54,13 +54,6 @@ __o = typeof(global::Test.MyComponent<>);
 #line hidden
 #nullable disable
             );
-#nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(global::Test.MyComponent<>);
-
-#line default
-#line hidden
-#nullable disable
             __o = nameof(__typeInference_CreateMyComponent_1.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -70,10 +63,26 @@ __o = typeof(global::Test.MyComponent<>);
 #line hidden
 #nullable disable
             );
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+__o = typeof(global::Test.MyComponent<>);
+
+#line default
+#line hidden
+#nullable disable
             var __typeInference_CreateMyComponent_2 = global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_2(__builder, -1, -1, 
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
                      "bye!"
+
+#line default
+#line hidden
+#nullable disable
+            );
+            __o = nameof(__typeInference_CreateMyComponent_2.
+#nullable restore
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
+             Item
 
 #line default
 #line hidden
@@ -86,15 +95,6 @@ __o = typeof(global::Test.MyComponent<>);
 #line default
 #line hidden
 #nullable disable
-            __o = nameof(__typeInference_CreateMyComponent_2.
-#nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-             Item
-
-#line default
-#line hidden
-#nullable disable
-            );
         }
         #pragma warning restore 1998
     }

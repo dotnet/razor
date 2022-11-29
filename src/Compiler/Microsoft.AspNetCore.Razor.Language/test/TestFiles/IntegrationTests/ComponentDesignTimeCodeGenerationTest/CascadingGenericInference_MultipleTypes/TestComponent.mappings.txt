@@ -15,7 +15,7 @@ Generated Location: (1994:44,29 [23] )
 
 Source Location: (115:1,11 [14] x:\dir\subdir\Test\TestComponent.cshtml)
 |ChildOnlyItems|
-Generated Location: (2399:60,11 [14] )
+Generated Location: (2239:53,11 [14] )
 |ChildOnlyItems|
 
 Source Location: (8:0,8 [4] x:\dir\subdir\Test\TestComponent.cshtml)

@@ -40,13 +40,6 @@ namespace Test
 #line hidden
 #nullable disable
                     );
-#nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(global::Test.Column<,>);
-
-#line default
-#line hidden
-#nullable disable
                     __o = nameof(__typeInference_CreateColumn_1.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -56,6 +49,13 @@ __o = typeof(global::Test.Column<,>);
 #line hidden
 #nullable disable
                     );
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+__o = typeof(global::Test.Column<,>);
+
+#line default
+#line hidden
+#nullable disable
                 }
                 );
                 __o = nameof(__typeInference_CreateGrid_0.

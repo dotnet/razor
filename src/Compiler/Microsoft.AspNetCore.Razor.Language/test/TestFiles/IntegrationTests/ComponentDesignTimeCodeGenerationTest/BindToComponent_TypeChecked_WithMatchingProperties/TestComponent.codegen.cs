@@ -34,13 +34,6 @@ namespace Test
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-#nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(global::Test.MyComponent);
-
-#line default
-#line hidden
-#nullable disable
             __o = nameof(global::Test.MyComponent.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -50,6 +43,13 @@ __o = typeof(global::Test.MyComponent);
 #line hidden
 #nullable disable
             );
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+__o = typeof(global::Test.MyComponent);
+
+#line default
+#line hidden
+#nullable disable
         }
         #pragma warning restore 1998
 #nullable restore

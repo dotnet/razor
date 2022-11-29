@@ -15,12 +15,12 @@ Generated Location: (1343:40,28 [5] )
 
 Source Location: (33:1,13 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |Item|
-Generated Location: (1725:56,13 [4] )
+Generated Location: (1562:49,13 [4] )
 |Item|
 
 Source Location: (42:1,22 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |Foo|
-Generated Location: (1952:65,22 [3] )
+Generated Location: (1789:58,22 [3] )
 |Foo|
 
 Source Location: (68:3,7 [38] x:\dir\subdir\Test\TestComponent.cshtml)

@@ -39,13 +39,6 @@ __o = typeof(global::Test.Column<>);
 #nullable disable
             }
             );
-#nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(global::Test.Grid<>);
-
-#line default
-#line hidden
-#nullable disable
             __o = nameof(__typeInference_CreateGrid_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -55,6 +48,13 @@ __o = typeof(global::Test.Grid<>);
 #line hidden
 #nullable disable
             );
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+__o = typeof(global::Test.Grid<>);
+
+#line default
+#line hidden
+#nullable disable
         }
         #pragma warning restore 1998
     }

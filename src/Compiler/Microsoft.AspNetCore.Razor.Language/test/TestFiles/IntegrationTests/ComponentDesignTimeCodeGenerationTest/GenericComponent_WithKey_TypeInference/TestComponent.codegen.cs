@@ -37,13 +37,6 @@ namespace Test
 #line hidden
 #nullable disable
             );
-#nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(global::Test.MyComponent<>);
-
-#line default
-#line hidden
-#nullable disable
             __o = nameof(__typeInference_CreateMyComponent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -53,6 +46,13 @@ __o = typeof(global::Test.MyComponent<>);
 #line hidden
 #nullable disable
             );
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+__o = typeof(global::Test.MyComponent<>);
+
+#line default
+#line hidden
+#nullable disable
         }
         #pragma warning restore 1998
 #nullable restore

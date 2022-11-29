@@ -48,13 +48,6 @@ namespace Test
 #line hidden
 #nullable disable
                     );
-#nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(global::Test.Child<,,,>);
-
-#line default
-#line hidden
-#nullable disable
                     __o = nameof(__typeInference_CreateChild_1.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -64,6 +57,13 @@ __o = typeof(global::Test.Child<,,,>);
 #line hidden
 #nullable disable
                     );
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+__o = typeof(global::Test.Child<,,,>);
+
+#line default
+#line hidden
+#nullable disable
                 }
                 );
                 __o = nameof(__typeInference_CreateParent_0.

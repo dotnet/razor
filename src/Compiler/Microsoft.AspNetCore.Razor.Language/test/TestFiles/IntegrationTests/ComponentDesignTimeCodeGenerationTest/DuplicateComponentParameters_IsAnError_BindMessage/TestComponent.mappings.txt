@@ -10,12 +10,12 @@ Generated Location: (1334:34,48 [7] )
 
 Source Location: (13:0,13 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |Message|
-Generated Location: (2498:56,13 [7] )
+Generated Location: (2337:49,13 [7] )
 |Message|
 
 Source Location: (38:0,38 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |Message|
-Generated Location: (2733:65,38 [7] )
+Generated Location: (2572:58,38 [7] )
 |Message|
 
 Source Location: (73:1,12 [30] x:\dir\subdir\Test\TestComponent.cshtml)

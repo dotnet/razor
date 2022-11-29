@@ -36,13 +36,6 @@ global::System.Object __typeHelper = "/";
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-#nullable restore
-#line 7 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(global::Test.SurveyPrompt);
-
-#line default
-#line hidden
-#nullable disable
             __o = nameof(global::Test.SurveyPrompt.
 #nullable restore
 #line 7 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -52,6 +45,13 @@ __o = typeof(global::Test.SurveyPrompt);
 #line hidden
 #nullable disable
             );
+#nullable restore
+#line 7 "x:\dir\subdir\Test\TestComponent.cshtml"
+__o = typeof(global::Test.SurveyPrompt);
+
+#line default
+#line hidden
+#nullable disable
         }
         #pragma warning restore 1998
     }

@@ -5,7 +5,7 @@ Generated Location: (1018:25,26 [1] )
 
 Source Location: (13:0,13 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |IntProperty|
-Generated Location: (1546:44,13 [11] )
+Generated Location: (1385:37,13 [11] )
 |IntProperty|
 
 Source Location: (59:1,26 [1] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -15,6 +15,6 @@ Generated Location: (1845:53,26 [1] )
 
 Source Location: (46:1,13 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |IntProperty|
-Generated Location: (2373:72,13 [11] )
+Generated Location: (2212:65,13 [11] )
 |IntProperty|
 

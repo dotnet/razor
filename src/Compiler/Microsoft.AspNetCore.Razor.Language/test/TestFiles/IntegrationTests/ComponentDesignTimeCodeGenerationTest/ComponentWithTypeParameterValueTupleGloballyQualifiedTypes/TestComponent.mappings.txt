@@ -25,7 +25,7 @@ Generated Location: (1762:57,33 [21] )
 
 Source Location: (227:11,15 [10] x:\dir\subdir\Test\TestComponent.cshtml)
 |InferParam|
-Generated Location: (2184:74,15 [10] )
+Generated Location: (2018:67,15 [10] )
 |InferParam|
 
 Source Location: (38:3,7 [169] x:\dir\subdir\Test\TestComponent.cshtml)

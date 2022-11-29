@@ -61,13 +61,6 @@ using Test;
 #nullable disable
             }
             );
-#nullable restore
-#line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
-__o = typeof(global::Test.TestComponent<,,>);
-
-#line default
-#line hidden
-#nullable disable
             __o = nameof(__typeInference_CreateTestComponent_0.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
@@ -95,6 +88,13 @@ __o = typeof(global::Test.TestComponent<,,>);
 #line hidden
 #nullable disable
             );
+#nullable restore
+#line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
+__o = typeof(global::Test.TestComponent<,,>);
+
+#line default
+#line hidden
+#nullable disable
         }
         #pragma warning restore 1998
 #nullable restore

@@ -5,7 +5,7 @@ Generated Location: (1037:25,24 [5] )
 
 Source Location: (19:0,19 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |Item|
-Generated Location: (1471:42,19 [4] )
+Generated Location: (1308:35,19 [4] )
 |Item|
 
 Source Location: (57:1,24 [5] x:\dir\subdir\Test\TestComponent.cshtml)
@@ -15,7 +15,7 @@ Generated Location: (1782:51,24 [5] )
 
 Source Location: (52:1,19 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |Item|
-Generated Location: (2216:68,19 [4] )
+Generated Location: (2053:61,19 [4] )
 |Item|
 
 Source Location: (73:2,7 [21] x:\dir\subdir\Test\TestComponent.cshtml)

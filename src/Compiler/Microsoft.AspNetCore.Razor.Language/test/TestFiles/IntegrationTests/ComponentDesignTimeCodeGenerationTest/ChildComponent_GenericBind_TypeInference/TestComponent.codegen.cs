@@ -30,13 +30,6 @@ namespace Test
 #nullable disable
             , -1, 
             __value => Value = __value);
-#nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(global::Test.MyComponent<>);
-
-#line default
-#line hidden
-#nullable disable
             __o = nameof(__typeInference_CreateMyComponent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -46,6 +39,13 @@ __o = typeof(global::Test.MyComponent<>);
 #line hidden
 #nullable disable
             );
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+__o = typeof(global::Test.MyComponent<>);
+
+#line default
+#line hidden
+#nullable disable
             var __typeInference_CreateMyComponent_1 = global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_1(__builder, -1, -1, 
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -56,13 +56,6 @@ __o = typeof(global::Test.MyComponent<>);
 #nullable disable
             , -1, 
             __value => Value = __value);
-#nullable restore
-#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(global::Test.MyComponent<>);
-
-#line default
-#line hidden
-#nullable disable
             __o = nameof(__typeInference_CreateMyComponent_1.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -72,6 +65,13 @@ __o = typeof(global::Test.MyComponent<>);
 #line hidden
 #nullable disable
             );
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+__o = typeof(global::Test.MyComponent<>);
+
+#line default
+#line hidden
+#nullable disable
         }
         #pragma warning restore 1998
 #nullable restore
