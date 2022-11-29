@@ -452,6 +452,13 @@ stages:
           platform:
             name: 'Managed'
             container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8'
+            buildScript: './eng/build.sh $(_PublishArgs) --no-build-repo-tasks'
+            skipPublishValidation: true
+            jobProperties:
+              timeoutInMinutes: 120
+              variables:
+                # Log environment variables in binary logs to ease debugging
+                MSBUILDLOGALLENVIRONMENTVARIABLES: true
 
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
