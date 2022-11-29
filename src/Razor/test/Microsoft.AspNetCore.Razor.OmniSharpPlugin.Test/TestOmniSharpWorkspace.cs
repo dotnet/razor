@@ -8,38 +8,37 @@ using Microsoft.Extensions.Logging;
 using OmniSharp.FileWatching;
 using OmniSharp.Services;
 
-namespace OmniSharp
+namespace OmniSharp;
+
+public static class TestOmniSharpWorkspace
 {
-    public static class TestOmniSharpWorkspace
+    private static readonly object s_workspaceLock = new();
+
+    public static OmniSharpWorkspace Create(ILoggerFactory loggerFactory)
     {
-        private static readonly object s_workspaceLock = new();
-
-        public static OmniSharpWorkspace Create(ILoggerFactory loggerFactory)
+        lock (s_workspaceLock)
         {
-            lock (s_workspaceLock)
-            {
-                var hostServicesAggregator = new HostServicesAggregator(Enumerable.Empty<IHostServicesProvider>(), loggerFactory);
-                var workspace = new OmniSharpWorkspace(hostServicesAggregator, loggerFactory, TestFileSystemWatcher.Instance);
+            var hostServicesAggregator = new HostServicesAggregator(Enumerable.Empty<IHostServicesProvider>(), loggerFactory);
+            var workspace = new OmniSharpWorkspace(hostServicesAggregator, loggerFactory, TestFileSystemWatcher.Instance);
 
-                return workspace;
-            }
+            return workspace;
+        }
+    }
+
+    private class TestFileSystemWatcher : IFileSystemWatcher
+    {
+        public static readonly TestFileSystemWatcher Instance = new();
+
+        private TestFileSystemWatcher()
+        {
         }
 
-        private class TestFileSystemWatcher : IFileSystemWatcher
+        public void Watch(string pathOrExtension, FileSystemNotificationCallback callback)
         {
-            public static readonly TestFileSystemWatcher Instance = new();
+        }
 
-            private TestFileSystemWatcher()
-            {
-            }
-
-            public void Watch(string pathOrExtension, FileSystemNotificationCallback callback)
-            {
-            }
-
-            public void WatchDirectories(FileSystemNotificationCallback callback)
-            {
-            }
+        public void WatchDirectories(FileSystemNotificationCallback callback)
+        {
         }
     }
 }

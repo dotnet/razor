@@ -3,26 +3,25 @@
 
 using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+
+internal class TestRazorLogger : RazorLogger
 {
-    internal class TestRazorLogger : RazorLogger
+    public static readonly RazorLogger Instance = new TestRazorLogger();
+
+    private TestRazorLogger()
     {
-        public static readonly RazorLogger Instance = new TestRazorLogger();
+    }
 
-        private TestRazorLogger()
-        {
-        }
+    public override void LogError(string message)
+    {
+    }
 
-        public override void LogError(string message)
-        {
-        }
+    public override void LogVerbose(string message)
+    {
+    }
 
-        public override void LogVerbose(string message)
-        {
-        }
-
-        public override void LogWarning(string message)
-        {
-        }
+    public override void LogWarning(string message)
+    {
     }
 }

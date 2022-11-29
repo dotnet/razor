@@ -45,5 +45,15 @@ export function RunWhileStatementSuite() {
     </div>
 }`);
         });
+
+        it('Nested inside if', async () => {
+            await assertMatchesSnapshot(
+`@if (true)
+{
+    while (SomeProperty {
+        <p></p>
+    }
+}`);
+        });
     });
 }

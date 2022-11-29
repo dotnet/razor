@@ -4,20 +4,19 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.VisualStudio.LiveShare.Razor
-{
-    public sealed class ProjectSnapshotManagerProxyState
-    {
-        public ProjectSnapshotManagerProxyState(IReadOnlyList<ProjectSnapshotHandleProxy> projectHandles)
-        {
-            if (projectHandles is null)
-            {
-                throw new ArgumentNullException(nameof(projectHandles));
-            }
+namespace Microsoft.VisualStudio.LiveShare.Razor;
 
-            ProjectHandles = projectHandles;
+internal sealed class ProjectSnapshotManagerProxyState
+{
+    public ProjectSnapshotManagerProxyState(IReadOnlyList<ProjectSnapshotHandleProxy> projectHandles)
+    {
+        if (projectHandles is null)
+        {
+            throw new ArgumentNullException(nameof(projectHandles));
         }
 
-        public IReadOnlyList<ProjectSnapshotHandleProxy> ProjectHandles { get; }
+        ProjectHandles = projectHandles;
     }
+
+    public IReadOnlyList<ProjectSnapshotHandleProxy> ProjectHandles { get; }
 }

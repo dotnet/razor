@@ -14,38 +14,37 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
+
+internal class TestRazorLSPSpanMappingService : IRazorSpanMappingService
 {
-    internal class TestRazorLSPSpanMappingService : IRazorSpanMappingService
+    private readonly LSPDocumentMappingProvider _mappingProvider;
+    private readonly Uri _razorUri;
+    private readonly SourceText _razorSourceText;
+    private readonly SourceText _csharpSourceText;
+    private readonly CancellationToken _cancellationToken;
+
+    public TestRazorLSPSpanMappingService(
+        LSPDocumentMappingProvider mappingProvider,
+        Uri razorUri,
+        SourceText razorSourceText,
+        SourceText csharpSourceText,
+        CancellationToken cancellationToken)
     {
-        private readonly LSPDocumentMappingProvider _mappingProvider;
-        private readonly Uri _razorUri;
-        private readonly SourceText _razorSourceText;
-        private readonly SourceText _csharpSourceText;
-        private readonly CancellationToken _cancellationToken;
+        _mappingProvider = mappingProvider;
+        _razorUri = razorUri;
+        _razorSourceText = razorSourceText;
+        _csharpSourceText = csharpSourceText;
+        _cancellationToken = cancellationToken;
+    }
 
-        public TestRazorLSPSpanMappingService(
-            LSPDocumentMappingProvider mappingProvider,
-            Uri razorUri,
-            SourceText razorSourceText,
-            SourceText csharpSourceText,
-            CancellationToken cancellationToken)
-        {
-            _mappingProvider = mappingProvider;
-            _razorUri = razorUri;
-            _razorSourceText = razorSourceText;
-            _csharpSourceText = csharpSourceText;
-            _cancellationToken = cancellationToken;
-        }
+    public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
+    {
+        var projectedRanges = spans.Select(span => span.AsRange(_csharpSourceText)).ToArray();
+        var mappedResult = await _mappingProvider.MapToDocumentRangesAsync(
+            RazorLanguageKind.CSharp, _razorUri, projectedRanges, _cancellationToken);
 
-        public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken)
-        {
-            var projectedRanges = spans.Select(span => span.AsRange(_csharpSourceText)).ToArray();
-            var mappedResult = await _mappingProvider.MapToDocumentRangesAsync(
-                RazorLanguageKind.CSharp, _razorUri, projectedRanges, _cancellationToken);
-
-            var mappedSpanResults = RazorLSPSpanMappingService.GetMappedSpanResults(_razorUri.LocalPath, _razorSourceText, mappedResult);
-            return mappedSpanResults;
-        }
+        var mappedSpanResults = RazorLSPSpanMappingService.GetMappedSpanResults(_razorUri.LocalPath, _razorSourceText, mappedResult);
+        return mappedSpanResults;
     }
 }

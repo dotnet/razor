@@ -52,5 +52,22 @@ while (
     </div>
 }while(true);`);
         });
+
+        it('Nested inside if', async () => {
+            await assertMatchesSnapshot(
+`@if (true)
+{
+    do {
+        <p></p>
+    } while(GetAnotherValue());
+}`);
+        });
+
+        it('Not in HTML', async () => {
+            await assertMatchesSnapshot(
+`<div>
+    do not classify this
+</div>`);
+        });
     });
 }

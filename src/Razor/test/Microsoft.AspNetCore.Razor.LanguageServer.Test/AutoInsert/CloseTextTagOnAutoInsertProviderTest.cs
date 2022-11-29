@@ -6,19 +6,19 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
-{
-    public class CloseTextTagOnAutoInsertProviderTest : RazorOnAutoInsertProviderTestBase
-    {
-        public CloseTextTagOnAutoInsertProviderTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
-        [Fact]
-        public void OnTypeCloseAngle_ClosesTextTag()
-        {
-            RunAutoInsertTest(
+public class CloseTextTagOnAutoInsertProviderTest : RazorOnAutoInsertProviderTestBase
+{
+    public CloseTextTagOnAutoInsertProviderTest(ITestOutputHelper testOutput)
+        : base(testOutput)
+    {
+    }
+
+    [Fact]
+    public void OnTypeCloseAngle_ClosesTextTag()
+    {
+        RunAutoInsertTest(
 input: @"
 @{
     <text>$$
@@ -29,27 +29,26 @@ expected: @"
     <text>$0</text>
 }
 ");
-        }
+    }
 
-        [Fact]
-        public void OnTypeCloseAngle_OutsideRazorBlock_DoesNotCloseTextTag()
-        {
-            RunAutoInsertTest(
+    [Fact]
+    public void OnTypeCloseAngle_OutsideRazorBlock_DoesNotCloseTextTag()
+    {
+        RunAutoInsertTest(
 input: @"
     <text>$$
 ",
 expected: @"
     <text>
 ");
-        }
+    }
 
-        internal override RazorOnAutoInsertProvider CreateProvider()
-        {
-            var optionsMonitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
-            optionsMonitor.SetupGet(o => o.CurrentValue).Returns(RazorLSPOptions.Default);
-            var provider = new CloseTextTagOnAutoInsertProvider(optionsMonitor.Object, LoggerFactory);
+    internal override RazorOnAutoInsertProvider CreateProvider()
+    {
+        var optionsMonitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
+        optionsMonitor.SetupGet(o => o.CurrentValue).Returns(RazorLSPOptions.Default);
+        var provider = new CloseTextTagOnAutoInsertProvider(optionsMonitor.Object, LoggerFactory);
 
-            return provider;
-        }
+        return provider;
     }
 }

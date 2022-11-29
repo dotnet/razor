@@ -10,39 +10,38 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+
+public class ProjectEngineFactory_UnsupportedTest : TestBase
 {
-    public class ProjectEngineFactory_UnsupportedTest : TestBase
+    public ProjectEngineFactory_UnsupportedTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        public ProjectEngineFactory_UnsupportedTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+    }
 
-        [Fact]
-        public void Create_IgnoresConfigureParameter()
-        {
-            // Arrange
-            var factory = new ProjectEngineFactory_Unsupported();
+    [Fact]
+    public void Create_IgnoresConfigureParameter()
+    {
+        // Arrange
+        var factory = new ProjectEngineFactory_Unsupported();
 
-            // Act & Assert
-            factory.Create(UnsupportedRazorConfiguration.Instance, RazorProjectFileSystem.Empty, (builder) => throw new XunitException("There should not be an opportunity to configure the project engine in the unsupported scenario."));
-        }
+        // Act & Assert
+        factory.Create(UnsupportedRazorConfiguration.Instance, RazorProjectFileSystem.Empty, (builder) => throw new XunitException("There should not be an opportunity to configure the project engine in the unsupported scenario."));
+    }
 
-        // This is more of an integration test to validate that all the pieces work together
-        [Fact]
-        public void Create_ProcessDesignTime_AlwaysGeneratesEmptyGeneratedCSharp()
-        {
-            // Arrange
-            var factory = new ProjectEngineFactory_Unsupported();
-            var engine = factory.Create(UnsupportedRazorConfiguration.Instance, RazorProjectFileSystem.Empty, (_) => { });
-            var sourceDocument = TestRazorSourceDocument.Create("<strong>Hello World!</strong>", RazorSourceDocumentProperties.Default);
+    // This is more of an integration test to validate that all the pieces work together
+    [Fact]
+    public void Create_ProcessDesignTime_AlwaysGeneratesEmptyGeneratedCSharp()
+    {
+        // Arrange
+        var factory = new ProjectEngineFactory_Unsupported();
+        var engine = factory.Create(UnsupportedRazorConfiguration.Instance, RazorProjectFileSystem.Empty, (_) => { });
+        var sourceDocument = TestRazorSourceDocument.Create("<strong>Hello World!</strong>", RazorSourceDocumentProperties.Default);
 
-            // Act
-            var codeDocument = engine.ProcessDesignTime(sourceDocument, "test", Array.Empty<RazorSourceDocument>(), Array.Empty<TagHelperDescriptor>());
+        // Act
+        var codeDocument = engine.ProcessDesignTime(sourceDocument, "test", Array.Empty<RazorSourceDocument>(), Array.Empty<TagHelperDescriptor>());
 
-            // Assert
-            Assert.Equal(UnsupportedCSharpLoweringPhase.UnsupportedDisclaimer, codeDocument.GetCSharpDocument().GeneratedCode);
-        }
+        // Assert
+        Assert.Equal(UnsupportedCSharpLoweringPhase.UnsupportedDisclaimer, codeDocument.GetCSharpDocument().GeneratedCode);
     }
 }

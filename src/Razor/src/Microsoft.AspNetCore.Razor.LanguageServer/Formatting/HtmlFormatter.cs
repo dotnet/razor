@@ -2,14 +2,16 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
     internal class HtmlFormatter
     {
         private readonly DocumentVersionCache _documentVersionCache;
@@ -40,7 +42,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             var @params = new VersionedDocumentFormattingParams()
             {
-                TextDocument = new TextDocumentIdentifier {
+                TextDocument = new TextDocumentIdentifier
+                {
                     Uri = FilePathNormalizer.Normalize(context.Uri),
                 },
                 HostDocumentVersion = documentVersion.Value,
@@ -82,5 +85,27 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
 
             return result?.Edits ?? Array.Empty<TextEdit>();
         }
+
+        /// <summary>
+        /// Sometimes the Html language server will send back an edit that contains a tilde, because the generated
+        /// document we send them has lots of tildes. In those cases, we need to do some extra work to compute the
+        /// minimal text edits
+        /// </summary>
+        // Internal for testing
+        public static TextEdit[] FixHtmlTestEdits(SourceText htmlSourceText, TextEdit[] edits)
+        {
+            // Avoid computing a minimal diff if we don't need to
+            if (!edits.Any(e => e.NewText.Contains("~")))
+                return edits;
+
+            // First we apply the edits that the Html language server wanted, to the Html document
+            var textChanges = edits.Select(e => e.AsTextChange(htmlSourceText));
+            var changedText = htmlSourceText.WithChanges(textChanges);
+
+            // Now we use our minimal text differ algorithm to get the bare minimum of edits
+            var minimalChanges = SourceTextDiffer.GetMinimalTextChanges(htmlSourceText, changedText, lineDiffOnly: false);
+            var minimalEdits = minimalChanges.Select(f => f.AsTextEdit(htmlSourceText)).ToArray();
+
+            return minimalEdits;
+        }
     }
-}

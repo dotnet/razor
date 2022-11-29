@@ -3,22 +3,21 @@
 
 using Microsoft.VisualStudio.LanguageServer.Client;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+
+internal struct ReinvokeResponse<TOut>
 {
-    internal struct ReinvokeResponse<TOut>
+    public ILanguageClient LanguageClient { get; }
+
+    public TOut Result { get; }
+
+    public bool IsSuccess => LanguageClient != default;
+
+    public ReinvokeResponse(
+        ILanguageClient languageClient,
+        TOut result)
     {
-        public ILanguageClient LanguageClient { get; }
-
-        public TOut Result { get; }
-
-        public bool IsSuccess => LanguageClient != default;
-
-        public ReinvokeResponse(
-            ILanguageClient languageClient,
-            TOut result)
-        {
-            LanguageClient = languageClient;
-            Result = result;
-        }
+        LanguageClient = languageClient;
+        Result = result;
     }
 }

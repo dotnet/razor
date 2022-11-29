@@ -3,15 +3,14 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Editor.Razor
-{
-    public sealed class ContextChangeEventArgs : EventArgs
-    {
-        public ContextChangeEventArgs(ContextChangeKind kind)
-        {
-            Kind = kind;
-        }
+namespace Microsoft.VisualStudio.Editor.Razor;
 
-        public ContextChangeKind Kind { get; }
+internal sealed class ContextChangeEventArgs : EventArgs
+{
+    public ContextChangeEventArgs(ContextChangeKind kind)
+    {
+        Kind = kind;
     }
+
+    public ContextChangeKind Kind { get; }
 }

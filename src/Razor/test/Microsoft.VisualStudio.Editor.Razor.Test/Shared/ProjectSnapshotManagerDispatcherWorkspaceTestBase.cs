@@ -6,16 +6,15 @@
 using Microsoft.CodeAnalysis.Razor;
 using Xunit.Abstractions;
 
-namespace Xunit
-{
-    public abstract class ProjectSnapshotManagerDispatcherWorkspaceTestBase : WorkspaceTestBase
-    {
-        internal ProjectSnapshotManagerDispatcher Dispatcher { get; }
+namespace Xunit;
 
-        protected ProjectSnapshotManagerDispatcherWorkspaceTestBase(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-            Dispatcher = new TestProjectSnapshotManagerDispatcher();
-        }
+public abstract class ProjectSnapshotManagerDispatcherWorkspaceTestBase : WorkspaceTestBase
+{
+    internal ProjectSnapshotManagerDispatcher Dispatcher { get; }
+
+    protected ProjectSnapshotManagerDispatcherWorkspaceTestBase(ITestOutputHelper testOutput)
+        : base(testOutput)
+    {
+        Dispatcher = new TestProjectSnapshotManagerDispatcher();
     }
 }

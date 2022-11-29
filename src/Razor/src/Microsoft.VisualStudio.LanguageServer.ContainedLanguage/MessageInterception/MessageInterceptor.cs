@@ -5,20 +5,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
+
+/// <summary>
+/// Intercepts an LSP message and applies changes to the payload.
+/// </summary>
+internal abstract class MessageInterceptor
 {
     /// <summary>
-    /// Intercepts an LSP message and applies changes to the payload.
+    /// Applies changes to the message token, and signals if the document path has been changed.
     /// </summary>
-    public abstract class MessageInterceptor
-    {
-        /// <summary>
-        /// Applies changes to the message token, and signals if the document path has been changed.
-        /// </summary>
-        /// <param name="message">The message payload</param>
-        /// <param name="containedLanguageName">The name of the content type for the contained language.</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns></returns>
-        public abstract Task<InterceptionResult> ApplyChangesAsync(JToken message, string containedLanguageName, CancellationToken cancellationToken);
-    }
+    /// <param name="message">The message payload</param>
+    /// <param name="containedLanguageName">The name of the content type for the contained language.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns></returns>
+    public abstract Task<InterceptionResult> ApplyChangesAsync(JToken message, string containedLanguageName, CancellationToken cancellationToken);
 }

@@ -5,25 +5,24 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces
+namespace Microsoft.CodeAnalysis.Razor.Workspaces;
+
+[Shared]
+[Export(typeof(RazorDocumentServiceProviderFactory))]
+internal class DefaultRazorDocumentServiceProviderFactory : RazorDocumentServiceProviderFactory
 {
-    [Shared]
-    [Export(typeof(RazorDocumentServiceProviderFactory))]
-    internal class DefaultRazorDocumentServiceProviderFactory : RazorDocumentServiceProviderFactory
+    public override IRazorDocumentServiceProvider Create(DynamicDocumentContainer documentContainer)
     {
-        public override IRazorDocumentServiceProvider Create(DynamicDocumentContainer documentContainer)
+        if (documentContainer is null)
         {
-            if (documentContainer is null)
-            {
-                throw new ArgumentNullException(nameof(documentContainer));
-            }
-
-            return new RazorDocumentServiceProvider(documentContainer);
+            throw new ArgumentNullException(nameof(documentContainer));
         }
 
-        public override IRazorDocumentServiceProvider CreateEmpty()
-        {
-            return new RazorDocumentServiceProvider();
-        }
+        return new RazorDocumentServiceProvider(documentContainer);
+    }
+
+    public override IRazorDocumentServiceProvider CreateEmpty()
+    {
+        return new RazorDocumentServiceProvider();
     }
 }

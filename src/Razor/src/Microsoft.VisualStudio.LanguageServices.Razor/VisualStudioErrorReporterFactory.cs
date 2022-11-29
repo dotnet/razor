@@ -8,28 +8,27 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor
+namespace Microsoft.VisualStudio.LanguageServices.Razor;
+
+[Shared]
+[ExportWorkspaceServiceFactory(typeof(ErrorReporter), ServiceLayer.Host)]
+internal class VisualStudioErrorReporterFactory : IWorkspaceServiceFactory
 {
-    [Shared]
-    [ExportWorkspaceServiceFactory(typeof(ErrorReporter), ServiceLayer.Host)]
-    internal class VisualStudioErrorReporterFactory : IWorkspaceServiceFactory
+    private readonly SVsServiceProvider _serviceProvider;
+
+    [ImportingConstructor]
+    public VisualStudioErrorReporterFactory(SVsServiceProvider serviceProvider)
     {
-        private readonly SVsServiceProvider _serviceProvider;
-
-        [ImportingConstructor]
-        public VisualStudioErrorReporterFactory(SVsServiceProvider serviceProvider)
+        if (serviceProvider is null)
         {
-            if (serviceProvider is null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            _serviceProvider = serviceProvider;
+            throw new ArgumentNullException(nameof(serviceProvider));
         }
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new VisualStudioErrorReporter(_serviceProvider);
-        }
+        _serviceProvider = serviceProvider;
+    }
+
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+    {
+        return new VisualStudioErrorReporter(_serviceProvider);
     }
 }

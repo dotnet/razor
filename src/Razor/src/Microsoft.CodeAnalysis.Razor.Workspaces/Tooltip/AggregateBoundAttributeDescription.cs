@@ -4,22 +4,21 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Razor.Tooltip
+namespace Microsoft.CodeAnalysis.Razor.Tooltip;
+
+internal class AggregateBoundAttributeDescription
 {
-    internal class AggregateBoundAttributeDescription
+    public static readonly AggregateBoundAttributeDescription Default = new(Array.Empty<BoundAttributeDescriptionInfo>());
+
+    public AggregateBoundAttributeDescription(IReadOnlyList<BoundAttributeDescriptionInfo> descriptionInfos)
     {
-        public static readonly AggregateBoundAttributeDescription Default = new(Array.Empty<BoundAttributeDescriptionInfo>());
-
-        public AggregateBoundAttributeDescription(IReadOnlyList<BoundAttributeDescriptionInfo> descriptionInfos)
+        if (descriptionInfos is null)
         {
-            if (descriptionInfos is null)
-            {
-                throw new ArgumentNullException(nameof(descriptionInfos));
-            }
-
-            DescriptionInfos = descriptionInfos;
+            throw new ArgumentNullException(nameof(descriptionInfos));
         }
 
-        public IReadOnlyList<BoundAttributeDescriptionInfo> DescriptionInfos { get; }
+        DescriptionInfos = descriptionInfos;
     }
+
+    public IReadOnlyList<BoundAttributeDescriptionInfo> DescriptionInfos { get; }
 }

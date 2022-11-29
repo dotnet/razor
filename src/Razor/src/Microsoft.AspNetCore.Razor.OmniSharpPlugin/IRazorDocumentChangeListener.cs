@@ -3,10 +3,9 @@
 
 #nullable disable
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+internal interface IRazorDocumentChangeListener
 {
-    internal interface IRazorDocumentChangeListener
-    {
-        void RazorDocumentChanged(RazorFileChangeEventArgs args);
-    }
+    void RazorDocumentChanged(RazorFileChangeEventArgs args);
 }

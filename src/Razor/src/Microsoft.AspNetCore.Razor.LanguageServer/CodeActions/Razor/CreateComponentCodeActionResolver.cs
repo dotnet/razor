@@ -15,94 +15,93 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+
+internal class CreateComponentCodeActionResolver : RazorCodeActionResolver
 {
-    internal class CreateComponentCodeActionResolver : RazorCodeActionResolver
+    private readonly DocumentContextFactory _documentContextFactory;
+
+    public CreateComponentCodeActionResolver(DocumentContextFactory documentContextFactory)
     {
-        private readonly DocumentContextFactory _documentContextFactory;
+        _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
+    }
 
-        public CreateComponentCodeActionResolver(DocumentContextFactory documentContextFactory)
+    public override string Action => LanguageServerConstants.CodeActions.CreateComponentFromTag;
+
+    public override async Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken)
+    {
+        if (data is null)
         {
-            _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
+            return null;
         }
 
-        public override string Action => LanguageServerConstants.CodeActions.CreateComponentFromTag;
-
-        public override async Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken)
+        var actionParams = data.ToObject<CreateComponentCodeActionParams>();
+        if (actionParams is null)
         {
-            if (data is null)
-            {
-                return null;
-            }
-
-            var actionParams = data.ToObject<CreateComponentCodeActionParams>();
-            if (actionParams is null)
-            {
-                return null;
-            }
-
-            var documentContext = await _documentContextFactory.TryCreateAsync(actionParams.Uri, cancellationToken).ConfigureAwait(false);
-            if (documentContext is null)
-            {
-                return null;
-            }
-
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            if (codeDocument.IsUnsupported())
-            {
-                return null;
-            }
-
-            if (!FileKinds.IsComponent(codeDocument.GetFileKind()))
-            {
-                return null;
-            }
-
-            var newComponentUri = new UriBuilder()
-            {
-                Scheme = Uri.UriSchemeFile,
-                Path = actionParams.Path,
-                Host = string.Empty,
-            }.Uri;
-
-            var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>
-            {
-                new CreateFile() { Uri = newComponentUri },
-            };
-
-            TryAddNamespaceDirective(codeDocument, newComponentUri, documentChanges);
-
-            return new WorkspaceEdit()
-            {
-                DocumentChanges = documentChanges.ToArray(),
-            };
+            return null;
         }
 
-        private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
+        var documentContext = await _documentContextFactory.TryCreateAsync(actionParams.Uri, cancellationToken).ConfigureAwait(false);
+        if (documentContext is null)
         {
-            var syntaxTree = codeDocument.GetSyntaxTree();
-            var namespaceDirective = syntaxTree.Root.DescendantNodes()
-                .Where(n => n.Kind == SyntaxKind.RazorDirective)
-                .Cast<RazorDirectiveSyntax>()
-                .Where(n => n.DirectiveDescriptor == NamespaceDirective.Directive)
-                .FirstOrDefault();
+            return null;
+        }
 
-            if (namespaceDirective != null)
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        if (codeDocument.IsUnsupported())
+        {
+            return null;
+        }
+
+        if (!FileKinds.IsComponent(codeDocument.GetFileKind()))
+        {
+            return null;
+        }
+
+        var newComponentUri = new UriBuilder()
+        {
+            Scheme = Uri.UriSchemeFile,
+            Path = actionParams.Path,
+            Host = string.Empty,
+        }.Uri;
+
+        var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>
+        {
+            new CreateFile() { Uri = newComponentUri },
+        };
+
+        TryAddNamespaceDirective(codeDocument, newComponentUri, documentChanges);
+
+        return new WorkspaceEdit()
+        {
+            DocumentChanges = documentChanges.ToArray(),
+        };
+    }
+
+    private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, Uri newComponentUri, List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
+    {
+        var syntaxTree = codeDocument.GetSyntaxTree();
+        var namespaceDirective = syntaxTree.Root.DescendantNodes()
+            .Where(n => n.Kind == SyntaxKind.RazorDirective)
+            .Cast<RazorDirectiveSyntax>()
+            .Where(n => n.DirectiveDescriptor == NamespaceDirective.Directive)
+            .FirstOrDefault();
+
+        if (namespaceDirective != null)
+        {
+            var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newComponentUri };
+            documentChanges.Add(new TextDocumentEdit
             {
-                var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newComponentUri };
-                documentChanges.Add(new TextDocumentEdit
+                TextDocument = documentIdentifier,
+                Edits = new[]
                 {
-                    TextDocument = documentIdentifier,
-                    Edits = new[]
+                    new TextEdit()
                     {
-                        new TextEdit()
-                        {
-                            NewText = namespaceDirective.GetContent(),
-                            Range = new Range{ Start = new Position(0, 0), End = new Position(0, 0) },
-                        }
+                        NewText = namespaceDirective.GetContent(),
+                        Range = new Range{ Start = new Position(0, 0), End = new Position(0, 0) },
                     }
-                });
-            }
+                }
+            });
         }
     }
 }

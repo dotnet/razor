@@ -10,39 +10,38 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+internal class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
 {
-    internal class TestProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcher
+    public TestProjectSnapshotManagerDispatcher()
     {
-        public TestProjectSnapshotManagerDispatcher()
+        DispatcherScheduler = SynchronizationContext.Current is null
+            ? new ThrowingTaskScheduler()
+            : TaskScheduler.FromCurrentSynchronizationContext();
+    }
+
+    public override TaskScheduler DispatcherScheduler { get; }
+
+    private Thread Thread { get; } = Thread.CurrentThread;
+
+    public override bool IsDispatcherThread => Thread.CurrentThread == Thread;
+
+    private class ThrowingTaskScheduler : TaskScheduler
+    {
+        protected override IEnumerable<Task> GetScheduledTasks()
         {
-            DispatcherScheduler = SynchronizationContext.Current is null
-                ? new ThrowingTaskScheduler()
-                : TaskScheduler.FromCurrentSynchronizationContext();
+            return Enumerable.Empty<Task>();
         }
 
-        public override TaskScheduler DispatcherScheduler { get; }
-
-        private Thread Thread { get; } = Thread.CurrentThread;
-
-        public override bool IsDispatcherThread => Thread.CurrentThread == Thread;
-
-        private class ThrowingTaskScheduler : TaskScheduler
+        protected override void QueueTask(Task task)
         {
-            protected override IEnumerable<Task> GetScheduledTasks()
-            {
-                return Enumerable.Empty<Task>();
-            }
+            throw new InvalidOperationException($"Use [{nameof(UIFactAttribute)}]");
+        }
 
-            protected override void QueueTask(Task task)
-            {
-                throw new InvalidOperationException($"Use [{nameof(UIFactAttribute)}]");
-            }
-
-            protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
-            {
-                throw new InvalidOperationException($"Use [{nameof(UIFactAttribute)}]");
-            }
+        protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
+        {
+            throw new InvalidOperationException($"Use [{nameof(UIFactAttribute)}]");
         }
     }
 }

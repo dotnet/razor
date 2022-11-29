@@ -6,27 +6,26 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+internal static class FilePathComparison
 {
-    internal static class FilePathComparison
+    private static StringComparison? s_instance;
+
+    public static StringComparison Instance
     {
-        private static StringComparison? s_instance;
-
-        public static StringComparison Instance
+        get
         {
-            get
+            if (s_instance is null && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                if (s_instance is null && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    s_instance = StringComparison.Ordinal;
-                }
-                else if (s_instance is null)
-                {
-                    s_instance = StringComparison.OrdinalIgnoreCase;
-                }
-
-                return s_instance.Value;
+                s_instance = StringComparison.Ordinal;
             }
+            else if (s_instance is null)
+            {
+                s_instance = StringComparison.OrdinalIgnoreCase;
+            }
+
+            return s_instance.Value;
         }
     }
 }

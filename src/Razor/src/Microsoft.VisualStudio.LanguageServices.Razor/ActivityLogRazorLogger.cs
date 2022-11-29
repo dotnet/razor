@@ -9,76 +9,75 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor
+namespace Microsoft.VisualStudio.LanguageServices.Razor;
+
+[Shared]
+[Export(typeof(RazorLogger))]
+internal class ActivityLogRazorLogger : RazorLogger
 {
-    [Shared]
-    [Export(typeof(RazorLogger))]
-    internal class ActivityLogRazorLogger : RazorLogger
+    private readonly IServiceProvider _serviceProvider;
+    private readonly JoinableTaskFactory _joinableTaskFactory;
+
+    [ImportingConstructor]
+    public ActivityLogRazorLogger(SVsServiceProvider serviceProvider, JoinableTaskContext joinableTaskContext)
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly JoinableTaskFactory _joinableTaskFactory;
-
-        [ImportingConstructor]
-        public ActivityLogRazorLogger(SVsServiceProvider serviceProvider, JoinableTaskContext joinableTaskContext)
+        if (serviceProvider is null)
         {
-            if (serviceProvider is null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            _serviceProvider = serviceProvider;
-            _joinableTaskFactory = joinableTaskContext.Factory;
+            throw new ArgumentNullException(nameof(serviceProvider));
         }
 
-        public override void LogError(string message)
+        if (joinableTaskContext is null)
         {
-            Log(__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR, message);
+            throw new ArgumentNullException(nameof(joinableTaskContext));
         }
 
-        public override void LogWarning(string message)
-        {
-            Log(__ACTIVITYLOG_ENTRYTYPE.ALE_WARNING, message);
-        }
+        _serviceProvider = serviceProvider;
+        _joinableTaskFactory = joinableTaskContext.Factory;
+    }
 
-        public override void LogVerbose(string message)
-        {
-            Log(__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION, message);
-        }
+    public override void LogError(string message)
+    {
+        Log(__ACTIVITYLOG_ENTRYTYPE.ALE_ERROR, message);
+    }
 
-        private void Log(__ACTIVITYLOG_ENTRYTYPE logType, string message)
-        {
-            // This is an async void method. Catch all exceptions so it doesn't crash the process.
-            try
-            {
-                _joinableTaskFactory.Run(async () => {
-                    await _joinableTaskFactory.SwitchToMainThreadAsync();
+    public override void LogWarning(string message)
+    {
+        Log(__ACTIVITYLOG_ENTRYTYPE.ALE_WARNING, message);
+    }
 
-                    var activityLog = GetActivityLog();
-                    if (activityLog != null)
-                    {
-                        var hr = activityLog.LogEntry(
-                            (uint)logType,
-                            "Razor LSP Client",
-                            $"Info:{Environment.NewLine}{message}");
-                        ErrorHandler.ThrowOnFailure(hr);
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                Debug.Fail($"Razor LSP client logging failed. Error: {ex.Message}");
-            }
-        }
+    public override void LogVerbose(string message)
+    {
+        Log(__ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION, message);
+    }
 
-        private IVsActivityLog GetActivityLog()
+    private void Log(__ACTIVITYLOG_ENTRYTYPE logType, string message)
+    {
+        // This is an async void method. Catch all exceptions so it doesn't crash the process.
+        try
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            return (IVsActivityLog)_serviceProvider.GetService(typeof(SVsActivityLog));
+            _joinableTaskFactory.Run(async () => {
+                await _joinableTaskFactory.SwitchToMainThreadAsync();
+
+                var activityLog = GetActivityLog();
+                if (activityLog != null)
+                {
+                    var hr = activityLog.LogEntry(
+                        (uint)logType,
+                        "Razor LSP Client",
+                        $"Info:{Environment.NewLine}{message}");
+                    ErrorHandler.ThrowOnFailure(hr);
+                }
+            });
         }
+        catch (Exception ex)
+        {
+            Debug.Fail($"Razor LSP client logging failed. Error: {ex.Message}");
+        }
+    }
+
+    private IVsActivityLog GetActivityLog()
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+        return (IVsActivityLog)_serviceProvider.GetService(typeof(SVsActivityLog));
     }
 }

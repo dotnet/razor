@@ -4,25 +4,24 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.Razor
-{
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    public class ExportCustomProjectEngineFactoryAttribute : ExportAttribute, ICustomProjectEngineFactoryMetadata
-    {
-        public ExportCustomProjectEngineFactoryAttribute(string configurationName)
-            : base(typeof(IProjectEngineFactory))
-        {
-            if (configurationName is null)
-            {
-                throw new ArgumentNullException(nameof(configurationName));
-            }
+namespace Microsoft.CodeAnalysis.Razor;
 
-            ConfigurationName = configurationName;
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+internal class ExportCustomProjectEngineFactoryAttribute : ExportAttribute, ICustomProjectEngineFactoryMetadata
+{
+    public ExportCustomProjectEngineFactoryAttribute(string configurationName)
+        : base(typeof(IProjectEngineFactory))
+    {
+        if (configurationName is null)
+        {
+            throw new ArgumentNullException(nameof(configurationName));
         }
 
-        public string ConfigurationName { get; }
-
-        public bool SupportsSerialization { get; set; }
+        ConfigurationName = configurationName;
     }
+
+    public string ConfigurationName { get; }
+
+    public bool SupportsSerialization { get; set; }
 }

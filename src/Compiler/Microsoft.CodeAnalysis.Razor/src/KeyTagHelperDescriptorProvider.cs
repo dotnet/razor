@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal class KeyTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 {
-    public string Name => nameof(KeyTagHelperDescriptorProvider);
     // Run after the component tag helper provider
     public int Order { get; set; } = 1000;
 

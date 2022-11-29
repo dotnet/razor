@@ -6,46 +6,45 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+
+[Shared]
+[Export(typeof(RazorLSPConventions))]
+internal class RazorLSPConventions
 {
-    [Shared]
-    [Export(typeof(RazorLSPConventions))]
-    internal class RazorLSPConventions
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+
+    [ImportingConstructor]
+    public RazorLSPConventions(LanguageServerFeatureOptions languageServerFeatureOptions)
     {
-        private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+        _languageServerFeatureOptions = languageServerFeatureOptions;
+    }
 
-        [ImportingConstructor]
-        public RazorLSPConventions(LanguageServerFeatureOptions languageServerFeatureOptions)
+    public bool IsVirtualCSharpFile(Uri uri) => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
+
+    public bool IsVirtualHtmlFile(Uri uri) => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.HtmlVirtualDocumentSuffix);
+
+    public static bool IsRazorFile(Uri uri) => CheckIfFileUriAndExtensionMatch(uri, RazorLSPConstants.RazorFileExtension);
+
+    public static bool IsCSHTMLFile(Uri uri) => CheckIfFileUriAndExtensionMatch(uri, RazorLSPConstants.CSHTMLFileExtension);
+
+    public Uri GetRazorDocumentUri(Uri virtualDocumentUri)
+    {
+        return _languageServerFeatureOptions.GetRazorDocumentUri(virtualDocumentUri);
+    }
+
+    private static bool CheckIfFileUriAndExtensionMatch(Uri uri, string extension)
+    {
+        if (uri is null)
         {
-            _languageServerFeatureOptions = languageServerFeatureOptions;
+            throw new ArgumentNullException(nameof(uri));
         }
 
-        public bool IsVirtualCSharpFile(Uri uri) => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
-
-        public bool IsVirtualHtmlFile(Uri uri) => CheckIfFileUriAndExtensionMatch(uri, _languageServerFeatureOptions.HtmlVirtualDocumentSuffix);
-
-        public static bool IsRazorFile(Uri uri) => CheckIfFileUriAndExtensionMatch(uri, RazorLSPConstants.RazorFileExtension);
-
-        public static bool IsCSHTMLFile(Uri uri) => CheckIfFileUriAndExtensionMatch(uri, RazorLSPConstants.CSHTMLFileExtension);
-
-        public Uri GetRazorDocumentUri(Uri virtualDocumentUri)
+        if (string.IsNullOrEmpty(extension))
         {
-            return _languageServerFeatureOptions.GetRazorDocumentUri(virtualDocumentUri);
+            throw new ArgumentNullException(nameof(extension));
         }
 
-        private static bool CheckIfFileUriAndExtensionMatch(Uri uri, string extension)
-        {
-            if (uri is null)
-            {
-                throw new ArgumentNullException(nameof(uri));
-            }
-
-            if (string.IsNullOrEmpty(extension))
-            {
-                throw new ArgumentNullException(nameof(extension));
-            }
-
-            return uri.GetAbsoluteOrUNCPath()?.EndsWith(extension, StringComparison.Ordinal) ?? false;
-        }
+        return uri.GetAbsoluteOrUNCPath()?.EndsWith(extension, StringComparison.Ordinal) ?? false;
     }
 }

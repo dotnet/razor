@@ -10,20 +10,19 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
-{
-    [Shared]
-    [ExportWorkspaceServiceFactory(typeof(ProjectSnapshotProjectEngineFactory))]
-    internal class DefaultProjectSnapshotProjectEngineFactoryFactory : IWorkspaceServiceFactory
-    {
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            if (workspaceServices is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceServices));
-            }
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
 
-            return new DefaultProjectSnapshotProjectEngineFactory(new FallbackProjectEngineFactory(), ProjectEngineFactories.Factories);
+[Shared]
+[ExportWorkspaceServiceFactory(typeof(ProjectSnapshotProjectEngineFactory))]
+internal class DefaultProjectSnapshotProjectEngineFactoryFactory : IWorkspaceServiceFactory
+{
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+    {
+        if (workspaceServices is null)
+        {
+            throw new ArgumentNullException(nameof(workspaceServices));
         }
+
+        return new DefaultProjectSnapshotProjectEngineFactory(new FallbackProjectEngineFactory(), ProjectEngineFactories.Factories);
     }
 }

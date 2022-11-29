@@ -15,69 +15,68 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
-{
-    internal sealed class TestLSPProjectionProvider : LSPProjectionProvider
-    {
-        private readonly DefaultRazorDocumentMappingService _mappingService ;
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 
-        public TestLSPProjectionProvider(ILoggerFactory loggerFactory)
+internal sealed class TestLSPProjectionProvider : LSPProjectionProvider
+{
+    private readonly DefaultRazorDocumentMappingService _mappingService ;
+
+    public TestLSPProjectionProvider(ILoggerFactory loggerFactory)
+    {
+        _mappingService = new(
+            TestLanguageServerFeatureOptions.Instance,
+            new TestDocumentContextFactory(),
+            loggerFactory);
+    }
+
+    public override Task<ProjectionResult> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+    {
+        var text = documentSnapshot.Snapshot.GetText();
+        var sourceText = SourceText.From(text);
+        if (!position.TryGetAbsoluteIndex(sourceText, TestLogger.Instance, out var absoluteIndex))
         {
-            _mappingService = new(
-                TestLanguageServerFeatureOptions.Instance,
-                new TestDocumentContextFactory(),
-                loggerFactory);
+            return Task.FromResult<ProjectionResult>(null);
         }
 
-        public override Task<ProjectionResult> GetProjectionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+        var codeDocument = HandlerTestBase.CreateCodeDocument(text, documentSnapshot.Uri.AbsolutePath);
+        var languageKind = _mappingService.GetLanguageKind(codeDocument, absoluteIndex, rightAssociative: false);
+
+        if (languageKind == RazorLanguageKind.CSharp)
         {
-            var text = documentSnapshot.Snapshot.GetText();
-            var sourceText = SourceText.From(text);
-            if (!position.TryGetAbsoluteIndex(sourceText, TestLogger.Instance, out var absoluteIndex))
+            if (!_mappingService.TryMapToProjectedDocumentPosition(codeDocument, absoluteIndex, out var projectedPosition, out var projectedIndex))
             {
                 return Task.FromResult<ProjectionResult>(null);
             }
 
-            var codeDocument = HandlerTestBase.CreateCodeDocument(text, documentSnapshot.Uri.AbsolutePath);
-            var languageKind = _mappingService.GetLanguageKind(codeDocument, absoluteIndex, rightAssociative: false);
-
-            if (languageKind == RazorLanguageKind.CSharp)
+            var vsProjectedPosition = new Position { Line = projectedPosition.Line, Character = projectedPosition.Character };
+            if (documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpVirtualDocument))
             {
-                if (!_mappingService.TryMapToProjectedDocumentPosition(codeDocument, absoluteIndex, out var projectedPosition, out var projectedIndex))
+                var projectionResult = new ProjectionResult
                 {
-                    return Task.FromResult<ProjectionResult>(null);
-                }
+                    LanguageKind = RazorLanguageKind.CSharp,
+                    Position = vsProjectedPosition,
+                    PositionIndex = projectedIndex,
+                    HostDocumentVersion = (int?)csharpVirtualDocument.HostDocumentSyncVersion,
+                    Uri = csharpVirtualDocument.Uri
+                };
 
-                var vsProjectedPosition = new Position { Line = projectedPosition.Line, Character = projectedPosition.Character };
-                if (documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpVirtualDocument))
-                {
-                    var projectionResult = new ProjectionResult
-                    {
-                        LanguageKind = RazorLanguageKind.CSharp,
-                        Position = vsProjectedPosition,
-                        PositionIndex = projectedIndex,
-                        HostDocumentVersion = (int?)csharpVirtualDocument.HostDocumentSyncVersion,
-                        Uri = csharpVirtualDocument.Uri
-                    };
-
-                    return Task.FromResult(projectionResult);
-                }
+                return Task.FromResult(projectionResult);
             }
-
-            // No C# projection, return original position
-            var defaultProjection = new ProjectionResult
-            {
-                Uri = null,
-                Position = position,
-                PositionIndex = absoluteIndex,
-                LanguageKind = languageKind,
-                HostDocumentVersion = documentSnapshot.Version
-            };
-
-            return Task.FromResult(defaultProjection);
         }
 
-        public override Task<ProjectionResult> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
-            => GetProjectionAsync(documentSnapshot, position, cancellationToken);
+        // No C# projection, return original position
+        var defaultProjection = new ProjectionResult
+        {
+            Uri = null,
+            Position = position,
+            PositionIndex = absoluteIndex,
+            LanguageKind = languageKind,
+            HostDocumentVersion = documentSnapshot.Version
+        };
+
+        return Task.FromResult(defaultProjection);
     }
+
+    public override Task<ProjectionResult> GetProjectionForCompletionAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken)
+        => GetProjectionAsync(documentSnapshot, position, cancellationToken);
 }

@@ -8,55 +8,54 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+internal sealed class OmniSharpProjectSnapshot
 {
-    internal sealed class OmniSharpProjectSnapshot
+    internal readonly ProjectSnapshot InternalProjectSnapshot;
+
+    internal OmniSharpProjectSnapshot(ProjectSnapshot projectSnapshot)
     {
-        public readonly ProjectSnapshot InternalProjectSnapshot;
+        InternalProjectSnapshot = projectSnapshot;
+    }
 
-        internal OmniSharpProjectSnapshot(ProjectSnapshot projectSnapshot)
+    public string FilePath => InternalProjectSnapshot.FilePath;
+
+    public IEnumerable<string> DocumentFilePaths => InternalProjectSnapshot.DocumentFilePaths;
+
+    public RazorConfiguration Configuration => InternalProjectSnapshot.Configuration;
+
+    public ProjectWorkspaceState ProjectWorkspaceState => InternalProjectSnapshot.ProjectWorkspaceState;
+
+    public OmniSharpDocumentSnapshot GetDocument(string filePath)
+    {
+        var documentSnapshot = InternalProjectSnapshot.GetDocument(filePath);
+        if (documentSnapshot is null)
         {
-            InternalProjectSnapshot = projectSnapshot;
+            return null;
         }
 
-        public string FilePath => InternalProjectSnapshot.FilePath;
+        var internalDocumentSnapshot = new OmniSharpDocumentSnapshot(documentSnapshot);
+        return internalDocumentSnapshot;
+    }
 
-        public IEnumerable<string> DocumentFilePaths => InternalProjectSnapshot.DocumentFilePaths;
-
-        public RazorConfiguration Configuration => InternalProjectSnapshot.Configuration;
-
-        public ProjectWorkspaceState ProjectWorkspaceState => InternalProjectSnapshot.ProjectWorkspaceState;
-
-        public OmniSharpDocumentSnapshot GetDocument(string filePath)
+    internal static OmniSharpProjectSnapshot Convert(ProjectSnapshot projectSnapshot)
+    {
+        if (projectSnapshot is null)
         {
-            var documentSnapshot = InternalProjectSnapshot.GetDocument(filePath);
-            if (documentSnapshot is null)
-            {
-                return null;
-            }
-
-            var internalDocumentSnapshot = new OmniSharpDocumentSnapshot(documentSnapshot);
-            return internalDocumentSnapshot;
+            return null;
         }
 
-        internal static OmniSharpProjectSnapshot Convert(ProjectSnapshot projectSnapshot)
-        {
-            if (projectSnapshot is null)
-            {
-                return null;
-            }
+        return new OmniSharpProjectSnapshot(projectSnapshot);
+    }
 
-            return new OmniSharpProjectSnapshot(projectSnapshot);
+    public static OmniSharpProjectSnapshot CreateForTest(object projectSnapshot)
+    {
+        if (projectSnapshot is ProjectSnapshot stronglyTypedSnapshot)
+        {
+            return new OmniSharpProjectSnapshot(stronglyTypedSnapshot);
         }
 
-        public static OmniSharpProjectSnapshot CreateForTest(object projectSnapshot)
-        {
-            if (projectSnapshot is ProjectSnapshot stronglyTypedSnapshot)
-            {
-                return new OmniSharpProjectSnapshot(stronglyTypedSnapshot);
-            }
-
-            throw new ArgumentException("Snapshot is not of type " + typeof(ProjectSnapshot).FullName, nameof(projectSnapshot));
-        }
+        throw new ArgumentException("Snapshot is not of type " + typeof(ProjectSnapshot).FullName, nameof(projectSnapshot));
     }
 }

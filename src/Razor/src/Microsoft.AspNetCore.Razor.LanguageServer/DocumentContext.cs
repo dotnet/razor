@@ -12,111 +12,110 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal record DocumentContext
 {
-    internal record DocumentContext
+    private RazorCodeDocument? _codeDocument;
+    private SourceText? _sourceText;
+
+    public DocumentContext(
+        Uri uri,
+        DocumentSnapshot snapshot,
+        int version)
     {
-        private RazorCodeDocument? _codeDocument;
-        private SourceText? _sourceText;
+        Uri = uri;
+        Snapshot = snapshot;
+        Version = version;
+    }
 
-        public DocumentContext(
-            Uri uri,
-            DocumentSnapshot snapshot,
-            int version)
+    public virtual Uri Uri { get; }
+
+    public virtual DocumentSnapshot Snapshot { get; }
+
+    public virtual int Version { get; }
+
+    public virtual string FilePath => Snapshot.FilePath;
+
+    public virtual string FileKind => Snapshot.FileKind;
+
+    public virtual ProjectSnapshot Project => Snapshot.Project;
+
+    public virtual VersionedTextDocumentIdentifier Identifier => new VersionedTextDocumentIdentifier()
+    {
+        Uri = Uri,
+        Version = Version,
+    };
+
+    public virtual async Task<RazorCodeDocument> GetCodeDocumentAsync(CancellationToken cancellationToken)
+    {
+        if (_codeDocument is null)
         {
-            Uri = uri;
-            Snapshot = snapshot;
-            Version = version;
+            var codeDocument = await Snapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            _codeDocument = codeDocument;
         }
 
-        public virtual Uri Uri { get; }
+        return _codeDocument;
+    }
 
-        public virtual DocumentSnapshot Snapshot { get; }
-
-        public virtual int Version { get; }
-
-        public virtual string FilePath => Snapshot.FilePath;
-
-        public virtual string FileKind => Snapshot.FileKind;
-
-        public virtual ProjectSnapshot Project => Snapshot.Project;
-
-        public virtual VersionedTextDocumentIdentifier Identifier => new VersionedTextDocumentIdentifier()
+    public virtual async Task<SourceText> GetSourceTextAsync(CancellationToken cancellationToken)
+    {
+        if (_sourceText is null)
         {
-            Uri = Uri,
-            Version = Version,
-        };
+            var sourceText = await Snapshot.GetTextAsync().ConfigureAwait(false);
 
-        public virtual async Task<RazorCodeDocument> GetCodeDocumentAsync(CancellationToken cancellationToken)
-        {
-            if (_codeDocument is null)
-            {
-                var codeDocument = await Snapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
 
-                cancellationToken.ThrowIfCancellationRequested();
-
-                _codeDocument = codeDocument;
-            }
-
-            return _codeDocument;
+            _sourceText = sourceText;
         }
 
-        public virtual async Task<SourceText> GetSourceTextAsync(CancellationToken cancellationToken)
+        return _sourceText;
+    }
+
+    public virtual async Task<RazorSyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken)
+    {
+        var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = codeDocument.GetSyntaxTree();
+
+        return syntaxTree;
+    }
+
+    public virtual async Task<TagHelperDocumentContext> GetTagHelperContextAsync(CancellationToken cancellationToken)
+    {
+        var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var tagHelperContext = codeDocument.GetTagHelperContext();
+
+        return tagHelperContext;
+    }
+
+    public virtual async Task<SourceText> GetCSharpSourceTextAsync(CancellationToken cancellationToken)
+    {
+        var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = codeDocument.GetCSharpSourceText();
+
+        return sourceText;
+    }
+
+    public virtual async Task<SourceText> GetHtmlSourceTextAsync(CancellationToken cancellationToken)
+    {
+        var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = codeDocument.GetHtmlSourceText();
+
+        return sourceText;
+    }
+
+    public async Task<SyntaxNode?> GetSyntaxNodeAsync(int absoluteIndex, CancellationToken cancellationToken)
+    {
+        var change = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
+        var syntaxTree = await GetSyntaxTreeAsync(cancellationToken);
+        if (syntaxTree.Root is null)
         {
-            if (_sourceText is null)
-            {
-                var sourceText = await Snapshot.GetTextAsync().ConfigureAwait(false);
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                _sourceText = sourceText;
-            }
-
-            return _sourceText;
+            return null;
         }
 
-        public virtual async Task<RazorSyntaxTree> GetSyntaxTreeAsync(CancellationToken cancellationToken)
-        {
-            var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxTree = codeDocument.GetSyntaxTree();
-
-            return syntaxTree;
-        }
-
-        public virtual async Task<TagHelperDocumentContext> GetTagHelperContextAsync(CancellationToken cancellationToken)
-        {
-            var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            var tagHelperContext = codeDocument.GetTagHelperContext();
-
-            return tagHelperContext;
-        }
-
-        public virtual async Task<SourceText> GetCSharpSourceTextAsync(CancellationToken cancellationToken)
-        {
-            var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            var sourceText = codeDocument.GetCSharpSourceText();
-
-            return sourceText;
-        }
-
-        public virtual async Task<SourceText> GetHtmlSourceTextAsync(CancellationToken cancellationToken)
-        {
-            var codeDocument = await GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            var sourceText = codeDocument.GetHtmlSourceText();
-
-            return sourceText;
-        }
-
-        public async Task<SyntaxNode?> GetSyntaxNodeAsync(int absoluteIndex, CancellationToken cancellationToken)
-        {
-            var change = new SourceChange(absoluteIndex, length: 0, newText: string.Empty);
-            var syntaxTree = await GetSyntaxTreeAsync(cancellationToken);
-            if (syntaxTree.Root is null)
-            {
-                return null;
-            }
-
-            return syntaxTree.Root.LocateOwner(change);
-        }
+        return syntaxTree.Root.LocateOwner(change);
     }
 }

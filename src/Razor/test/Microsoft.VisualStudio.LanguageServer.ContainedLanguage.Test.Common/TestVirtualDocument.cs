@@ -4,15 +4,14 @@
 using Microsoft.VisualStudio.Text;
 using System;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common
-{
-    internal class TestVirtualDocument : VirtualDocumentBase<TestVirtualDocumentSnapshot>
-    {
-        public TestVirtualDocument(Uri uri, ITextBuffer textBuffer)
-            : base(uri, textBuffer)
-        {
-        }
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common;
 
-        protected override TestVirtualDocumentSnapshot GetUpdatedSnapshot(object? state) => new(Uri, HostDocumentVersion, TextBuffer.CurrentSnapshot, state);
+internal class TestVirtualDocument : VirtualDocumentBase<TestVirtualDocumentSnapshot>
+{
+    public TestVirtualDocument(Uri uri, ITextBuffer textBuffer)
+        : base(uri, textBuffer)
+    {
     }
+
+    protected override TestVirtualDocumentSnapshot GetUpdatedSnapshot(object? state) => new(Uri, HostDocumentVersion, TextBuffer.CurrentSnapshot, state);
 }

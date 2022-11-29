@@ -4,20 +4,19 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
-{
-    internal class ProjectSystemRazorExtension : RazorExtension
-    {
-        public ProjectSystemRazorExtension(string extensionName)
-        {
-            if (extensionName is null)
-            {
-                throw new ArgumentNullException(nameof(extensionName));
-            }
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-            ExtensionName = extensionName;
+internal class ProjectSystemRazorExtension : RazorExtension
+{
+    public ProjectSystemRazorExtension(string extensionName)
+    {
+        if (extensionName is null)
+        {
+            throw new ArgumentNullException(nameof(extensionName));
         }
 
-        public override string ExtensionName { get; }
+        ExtensionName = extensionName;
     }
+
+    public override string ExtensionName { get; }
 }

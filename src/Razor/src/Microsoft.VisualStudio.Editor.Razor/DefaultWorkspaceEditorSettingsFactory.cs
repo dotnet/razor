@@ -8,33 +8,32 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+[Shared]
+[ExportLanguageServiceFactory(typeof(WorkspaceEditorSettings), RazorLanguage.Name)]
+internal class DefaultWorkspaceEditorSettingsFactory : ILanguageServiceFactory
 {
-    [Shared]
-    [ExportLanguageServiceFactory(typeof(WorkspaceEditorSettings), RazorLanguage.Name)]
-    internal class DefaultWorkspaceEditorSettingsFactory : ILanguageServiceFactory
+    private readonly EditorSettingsManager _editorSettingsManager;
+
+    [ImportingConstructor]
+    public DefaultWorkspaceEditorSettingsFactory(EditorSettingsManager editorSettingsManager)
     {
-        private readonly EditorSettingsManager _editorSettingsManager;
-
-        [ImportingConstructor]
-        public DefaultWorkspaceEditorSettingsFactory(EditorSettingsManager editorSettingsManager)
+        if (editorSettingsManager is null)
         {
-            if (editorSettingsManager is null)
-            {
-                throw new ArgumentNullException(nameof(editorSettingsManager));
-            }
-
-            _editorSettingsManager = editorSettingsManager;
+            throw new ArgumentNullException(nameof(editorSettingsManager));
         }
 
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            if (languageServices is null)
-            {
-                throw new ArgumentNullException(nameof(languageServices));
-            }
+        _editorSettingsManager = editorSettingsManager;
+    }
 
-            return new DefaultWorkspaceEditorSettings(_editorSettingsManager);
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+    {
+        if (languageServices is null)
+        {
+            throw new ArgumentNullException(nameof(languageServices));
         }
+
+        return new DefaultWorkspaceEditorSettings(_editorSettingsManager);
     }
 }

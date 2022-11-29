@@ -45,5 +45,22 @@ export function RunUsingStatementSuite() {
     </div>
 }`);
         });
+
+        it('Nested inside if', async () => {
+            await assertMatchesSnapshot(
+`@if (true)
+{
+    using (SomeDisposable) {
+        <p></p>
+    }
+}`);
+        });
+
+        it('Not in HTML', async () => {
+            await assertMatchesSnapshot(
+`<div>
+    using (the best potatoes)
+</div>`);
+        });
     });
 }

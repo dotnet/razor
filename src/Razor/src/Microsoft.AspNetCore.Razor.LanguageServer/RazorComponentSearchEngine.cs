@@ -5,12 +5,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
-{
-    internal abstract class RazorComponentSearchEngine
-    {
-        public abstract Task<DocumentSnapshot?> TryLocateComponentAsync(TagHelperDescriptor tagHelper);
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-        public abstract Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(DocumentSnapshot codeDocument, System.Threading.CancellationToken cancellationToken);
-    }
+internal abstract class RazorComponentSearchEngine
+{
+    public abstract Task<DocumentSnapshot?> TryLocateComponentAsync(TagHelperDescriptor tagHelper);
+
+    public abstract Task<TagHelperDescriptor?> TryGetTagHelperDescriptorAsync(DocumentSnapshot codeDocument, System.Threading.CancellationToken cancellationToken);
 }

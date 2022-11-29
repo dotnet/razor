@@ -14,91 +14,90 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+[ContentType(RazorLanguage.CoreContentType)]
+[ContentType(RazorConstants.LegacyCoreContentType)]
+[TextViewRole(PredefinedTextViewRoles.Document)]
+[Export(typeof(ITextViewConnectionListener))]
+internal class RazorTextViewConnectionListener : ITextViewConnectionListener
 {
-    [ContentType(RazorLanguage.CoreContentType)]
-    [ContentType(RazorConstants.LegacyCoreContentType)]
-    [TextViewRole(PredefinedTextViewRoles.Document)]
-    [Export(typeof(ITextViewConnectionListener))]
-    internal class RazorTextViewConnectionListener : ITextViewConnectionListener
+    private readonly JoinableTaskContext _joinableTaskContext;
+    private readonly RazorDocumentManager _documentManager;
+
+    [ImportingConstructor]
+    public RazorTextViewConnectionListener(JoinableTaskContext joinableTaskContext, RazorDocumentManager documentManager)
     {
-        private readonly JoinableTaskContext _joinableTaskContext;
-        private readonly RazorDocumentManager _documentManager;
-
-        [ImportingConstructor]
-        public RazorTextViewConnectionListener(JoinableTaskContext joinableTaskContext, RazorDocumentManager documentManager)
+        if (joinableTaskContext is null)
         {
-            if (joinableTaskContext is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskContext));
-            }
-
-            if (documentManager is null)
-            {
-                throw new ArgumentNullException(nameof(documentManager));
-            }
-
-            _joinableTaskContext = joinableTaskContext;
-            _documentManager = documentManager;
+            throw new ArgumentNullException(nameof(joinableTaskContext));
         }
 
-        public void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
+        if (documentManager is null)
         {
-            _ = SubjectBuffersConnectedAsync(textView, reason, subjectBuffers, CancellationToken.None);
+            throw new ArgumentNullException(nameof(documentManager));
         }
 
-        private async Task SubjectBuffersConnectedAsync(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers, CancellationToken cancellationToken)
+        _joinableTaskContext = joinableTaskContext;
+        _documentManager = documentManager;
+    }
+
+    public void SubjectBuffersConnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
+    {
+        _ = SubjectBuffersConnectedAsync(textView, subjectBuffers);
+    }
+
+    private async Task SubjectBuffersConnectedAsync(ITextView textView, IReadOnlyCollection<ITextBuffer> subjectBuffers)
+    {
+        try
         {
-            try
+            if (textView is null)
             {
-                if (textView is null)
-                {
-                    throw new ArgumentException(nameof(textView));
-                }
-
-                if (subjectBuffers is null)
-                {
-                    throw new ArgumentNullException(nameof(subjectBuffers));
-                }
-
-                _joinableTaskContext.AssertUIThread();
-                await _documentManager.OnTextViewOpenedAsync(textView, subjectBuffers);
+                throw new ArgumentException(nameof(textView));
             }
-            catch (Exception ex)
+
+            if (subjectBuffers is null)
             {
-                Debug.Fail("RazorTextViewConnectionListener.SubjectBuffersConnected threw exception:" +
-                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+                throw new ArgumentNullException(nameof(subjectBuffers));
             }
+
+            _joinableTaskContext.AssertUIThread();
+            await _documentManager.OnTextViewOpenedAsync(textView, subjectBuffers);
         }
-
-        public void SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
+        catch (Exception ex)
         {
-            _ = SubjectBuffersDisconnectedAsync(textView, subjectBuffers);
+            Debug.Fail("RazorTextViewConnectionListener.SubjectBuffersConnected threw exception:" +
+                Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
         }
+    }
 
-        public async Task SubjectBuffersDisconnectedAsync(ITextView textView, IReadOnlyCollection<ITextBuffer> subjectBuffers)
+    public void SubjectBuffersDisconnected(ITextView textView, ConnectionReason reason, IReadOnlyCollection<ITextBuffer> subjectBuffers)
+    {
+        _ = SubjectBuffersDisconnectedAsync(textView, subjectBuffers);
+    }
+
+    public async Task SubjectBuffersDisconnectedAsync(ITextView textView, IReadOnlyCollection<ITextBuffer> subjectBuffers)
+    {
+        try
         {
-            try
+            if (textView is null)
             {
-                if (textView is null)
-                {
-                    throw new ArgumentException(nameof(textView));
-                }
-
-                if (subjectBuffers is null)
-                {
-                    throw new ArgumentNullException(nameof(subjectBuffers));
-                }
-
-                _joinableTaskContext.AssertUIThread();
-
-                await _documentManager.OnTextViewClosedAsync(textView, subjectBuffers);
+                throw new ArgumentException(nameof(textView));
             }
-            catch (Exception ex)
+
+            if (subjectBuffers is null)
             {
-                Debug.Fail("RazorTextViewConnectionListener.SubjectBuffersDisconnected threw exception:" +
-                    Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
+                throw new ArgumentNullException(nameof(subjectBuffers));
             }
+
+            _joinableTaskContext.AssertUIThread();
+
+            await _documentManager.OnTextViewClosedAsync(textView, subjectBuffers);
+        }
+        catch (Exception ex)
+        {
+            Debug.Fail("RazorTextViewConnectionListener.SubjectBuffersDisconnected threw exception:" +
+                Environment.NewLine + ex.Message + Environment.NewLine + "Stack trace:" + Environment.NewLine + ex.StackTrace);
         }
     }
 }

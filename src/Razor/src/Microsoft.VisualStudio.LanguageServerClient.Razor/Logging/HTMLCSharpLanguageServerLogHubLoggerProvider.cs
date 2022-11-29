@@ -8,89 +8,88 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+
+[Shared]
+[Export(typeof(HTMLCSharpLanguageServerLogHubLoggerProvider))]
+internal class HTMLCSharpLanguageServerLogHubLoggerProvider : ILoggerProvider
 {
-    [Shared]
-    [Export(typeof(HTMLCSharpLanguageServerLogHubLoggerProvider))]
-    internal class HTMLCSharpLanguageServerLogHubLoggerProvider : ILoggerProvider
-    {
-        private const string LogFileIdentifier = "Razor.HTMLCSharpLanguageServerClient";
+    private const string LogFileIdentifier = "Razor.HTMLCSharpLanguageServerClient";
 
-        private LogHubLoggerProvider? _loggerProvider;
-        private readonly HTMLCSharpLanguageServerLogHubLoggerProviderFactory _loggerFactory;
-        private readonly SemaphoreSlim _initializationSemaphore;
+    private LogHubLoggerProvider? _loggerProvider;
+    private readonly HTMLCSharpLanguageServerLogHubLoggerProviderFactory _loggerFactory;
+    private readonly SemaphoreSlim _initializationSemaphore;
 
-        // Internal for testing / do not remove, used by Moq to construct
+    // Internal for testing / do not remove, used by Moq to construct
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        internal HTMLCSharpLanguageServerLogHubLoggerProvider()
+    internal HTMLCSharpLanguageServerLogHubLoggerProvider()
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        {
-        }
+    {
+    }
 
-        private LogHubLoggerProvider LoggerProvider
+    private LogHubLoggerProvider LoggerProvider
+    {
+        get
         {
-            get
+            if (_loggerProvider is null)
             {
-                if (_loggerProvider is null)
-                {
-                    throw new InvalidOperationException($"{nameof(LoggerProvider)} accessed before being set.");
-                }
-
-                return _loggerProvider;
-            }
-        }
-
-        [ImportingConstructor]
-        public HTMLCSharpLanguageServerLogHubLoggerProvider(HTMLCSharpLanguageServerLogHubLoggerProviderFactory loggerFactory)
-        {
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
+                throw new InvalidOperationException($"{nameof(LoggerProvider)} accessed before being set.");
             }
 
-            _loggerFactory = loggerFactory;
-            _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
+            return _loggerProvider;
         }
+    }
 
-        // Virtual for testing
-        public virtual async Task InitializeLoggerAsync(CancellationToken cancellationToken)
+    [ImportingConstructor]
+    public HTMLCSharpLanguageServerLogHubLoggerProvider(HTMLCSharpLanguageServerLogHubLoggerProviderFactory loggerFactory)
+    {
+        if (loggerFactory is null)
         {
-            if (_loggerProvider is not null)
-            {
-                return;
-            }
-
-            await _initializationSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-            try
-            {
-                _loggerProvider ??= (LogHubLoggerProvider)await _loggerFactory.GetOrCreateAsync(LogFileIdentifier, cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                _initializationSemaphore.Release();
-            }
+            throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        // Virtual for testing
-        public virtual ILogger CreateLogger(string categoryName)
+        _loggerFactory = loggerFactory;
+        _initializationSemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
+    }
+
+    // Virtual for testing
+    public virtual async Task InitializeLoggerAsync(CancellationToken cancellationToken)
+    {
+        if (_loggerProvider is not null)
         {
-            return LoggerProvider.CreateLogger(categoryName);
+            return;
         }
 
-        public virtual async Task<ILogger> CreateLoggerAsync(string categoryName, CancellationToken cancellationToken)
-        {
-            await InitializeLoggerAsync(cancellationToken);
-            return CreateLogger(categoryName);
-        }
+        await _initializationSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        public TraceSource GetTraceSource()
+        try
         {
-            return LoggerProvider.GetTraceSource();
+            _loggerProvider ??= (LogHubLoggerProvider)await _loggerFactory.GetOrCreateAsync(LogFileIdentifier, cancellationToken).ConfigureAwait(false);
         }
+        finally
+        {
+            _initializationSemaphore.Release();
+        }
+    }
 
-        public void Dispose()
-        {
-        }
+    // Virtual for testing
+    public virtual ILogger CreateLogger(string categoryName)
+    {
+        return LoggerProvider.CreateLogger(categoryName);
+    }
+
+    public virtual async Task<ILogger> CreateLoggerAsync(string categoryName, CancellationToken cancellationToken)
+    {
+        await InitializeLoggerAsync(cancellationToken);
+        return CreateLogger(categoryName);
+    }
+
+    public TraceSource GetTraceSource()
+    {
+        return LoggerProvider.GetTraceSource();
+    }
+
+    public void Dispose()
+    {
     }
 }

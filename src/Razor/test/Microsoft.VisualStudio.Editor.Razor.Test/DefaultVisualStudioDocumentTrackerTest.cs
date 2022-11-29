@@ -19,479 +19,478 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
 {
-    public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDispatcherWorkspaceTestBase
+    private readonly IContentType _razorCoreContentType;
+    private readonly ITextBuffer _textBuffer;
+    private readonly string _filePath;
+    private readonly string _projectPath;
+    private readonly string _rootNamespace;
+    private readonly HostProject _hostProject;
+    private readonly HostProject _updatedHostProject;
+    private readonly HostProject _otherHostProject;
+    private Project _workspaceProject;
+    private readonly ImportDocumentManager _importDocumentManager;
+    private readonly WorkspaceEditorSettings _workspaceEditorSettings;
+    private readonly List<TagHelperDescriptor> _someTagHelpers;
+    private TestTagHelperResolver _tagHelperResolver;
+    private readonly ProjectSnapshotManagerBase _projectManager;
+    private readonly DefaultVisualStudioDocumentTracker _documentTracker;
+
+    public DefaultVisualStudioDocumentTrackerTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly IContentType _razorCoreContentType;
-        private readonly ITextBuffer _textBuffer;
-        private readonly string _filePath;
-        private readonly string _projectPath;
-        private readonly string _rootNamespace;
-        private readonly HostProject _hostProject;
-        private readonly HostProject _updatedHostProject;
-        private readonly HostProject _otherHostProject;
-        private Project _workspaceProject;
-        private readonly ImportDocumentManager _importDocumentManager;
-        private readonly WorkspaceEditorSettings _workspaceEditorSettings;
-        private readonly List<TagHelperDescriptor> _someTagHelpers;
-        private TestTagHelperResolver _tagHelperResolver;
-        private readonly ProjectSnapshotManagerBase _projectManager;
-        private readonly DefaultVisualStudioDocumentTracker _documentTracker;
+        _razorCoreContentType = Mock.Of<IContentType>(c => c.IsOfType(RazorLanguage.ContentType) && c.IsOfType(RazorConstants.LegacyContentType), MockBehavior.Strict);
+        _textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == _razorCoreContentType, MockBehavior.Strict);
 
-        public DefaultVisualStudioDocumentTrackerTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+        _filePath = TestProjectData.SomeProjectFile1.FilePath;
+        _projectPath = TestProjectData.SomeProject.FilePath;
+        _rootNamespace = TestProjectData.SomeProject.RootNamespace;
+
+        _importDocumentManager = new Mock<ImportDocumentManager>(MockBehavior.Strict).Object;
+        Mock.Get(_importDocumentManager).Setup(m => m.OnSubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
+        Mock.Get(_importDocumentManager).Setup(m => m.OnUnsubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
+
+        _workspaceEditorSettings = new DefaultWorkspaceEditorSettings(Mock.Of<EditorSettingsManager>(MockBehavior.Strict));
+
+        _someTagHelpers = new List<TagHelperDescriptor>()
         {
-            _razorCoreContentType = Mock.Of<IContentType>(c => c.IsOfType(RazorLanguage.ContentType) && c.IsOfType(RazorConstants.LegacyContentType), MockBehavior.Strict);
-            _textBuffer = Mock.Of<ITextBuffer>(b => b.ContentType == _razorCoreContentType, MockBehavior.Strict);
+            TagHelperDescriptorBuilder.Create("test", "test").Build(),
+        };
 
-            _filePath = TestProjectData.SomeProjectFile1.FilePath;
-            _projectPath = TestProjectData.SomeProject.FilePath;
-            _rootNamespace = TestProjectData.SomeProject.RootNamespace;
+        _projectManager = new TestProjectSnapshotManager(Dispatcher, Workspace) { AllowNotifyListeners = true };
 
-            _importDocumentManager = new Mock<ImportDocumentManager>(MockBehavior.Strict).Object;
-            Mock.Get(_importDocumentManager).Setup(m => m.OnSubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
-            Mock.Get(_importDocumentManager).Setup(m => m.OnUnsubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
+        _hostProject = new HostProject(_projectPath, FallbackRazorConfiguration.MVC_2_1, _rootNamespace);
+        _updatedHostProject = new HostProject(_projectPath, FallbackRazorConfiguration.MVC_2_0, _rootNamespace);
+        _otherHostProject = new HostProject(TestProjectData.AnotherProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.AnotherProject.RootNamespace);
 
-            _workspaceEditorSettings = new DefaultWorkspaceEditorSettings(Mock.Of<EditorSettingsManager>(MockBehavior.Strict));
+        _documentTracker = new DefaultVisualStudioDocumentTracker(
+            Dispatcher,
+            JoinableTaskFactory.Context,
+            _filePath,
+            _projectPath,
+            _projectManager,
+            _workspaceEditorSettings,
+            Workspace,
+            _textBuffer,
+            _importDocumentManager);
+    }
 
-            _someTagHelpers = new List<TagHelperDescriptor>()
-            {
-                TagHelperDescriptorBuilder.Create("test", "test").Build(),
-            };
+    protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
+    {
+        _tagHelperResolver = new TestTagHelperResolver();
+        services.Add(_tagHelperResolver);
+    }
 
-            _projectManager = new TestProjectSnapshotManager(Dispatcher, Workspace) { AllowNotifyListeners = true };
+    protected override void ConfigureWorkspace(AdhocWorkspace workspace)
+    {
+        _workspaceProject = workspace.AddProject(ProjectInfo.Create(
+            ProjectId.CreateNewId(),
+            new VersionStamp(),
+            "Test1",
+            "TestAssembly",
+            LanguageNames.CSharp,
+            filePath: TestProjectData.SomeProject.FilePath));
+    }
 
-            _hostProject = new HostProject(_projectPath, FallbackRazorConfiguration.MVC_2_1, _rootNamespace);
-            _updatedHostProject = new HostProject(_projectPath, FallbackRazorConfiguration.MVC_2_0, _rootNamespace);
-            _otherHostProject = new HostProject(TestProjectData.AnotherProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.AnotherProject.RootNamespace);
+    [UIFact]
+    public void Subscribe_NoopsIfAlreadySubscribed()
+    {
+        // Arrange
+        var callCount = 0;
+        _documentTracker.ContextChanged += (sender, args) => callCount++;
+        _documentTracker.Subscribe();
 
-            _documentTracker = new DefaultVisualStudioDocumentTracker(
-                Dispatcher,
-                JoinableTaskFactory.Context,
-                _filePath,
-                _projectPath,
-                _projectManager,
-                _workspaceEditorSettings,
-                Workspace,
-                _textBuffer,
-                _importDocumentManager);
-        }
+        // Act
+        _documentTracker.Subscribe();
 
-        protected override void ConfigureWorkspaceServices(List<IWorkspaceService> services)
+        // Assert
+        Assert.Equal(1, callCount);
+    }
+
+    [UIFact]
+    public void Unsubscribe_NoopsIfAlreadyUnsubscribed()
+    {
+        // Arrange
+        var callCount = 0;
+        _documentTracker.Subscribe();
+        _documentTracker.ContextChanged += (sender, args) => callCount++;
+        _documentTracker.Unsubscribe();
+
+        // Act
+        _documentTracker.Unsubscribe();
+
+        // Assert
+        Assert.Equal(1, callCount);
+    }
+
+    [UIFact]
+    public void Unsubscribe_NoopsIfSubscribeHasBeenCalledMultipleTimes()
+    {
+        // Arrange
+        var callCount = 0;
+        _documentTracker.Subscribe();
+        _documentTracker.Subscribe();
+        _documentTracker.ContextChanged += (sender, args) => callCount++;
+
+        // Act - 1
+        _documentTracker.Unsubscribe();
+
+        // Assert - 1
+        Assert.Equal(0, callCount);
+
+        // Act - 2
+        _documentTracker.Unsubscribe();
+
+        // Assert - 2
+        Assert.Equal(1, callCount);
+    }
+
+    [UIFact]
+    public void EditorSettingsManager_Changed_TriggersContextChanged()
+    {
+        // Arrange
+        var called = false;
+        _documentTracker.ContextChanged += (sender, args) =>
         {
-            _tagHelperResolver = new TestTagHelperResolver();
-            services.Add(_tagHelperResolver);
-        }
+            Assert.Equal(ContextChangeKind.EditorSettingsChanged, args.Kind);
+            called = true;
+            Assert.Equal(ContextChangeKind.EditorSettingsChanged, args.Kind);
+        };
 
-        protected override void ConfigureWorkspace(AdhocWorkspace workspace)
+        // Act
+        _documentTracker.EditorSettingsManager_Changed(null, null);
+
+        // Assert
+        Assert.True(called);
+    }
+
+    [UIFact]
+    public void ProjectManager_Changed_ProjectAdded_TriggersContextChanged()
+    {
+        // Arrange
+        _projectManager.ProjectAdded(_hostProject);
+
+        var e = new ProjectChangeEventArgs(null, _projectManager.GetLoadedProject(_hostProject.FilePath), ProjectChangeKind.ProjectAdded);
+
+        var called = false;
+        _documentTracker.ContextChanged += (sender, args) =>
         {
-            _workspaceProject = workspace.AddProject(ProjectInfo.Create(
-                ProjectId.CreateNewId(),
-                new VersionStamp(),
-                "Test1",
-                "TestAssembly",
-                LanguageNames.CSharp,
-                filePath: TestProjectData.SomeProject.FilePath));
-        }
+            called = true;
 
-        [UIFact]
-        public void Subscribe_NoopsIfAlreadySubscribed()
+            Assert.Same(_projectManager.GetLoadedProject(_documentTracker.ProjectPath), _documentTracker.ProjectSnapshot);
+        };
+
+        // Act
+        _documentTracker.ProjectManager_Changed(_projectManager, e);
+
+        // Assert
+        Assert.True(called);
+    }
+
+    [UIFact]
+    public void ProjectManager_Changed_ProjectChanged_TriggersContextChanged()
+    {
+        // Arrange
+        _projectManager.ProjectAdded(_hostProject);
+
+        var e = new ProjectChangeEventArgs(null, _projectManager.GetLoadedProject(_hostProject.FilePath), ProjectChangeKind.ProjectChanged);
+
+        var called = false;
+        _documentTracker.ContextChanged += (sender, args) =>
         {
-            // Arrange
-            var callCount = 0;
-            _documentTracker.ContextChanged += (sender, args) => callCount++;
-            _documentTracker.Subscribe();
+            called = true;
 
-            // Act
-            _documentTracker.Subscribe();
+            Assert.Same(_projectManager.GetLoadedProject(_documentTracker.ProjectPath), _documentTracker.ProjectSnapshot);
+        };
 
-            // Assert
-            Assert.Equal(1, callCount);
-        }
+        // Act
+        _documentTracker.ProjectManager_Changed(_projectManager, e);
 
-        [UIFact]
-        public void Unsubscribe_NoopsIfAlreadyUnsubscribed()
+        // Assert
+        Assert.True(called);
+    }
+
+    [UIFact]
+    public void ProjectManager_Changed_ProjectRemoved_TriggersContextChanged_WithEphemeralProject()
+    {
+        // Arrange
+        _projectManager.ProjectAdded(_hostProject);
+
+        var project = _projectManager.GetLoadedProject(_hostProject.FilePath);
+        _projectManager.ProjectRemoved(_hostProject);
+
+        var e = new ProjectChangeEventArgs(project, null, ProjectChangeKind.ProjectRemoved);
+
+        var called = false;
+        _documentTracker.ContextChanged += (sender, args) =>
         {
-            // Arrange
-            var callCount = 0;
-            _documentTracker.Subscribe();
-            _documentTracker.ContextChanged += (sender, args) => callCount++;
-            _documentTracker.Unsubscribe();
+            // This can be called both with tag helper and project changes.
+            called = true;
 
-            // Act
-            _documentTracker.Unsubscribe();
-
-            // Assert
-            Assert.Equal(1, callCount);
-        }
-
-        [UIFact]
-        public void Unsubscribe_NoopsIfSubscribeHasBeenCalledMultipleTimes()
-        {
-            // Arrange
-            var callCount = 0;
-            _documentTracker.Subscribe();
-            _documentTracker.Subscribe();
-            _documentTracker.ContextChanged += (sender, args) => callCount++;
-
-            // Act - 1
-            _documentTracker.Unsubscribe();
-
-            // Assert - 1
-            Assert.Equal(0, callCount);
-
-            // Act - 2
-            _documentTracker.Unsubscribe();
-
-            // Assert - 2
-            Assert.Equal(1, callCount);
-        }
-
-        [UIFact]
-        public void EditorSettingsManager_Changed_TriggersContextChanged()
-        {
-            // Arrange
-            var called = false;
-            _documentTracker.ContextChanged += (sender, args) =>
-            {
-                Assert.Equal(ContextChangeKind.EditorSettingsChanged, args.Kind);
-                called = true;
-                Assert.Equal(ContextChangeKind.EditorSettingsChanged, args.Kind);
-            };
-
-            // Act
-            _documentTracker.EditorSettingsManager_Changed(null, null);
-
-            // Assert
-            Assert.True(called);
-        }
-
-        [UIFact]
-        public void ProjectManager_Changed_ProjectAdded_TriggersContextChanged()
-        {
-            // Arrange
-            _projectManager.ProjectAdded(_hostProject);
-
-            var e = new ProjectChangeEventArgs(null, _projectManager.GetLoadedProject(_hostProject.FilePath), ProjectChangeKind.ProjectAdded);
-
-            var called = false;
-            _documentTracker.ContextChanged += (sender, args) =>
-            {
-                called = true;
-
-                Assert.Same(_projectManager.GetLoadedProject(_documentTracker.ProjectPath), _documentTracker.ProjectSnapshot);
-            };
-
-            // Act
-            _documentTracker.ProjectManager_Changed(_projectManager, e);
-
-            // Assert
-            Assert.True(called);
-        }
-
-        [UIFact]
-        public void ProjectManager_Changed_ProjectChanged_TriggersContextChanged()
-        {
-            // Arrange
-            _projectManager.ProjectAdded(_hostProject);
-
-            var e = new ProjectChangeEventArgs(null, _projectManager.GetLoadedProject(_hostProject.FilePath), ProjectChangeKind.ProjectChanged);
-
-            var called = false;
-            _documentTracker.ContextChanged += (sender, args) =>
-            {
-                called = true;
-
-                Assert.Same(_projectManager.GetLoadedProject(_documentTracker.ProjectPath), _documentTracker.ProjectSnapshot);
-            };
-
-            // Act
-            _documentTracker.ProjectManager_Changed(_projectManager, e);
-
-            // Assert
-            Assert.True(called);
-        }
-
-        [UIFact]
-        public void ProjectManager_Changed_ProjectRemoved_TriggersContextChanged_WithEphemeralProject()
-        {
-            // Arrange
-            _projectManager.ProjectAdded(_hostProject);
-
-            var project = _projectManager.GetLoadedProject(_hostProject.FilePath);
-            _projectManager.ProjectRemoved(_hostProject);
-
-            var e = new ProjectChangeEventArgs(project, null, ProjectChangeKind.ProjectRemoved);
-
-            var called = false;
-            _documentTracker.ContextChanged += (sender, args) =>
-            {
-                // This can be called both with tag helper and project changes.
-                called = true;
-
-                Assert.IsType<EphemeralProjectSnapshot>(_documentTracker.ProjectSnapshot);
-            };
-
-            // Act
-            _documentTracker.ProjectManager_Changed(_projectManager, e);
-
-            // Assert
-            Assert.True(called);
-        }
-
-        [UIFact]
-        public void ProjectManager_Changed_IgnoresUnknownProject()
-        {
-            // Arrange
-            _projectManager.ProjectAdded(_otherHostProject);
-
-            var e = new ProjectChangeEventArgs(null, _projectManager.GetLoadedProject(_otherHostProject.FilePath), ProjectChangeKind.ProjectChanged);
-
-            var called = false;
-            _documentTracker.ContextChanged += (sender, args) => called = true;
-
-            // Act
-            _documentTracker.ProjectManager_Changed(_projectManager, e);
-
-            // Assert
-            Assert.False(called);
-        }
-
-        [UIFact]
-        public void Import_Changed_ImportAssociatedWithDocument_TriggersContextChanged()
-        {
-            // Arrange
-            var called = false;
-            _documentTracker.ContextChanged += (sender, args) =>
-            {
-                Assert.Equal(ContextChangeKind.ImportsChanged, args.Kind);
-                called = true;
-            };
-
-            var importChangedArgs = new ImportChangedEventArgs("path/to/import", FileChangeKind.Changed, new[] { _filePath });
-
-            // Act
-            _documentTracker.Import_Changed(null, importChangedArgs);
-
-            // Assert
-            Assert.True(called);
-        }
-
-        [UIFact]
-        public void Import_Changed_UnrelatedImport_DoesNothing()
-        {
-            // Arrange
-            _documentTracker.ContextChanged += (sender, args) => throw new InvalidOperationException();
-
-            var importChangedArgs = new ImportChangedEventArgs("path/to/import", FileChangeKind.Changed, new[] { "path/to/differentfile" });
-
-            // Act & Assert (Does not throw)
-            _documentTracker.Import_Changed(null, importChangedArgs);
-        }
-
-        [UIFact]
-        public void Subscribe_SetsSupportedProjectAndTriggersContextChanged()
-        {
-            // Arrange
-            var called = false;
-            _documentTracker.ContextChanged += (sender, args) => called = true;
-
-            // Act
-            _documentTracker.Subscribe();
-
-            // Assert
-            Assert.True(called);
-            Assert.True(_documentTracker.IsSupportedProject);
-        }
-
-        [UIFact]
-        public void Unsubscribe_ResetsSupportedProjectAndTriggersContextChanged()
-        {
-            // Arrange
-
-            // Subscribe once to set supported project
-            _documentTracker.Subscribe();
-
-            var called = false;
-            _documentTracker.ContextChanged += (sender, args) =>
-            {
-                called = true;
-                Assert.Equal(ContextChangeKind.ProjectChanged, args.Kind);
-            };
-
-            // Act
-            _documentTracker.Unsubscribe();
-
-            // Assert
-            Assert.False(_documentTracker.IsSupportedProject);
-            Assert.True(called);
-        }
-
-        [UIFact]
-        public void AddTextView_AddsToTextViewCollection()
-        {
-            // Arrange
-            var textView = Mock.Of<ITextView>(MockBehavior.Strict);
-
-            // Act
-            _documentTracker.AddTextView(textView);
-
-            // Assert
-            Assert.Collection(_documentTracker.TextViews, v => Assert.Same(v, textView));
-        }
-
-        [UIFact]
-        public void AddTextView_DoesNotAddDuplicateTextViews()
-        {
-            // Arrange
-            var textView = Mock.Of<ITextView>(MockBehavior.Strict);
-
-            // Act
-            _documentTracker.AddTextView(textView);
-            _documentTracker.AddTextView(textView);
-
-            // Assert
-            Assert.Collection(_documentTracker.TextViews, v => Assert.Same(v, textView));
-        }
-
-        [UIFact]
-        public void AddTextView_AddsMultipleTextViewsToCollection()
-        {
-            // Arrange
-            var textView1 = Mock.Of<ITextView>(MockBehavior.Strict);
-            var textView2 = Mock.Of<ITextView>(MockBehavior.Strict);
-
-            // Act
-            _documentTracker.AddTextView(textView1);
-            _documentTracker.AddTextView(textView2);
-
-            // Assert
-            Assert.Collection(
-                _documentTracker.TextViews,
-                v => Assert.Same(v, textView1),
-                v => Assert.Same(v, textView2));
-        }
-
-        [UIFact]
-        public void RemoveTextView_RemovesTextViewFromCollection_SingleItem()
-        {
-            // Arrange
-            var textView = Mock.Of<ITextView>(MockBehavior.Strict);
-            _documentTracker.AddTextView(textView);
-
-            // Act
-            _documentTracker.RemoveTextView(textView);
-
-            // Assert
-            Assert.Empty(_documentTracker.TextViews);
-        }
-
-        [UIFact]
-        public void RemoveTextView_RemovesTextViewFromCollection_MultipleItems()
-        {
-            // Arrange
-            var textView1 = Mock.Of<ITextView>(MockBehavior.Strict);
-            var textView2 = Mock.Of<ITextView>(MockBehavior.Strict);
-            var textView3 = Mock.Of<ITextView>(MockBehavior.Strict);
-            _documentTracker.AddTextView(textView1);
-            _documentTracker.AddTextView(textView2);
-            _documentTracker.AddTextView(textView3);
-
-            // Act
-            _documentTracker.RemoveTextView(textView2);
-
-            // Assert
-            Assert.Collection(
-                _documentTracker.TextViews,
-                v => Assert.Same(v, textView1),
-                v => Assert.Same(v, textView3));
-        }
-
-        [UIFact]
-        public void RemoveTextView_NoopsWhenRemovingTextViewNotInCollection()
-        {
-            // Arrange
-            var textView1 = Mock.Of<ITextView>(MockBehavior.Strict);
-            _documentTracker.AddTextView(textView1);
-            var textView2 = Mock.Of<ITextView>(MockBehavior.Strict);
-
-            // Act
-            _documentTracker.RemoveTextView(textView2);
-
-            // Assert
-            Assert.Collection(_documentTracker.TextViews, v => Assert.Same(v, textView1));
-        }
-
-        [UIFact]
-        public void Subscribed_InitializesEphemeralProjectSnapshot()
-        {
-            // Arrange
-
-            // Act
-            _documentTracker.Subscribe();
-
-            // Assert
             Assert.IsType<EphemeralProjectSnapshot>(_documentTracker.ProjectSnapshot);
-        }
+        };
 
-        [UIFact]
-        public void Subscribed_InitializesRealProjectSnapshot()
+        // Act
+        _documentTracker.ProjectManager_Changed(_projectManager, e);
+
+        // Assert
+        Assert.True(called);
+    }
+
+    [UIFact]
+    public void ProjectManager_Changed_IgnoresUnknownProject()
+    {
+        // Arrange
+        _projectManager.ProjectAdded(_otherHostProject);
+
+        var e = new ProjectChangeEventArgs(null, _projectManager.GetLoadedProject(_otherHostProject.FilePath), ProjectChangeKind.ProjectChanged);
+
+        var called = false;
+        _documentTracker.ContextChanged += (sender, args) => called = true;
+
+        // Act
+        _documentTracker.ProjectManager_Changed(_projectManager, e);
+
+        // Assert
+        Assert.False(called);
+    }
+
+    [UIFact]
+    public void Import_Changed_ImportAssociatedWithDocument_TriggersContextChanged()
+    {
+        // Arrange
+        var called = false;
+        _documentTracker.ContextChanged += (sender, args) =>
         {
-            // Arrange
-            _projectManager.ProjectAdded(_hostProject);
+            Assert.Equal(ContextChangeKind.ImportsChanged, args.Kind);
+            called = true;
+        };
 
-            // Act
-            _documentTracker.Subscribe();
+        var importChangedArgs = new ImportChangedEventArgs("path/to/import", FileChangeKind.Changed, new[] { _filePath });
 
-            // Assert
-            Assert.IsType<DefaultProjectSnapshot>(_documentTracker.ProjectSnapshot);
-        }
+        // Act
+        _documentTracker.Import_Changed(null, importChangedArgs);
 
-        [UIFact]
-        public void Subscribed_ListensToProjectChanges()
+        // Assert
+        Assert.True(called);
+    }
+
+    [UIFact]
+    public void Import_Changed_UnrelatedImport_DoesNothing()
+    {
+        // Arrange
+        _documentTracker.ContextChanged += (sender, args) => throw new InvalidOperationException();
+
+        var importChangedArgs = new ImportChangedEventArgs("path/to/import", FileChangeKind.Changed, new[] { "path/to/differentfile" });
+
+        // Act & Assert (Does not throw)
+        _documentTracker.Import_Changed(null, importChangedArgs);
+    }
+
+    [UIFact]
+    public void Subscribe_SetsSupportedProjectAndTriggersContextChanged()
+    {
+        // Arrange
+        var called = false;
+        _documentTracker.ContextChanged += (sender, args) => called = true;
+
+        // Act
+        _documentTracker.Subscribe();
+
+        // Assert
+        Assert.True(called);
+        Assert.True(_documentTracker.IsSupportedProject);
+    }
+
+    [UIFact]
+    public void Unsubscribe_ResetsSupportedProjectAndTriggersContextChanged()
+    {
+        // Arrange
+
+        // Subscribe once to set supported project
+        _documentTracker.Subscribe();
+
+        var called = false;
+        _documentTracker.ContextChanged += (sender, args) =>
         {
-            // Arrange
-            _projectManager.ProjectAdded(_hostProject);
+            called = true;
+            Assert.Equal(ContextChangeKind.ProjectChanged, args.Kind);
+        };
 
-            _documentTracker.Subscribe();
+        // Act
+        _documentTracker.Unsubscribe();
 
-            var args = new List<ContextChangeEventArgs>();
-            _documentTracker.ContextChanged += (sender, e) => args.Add(e);
+        // Assert
+        Assert.False(_documentTracker.IsSupportedProject);
+        Assert.True(called);
+    }
 
-            // Act
-            _projectManager.ProjectConfigurationChanged(_updatedHostProject);
+    [UIFact]
+    public void AddTextView_AddsToTextViewCollection()
+    {
+        // Arrange
+        var textView = Mock.Of<ITextView>(MockBehavior.Strict);
 
-            // Assert
-            var snapshot = Assert.IsType<DefaultProjectSnapshot>(_documentTracker.ProjectSnapshot);
+        // Act
+        _documentTracker.AddTextView(textView);
 
-            Assert.Same(_updatedHostProject, snapshot.HostProject);
+        // Assert
+        Assert.Collection(_documentTracker.TextViews, v => Assert.Same(v, textView));
+    }
 
-            Assert.Collection(
-                args,
-                e => Assert.Equal(ContextChangeKind.ProjectChanged, e.Kind));
-        }
+    [UIFact]
+    public void AddTextView_DoesNotAddDuplicateTextViews()
+    {
+        // Arrange
+        var textView = Mock.Of<ITextView>(MockBehavior.Strict);
 
-        [UIFact]
-        public void Subscribed_ListensToProjectRemoval()
-        {
-            // Arrange
-            _projectManager.ProjectAdded(_hostProject);
+        // Act
+        _documentTracker.AddTextView(textView);
+        _documentTracker.AddTextView(textView);
 
-            _documentTracker.Subscribe();
+        // Assert
+        Assert.Collection(_documentTracker.TextViews, v => Assert.Same(v, textView));
+    }
 
-            var args = new List<ContextChangeEventArgs>();
-            _documentTracker.ContextChanged += (sender, e) => args.Add(e);
+    [UIFact]
+    public void AddTextView_AddsMultipleTextViewsToCollection()
+    {
+        // Arrange
+        var textView1 = Mock.Of<ITextView>(MockBehavior.Strict);
+        var textView2 = Mock.Of<ITextView>(MockBehavior.Strict);
 
-            // Act
-            _projectManager.ProjectRemoved(_hostProject);
+        // Act
+        _documentTracker.AddTextView(textView1);
+        _documentTracker.AddTextView(textView2);
 
-            // Assert
-            Assert.IsType<EphemeralProjectSnapshot>(_documentTracker.ProjectSnapshot);
+        // Assert
+        Assert.Collection(
+            _documentTracker.TextViews,
+            v => Assert.Same(v, textView1),
+            v => Assert.Same(v, textView2));
+    }
 
-            Assert.Collection(
-                args,
-                e => Assert.Equal(ContextChangeKind.ProjectChanged, e.Kind));
-        }
+    [UIFact]
+    public void RemoveTextView_RemovesTextViewFromCollection_SingleItem()
+    {
+        // Arrange
+        var textView = Mock.Of<ITextView>(MockBehavior.Strict);
+        _documentTracker.AddTextView(textView);
+
+        // Act
+        _documentTracker.RemoveTextView(textView);
+
+        // Assert
+        Assert.Empty(_documentTracker.TextViews);
+    }
+
+    [UIFact]
+    public void RemoveTextView_RemovesTextViewFromCollection_MultipleItems()
+    {
+        // Arrange
+        var textView1 = Mock.Of<ITextView>(MockBehavior.Strict);
+        var textView2 = Mock.Of<ITextView>(MockBehavior.Strict);
+        var textView3 = Mock.Of<ITextView>(MockBehavior.Strict);
+        _documentTracker.AddTextView(textView1);
+        _documentTracker.AddTextView(textView2);
+        _documentTracker.AddTextView(textView3);
+
+        // Act
+        _documentTracker.RemoveTextView(textView2);
+
+        // Assert
+        Assert.Collection(
+            _documentTracker.TextViews,
+            v => Assert.Same(v, textView1),
+            v => Assert.Same(v, textView3));
+    }
+
+    [UIFact]
+    public void RemoveTextView_NoopsWhenRemovingTextViewNotInCollection()
+    {
+        // Arrange
+        var textView1 = Mock.Of<ITextView>(MockBehavior.Strict);
+        _documentTracker.AddTextView(textView1);
+        var textView2 = Mock.Of<ITextView>(MockBehavior.Strict);
+
+        // Act
+        _documentTracker.RemoveTextView(textView2);
+
+        // Assert
+        Assert.Collection(_documentTracker.TextViews, v => Assert.Same(v, textView1));
+    }
+
+    [UIFact]
+    public void Subscribed_InitializesEphemeralProjectSnapshot()
+    {
+        // Arrange
+
+        // Act
+        _documentTracker.Subscribe();
+
+        // Assert
+        Assert.IsType<EphemeralProjectSnapshot>(_documentTracker.ProjectSnapshot);
+    }
+
+    [UIFact]
+    public void Subscribed_InitializesRealProjectSnapshot()
+    {
+        // Arrange
+        _projectManager.ProjectAdded(_hostProject);
+
+        // Act
+        _documentTracker.Subscribe();
+
+        // Assert
+        Assert.IsType<DefaultProjectSnapshot>(_documentTracker.ProjectSnapshot);
+    }
+
+    [UIFact]
+    public void Subscribed_ListensToProjectChanges()
+    {
+        // Arrange
+        _projectManager.ProjectAdded(_hostProject);
+
+        _documentTracker.Subscribe();
+
+        var args = new List<ContextChangeEventArgs>();
+        _documentTracker.ContextChanged += (sender, e) => args.Add(e);
+
+        // Act
+        _projectManager.ProjectConfigurationChanged(_updatedHostProject);
+
+        // Assert
+        var snapshot = Assert.IsType<DefaultProjectSnapshot>(_documentTracker.ProjectSnapshot);
+
+        Assert.Same(_updatedHostProject, snapshot.HostProject);
+
+        Assert.Collection(
+            args,
+            e => Assert.Equal(ContextChangeKind.ProjectChanged, e.Kind));
+    }
+
+    [UIFact]
+    public void Subscribed_ListensToProjectRemoval()
+    {
+        // Arrange
+        _projectManager.ProjectAdded(_hostProject);
+
+        _documentTracker.Subscribe();
+
+        var args = new List<ContextChangeEventArgs>();
+        _documentTracker.ContextChanged += (sender, e) => args.Add(e);
+
+        // Act
+        _projectManager.ProjectRemoved(_hostProject);
+
+        // Assert
+        Assert.IsType<EphemeralProjectSnapshot>(_documentTracker.ProjectSnapshot);
+
+        Assert.Collection(
+            args,
+            e => Assert.Equal(ContextChangeKind.ProjectChanged, e.Kind));
     }
 }

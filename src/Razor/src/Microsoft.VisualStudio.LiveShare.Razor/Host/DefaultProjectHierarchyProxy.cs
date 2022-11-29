@@ -8,55 +8,54 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.LiveShare.Razor.Host
+namespace Microsoft.VisualStudio.LiveShare.Razor.Host;
+
+internal class DefaultProjectHierarchyProxy : IProjectHierarchyProxy, ICollaborationService
 {
-    internal class DefaultProjectHierarchyProxy : IProjectHierarchyProxy, ICollaborationService
+    private readonly CollaborationSession _session;
+
+    private readonly JoinableTaskFactory _joinableTaskFactory;
+    private IVsUIShellOpenDocument? _openDocumentShell;
+
+    public DefaultProjectHierarchyProxy(
+        CollaborationSession session,
+        JoinableTaskFactory joinableTaskFactory)
     {
-        private readonly CollaborationSession _session;
-
-        private readonly JoinableTaskFactory _joinableTaskFactory;
-        private IVsUIShellOpenDocument? _openDocumentShell;
-
-        public DefaultProjectHierarchyProxy(
-            CollaborationSession session,
-            JoinableTaskFactory joinableTaskFactory)
+        if (session is null)
         {
-            if (session is null)
-            {
-                throw new ArgumentNullException(nameof(session));
-            }
-
-            if (joinableTaskFactory is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskFactory));
-            }
-
-            _session = session;
-            _joinableTaskFactory = joinableTaskFactory;
+            throw new ArgumentNullException(nameof(session));
         }
 
-        public async Task<Uri?> GetProjectPathAsync(Uri documentFilePath, CancellationToken cancellationToken)
+        if (joinableTaskFactory is null)
         {
-            if (documentFilePath is null)
-            {
-                throw new ArgumentNullException(nameof(documentFilePath));
-            }
+            throw new ArgumentNullException(nameof(joinableTaskFactory));
+        }
 
-            await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        _session = session;
+        _joinableTaskFactory = joinableTaskFactory;
+    }
+
+    public async Task<Uri?> GetProjectPathAsync(Uri documentFilePath, CancellationToken cancellationToken)
+    {
+        if (documentFilePath is null)
+        {
+            throw new ArgumentNullException(nameof(documentFilePath));
+        }
+
+        await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
 #pragma warning disable VSSDK006 // Check services exist
-            _openDocumentShell ??= ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
+        _openDocumentShell ??= ServiceProvider.GlobalProvider.GetService(typeof(SVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
 #pragma warning restore VSSDK006 // Check services exist
-            var hostDocumentFilePath = _session.ConvertSharedUriToLocalPath(documentFilePath);
-            var hr = _openDocumentShell!.IsDocumentInAProject(hostDocumentFilePath, out var hierarchy, out _, out _, out _);
-            if (ErrorHandler.Succeeded(hr) && hierarchy != null)
-            {
-                ErrorHandler.ThrowOnFailure(((IVsProject)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out var path), VSConstants.E_NOTIMPL);
+        var hostDocumentFilePath = _session.ConvertSharedUriToLocalPath(documentFilePath);
+        var hr = _openDocumentShell!.IsDocumentInAProject(hostDocumentFilePath, out var hierarchy, out _, out _, out _);
+        if (ErrorHandler.Succeeded(hr) && hierarchy != null)
+        {
+            ErrorHandler.ThrowOnFailure(((IVsProject)hierarchy).GetMkDocument((uint)VSConstants.VSITEMID.Root, out var path), VSConstants.E_NOTIMPL);
 
-                return _session.ConvertLocalPathToSharedUri(path);
-            }
-
-            return null;
+            return _session.ConvertLocalPathToSharedUri(path);
         }
+
+        return null;
     }
 }

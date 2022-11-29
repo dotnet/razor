@@ -5,15 +5,14 @@
 
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test
-{
-    internal class TestProjectSnapshotManagerAccessor : ProjectSnapshotManagerAccessor
-    {
-        public TestProjectSnapshotManagerAccessor(ProjectSnapshotManagerBase instance)
-        {
-            Instance = instance;
-        }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
-        public override ProjectSnapshotManagerBase Instance { get; }
+internal class TestProjectSnapshotManagerAccessor : ProjectSnapshotManagerAccessor
+{
+    public TestProjectSnapshotManagerAccessor(ProjectSnapshotManagerBase instance)
+    {
+        Instance = instance;
     }
+
+    public override ProjectSnapshotManagerBase Instance { get; }
 }

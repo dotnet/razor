@@ -11,42 +11,41 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.Test.Common
+namespace Microsoft.AspNetCore.Razor.Test.Common;
+
+internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
 {
-    internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
+    private TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, Workspace workspace)
+        : base(dispatcher, new DefaultErrorReporter(), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
     {
-        private TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, Workspace workspace)
-            : base(dispatcher, new DefaultErrorReporter(), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
+    }
+
+    public static TestProjectSnapshotManager Create(ProjectSnapshotManagerDispatcher dispatcher)
+    {
+        if (dispatcher is null)
         {
+            throw new ArgumentNullException(nameof(dispatcher));
         }
 
-        public static TestProjectSnapshotManager Create(ProjectSnapshotManagerDispatcher dispatcher)
-        {
-            if (dispatcher is null)
+        var services = TestServices.Create(
+            workspaceServices: new[]
             {
-                throw new ArgumentNullException(nameof(dispatcher));
-            }
+                new DefaultProjectSnapshotProjectEngineFactory(new FallbackProjectEngineFactory(), ProjectEngineFactories.Factories)
+            },
+            razorLanguageServices: Enumerable.Empty<ILanguageService>());
+        var workspace = TestWorkspace.Create(services);
+        var testProjectManager = new TestProjectSnapshotManager(dispatcher, workspace);
 
-            var services = TestServices.Create(
-                workspaceServices: new[]
-                {
-                    new DefaultProjectSnapshotProjectEngineFactory(new FallbackProjectEngineFactory(), ProjectEngineFactories.Factories)
-                },
-                razorLanguageServices: Enumerable.Empty<ILanguageService>());
-            var workspace = TestWorkspace.Create(services);
-            var testProjectManager = new TestProjectSnapshotManager(dispatcher, workspace);
+        return testProjectManager;
+    }
 
-            return testProjectManager;
-        }
+    public bool AllowNotifyListeners { get; set; }
 
-        public bool AllowNotifyListeners { get; set; }
-
-        protected override void NotifyListeners(ProjectChangeEventArgs e)
+    protected override void NotifyListeners(ProjectChangeEventArgs e)
+    {
+        if (AllowNotifyListeners)
         {
-            if (AllowNotifyListeners)
-            {
-                base.NotifyListeners(e);
-            }
+            base.NotifyListeners(e);
         }
     }
 }

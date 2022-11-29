@@ -3,11 +3,10 @@
 
 using System;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+
+internal sealed class AddUsingsCodeActionParams
 {
-    internal sealed class AddUsingsCodeActionParams
-    {
-        public required Uri Uri { get; set; }
-        public required string Namespace { get; set; }
-    }
+    public required Uri Uri { get; set; }
+    public required string Namespace { get; set; }
 }

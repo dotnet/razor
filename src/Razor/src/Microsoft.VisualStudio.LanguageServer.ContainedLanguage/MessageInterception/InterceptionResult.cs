@@ -3,22 +3,21 @@
 
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.MessageInterception;
+
+/// <summary>
+/// Contains an updated message token and a signal of whether the document Uri was changed.
+/// </summary>
+internal struct InterceptionResult
 {
-    /// <summary>
-    /// Contains an updated message token and a signal of whether the document Uri was changed.
-    /// </summary>
-    public struct InterceptionResult
+    public static readonly InterceptionResult NoChange = new(null, false);
+
+    public InterceptionResult(JToken? newToken, bool changedDocumentUri)
     {
-        public static readonly InterceptionResult NoChange = new(null, false);
-
-        public InterceptionResult(JToken? newToken, bool changedDocumentUri)
-        {
-            UpdatedToken = newToken;
-            ChangedDocumentUri = changedDocumentUri;
-        }
-
-        public JToken? UpdatedToken { get; }
-        public bool ChangedDocumentUri { get; }
+        UpdatedToken = newToken;
+        ChangedDocumentUri = changedDocumentUri;
     }
+
+    public JToken? UpdatedToken { get; }
+    public bool ChangedDocumentUri { get; }
 }

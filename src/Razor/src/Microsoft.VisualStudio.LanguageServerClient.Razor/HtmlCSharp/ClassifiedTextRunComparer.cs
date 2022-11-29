@@ -5,33 +5,32 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.Text.Adornments;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+
+internal class ClassifiedTextRunComparer : IEqualityComparer<ClassifiedTextRun>
 {
-    internal class ClassifiedTextRunComparer : IEqualityComparer<ClassifiedTextRun>
+    internal static ClassifiedTextRunComparer Default = new();
+
+    public bool Equals(ClassifiedTextRun? x, ClassifiedTextRun? y)
     {
-        public static ClassifiedTextRunComparer Default = new();
-
-        public bool Equals(ClassifiedTextRun? x, ClassifiedTextRun? y)
+        if (x is null && y is null)
         {
-            if (x is null && y is null)
-            {
-                return true;
-            }
-            else if (x is null ^ y is null)
-            {
-                return false;
-            }
-
-            return x!.ClassificationTypeName == y!.ClassificationTypeName &&
-                x.Text == y.Text;
+            return true;
+        }
+        else if (x is null ^ y is null)
+        {
+            return false;
         }
 
-        public int GetHashCode(ClassifiedTextRun obj)
-        {
-            var hashCodeCombiner = new HashCodeCombiner();
-            hashCodeCombiner.Add(obj.Text);
-            hashCodeCombiner.Add(obj.ClassificationTypeName);
-            return hashCodeCombiner.CombinedHash;
-        }
+        return x!.ClassificationTypeName == y!.ClassificationTypeName &&
+            x.Text == y.Text;
+    }
+
+    public int GetHashCode(ClassifiedTextRun obj)
+    {
+        var hashCodeCombiner = new HashCodeCombiner();
+        hashCodeCombiner.Add(obj.Text);
+        hashCodeCombiner.Add(obj.ClassificationTypeName);
+        return hashCodeCombiner.CombinedHash;
     }
 }

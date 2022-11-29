@@ -4,22 +4,21 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Razor.Tooltip
+namespace Microsoft.CodeAnalysis.Razor.Tooltip;
+
+internal class AggregateBoundElementDescription
 {
-    internal class AggregateBoundElementDescription
+    public static readonly AggregateBoundElementDescription Default = new(Array.Empty<BoundElementDescriptionInfo>());
+
+    public AggregateBoundElementDescription(IReadOnlyList<BoundElementDescriptionInfo> associatedTagHelperDescriptions)
     {
-        public static readonly AggregateBoundElementDescription Default = new(Array.Empty<BoundElementDescriptionInfo>());
-
-        public AggregateBoundElementDescription(IReadOnlyList<BoundElementDescriptionInfo> associatedTagHelperDescriptions)
+        if (associatedTagHelperDescriptions is null)
         {
-            if (associatedTagHelperDescriptions is null)
-            {
-                throw new ArgumentNullException(nameof(associatedTagHelperDescriptions));
-            }
-
-            AssociatedTagHelperDescriptions = associatedTagHelperDescriptions;
+            throw new ArgumentNullException(nameof(associatedTagHelperDescriptions));
         }
 
-        public IReadOnlyList<BoundElementDescriptionInfo> AssociatedTagHelperDescriptions { get; }
+        AssociatedTagHelperDescriptions = associatedTagHelperDescriptions;
     }
+
+    public IReadOnlyList<BoundElementDescriptionInfo> AssociatedTagHelperDescriptions { get; }
 }

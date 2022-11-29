@@ -5,28 +5,27 @@ using System.Collections;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
-namespace Microsoft.VisualStudio.Editor.Razor.SyntaxVisualizer
+namespace Microsoft.VisualStudio.Editor.Razor.SyntaxVisualizer;
+
+internal class RazorSyntaxNodeList : IEnumerable<RazorSyntaxNode>
 {
-    internal class RazorSyntaxNodeList : IEnumerable<RazorSyntaxNode>
+    private readonly ChildSyntaxList _childSyntaxList;
+
+    public RazorSyntaxNodeList(ChildSyntaxList childSyntaxList)
     {
-        private readonly ChildSyntaxList _childSyntaxList;
+        _childSyntaxList = childSyntaxList;
+    }
 
-        public RazorSyntaxNodeList(ChildSyntaxList childSyntaxList)
+    public IEnumerator<RazorSyntaxNode> GetEnumerator()
+    {
+        foreach (var node in _childSyntaxList)
         {
-            _childSyntaxList = childSyntaxList;
+            yield return new RazorSyntaxNode(node);
         }
+    }
 
-        public IEnumerator<RazorSyntaxNode> GetEnumerator()
-        {
-            foreach (var node in _childSyntaxList)
-            {
-                yield return new RazorSyntaxNode(node);
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }

@@ -3,12 +3,11 @@
 
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+// We have IVT access to the Roslyn APIs for product code, but not for testing.
+internal enum ExcerptModeInternal
 {
-    // We have IVT access to the Roslyn APIs for product code, but not for testing.
-    internal enum ExcerptModeInternal
-    {
-        SingleLine = RazorExcerptMode.SingleLine,
-        Tooltip = RazorExcerptMode.Tooltip,
-    }
+    SingleLine = RazorExcerptMode.SingleLine,
+    Tooltip = RazorExcerptMode.Tooltip,
 }

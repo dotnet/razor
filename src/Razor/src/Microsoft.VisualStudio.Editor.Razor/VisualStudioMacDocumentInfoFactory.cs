@@ -3,13 +3,12 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+/// <summary>
+/// This class is VisualStudio for Mac specific to enable creating an empty document info without having IVT access to Roslyn's types.
+/// </summary>
+internal abstract class VisualStudioMacDocumentInfoFactory
 {
-    /// <summary>
-    /// This class is VisualStudio for Mac specific to enable creating an empty document info without having IVT access to Roslyn's types.
-    /// </summary>
-    internal abstract class VisualStudioMacDocumentInfoFactory
-    {
-        public abstract DocumentInfo CreateEmpty(string razorFilePath, ProjectId projectId);
-    }
+    public abstract DocumentInfo CreateEmpty(string razorFilePath, ProjectId projectId);
 }

@@ -3,17 +3,16 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
-{
-    // NOTE: Changes here MUST be copied over to
-    // Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp.RazorMapToDocumentRangesResponse
-    [DataContract]
-    internal class RazorMapToDocumentRangesResponse
-    {
-        [DataMember(Name = "ranges")]
-        public required Range[] Ranges { get; init; }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
-        [DataMember(Name = "hostDocumentVersion")]
-        public int? HostDocumentVersion { get; init; }
-    }
+// NOTE: Changes here MUST be copied over to
+// Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp.RazorMapToDocumentRangesResponse
+[DataContract]
+internal class RazorMapToDocumentRangesResponse
+{
+    [DataMember(Name = "ranges")]
+    public required Range[] Ranges { get; init; }
+
+    [DataMember(Name = "hostDocumentVersion")]
+    public int? HostDocumentVersion { get; init; }
 }

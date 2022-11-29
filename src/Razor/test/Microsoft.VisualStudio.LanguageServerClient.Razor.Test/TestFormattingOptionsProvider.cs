@@ -5,23 +5,22 @@ using System;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
+
+internal class TestFormattingOptionsProvider : FormattingOptionsProvider
 {
-    internal class TestFormattingOptionsProvider : FormattingOptionsProvider
-    {
-        public static readonly TestFormattingOptionsProvider Default = new(
-            new FormattingOptions()
-            {
-                InsertSpaces = true,
-                TabSize = 4,
-            });
-        private readonly FormattingOptions _options;
-
-        public TestFormattingOptionsProvider(FormattingOptions options)
+    public static readonly TestFormattingOptionsProvider Default = new(
+        new FormattingOptions()
         {
-            _options = options;
-        }
+            InsertSpaces = true,
+            TabSize = 4,
+        });
+    private readonly FormattingOptions _options;
 
-        public override FormattingOptions? GetOptions(Uri uri) => _options;
+    public TestFormattingOptionsProvider(FormattingOptions options)
+    {
+        _options = options;
     }
+
+    public override FormattingOptions? GetOptions(Uri uri) => _options;
 }

@@ -4,10 +4,9 @@
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.VisualStudio.Text.Adornments;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Completion
+namespace Microsoft.VisualStudio.Editor.Razor.Completion;
+
+internal abstract class VisualStudioDescriptionFactory
 {
-    internal abstract class VisualStudioDescriptionFactory
-    {
-        public abstract ContainerElement CreateClassifiedDescription(AggregateBoundAttributeDescription completionDescription);
-    }
+    public abstract ContainerElement CreateClassifiedDescription(AggregateBoundAttributeDescription completionDescription);
 }

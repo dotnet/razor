@@ -7,95 +7,94 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 
-namespace Microsoft.VisualStudio.ProjectSystem
+namespace Microsoft.VisualStudio.ProjectSystem;
+
+internal class TestProjectChangeDescription : IProjectChangeDescription
 {
-    internal class TestProjectChangeDescription : IProjectChangeDescription
+    public TestProjectChangeDescription(IProjectRuleSnapshot before, IProjectRuleSnapshot after)
     {
-        public TestProjectChangeDescription(IProjectRuleSnapshot before, IProjectRuleSnapshot after)
+        Before = before;
+        After = after;
+
+        Difference = Diff.Create(before, after);
+    }
+
+    public IProjectRuleSnapshot Before { get; }
+
+    public IProjectChangeDiff Difference { get; }
+
+    public IProjectRuleSnapshot After { get; }
+
+    private class Diff : IProjectChangeDiff
+    {
+        public static Diff Create(IProjectRuleSnapshot before, IProjectRuleSnapshot after)
         {
-            Before = before;
-            After = after;
+            var addedItems = new HashSet<string>(after.Items.Keys);
+            addedItems.ExceptWith(before.Items.Keys);
 
-            Difference = Diff.Create(before, after);
-        }
+            var removedItems = new HashSet<string>(before.Items.Keys);
+            removedItems.ExceptWith(after.Items.Keys);
 
-        public IProjectRuleSnapshot Before { get; }
-
-        public IProjectChangeDiff Difference { get; }
-
-        public IProjectRuleSnapshot After { get; }
-
-        private class Diff : IProjectChangeDiff
-        {
-            public static Diff Create(IProjectRuleSnapshot before, IProjectRuleSnapshot after)
+            // changed items must be present in both sets, but have different properties.
+            var changedItems = new HashSet<string>(before.Items.Keys);
+            changedItems.IntersectWith(after.Items.Keys);
+            changedItems.RemoveWhere(key =>
             {
-                var addedItems = new HashSet<string>(after.Items.Keys);
-                addedItems.ExceptWith(before.Items.Keys);
+                var x = before.Items[key];
+                var y = after.Items[key];
 
-                var removedItems = new HashSet<string>(before.Items.Keys);
-                removedItems.ExceptWith(after.Items.Keys);
-
-                // changed items must be present in both sets, but have different properties.
-                var changedItems = new HashSet<string>(before.Items.Keys);
-                changedItems.IntersectWith(after.Items.Keys);
-                changedItems.RemoveWhere(key =>
+                if (x.Count != y.Count)
                 {
-                    var x = before.Items[key];
-                    var y = after.Items[key];
+                    return true;
+                }
 
-                    if (x.Count != y.Count)
+                foreach (var kvp in x)
+                {
+                    if (!y.Contains(kvp))
                     {
                         return true;
                     }
+                }
 
-                    foreach (var kvp in x)
-                    {
-                        if (!y.Contains(kvp))
-                        {
-                            return true;
-                        }
-                    }
+                return false;
+            });
 
-                    return false;
-                });
+            var changedProperties = new HashSet<string>(before.Properties.Keys);
+            changedProperties.RemoveWhere(key =>
+            {
+                var x = before.Properties[key];
+                var y = after.Properties[key];
+                return object.Equals(x, y);
+            });
 
-                var changedProperties = new HashSet<string>(before.Properties.Keys);
-                changedProperties.RemoveWhere(key =>
-                {
-                    var x = before.Properties[key];
-                    var y = after.Properties[key];
-                    return object.Equals(x, y);
-                });
+            return new Diff()
+            {
+                AddedItems = addedItems.ToImmutableHashSet(),
+                RemovedItems = removedItems.ToImmutableHashSet(),
+                ChangedItems = changedItems.ToImmutableHashSet(),
 
-                return new Diff()
-                {
-                    AddedItems = addedItems.ToImmutableHashSet(),
-                    RemovedItems = removedItems.ToImmutableHashSet(),
-                    ChangedItems = changedItems.ToImmutableHashSet(),
+                // We ignore renamed items.
+                RenamedItems = ImmutableDictionary<string, string>.Empty,
 
-                    // We ignore renamed items.
-                    RenamedItems = ImmutableDictionary<string, string>.Empty,
-
-                    ChangedProperties = changedProperties.ToImmutableHashSet(),
-                };
-            }
-
-            public IImmutableSet<string> AddedItems { get; private set; }
-
-            public IImmutableSet<string> RemovedItems { get; private set; }
-
-            public IImmutableSet<string> ChangedItems { get; private set; }
-
-            public IImmutableDictionary<string, string> RenamedItems { get; private set; }
-
-            public IImmutableSet<string> ChangedProperties { get; private set; }
-
-            public bool AnyChanges =>
-                AddedItems.Count > 0 ||
-                RemovedItems.Count > 0 ||
-                ChangedItems.Count > 0 ||
-                RenamedItems.Count > 0 ||
-                ChangedProperties.Count > 0;
+                ChangedProperties = changedProperties.ToImmutableHashSet(),
+            };
         }
+
+        public IImmutableSet<string> AddedItems { get; private set; }
+
+        public IImmutableSet<string> RemovedItems { get; private set; }
+
+        public IImmutableSet<string> ChangedItems { get; private set; }
+
+        public IImmutableDictionary<string, string> RenamedItems { get; private set; }
+
+        public IImmutableSet<string> ChangedProperties { get; private set; }
+
+        public bool AnyChanges =>
+            AddedItems.Count > 0 ||
+            RemovedItems.Count > 0 ||
+            ChangedItems.Count > 0 ||
+            RenamedItems.Count > 0 ||
+            ChangedProperties.Count > 0;
     }
 }

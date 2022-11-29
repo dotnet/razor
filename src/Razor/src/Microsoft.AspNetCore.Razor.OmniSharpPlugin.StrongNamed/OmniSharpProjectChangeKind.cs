@@ -5,14 +5,13 @@
 
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+public enum OmniSharpProjectChangeKind
 {
-    public enum OmniSharpProjectChangeKind
-    {
-        ProjectAdded = ProjectChangeKind.ProjectAdded,
-        ProjectRemoved = ProjectChangeKind.ProjectRemoved,
-        ProjectChanged = ProjectChangeKind.ProjectChanged,
-        DocumentAdded = ProjectChangeKind.DocumentAdded,
-        DocumentRemoved = ProjectChangeKind.DocumentRemoved,
-    }
+    ProjectAdded = ProjectChangeKind.ProjectAdded,
+    ProjectRemoved = ProjectChangeKind.ProjectRemoved,
+    ProjectChanged = ProjectChangeKind.ProjectChanged,
+    DocumentAdded = ProjectChangeKind.DocumentAdded,
+    DocumentRemoved = ProjectChangeKind.DocumentRemoved,
 }

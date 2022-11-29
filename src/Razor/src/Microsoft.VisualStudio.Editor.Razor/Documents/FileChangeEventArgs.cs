@@ -3,23 +3,22 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Documents
-{
-    internal sealed class FileChangeEventArgs : EventArgs
-    {
-        public FileChangeEventArgs(string filePath, FileChangeKind kind)
-        {
-            if (filePath is null)
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
+namespace Microsoft.VisualStudio.Editor.Razor.Documents;
 
-            FilePath = filePath;
-            Kind = kind;
+internal sealed class FileChangeEventArgs : EventArgs
+{
+    public FileChangeEventArgs(string filePath, FileChangeKind kind)
+    {
+        if (filePath is null)
+        {
+            throw new ArgumentNullException(nameof(filePath));
         }
 
-        public string FilePath { get; }
-
-        public FileChangeKind Kind { get; }
+        FilePath = filePath;
+        Kind = kind;
     }
+
+    public string FilePath { get; }
+
+    public FileChangeKind Kind { get; }
 }

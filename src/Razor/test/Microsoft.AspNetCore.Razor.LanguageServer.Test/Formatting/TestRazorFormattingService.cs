@@ -11,48 +11,47 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
+internal class TestRazorFormattingService
 {
-    internal class TestRazorFormattingService
+    private TestRazorFormattingService()
     {
-        private TestRazorFormattingService()
+    }
+
+    public static async Task<RazorFormattingService> CreateWithFullSupportAsync(
+        RazorCodeDocument? codeDocument = null,
+        DocumentSnapshot? documentSnapshot = null,
+        ILoggerFactory? loggerFactory = null)
+    {
+        codeDocument ??= TestRazorCodeDocument.CreateEmpty();
+        loggerFactory ??= NullLoggerFactory.Instance;
+
+        var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory);
+
+        var dispatcher = new LSPProjectSnapshotManagerDispatcher(loggerFactory);
+        var versionCache = new DefaultDocumentVersionCache(dispatcher);
+        if (documentSnapshot is not null)
         {
+            await dispatcher.RunOnDispatcherThreadAsync(() =>
+            {
+                versionCache.TrackDocumentVersion(documentSnapshot, version: 1);
+            }, CancellationToken.None);
         }
 
-        public static async Task<RazorFormattingService> CreateWithFullSupportAsync(
-            RazorCodeDocument? codeDocument = null,
-            DocumentSnapshot? documentSnapshot = null,
-            ILoggerFactory? loggerFactory = null)
+        var client = new FormattingLanguageServerClient();
+        client.AddCodeDocument(codeDocument);
+
+        var passes = new List<IFormattingPass>()
         {
-            codeDocument ??= TestRazorCodeDocument.CreateEmpty();
-            loggerFactory ??= NullLoggerFactory.Instance;
+            new HtmlFormattingPass(mappingService, client, versionCache, loggerFactory),
+            new CSharpFormattingPass(mappingService, client, loggerFactory),
+            new CSharpOnTypeFormattingPass(mappingService, client, loggerFactory),
+            new RazorFormattingPass(mappingService, client, loggerFactory),
+            new FormattingDiagnosticValidationPass(mappingService, client, loggerFactory),
+            new FormattingContentValidationPass(mappingService, client, loggerFactory),
+        };
 
-            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory);
-
-            var dispatcher = new LSPProjectSnapshotManagerDispatcher(loggerFactory);
-            var versionCache = new DefaultDocumentVersionCache(dispatcher);
-            if (documentSnapshot is not null)
-            {
-                await dispatcher.RunOnDispatcherThreadAsync(() =>
-                {
-                    versionCache.TrackDocumentVersion(documentSnapshot, version: 1);
-                }, CancellationToken.None);
-            }
-
-            var client = new FormattingLanguageServerClient();
-            client.AddCodeDocument(codeDocument);
-
-            var passes = new List<IFormattingPass>()
-            {
-                new HtmlFormattingPass(mappingService, client, versionCache, loggerFactory),
-                new CSharpFormattingPass(mappingService, client, loggerFactory),
-                new CSharpOnTypeFormattingPass(mappingService, client, loggerFactory),
-                new RazorFormattingPass(mappingService, client, loggerFactory),
-                new FormattingDiagnosticValidationPass(mappingService, client, loggerFactory),
-                new FormattingContentValidationPass(mappingService, client, loggerFactory),
-            };
-
-            return new DefaultRazorFormattingService(passes, loggerFactory, TestAdhocWorkspaceFactory.Instance);
-        }
+        return new DefaultRazorFormattingService(passes, loggerFactory, TestAdhocWorkspaceFactory.Instance);
     }
 }

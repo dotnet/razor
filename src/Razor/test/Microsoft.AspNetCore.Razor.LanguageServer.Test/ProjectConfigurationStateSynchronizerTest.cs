@@ -18,403 +18,402 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+public class ProjectConfigurationStateSynchronizerTest : LanguageServerTestBase
 {
-    public class ProjectConfigurationStateSynchronizerTest : LanguageServerTestBase
+    public ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        public ProjectConfigurationStateSynchronizerTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+    }
+
+    [Fact]
+    public async Task ProjectConfigurationFileChanged_Removed_UnknownDocumentNoops()
+    {
+        // Arrange
+        var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
+        var synchronizer = GetSynchronizer(projectService.Object);
+        var jsonFileDeserializer = Mock.Of<JsonFileDeserializer>(MockBehavior.Strict);
+        var args = new ProjectConfigurationFileChangeEventArgs("/path/to/project.razor.json", RazorFileChangeKind.Removed, jsonFileDeserializer);
+
+        // Act
+        await Dispatcher.RunOnDispatcherThreadAsync(
+            () => synchronizer.ProjectConfigurationFileChanged(args), DisposalToken);
+
+        // Assert
+        projectService.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ProjectConfigurationFileChanged_Removed_NonNormalizedPaths()
+    {
+        // Arrange
+        var projectRazorJson = new ProjectRazorJson(
+            "/path/to/obj/project.razor.json",
+            "path/to/project.csproj",
+            RazorConfiguration.Default,
+            rootNamespace: "TestRootNamespace",
+            new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
+            Array.Empty<DocumentSnapshotHandle>());
+        var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
+        projectService.Setup(service => service.AddProject(projectRazorJson.FilePath)).Verifiable();
+        projectService.Setup(service => service.UpdateProject(
+            projectRazorJson.FilePath,
+            projectRazorJson.Configuration,
+            projectRazorJson.RootNamespace,
+            projectRazorJson.ProjectWorkspaceState,
+            projectRazorJson.Documents)).Verifiable();
+        projectService.Setup(service => service.UpdateProject(
+             projectRazorJson.FilePath,
+             null,
+             null,
+             ProjectWorkspaceState.Default,
+             Array.Empty<DocumentSnapshotHandle>())).Verifiable();
+        var synchronizer = GetSynchronizer(projectService.Object);
+        var jsonFileDeserializer = CreateJsonFileDeserializer(projectRazorJson);
+        var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to\\obj/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
+        var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
         {
-        }
+            synchronizer.ProjectConfigurationFileChanged(addArgs);
+            await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
+        }, DisposalToken);
+        await enqueueTask;
 
-        [Fact]
-        public async Task ProjectConfigurationFileChanged_Removed_UnknownDocumentNoops()
+        var removeArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Removed, Mock.Of<JsonFileDeserializer>(MockBehavior.Strict));
+
+        // Act
+        enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
         {
-            // Arrange
-            var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            var synchronizer = GetSynchronizer(projectService.Object);
-            var jsonFileDeserializer = Mock.Of<JsonFileDeserializer>(MockBehavior.Strict);
-            var args = new ProjectConfigurationFileChangeEventArgs("/path/to/project.razor.json", RazorFileChangeKind.Removed, jsonFileDeserializer);
+            synchronizer.ProjectConfigurationFileChanged(removeArgs);
+            await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
+        }, DisposalToken);
+        await enqueueTask;
 
-            // Act
-            await Dispatcher.RunOnDispatcherThreadAsync(
-                () => synchronizer.ProjectConfigurationFileChanged(args), DisposalToken);
+        // Assert
+        projectService.VerifyAll();
+    }
 
-            // Assert
-            projectService.VerifyAll();
-        }
+    [Fact]
+    public async Task ProjectConfigurationFileChanged_Added_CantDeserialize_Noops()
+    {
+        // Arrange
+        var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
+        var synchronizer = GetSynchronizer(projectService.Object);
+        var jsonFileDeserializer = Mock.Of<JsonFileDeserializer>(d => d.Deserialize<ProjectRazorJson>(It.IsAny<string>()) == null, MockBehavior.Strict);
+        var args = new ProjectConfigurationFileChangeEventArgs("/path/to/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
 
-        [Fact]
-        public async Task ProjectConfigurationFileChanged_Removed_NonNormalizedPaths()
+        // Act
+        await Dispatcher.RunOnDispatcherThreadAsync(
+            () => synchronizer.ProjectConfigurationFileChanged(args), DisposalToken);
+
+        // Assert
+        projectService.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ProjectConfigurationFileChanged_Added_AddAndUpdatesProject()
+    {
+        // Arrange
+        var projectRazorJson = new ProjectRazorJson(
+            "/path/to/obj/project.razor.json",
+            "path/to/project.csproj",
+            RazorConfiguration.Default,
+            rootNamespace: "TestRootNamespace",
+            new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
+            Array.Empty<DocumentSnapshotHandle>());
+        var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
+        projectService.Setup(service => service.AddProject(projectRazorJson.FilePath)).Verifiable();
+        projectService.Setup(service => service.UpdateProject(
+            projectRazorJson.FilePath,
+            projectRazorJson.Configuration,
+            projectRazorJson.RootNamespace,
+            projectRazorJson.ProjectWorkspaceState,
+            projectRazorJson.Documents)).Verifiable();
+        var synchronizer = GetSynchronizer(projectService.Object);
+        var jsonFileDeserializer = CreateJsonFileDeserializer(projectRazorJson);
+        var args = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
+
+        // Act
+        var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
         {
-            // Arrange
-            var projectRazorJson = new ProjectRazorJson(
-                "/path/to/obj/project.razor.json",
-                "path/to/project.csproj",
-                RazorConfiguration.Default,
-                rootNamespace: "TestRootNamespace",
-                new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
-                Array.Empty<DocumentSnapshotHandle>());
-            var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.AddProject(projectRazorJson.FilePath)).Verifiable();
-            projectService.Setup(service => service.UpdateProject(
-                projectRazorJson.FilePath,
-                projectRazorJson.Configuration,
-                projectRazorJson.RootNamespace,
-                projectRazorJson.ProjectWorkspaceState,
-                projectRazorJson.Documents)).Verifiable();
-            projectService.Setup(service => service.UpdateProject(
-                 projectRazorJson.FilePath,
-                 null,
-                 null,
-                 ProjectWorkspaceState.Default,
-                 Array.Empty<DocumentSnapshotHandle>())).Verifiable();
-            var synchronizer = GetSynchronizer(projectService.Object);
-            var jsonFileDeserializer = CreateJsonFileDeserializer(projectRazorJson);
-            var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to\\obj/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
-            var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
-            {
-                synchronizer.ProjectConfigurationFileChanged(addArgs);
-                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, DisposalToken);
-            await enqueueTask;
+            synchronizer.ProjectConfigurationFileChanged(args);
+            await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
+        }, DisposalToken);
+        await enqueueTask;
 
-            var removeArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Removed, Mock.Of<JsonFileDeserializer>(MockBehavior.Strict));
+        // Assert
+        projectService.VerifyAll();
+    }
 
-            // Act
-            enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
-            {
-                synchronizer.ProjectConfigurationFileChanged(removeArgs);
-                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, DisposalToken);
-            await enqueueTask;
-
-            // Assert
-            projectService.VerifyAll();
-        }
-
-        [Fact]
-        public async Task ProjectConfigurationFileChanged_Added_CantDeserialize_Noops()
+    [Fact]
+    public async Task ProjectConfigurationFileChanged_Removed_ResetsProject()
+    {
+        // Arrange
+        var projectRazorJson = new ProjectRazorJson(
+            "/path/to/obj/project.razor.json",
+            "path/to/project.csproj",
+            RazorConfiguration.Default,
+            rootNamespace: "TestRootNamespace",
+            new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
+            Array.Empty<DocumentSnapshotHandle>());
+        var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
+        projectService.Setup(service => service.AddProject(projectRazorJson.FilePath)).Verifiable();
+        projectService.Setup(service => service.UpdateProject(
+            projectRazorJson.FilePath,
+            projectRazorJson.Configuration,
+            projectRazorJson.RootNamespace,
+            projectRazorJson.ProjectWorkspaceState,
+            projectRazorJson.Documents)).Verifiable();
+        projectService.Setup(service => service.UpdateProject(
+             projectRazorJson.FilePath,
+             null,
+             null,
+             ProjectWorkspaceState.Default,
+             Array.Empty<DocumentSnapshotHandle>())).Verifiable();
+        var synchronizer = GetSynchronizer(projectService.Object);
+        var jsonFileDeserializer = CreateJsonFileDeserializer(projectRazorJson);
+        var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
+        var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
         {
-            // Arrange
-            var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            var synchronizer = GetSynchronizer(projectService.Object);
-            var jsonFileDeserializer = Mock.Of<JsonFileDeserializer>(d => d.Deserialize<ProjectRazorJson>(It.IsAny<string>()) == null, MockBehavior.Strict);
-            var args = new ProjectConfigurationFileChangeEventArgs("/path/to/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
+            synchronizer.ProjectConfigurationFileChanged(addArgs);
+            await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
+        }, DisposalToken);
+        await enqueueTask;
 
-            // Act
-            await Dispatcher.RunOnDispatcherThreadAsync(
-                () => synchronizer.ProjectConfigurationFileChanged(args), DisposalToken);
+        var removeArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Removed, Mock.Of<JsonFileDeserializer>(MockBehavior.Strict));
 
-            // Assert
-            projectService.VerifyAll();
-        }
-
-        [Fact]
-        public async Task ProjectConfigurationFileChanged_Added_AddAndUpdatesProject()
+        // Act
+        enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
         {
-            // Arrange
-            var projectRazorJson = new ProjectRazorJson(
-                "/path/to/obj/project.razor.json",
-                "path/to/project.csproj",
-                RazorConfiguration.Default,
-                rootNamespace: "TestRootNamespace",
-                new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
-                Array.Empty<DocumentSnapshotHandle>());
-            var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.AddProject(projectRazorJson.FilePath)).Verifiable();
-            projectService.Setup(service => service.UpdateProject(
-                projectRazorJson.FilePath,
-                projectRazorJson.Configuration,
-                projectRazorJson.RootNamespace,
-                projectRazorJson.ProjectWorkspaceState,
-                projectRazorJson.Documents)).Verifiable();
-            var synchronizer = GetSynchronizer(projectService.Object);
-            var jsonFileDeserializer = CreateJsonFileDeserializer(projectRazorJson);
-            var args = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
+            synchronizer.ProjectConfigurationFileChanged(removeArgs);
+            await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
+        }, DisposalToken);
+        await enqueueTask;
 
-            // Act
-            var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
-            {
-                synchronizer.ProjectConfigurationFileChanged(args);
-                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, DisposalToken);
-            await enqueueTask;
+        // Assert
+        projectService.VerifyAll();
+    }
 
-            // Assert
-            projectService.VerifyAll();
-        }
+    [Fact]
+    public async Task ProjectConfigurationFileChanged_Changed_UpdatesProject()
+    {
+        // Arrange
+        var initialProjectRazorJson = new ProjectRazorJson(
+            "/path/to/obj/project.razor.json",
+            "path/to/project.csproj",
+            RazorConfiguration.Default,
+            rootNamespace: "TestRootNamespace",
+            new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
+            Array.Empty<DocumentSnapshotHandle>());
+        var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
+        projectService.Setup(service => service.AddProject(initialProjectRazorJson.FilePath)).Verifiable();
+        projectService.Setup(service => service.UpdateProject(
+            initialProjectRazorJson.FilePath,
+            initialProjectRazorJson.Configuration,
+            initialProjectRazorJson.RootNamespace,
+            initialProjectRazorJson.ProjectWorkspaceState,
+            initialProjectRazorJson.Documents)).Verifiable();
+        var changedProjectRazorJson = new ProjectRazorJson(
+            "/path/to/obj/project.razor.json",
+            "path/to/project.csproj",
+            RazorConfiguration.Create(
+                RazorLanguageVersion.Experimental,
+                "TestConfiguration",
+                Array.Empty<RazorExtension>()),
+            rootNamespace: "TestRootNamespace2",
+            new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp6),
+            Array.Empty<DocumentSnapshotHandle>());
+        projectService.Setup(service => service.UpdateProject(
+            changedProjectRazorJson.FilePath,
+            changedProjectRazorJson.Configuration,
+            changedProjectRazorJson.RootNamespace,
+            changedProjectRazorJson.ProjectWorkspaceState,
+            changedProjectRazorJson.Documents)).Verifiable();
+        var synchronizer = GetSynchronizer(projectService.Object);
+        var addDeserializer = CreateJsonFileDeserializer(initialProjectRazorJson);
+        var addArgs = new ProjectConfigurationFileChangeEventArgs("path/to/obj/project.razor.json", RazorFileChangeKind.Added, addDeserializer);
 
-        [Fact]
-        public async Task ProjectConfigurationFileChanged_Removed_ResetsProject()
+        var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
         {
-            // Arrange
-            var projectRazorJson = new ProjectRazorJson(
-                "/path/to/obj/project.razor.json",
-                "path/to/project.csproj",
-                RazorConfiguration.Default,
-                rootNamespace: "TestRootNamespace",
-                new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
-                Array.Empty<DocumentSnapshotHandle>());
-            var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.AddProject(projectRazorJson.FilePath)).Verifiable();
-            projectService.Setup(service => service.UpdateProject(
-                projectRazorJson.FilePath,
-                projectRazorJson.Configuration,
-                projectRazorJson.RootNamespace,
-                projectRazorJson.ProjectWorkspaceState,
-                projectRazorJson.Documents)).Verifiable();
-            projectService.Setup(service => service.UpdateProject(
-                 projectRazorJson.FilePath,
-                 null,
-                 null,
-                 ProjectWorkspaceState.Default,
-                 Array.Empty<DocumentSnapshotHandle>())).Verifiable();
-            var synchronizer = GetSynchronizer(projectService.Object);
-            var jsonFileDeserializer = CreateJsonFileDeserializer(projectRazorJson);
-            var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
-            var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
-            {
-                synchronizer.ProjectConfigurationFileChanged(addArgs);
-                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, DisposalToken);
-            await enqueueTask;
+            synchronizer.ProjectConfigurationFileChanged(addArgs);
+            await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
+        }, DisposalToken);
+        await enqueueTask;
 
-            var removeArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Removed, Mock.Of<JsonFileDeserializer>(MockBehavior.Strict));
+        var changedDeserializer = CreateJsonFileDeserializer(changedProjectRazorJson);
+        var changedArgs = new ProjectConfigurationFileChangeEventArgs("path/to/obj/project.razor.json", RazorFileChangeKind.Changed, changedDeserializer);
 
-            // Act
-            enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
-            {
-                synchronizer.ProjectConfigurationFileChanged(removeArgs);
-                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, DisposalToken);
-            await enqueueTask;
-
-            // Assert
-            projectService.VerifyAll();
-        }
-
-        [Fact]
-        public async Task ProjectConfigurationFileChanged_Changed_UpdatesProject()
+        // Act
+        enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
         {
-            // Arrange
-            var initialProjectRazorJson = new ProjectRazorJson(
-                "/path/to/obj/project.razor.json",
-                "path/to/project.csproj",
-                RazorConfiguration.Default,
-                rootNamespace: "TestRootNamespace",
-                new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
-                Array.Empty<DocumentSnapshotHandle>());
-            var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.AddProject(initialProjectRazorJson.FilePath)).Verifiable();
-            projectService.Setup(service => service.UpdateProject(
-                initialProjectRazorJson.FilePath,
-                initialProjectRazorJson.Configuration,
-                initialProjectRazorJson.RootNamespace,
-                initialProjectRazorJson.ProjectWorkspaceState,
-                initialProjectRazorJson.Documents)).Verifiable();
-            var changedProjectRazorJson = new ProjectRazorJson(
-                "/path/to/obj/project.razor.json",
-                "path/to/project.csproj",
-                RazorConfiguration.Create(
-                    RazorLanguageVersion.Experimental,
-                    "TestConfiguration",
-                    Array.Empty<RazorExtension>()),
-                rootNamespace: "TestRootNamespace2",
-                new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp6),
-                Array.Empty<DocumentSnapshotHandle>());
-            projectService.Setup(service => service.UpdateProject(
-                changedProjectRazorJson.FilePath,
-                changedProjectRazorJson.Configuration,
-                changedProjectRazorJson.RootNamespace,
-                changedProjectRazorJson.ProjectWorkspaceState,
-                changedProjectRazorJson.Documents)).Verifiable();
-            var synchronizer = GetSynchronizer(projectService.Object);
-            var addDeserializer = CreateJsonFileDeserializer(initialProjectRazorJson);
-            var addArgs = new ProjectConfigurationFileChangeEventArgs("path/to/obj/project.razor.json", RazorFileChangeKind.Added, addDeserializer);
+            synchronizer.ProjectConfigurationFileChanged(changedArgs);
+            await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
+        }, DisposalToken);
+        await enqueueTask;
 
-            var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
-            {
-                synchronizer.ProjectConfigurationFileChanged(addArgs);
-                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, DisposalToken);
-            await enqueueTask;
+        // Assert
+        projectService.VerifyAll();
+    }
 
-            var changedDeserializer = CreateJsonFileDeserializer(changedProjectRazorJson);
-            var changedArgs = new ProjectConfigurationFileChangeEventArgs("path/to/obj/project.razor.json", RazorFileChangeKind.Changed, changedDeserializer);
+    [Fact]
+    public async Task ProjectConfigurationFileChanged_Changed_CantDeserialize_ResetsProject()
+    {
+        // Arrange
+        var initialProjectRazorJson = new ProjectRazorJson(
+            "/path/to/obj/project.razor.json",
+            "path/to/project.csproj",
+            RazorConfiguration.Default,
+            rootNamespace: "TestRootNamespace",
+            new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
+            Array.Empty<DocumentSnapshotHandle>());
+        var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
+        projectService.Setup(service => service.AddProject(initialProjectRazorJson.FilePath)).Verifiable();
+        projectService.Setup(service => service.UpdateProject(
+            initialProjectRazorJson.FilePath,
+            initialProjectRazorJson.Configuration,
+            initialProjectRazorJson.RootNamespace,
+            initialProjectRazorJson.ProjectWorkspaceState,
+            initialProjectRazorJson.Documents)).Verifiable();
+        var changedProjectRazorJson = new ProjectRazorJson(
+            "/path/to/obj/project.razor.json",
+            "path/to/project.csproj",
+            RazorConfiguration.Create(
+                RazorLanguageVersion.Experimental,
+                "TestConfiguration",
+                Array.Empty<RazorExtension>()),
+            rootNamespace: "TestRootNamespace2",
+            new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp6),
+            Array.Empty<DocumentSnapshotHandle>());
 
-            // Act
-            enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
-            {
-                synchronizer.ProjectConfigurationFileChanged(changedArgs);
-                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, DisposalToken);
-            await enqueueTask;
-
-            // Assert
-            projectService.VerifyAll();
-        }
-
-        [Fact]
-        public async Task ProjectConfigurationFileChanged_Changed_CantDeserialize_ResetsProject()
+        // This is the request that happens when the server is reset
+        projectService.Setup(service => service.UpdateProject(
+             initialProjectRazorJson.FilePath,
+             null,
+             null,
+             ProjectWorkspaceState.Default,
+             Array.Empty<DocumentSnapshotHandle>())).Verifiable();
+        var synchronizer = GetSynchronizer(projectService.Object);
+        var addDeserializer = CreateJsonFileDeserializer(initialProjectRazorJson);
+        var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Added, addDeserializer);
+        var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
         {
-            // Arrange
-            var initialProjectRazorJson = new ProjectRazorJson(
-                "/path/to/obj/project.razor.json",
-                "path/to/project.csproj",
-                RazorConfiguration.Default,
-                rootNamespace: "TestRootNamespace",
-                new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
-                Array.Empty<DocumentSnapshotHandle>());
-            var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.AddProject(initialProjectRazorJson.FilePath)).Verifiable();
-            projectService.Setup(service => service.UpdateProject(
-                initialProjectRazorJson.FilePath,
-                initialProjectRazorJson.Configuration,
-                initialProjectRazorJson.RootNamespace,
-                initialProjectRazorJson.ProjectWorkspaceState,
-                initialProjectRazorJson.Documents)).Verifiable();
-            var changedProjectRazorJson = new ProjectRazorJson(
-                "/path/to/obj/project.razor.json",
-                "path/to/project.csproj",
-                RazorConfiguration.Create(
-                    RazorLanguageVersion.Experimental,
-                    "TestConfiguration",
-                    Array.Empty<RazorExtension>()),
-                rootNamespace: "TestRootNamespace2",
-                new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp6),
-                Array.Empty<DocumentSnapshotHandle>());
+            synchronizer.ProjectConfigurationFileChanged(addArgs);
+            await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
+        }, DisposalToken);
+        await enqueueTask;
 
-            // This is the request that happens when the server is reset
-            projectService.Setup(service => service.UpdateProject(
-                 initialProjectRazorJson.FilePath,
-                 null,
-                 null,
-                 ProjectWorkspaceState.Default,
-                 Array.Empty<DocumentSnapshotHandle>())).Verifiable();
-            var synchronizer = GetSynchronizer(projectService.Object);
-            var addDeserializer = CreateJsonFileDeserializer(initialProjectRazorJson);
-            var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Added, addDeserializer);
-            var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
-            {
-                synchronizer.ProjectConfigurationFileChanged(addArgs);
-                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, DisposalToken);
-            await enqueueTask;
+        var changedDeserializer = Mock.Of<JsonFileDeserializer>(d => d.Deserialize<ProjectRazorJson>(It.IsAny<string>()) == null, MockBehavior.Strict);
+        var changedArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Changed, changedDeserializer);
 
-            var changedDeserializer = Mock.Of<JsonFileDeserializer>(d => d.Deserialize<ProjectRazorJson>(It.IsAny<string>()) == null, MockBehavior.Strict);
-            var changedArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/obj/project.razor.json", RazorFileChangeKind.Changed, changedDeserializer);
-
-            // Act
-            enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
-            {
-                synchronizer.ProjectConfigurationFileChanged(changedArgs);
-                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, DisposalToken);
-            await enqueueTask;
-
-            // Assert
-            projectService.VerifyAll();
-        }
-
-        [Fact]
-        public async Task ProjectConfigurationFileChanged_Changed_UntrackedProject_Noops()
+        // Act
+        enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
         {
-            // Arrange
-            var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            var synchronizer = GetSynchronizer(projectService.Object);
-            var changedDeserializer = Mock.Of<JsonFileDeserializer>(d => d.Deserialize<ProjectRazorJson>(It.IsAny<string>()) == null, MockBehavior.Strict);
-            var changedArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/project.razor.json", RazorFileChangeKind.Changed, changedDeserializer);
+            synchronizer.ProjectConfigurationFileChanged(changedArgs);
+            await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
+        }, DisposalToken);
+        await enqueueTask;
 
-            // Act
-            var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
-            {
-                synchronizer.ProjectConfigurationFileChanged(changedArgs);
-                await WaitForEnqueue_DispatcherThreadAsync(synchronizer, hasTask: false);
-            }, DisposalToken);
-            await enqueueTask;
+        // Assert
+        projectService.VerifyAll();
+    }
 
-            // Assert
-            projectService.VerifyAll();
-        }
+    [Fact]
+    public async Task ProjectConfigurationFileChanged_Changed_UntrackedProject_Noops()
+    {
+        // Arrange
+        var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
+        var synchronizer = GetSynchronizer(projectService.Object);
+        var changedDeserializer = Mock.Of<JsonFileDeserializer>(d => d.Deserialize<ProjectRazorJson>(It.IsAny<string>()) == null, MockBehavior.Strict);
+        var changedArgs = new ProjectConfigurationFileChangeEventArgs("/path/to/project.razor.json", RazorFileChangeKind.Changed, changedDeserializer);
 
-        [Fact]
-        public async Task ProjectConfigurationFileChanged_RemoveThenAdd_OnlyAdds()
+        // Act
+        var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
         {
-            // Arrange
-            var projectRazorJson = new ProjectRazorJson(
-                "/path/to/obj/project.razor.json",
-                "path/to/project.csproj",
-                RazorConfiguration.Default,
-                rootNamespace: "TestRootNamespace",
-                new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
-                Array.Empty<DocumentSnapshotHandle>());
+            synchronizer.ProjectConfigurationFileChanged(changedArgs);
+            await WaitForEnqueue_DispatcherThreadAsync(synchronizer, hasTask: false);
+        }, DisposalToken);
+        await enqueueTask;
 
-            var filePath = "path/to/project.csproj";
-            var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.AddProject(projectRazorJson.FilePath)).Verifiable();
-            projectService.Setup(p => p.UpdateProject(
-                filePath,
-                It.IsAny<RazorConfiguration>(),
-                It.IsAny<string>(),
-                It.IsAny<ProjectWorkspaceState>(),
-                It.IsAny<IReadOnlyList<DocumentSnapshotHandle>>()));
+        // Assert
+        projectService.VerifyAll();
+    }
 
-            var synchronizer = GetSynchronizer(projectService.Object);
-            var changedDeserializer = CreateJsonFileDeserializer(projectRazorJson);
-            var removedArgs = new ProjectConfigurationFileChangeEventArgs(projectRazorJson.SerializedFilePath, RazorFileChangeKind.Removed, changedDeserializer);
-            var addedArgs = new ProjectConfigurationFileChangeEventArgs(projectRazorJson.SerializedFilePath, RazorFileChangeKind.Added, changedDeserializer);
-            var changedArgs = new ProjectConfigurationFileChangeEventArgs(projectRazorJson.SerializedFilePath, RazorFileChangeKind.Changed, changedDeserializer);
+    [Fact]
+    public async Task ProjectConfigurationFileChanged_RemoveThenAdd_OnlyAdds()
+    {
+        // Arrange
+        var projectRazorJson = new ProjectRazorJson(
+            "/path/to/obj/project.razor.json",
+            "path/to/project.csproj",
+            RazorConfiguration.Default,
+            rootNamespace: "TestRootNamespace",
+            new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp5),
+            Array.Empty<DocumentSnapshotHandle>());
 
-            // Act
-            var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
-            {
-                synchronizer.ProjectConfigurationFileChanged(addedArgs);
-                synchronizer.ProjectConfigurationFileChanged(changedArgs);
-                await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
-            }, DisposalToken);
-            await enqueueTask;
+        var filePath = "path/to/project.csproj";
+        var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
+        projectService.Setup(service => service.AddProject(projectRazorJson.FilePath)).Verifiable();
+        projectService.Setup(p => p.UpdateProject(
+            filePath,
+            It.IsAny<RazorConfiguration>(),
+            It.IsAny<string>(),
+            It.IsAny<ProjectWorkspaceState>(),
+            It.IsAny<IReadOnlyList<DocumentSnapshotHandle>>()));
 
-            // Assert
-            projectService.Verify(p => p.UpdateProject(
-                filePath,
-                It.IsAny<RazorConfiguration>(),
-                It.IsAny<string>(),
-                It.IsAny<ProjectWorkspaceState>(),
-                It.IsAny<IReadOnlyList<DocumentSnapshotHandle>>()), Times.Once);
+        var synchronizer = GetSynchronizer(projectService.Object);
+        var changedDeserializer = CreateJsonFileDeserializer(projectRazorJson);
+        var removedArgs = new ProjectConfigurationFileChangeEventArgs(projectRazorJson.SerializedFilePath, RazorFileChangeKind.Removed, changedDeserializer);
+        var addedArgs = new ProjectConfigurationFileChangeEventArgs(projectRazorJson.SerializedFilePath, RazorFileChangeKind.Added, changedDeserializer);
+        var changedArgs = new ProjectConfigurationFileChangeEventArgs(projectRazorJson.SerializedFilePath, RazorFileChangeKind.Changed, changedDeserializer);
 
-            projectService.VerifyAll();
-        }
-
-        private async Task WaitForEnqueue_DispatcherThreadAsync(ProjectConfigurationStateSynchronizer synchronizer, bool hasTask = true)
+        // Act
+        var enqueueTask = await Dispatcher.RunOnDispatcherThreadAsync(async () =>
         {
-            Dispatcher.AssertDispatcherThread();
-            if (hasTask)
-            {
-                var kvp = Assert.Single(synchronizer.ProjectInfoMap);
-                await kvp.Value.ProjectUpdateTask;
-            }
-            else
-            {
-                Assert.Empty(synchronizer.ProjectInfoMap);
-            }
-        }
+            synchronizer.ProjectConfigurationFileChanged(addedArgs);
+            synchronizer.ProjectConfigurationFileChanged(changedArgs);
+            await WaitForEnqueue_DispatcherThreadAsync(synchronizer);
+        }, DisposalToken);
+        await enqueueTask;
 
-        private ProjectConfigurationStateSynchronizer GetSynchronizer(RazorProjectService razorProjectService)
+        // Assert
+        projectService.Verify(p => p.UpdateProject(
+            filePath,
+            It.IsAny<RazorConfiguration>(),
+            It.IsAny<string>(),
+            It.IsAny<ProjectWorkspaceState>(),
+            It.IsAny<IReadOnlyList<DocumentSnapshotHandle>>()), Times.Once);
+
+        projectService.VerifyAll();
+    }
+
+    private async Task WaitForEnqueue_DispatcherThreadAsync(ProjectConfigurationStateSynchronizer synchronizer, bool hasTask = true)
+    {
+        Dispatcher.AssertDispatcherThread();
+        if (hasTask)
         {
-            var synchronizer = new ProjectConfigurationStateSynchronizer(Dispatcher, razorProjectService, LoggerFactory);
-            synchronizer.EnqueueDelay = 5;
-
-            return synchronizer;
+            var kvp = Assert.Single(synchronizer.ProjectInfoMap);
+            await kvp.Value.ProjectUpdateTask;
         }
-
-        private static JsonFileDeserializer CreateJsonFileDeserializer(ProjectRazorJson deserializedHandle)
+        else
         {
-            var deserializer = new Mock<JsonFileDeserializer>(MockBehavior.Strict);
-            deserializer.Setup(deserializer => deserializer.Deserialize<ProjectRazorJson>(It.IsAny<string>()))
-                .Returns(deserializedHandle);
-
-            return deserializer.Object;
+            Assert.Empty(synchronizer.ProjectInfoMap);
         }
+    }
+
+    private ProjectConfigurationStateSynchronizer GetSynchronizer(RazorProjectService razorProjectService)
+    {
+        var synchronizer = new ProjectConfigurationStateSynchronizer(Dispatcher, razorProjectService, LoggerFactory);
+        synchronizer.EnqueueDelay = 5;
+
+        return synchronizer;
+    }
+
+    private static JsonFileDeserializer CreateJsonFileDeserializer(ProjectRazorJson deserializedHandle)
+    {
+        var deserializer = new Mock<JsonFileDeserializer>(MockBehavior.Strict);
+        deserializer.Setup(deserializer => deserializer.Deserialize<ProjectRazorJson>(It.IsAny<string>()))
+            .Returns(deserializedHandle);
+
+        return deserializer.Object;
     }
 }

@@ -5,11 +5,10 @@ using System;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+[LanguageServerEndpoint(Methods.TextDocumentDidOpenName)]
+internal interface IVSDidOpenTextDocumentEndpoint : IRazorNotificationHandler<DidOpenTextDocumentParams>,
+    ITextDocumentIdentifierHandler<DidOpenTextDocumentParams, Uri>
 {
-    [LanguageServerEndpoint(Methods.TextDocumentDidOpenName)]
-    internal interface IVSDidOpenTextDocumentEndpoint : IRazorNotificationHandler<DidOpenTextDocumentParams>,
-        ITextDocumentIdentifierHandler<DidOpenTextDocumentParams, Uri>
-    {
-    }
 }

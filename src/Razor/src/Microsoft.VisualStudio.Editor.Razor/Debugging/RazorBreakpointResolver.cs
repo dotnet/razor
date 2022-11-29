@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Debugging
+namespace Microsoft.VisualStudio.Editor.Razor.Debugging;
+
+internal abstract class RazorBreakpointResolver
 {
-    internal abstract class RazorBreakpointResolver
-    {
-        public abstract Task<Range?> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken);
-    }
+    public abstract Task<Range?> TryResolveBreakpointRangeAsync(ITextBuffer textBuffer, int lineIndex, int characterIndex, CancellationToken cancellationToken);
 }

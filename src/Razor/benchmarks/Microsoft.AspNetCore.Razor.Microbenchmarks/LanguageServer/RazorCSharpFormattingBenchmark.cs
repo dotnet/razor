@@ -16,58 +16,58 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
+namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
+
+internal enum InputType
 {
-    public enum InputType
+    Preformatted,
+    Unformatted
+}
+
+[CsvExporter]
+[RPlotExporter]
+internal class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
+{
+    private string _filePath;
+
+    private RazorFormattingService RazorFormattingService { get; set; }
+
+    private Uri DocumentUri { get; set; }
+
+    private DocumentSnapshot DocumentSnapshot { get; set; }
+
+    private SourceText DocumentText { get; set; }
+
+    /// <summary>
+    /// How many blocks of 25 lines of code should be formatted
+    /// </summary>
+    [Params(1, 2, 3, 4, 5, 10, 20, 30, 40, 100)]
+    public int Blocks { get; set; }
+
+    [ParamsAllValues]
+    public InputType InputType { get; set; }
+
+    [GlobalSetup(Target = nameof(RazorCSharpFormattingAsync))]
+    public async Task InitializeRazorCSharpFormattingAsync()
     {
-        Preformatted,
-        Unformatted
+        EnsureServicesInitialized();
+
+        var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
+        var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
+        _filePath = Path.Combine(projectRoot, "Components", "Pages", $"Generated.razor");
+
+        WriteSampleFormattingFile(_filePath, InputType == InputType.Preformatted, Blocks);
+
+        var targetPath = "/Components/Pages/Generated.razor";
+
+        DocumentUri = new Uri(_filePath);
+        DocumentSnapshot = GetDocumentSnapshot(projectFilePath, _filePath, targetPath);
+        DocumentText = await DocumentSnapshot.GetTextAsync();
     }
 
-    [CsvExporter]
-    [RPlotExporter]
-    public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
+    private static void WriteSampleFormattingFile(string filePath, bool preformatted, int blocks)
     {
-        private string _filePath;
-
-        private RazorFormattingService RazorFormattingService { get; set; }
-
-        private Uri DocumentUri { get; set; }
-
-        private DocumentSnapshot DocumentSnapshot { get; set; }
-
-        private SourceText DocumentText { get; set; }
-
-        /// <summary>
-        /// How many blocks of 25 lines of code should be formatted
-        /// </summary>
-        [Params(1, 2, 3, 4, 5, 10, 20, 30, 40, 100)]
-        public int Blocks { get; set; }
-
-        [ParamsAllValues]
-        public InputType InputType { get; set; }
-
-        [GlobalSetup(Target = nameof(RazorCSharpFormattingAsync))]
-        public async Task InitializeRazorCSharpFormattingAsync()
-        {
-            EnsureServicesInitialized();
-
-            var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
-            var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
-            _filePath = Path.Combine(projectRoot, "Components", "Pages", $"Generated.razor");
-
-            WriteSampleFormattingFile(_filePath, InputType == InputType.Preformatted, Blocks);
-
-            var targetPath = "/Components/Pages/Generated.razor";
-
-            DocumentUri = new Uri(_filePath);
-            DocumentSnapshot = GetDocumentSnapshot(projectFilePath, _filePath, targetPath);
-            DocumentText = await DocumentSnapshot.GetTextAsync();
-        }
-
-        private static void WriteSampleFormattingFile(string filePath, bool preformatted, int blocks)
-        {
-            var data = @"
+        var data = @"
 @{
     y = 456;
 }
@@ -94,56 +94,55 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer
 }
 
 ";
-            using var fileStream = File.CreateText(filePath);
+        using var fileStream = File.CreateText(filePath);
 
-            if (!preformatted)
-            {
-                data = data.Replace("    ", "")
-                    .Replace("@code {", "@code{")
-                    .Replace("@if (true", "@if(true");
-            }
-
-            for (var i = 0; i < blocks; i++)
-            {
-                fileStream.WriteLine(data.Replace("$INDEX$", i.ToString()));
-            }
+        if (!preformatted)
+        {
+            data = data.Replace("    ", "")
+                .Replace("@code {", "@code{")
+                .Replace("@if (true", "@if(true");
         }
 
-        [Benchmark(Description = "Formatting")]
-        public async Task RazorCSharpFormattingAsync()
+        for (var i = 0; i < blocks; i++)
         {
-            var options = new FormattingOptions()
-            {
-                TabSize = 4,
-                InsertSpaces = true
-            };
+            fileStream.WriteLine(data.Replace("$INDEX$", i.ToString()));
+        }
+    }
 
-            var documentContext = new DocumentContext(DocumentUri, DocumentSnapshot, version: 1);
+    [Benchmark(Description = "Formatting")]
+    public async Task RazorCSharpFormattingAsync()
+    {
+        var options = new FormattingOptions()
+        {
+            TabSize = 4,
+            InsertSpaces = true
+        };
 
-            var edits = await RazorFormattingService.FormatAsync(documentContext, range: null, options, CancellationToken.None);
+        var documentContext = new DocumentContext(DocumentUri, DocumentSnapshot, version: 1);
+
+        var edits = await RazorFormattingService.FormatAsync(documentContext, range: null, options, CancellationToken.None);
 
 #if DEBUG
-            // For debugging purposes only.
-            var changedText = DocumentText.WithChanges(edits.Select(e => e.AsTextChange(DocumentText)));
-            _ = changedText.ToString();
+        // For debugging purposes only.
+        var changedText = DocumentText.WithChanges(edits.Select(e => e.AsTextChange(DocumentText)));
+        _ = changedText.ToString();
 #endif
-        }
+    }
 
-        [GlobalCleanup]
-        public async Task CleanupServerAsync()
-        {
-            File.Delete(_filePath);
+    [GlobalCleanup]
+    public async Task CleanupServerAsync()
+    {
+        File.Delete(_filePath);
 
-            var innerServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
+        var innerServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
 
-            await innerServer.ShutdownAsync();
-            await innerServer.ExitAsync();
-        }
+        await innerServer.ShutdownAsync();
+        await innerServer.ExitAsync();
+    }
 
-        private void EnsureServicesInitialized()
-        {
-            var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-            RazorFormattingService = languageServer.GetRequiredService<RazorFormattingService>();
-        }
+    private void EnsureServicesInitialized()
+    {
+        var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
+        RazorFormattingService = languageServer.GetRequiredService<RazorFormattingService>();
     }
 }

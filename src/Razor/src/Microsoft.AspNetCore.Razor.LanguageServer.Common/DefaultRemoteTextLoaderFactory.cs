@@ -8,68 +8,67 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+
+public class DefaultRemoteTextLoaderFactory : RemoteTextLoaderFactory
 {
-    public class DefaultRemoteTextLoaderFactory : RemoteTextLoaderFactory
+    internal override TextLoader Create(string filePath)
     {
-        public override TextLoader Create(string filePath)
+        if (filePath is null)
+        {
+            throw new ArgumentNullException(nameof(filePath));
+        }
+
+        var normalizedPath = FilePathNormalizer.Normalize(filePath);
+        return new RemoteTextLoader(normalizedPath);
+    }
+
+    private class RemoteTextLoader : TextLoader
+    {
+        private readonly string _filePath;
+
+        public RemoteTextLoader(string filePath)
         {
             if (filePath is null)
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            var normalizedPath = FilePathNormalizer.Normalize(filePath);
-            return new RemoteTextLoader(normalizedPath);
+            _filePath = filePath;
         }
 
-        private class RemoteTextLoader : TextLoader
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
         {
-            private readonly string _filePath;
 
-            public RemoteTextLoader(string filePath)
+            TextAndVersion textAndVersion;
+
+            try
             {
-                if (filePath is null)
+                var prevLastWriteTime = File.GetLastWriteTimeUtc(_filePath);
+
+                using (var stream = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                 {
-                    throw new ArgumentNullException(nameof(filePath));
+                    var version = VersionStamp.Create(prevLastWriteTime);
+                    var text = SourceText.From(stream);
+                    textAndVersion = TextAndVersion.Create(text, version);
                 }
 
-                _filePath = filePath;
+                var newLastWriteTime = File.GetLastWriteTimeUtc(_filePath);
+                if (!newLastWriteTime.Equals(prevLastWriteTime))
+                {
+                    throw new IOException(SR.FormatFile_Externally_Modified(_filePath));
+                }
+            }
+            catch (IOException)
+            {
+                // This can typically occur when a file is renamed. What happens is the client "closes" the old file before any file system "rename" event makes it to us. Resulting
+                // in us trying to refresh the "closed" files buffer with what's on disk; however, there's nothing actually on disk because the file was renamed.
+                //
+                // Can also occur when a file is in the middle of being copied resulting in a generic IO exception for the resource not being ready.
+                textAndVersion = TextAndVersion.Create(SourceText.From(string.Empty), VersionStamp.Default, filePath: _filePath);
             }
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
-            {
-
-                TextAndVersion textAndVersion;
-
-                try
-                {
-                    var prevLastWriteTime = File.GetLastWriteTimeUtc(_filePath);
-
-                    using (var stream = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
-                    {
-                        var version = VersionStamp.Create(prevLastWriteTime);
-                        var text = SourceText.From(stream);
-                        textAndVersion = TextAndVersion.Create(text, version);
-                    }
-
-                    var newLastWriteTime = File.GetLastWriteTimeUtc(_filePath);
-                    if (!newLastWriteTime.Equals(prevLastWriteTime))
-                    {
-                        throw new IOException(RazorLSCommon.Resources.FormatFile_Externally_Modified(_filePath));
-                    }
-                }
-                catch (IOException)
-                {
-                    // This can typically occur when a file is renamed. What happens is the client "closes" the old file before any file system "rename" event makes it to us. Resulting
-                    // in us trying to refresh the "closed" files buffer with what's on disk; however, there's nothing actually on disk because the file was renamed.
-                    //
-                    // Can also occur when a file is in the middle of being copied resulting in a generic IO exception for the resource not being ready.
-                    textAndVersion = TextAndVersion.Create(SourceText.From(string.Empty), VersionStamp.Default, filePath: _filePath);
-                }
-
-                return Task.FromResult(textAndVersion);
-            }
+            return Task.FromResult(textAndVersion);
         }
     }
 }

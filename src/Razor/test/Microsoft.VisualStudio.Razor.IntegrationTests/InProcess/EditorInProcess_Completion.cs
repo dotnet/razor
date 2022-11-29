@@ -5,22 +5,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 
-namespace Microsoft.VisualStudio.Extensibility.Testing
+namespace Microsoft.VisualStudio.Extensibility.Testing;
+
+internal partial class EditorInProcess
 {
-    internal partial class EditorInProcess
+    public async Task DismissCompletionSessionsAsync(CancellationToken cancellationToken)
     {
-        public async Task DismissCompletionSessionsAsync(CancellationToken cancellationToken)
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        var view = await GetActiveTextViewAsync(cancellationToken);
+
+        var asyncBroker = await GetComponentModelServiceAsync<IAsyncCompletionBroker>(cancellationToken);
+        var session = asyncBroker.GetSession(view);
+        if (session is not null && !session.IsDismissed)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var view = await GetActiveTextViewAsync(cancellationToken);
-
-            var asyncBroker = await GetComponentModelServiceAsync<IAsyncCompletionBroker>(cancellationToken);
-            var session = asyncBroker.GetSession(view);
-            if (session is not null && !session.IsDismissed)
-            {
-                session.Dismiss();
-            }
+            session.Dismiss();
         }
     }
 }

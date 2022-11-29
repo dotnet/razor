@@ -2,7 +2,7 @@
   <Import Project="AddinMetadata.props" />
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>$(DefaultNetFxTargetFramework)</TargetFramework>
     <IsMPackProject>true</IsMPackProject>
     <AddinName>Microsoft.VisualStudio.Mac.RazorAddin</AddinName>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
@@ -61,6 +61,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Shared Dependencies -->
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageSupport\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.LanguageSupport.dll" />
+
+    <!-- Compiler Dependencies -->
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />
@@ -71,12 +75,12 @@
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.LanguageServices.Razor\$(Configuration)\net472\Microsoft.VisualStudio.Mac.LanguageServices.Razor.dll" />
 
     <!-- Language Server Dependencies -->
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.Common\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.Common.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServerClient.Razor\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServerClient.Razor.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServer.ContainedLanguage\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.dll" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer.Common\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.LanguageServer.Common.dll" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer.Protocol\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.LanguageServer.Protocol.dll" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.LanguageServer.dll" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.Common\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.Common.dll" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer.Common\$(Configuration)\net472\Microsoft.AspNetCore.Razor.LanguageServer.Common.dll" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer.Protocol\$(Configuration)\net472\Microsoft.AspNetCore.Razor.LanguageServer.Protocol.dll" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer\$(Configuration)\net472\Microsoft.AspNetCore.Razor.LanguageServer.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Microsoft.Extensions.Options.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Microsoft.Extensions.Primitives.dll" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.Mac.RazorAddin\$(Configuration)\net472\Microsoft.Extensions.DependencyInjection.dll" />
@@ -114,8 +118,8 @@
     <!-- Language Server Dependencies-->
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServerClient.Razor\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServerClient.Razor.pdb" />
     <MPackFile Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServer.ContainedLanguage\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.pdb" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer.Protocol\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.LanguageServer.Protocol.pdb" />
-    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Razor.LanguageServer.pdb" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer.Protocol\$(Configuration)\net472\Microsoft.AspNetCore.Razor.LanguageServer.Protocol.pdb" />
+    <MPackFile Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.LanguageServer\$(Configuration)\net472\Microsoft.AspNetCore.Razor.LanguageServer.pdb" />
   </ItemGroup>
 
   <ItemGroup>

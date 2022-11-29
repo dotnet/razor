@@ -11,54 +11,53 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+public class RazorConfigurationEndpointTest : LanguageServerTestBase
 {
-    public class RazorConfigurationEndpointTest : LanguageServerTestBase
+    private readonly IOptionsMonitorCache<RazorLSPOptions> _cache;
+    private readonly RazorConfigurationService _configurationService;
+
+    public RazorConfigurationEndpointTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly IOptionsMonitorCache<RazorLSPOptions> _cache;
-        private readonly RazorConfigurationService _configurationService;
+        var services = new ServiceCollection().AddOptions();
+        _cache = services.BuildServiceProvider().GetRequiredService<IOptionsMonitorCache<RazorLSPOptions>>();
 
-        public RazorConfigurationEndpointTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+        _configurationService = Mock.Of<RazorConfigurationService>(MockBehavior.Strict);
+    }
+
+    [Fact]
+    public async Task Handle_UpdatesOptions()
+    {
+        // Arrange
+        var optionsMonitor = new TestRazorLSPOptionsMonitor(_configurationService, _cache);
+        var endpoint = new RazorConfigurationEndpoint(optionsMonitor);
+        var request = new DidChangeConfigurationParams();
+        var requestContext = CreateRazorRequestContext(documentContext: null);
+
+        // Act
+        await endpoint.HandleNotificationAsync(request, requestContext, DisposalToken);
+
+        // Assert
+        Assert.True(optionsMonitor.Called, "UpdateAsync was not called.");
+    }
+
+    private class TestRazorLSPOptionsMonitor : RazorLSPOptionsMonitor
+    {
+        public TestRazorLSPOptionsMonitor(
+            RazorConfigurationService configurationService,
+            IOptionsMonitorCache<RazorLSPOptions> cache)
+            : base(configurationService, cache)
         {
-            var services = new ServiceCollection().AddOptions();
-            _cache = services.BuildServiceProvider().GetRequiredService<IOptionsMonitorCache<RazorLSPOptions>>();
-
-            _configurationService = Mock.Of<RazorConfigurationService>(MockBehavior.Strict);
         }
 
-        [Fact]
-        public async Task Handle_UpdatesOptions()
+        public bool Called { get; private set; }
+
+        public override Task UpdateAsync(CancellationToken cancellationToken)
         {
-            // Arrange
-            var optionsMonitor = new TestRazorLSPOptionsMonitor(_configurationService, _cache);
-            var endpoint = new RazorConfigurationEndpoint(optionsMonitor);
-            var request = new DidChangeConfigurationParams();
-            var requestContext = CreateRazorRequestContext(documentContext: null);
-
-            // Act
-            await endpoint.HandleNotificationAsync(request, requestContext, DisposalToken);
-
-            // Assert
-            Assert.True(optionsMonitor.Called, "UpdateAsync was not called.");
-        }
-
-        private class TestRazorLSPOptionsMonitor : RazorLSPOptionsMonitor
-        {
-            public TestRazorLSPOptionsMonitor(
-                RazorConfigurationService configurationService,
-                IOptionsMonitorCache<RazorLSPOptions> cache)
-                : base(configurationService, cache)
-            {
-            }
-
-            public bool Called { get; private set; }
-
-            public override Task UpdateAsync(CancellationToken cancellationToken)
-            {
-                Called = true;
-                return Task.CompletedTask;
-            }
+            Called = true;
+            return Task.CompletedTask;
         }
     }
 }

@@ -9,55 +9,54 @@ using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation
+namespace Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
+
+internal class ColorPresentationEndpoint : IColorPresentationEndpoint
 {
-    internal class ColorPresentationEndpoint : IColorPresentationEndpoint
+    public const string ColorPresentationMethodName = "textDocument/colorPresentation";
+
+    private readonly ClientNotifierServiceBase _languageServer;
+
+    public ColorPresentationEndpoint(ClientNotifierServiceBase languageServer)
     {
-        public const string ColorPresentationMethodName = "textDocument/colorPresentation";
-
-        private readonly ClientNotifierServiceBase _languageServer;
-
-        public ColorPresentationEndpoint(ClientNotifierServiceBase languageServer)
+        if (languageServer is null)
         {
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
-            _languageServer = languageServer;
+            throw new ArgumentNullException(nameof(languageServer));
         }
 
-        public bool MutatesSolutionState => false;
+        _languageServer = languageServer;
+    }
 
-        public TextDocumentIdentifier GetTextDocumentIdentifier(ColorPresentationParams request) => request.TextDocument;
+    public bool MutatesSolutionState => false;
 
-        public async Task<ColorPresentation[]> HandleRequestAsync(ColorPresentationParams request, RazorRequestContext context, CancellationToken cancellationToken)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(ColorPresentationParams request) => request.TextDocument;
+
+    public async Task<ColorPresentation[]> HandleRequestAsync(ColorPresentationParams request, RazorRequestContext context, CancellationToken cancellationToken)
+    {
+        var documentContext = context.DocumentContext;
+        if (documentContext is null)
         {
-            var documentContext = context.DocumentContext;
-            if (documentContext is null)
-            {
-                return Array.Empty<ColorPresentation>();
-            }
-
-            var delegatedRequest = new DelegatedColorPresentationParams
-            {
-                RequiredHostDocumentVersion = documentContext.Version,
-                Color = request.Color, Range = request.Range,
-                TextDocument = request.TextDocument
-            };
-
-            var colorPresentations = await _languageServer.SendRequestAsync<ColorPresentationParams, ColorPresentation[]>(
-                RazorLanguageServerCustomMessageTargets.RazorProvideHtmlColorPresentationEndpoint,
-                delegatedRequest,
-                cancellationToken).ConfigureAwait(false);
-
-            if (colorPresentations is null)
-            {
-                return Array.Empty<ColorPresentation>();
-            }
-
-            // HTML and Razor documents have identical mapping locations. Because of this we can return the result as-is.
-            return colorPresentations;
+            return Array.Empty<ColorPresentation>();
         }
+
+        var delegatedRequest = new DelegatedColorPresentationParams
+        {
+            RequiredHostDocumentVersion = documentContext.Version,
+            Color = request.Color, Range = request.Range,
+            TextDocument = request.TextDocument
+        };
+
+        var colorPresentations = await _languageServer.SendRequestAsync<ColorPresentationParams, ColorPresentation[]>(
+            RazorLanguageServerCustomMessageTargets.RazorProvideHtmlColorPresentationEndpoint,
+            delegatedRequest,
+            cancellationToken).ConfigureAwait(false);
+
+        if (colorPresentations is null)
+        {
+            return Array.Empty<ColorPresentation>();
+        }
+
+        // HTML and Razor documents have identical mapping locations. Because of this we can return the result as-is.
+        return colorPresentations;
     }
 }

@@ -244,41 +244,6 @@
           "operator": "and",
           "operands": [
             {
-              "name": "addedToMilestone",
-              "parameters": {
-                "milestoneName": "17.5 P1"
-              }
-            }
-          ]
-        },
-        "eventType": "issue",
-        "eventNames": [
-          "issues",
-          "project_card"
-        ],
-        "actions": [
-          {
-            "name": "addToProject",
-            "parameters": {
-              "projectName": "17.5 Preview 1",
-              "columnName": "To do"
-            }
-          }
-        ],
-        "taskName": "**UPDATE EACH SPRINT**  [Issues] Add current milestone's issues to tracking project (To do)"
-      },
-      "disabled": false
-    },
-    {
-      "taskType": "trigger",
-      "capabilityId": "IssueResponder",
-      "subCapability": "IssuesOnlyResponder",
-      "version": "1.0",
-      "config": {
-        "conditions": {
-          "operator": "and",
-          "operands": [
-            {
               "name": "isAction",
               "parameters": {
                 "action": "opened"
@@ -318,40 +283,6 @@
           }
         ]
       }
-    },
-    {
-      "taskType": "trigger",
-      "capabilityId": "IssueResponder",
-      "subCapability": "IssuesOnlyResponder",
-      "version": "1.0",
-      "config": {
-        "conditions": {
-          "operator": "and",
-          "operands": [
-            {
-              "name": "removedFromMilestone",
-              "parameters": {
-                "milestoneName": "17.5 P1"
-              }
-            }
-          ]
-        },
-        "eventType": "issue",
-        "eventNames": [
-          "issues",
-          "project_card"
-        ],
-        "taskName": "**UPDATE EACH SPRINT**  [Issues] Remove non-current milestone issues from tracking project",
-        "actions": [
-          {
-            "name": "removeFromProject",
-            "parameters": {
-              "projectName": "17.5 Preview 1"
-            }
-          }
-        ]
-      },
-      "disabled": false
     },
     {
       "taskType": "trigger",

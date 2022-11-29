@@ -3,12 +3,11 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation
+namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
+
+/// <summary>
+/// Class representing the parameters sent for a textDocument/_vs_textPresentation request.
+/// </summary>
+internal class TextPresentationParams : VSInternalTextPresentationParams, IPresentationParams
 {
-    /// <summary>
-    /// Class representing the parameters sent for a textDocument/_vs_textPresentation request.
-    /// </summary>
-    internal class TextPresentationParams : VSInternalTextPresentationParams, IPresentationParams
-    {
-    }
 }
