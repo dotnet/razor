@@ -447,18 +447,12 @@ stages:
               parallel: true
 
   # Source build
-  - template: /eng/common/templates/jobs/source-build.yml
+  - template: /eng/common/templates/job/source-build.yml
     parameters:
       platform:
         name: 'Managed'
-        container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream8'
-        buildScript: './eng/build.sh $(_PublishArgs) --no-build-repo-tasks'
+        container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7'
         skipPublishValidation: true
-        jobProperties:
-          timeoutInMinutes: 120
-          variables:
-            # Log environment variables in binary logs to ease debugging
-            MSBUILDLOGALLENVIRONMENTVARIABLES: true
 
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
