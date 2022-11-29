@@ -27,7 +27,7 @@ using Test;
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            global::__Blazor.Test.UseTestComponent.TypeInference.CreateTestComponent_0(__builder, -1, -1, 
+            var __typeInference_CreateTestComponent_0 = global::__Blazor.Test.UseTestComponent.TypeInference.CreateTestComponent_0(__builder, -1, -1, 
 #nullable restore
 #line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
                       item1
@@ -68,7 +68,7 @@ __o = typeof(global::Test.TestComponent<,,>);
 #line default
 #line hidden
 #nullable disable
-            __o = nameof(global::Test.TestComponent<string,string,string>.
+            __o = nameof(__typeInference_CreateTestComponent_0.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
                Item1
@@ -77,7 +77,7 @@ __o = typeof(global::Test.TestComponent<,,>);
 #line hidden
 #nullable disable
             );
-            __o = nameof(global::Test.TestComponent<string,string,string>.
+            __o = nameof(__typeInference_CreateTestComponent_0.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
                             Items2
@@ -86,7 +86,7 @@ __o = typeof(global::Test.TestComponent<,,>);
 #line hidden
 #nullable disable
             );
-            __o = nameof(global::Test.TestComponent<string,string,string>.
+            __o = nameof(__typeInference_CreateTestComponent_0.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
                                           Item3
@@ -115,7 +115,7 @@ namespace __Blazor.Test.UseTestComponent
     #line hidden
     internal static class TypeInference
     {
-        public static void CreateTestComponent_0<TItem1, TItem2, TItem3>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem1 __arg0, int __seq1, global::System.Collections.Generic.List<TItem2> __arg1, int __seq2, TItem3 __arg2, int __seq3, global::Microsoft.AspNetCore.Components.RenderFragment<TItem2> __arg3)
+        public static global::Test.TestComponent<TItem1, TItem2, TItem3> CreateTestComponent_0<TItem1, TItem2, TItem3>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem1 __arg0, int __seq1, global::System.Collections.Generic.List<TItem2> __arg1, int __seq2, TItem3 __arg2, int __seq3, global::Microsoft.AspNetCore.Components.RenderFragment<TItem2> __arg3)
             where TItem1 : global::Image
             where TItem2 : global::ITag
             where TItem3 : global::Image, new()
@@ -126,6 +126,7 @@ namespace __Blazor.Test.UseTestComponent
         __builder.AddAttribute(__seq2, "Item3", __arg2);
         __builder.AddAttribute(__seq3, "ChildContent", __arg3);
         __builder.CloseComponent();
+        return default;
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Test
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_0(__builder, -1, -1, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create(this, 
+            var __typeInference_CreateMyComponent_0 = global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_0(__builder, -1, -1, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create(this, 
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                         (MyType arg) => counter++
@@ -36,7 +36,7 @@ __o = typeof(global::Test.MyComponent<,>);
 #line default
 #line hidden
 #nullable disable
-            __o = nameof(global::Test.MyComponent<string,string>.
+            __o = nameof(__typeInference_CreateMyComponent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
              OnClick
@@ -62,11 +62,12 @@ namespace __Blazor.Test.TestComponent
     #line hidden
     internal static class TypeInference
     {
-        public static void CreateMyComponent_0<T, T2>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, global::Microsoft.AspNetCore.Components.EventCallback<T> __arg0)
+        public static global::Test.MyComponent<T, System.Object> CreateMyComponent_0<T, T2>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, global::Microsoft.AspNetCore.Components.EventCallback<T> __arg0)
         {
         __builder.OpenComponent<global::Test.MyComponent<T, System.Object>>(seq);
         __builder.AddAttribute(__seq0, "OnClick", __arg0);
         __builder.CloseComponent();
+        return default;
         }
     }
 }

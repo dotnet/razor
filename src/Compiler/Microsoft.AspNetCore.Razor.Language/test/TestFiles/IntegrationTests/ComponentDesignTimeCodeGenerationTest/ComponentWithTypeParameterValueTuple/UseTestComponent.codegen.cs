@@ -27,7 +27,7 @@ using Test;
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            global::__Blazor.Test.UseTestComponent.TypeInference.CreateTestComponent_0(__builder, -1, -1, 
+            var __typeInference_CreateTestComponent_0 = global::__Blazor.Test.UseTestComponent.TypeInference.CreateTestComponent_0(__builder, -1, -1, 
 #nullable restore
 #line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
                      item1
@@ -60,7 +60,7 @@ __o = typeof(global::Test.TestComponent<,>);
 #line default
 #line hidden
 #nullable disable
-            __o = nameof(global::Test.TestComponent<string,string>.
+            __o = nameof(__typeInference_CreateTestComponent_0.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
                Item1
@@ -69,7 +69,7 @@ __o = typeof(global::Test.TestComponent<,>);
 #line hidden
 #nullable disable
             );
-            __o = nameof(global::Test.TestComponent<string,string>.
+            __o = nameof(__typeInference_CreateTestComponent_0.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
                            Items2
@@ -97,13 +97,14 @@ namespace __Blazor.Test.UseTestComponent
     #line hidden
     internal static class TypeInference
     {
-        public static void CreateTestComponent_0<TItem1, TItem2>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, (TItem1, TItem2) __arg0, int __seq1, global::System.Collections.Generic.List<(TItem1, TItem2)> __arg1, int __seq2, global::Microsoft.AspNetCore.Components.RenderFragment<(TItem1, TItem2)> __arg2)
+        public static global::Test.TestComponent<TItem1, TItem2> CreateTestComponent_0<TItem1, TItem2>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, (TItem1, TItem2) __arg0, int __seq1, global::System.Collections.Generic.List<(TItem1, TItem2)> __arg1, int __seq2, global::Microsoft.AspNetCore.Components.RenderFragment<(TItem1, TItem2)> __arg2)
         {
         __builder.OpenComponent<global::Test.TestComponent<TItem1, TItem2>>(seq);
         __builder.AddAttribute(__seq0, "Item1", __arg0);
         __builder.AddAttribute(__seq1, "Items2", __arg1);
         __builder.AddAttribute(__seq2, "ChildContent", __arg2);
         __builder.CloseComponent();
+        return default;
         }
     }
 }

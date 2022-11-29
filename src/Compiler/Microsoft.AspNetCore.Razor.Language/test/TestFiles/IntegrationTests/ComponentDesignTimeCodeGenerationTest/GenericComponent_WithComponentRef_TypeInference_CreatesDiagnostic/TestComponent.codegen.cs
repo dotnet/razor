@@ -20,7 +20,7 @@ namespace Test
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_0(__builder, -1, -1, 
+            var __typeInference_CreateMyComponent_0 = global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_0(__builder, -1, -1, 
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                    3
@@ -45,7 +45,7 @@ __o = typeof(global::Test.MyComponent<>);
 #line default
 #line hidden
 #nullable disable
-            __o = nameof(global::Test.MyComponent<string>.
+            __o = nameof(__typeInference_CreateMyComponent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
              Item
@@ -72,12 +72,13 @@ namespace __Blazor.Test.TestComponent
     #line hidden
     internal static class TypeInference
     {
-        public static void CreateMyComponent_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0, int __seq1, System.Action<global::Test.MyComponent<TItem>> __arg1)
+        public static global::Test.MyComponent<TItem> CreateMyComponent_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0, int __seq1, System.Action<global::Test.MyComponent<TItem>> __arg1)
         {
         __builder.OpenComponent<global::Test.MyComponent<TItem>>(seq);
         __builder.AddAttribute(__seq0, "Item", __arg0);
         __builder.AddComponentReferenceCapture(__seq1, (__value) => { __arg1((global::Test.MyComponent<TItem>)__value); });
         __builder.CloseComponent();
+        return default;
         }
     }
 }

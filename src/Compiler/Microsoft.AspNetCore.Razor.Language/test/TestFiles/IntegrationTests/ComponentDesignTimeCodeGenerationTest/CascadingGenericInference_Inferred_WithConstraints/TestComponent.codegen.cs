@@ -39,7 +39,7 @@ namespace Test
 #nullable disable
             ;
             __builder.AddAttribute(-1, "ColumnsTemplate", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
-                global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_0(__builder2, -1, default(WeatherForecast), -1, "", -1, "", -1, "", -1, "");
+                var __typeInference_CreateColumn_0 = global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_0(__builder2, -1, default(WeatherForecast), -1, "", -1, "", -1, "", -1, "");
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.Column<>);
@@ -47,7 +47,7 @@ __o = typeof(global::Test.Column<>);
 #line default
 #line hidden
 #nullable disable
-                __o = nameof(global::Test.Column<string>.
+                __o = nameof(__typeInference_CreateColumn_0.
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
                              FieldName
@@ -74,7 +74,7 @@ namespace __Blazor.Test.TestComponent
     #line hidden
     internal static class TypeInference
     {
-        public static void CreateColumn_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, TItem __syntheticArg0, int __seq0, global::System.Object __arg0, int __seq1, global::System.String __arg1, int __seq2, global::System.Object __arg2, int __seq3, global::System.Object __arg3)
+        public static global::Test.Column<TItem> CreateColumn_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, TItem __syntheticArg0, int __seq0, global::System.Object __arg0, int __seq1, global::System.String __arg1, int __seq2, global::System.Object __arg2, int __seq3, global::System.Object __arg3)
             where TItem : class
         {
         __builder.OpenComponent<global::Test.Column<TItem>>(seq);
@@ -83,6 +83,7 @@ namespace __Blazor.Test.TestComponent
         __builder.AddAttribute(__seq2, "Format", __arg2);
         __builder.AddAttribute(__seq3, "Width", __arg3);
         __builder.CloseComponent();
+        return default;
         }
     }
 }
