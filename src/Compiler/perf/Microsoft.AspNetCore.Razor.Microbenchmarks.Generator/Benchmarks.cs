@@ -7,8 +7,6 @@ using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using static Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.ProjectSetup;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Generator;
 
@@ -24,14 +22,6 @@ public class Benchmarks
     [ParamsAllExceptDebug(StartupKind.Warm)]
     public StartupKind Startup { get; set; }
 
-    public enum FileTypeKind { CSharp, Razor };
-    [ParamsAllExceptDebug(FileTypeKind.Razor)]
-    public FileTypeKind FileType { get; set; }
-
-    public enum OperationKind { AddFile, EditFile, RemoveFile };
-    [ParamsAllExceptDebug(OperationKind.EditFile)]
-    public OperationKind Operation { get; set; }
-
     [ModuleInitializer]
     public static void LoadMSBuild() => MSBuildLocator.RegisterDefaults();
 
@@ -46,14 +36,7 @@ public class Benchmarks
     {
         var compilation = _project!.Compilation;
         var driver = _project!.GeneratorDriver;
-        if (FileType == FileTypeKind.CSharp)
-        {
-            compilation = CSharpChange();
-        }
-        else
-        {
-            driver = RazorChange();
-        }
+        driver = RazorChange();
 
         driver = driver.RunGenerators(compilation);
         var result = driver.GetRunResult();
@@ -87,64 +70,28 @@ public class Benchmarks
     {
         if (Change == ChangeKind.Independent)
         {
-            return new InMemoryAdditionalText(IndependentRazorFile, "Pages/Generated/0.razor");
+            return new ProjectSetup.InMemoryAdditionalText(IndependentRazorFile, "Pages/Generated/0.razor");
         }
         else if (Change == ChangeKind.DependentIgnorable)
         {
-            return new InMemoryAdditionalText(DependentIgnorableRazorFile, "Pages/Counter.razor");
+            return new ProjectSetup.InMemoryAdditionalText(DependentIgnorableRazorFile, "Pages/Counter.razor");
         }
         else
         {
-            return new InMemoryAdditionalText(DependentRazorFile, "Pages/Counter.razor");
+            return new ProjectSetup.InMemoryAdditionalText(DependentRazorFile, "Pages/Counter.razor");
         }
     }
 
     private AdditionalText? GetExistingRazorFile()
     {
-        if (Change != ChangeKind.Independent)
-        {
-            return _project!.AdditionalTexts.Single(a => a.Path.EndsWith("Counter.razor", StringComparison.OrdinalIgnoreCase));
-        }
-        else
+        if (Change == ChangeKind.Independent)
         {
             return _project!.AdditionalTexts.Single(a => a.Path.EndsWith("0.razor", StringComparison.OrdinalIgnoreCase));
         }
-    }
-
-    private Compilation CSharpChange()
-    {
-        var compilation = _project!.Compilation;
-        var newSyntaxTree = GetNewTree();
-        var existingSyntaxTree = GetExistingTree();
-
-        if (newSyntaxTree is not null)
+        else
         {
-            compilation = compilation.AddSyntaxTrees(newSyntaxTree);
+            return _project!.AdditionalTexts.Single(a => a.Path.EndsWith("Counter.razor", StringComparison.OrdinalIgnoreCase));
         }
-        if (existingSyntaxTree is not null)
-        {
-            compilation = compilation.RemoveSyntaxTrees(existingSyntaxTree);
-        }
-
-        return compilation;
-    }
-
-    private SyntaxTree? GetNewTree()
-    {
-        if (Change == ChangeKind.Independent)
-        {
-            return CSharpSyntaxTree.ParseText("public class D{}", _project!.ParseOptions);
-        }
-        return null;
-    }
-
-    private SyntaxTree? GetExistingTree()
-    {
-        if (Operation == OperationKind.AddFile)
-        {
-            return null;
-        }
-        return null;
     }
 
     private const string IndependentRazorFile = "<h1>Independent File</h1>";
