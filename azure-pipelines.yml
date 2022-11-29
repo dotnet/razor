@@ -451,7 +451,7 @@ stages:
     parameters:
       platform:
         name: 'Managed'
-        container: 'mcr.microsoft.com/mirror/docker/library/node:18-bullseye-slim'
+        container: 'mcr.microsoft.com/mirror/docker/library/node:18-buster'
         skipPublishValidation: true
 
 
