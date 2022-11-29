@@ -456,6 +456,15 @@ stages:
         workspace:
           clean: all
         steps:
+          - task: NodeTool@0
+            displayName: Install Node 10.x
+            inputs:
+              versionSpec: 10.x
+
+          - powershell: npm install -g yarn
+            displayName: Install yarn
+            condition: succeeded()
+
           - template: /eng/common/templates/steps/source-build.yml
 
 
