@@ -356,7 +356,9 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
-        var writePropertyAccess = true;
+        // We might need a scope for inferring types, 
+        CodeWriterExtensions.CSharpCodeWritingScope? typeInferenceCaptureScope = null;
+        string typeInferenceLocalName = null;
 
         if (node.TypeInferenceNode == null)
         {
@@ -428,7 +430,6 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             // into two parts. First we call an inference method that captures all the parameters in local variables,
             // then we use those to call the real type inference method that emits the component. The reason for this
             // is so the captured variables can be used by descendants without re-evaluating the expressions.
-            CodeWriterExtensions.CSharpCodeWritingScope? typeInferenceCaptureScope = null;
             if (node.Component.SuppliesCascadingGenericParameters())
             {
                 typeInferenceCaptureScope = context.CodeWriter.BuildScope();
@@ -470,8 +471,11 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             // Roslyn to bind to properties that represent component attributes.
             // It's a bit silly that this variable will be called __typeInference_CreateMyComponent_0 with "Create" in the
             // name, but since we've already done the work to create a unique name, we should reuse it.
-            context.CodeWriter.Write("var __typeInference_");
-            context.CodeWriter.Write(node.TypeInferenceNode.MethodName);
+
+            typeInferenceLocalName = $"__typeInference_{node.TypeInferenceNode.MethodName}";
+
+            context.CodeWriter.Write("var ");
+            context.CodeWriter.Write(typeInferenceLocalName);
             context.CodeWriter.Write(" = ");
 
             context.CodeWriter.Write("global::");
@@ -500,24 +504,19 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
             context.CodeWriter.Write(");");
             context.CodeWriter.WriteLine();
+        }
 
-            if (typeInferenceCaptureScope.HasValue)
+        // We need to write property access here in case we're in a scope for capturing types, because we need to re-use
+        // the type inference local for accessing property names
+        foreach (var child in node.Children)
+        {
+            if (child is ComponentAttributeIntermediateNode attribute)
             {
-                // If we're inside a scope for capturing parameters, then we need to write property access here, so our component
-                // is in scope, otherwise type inference won't work, so flag that we shouldn't write it again at the end.
-                writePropertyAccess = false;
-
-                foreach (var child in node.Children)
-                {
-                    if (child is ComponentAttributeIntermediateNode attribute)
-                    {
-                        WritePropertyAccess(context, attribute, node);
-                    }
-                }
-
-                typeInferenceCaptureScope.Value.Dispose();
+                WritePropertyAccess(context, attribute, node, typeInferenceLocalName);
             }
         }
+
+        typeInferenceCaptureScope?.Dispose();
 
         // We want to generate something that references the Component type to avoid
         // the "usings directive is unnecessary" message.
@@ -555,17 +554,6 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             }
             context.CodeWriter.Write(");");
             context.CodeWriter.WriteLine();
-        }
-
-        if (writePropertyAccess)
-        {
-            foreach (var child in node.Children)
-            {
-                if (child is ComponentAttributeIntermediateNode attribute)
-                {
-                    WritePropertyAccess(context, attribute, node);
-                }
-            }
         }
     }
 
@@ -634,7 +622,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         context.CodeWriter.WriteLine();
     }
 
-    private void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node, ComponentIntermediateNode componentNode)
+    private void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node, ComponentIntermediateNode componentNode, string typeInferenceLocalName)
     {
         if (node?.TagHelper?.Name is null || node.Annotations["OriginalAttributeSpan"] is null)
         {
@@ -693,10 +681,14 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         }
         else
         {
+            if (typeInferenceLocalName is null)
+            {
+                throw new InvalidOperationException("No type inference local name was supplied, but type inference is required to reference a component type.");
+            }
+
             // Earlier when we did the type inference stuff, we captured a variable which the compiler would know the type information
             // for explicitly for the purposes of using it now
-            context.CodeWriter.Write("__typeInference_");
-            context.CodeWriter.Write(componentNode.TypeInferenceNode.MethodName);
+            context.CodeWriter.Write(typeInferenceLocalName);
         }
 
         context.CodeWriter.Write(".");
