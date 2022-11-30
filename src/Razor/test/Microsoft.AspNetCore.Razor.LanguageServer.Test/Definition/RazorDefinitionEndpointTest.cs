@@ -195,22 +195,6 @@ public class RazorDefinitionEndpointTest : TagHelperServiceTestBase
         await VerifyOriginTagHelperBindingAsync(content);
     }
 
-    [Fact(Skip = "TODO: Rewrite as integration test")]
-    public async Task GetOriginTagHelperBindingAsync_TagHelper_PropertyAttribute()
-    {
-        var content = """
-                @addTagHelper *, TestAssembly
-                <Component1 boo$$l-val="true"></Component1>
-                @code {
-                    public void Increment()
-                    {
-                    }
-                }
-                """;
-
-        await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
-    }
-
     [Fact]
     public async Task GetOriginTagHelperBindingAsync_TagHelper_MinimizedPropertyAttribute()
     {
@@ -249,22 +233,6 @@ public class RazorDefinitionEndpointTest : TagHelperServiceTestBase
         var content = """
                 @addTagHelper *, TestAssembly
                 <Component1 bool-val$$></Component1>
-                @code {
-                    public void Increment()
-                    {
-                    }
-                }
-                """;
-
-        await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
-    }
-
-    [Fact(Skip = "TODO: Rewrite as integration test"), WorkItem("https://github.com/dotnet/razor-tooling/issues/6775")]
-    public async Task GetOriginTagHelperBindingAsync_TagHelper_PropertyAttributeEdge()
-    {
-        var content = """
-                @addTagHelper *, TestAssembly
-                <Component1 bool-val$$="true"></Component1>
                 @code {
                     public void Increment()
                     {
