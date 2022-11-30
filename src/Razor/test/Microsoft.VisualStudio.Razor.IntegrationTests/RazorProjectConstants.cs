@@ -19,7 +19,7 @@ public static class RazorProjectConstants
     internal static readonly string SemanticTokensFile = Path.Combine(s_pagesDir, "SemanticTokens.razor");
     internal static readonly string MainLayoutFile = Path.Combine(s_sharedDir, "MainLayout.razor");
     internal static readonly string NavMenuFile = Path.Combine(s_sharedDir, "NavMenu.razor");
-    internal static readonly string SurveyPromptFile = Path.Combine(s_sharedDir, "Index.SurveyPrompt");
+    internal static readonly string SurveyPromptFile = Path.Combine(s_sharedDir, "SurveyPrompt.razor");
     internal static readonly string ErrorCshtmlFile = Path.Combine(s_pagesDir, "Error.cshtml");
     internal static readonly string ImportsRazorFile = "_Imports.razor";
 
