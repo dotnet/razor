@@ -363,7 +363,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
             // If we made it through all the crefs and code matches, add the rest of the text and break out of the loop.
             if (currentCrefMatchIndex == crefMatches.Count && currentCodeMatchIndex == codeMatches.Count)
             {
-                currentTextRun.Append(summaryContent.Substring(i));
+                currentTextRun.Append(summaryContent[i..]);
                 break;
             }
 

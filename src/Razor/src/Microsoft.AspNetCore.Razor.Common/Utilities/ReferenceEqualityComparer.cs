@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
-internal class ReferenceEqualityComparer<T> : IEqualityComparer<T>
+internal sealed class ReferenceEqualityComparer<T> : IEqualityComparer<T>
     where T : class
 {
     public static readonly ReferenceEqualityComparer<T> Instance = new();

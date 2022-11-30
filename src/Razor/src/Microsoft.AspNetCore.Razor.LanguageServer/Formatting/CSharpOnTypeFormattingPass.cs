@@ -403,12 +403,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
     {
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
-        var capacity = (newLine.Length * count) + text.Length;
-
-        if (builder.Capacity < capacity)
-        {
-            builder.Capacity = capacity;
-        }
+        builder.SetCapacityIfLarger((newLine.Length * count) + text.Length);
 
         for (var i = 0; i < count; i++)
         {
