@@ -4,6 +4,7 @@
 // Copied from https://github/dotnet/roslyn
 
 using System;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -11,7 +12,6 @@ internal struct PooledObject<T> : IDisposable
     where T : class
 {
     private readonly ObjectPool<T> _pool;
-    private readonly Action<ObjectPool<T>, T> _releaser;
     private T? _object;
 
     // Because of how this API is intended to be used, we don't want the consumption code to have
@@ -19,19 +19,18 @@ internal struct PooledObject<T> : IDisposable
     // non-null until this is disposed.
     public T Object => _object!;
 
-    public PooledObject(ObjectPool<T> pool, Func<ObjectPool<T>, T> allocator, Action<ObjectPool<T>, T> releaser)
+    public PooledObject(ObjectPool<T> pool)
         : this()
     {
         _pool = pool;
-        _object = allocator(pool);
-        _releaser = releaser;
+        _object = pool.Get();
     }
 
     public void Dispose()
     {
         if (_object is { } obj)
         {
-            _releaser(_pool, obj);
+            _pool.Return(obj);
             _object = null;
         }
     }

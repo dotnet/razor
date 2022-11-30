@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -14,30 +14,24 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// Instances originating from this pool are intended to be short-lived and are suitable
 /// for temporary work. Do not return them as the results of methods or store them in fields.
 /// </remarks>
-internal static class StringDictionaryPool<TValue>
+internal static partial class StringDictionaryPool<TValue>
 {
-    public static class Ordinal
-    {
-        public static readonly ObjectPool<Dictionary<string, TValue>> DefaultPool =
-            ObjectPool.Default(() => new Dictionary<string, TValue>(StringComparer.Ordinal));
+    public static readonly ObjectPool<Dictionary<string, TValue>> Ordinal = ObjectPool.Create(OrdinalPolicy.Instance);
+    public static readonly ObjectPool<Dictionary<string, TValue>> OrdinalIgnoreCase = ObjectPool.Create(OrdinalIgnoreCasePolicy.Instance);
 
-        public static PooledObject<Dictionary<string, TValue>> GetPooledObject()
-            => DefaultPool.GetPooledObject();
+    public static PooledObject<Dictionary<string, TValue>> GetPooledObject()
+        => Ordinal.GetPooledObject();
 
-        public static PooledObject<Dictionary<string, TValue>> GetPooledObject(out Dictionary<string, TValue> map)
-            => DefaultPool.GetPooledObject(out map);
+    public static PooledObject<Dictionary<string, TValue>> GetPooledObject(out Dictionary<string, TValue> map)
+        => Ordinal.GetPooledObject(out map);
 
-    }
+    public static PooledObject<Dictionary<string, TValue>> GetPooledObject(bool ignoreCase)
+        => ignoreCase
+            ? OrdinalIgnoreCase.GetPooledObject()
+            : Ordinal.GetPooledObject();
 
-    public static class OrdinalIgnoreCase
-    {
-        public static readonly ObjectPool<Dictionary<string, TValue>> DefaultPool =
-            ObjectPool.Default(() => new Dictionary<string, TValue>(StringComparer.OrdinalIgnoreCase));
-
-        public static PooledObject<Dictionary<string, TValue>> GetPooledObject()
-            => DefaultPool.GetPooledObject();
-
-        public static PooledObject<Dictionary<string, TValue>> GetPooledObject(out Dictionary<string, TValue> map)
-            => DefaultPool.GetPooledObject(out map);
-    }
+    public static PooledObject<Dictionary<string, TValue>> GetPooledObject(bool ignoreCase, out Dictionary<string, TValue> map)
+        => ignoreCase
+            ? OrdinalIgnoreCase.GetPooledObject(out map)
+            : Ordinal.GetPooledObject(out map);
 }

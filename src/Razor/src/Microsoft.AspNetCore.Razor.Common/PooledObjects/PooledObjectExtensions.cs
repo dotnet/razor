@@ -5,15 +5,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
-internal static partial class PooledObject
+internal static partial class PooledObjectExtensions
 {
-    internal const int Threshold = 512;
-
     public static PooledObject<ImmutableArray<T>.Builder> GetPooledObject<T>(this ObjectPool<ImmutableArray<T>.Builder> pool)
-        => new(pool, ArrayBuilderFuncs<T>.Allocate, ArrayBuilderFuncs<T>.Release);
+        => new(pool);
 
     public static PooledObject<ImmutableArray<T>.Builder> GetPooledObject<T>(
         this ObjectPool<ImmutableArray<T>.Builder> pool,
@@ -26,7 +25,7 @@ internal static partial class PooledObject
 
     public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject<TKey, TValue>(this ObjectPool<Dictionary<TKey, TValue>> pool)
         where TKey : notnull
-        => new(pool, DictionaryFuncs<TKey, TValue>.Allocate, DictionaryFuncs<TKey, TValue>.Release);
+        => new(pool);
 
     public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject<TKey, TValue>(
         this ObjectPool<Dictionary<TKey, TValue>> pool,
@@ -39,7 +38,7 @@ internal static partial class PooledObject
     }
 
     public static PooledObject<HashSet<T>> GetPooledObject<T>(this ObjectPool<HashSet<T>> pool)
-        => new(pool, HashSetFuncs<T>.Allocate, HashSetFuncs<T>.Release);
+        => new(pool);
 
     public static PooledObject<HashSet<T>> GetPooledObject<T>(
         this ObjectPool<HashSet<T>> pool,
@@ -51,7 +50,7 @@ internal static partial class PooledObject
     }
 
     public static PooledObject<List<T>> GetPooledObject<T>(this ObjectPool<List<T>> pool)
-        => new(pool, ListFuncs<T>.Allocate, ListFuncs<T>.Release);
+        => new(pool);
 
     public static PooledObject<List<T>> GetPooledObject<T>(
         this ObjectPool<List<T>> pool,
@@ -63,7 +62,7 @@ internal static partial class PooledObject
     }
 
     public static PooledObject<Stack<T>> GetPooledObject<T>(this ObjectPool<Stack<T>> pool)
-        => new(pool, StackFuncs<T>.Allocate, StackFuncs<T>.Release);
+        => new(pool);
 
     public static PooledObject<Stack<T>> GetPooledObject<T>(
         this ObjectPool<Stack<T>> pool,
@@ -75,7 +74,7 @@ internal static partial class PooledObject
     }
 
     public static PooledObject<Stopwatch> GetPooledObject(this ObjectPool<Stopwatch> pool)
-        => new(pool, StopwatchFuncs.Allocate, StopwatchFuncs.Release);
+        => new(pool);
 
     public static PooledObject<Stopwatch> GetPooledObject(
         this ObjectPool<Stopwatch> pool,
@@ -87,7 +86,7 @@ internal static partial class PooledObject
     }
 
     public static PooledObject<StringBuilder> GetPooledObject(this ObjectPool<StringBuilder> pool)
-        => new(pool, StringBuilderFuncs.Allocate, StringBuilderFuncs.Release);
+        => new(pool);
 
     public static PooledObject<StringBuilder> GetPooledObject(
         this ObjectPool<StringBuilder> pool,

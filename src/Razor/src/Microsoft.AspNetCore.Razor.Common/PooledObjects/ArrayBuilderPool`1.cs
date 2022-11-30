@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -13,13 +14,13 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// Instances originating from this pool are intended to be short-lived and are suitable
 /// for temporary work. Do not return them as the results of methods or store them in fields.
 /// </remarks>
-internal static class ArrayBuilderPool<T>
+internal static partial class ArrayBuilderPool<T>
 {
-    public static readonly ObjectPool<ImmutableArray<T>.Builder> DefaultPool = ObjectPool.Default(ImmutableArray.CreateBuilder<T>);
+    public static readonly ObjectPool<ImmutableArray<T>.Builder> Default = DefaultPool.Create(Policy.Instance);
 
     public static PooledObject<ImmutableArray<T>.Builder> GetPooledObject()
-        => DefaultPool.GetPooledObject();
+        => Default.GetPooledObject();
 
     public static PooledObject<ImmutableArray<T>.Builder> GetPooledObject(out ImmutableArray<T>.Builder builder)
-        => DefaultPool.GetPooledObject(out builder);
+        => Default.GetPooledObject(out builder);
 }

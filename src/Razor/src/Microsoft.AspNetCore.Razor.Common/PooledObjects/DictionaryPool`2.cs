@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -13,14 +14,14 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// Instances originating from this pool are intended to be short-lived and are suitable
 /// for temporary work. Do not return them as the results of methods or store them in fields.
 /// </remarks>
-internal static class DictionaryPool<TKey, TValue>
+internal static partial class DictionaryPool<TKey, TValue>
     where TKey : notnull
 {
-    public static readonly ObjectPool<Dictionary<TKey, TValue>> DefaultPool = ObjectPool.Default<Dictionary<TKey, TValue>>();
+    public static readonly ObjectPool<Dictionary<TKey, TValue>> Default = DefaultPool.Create(Policy.Instance);
 
     public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject()
-        => DefaultPool.GetPooledObject();
+        => Default.GetPooledObject();
 
     public static PooledObject<Dictionary<TKey, TValue>> GetPooledObject(out Dictionary<TKey, TValue> map)
-        => DefaultPool.GetPooledObject(out map);
+        => Default.GetPooledObject(out map);
 }

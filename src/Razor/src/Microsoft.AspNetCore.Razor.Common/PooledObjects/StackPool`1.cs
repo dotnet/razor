@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -13,12 +14,12 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// Instances originating from this pool are intended to be short-lived and are suitable
 /// for temporary work. Do not return them as the results of methods or store them in fields.
 /// </remarks>
-internal static class StackPool<T>
+internal static partial class StackPool<T>
 {
-    public static readonly ObjectPool<Stack<T>> DefaultPool = ObjectPool.Default<Stack<T>>();
+    public static readonly ObjectPool<Stack<T>> Default = DefaultPool.Create(Policy.Instance);
 
-    public static PooledObject<Stack<T>> GetPooledObject() => DefaultPool.GetPooledObject();
+    public static PooledObject<Stack<T>> GetPooledObject() => Default.GetPooledObject();
 
     public static PooledObject<Stack<T>> GetPooledObject(out Stack<T> stack)
-        => DefaultPool.GetPooledObject(out stack);
+        => Default.GetPooledObject(out stack);
 }
