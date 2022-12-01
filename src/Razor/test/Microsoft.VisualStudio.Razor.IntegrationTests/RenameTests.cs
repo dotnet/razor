@@ -116,4 +116,53 @@ public class RenameTests : AbstractRazorEditorTest
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, "MyComponent.razor", ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.VerifyTextContainsAsync("@ZooperDooper", ControlledHangMitigatingCancellationToken);
     }
+
+    [IdeFact]
+    public async Task Rename_ComponentAttribute_BoundAttribute()
+    {
+        // Create the files
+        await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
+            "MyComponent.razor",
+            """
+            <div></div>
+
+            @code
+            {
+                [Parameter]
+                public string? Value { get; set; }
+
+                [Parameter]
+                public EventCallback<string?> ValueChanged { get; set; }
+            }
+            """,
+            cancellationToken: ControlledHangMitigatingCancellationToken);
+
+        await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
+            "MyPage.razor",
+            """
+            <MyComponent @bind-Value="value"></MyComponent>
+
+            @code{
+                string? value = "";
+            }
+            """,
+            open: true,
+            cancellationToken: ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.PlaceCaretAsync("Value=", charsOffset: -1, ControlledHangMitigatingCancellationToken);
+
+        // Act
+        await TestServices.Editor.InvokeRenameAsync(ControlledHangMitigatingCancellationToken);
+        TestServices.Input.Send("ZooperDooper{ENTER}");
+
+        // Assert
+        // The rename operation causes MyPage.razor to be opened
+        await TestServices.Editor.WaitForActiveWindowByFileAsync("MyComponent.razor", ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.VerifyTextContainsAsync("public string? ZooperDooper { get; set; }", ControlledHangMitigatingCancellationToken);
+
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, "MyPage.razor", ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.VerifyTextContainsAsync("<MyComponent @bind-ZooperDooper=\"value\"></MyComponent>", ControlledHangMitigatingCancellationToken);
+    }
 }

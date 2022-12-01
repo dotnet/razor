@@ -254,4 +254,48 @@ public class GoToDefinitionTests : AbstractRazorEditorTest
         await TestServices.Editor.WaitForActiveWindowAsync("MyComponent.cs", ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.WaitForCurrentLineTextAsync("public string FieldName { get; set; }", ControlledHangMitigatingCancellationToken);
     }
+
+    [IdeFact]
+    public async Task GoToDefinition_ComponentAttribute_BoundAttribute()
+    {
+        // Create the files
+        await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
+            "MyComponent.razor",
+            """
+            <div></div>
+
+            @code
+            {
+                [Parameter]
+                public string? Value { get; set; }
+
+                [Parameter]
+                public EventCallback<string?> ValueChanged { get; set; }
+            }
+            """,
+            cancellationToken: ControlledHangMitigatingCancellationToken);
+
+        await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
+            "MyPage.razor",
+            """
+            <MyComponent @bind-Value="value"></MyComponent>
+
+            @code{
+                string? value = "";
+            }
+            """,
+            open: true,
+            cancellationToken: ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.PlaceCaretAsync("Value=", charsOffset: -1, ControlledHangMitigatingCancellationToken);
+
+        // Act
+        await TestServices.Editor.InvokeGoToDefinitionAsync(ControlledHangMitigatingCancellationToken);
+
+        // Assert
+        await TestServices.Editor.WaitForActiveWindowAsync("MyComponent.razor", ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.WaitForCurrentLineTextAsync("public string? Value { get; set; }", ControlledHangMitigatingCancellationToken);
+    }
 }
