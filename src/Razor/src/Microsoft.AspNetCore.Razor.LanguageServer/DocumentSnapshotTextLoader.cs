@@ -23,11 +23,18 @@ internal class DocumentSnapshotTextLoader : TextLoader
         _documentSnapshot = documentSnapshot;
     }
 
-    public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+    public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
     {
         var sourceText = await _documentSnapshot.GetTextAsync();
         var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default);
 
         return textAndVersion;
+    }
+
+    [Obsolete]
+    public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+    {
+        var options = new LoadTextOptions();
+        return LoadTextAndVersionAsync(options, cancellationToken);
     }
 }

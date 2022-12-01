@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Text;
 using System.Threading;
@@ -30,12 +28,19 @@ internal class GeneratedDocumentTextLoader : TextLoader
         _version = VersionStamp.Create();
     }
 
-    public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+    public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
     {
         var output = await _document.GetGeneratedOutputAsync().ConfigureAwait(false);
 
         // Providing an encoding here is important for debuggability. Without this edit-and-continue
         // won't work for projects with Razor files.
         return TextAndVersion.Create(SourceText.From(output.GetCSharpDocument().GeneratedCode, Encoding.UTF8), _version, _filePath);
+    }
+
+    [Obsolete]
+    public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+    {
+        var options = new LoadTextOptions();
+        return LoadTextAndVersionAsync(options, cancellationToken);
     }
 }

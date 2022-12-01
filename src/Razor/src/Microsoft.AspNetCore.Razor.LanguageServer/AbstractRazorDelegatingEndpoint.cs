@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using ITextDocumentPositionParams = Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.ITextDocumentPositionParams;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 

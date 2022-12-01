@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -26,7 +24,7 @@ public class EmptyTextLoaderTest : TestBase
         var loader = new EmptyTextLoader("file.cshtml");
 
         // Act
-        var textAndVersion = await loader.LoadTextAndVersionAsync(default, default, default);
+        var textAndVersion = await loader.LoadTextAndVersionAsync(default, default);
 
         // Assert
         Assert.True(textAndVersion.Text.CanBeEmbedded);

@@ -193,9 +193,17 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
         }
 
         public override Task<TextAndVersion> LoadTextAndVersionAsync(
-            Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+             LoadTextOptions options, CancellationToken cancellationToken)
         {
             return Task.FromResult(TextAndVersion.Create(_sourceText, VersionStamp.Default, _filePath));
+        }
+
+        [Obsolete]
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(
+            Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+        {
+            var options = new LoadTextOptions();
+            return LoadTextAndVersionAsync(options, cancellationToken);
         }
     }
 }

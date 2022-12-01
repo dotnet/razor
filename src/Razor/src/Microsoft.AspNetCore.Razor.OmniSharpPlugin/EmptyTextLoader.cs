@@ -1,8 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
+using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,10 +21,17 @@ internal class EmptyTextLoader : TextLoader
         _version = VersionStamp.Create(); // Version will never change so this can be reused.
     }
 
-    public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+    public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
     {
         // Providing an encoding here is important for debuggability. Without this edit-and-continue
         // won't work for projects with Razor files.
         return Task.FromResult(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), _version, _filePath));
+    }
+
+    [Obsolete]
+    public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+    {
+        var options = new LoadTextOptions();
+        return LoadTextAndVersionAsync(options, cancellationToken);
     }
 }

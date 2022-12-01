@@ -158,9 +158,16 @@ internal class CSharpVirtualDocumentPublisher : LSPDocumentChangeListener
                 _filePath = filePath;
             }
 
-            public override Task<TextAndVersion> LoadTextAndVersionAsync(CodeAnalysisWorkspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
             {
                 return Task.FromResult(TextAndVersion.Create(_sourceText, VersionStamp.Default, _filePath));
+            }
+
+            [Obsolete]
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(CodeAnalysisWorkspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+            {
+                var options = new LoadTextOptions();
+                return LoadTextAndVersionAsync(options, cancellationToken);
             }
         }
     }

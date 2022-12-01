@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -56,7 +54,7 @@ public class BackgroundDocumentGeneratorTest : ProjectSnapshotManagerDispatcherW
         // We utilize a task completion source here so we can "fake" a document parse taking a significant amount of time
         var tcs = new TaskCompletionSource<TextAndVersion>();
         var textLoader = new Mock<TextLoader>(MockBehavior.Strict);
-        textLoader.Setup(loader => loader.LoadTextAndVersionAsync(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<CancellationToken>()))
+        textLoader.Setup(loader => loader.LoadTextAndVersionAsync(It.IsAny<LoadTextOptions>(), It.IsAny<CancellationToken>()))
             .Returns(tcs.Task);
         var hostDocument = _documents[0];
 
@@ -100,7 +98,7 @@ public class BackgroundDocumentGeneratorTest : ProjectSnapshotManagerDispatcherW
         projectManager.ProjectAdded(_hostProject1);
 
         var textLoader = new Mock<TextLoader>(MockBehavior.Strict);
-        textLoader.Setup(loader => loader.LoadTextAndVersionAsync(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<CancellationToken>()))
+        textLoader.Setup(loader => loader.LoadTextAndVersionAsync(It.IsAny<LoadTextOptions>(), It.IsAny<CancellationToken>()))
             .Throws<FileNotFoundException>();
         projectManager.DocumentAdded(_hostProject1, _documents[0], textLoader.Object);
 
@@ -131,7 +129,7 @@ public class BackgroundDocumentGeneratorTest : ProjectSnapshotManagerDispatcherW
         projectManager.ProjectAdded(_hostProject1);
 
         var textLoader = new Mock<TextLoader>(MockBehavior.Strict);
-        textLoader.Setup(loader => loader.LoadTextAndVersionAsync(It.IsAny<Workspace>(), It.IsAny<DocumentId>(), It.IsAny<CancellationToken>()))
+        textLoader.Setup(loader => loader.LoadTextAndVersionAsync(It.IsAny<LoadTextOptions>(), It.IsAny<CancellationToken>()))
             .Throws<UnauthorizedAccessException>();
         projectManager.DocumentAdded(_hostProject1, _documents[0], textLoader.Object);
 
@@ -374,14 +372,14 @@ public class BackgroundDocumentGeneratorTest : ProjectSnapshotManagerDispatcherW
 
     private class TestDynamicFileInfoProvider : RazorDynamicFileInfoProvider
     {
-        private readonly Dictionary<string, DynamicDocumentContainer> _dynamicDocuments;
+        private readonly Dictionary<string, DynamicDocumentContainer?> _dynamicDocuments;
 
         public TestDynamicFileInfoProvider()
         {
-            _dynamicDocuments = new Dictionary<string, DynamicDocumentContainer>();
+            _dynamicDocuments = new Dictionary<string, DynamicDocumentContainer?>();
         }
 
-        public IReadOnlyDictionary<string, DynamicDocumentContainer> DynamicDocuments => _dynamicDocuments;
+        public IReadOnlyDictionary<string, DynamicDocumentContainer?> DynamicDocuments => _dynamicDocuments;
 
         public override void Initialize(ProjectSnapshotManagerBase projectManager)
         {

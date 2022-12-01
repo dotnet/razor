@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -30,7 +28,7 @@ public class DocumentSnapshotTextLoaderTest : TestBase
         var textLoader = new DocumentSnapshotTextLoader(snapshot);
 
         // Act
-        var actual = await textLoader.LoadTextAndVersionAsync(default, default, default);
+        var actual = await textLoader.LoadTextAndVersionAsync(default, default);
 
         // Assert
         Assert.Same(expectedSourceText, actual.Text);

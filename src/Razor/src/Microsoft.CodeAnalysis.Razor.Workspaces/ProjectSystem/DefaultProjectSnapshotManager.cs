@@ -191,9 +191,10 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             }
             else
             {
+                var options = new LoadTextOptions();
                 var loader = textLoader is null
                     ? DocumentState.EmptyLoader
-                    : (() => textLoader.LoadTextAndVersionAsync(Workspace, documentId: null, CancellationToken.None));
+                    : (() => textLoader.LoadTextAndVersionAsync(options, CancellationToken.None));
                 var state = entry.State.WithAddedHostDocument(document, loader);
 
                 // Document updates can no-op.
@@ -341,9 +342,10 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             }
             else
             {
+                var options = new LoadTextOptions();
                 var state = entry.State.WithChangedHostDocument(
                     older.HostDocument,
-                    async () => await textLoader.LoadTextAndVersionAsync(Workspace, documentId: null, cancellationToken: default));
+                    async () => await textLoader.LoadTextAndVersionAsync(options, cancellationToken: default));
 
                 _openDocuments.Remove(documentFilePath);
 
@@ -453,9 +455,10 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             }
             else
             {
+                var options = new LoadTextOptions();
                 var state = entry.State.WithChangedHostDocument(
                     older.HostDocument,
-                    async () => await textLoader.LoadTextAndVersionAsync(Workspace, documentId: default, cancellationToken: default));
+                    async () => await textLoader.LoadTextAndVersionAsync(options, cancellationToken: default));
 
                 // Document updates can no-op.
                 if (!ReferenceEquals(state, entry.State))
