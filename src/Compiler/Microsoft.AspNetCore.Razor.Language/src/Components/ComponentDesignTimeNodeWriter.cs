@@ -504,8 +504,15 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
             context.CodeWriter.Write(");");
             context.CodeWriter.WriteLine();
+        }
 
+        // We need to write property access here in case we're in a scope for capturing types, because we need to re-use
+        // the type inference local for accessing property names
+        foreach (var child in node.Children)
+        {
+            if (child is ComponentAttributeIntermediateNode attribute)
             {
+                WritePropertyAccess(context, attribute, node, typeInferenceLocalName);
             }
         }
 
@@ -612,6 +619,90 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         WriteComponentAttributeInnards(context, node, canTypeCheck: true);
 
         context.CodeWriter.Write(";");
+        context.CodeWriter.WriteLine();
+    }
+
+    private void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node, ComponentIntermediateNode componentNode, string typeInferenceLocalName)
+    {
+        if (node?.TagHelper?.Name is null || node.Annotations["OriginalAttributeSpan"] is null)
+        {
+            return;
+        }
+
+        // Write the name of the property, for rename support. 
+        // __o = nameof(global::ComponentName.PropertyName);
+        var originalAttributeName = node.Annotations[ComponentMetadata.Common.OriginalAttributeName]?.ToString() ?? node.AttributeName;
+
+        int offset;
+        if (originalAttributeName == node.PropertyName)
+        {
+            offset = 0;
+        }
+        else if (originalAttributeName.StartsWith($"@bind-{node.PropertyName}", StringComparison.Ordinal))
+        {
+            offset = 5;
+        }
+        else
+        {
+            return;
+        }
+
+        var attributeSourceSpan = (SourceSpan)node.Annotations["OriginalAttributeSpan"];
+        attributeSourceSpan = new SourceSpan(attributeSourceSpan.FilePath, attributeSourceSpan.AbsoluteIndex + offset, attributeSourceSpan.LineIndex, attributeSourceSpan.CharacterIndex + offset, node.PropertyName.Length, attributeSourceSpan.LineCount, attributeSourceSpan.CharacterIndex + offset + node.PropertyName.Length);
+
+        context.CodeWriter.Write(DesignTimeVariable);
+        context.CodeWriter.Write(" = ");
+        context.CodeWriter.Write("nameof(");
+
+        if (componentNode.TypeInferenceNode == null)
+        {
+            context.CodeWriter.Write("global::");
+            context.CodeWriter.Write(componentNode.Component.GetTypeNamespace());
+            context.CodeWriter.Write(".");
+            context.CodeWriter.Write(componentNode.Component.GetTypeNameIdentifier());
+            if (componentNode.Component.IsGenericTypedComponent())
+            {
+                context.CodeWriter.Write("<");
+                var typeArgumentCount = componentNode.Component.GetTypeParameters().Count();
+                for (var i = 0; i < typeArgumentCount; i++)
+                {
+                    if (i > 0)
+                    {
+                        context.CodeWriter.Write(",");
+                    }
+                    // We need to specify a type for the generic type parameters, but it doesn't matter which one, as we're just
+                    // getting the property name from nameof. If nameof ever supports open generics (ie, nameof(List<>.Count) then we
+                    // can remove this.
+                    context.CodeWriter.Write("string");
+                }
+                context.CodeWriter.Write(">");
+            }
+        }
+        else
+        {
+            if (typeInferenceLocalName is null)
+            {
+                throw new InvalidOperationException("No type inference local name was supplied, but type inference is required to reference a component type.");
+            }
+
+            // Earlier when we did the type inference stuff, we captured a variable which the compiler would know the type information
+            // for explicitly for the purposes of using it now
+            context.CodeWriter.Write(typeInferenceLocalName);
+        }
+
+        context.CodeWriter.Write(".");
+        context.CodeWriter.WriteLine();
+
+        using (context.CodeWriter.BuildLinePragma(attributeSourceSpan, context))
+        {
+            context.CodeWriter.WritePadding(0, attributeSourceSpan, context);
+            context.AddSourceMappingFor(attributeSourceSpan);
+            context.CodeWriter.WriteLine(node.PropertyName);
+        }
+
+        // When doing a Find All Refs, sometimes the text content of the generated file shows up,
+        // so being able to see "= default" in there would confuse users, so keep it on a separate line
+        context.CodeWriter.Write(");");
         context.CodeWriter.WriteLine();
     }
 
