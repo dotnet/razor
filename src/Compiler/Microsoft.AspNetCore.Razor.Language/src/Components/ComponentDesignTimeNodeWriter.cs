@@ -358,6 +358,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
         // We might need a scope for inferring types, 
         CodeWriterExtensions.CSharpCodeWritingScope? typeInferenceCaptureScope = null;
+        string typeInferenceLocalName = null;
 
         if (node.TypeInferenceNode == null)
         {
@@ -466,6 +467,17 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             //
             // __Blazor.MyComponent.TypeInference.CreateMyComponent_0(__builder, 0, 1, ..., 2, ..., 3, ....);
 
+            // We don't need an instance of this component, but having its type information is useful later for allowing
+            // Roslyn to bind to properties that represent component attributes.
+            // It's a bit silly that this variable will be called __typeInference_CreateMyComponent_0 with "Create" in the
+            // name, but since we've already done the work to create a unique name, we should reuse it.
+
+            typeInferenceLocalName = $"__typeInference_{node.TypeInferenceNode.MethodName}";
+
+            context.CodeWriter.Write("var ");
+            context.CodeWriter.Write(typeInferenceLocalName);
+            context.CodeWriter.Write(" = ");
+
             context.CodeWriter.Write("global::");
             context.CodeWriter.Write(node.TypeInferenceNode.FullTypeName);
             context.CodeWriter.Write(".");
@@ -536,6 +548,11 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             context.CodeWriter.Write(");");
             context.CodeWriter.WriteLine();
         }
+    }
+
+    public override void WriteComponentTypeInferenceMethod(CodeRenderingContext context, ComponentTypeInferenceMethodIntermediateNode node)
+    {
+        base.WriteComponentTypeInferenceMethod(context, node, returnComponentType: true);
     }
 
     private void WriteTypeInferenceMethodParameterInnards(CodeRenderingContext context, TypeInferenceMethodParameter parameter)
