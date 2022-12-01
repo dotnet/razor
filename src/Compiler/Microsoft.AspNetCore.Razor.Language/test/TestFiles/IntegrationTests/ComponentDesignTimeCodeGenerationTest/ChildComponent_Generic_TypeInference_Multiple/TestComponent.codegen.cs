@@ -20,7 +20,7 @@ namespace Test
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_0(__builder, -1, -1, 
+            var __typeInference_CreateMyComponent_0 = global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_0(__builder, -1, -1, 
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                      "hi"
@@ -29,6 +29,15 @@ namespace Test
 #line hidden
 #nullable disable
             );
+            __o = nameof(__typeInference_CreateMyComponent_0.
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+             Item
+
+#line default
+#line hidden
+#nullable disable
+            );
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);
@@ -36,10 +45,19 @@ __o = typeof(global::Test.MyComponent<>);
 #line default
 #line hidden
 #nullable disable
-            global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_1(__builder, -1, -1, 
+            var __typeInference_CreateMyComponent_1 = global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_1(__builder, -1, -1, 
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                      "how are you?"
+
+#line default
+#line hidden
+#nullable disable
+            );
+            __o = nameof(__typeInference_CreateMyComponent_1.
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+             Item
 
 #line default
 #line hidden
@@ -52,10 +70,19 @@ __o = typeof(global::Test.MyComponent<>);
 #line default
 #line hidden
 #nullable disable
-            global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_2(__builder, -1, -1, 
+            var __typeInference_CreateMyComponent_2 = global::__Blazor.Test.TestComponent.TypeInference.CreateMyComponent_2(__builder, -1, -1, 
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
                      "bye!"
+
+#line default
+#line hidden
+#nullable disable
+            );
+            __o = nameof(__typeInference_CreateMyComponent_2.
+#nullable restore
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
+             Item
 
 #line default
 #line hidden
@@ -77,23 +104,26 @@ namespace __Blazor.Test.TestComponent
     #line hidden
     internal static class TypeInference
     {
-        public static void CreateMyComponent_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0)
+        public static global::Test.MyComponent<TItem> CreateMyComponent_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0)
         {
         __builder.OpenComponent<global::Test.MyComponent<TItem>>(seq);
         __builder.AddAttribute(__seq0, "Item", __arg0);
         __builder.CloseComponent();
+        return default;
         }
-        public static void CreateMyComponent_1<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0)
+        public static global::Test.MyComponent<TItem> CreateMyComponent_1<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0)
         {
         __builder.OpenComponent<global::Test.MyComponent<TItem>>(seq);
         __builder.AddAttribute(__seq0, "Item", __arg0);
         __builder.CloseComponent();
+        return default;
         }
-        public static void CreateMyComponent_2<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0)
+        public static global::Test.MyComponent<TItem> CreateMyComponent_2<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0)
         {
         __builder.OpenComponent<global::Test.MyComponent<TItem>>(seq);
         __builder.AddAttribute(__seq0, "Item", __arg0);
         __builder.CloseComponent();
+        return default;
         }
     }
 }

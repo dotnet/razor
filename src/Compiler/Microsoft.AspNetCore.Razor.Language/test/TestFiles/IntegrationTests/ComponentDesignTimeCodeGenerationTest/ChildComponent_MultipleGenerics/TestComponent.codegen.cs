@@ -67,6 +67,15 @@ __o = System.Math.Max(0, item.Item);
 #nullable disable
             }
             ));
+            __o = nameof(global::Test.MyComponent<string,string>.
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+                                      Item
+
+#line default
+#line hidden
+#nullable disable
+            );
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<,>);

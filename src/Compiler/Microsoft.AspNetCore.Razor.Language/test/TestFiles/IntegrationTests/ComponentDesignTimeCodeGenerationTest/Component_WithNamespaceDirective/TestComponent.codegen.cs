@@ -41,6 +41,15 @@ global::System.Object __typeHelper = nameof(AnotherTest);
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
+            __o = nameof(global::Test.HeaderComponent.
+#nullable restore
+#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
+                 Header
+
+#line default
+#line hidden
+#nullable disable
+            );
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.HeaderComponent);
@@ -52,6 +61,15 @@ __o = typeof(global::Test.HeaderComponent);
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
+            __o = nameof(global::AnotherTest.FooterComponent.
+#nullable restore
+#line 6 "x:\dir\subdir\Test\TestComponent.cshtml"
+                 Footer
+
+#line default
+#line hidden
+#nullable disable
+            );
 #nullable restore
 #line 6 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::AnotherTest.FooterComponent);

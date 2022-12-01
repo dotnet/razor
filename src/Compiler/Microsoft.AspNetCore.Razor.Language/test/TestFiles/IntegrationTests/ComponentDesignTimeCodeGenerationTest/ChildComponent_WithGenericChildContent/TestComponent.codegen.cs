@@ -31,6 +31,15 @@ namespace Test
 #nullable disable
             }
             ));
+            __o = nameof(global::Test.MyComponent.
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+             MyAttr
+
+#line default
+#line hidden
+#nullable disable
+            );
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent);
