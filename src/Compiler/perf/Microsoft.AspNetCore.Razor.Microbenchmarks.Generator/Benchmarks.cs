@@ -86,7 +86,7 @@ public class Benchmarks
     {
         if (Change == ChangeKind.Independent)
         {
-            return _project!.AdditionalTexts.Single(a => a.Path.EndsWith("0.razor", StringComparison.OrdinalIgnoreCase));
+            return _project!.AdditionalTexts.Single(a => a.Path.EndsWith("\\0.razor", StringComparison.OrdinalIgnoreCase));
         }
         else
         {
