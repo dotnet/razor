@@ -356,6 +356,9 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
+        // We might need a scope for inferring types, 
+        CodeWriterExtensions.CSharpCodeWritingScope? typeInferenceCaptureScope = null;
+
         if (node.TypeInferenceNode == null)
         {
             // Writes something like:
@@ -426,7 +429,6 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             // into two parts. First we call an inference method that captures all the parameters in local variables,
             // then we use those to call the real type inference method that emits the component. The reason for this
             // is so the captured variables can be used by descendants without re-evaluating the expressions.
-            CodeWriterExtensions.CSharpCodeWritingScope? typeInferenceCaptureScope = null;
             if (node.Component.SuppliesCascadingGenericParameters())
             {
                 typeInferenceCaptureScope = context.CodeWriter.BuildScope();
@@ -491,11 +493,11 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             context.CodeWriter.Write(");");
             context.CodeWriter.WriteLine();
 
-            if (typeInferenceCaptureScope.HasValue)
             {
-                typeInferenceCaptureScope.Value.Dispose();
             }
         }
+
+        typeInferenceCaptureScope?.Dispose();
 
         // We want to generate something that references the Component type to avoid
         // the "usings directive is unnecessary" message.
