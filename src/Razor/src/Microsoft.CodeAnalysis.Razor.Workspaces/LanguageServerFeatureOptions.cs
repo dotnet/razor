@@ -19,6 +19,8 @@ internal abstract class LanguageServerFeatureOptions
 
     public abstract bool SingleServerSupport { get; }
 
+    public abstract bool SingleServerDiagnosticsSupport { get; }
+
     public string GetRazorCSharpFilePath(string razorFilePath) => razorFilePath + CSharpVirtualDocumentSuffix;
 
     public string GetRazorHtmlFilePath(string razorFilePath) => razorFilePath + HtmlVirtualDocumentSuffix;
