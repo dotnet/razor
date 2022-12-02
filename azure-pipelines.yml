@@ -381,8 +381,8 @@ stages:
             - script: eng/common/cibuild.sh
               --configuration $(_BuildConfig)
               --prepareMachine
-              --pack
-              --sign
+              -pack
+              -sign
               $(_InternalRuntimeDownloadArgs)
           - ${{ if eq(variables['System.TeamProject'], 'public') }}:
             - script: eng/common/cibuild.sh
