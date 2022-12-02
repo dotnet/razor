@@ -99,8 +99,7 @@ public abstract class RazorProject
         var fileNameIndex = path.LastIndexOf('/');
         var length = path.Length;
 
-        // https://github.com/dotnet/razor-tooling/issues/6965
-        // Debug.Assert(fileNameIndex != -1);
+        Debug.Assert(fileNameIndex != -1);
 
         if (string.Compare(path, fileNameIndex + 1, fileName, 0, fileName.Length, StringComparison.Ordinal) == 0)
         {
