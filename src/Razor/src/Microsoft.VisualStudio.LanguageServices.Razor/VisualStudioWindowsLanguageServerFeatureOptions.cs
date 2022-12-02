@@ -14,10 +14,12 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
 {
     private const string SingleServerCompletionFeatureFlag = "Razor.LSP.SingleServerCompletion";
     private const string SingleServerFeatureFlag = "Razor.LSP.SingleServer";
+    private const string SingleServerDiagnosticsFeatureFlag = "Razor.LSP.SingleServerDiagnostics";
 
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _singleServerCompletionSupport;
     private readonly Lazy<bool> _singleServerSupport;
+    private readonly Lazy<bool> _singleServerDiagnosticsSupport;
 
     [ImportingConstructor]
     public VisualStudioWindowsLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
@@ -42,6 +44,13 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
             var singleServerEnabled = featureFlags.IsFeatureEnabled(SingleServerFeatureFlag, defaultValue: false);
             return singleServerEnabled;
         });
+
+        _singleServerDiagnosticsSupport = new Lazy<bool>(() =>
+        {
+            var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
+            var singleServerDiagnosticsEnabled = featureFlags.IsFeatureEnabled(SingleServerDiagnosticsFeatureFlag, defaultValue: false);
+            return singleServerDiagnosticsEnabled;
+        });
     }
 
     // We don't currently support file creation operations on VS Codespaces or VS Liveshare
@@ -57,6 +66,8 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
     public override bool SingleServerCompletionSupport => _singleServerCompletionSupport.Value;
 
     public override bool SingleServerSupport => _singleServerSupport.Value;
+
+    public override bool SingleServerDiagnosticsSupport => _singleServerDiagnosticsSupport.Value;
 
     private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
 }
