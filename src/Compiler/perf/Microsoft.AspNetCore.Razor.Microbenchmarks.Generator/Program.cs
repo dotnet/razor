@@ -33,5 +33,8 @@ var reports =
 
 foreach ((var benchmark, var baseline) in reports)
 {
+
+    //benchmark.ResultStatistics.Mean
+
     // TODO: compare and decide on result
 }

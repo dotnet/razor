@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.Build.Locator" />
   </ItemGroup>
 
-  <!-- Reference the local source generator when building in Release (or Debug) -->
+  <!-- Reference the local source generator when building in regular configurations -->
   <ItemGroup Condition="'$(Configuration)' != 'Release_Nuget'">
     <ProjectReference Include="..\..\Microsoft.NET.Sdk.Razor.SourceGenerators\Microsoft.NET.Sdk.Razor.SourceGenerators.csproj" />
   </ItemGroup>
@@ -31,7 +31,6 @@
   <ItemGroup Condition="'$(Configuration)' == 'Release_Nuget'">
     <PackageReference Include="Microsoft.NET.Sdk.Razor.SourceGenerators.Transport" GeneratePathProperty="true" />
     <Reference Include="$(PkgMicrosoft_NET_Sdk_Razor_SourceGenerators_Transport)\source-generators\*.dll" />
-
   </ItemGroup>
-
+  
 </Project>

@@ -64,40 +64,40 @@ internal static class ProjectSetup
         var diagnostics = comp!.GetDiagnostics();
         if (diagnostics.Any(d => d.Severity != DiagnosticSeverity.Hidden))
         {
-            Debug.Fail("Compilation contained non-hidden diagnostics");
+            //Debug.Fail("Compilation contained non-hidden diagnostics");
         }
         return comp;
     }
 
     internal record RazorProject(GeneratorDriver GeneratorDriver, Compilation Compilation, ImmutableArray<AdditionalText> AdditionalTexts, CSharpParseOptions ParseOptions, AnalyzerConfigOptionsProvider OptionsProvider);
 
-    internal class InMemoryAdditionalText : AdditionalText
+    internal sealed class InMemoryAdditionalText : AdditionalText
     {
-        SourceText text;
+        private SourceText _text;
 
         public InMemoryAdditionalText(SourceText text, string path)
         {
-            this.text = text;
+            _text = text;
             Path = path;
         }
 
         public InMemoryAdditionalText(string text, string path)
         {
-            this.text = SourceText.From(text, Encoding.UTF8);
+            _text = SourceText.From(text, Encoding.UTF8);
             Path = path;
         }
 
         public override string Path { get; }
 
-        public override SourceText? GetText(CancellationToken cancellationToken = default) => text;
+        public override SourceText? GetText(CancellationToken cancellationToken = default) => _text;
     }
 
     /// <summary>
     /// An options provider that will add the required razor metadata if it's missing.
     /// </summary>
-    internal class TargetPathAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
+    internal sealed class TargetPathAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
     {
-        private AnalyzerConfigOptionsProvider _provider;
+        private readonly AnalyzerConfigOptionsProvider _provider;
 
         public TargetPathAnalyzerConfigOptionsProvider(AnalyzerConfigOptionsProvider provider)
         {
@@ -115,7 +115,7 @@ internal static class ProjectSetup
 
         internal class TargetPathAnalyzerOptions : AnalyzerConfigOptions
         {
-            private string _targetPath;
+            private readonly string _targetPath;
 
             private AnalyzerConfigOptions _baseOptions;
 

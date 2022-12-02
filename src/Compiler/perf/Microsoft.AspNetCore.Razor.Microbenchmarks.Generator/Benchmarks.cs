@@ -15,11 +15,11 @@ public class Benchmarks
     ProjectSetup.RazorProject? _project;
 
     public enum ChangeKind { Independent, DependentIgnorable, Dependent };
-    [ParamsAllExceptDebug(ChangeKind.Independent)]
+    [ParamsAllUnlessDebug(ChangeKind.Independent)]
     public ChangeKind Change { get; set; }
 
     public enum StartupKind { Warm, Cold };
-    [ParamsAllExceptDebug(StartupKind.Warm)]
+    [ParamsAllUnlessDebug(StartupKind.Warm)]
     public StartupKind Startup { get; set; }
 
     [ModuleInitializer]
@@ -143,6 +143,4 @@ public class Benchmarks
         }
         
         """;
-
-
 }
