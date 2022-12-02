@@ -1,6 +1,6 @@
 <Project>
 
-  <Target Name="_PublishLanguageServerRids" AfterTargets="Pack" Condition=" '$(OS)' == 'Windows_NT' ">
+  <Target Name="_PublishLanguageServerRids" AfterTargets="Pack">
     <PropertyGroup>
       <LanguageServerProject>$(MSBuildThisFileDirectory)..\src\Razor\src\rzls\rzls.csproj</LanguageServerProject>
     </PropertyGroup>
