@@ -6,31 +6,30 @@ using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor
+namespace Microsoft.VisualStudio.LanguageServices.Razor.Editor;
+
+internal class DefaultVisualStudioCompletionBroker : VisualStudioCompletionBroker
 {
-    internal class DefaultVisualStudioCompletionBroker : VisualStudioCompletionBroker
+    private readonly ICompletionBroker _completionBroker;
+
+    public DefaultVisualStudioCompletionBroker(ICompletionBroker completionBroker)
     {
-        private readonly ICompletionBroker _completionBroker;
-
-        public DefaultVisualStudioCompletionBroker(ICompletionBroker completionBroker)
+        if (completionBroker is null)
         {
-            if (completionBroker is null)
-            {
-                throw new ArgumentNullException(nameof(completionBroker));
-            }
-
-            _completionBroker = completionBroker;
+            throw new ArgumentNullException(nameof(completionBroker));
         }
 
-        public override bool IsCompletionActive(ITextView textView)
-        {
-            if (textView is null)
-            {
-                throw new ArgumentNullException(nameof(textView));
-            }
+        _completionBroker = completionBroker;
+    }
 
-            var completionIsActive = _completionBroker.IsCompletionActive(textView);
-            return completionIsActive;
+    public override bool IsCompletionActive(ITextView textView)
+    {
+        if (textView is null)
+        {
+            throw new ArgumentNullException(nameof(textView));
         }
+
+        var completionIsActive = _completionBroker.IsCompletionActive(textView);
+        return completionIsActive;
     }
 }

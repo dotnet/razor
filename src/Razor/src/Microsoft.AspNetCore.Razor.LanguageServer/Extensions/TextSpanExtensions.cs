@@ -5,26 +5,25 @@ using System;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+
+internal static class TextSpanExtensions
 {
-    internal static class TextSpanExtensions
+    public static Range AsRange(this TextSpan span, SourceText sourceText)
     {
-        public static Range AsRange(this TextSpan span, SourceText sourceText)
+        if (sourceText is null)
         {
-            if (sourceText is null)
-            {
-                throw new ArgumentNullException(nameof(sourceText));
-            }
-
-            sourceText.GetLinesAndOffsets(span, out var startLine, out var startChar, out var endLine, out var endChar);
-
-            var range = new Range
-            {
-                Start = new Position(startLine, startChar),
-                End = new Position(endLine, endChar)
-            };
-
-            return range;
+            throw new ArgumentNullException(nameof(sourceText));
         }
+
+        sourceText.GetLinesAndOffsets(span, out var startLine, out var startChar, out var endLine, out var endChar);
+
+        var range = new Range
+        {
+            Start = new Position(startLine, startChar),
+            End = new Position(endLine, endChar)
+        };
+
+        return range;
     }
 }

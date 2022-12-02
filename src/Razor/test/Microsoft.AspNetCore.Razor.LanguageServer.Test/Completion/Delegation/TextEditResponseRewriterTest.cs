@@ -8,110 +8,109 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
+
+public class TextEditResponseRewriterTest : ResponseRewriterTestBase
 {
-    public class TextEditResponseRewriterTest : ResponseRewriterTestBase
+    public TextEditResponseRewriterTest(ITestOutputHelper testOutput)
+        : base(new TextEditResponseRewriter(), testOutput)
     {
-        public TextEditResponseRewriterTest(ITestOutputHelper testOutput)
-            : base(new TextEditResponseRewriter(), testOutput)
+    }
+
+    [Fact]
+    public async Task RewriteAsync_NotCSharp_Noops()
+    {
+        // Arrange
+        var getCompletionsAt = 1;
+        var documentContent = "<";
+        var textEditRange = new Range()
         {
-        }
+            Start = new Position(0, 0),
+            End = new Position(0, 1),
+        };
+        var delegatedCompletionList = GenerateCompletionList(textEditRange);
 
-        [Fact]
-        public async Task RewriteAsync_NotCSharp_Noops()
+        // Act
+        var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
+            getCompletionsAt, documentContent, delegatedCompletionList);
+
+        // Assert
+        Assert.Equal(textEditRange, rewrittenCompletionList.Items[0].TextEdit.Range);
+    }
+
+    [Fact]
+    public async Task RewriteAsync_CSharp_AdjustsItemRange()
+    {
+        // Arrange
+        var getCompletionsAt = 1;
+        var documentContent = "@DateTime";
+        var textEditRange = new Range()
         {
-            // Arrange
-            var getCompletionsAt = 1;
-            var documentContent = "<";
-            var textEditRange = new Range()
-            {
-                Start = new Position(0, 0),
-                End = new Position(0, 1),
-            };
-            var delegatedCompletionList = GenerateCompletionList(textEditRange);
-
-            // Act
-            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
-                getCompletionsAt, documentContent, delegatedCompletionList);
-
-            // Assert
-            Assert.Equal(textEditRange, rewrittenCompletionList.Items[0].TextEdit.Range);
-        }
-
-        [Fact]
-        public async Task RewriteAsync_CSharp_AdjustsItemRange()
+            // Line 19: __o = DateTime
+            Start = new Position(19, 6),
+            End = new Position(19, 14),
+        };
+        var delegatedCompletionList = GenerateCompletionList(textEditRange);
+        var expectedRange = new Range()
         {
-            // Arrange
-            var getCompletionsAt = 1;
-            var documentContent = "@DateTime";
-            var textEditRange = new Range()
-            {
-                // Line 19: __o = DateTime
-                Start = new Position(19, 6),
-                End = new Position(19, 14),
-            };
-            var delegatedCompletionList = GenerateCompletionList(textEditRange);
-            var expectedRange = new Range()
-            {
-                Start = new Position(0, 1),
-                End = new Position(0, 9),
-            };
+            Start = new Position(0, 1),
+            End = new Position(0, 9),
+        };
 
-            // Act
-            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
-                getCompletionsAt, documentContent, delegatedCompletionList);
+        // Act
+        var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
+            getCompletionsAt, documentContent, delegatedCompletionList);
 
-            // Assert
-            Assert.Equal(expectedRange, rewrittenCompletionList.Items[0].TextEdit.Range);
-        }
+        // Assert
+        Assert.Equal(expectedRange, rewrittenCompletionList.Items[0].TextEdit.Range);
+    }
 
-        [Fact]
-        public async Task RewriteAsync_CSharp_AdjustsListRange()
+    [Fact]
+    public async Task RewriteAsync_CSharp_AdjustsListRange()
+    {
+        // Arrange
+        var getCompletionsAt = 1;
+        var documentContent = "@DateTime";
+        var textEditRange = new Range()
         {
-            // Arrange
-            var getCompletionsAt = 1;
-            var documentContent = "@DateTime";
-            var textEditRange = new Range()
-            {
-                // Line 19: __o = DateTime
-                Start = new Position(19, 6),
-                End = new Position(19, 14),
-            };
-            var delegatedCompletionList = GenerateCompletionList(textEditRange);
-            delegatedCompletionList.ItemDefaults = new CompletionListItemDefaults()
-            {
-                EditRange = textEditRange,
-            };
-            var expectedRange = new Range()
-            {
-                Start = new Position(0, 1),
-                End = new Position(0, 9),
-            };
-
-            // Act
-            var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
-                getCompletionsAt, documentContent, delegatedCompletionList);
-
-            // Assert
-            Assert.Equal(expectedRange, rewrittenCompletionList.ItemDefaults.EditRange);
-        }
-
-        private static VSInternalCompletionList GenerateCompletionList(Range textEditRange)
+            // Line 19: __o = DateTime
+            Start = new Position(19, 6),
+            End = new Position(19, 14),
+        };
+        var delegatedCompletionList = GenerateCompletionList(textEditRange);
+        delegatedCompletionList.ItemDefaults = new CompletionListItemDefaults()
         {
-            return new VSInternalCompletionList()
+            EditRange = textEditRange,
+        };
+        var expectedRange = new Range()
+        {
+            Start = new Position(0, 1),
+            End = new Position(0, 9),
+        };
+
+        // Act
+        var rewrittenCompletionList = await GetRewrittenCompletionListAsync(
+            getCompletionsAt, documentContent, delegatedCompletionList);
+
+        // Assert
+        Assert.Equal(expectedRange, rewrittenCompletionList.ItemDefaults.EditRange);
+    }
+
+    private static VSInternalCompletionList GenerateCompletionList(Range textEditRange)
+    {
+        return new VSInternalCompletionList()
+        {
+            Items = new[]
             {
-                Items = new[]
+                new VSInternalCompletionItem()
                 {
-                    new VSInternalCompletionItem()
+                    TextEdit = new TextEdit()
                     {
-                        TextEdit = new TextEdit()
-                        {
-                            NewText = "Hello",
-                            Range = textEditRange,
-                        }
+                        NewText = "Hello",
+                        Range = textEditRange,
                     }
                 }
-            };
-        }
+            }
+        };
     }
 }

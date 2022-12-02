@@ -5,18 +5,17 @@ using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+
+internal class ProjectionResult
 {
-    internal class ProjectionResult
-    {
-        public required Uri Uri { get; init; }
+    public required Uri Uri { get; init; }
 
-        public required Position Position { get; init; }
+    public required Position Position { get; init; }
 
-        public int PositionIndex { get; init; }
+    public int PositionIndex { get; init; }
 
-        public RazorLanguageKind LanguageKind { get; init; }
+    public RazorLanguageKind LanguageKind { get; init; }
 
-        public int? HostDocumentVersion { get; init; }
-    }
+    public int? HostDocumentVersion { get; init; }
 }

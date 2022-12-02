@@ -15,97 +15,96 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+[Collection("MSBuildLocator")]
+public abstract class OmniSharpTestBase : LanguageServerTestBase
 {
-    [Collection("MSBuildLocator")]
-    public abstract class OmniSharpTestBase : LanguageServerTestBase
+    private readonly MethodInfo _createTestProjectSnapshotMethod;
+    private readonly MethodInfo _createWithDocumentsTestProjectSnapshotMethod;
+    private readonly MethodInfo _createProjectSnapshotManagerMethod;
+    private readonly PropertyInfo _allowNotifyListenersProperty;
+    private readonly PropertyInfo _dispatcherProperty;
+    private readonly ConstructorInfo _omniSharpProjectSnapshotMangerConstructor;
+    private readonly ConstructorInfo _omniSharpSnapshotConstructor;
+
+    protected OmniSharpProjectSnapshotManagerDispatcher Dispatcher { get; }
+
+    protected OmniSharpTestBase(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly MethodInfo _createTestProjectSnapshotMethod;
-        private readonly MethodInfo _createWithDocumentsTestProjectSnapshotMethod;
-        private readonly MethodInfo _createProjectSnapshotManagerMethod;
-        private readonly PropertyInfo _allowNotifyListenersProperty;
-        private readonly PropertyInfo _dispatcherProperty;
-        private readonly ConstructorInfo _omniSharpProjectSnapshotMangerConstructor;
-        private readonly ConstructorInfo _omniSharpSnapshotConstructor;
+        var commonTestAssembly = Assembly.Load("Microsoft.AspNetCore.Razor.LanguageServer.Test.Common");
+        var testProjectSnapshotType = commonTestAssembly.GetType("Microsoft.AspNetCore.Razor.Test.Common.TestProjectSnapshot");
 
-        protected OmniSharpProjectSnapshotManagerDispatcher Dispatcher { get; }
+        var testProjectSnapshotManagerType = commonTestAssembly.GetType("Microsoft.AspNetCore.Razor.Test.Common.TestProjectSnapshotManager");
+        var strongNamedAssembly = Assembly.Load("Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed");
+        var defaultSnapshotManagerType = strongNamedAssembly.GetType("Microsoft.AspNetCore.Razor.OmniSharpPlugin.DefaultOmniSharpProjectSnapshotManager");
 
-        protected OmniSharpTestBase(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-            var commonTestAssembly = Assembly.Load("Microsoft.AspNetCore.Razor.LanguageServer.Test.Common");
-            var testProjectSnapshotType = commonTestAssembly.GetType("Microsoft.AspNetCore.Razor.Test.Common.TestProjectSnapshot");
+        _createTestProjectSnapshotMethod = testProjectSnapshotType.GetMethod("Create", new[] { typeof(string), typeof(ProjectWorkspaceState) });
+        _createWithDocumentsTestProjectSnapshotMethod = testProjectSnapshotType.GetMethod("Create", new[] { typeof(string), typeof(string[]), typeof(ProjectWorkspaceState) });
+        _createProjectSnapshotManagerMethod = testProjectSnapshotManagerType.GetMethod("Create");
+        _allowNotifyListenersProperty = testProjectSnapshotManagerType.GetProperty("AllowNotifyListeners");
+        _dispatcherProperty = typeof(OmniSharpProjectSnapshotManagerDispatcher).GetProperty("InternalDispatcher", BindingFlags.NonPublic | BindingFlags.Instance);
+        _omniSharpProjectSnapshotMangerConstructor = defaultSnapshotManagerType.GetConstructors().Single();
+        _omniSharpSnapshotConstructor = typeof(OmniSharpProjectSnapshot).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single();
 
-            var testProjectSnapshotManagerType = commonTestAssembly.GetType("Microsoft.AspNetCore.Razor.Test.Common.TestProjectSnapshotManager");
-            var strongNamedAssembly = Assembly.Load("Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed");
-            var defaultSnapshotManagerType = strongNamedAssembly.GetType("Microsoft.AspNetCore.Razor.OmniSharpPlugin.DefaultOmniSharpProjectSnapshotManager");
+        Dispatcher = new DefaultOmniSharpProjectSnapshotManagerDispatcher();
+        AddDisposable((IDisposable)Dispatcher.DispatcherScheduler);
+    }
 
-            _createTestProjectSnapshotMethod = testProjectSnapshotType.GetMethod("Create", new[] { typeof(string), typeof(ProjectWorkspaceState) });
-            _createWithDocumentsTestProjectSnapshotMethod = testProjectSnapshotType.GetMethod("Create", new[] { typeof(string), typeof(string[]), typeof(ProjectWorkspaceState) });
-            _createProjectSnapshotManagerMethod = testProjectSnapshotManagerType.GetMethod("Create");
-            _allowNotifyListenersProperty = testProjectSnapshotManagerType.GetProperty("AllowNotifyListeners");
-            _dispatcherProperty = typeof(OmniSharpProjectSnapshotManagerDispatcher).GetProperty("InternalDispatcher", BindingFlags.NonPublic | BindingFlags.Instance);
-            _omniSharpProjectSnapshotMangerConstructor = defaultSnapshotManagerType.GetConstructors().Single();
-            _omniSharpSnapshotConstructor = typeof(OmniSharpProjectSnapshot).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single();
+    private protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath)
+    {
+        var projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Default);
+        var projectSnapshot = _createTestProjectSnapshotMethod.Invoke(null, new object[] { projectFilePath, projectWorkspaceState });
+        var omniSharpProjectSnapshot = (OmniSharpProjectSnapshot)_omniSharpSnapshotConstructor.Invoke(new[] { projectSnapshot });
 
-            Dispatcher = new DefaultOmniSharpProjectSnapshotManagerDispatcher();
-            AddDisposable((IDisposable)Dispatcher.DispatcherScheduler);
-        }
+        return omniSharpProjectSnapshot;
+    }
 
-        private protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath)
-        {
-            var projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Default);
-            var projectSnapshot = _createTestProjectSnapshotMethod.Invoke(null, new object[] { projectFilePath, projectWorkspaceState });
-            var omniSharpProjectSnapshot = (OmniSharpProjectSnapshot)_omniSharpSnapshotConstructor.Invoke(new[] { projectSnapshot });
+    private protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath, string[] documentFilePaths)
+    {
+        var projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Default);
+        var projectSnapshot = _createWithDocumentsTestProjectSnapshotMethod.Invoke(null, new object[] { projectFilePath, documentFilePaths, projectWorkspaceState });
+        var omniSharpProjectSnapshot = (OmniSharpProjectSnapshot)_omniSharpSnapshotConstructor.Invoke(new[] { projectSnapshot });
 
-            return omniSharpProjectSnapshot;
-        }
+        return omniSharpProjectSnapshot;
+    }
 
-        private protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath, string[] documentFilePaths)
-        {
-            var projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Default);
-            var projectSnapshot = _createWithDocumentsTestProjectSnapshotMethod.Invoke(null, new object[] { projectFilePath, documentFilePaths, projectWorkspaceState });
-            var omniSharpProjectSnapshot = (OmniSharpProjectSnapshot)_omniSharpSnapshotConstructor.Invoke(new[] { projectSnapshot });
+    private protected OmniSharpProjectSnapshotManagerBase CreateProjectSnapshotManager(bool allowNotifyListeners = false)
+    {
+        var dispatcher = _dispatcherProperty.GetValue(Dispatcher);
+        var testSnapshotManager = _createProjectSnapshotManagerMethod.Invoke(null, new object[] { dispatcher });
+        _allowNotifyListenersProperty.SetValue(testSnapshotManager, allowNotifyListeners);
+        var remoteTextLoaderFactory = new DefaultRemoteTextLoaderFactory();
+        var snapshotManager = (OmniSharpProjectSnapshotManagerBase)_omniSharpProjectSnapshotMangerConstructor.Invoke(new[] { testSnapshotManager, remoteTextLoaderFactory });
 
-            return omniSharpProjectSnapshot;
-        }
+        return snapshotManager;
+    }
 
-        private protected OmniSharpProjectSnapshotManagerBase CreateProjectSnapshotManager(bool allowNotifyListeners = false)
-        {
-            var dispatcher = _dispatcherProperty.GetValue(Dispatcher);
-            var testSnapshotManager = _createProjectSnapshotManagerMethod.Invoke(null, new object[] { dispatcher });
-            _allowNotifyListenersProperty.SetValue(testSnapshotManager, allowNotifyListeners);
-            var remoteTextLoaderFactory = new DefaultRemoteTextLoaderFactory();
-            var snapshotManager = (OmniSharpProjectSnapshotManagerBase)_omniSharpProjectSnapshotMangerConstructor.Invoke(new[] { testSnapshotManager, remoteTextLoaderFactory });
+    protected Task RunOnDispatcherThreadAsync(Action action)
+    {
+        return Task.Factory.StartNew(
+            action,
+            DisposalToken,
+            TaskCreationOptions.None,
+            Dispatcher.DispatcherScheduler);
+    }
 
-            return snapshotManager;
-        }
+    protected Task<TReturn> RunOnDispatcherThreadAsync<TReturn>(Func<TReturn> func)
+    {
+        return Task.Factory.StartNew(
+            func,
+            DisposalToken,
+            TaskCreationOptions.None,
+            Dispatcher.DispatcherScheduler);
+    }
 
-        protected Task RunOnDispatcherThreadAsync(Action action)
-        {
-            return Task.Factory.StartNew(
-                action,
-                DisposalToken,
-                TaskCreationOptions.None,
-                Dispatcher.DispatcherScheduler);
-        }
-
-        protected Task<TReturn> RunOnDispatcherThreadAsync<TReturn>(Func<TReturn> func)
-        {
-            return Task.Factory.StartNew(
-                func,
-                DisposalToken,
-                TaskCreationOptions.None,
-                Dispatcher.DispatcherScheduler);
-        }
-
-        protected Task RunOnDispatcherThreadAsync(Func<Task> func)
-        {
-            return Task.Factory.StartNew(
-                func,
-                DisposalToken,
-                TaskCreationOptions.None,
-                Dispatcher.DispatcherScheduler);
-        }
+    protected Task RunOnDispatcherThreadAsync(Func<Task> func)
+    {
+        return Task.Factory.StartNew(
+            func,
+            DisposalToken,
+            TaskCreationOptions.None,
+            Dispatcher.DispatcherScheduler);
     }
 }

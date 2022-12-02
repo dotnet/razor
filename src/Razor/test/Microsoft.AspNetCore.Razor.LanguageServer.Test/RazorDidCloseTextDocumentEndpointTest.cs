@@ -11,39 +11,38 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+public class RazorDidCloseTextDocumentEndpointTest : LanguageServerTestBase
 {
-    public class RazorDidCloseTextDocumentEndpointTest : LanguageServerTestBase
+    public RazorDidCloseTextDocumentEndpointTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        public RazorDidCloseTextDocumentEndpointTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+    }
 
-        // This is more of an integration test to validate that all the pieces work together
-        [Fact]
-        public async Task Handle_DidCloseTextDocument_ClosesDocument()
+    // This is more of an integration test to validate that all the pieces work together
+    [Fact]
+    public async Task Handle_DidCloseTextDocument_ClosesDocument()
+    {
+        // Arrange
+        var documentPath = "C:/path/to/document.cshtml";
+        var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
+        projectService.Setup(service => service.CloseDocument(It.IsAny<string>()))
+            .Callback<string>((path) => Assert.Equal(documentPath, path));
+        var endpoint = new RazorDidCloseTextDocumentEndpoint(Dispatcher, projectService.Object);
+        var request = new DidCloseTextDocumentParams()
         {
-            // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
-            var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-            projectService.Setup(service => service.CloseDocument(It.IsAny<string>()))
-                .Callback<string>((path) => Assert.Equal(documentPath, path));
-            var endpoint = new RazorDidCloseTextDocumentEndpoint(Dispatcher, projectService.Object);
-            var request = new DidCloseTextDocumentParams()
+            TextDocument = new TextDocumentIdentifier()
             {
-                TextDocument = new TextDocumentIdentifier()
-                {
-                    Uri = new Uri(documentPath)
-                }
-            };
-            var requestContext = CreateRazorRequestContext(documentContext: null);
+                Uri = new Uri(documentPath)
+            }
+        };
+        var requestContext = CreateRazorRequestContext(documentContext: null);
 
-            // Act
-            await endpoint.HandleNotificationAsync(request, requestContext, default);
+        // Act
+        await endpoint.HandleNotificationAsync(request, requestContext, default);
 
-            // Assert
-            projectService.VerifyAll();
-        }
+        // Assert
+        projectService.VerifyAll();
     }
 }

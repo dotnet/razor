@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.WrapWithTag;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -17,8 +18,8 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
-{
+namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
+
     public class WrapWithTagEndpointTest : LanguageServerTestBase
     {
         public WrapWithTagEndpointTest(ITestOutputHelper testOutput)
@@ -192,7 +193,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 }
             };
 
-            var edits = await WrapWithTagEndpoint.CleanUpTextEditsAsync(context!, computedEdits, DisposalToken);
+            var htmlSourceText = await context!.GetHtmlSourceTextAsync(DisposalToken);
+            var edits = HtmlFormatter.FixHtmlTestEdits(htmlSourceText, computedEdits);
             Assert.Same(computedEdits, edits);
 
             var finalText = inputSourceText.WithChanges(edits.Select(e => e.AsTextChange(inputSourceText)));
@@ -242,7 +244,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 }
             };
 
-            var edits = await WrapWithTagEndpoint.CleanUpTextEditsAsync(context!, computedEdits, DisposalToken);
+            var htmlSourceText = await context!.GetHtmlSourceTextAsync(DisposalToken);
+            var edits = HtmlFormatter.FixHtmlTestEdits(htmlSourceText, computedEdits);
             Assert.NotSame(computedEdits, edits);
 
             var finalText = inputSourceText.WithChanges(edits.Select(e => e.AsTextChange(inputSourceText)));
@@ -292,11 +295,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag
                 }
             };
 
-            var edits = await WrapWithTagEndpoint.CleanUpTextEditsAsync(context!, computedEdits, DisposalToken);
+            var htmlSourceText = await context!.GetHtmlSourceTextAsync(DisposalToken);
+            var edits = HtmlFormatter.FixHtmlTestEdits(htmlSourceText, computedEdits);
             Assert.NotSame(computedEdits, edits);
 
             var finalText = inputSourceText.WithChanges(edits.Select(e => e.AsTextChange(inputSourceText)));
             Assert.Equal(expected, finalText.ToString());
         }
     }
-}

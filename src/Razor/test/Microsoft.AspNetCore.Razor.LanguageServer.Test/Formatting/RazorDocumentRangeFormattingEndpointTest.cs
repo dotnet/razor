@@ -9,103 +9,102 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
+public class RazorDocumentRangeFormattingEndpointTest : FormattingLanguageServerTestBase
 {
-    public class RazorDocumentRangeFormattingEndpointTest : FormattingLanguageServerTestBase
+    public RazorDocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        public RazorDocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+    }
+
+    [Fact]
+    public async Task Handle_FormattingEnabled_InvokesFormattingService()
+    {
+        // Arrange
+        var codeDocument = TestRazorCodeDocument.CreateEmpty();
+        var uri = new Uri("file://path/test.razor");
+
+        var documentContext = CreateDocumentContext(uri, codeDocument);
+        var formattingService = new DummyRazorFormattingService();
+
+        var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+        var endpoint = new RazorDocumentRangeFormattingEndpoint(
+            formattingService, optionsMonitor);
+        var @params = new DocumentRangeFormattingParams()
         {
-        }
+            TextDocument = new TextDocumentIdentifier { Uri = uri, }
+        };
+        var requestContext = CreateRazorRequestContext(documentContext);
 
-        [Fact]
-        public async Task Handle_FormattingEnabled_InvokesFormattingService()
+        // Act
+        var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(formattingService.Called);
+    }
+
+    [Fact]
+    public async Task Handle_DocumentNotFound_ReturnsNull()
+    {
+        // Arrange
+        var formattingService = new DummyRazorFormattingService();
+        var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+        var endpoint = new RazorDocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
+        var uri = new Uri("file://path/test.razor");
+        var @params = new DocumentRangeFormattingParams()
         {
-            // Arrange
-            var codeDocument = TestRazorCodeDocument.CreateEmpty();
-            var uri = new Uri("file://path/test.razor");
+            TextDocument = new TextDocumentIdentifier { Uri = uri, }
+        };
+        var requestContext = CreateRazorRequestContext(documentContext: null);
 
-            var documentContext = CreateDocumentContext(uri, codeDocument);
-            var formattingService = new DummyRazorFormattingService();
+        // Act
+        var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
 
-            var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-            var endpoint = new RazorDocumentRangeFormattingEndpoint(
-                formattingService, optionsMonitor);
-            var @params = new DocumentRangeFormattingParams()
-            {
-                TextDocument = new TextDocumentIdentifier { Uri = uri, }
-            };
-            var requestContext = CreateRazorRequestContext(documentContext);
+        // Assert
+        Assert.Null(result);
+    }
 
-            // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
+    [Fact]
+    public async Task Handle_UnsupportedCodeDocument_ReturnsNull()
+    {
+        // Arrange
+        var codeDocument = TestRazorCodeDocument.CreateEmpty();
+        codeDocument.SetUnsupported();
+        var uri = new Uri("file://path/test.razor");
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.True(formattingService.Called);
-        }
-
-        [Fact]
-        public async Task Handle_DocumentNotFound_ReturnsNull()
+        var documentContext = CreateDocumentContext(uri, codeDocument);
+        var formattingService = new DummyRazorFormattingService();
+        var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
+        var endpoint = new RazorDocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
+        var @params = new DocumentRangeFormattingParams()
         {
-            // Arrange
-            var formattingService = new DummyRazorFormattingService();
-            var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-            var endpoint = new RazorDocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
-            var uri = new Uri("file://path/test.razor");
-            var @params = new DocumentRangeFormattingParams()
-            {
-                TextDocument = new TextDocumentIdentifier { Uri = uri, }
-            };
-            var requestContext = CreateRazorRequestContext(documentContext: null);
+            TextDocument = new TextDocumentIdentifier { Uri = uri, }
+        };
+        var requestContext = CreateRazorRequestContext(documentContext);
 
-            // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
+        // Act
+        var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
 
-            // Assert
-            Assert.Null(result);
-        }
+        // Assert
+        Assert.Null(result);
+    }
 
-        [Fact]
-        public async Task Handle_UnsupportedCodeDocument_ReturnsNull()
-        {
-            // Arrange
-            var codeDocument = TestRazorCodeDocument.CreateEmpty();
-            codeDocument.SetUnsupported();
-            var uri = new Uri("file://path/test.razor");
+    [Fact]
+    public async Task Handle_FormattingDisabled_ReturnsNull()
+    {
+        // Arrange
+        var formattingService = new DummyRazorFormattingService();
+        var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
+        var endpoint = new RazorDocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
+        var @params = new DocumentRangeFormattingParams();
+        var requestContext = CreateRazorRequestContext(documentContext: null);
 
-            var documentContext = CreateDocumentContext(uri, codeDocument);
-            var formattingService = new DummyRazorFormattingService();
-            var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-            var endpoint = new RazorDocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
-            var @params = new DocumentRangeFormattingParams()
-            {
-                TextDocument = new TextDocumentIdentifier { Uri = uri, }
-            };
-            var requestContext = CreateRazorRequestContext(documentContext);
+        // Act
+        var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
 
-            // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
-
-            // Assert
-            Assert.Null(result);
-        }
-
-        [Fact]
-        public async Task Handle_FormattingDisabled_ReturnsNull()
-        {
-            // Arrange
-            var formattingService = new DummyRazorFormattingService();
-            var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
-            var endpoint = new RazorDocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
-            var @params = new DocumentRangeFormattingParams();
-            var requestContext = CreateRazorRequestContext(documentContext: null);
-
-            // Act
-            var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
-
-            // Assert
-            Assert.Null(result);
-        }
+        // Assert
+        Assert.Null(result);
     }
 }

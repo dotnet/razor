@@ -5,12 +5,11 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.Editor.Razor
-{
-    public abstract class RazorSyntaxFactsService : ILanguageService
-    {
-        public abstract IReadOnlyList<ClassifiedSpan> GetClassifiedSpans(RazorSyntaxTree syntaxTree);
+namespace Microsoft.VisualStudio.Editor.Razor;
 
-        public abstract IReadOnlyList<TagHelperSpan> GetTagHelperSpans(RazorSyntaxTree syntaxTree);
-    }
+internal abstract class RazorSyntaxFactsService : ILanguageService
+{
+    public abstract IReadOnlyList<ClassifiedSpan> GetClassifiedSpans(RazorSyntaxTree syntaxTree);
+
+    public abstract IReadOnlyList<TagHelperSpan> GetTagHelperSpans(RazorSyntaxTree syntaxTree);
 }

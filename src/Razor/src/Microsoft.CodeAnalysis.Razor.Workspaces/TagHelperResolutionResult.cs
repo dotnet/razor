@@ -7,21 +7,20 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+[JsonConverter(typeof(TagHelperResolutionResultJsonConverter))]
+internal sealed class TagHelperResolutionResult
 {
-    [JsonConverter(typeof(TagHelperResolutionResultJsonConverter))]
-    internal sealed class TagHelperResolutionResult
+    internal static readonly TagHelperResolutionResult Empty = new(Array.Empty<TagHelperDescriptor>(), Array.Empty<RazorDiagnostic>());
+
+    public TagHelperResolutionResult(IReadOnlyCollection<TagHelperDescriptor>? descriptors, IReadOnlyList<RazorDiagnostic>? diagnostics)
     {
-        internal static readonly TagHelperResolutionResult Empty = new(Array.Empty<TagHelperDescriptor>(), Array.Empty<RazorDiagnostic>());
-
-        public TagHelperResolutionResult(IReadOnlyCollection<TagHelperDescriptor>? descriptors, IReadOnlyList<RazorDiagnostic>? diagnostics)
-        {
-            Descriptors = descriptors;
-            Diagnostics = diagnostics;
-        }
-
-        public IReadOnlyCollection<TagHelperDescriptor>? Descriptors { get; }
-
-        public IReadOnlyList<RazorDiagnostic>? Diagnostics { get; }
+        Descriptors = descriptors;
+        Diagnostics = diagnostics;
     }
+
+    public IReadOnlyCollection<TagHelperDescriptor>? Descriptors { get; }
+
+    public IReadOnlyList<RazorDiagnostic>? Diagnostics { get; }
 }

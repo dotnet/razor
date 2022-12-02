@@ -3,16 +3,15 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
-{
-    // Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
-    [DataContract]
-    internal class RazorMapToDocumentRangesResponse
-    {
-        [DataMember(Name = "ranges")]
-        public required Range[] Ranges { get; init; }
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 
-        [DataMember(Name = "hostDocumentVersion")]
-        public int? HostDocumentVersion { get; init; }
-    }
+// Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
+[DataContract]
+internal class RazorMapToDocumentRangesResponse
+{
+    [DataMember(Name = "ranges")]
+    public required Range[] Ranges { get; init; }
+
+    [DataMember(Name = "hostDocumentVersion")]
+    public int? HostDocumentVersion { get; init; }
 }

@@ -4,10 +4,9 @@
 using System;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+
+internal abstract class FormattingOptionsProvider
 {
-    public abstract class FormattingOptionsProvider
-    {
-        public abstract FormattingOptions? GetOptions(Uri uri);
-    }
+    public abstract FormattingOptions? GetOptions(Uri uri);
 }

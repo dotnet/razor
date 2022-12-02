@@ -9,17 +9,17 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test;
+
+public class PlatformAgnosticClientCapabilitiesJsonConverterTest
 {
-    public class PlatformAgnosticClientCapabilitiesJsonConverterTest
+    [Fact]
+    public void ReadJson_ReadsValues()
     {
-        [Fact]
-        public void ReadJson_ReadsValues()
-        {
-            // Arrange
-            // Note this is a small subset of the actual ClientCapabilities provided
-            // for use in basic validations.
-            var rawJson = @"{
+        // Arrange
+        // Note this is a small subset of the actual ClientCapabilities provided
+        // for use in basic validations.
+        var rawJson = @"{
   ""workspace"": {
     ""applyEdit"": true,
     ""workspaceEdit"": {
@@ -76,17 +76,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring.Test
     }
   }
 }";
-            var stringReader = new StringReader(rawJson);
+        var stringReader = new StringReader(rawJson);
 
-            // Act
-            var capabilities = JsonSerializer.CreateDefault().Deserialize<VSInternalClientCapabilities>(new JsonTextReader(stringReader));
+        // Act
+        var capabilities = JsonSerializer.CreateDefault().Deserialize<VSInternalClientCapabilities>(new JsonTextReader(stringReader));
 
-            // Assert
-            Assert.True(capabilities.Workspace.ApplyEdit);
-            Assert.Equal(MarkupKind.PlainText, capabilities.TextDocument.Hover.ContentFormat.First());
-            Assert.Equal(CompletionItemKind.Function, capabilities.TextDocument.Completion.CompletionItemKind.ValueSet.First());
-            Assert.Equal(MarkupKind.PlainText, capabilities.TextDocument.SignatureHelp.SignatureInformation.DocumentationFormat.First());
-            Assert.Equal(CodeActionKind.RefactorExtract, capabilities.TextDocument.CodeAction.CodeActionLiteralSupport.CodeActionKind.ValueSet.First());
-        }
+        // Assert
+        Assert.True(capabilities.Workspace.ApplyEdit);
+        Assert.Equal(MarkupKind.PlainText, capabilities.TextDocument.Hover.ContentFormat.First());
+        Assert.Equal(CompletionItemKind.Function, capabilities.TextDocument.Completion.CompletionItemKind.ValueSet.First());
+        Assert.Equal(MarkupKind.PlainText, capabilities.TextDocument.SignatureHelp.SignatureInformation.DocumentationFormat.First());
+        Assert.Equal(CodeActionKind.RefactorExtract, capabilities.TextDocument.CodeAction.CodeActionLiteralSupport.CodeActionKind.ValueSet.First());
     }
 }

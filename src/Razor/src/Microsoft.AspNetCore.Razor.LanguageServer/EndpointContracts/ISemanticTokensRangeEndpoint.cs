@@ -4,11 +4,10 @@
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+[LanguageServerEndpoint(Methods.TextDocumentSemanticTokensRangeName)]
+internal interface ISemanticTokensRangeEndpoint : IRazorRequestHandler<SemanticTokensRangeParams, SemanticTokens?>,
+    IRegistrationExtension
 {
-    [LanguageServerEndpoint(Methods.TextDocumentSemanticTokensRangeName)]
-    internal interface ISemanticTokensRangeEndpoint : IRazorRequestHandler<SemanticTokensRangeParams, SemanticTokens?>,
-        IRegistrationExtension
-    {
-    }
 }

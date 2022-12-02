@@ -4,10 +4,9 @@
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+[LanguageServerEndpoint(Methods.TextDocumentCompletionName)]
+internal interface IVSCompletionEndpoint : IRazorRequestHandler<CompletionParams, VSInternalCompletionList?>, IRegistrationExtension
 {
-    [LanguageServerEndpoint(Methods.TextDocumentCompletionName)]
-    internal interface IVSCompletionEndpoint : IRazorRequestHandler<CompletionParams, VSInternalCompletionList?>, IRegistrationExtension
-    {
-    }
 }

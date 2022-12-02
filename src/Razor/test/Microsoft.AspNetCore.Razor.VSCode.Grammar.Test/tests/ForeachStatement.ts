@@ -57,5 +57,22 @@ export function RunForeachStatementSuite() {
     </div>
 }`);
         });
+
+        it('Nested inside if', async () => {
+            await assertMatchesSnapshot(
+`@if (true)
+{
+    foreach (var i in numbers) {
+        <p></p>
+    }
+}`);
+        });
+
+        it('Not in HTML', async () => {
+            await assertMatchesSnapshot(
+`<div>
+    foreach (is not) an English word
+</div>`);
+        });
     });
 }

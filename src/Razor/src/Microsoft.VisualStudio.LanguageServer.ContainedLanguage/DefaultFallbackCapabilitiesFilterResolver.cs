@@ -6,284 +6,283 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+
+[Export(typeof(FallbackCapabilitiesFilterResolver))]
+internal class DefaultFallbackCapabilitiesFilterResolver : FallbackCapabilitiesFilterResolver
 {
-    [Export(typeof(FallbackCapabilitiesFilterResolver))]
-    internal class DefaultFallbackCapabilitiesFilterResolver : FallbackCapabilitiesFilterResolver
+    public override Func<JToken, bool> Resolve(string lspRequestMethodName)
     {
-        public override Func<JToken, bool> Resolve(string lspRequestMethodName)
+        if (lspRequestMethodName is null)
         {
-            if (lspRequestMethodName is null)
-            {
-                throw new ArgumentNullException(nameof(lspRequestMethodName));
-            }
-
-            return lspRequestMethodName switch
-            {
-                // Standard LSP capabilities
-                Methods.TextDocumentImplementationName => CheckImplementationCapabilities,
-                Methods.TextDocumentTypeDefinitionName => CheckTypeDefinitionCapabilities,
-                Methods.TextDocumentReferencesName => CheckFindAllReferencesCapabilities,
-                Methods.TextDocumentRenameName => CheckRenameCapabilities,
-                Methods.TextDocumentSignatureHelpName => CheckSignatureHelpCapabilities,
-                Methods.TextDocumentWillSaveName => CheckWillSaveCapabilities,
-                Methods.TextDocumentWillSaveWaitUntilName => CheckWillSaveWaitUntilCapabilities,
-                Methods.TextDocumentRangeFormattingName => CheckRangeFormattingCapabilities,
-                Methods.WorkspaceSymbolName => CheckWorkspaceSymbolCapabilities,
-                Methods.TextDocumentOnTypeFormattingName => CheckOnTypeFormattingCapabilities,
-                Methods.TextDocumentFormattingName => CheckFormattingCapabilities,
-                Methods.TextDocumentHoverName => CheckHoverCapabilities,
-                Methods.TextDocumentCodeActionName => CheckCodeActionCapabilities,
-                Methods.TextDocumentCodeLensName => CheckCodeLensCapabilities,
-                Methods.TextDocumentCompletionName => CheckCompletionCapabilities,
-                Methods.TextDocumentCompletionResolveName => CheckCompletionResolveCapabilities,
-                Methods.TextDocumentDefinitionName => CheckDefinitionCapabilities,
-                Methods.TextDocumentDocumentHighlightName => CheckHighlightCapabilities,
-                "textDocument/semanticTokens" or Methods.TextDocumentSemanticTokensFullName or Methods.TextDocumentSemanticTokensFullDeltaName or Methods.TextDocumentSemanticTokensRangeName => CheckSemanticTokensCapabilities,
-                Methods.TextDocumentLinkedEditingRangeName => CheckLinkedEditingRangeCapabilities,
-                Methods.CodeActionResolveName => CheckCodeActionResolveCapabilities,
-                Methods.TextDocumentDocumentColorName => CheckDocumentColorCapabilities,
-                // VS LSP Expansion capabilities
-                VSMethods.GetProjectContextsName => CheckProjectContextsCapabilities,
-                VSInternalMethods.DocumentReferencesName => CheckMSReferencesCapabilities,
-                VSInternalMethods.OnAutoInsertName => CheckOnAutoInsertCapabilities,
-                VSInternalMethods.DocumentPullDiagnosticName or VSInternalMethods.WorkspacePullDiagnosticName => CheckPullDiagnosticCapabilities,
-                VSInternalMethods.TextDocumentTextPresentationName => CheckTextPresentationCapabilities,
-                VSInternalMethods.TextDocumentUriPresentationName => CheckUriPresentationCapabilities,
-                _ => FallbackCheckCapabilties,
-            };
+            throw new ArgumentNullException(nameof(lspRequestMethodName));
         }
 
-        private bool CheckDocumentColorCapabilities(JToken token)
+        return lspRequestMethodName switch
         {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+            // Standard LSP capabilities
+            Methods.TextDocumentImplementationName => CheckImplementationCapabilities,
+            Methods.TextDocumentTypeDefinitionName => CheckTypeDefinitionCapabilities,
+            Methods.TextDocumentReferencesName => CheckFindAllReferencesCapabilities,
+            Methods.TextDocumentRenameName => CheckRenameCapabilities,
+            Methods.TextDocumentSignatureHelpName => CheckSignatureHelpCapabilities,
+            Methods.TextDocumentWillSaveName => CheckWillSaveCapabilities,
+            Methods.TextDocumentWillSaveWaitUntilName => CheckWillSaveWaitUntilCapabilities,
+            Methods.TextDocumentRangeFormattingName => CheckRangeFormattingCapabilities,
+            Methods.WorkspaceSymbolName => CheckWorkspaceSymbolCapabilities,
+            Methods.TextDocumentOnTypeFormattingName => CheckOnTypeFormattingCapabilities,
+            Methods.TextDocumentFormattingName => CheckFormattingCapabilities,
+            Methods.TextDocumentHoverName => CheckHoverCapabilities,
+            Methods.TextDocumentCodeActionName => CheckCodeActionCapabilities,
+            Methods.TextDocumentCodeLensName => CheckCodeLensCapabilities,
+            Methods.TextDocumentCompletionName => CheckCompletionCapabilities,
+            Methods.TextDocumentCompletionResolveName => CheckCompletionResolveCapabilities,
+            Methods.TextDocumentDefinitionName => CheckDefinitionCapabilities,
+            Methods.TextDocumentDocumentHighlightName => CheckHighlightCapabilities,
+            "textDocument/semanticTokens" or Methods.TextDocumentSemanticTokensFullName or Methods.TextDocumentSemanticTokensFullDeltaName or Methods.TextDocumentSemanticTokensRangeName => CheckSemanticTokensCapabilities,
+            Methods.TextDocumentLinkedEditingRangeName => CheckLinkedEditingRangeCapabilities,
+            Methods.CodeActionResolveName => CheckCodeActionResolveCapabilities,
+            Methods.TextDocumentDocumentColorName => CheckDocumentColorCapabilities,
+            // VS LSP Expansion capabilities
+            VSMethods.GetProjectContextsName => CheckProjectContextsCapabilities,
+            VSInternalMethods.DocumentReferencesName => CheckMSReferencesCapabilities,
+            VSInternalMethods.OnAutoInsertName => CheckOnAutoInsertCapabilities,
+            VSInternalMethods.DocumentPullDiagnosticName or VSInternalMethods.WorkspacePullDiagnosticName => CheckPullDiagnosticCapabilities,
+            VSInternalMethods.TextDocumentTextPresentationName => CheckTextPresentationCapabilities,
+            VSInternalMethods.TextDocumentUriPresentationName => CheckUriPresentationCapabilities,
+            _ => FallbackCheckCapabilties,
+        };
+    }
 
-            return serverCapabilities?.DocumentColorProvider?.Match(
-                boolValue => boolValue,
-                options => options is not null) ?? false;
-        }
+    private bool CheckDocumentColorCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckSemanticTokensCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<VSServerCapabilities>();
+        return serverCapabilities?.DocumentColorProvider?.Match(
+            boolValue => boolValue,
+            options => options is not null) ?? false;
+    }
 
-            return serverCapabilities?.SemanticTokensOptions is not null;
-        }
+    private static bool CheckSemanticTokensCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<VSServerCapabilities>();
 
-        private static bool CheckImplementationCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.SemanticTokensOptions is not null;
+    }
 
-            return serverCapabilities?.ImplementationProvider?.Match(
-                boolValue => boolValue,
-                options => options is not null) ?? false;
-        }
+    private static bool CheckImplementationCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private bool CheckTypeDefinitionCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.ImplementationProvider?.Match(
+            boolValue => boolValue,
+            options => options is not null) ?? false;
+    }
 
-            return serverCapabilities?.TypeDefinitionProvider?.Match(
-                boolValue => boolValue,
-                options => options is not null) ?? false;
-        }
+    private bool CheckTypeDefinitionCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckFindAllReferencesCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.TypeDefinitionProvider?.Match(
+            boolValue => boolValue,
+            options => options is not null) ?? false;
+    }
 
-            return serverCapabilities?.ReferencesProvider?.Match(
-                boolValue => boolValue,
-                options => options is not null) ?? false;
-        }
+    private static bool CheckFindAllReferencesCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckRenameCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.ReferencesProvider?.Match(
+            boolValue => boolValue,
+            options => options is not null) ?? false;
+    }
 
-            return serverCapabilities?.RenameProvider?.Match(
-                boolValue => boolValue,
-                options => options is not null) ?? false;
-        }
+    private static bool CheckRenameCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckSignatureHelpCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.RenameProvider?.Match(
+            boolValue => boolValue,
+            options => options is not null) ?? false;
+    }
 
-            return serverCapabilities?.SignatureHelpProvider is not null;
-        }
+    private static bool CheckSignatureHelpCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckWillSaveCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.SignatureHelpProvider is not null;
+    }
 
-            return serverCapabilities?.TextDocumentSync?.WillSave == true;
-        }
+    private static bool CheckWillSaveCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckWillSaveWaitUntilCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.TextDocumentSync?.WillSave == true;
+    }
 
-            return serverCapabilities?.TextDocumentSync?.WillSaveWaitUntil == true;
-        }
+    private static bool CheckWillSaveWaitUntilCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckRangeFormattingCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.TextDocumentSync?.WillSaveWaitUntil == true;
+    }
 
-            return serverCapabilities?.DocumentRangeFormattingProvider?.Match(
-                boolValue => boolValue,
-                options => options is not null) ?? false;
-        }
+    private static bool CheckRangeFormattingCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckWorkspaceSymbolCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.DocumentRangeFormattingProvider?.Match(
+            boolValue => boolValue,
+            options => options is not null) ?? false;
+    }
 
-            return serverCapabilities?.WorkspaceSymbolProvider?.Match(
-                boolValue => boolValue,
-                options => options is not null) ?? false;
-        }
+    private static bool CheckWorkspaceSymbolCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckOnTypeFormattingCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.WorkspaceSymbolProvider?.Match(
+            boolValue => boolValue,
+            options => options is not null) ?? false;
+    }
 
-            return serverCapabilities?.DocumentOnTypeFormattingProvider is not null;
-        }
+    private static bool CheckOnTypeFormattingCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckFormattingCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.DocumentOnTypeFormattingProvider is not null;
+    }
 
-            return serverCapabilities?.DocumentFormattingProvider?.Match(
-                boolValue => boolValue,
-                options => options is not null) ?? false;
-        }
+    private static bool CheckFormattingCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckHoverCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.DocumentFormattingProvider?.Match(
+            boolValue => boolValue,
+            options => options is not null) ?? false;
+    }
 
-            return serverCapabilities?.HoverProvider?.Match(
-                boolValue => boolValue,
-                options => options is not null) ?? false;
-        }
+    private static bool CheckHoverCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckCodeActionCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.HoverProvider?.Match(
+            boolValue => boolValue,
+            options => options is not null) ?? false;
+    }
 
-            return serverCapabilities?.CodeActionProvider?.Match(
-                boolValue => boolValue,
-                options => options is not null) ?? false;
-        }
+    private static bool CheckCodeActionCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckCodeLensCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.CodeActionProvider?.Match(
+            boolValue => boolValue,
+            options => options is not null) ?? false;
+    }
 
-            return serverCapabilities?.CodeLensProvider is not null;
-        }
+    private static bool CheckCodeLensCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckCompletionCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.CodeLensProvider is not null;
+    }
 
-            return serverCapabilities?.CompletionProvider is not null;
-        }
+    private static bool CheckCompletionCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckCompletionResolveCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.CompletionProvider is not null;
+    }
 
-            return serverCapabilities?.CompletionProvider?.ResolveProvider == true;
-        }
+    private static bool CheckCompletionResolveCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckDefinitionCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.CompletionProvider?.ResolveProvider == true;
+    }
 
-            return serverCapabilities?.DefinitionProvider?.Match(
-                boolValue => boolValue,
-                options => options is not null) ?? false;
-        }
+    private static bool CheckDefinitionCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckHighlightCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.DefinitionProvider?.Match(
+            boolValue => boolValue,
+            options => options is not null) ?? false;
+    }
 
-            return serverCapabilities?.DocumentHighlightProvider?.Match(
-                boolValue => boolValue,
-                options => options is not null) ?? false;
-        }
+    private static bool CheckHighlightCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckMSReferencesCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
+        return serverCapabilities?.DocumentHighlightProvider?.Match(
+            boolValue => boolValue,
+            options => options is not null) ?? false;
+    }
 
-            return serverCapabilities?.MSReferencesProvider == true;
-        }
+    private static bool CheckMSReferencesCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
 
-        private static bool CheckProjectContextsCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
+        return serverCapabilities?.MSReferencesProvider == true;
+    }
 
-            return serverCapabilities?.ProjectContextProvider == true;
-        }
+    private static bool CheckProjectContextsCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
 
-        private static bool CheckCodeActionResolveCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.ProjectContextProvider == true;
+    }
 
-            var resolvesCodeActions = serverCapabilities?.CodeActionProvider?.Match(
-                boolValue => false,
-                options => options.ResolveProvider) ?? false;
+    private static bool CheckCodeActionResolveCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-            return resolvesCodeActions;
-        }
+        var resolvesCodeActions = serverCapabilities?.CodeActionProvider?.Match(
+            boolValue => false,
+            options => options.ResolveProvider) ?? false;
 
-        private static bool CheckOnAutoInsertCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
+        return resolvesCodeActions;
+    }
 
-            return serverCapabilities?.OnAutoInsertProvider is not null;
-        }
+    private static bool CheckOnAutoInsertCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
 
-        private static bool CheckTextPresentationCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
+        return serverCapabilities?.OnAutoInsertProvider is not null;
+    }
 
-            return serverCapabilities?.TextPresentationProvider == true;
-        }
-        private static bool CheckUriPresentationCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
+    private static bool CheckTextPresentationCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
 
-            return serverCapabilities?.UriPresentationProvider == true;
-        }
+        return serverCapabilities?.TextPresentationProvider == true;
+    }
+    private static bool CheckUriPresentationCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
 
-        private static bool CheckLinkedEditingRangeCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<ServerCapabilities>();
+        return serverCapabilities?.UriPresentationProvider == true;
+    }
 
-            return serverCapabilities?.LinkedEditingRangeProvider?.Match(
-              boolValue => boolValue,
-              options => options is not null) ?? false;
-        }
+    private static bool CheckLinkedEditingRangeCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
 
-        private static bool CheckPullDiagnosticCapabilities(JToken token)
-        {
-            var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
+        return serverCapabilities?.LinkedEditingRangeProvider?.Match(
+          boolValue => boolValue,
+          options => options is not null) ?? false;
+    }
 
-            return serverCapabilities?.SupportsDiagnosticRequests == true;
-        }
+    private static bool CheckPullDiagnosticCapabilities(JToken token)
+    {
+        var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
 
-        private bool FallbackCheckCapabilties(JToken token)
-        {
-            // Fallback is to assume present
+        return serverCapabilities?.SupportsDiagnosticRequests == true;
+    }
 
-            return true;
-        }
+    private bool FallbackCheckCapabilties(JToken token)
+    {
+        // Fallback is to assume present
+
+        return true;
     }
 }

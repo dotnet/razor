@@ -3,10 +3,9 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+internal abstract class BraceSmartIndenterFactory : ILanguageService
 {
-    internal abstract class BraceSmartIndenterFactory : ILanguageService
-    {
-        public abstract BraceSmartIndenter Create(VisualStudioDocumentTracker documentTracker);
-    }
+    public abstract BraceSmartIndenter Create(VisualStudioDocumentTracker documentTracker);
 }

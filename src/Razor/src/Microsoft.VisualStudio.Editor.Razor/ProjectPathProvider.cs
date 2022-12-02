@@ -5,10 +5,9 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+internal abstract class ProjectPathProvider : IWorkspaceService
 {
-    internal abstract class ProjectPathProvider : IWorkspaceService
-    {
-        public abstract bool TryGetProjectPath(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out string? filePath);
-    }
+    public abstract bool TryGetProjectPath(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out string? filePath);
 }

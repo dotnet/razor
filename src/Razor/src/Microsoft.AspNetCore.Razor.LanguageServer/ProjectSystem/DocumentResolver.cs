@@ -4,10 +4,9 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
+namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+
+internal abstract class DocumentResolver
 {
-    internal abstract class DocumentResolver
-    {
-        public abstract bool TryResolveDocument(string documentFilePath, [NotNullWhen(true)] out DocumentSnapshot? document);
-    }
+    public abstract bool TryResolveDocument(string documentFilePath, [NotNullWhen(true)] out DocumentSnapshot? document);
 }

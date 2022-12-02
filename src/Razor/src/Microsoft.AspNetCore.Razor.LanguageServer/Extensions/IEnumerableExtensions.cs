@@ -4,13 +4,12 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+
+internal static class IEnumerableExtensions
 {
-    internal static class IEnumerableExtensions
+    internal static IEnumerable<T> WithoutNull<T>(this IEnumerable<T?> ts)
     {
-        internal static IEnumerable<T> WithoutNull<T>(this IEnumerable<T?> ts)
-        {
-            return ts.Where(t => t != null).Select(t => t!);
-        }
+        return ts.Where(t => t != null).Select(t => t!);
     }
 }

@@ -4,57 +4,56 @@
 using System;
 using System.Diagnostics;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+
+internal class DefaultLogHubLogWriter : LogHubLogWriter, IDisposable
 {
-    internal class DefaultLogHubLogWriter : LogHubLogWriter, IDisposable
+    private TraceSource? _traceSource;
+
+    private TraceSource TraceSource
     {
-        private TraceSource? _traceSource;
-
-        private TraceSource TraceSource
+        get
         {
-            get
+            if (_traceSource is null)
             {
-                if (_traceSource is null)
-                {
-                    throw new ObjectDisposedException($"{nameof(DefaultLogHubLogWriter)} called after being disposed.");
-                }
-
-                return _traceSource;
-            }
-        }
-
-        public DefaultLogHubLogWriter(TraceSource traceSource)
-        {
-            if (traceSource is null)
-            {
-                throw new ArgumentNullException(nameof(traceSource));
+                throw new ObjectDisposedException($"{nameof(DefaultLogHubLogWriter)} called after being disposed.");
             }
 
-            _traceSource = traceSource;
+            return _traceSource;
         }
+    }
 
-        public override TraceSource GetTraceSource() => TraceSource;
-
-        public override void TraceInformation(string format, params object[] args)
+    public DefaultLogHubLogWriter(TraceSource traceSource)
+    {
+        if (traceSource is null)
         {
-            TraceSource.TraceInformation(format, args);
+            throw new ArgumentNullException(nameof(traceSource));
         }
 
-        public override void TraceWarning(string format, params object[] args)
-        {
-            TraceSource.TraceEvent(TraceEventType.Warning, id: 0, format, args);
-        }
+        _traceSource = traceSource;
+    }
 
-        public override void TraceError(string format, params object[] args)
-        {
-            TraceSource.TraceEvent(TraceEventType.Error, id: 0, format, args);
-        }
+    public override TraceSource GetTraceSource() => TraceSource;
 
-        public void Dispose()
-        {
-            _traceSource?.Flush();
-            _traceSource?.Close();
-            _traceSource = null;
-        }
+    public override void TraceInformation(string format, params object[] args)
+    {
+        TraceSource.TraceInformation(format, args);
+    }
+
+    public override void TraceWarning(string format, params object[] args)
+    {
+        TraceSource.TraceEvent(TraceEventType.Warning, id: 0, format, args);
+    }
+
+    public override void TraceError(string format, params object[] args)
+    {
+        TraceSource.TraceEvent(TraceEventType.Error, id: 0, format, args);
+    }
+
+    public void Dispose()
+    {
+        _traceSource?.Flush();
+        _traceSource?.Close();
+        _traceSource = null;
     }
 }

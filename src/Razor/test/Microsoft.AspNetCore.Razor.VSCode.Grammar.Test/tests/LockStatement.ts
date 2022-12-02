@@ -45,5 +45,22 @@ export function RunLockStatementSuite() {
     </div>
 }`);
         });
+
+        it('Nested inside if', async () => {
+            await assertMatchesSnapshot(
+`@if (true)
+{
+    lock (SomeObject) {
+        <p></p>
+    }
+}`);
+        });
+
+        it('Not in HTML', async () => {
+            await assertMatchesSnapshot(
+`<div>
+    lock (the taskbar)
+</div>`);
+        });
     });
 }

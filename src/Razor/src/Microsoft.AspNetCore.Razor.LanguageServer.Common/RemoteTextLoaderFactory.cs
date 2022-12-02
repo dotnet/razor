@@ -3,10 +3,9 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+
+public abstract class RemoteTextLoaderFactory
 {
-    public abstract class RemoteTextLoaderFactory
-    {
-        public abstract TextLoader Create(string filePath);
-    }
+    internal abstract TextLoader Create(string filePath);
 }

@@ -3,9 +3,8 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+internal class RenameParamsBridge : RenameParams, ITextDocumentPositionParams
 {
-    internal class RenameParamsBridge : RenameParams, ITextDocumentPositionParams
-    {
-    }
 }

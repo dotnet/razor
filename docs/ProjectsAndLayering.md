@@ -2,9 +2,11 @@
 
 ## Shared
 
-- Target Framework: `netstandard2.0`
+This project is shared between all layers (both compiler and tooling) to provide language support types for modern C# language features.
+
+- Target Framework: `net7.0;netstandard2.0;net472`
 - Projects:
-  - Microsoft.AspNetCore.Razor.Common
+  - Microsoft.AspNetCore.Razor.LanguageSupport
 
 ## Compiler
 
@@ -19,12 +21,21 @@
 
 ## Tooling Core
 
-- Target Framework: `netstandard2.0`
+These projects are referenced by most Razor tooling projects. Because of this, they
+target the broadest set of frameworks.
+
+- Target Framework: `net7.0;netstandard2.0;net472`
+- Projects:
+  - Microsoft.AspNetCore.Razor.Common
+  - Microsoft.CodeAnalysis.Razor.Workspaces
+
+## Razor Language Server
+
+- Target Framework: `net7.0;net472`
 - Projects:
   - Microsoft.AspNetCore.Razor.LanguageServer
   - Microsoft.AspNetCore.Razor.LanguageServer.Common
   - Microsoft.AspNetCore.Razor.LanguageServer.Protocol
-  - Microsoft.CodeAnalysis.Razor.Workspaces
 
 ## Razor Language Server (rzls)
 
@@ -69,23 +80,26 @@
 
 ## Shared
 
-- Microsoft.AspNetCore.Razor.Test.Common (`net6.0`;`netstandard2.0`;`net472`)
+- Microsoft.AspNetCore.Razor.Test.Common (`net7.0`;`net472`)
 
 ## API Shims
 
-- Microsoft.AspNetCore.Razor.Test.ComponentShim (`netstandard2.0`;`net472`)
+- Microsoft.AspNetCore.Razor.Test.ComponentShim (`netstandard2.0`)
 - Microsoft.AspNetCore.Razor.Test.MvcShim (`net7.0`;`net472`)
 - Microsoft.AspNetCore.Razor.Test.MvcShim.ClassLib (`netstandard2.0`)
-- Microsoft.AspNetCore.Razor.Test.MvcShim.Version1_X (`net7.0`;`netstandard2.0`)
-- Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X (`net7.0`;`netstandard2.0`)
+- Microsoft.AspNetCore.Razor.Test.MvcShim.Version1_X (`net7.0`;`net472`)
+- Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X (`net7.0`;`net4720`)
 
 ## Tooling Core
 
 - Microsoft.CodeAnalysis.Razor.Workspaces.Test (`net7.0`;`net472` - only on Windows)
-- Microsoft.CodeAnalysis.Razor.Workspaces.Test.Common (`netstandard2.0`)
+- Microsoft.CodeAnalysis.Razor.Workspaces.Test.Common (`net7.0`;`net472`)
+
+## Language Server
+
 - Microsoft.AspNetCore.Razor.LanguageServer.Common.Test (`net7.0`)
 - Microsoft.AspNetCore.Razor.LanguageServer.Test (`net7.0-windows`)
-- Microsoft.AspNetCore.Razor.LanguageServer.Test.Common (`netstandard2.0`)
+- Microsoft.AspNetCore.Razor.LanguageServer.Test.Common (`net7.0`;`net472`)
 
 ## Roslyn OOP (for Visual Studio)
 

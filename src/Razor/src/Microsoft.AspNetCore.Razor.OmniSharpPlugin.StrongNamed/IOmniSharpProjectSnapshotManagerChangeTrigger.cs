@@ -3,10 +3,9 @@
 
 #nullable disable
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+internal interface IOmniSharpProjectSnapshotManagerChangeTrigger
 {
-    internal interface IOmniSharpProjectSnapshotManagerChangeTrigger
-    {
-        void Initialize(OmniSharpProjectSnapshotManagerBase projectManager);
-    }
+    void Initialize(OmniSharpProjectSnapshotManagerBase projectManager);
 }

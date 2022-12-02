@@ -4,16 +4,15 @@
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
+internal class RazorDocumentRangeFormattingParams
 {
-    internal class RazorDocumentRangeFormattingParams
-    {
-        public RazorLanguageKind Kind { get; set; }
+    public RazorLanguageKind Kind { get; set; }
 
-        public string? HostDocumentFilePath { get; set; }
+    public string? HostDocumentFilePath { get; set; }
 
-        public Range? ProjectedRange { get; set; }
+    public Range? ProjectedRange { get; set; }
 
-        public FormattingOptions? Options { get; set; }
-    }
+    public FormattingOptions? Options { get; set; }
 }

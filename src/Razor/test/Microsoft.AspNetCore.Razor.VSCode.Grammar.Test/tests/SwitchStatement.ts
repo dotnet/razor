@@ -53,5 +53,24 @@ export function RunSwitchStatementSuite() {
         break;
 }`);
         });
+
+        it('Nested inside if', async () => {
+            await assertMatchesSnapshot(
+`@if (true)
+{
+    switch (SomeProp) {
+        case 123:
+            <p></p>
+            break;
+    }
+}`);
+        });
+
+        it('Not in HTML', async () => {
+            await assertMatchesSnapshot(
+`<div>
+    switch (over to better classifications)
+</div>`);
+        });
     });
 }

@@ -5,16 +5,15 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+
+public class TestPropertyData
 {
-    public class TestPropertyData
-    {
-        public string Category { get; set; }
+    public string Category { get; set; }
 
-        public string PropertyName { get; set; }
+    public string PropertyName { get; set; }
 
-        public object Value { get; set; }
+    public object Value { get; set; }
 
-        public List<object> SetValues { get; }
-    }
+    public List<object> SetValues { get; }
 }

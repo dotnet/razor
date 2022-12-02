@@ -4,10 +4,9 @@
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
+
+internal abstract class RazorHoverInfoService
 {
-    internal abstract class RazorHoverInfoService
-    {
-        public abstract VSInternalHover? GetHoverInfo(RazorCodeDocument codeDocument, SourceLocation location, VSInternalClientCapabilities clientCapabilities);
-    }
+    public abstract VSInternalHover? GetHoverInfo(RazorCodeDocument codeDocument, SourceLocation location, VSInternalClientCapabilities clientCapabilities);
 }

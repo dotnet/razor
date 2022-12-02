@@ -3,20 +3,19 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+[Flags]
+internal enum AcceptedCharacters
 {
-    [Flags]
-    public enum AcceptedCharacters
-    {
-        None = 0,
-        NewLine = 1,
-        WhiteSpace = 2,
+    None = 0,
+    NewLine = 1,
+    WhiteSpace = 2,
 
-        NonWhiteSpace = 4,
+    NonWhiteSpace = 4,
 
-        AllWhiteSpace = NewLine | WhiteSpace,
-        Any = AllWhiteSpace | NonWhiteSpace,
+    AllWhiteSpace = NewLine | WhiteSpace,
+    Any = AllWhiteSpace | NonWhiteSpace,
 
-        AnyExceptNewline = NonWhiteSpace | WhiteSpace
-    }
+    AnyExceptNewline = NonWhiteSpace | WhiteSpace
 }

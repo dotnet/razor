@@ -10,164 +10,163 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Threading;
 using IAsyncDisposable = Microsoft.VisualStudio.Threading.IAsyncDisposable;
 
-namespace Microsoft.VisualStudio.LiveShare.Razor.Guest
+namespace Microsoft.VisualStudio.LiveShare.Razor.Guest;
+
+internal class ProjectSnapshotSynchronizationService : ICollaborationService, IAsyncDisposable, System.IAsyncDisposable
 {
-    internal class ProjectSnapshotSynchronizationService : ICollaborationService, IAsyncDisposable, System.IAsyncDisposable
+    private readonly JoinableTaskFactory _joinableTaskFactory;
+    private readonly CollaborationSession _sessionContext;
+    private readonly IProjectSnapshotManagerProxy _hostProjectManagerProxy;
+    private readonly ProjectSnapshotManagerBase _projectSnapshotManager;
+
+    public ProjectSnapshotSynchronizationService(
+        JoinableTaskFactory joinableTaskFactory,
+        CollaborationSession sessionContext,
+        IProjectSnapshotManagerProxy hostProjectManagerProxy,
+        ProjectSnapshotManagerBase projectSnapshotManager)
     {
-        private readonly JoinableTaskFactory _joinableTaskFactory;
-        private readonly CollaborationSession _sessionContext;
-        private readonly IProjectSnapshotManagerProxy _hostProjectManagerProxy;
-        private readonly ProjectSnapshotManagerBase _projectSnapshotManager;
-
-        public ProjectSnapshotSynchronizationService(
-            JoinableTaskFactory joinableTaskFactory,
-            CollaborationSession sessionContext,
-            IProjectSnapshotManagerProxy hostProjectManagerProxy,
-            ProjectSnapshotManagerBase projectSnapshotManager)
+        if (joinableTaskFactory is null)
         {
-            if (joinableTaskFactory is null)
-            {
-                throw new ArgumentNullException(nameof(joinableTaskFactory));
-            }
-
-            if (sessionContext is null)
-            {
-                throw new ArgumentNullException(nameof(sessionContext));
-            }
-
-            if (hostProjectManagerProxy is null)
-            {
-                throw new ArgumentNullException(nameof(hostProjectManagerProxy));
-            }
-
-            if (projectSnapshotManager is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManager));
-            }
-
-            _joinableTaskFactory = joinableTaskFactory;
-            _sessionContext = sessionContext;
-            _hostProjectManagerProxy = hostProjectManagerProxy;
-            _projectSnapshotManager = projectSnapshotManager;
+            throw new ArgumentNullException(nameof(joinableTaskFactory));
         }
 
-        public async Task InitializeAsync(CancellationToken cancellationToken)
+        if (sessionContext is null)
         {
-            // We wire the changed event up early because any changed events that fire will ensure we have the most
-            // up-to-date state.
-            _hostProjectManagerProxy.Changed += HostProxyProjectManager_Changed;
-
-            var projectManagerState = await _hostProjectManagerProxy.GetProjectManagerStateAsync(cancellationToken);
-
-            await InitializeGuestProjectManagerAsync(projectManagerState.ProjectHandles, cancellationToken);
+            throw new ArgumentNullException(nameof(sessionContext));
         }
 
-        public async Task DisposeAsync()
+        if (hostProjectManagerProxy is null)
         {
-            _hostProjectManagerProxy.Changed -= HostProxyProjectManager_Changed;
+            throw new ArgumentNullException(nameof(hostProjectManagerProxy));
+        }
 
-            await _joinableTaskFactory.SwitchToMainThreadAsync();
+        if (projectSnapshotManager is null)
+        {
+            throw new ArgumentNullException(nameof(projectSnapshotManager));
+        }
 
-            var projects = _projectSnapshotManager.Projects.ToArray();
-            foreach (var project in projects)
+        _joinableTaskFactory = joinableTaskFactory;
+        _sessionContext = sessionContext;
+        _hostProjectManagerProxy = hostProjectManagerProxy;
+        _projectSnapshotManager = projectSnapshotManager;
+    }
+
+    public async Task InitializeAsync(CancellationToken cancellationToken)
+    {
+        // We wire the changed event up early because any changed events that fire will ensure we have the most
+        // up-to-date state.
+        _hostProjectManagerProxy.Changed += HostProxyProjectManager_Changed;
+
+        var projectManagerState = await _hostProjectManagerProxy.GetProjectManagerStateAsync(cancellationToken);
+
+        await InitializeGuestProjectManagerAsync(projectManagerState.ProjectHandles, cancellationToken);
+    }
+
+    public async Task DisposeAsync()
+    {
+        _hostProjectManagerProxy.Changed -= HostProxyProjectManager_Changed;
+
+        await _joinableTaskFactory.SwitchToMainThreadAsync();
+
+        var projects = _projectSnapshotManager.Projects.ToArray();
+        foreach (var project in projects)
+        {
+            try
             {
-                try
-                {
-                    _projectSnapshotManager.ProjectRemoved(((DefaultProjectSnapshot)project).HostProject);
-                }
-                catch (Exception ex)
-                {
-                    _projectSnapshotManager.ReportError(ex, project);
-                }
+                _projectSnapshotManager.ProjectRemoved(((DefaultProjectSnapshot)project).HostProject);
+            }
+            catch (Exception ex)
+            {
+                _projectSnapshotManager.ReportError(ex, project);
             }
         }
+    }
 
-        // Internal for testing
-        internal void UpdateGuestProjectManager(ProjectChangeEventProxyArgs args)
+    // Internal for testing
+    internal void UpdateGuestProjectManager(ProjectChangeEventProxyArgs args)
+    {
+        if (args.Kind == ProjectProxyChangeKind.ProjectAdded)
         {
-            if (args.Kind == ProjectProxyChangeKind.ProjectAdded)
-            {
-                var guestPath = ResolveGuestPath(args.ProjectFilePath);
-                var hostProject = new HostProject(guestPath, args.Newer!.Configuration, args.Newer.RootNamespace);
-                _projectSnapshotManager.ProjectAdded(hostProject);
+            var guestPath = ResolveGuestPath(args.ProjectFilePath);
+            var hostProject = new HostProject(guestPath, args.Newer!.Configuration, args.Newer.RootNamespace);
+            _projectSnapshotManager.ProjectAdded(hostProject);
 
-                if (args.Newer.ProjectWorkspaceState != null)
-                {
-                    _projectSnapshotManager.ProjectWorkspaceStateChanged(guestPath, args.Newer.ProjectWorkspaceState);
-                }
-            }
-            else if (args.Kind == ProjectProxyChangeKind.ProjectRemoved)
+            if (args.Newer.ProjectWorkspaceState != null)
             {
-                var guestPath = ResolveGuestPath(args.ProjectFilePath);
-                var hostProject = new HostProject(guestPath, args.Older!.Configuration, args.Older.RootNamespace);
-                _projectSnapshotManager.ProjectRemoved(hostProject);
-            }
-            else if (args.Kind == ProjectProxyChangeKind.ProjectChanged)
-            {
-                if (!args.Older!.Configuration.Equals(args.Newer!.Configuration))
-                {
-                    var guestPath = ResolveGuestPath(args.Newer.FilePath);
-                    var hostProject = new HostProject(guestPath, args.Newer.Configuration, args.Newer.RootNamespace);
-                    _projectSnapshotManager.ProjectConfigurationChanged(hostProject);
-                }
-                else if (args.Older.ProjectWorkspaceState != args.Newer.ProjectWorkspaceState ||
-                    args.Older.ProjectWorkspaceState?.Equals(args.Newer.ProjectWorkspaceState) == false)
-                {
-                    var guestPath = ResolveGuestPath(args.Newer.FilePath);
-                    _projectSnapshotManager.ProjectWorkspaceStateChanged(guestPath, args.Newer.ProjectWorkspaceState);
-                }
+                _projectSnapshotManager.ProjectWorkspaceStateChanged(guestPath, args.Newer.ProjectWorkspaceState);
             }
         }
-
-        private async Task InitializeGuestProjectManagerAsync(
-            IReadOnlyList<ProjectSnapshotHandleProxy> projectHandles,
-            CancellationToken cancellationToken)
+        else if (args.Kind == ProjectProxyChangeKind.ProjectRemoved)
         {
-            await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            foreach (var projectHandle in projectHandles)
+            var guestPath = ResolveGuestPath(args.ProjectFilePath);
+            var hostProject = new HostProject(guestPath, args.Older!.Configuration, args.Older.RootNamespace);
+            _projectSnapshotManager.ProjectRemoved(hostProject);
+        }
+        else if (args.Kind == ProjectProxyChangeKind.ProjectChanged)
+        {
+            if (!args.Older!.Configuration.Equals(args.Newer!.Configuration))
             {
-                var guestPath = ResolveGuestPath(projectHandle.FilePath);
-                var hostProject = new HostProject(guestPath, projectHandle.Configuration, projectHandle.RootNamespace);
-                _projectSnapshotManager.ProjectAdded(hostProject);
-
-                if (projectHandle.ProjectWorkspaceState is not null)
-                {
-                    _projectSnapshotManager.ProjectWorkspaceStateChanged(guestPath, projectHandle.ProjectWorkspaceState);
-                }
+                var guestPath = ResolveGuestPath(args.Newer.FilePath);
+                var hostProject = new HostProject(guestPath, args.Newer.Configuration, args.Newer.RootNamespace);
+                _projectSnapshotManager.ProjectConfigurationChanged(hostProject);
+            }
+            else if (args.Older.ProjectWorkspaceState != args.Newer.ProjectWorkspaceState ||
+                args.Older.ProjectWorkspaceState?.Equals(args.Newer.ProjectWorkspaceState) == false)
+            {
+                var guestPath = ResolveGuestPath(args.Newer.FilePath);
+                _projectSnapshotManager.ProjectWorkspaceStateChanged(guestPath, args.Newer.ProjectWorkspaceState);
             }
         }
+    }
 
-        private void HostProxyProjectManager_Changed(object sender, ProjectChangeEventProxyArgs args)
+    private async Task InitializeGuestProjectManagerAsync(
+        IReadOnlyList<ProjectSnapshotHandleProxy> projectHandles,
+        CancellationToken cancellationToken)
+    {
+        await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        foreach (var projectHandle in projectHandles)
         {
-            if (args is null)
+            var guestPath = ResolveGuestPath(projectHandle.FilePath);
+            var hostProject = new HostProject(guestPath, projectHandle.Configuration, projectHandle.RootNamespace);
+            _projectSnapshotManager.ProjectAdded(hostProject);
+
+            if (projectHandle.ProjectWorkspaceState is not null)
             {
-                throw new ArgumentNullException(nameof(args));
+                _projectSnapshotManager.ProjectWorkspaceStateChanged(guestPath, projectHandle.ProjectWorkspaceState);
             }
+        }
+    }
 
-            _joinableTaskFactory.Run(async () =>
+    private void HostProxyProjectManager_Changed(object sender, ProjectChangeEventProxyArgs args)
+    {
+        if (args is null)
+        {
+            throw new ArgumentNullException(nameof(args));
+        }
+
+        _joinableTaskFactory.Run(async () =>
+        {
+            try
             {
-                try
-                {
-                    await _joinableTaskFactory.SwitchToMainThreadAsync();
+                await _joinableTaskFactory.SwitchToMainThreadAsync();
 
-                    UpdateGuestProjectManager(args);
-                }
-                catch (Exception ex)
-                {
-                    _projectSnapshotManager.ReportError(ex);
-                }
-            });
-        }
+                UpdateGuestProjectManager(args);
+            }
+            catch (Exception ex)
+            {
+                _projectSnapshotManager.ReportError(ex);
+            }
+        });
+    }
 
-        private string ResolveGuestPath(Uri filePath)
-        {
-            return _sessionContext.ConvertSharedUriToLocalPath(filePath);
-        }
+    private string ResolveGuestPath(Uri filePath)
+    {
+        return _sessionContext.ConvertSharedUriToLocalPath(filePath);
+    }
 
-        ValueTask System.IAsyncDisposable.DisposeAsync()
-        {
-            return new ValueTask(DisposeAsync());
-        }
+    ValueTask System.IAsyncDisposable.DisposeAsync()
+    {
+        return new ValueTask(DisposeAsync());
     }
 }

@@ -1,12 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-namespace Microsoft.VisualStudio.Editor.Razor.Documents
+namespace Microsoft.VisualStudio.Editor.Razor.Documents;
+
+internal enum FileChangeKind
 {
-    internal enum FileChangeKind
-    {
-        Added,
-        Removed,
-        Changed,
-    }
+    Added,
+    Removed,
+    Changed,
 }

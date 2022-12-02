@@ -9,165 +9,164 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal class DefaultRazorConfigurationService : RazorConfigurationService
 {
-    internal class DefaultRazorConfigurationService : RazorConfigurationService
+    private readonly ClientNotifierServiceBase _server;
+    private readonly ILogger _logger;
+
+    public DefaultRazorConfigurationService(ClientNotifierServiceBase languageServer, ILoggerFactory loggerFactory)
     {
-        private readonly ClientNotifierServiceBase _server;
-        private readonly ILogger _logger;
-
-        public DefaultRazorConfigurationService(ClientNotifierServiceBase languageServer, ILoggerFactory loggerFactory)
+        if (languageServer is null)
         {
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            _server = languageServer;
-            _logger = loggerFactory.CreateLogger<DefaultRazorConfigurationService>();
+            throw new ArgumentNullException(nameof(languageServer));
         }
 
-        public async override Task<RazorLSPOptions?> GetLatestOptionsAsync(CancellationToken cancellationToken)
+        if (loggerFactory is null)
         {
-            try
+            throw new ArgumentNullException(nameof(loggerFactory));
+        }
+
+        _server = languageServer;
+        _logger = loggerFactory.CreateLogger<DefaultRazorConfigurationService>();
+    }
+
+    public async override Task<RazorLSPOptions?> GetLatestOptionsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var request = GenerateConfigParams();
+
+            var result = await _server.SendRequestAsync<ConfigurationParams, JObject[]>(Methods.WorkspaceConfigurationName, request, cancellationToken);
+
+            // LSP spec indicates result should be the same length as the number of ConfigurationItems we pass in.
+            if (result?.Length != request.Items.Length || result[0] is null)
             {
-                var request = GenerateConfigParams();
-
-                var result = await _server.SendRequestAsync<ConfigurationParams, JObject[]>(Methods.WorkspaceConfigurationName, request, cancellationToken);
-
-                // LSP spec indicates result should be the same length as the number of ConfigurationItems we pass in.
-                if (result?.Length != request.Items.Length || result[0] is null)
-                {
-                    _logger.LogWarning("Client failed to provide the expected configuration.");
-                    return null;
-                }
-
-                var instance = BuildOptions(result);
-                return instance;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning("Failed to sync client configuration on the server: {ex}", ex);
+                _logger.LogWarning("Client failed to provide the expected configuration.");
                 return null;
             }
-        }
 
-        private static ConfigurationParams GenerateConfigParams()
+            var instance = BuildOptions(result);
+            return instance;
+        }
+        catch (Exception ex)
         {
-            // NOTE: Do not change the ordering of sections without updating
-            // the code in the BuildOptions method below.
-            return new ConfigurationParams()
+            _logger.LogWarning("Failed to sync client configuration on the server: {ex}", ex);
+            return null;
+        }
+    }
+
+    private static ConfigurationParams GenerateConfigParams()
+    {
+        // NOTE: Do not change the ordering of sections without updating
+        // the code in the BuildOptions method below.
+        return new ConfigurationParams()
+        {
+            Items = new[]
             {
-                Items = new[]
+                new ConfigurationItem()
                 {
-                    new ConfigurationItem()
-                    {
-                        Section = "razor"
-                    },
-                    new ConfigurationItem()
-                    {
-                        Section = "html"
-                    },
-                    new ConfigurationItem()
-                    {
-                        Section = "vs.editor.razor"
-                    },
-                }
-            };
-        }
-
-        // Internal for testing
-        internal RazorLSPOptions BuildOptions(JObject[] result)
-        {
-            ExtractVSCodeOptions(result, out var trace, out var enableFormatting, out var autoClosingTags);
-            ExtractVSOptions(result, out var insertSpaces, out var tabSize);
-
-            return new RazorLSPOptions(trace, enableFormatting, autoClosingTags, insertSpaces, tabSize);
-        }
-
-        private void ExtractVSCodeOptions(
-            JObject[] result,
-            out Trace trace,
-            out bool enableFormatting,
-            out bool autoClosingTags)
-        {
-            var razor = result[0];
-            var html = result[1];
-
-            trace = RazorLSPOptions.Default.Trace;
-            enableFormatting = RazorLSPOptions.Default.EnableFormatting;
-            autoClosingTags = RazorLSPOptions.Default.AutoClosingTags;
-
-            if (razor != null)
-            {
-                if (razor.TryGetValue("trace", out var parsedTrace))
+                    Section = "razor"
+                },
+                new ConfigurationItem()
                 {
-                    trace = GetObjectOrDefault(parsedTrace, trace);
-                }
-
-                if (razor.TryGetValue("format", out var parsedFormat))
+                    Section = "html"
+                },
+                new ConfigurationItem()
                 {
-                    if (parsedFormat is JObject jObject &&
-                        jObject.TryGetValue("enable", out var parsedEnableFormatting))
-                    {
-                        enableFormatting = GetObjectOrDefault(parsedEnableFormatting, enableFormatting);
-                    }
-                }
+                    Section = "vs.editor.razor"
+                },
+            }
+        };
+    }
+
+    // Internal for testing
+    internal RazorLSPOptions BuildOptions(JObject[] result)
+    {
+        ExtractVSCodeOptions(result, out var trace, out var enableFormatting, out var autoClosingTags);
+        ExtractVSOptions(result, out var insertSpaces, out var tabSize);
+
+        return new RazorLSPOptions(trace, enableFormatting, autoClosingTags, insertSpaces, tabSize);
+    }
+
+    private void ExtractVSCodeOptions(
+        JObject[] result,
+        out Trace trace,
+        out bool enableFormatting,
+        out bool autoClosingTags)
+    {
+        var razor = result[0];
+        var html = result[1];
+
+        trace = RazorLSPOptions.Default.Trace;
+        enableFormatting = RazorLSPOptions.Default.EnableFormatting;
+        autoClosingTags = RazorLSPOptions.Default.AutoClosingTags;
+
+        if (razor != null)
+        {
+            if (razor.TryGetValue("trace", out var parsedTrace))
+            {
+                trace = GetObjectOrDefault(parsedTrace, trace);
             }
 
-            if (html != null)
+            if (razor.TryGetValue("format", out var parsedFormat))
             {
-                if (html.TryGetValue("autoClosingTags", out var parsedAutoClosingTags))
+                if (parsedFormat is JObject jObject &&
+                    jObject.TryGetValue("enable", out var parsedEnableFormatting))
                 {
-                    autoClosingTags = GetObjectOrDefault(parsedAutoClosingTags, autoClosingTags);
+                    enableFormatting = GetObjectOrDefault(parsedEnableFormatting, enableFormatting);
                 }
             }
         }
 
-        private void ExtractVSOptions(
-            JObject[] result,
-            out bool insertSpaces,
-            out int tabSize)
+        if (html != null)
         {
-            var vsEditor = result[2];
-
-            insertSpaces = RazorLSPOptions.Default.InsertSpaces;
-            tabSize = RazorLSPOptions.Default.TabSize;
-
-            if (vsEditor is null)
+            if (html.TryGetValue("autoClosingTags", out var parsedAutoClosingTags))
             {
-                return;
-            }
-
-            if (vsEditor.TryGetValue(nameof(EditorSettings.IndentWithTabs), out var parsedInsertTabs))
-            {
-                insertSpaces = !GetObjectOrDefault(parsedInsertTabs, insertSpaces);
-            }
-
-            if (vsEditor.TryGetValue(nameof(EditorSettings.IndentSize), out var parsedTabSize))
-            {
-                tabSize = GetObjectOrDefault(parsedTabSize, tabSize);
+                autoClosingTags = GetObjectOrDefault(parsedAutoClosingTags, autoClosingTags);
             }
         }
+    }
 
-        private T GetObjectOrDefault<T>(JToken token, T defaultValue)
+    private void ExtractVSOptions(
+        JObject[] result,
+        out bool insertSpaces,
+        out int tabSize)
+    {
+        var vsEditor = result[2];
+
+        insertSpaces = RazorLSPOptions.Default.InsertSpaces;
+        tabSize = RazorLSPOptions.Default.TabSize;
+
+        if (vsEditor is null)
         {
-            try
-            {
-                // JToken.ToObject could potentially throw here if the user provides malformed options.
-                // If this occurs, catch the exception and return the default value.
-                return token.ToObject<T>() ?? defaultValue;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Malformed option: Token {token} cannot be converted to type {TypeOfT}.", token, typeof(T));
-                return defaultValue;
-            }
+            return;
+        }
+
+        if (vsEditor.TryGetValue(nameof(EditorSettings.IndentWithTabs), out var parsedInsertTabs))
+        {
+            insertSpaces = !GetObjectOrDefault(parsedInsertTabs, insertSpaces);
+        }
+
+        if (vsEditor.TryGetValue(nameof(EditorSettings.IndentSize), out var parsedTabSize))
+        {
+            tabSize = GetObjectOrDefault(parsedTabSize, tabSize);
+        }
+    }
+
+    private T GetObjectOrDefault<T>(JToken token, T defaultValue)
+    {
+        try
+        {
+            // JToken.ToObject could potentially throw here if the user provides malformed options.
+            // If this occurs, catch the exception and return the default value.
+            return token.ToObject<T>() ?? defaultValue;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Malformed option: Token {token} cannot be converted to type {TypeOfT}.", token, typeof(T));
+            return defaultValue;
         }
     }
 }

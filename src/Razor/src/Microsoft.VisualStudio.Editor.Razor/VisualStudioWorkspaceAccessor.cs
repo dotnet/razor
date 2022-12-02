@@ -5,10 +5,9 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+internal abstract class VisualStudioWorkspaceAccessor
 {
-    internal abstract class VisualStudioWorkspaceAccessor
-    {
-        public abstract bool TryGetWorkspace(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out Workspace? workspace);
-    }
+    public abstract bool TryGetWorkspace(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out Workspace? workspace);
 }

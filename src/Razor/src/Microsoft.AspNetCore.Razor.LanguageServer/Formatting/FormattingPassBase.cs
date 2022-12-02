@@ -9,63 +9,62 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
+internal abstract class FormattingPassBase : IFormattingPass
 {
-    internal abstract class FormattingPassBase : IFormattingPass
+    protected static readonly int DefaultOrder = 1000;
+
+    public FormattingPassBase(
+        RazorDocumentMappingService documentMappingService,
+        ClientNotifierServiceBase server)
     {
-        protected static readonly int DefaultOrder = 1000;
-
-        public FormattingPassBase(
-            RazorDocumentMappingService documentMappingService,
-            ClientNotifierServiceBase server)
+        if (documentMappingService is null)
         {
-            if (documentMappingService is null)
-            {
-                throw new ArgumentNullException(nameof(documentMappingService));
-            }
-
-            if (server is null)
-            {
-                throw new ArgumentNullException(nameof(server));
-            }
-
-            DocumentMappingService = documentMappingService;
+            throw new ArgumentNullException(nameof(documentMappingService));
         }
 
-        public abstract bool IsValidationPass { get; }
-
-        public virtual int Order => DefaultOrder;
-
-        protected RazorDocumentMappingService DocumentMappingService { get; }
-
-        public abstract Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken);
-
-        protected TextEdit[] RemapTextEdits(RazorCodeDocument codeDocument, TextEdit[] projectedTextEdits, RazorLanguageKind projectedKind)
+        if (server is null)
         {
-            if (codeDocument is null)
-            {
-                throw new ArgumentNullException(nameof(codeDocument));
-            }
-
-            if (projectedTextEdits is null)
-            {
-                throw new ArgumentNullException(nameof(projectedTextEdits));
-            }
-
-            if (projectedKind != RazorLanguageKind.CSharp)
-            {
-                // Non C# projections map directly to Razor. No need to remap.
-                return projectedTextEdits;
-            }
-
-            if (codeDocument.IsUnsupported())
-            {
-                return Array.Empty<TextEdit>();
-            }
-
-            var edits = DocumentMappingService.GetProjectedDocumentEdits(codeDocument, projectedTextEdits);
-
-            return edits;
+            throw new ArgumentNullException(nameof(server));
         }
+
+        DocumentMappingService = documentMappingService;
+    }
+
+    public abstract bool IsValidationPass { get; }
+
+    public virtual int Order => DefaultOrder;
+
+    protected RazorDocumentMappingService DocumentMappingService { get; }
+
+    public abstract Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken);
+
+    protected TextEdit[] RemapTextEdits(RazorCodeDocument codeDocument, TextEdit[] projectedTextEdits, RazorLanguageKind projectedKind)
+    {
+        if (codeDocument is null)
+        {
+            throw new ArgumentNullException(nameof(codeDocument));
+        }
+
+        if (projectedTextEdits is null)
+        {
+            throw new ArgumentNullException(nameof(projectedTextEdits));
+        }
+
+        if (projectedKind != RazorLanguageKind.CSharp)
+        {
+            // Non C# projections map directly to Razor. No need to remap.
+            return projectedTextEdits;
+        }
+
+        if (codeDocument.IsUnsupported())
+        {
+            return Array.Empty<TextEdit>();
+        }
+
+        var edits = DocumentMappingService.GetProjectedDocumentEdits(codeDocument, projectedTextEdits);
+
+        return edits;
     }
 }

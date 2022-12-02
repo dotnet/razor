@@ -6,19 +6,18 @@
 using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation
+namespace Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
+
+// VS doesn't support textDocument/colorPresentation but VSCode does. This class is a workaround until VS adds support.
+[DataContract]
+internal class ColorPresentationParams
 {
-    // VS doesn't support textDocument/colorPresentation but VSCode does. This class is a workaround until VS adds support.
-    [DataContract]
-    public class ColorPresentationParams
-    {
-        [DataMember(Name = "textDocument")]
-        public TextDocumentIdentifier TextDocument { get; set; }
+    [DataMember(Name = "textDocument")]
+    public TextDocumentIdentifier TextDocument { get; set; }
 
-        [DataMember(Name = "color")]
-        public Color Color { get; set; }
+    [DataMember(Name = "color")]
+    public Color Color { get; set; }
 
-        [DataMember(Name = "range")]
-        public Range Range { get; set; }
-    }
+    [DataMember(Name = "range")]
+    public Range Range { get; set; }
 }

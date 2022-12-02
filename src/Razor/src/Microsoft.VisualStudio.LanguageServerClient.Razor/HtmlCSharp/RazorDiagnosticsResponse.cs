@@ -6,53 +6,52 @@ using System.Linq;
 using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+
+// Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
+internal class RazorDiagnosticsResponse : IEquatable<RazorDiagnosticsResponse>
 {
-    // Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
-    internal class RazorDiagnosticsResponse : IEquatable<RazorDiagnosticsResponse>
+    public Diagnostic[]? Diagnostics { get; init; }
+
+    public int? HostDocumentVersion { get; init; }
+
+    public bool Equals(RazorDiagnosticsResponse? other)
     {
-        public Diagnostic[]? Diagnostics { get; init; }
+        return
+            other is not null &&
+            DiagnosticsEqual(Diagnostics, other.Diagnostics) &&
+            HostDocumentVersion == other.HostDocumentVersion;
+    }
 
-        public int? HostDocumentVersion { get; init; }
+    private static bool DiagnosticsEqual(Diagnostic[]? left, Diagnostic[]? right)
+    {
+        var leftIsNull = left is null;
+        var rightIsNull = right is null;
 
-        public bool Equals(RazorDiagnosticsResponse? other)
+        // Both are null -> equal
+        if (leftIsNull && rightIsNull)
         {
-            return
-                other is not null &&
-                DiagnosticsEqual(Diagnostics, other.Diagnostics) &&
-                HostDocumentVersion == other.HostDocumentVersion;
+            return true;
+        }
+        // On of is null -> not equal
+        else if (leftIsNull || rightIsNull)
+        {
+            return false;
         }
 
-        private static bool DiagnosticsEqual(Diagnostic[]? left, Diagnostic[]? right)
-        {
-            var leftIsNull = left is null;
-            var rightIsNull = right is null;
+        return left.SequenceEqual(right);
+    }
 
-            // Both are null -> equal
-            if (leftIsNull && rightIsNull)
-            {
-                return true;
-            }
-            // On of is null -> not equal
-            else if (leftIsNull || rightIsNull)
-            {
-                return false;
-            }
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as RazorDiagnosticsResponse);
+    }
 
-            return left.SequenceEqual(right);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as RazorDiagnosticsResponse);
-        }
-
-        public override int GetHashCode()
-        {
-            var hash = new HashCodeCombiner();
-            hash.Add(Diagnostics);
-            hash.Add(HostDocumentVersion);
-            return hash;
-        }
+    public override int GetHashCode()
+    {
+        var hash = new HashCodeCombiner();
+        hash.Add(Diagnostics);
+        hash.Add(HostDocumentVersion);
+        return hash;
     }
 }

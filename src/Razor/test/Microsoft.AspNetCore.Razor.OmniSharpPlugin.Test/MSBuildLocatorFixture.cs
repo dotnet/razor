@@ -6,21 +6,20 @@
 using System;
 using Microsoft.Build.Locator;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
-{
-    public sealed class MSBuildLocatorFixture : IDisposable
-    {
-        public MSBuildLocatorFixture()
-        {
-            if (!MSBuildLocator.IsRegistered)
-            {
-                MSBuildLocator.RegisterDefaults();
-            }
-        }
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
-        public void Dispose()
+public sealed class MSBuildLocatorFixture : IDisposable
+{
+    public MSBuildLocatorFixture()
+    {
+        if (!MSBuildLocator.IsRegistered)
         {
-            MSBuildLocator.Unregister();
+            MSBuildLocator.RegisterDefaults();
         }
+    }
+
+    public void Dispose()
+    {
+        MSBuildLocator.Unregister();
     }
 }

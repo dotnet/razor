@@ -7,16 +7,15 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.CodeAnalysis.Razor;
 using Xunit.Abstractions;
 
-namespace Xunit
-{
-    public abstract class ProjectSnapshotManagerDispatcherTestBase : ParserTestBase
-    {
-        internal ProjectSnapshotManagerDispatcher Dispatcher { get; }
+namespace Xunit;
 
-        protected ProjectSnapshotManagerDispatcherTestBase(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-            Dispatcher = new TestProjectSnapshotManagerDispatcher();
-        }
+public abstract class ProjectSnapshotManagerDispatcherTestBase : ParserTestBase
+{
+    internal ProjectSnapshotManagerDispatcher Dispatcher { get; }
+
+    protected ProjectSnapshotManagerDispatcherTestBase(ITestOutputHelper testOutput)
+        : base(testOutput)
+    {
+        Dispatcher = new TestProjectSnapshotManagerDispatcher();
     }
 }

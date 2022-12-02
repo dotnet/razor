@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public static class ServerCapabilitiesExtensions
+internal static class ServerCapabilitiesExtensions
 {
     private static readonly IReadOnlyDictionary<string, PropertyInfo> s_propertyMappings;
 
@@ -19,8 +19,10 @@ public static class ServerCapabilitiesExtensions
         var dictionary = new Dictionary<string, PropertyInfo>();
         foreach (var propertyInfo in propertyInfos)
         {
-            var dataMemeberAttribute = propertyInfo.GetCustomAttribute<DataMemberAttribute>();
-            var serverCapability = dataMemeberAttribute.Name;
+            var dataMemberAttribute = propertyInfo.GetCustomAttribute<DataMemberAttribute>();
+            Assumes.NotNull(dataMemberAttribute);
+            var serverCapability = dataMemberAttribute.Name;
+            Assumes.NotNull(serverCapability);
             dictionary[serverCapability] = propertyInfo;
         }
 

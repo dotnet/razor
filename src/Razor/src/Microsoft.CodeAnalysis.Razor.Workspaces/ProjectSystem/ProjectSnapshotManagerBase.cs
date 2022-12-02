@@ -7,44 +7,43 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+
+internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
 {
-    internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
-    {
-        public abstract Workspace Workspace { get; }
+    public abstract Workspace Workspace { get; }
 
-        public abstract ErrorReporter ErrorReporter { get; }
+    public abstract ErrorReporter ErrorReporter { get; }
 
-        public abstract IReadOnlyCollection<string> OpenDocuments { get; }
+    public abstract IReadOnlyCollection<string> OpenDocuments { get; }
 
-        public abstract void DocumentAdded(HostProject hostProject, HostDocument hostDocument, TextLoader textLoader);
+    public abstract void DocumentAdded(HostProject hostProject, HostDocument hostDocument, TextLoader textLoader);
 
-        public abstract void DocumentOpened(string projectFilePath, string documentFilePath, SourceText sourceText);
+    public abstract void DocumentOpened(string projectFilePath, string documentFilePath, SourceText sourceText);
 
-        public abstract void DocumentClosed(string projectFilePath, string documentFilePath, TextLoader textLoader);
+    public abstract void DocumentClosed(string projectFilePath, string documentFilePath, TextLoader textLoader);
 
-        public abstract void DocumentChanged(string projectFilePath, string documentFilePath, TextLoader textLoader);
+    public abstract void DocumentChanged(string projectFilePath, string documentFilePath, TextLoader textLoader);
 
-        public abstract void DocumentChanged(string projectFilePath, string documentFilePath, SourceText sourceText);
+    public abstract void DocumentChanged(string projectFilePath, string documentFilePath, SourceText sourceText);
 
-        public abstract void DocumentRemoved(HostProject hostProject, HostDocument hostDocument);
+    public abstract void DocumentRemoved(HostProject hostProject, HostDocument hostDocument);
 
-        public abstract void ProjectAdded(HostProject hostProject);
+    public abstract void ProjectAdded(HostProject hostProject);
 
-        public abstract void ProjectConfigurationChanged(HostProject hostProject);
+    public abstract void ProjectConfigurationChanged(HostProject hostProject);
 
-        public abstract void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState projectWorkspaceState);
+    public abstract void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState projectWorkspaceState);
 
-        public abstract void ProjectRemoved(HostProject hostProject);
+    public abstract void ProjectRemoved(HostProject hostProject);
 
-        public abstract void ReportError(Exception exception);
+    public abstract void ReportError(Exception exception);
 
-        public abstract void ReportError(Exception exception, ProjectSnapshot project);
+    public abstract void ReportError(Exception exception, ProjectSnapshot project);
 
-        public abstract void ReportError(Exception exception, HostProject hostProject);
+    public abstract void ReportError(Exception exception, HostProject hostProject);
 
-        public abstract void SolutionOpened();
+    public abstract void SolutionOpened();
 
-        public abstract void SolutionClosed();
-    }
+    public abstract void SolutionClosed();
 }

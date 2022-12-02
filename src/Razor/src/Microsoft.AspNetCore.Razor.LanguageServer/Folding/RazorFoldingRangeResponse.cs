@@ -4,7 +4,6 @@
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding
-{
-    internal record RazorFoldingRangeResponse(ImmutableArray<FoldingRange> HtmlRanges, ImmutableArray<FoldingRange> CSharpRanges);
-}
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
+
+internal record RazorFoldingRangeResponse(ImmutableArray<FoldingRange> HtmlRanges, ImmutableArray<FoldingRange> CSharpRanges);

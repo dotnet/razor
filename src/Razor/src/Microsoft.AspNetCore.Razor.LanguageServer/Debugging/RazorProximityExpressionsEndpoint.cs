@@ -15,87 +15,86 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
+
+internal class RazorProximityExpressionsEndpoint : IRazorProximityExpressionsEndpoint
 {
-    internal class RazorProximityExpressionsEndpoint : IRazorProximityExpressionsEndpoint
+    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly ILogger _logger;
+
+    public RazorProximityExpressionsEndpoint(
+        RazorDocumentMappingService documentMappingService,
+        ILoggerFactory loggerFactory)
     {
-        private readonly RazorDocumentMappingService _documentMappingService;
-        private readonly ILogger _logger;
-
-        public RazorProximityExpressionsEndpoint(
-            RazorDocumentMappingService documentMappingService,
-            ILoggerFactory loggerFactory)
+        if (documentMappingService is null)
         {
-            if (documentMappingService is null)
-            {
-                throw new ArgumentNullException(nameof(documentMappingService));
-            }
-
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            _documentMappingService = documentMappingService;
-            _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
+            throw new ArgumentNullException(nameof(documentMappingService));
         }
 
-        public bool MutatesSolutionState => false;
-
-        public Uri GetTextDocumentIdentifier(RazorProximityExpressionsParams request)
+        if (loggerFactory is null)
         {
-            return request.Uri;
+            throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        public async Task<RazorProximityExpressionsResponse?> HandleRequestAsync(RazorProximityExpressionsParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+        _documentMappingService = documentMappingService;
+        _logger = loggerFactory.CreateLogger<RazorBreakpointSpanEndpoint>();
+    }
+
+    public bool MutatesSolutionState => false;
+
+    public Uri GetTextDocumentIdentifier(RazorProximityExpressionsParams request)
+    {
+        return request.Uri;
+    }
+
+    public async Task<RazorProximityExpressionsResponse?> HandleRequestAsync(RazorProximityExpressionsParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+    {
+        var documentContext = requestContext.GetRequiredDocumentContext();
+
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
+        var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
+        var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
+
+        if (codeDocument.IsUnsupported())
         {
-            var documentContext = requestContext.GetRequiredDocumentContext();
-
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
-            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
-            var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
-            var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
-
-            if (codeDocument.IsUnsupported())
-            {
-                return null;
-            }
-
-            var projectedIndex = hostDocumentIndex;
-            var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
-            // If we're in C#, then map to the right position in the generated document
-            if (languageKind == RazorLanguageKind.CSharp &&
-                !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out _, out projectedIndex))
-            {
-                return null;
-            }
-            // Otherwise see if there is more C# on the line to map to
-            else if (languageKind == RazorLanguageKind.Html &&
-                !_documentMappingService.TryMapToProjectedDocumentOrNextCSharpPosition(codeDocument, hostDocumentIndex, out _, out projectedIndex))
-            {
-                return null;
-            }
-            else if (languageKind == RazorLanguageKind.Razor)
-            {
-                return null;
-            }
-
-            // Now ask Roslyn to adjust the breakpoint to a valid location in the code
-            var csharpDocument = codeDocument.GetCSharpDocument();
-            var syntaxTree = CSharpSyntaxTree.ParseText(csharpDocument.GeneratedCode, cancellationToken: cancellationToken);
-            var expressions = RazorCSharpProximityExpressionResolverService.GetProximityExpressions(syntaxTree, projectedIndex, cancellationToken)?.ToList();
-            if (expressions == null)
-            {
-                return null;
-            }
-
-            _logger.LogTrace("Proximity expressions request for ({Line}, {Character}) yielded {expressionsCount} results.",
-                request.Position.Line, request.Position.Character, expressions.Count);
-
-            return new RazorProximityExpressionsResponse
-            {
-                Expressions = expressions,
-            };
+            return null;
         }
+
+        var projectedIndex = hostDocumentIndex;
+        var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
+        // If we're in C#, then map to the right position in the generated document
+        if (languageKind == RazorLanguageKind.CSharp &&
+            !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out _, out projectedIndex))
+        {
+            return null;
+        }
+        // Otherwise see if there is more C# on the line to map to
+        else if (languageKind == RazorLanguageKind.Html &&
+            !_documentMappingService.TryMapToProjectedDocumentOrNextCSharpPosition(codeDocument, hostDocumentIndex, out _, out projectedIndex))
+        {
+            return null;
+        }
+        else if (languageKind == RazorLanguageKind.Razor)
+        {
+            return null;
+        }
+
+        // Now ask Roslyn to adjust the breakpoint to a valid location in the code
+        var csharpDocument = codeDocument.GetCSharpDocument();
+        var syntaxTree = CSharpSyntaxTree.ParseText(csharpDocument.GeneratedCode, cancellationToken: cancellationToken);
+        var expressions = RazorCSharpProximityExpressionResolverService.GetProximityExpressions(syntaxTree, projectedIndex, cancellationToken)?.ToList();
+        if (expressions == null)
+        {
+            return null;
+        }
+
+        _logger.LogTrace("Proximity expressions request for ({Line}, {Character}) yielded {expressionsCount} results.",
+            request.Position.Line, request.Position.Character, expressions.Count);
+
+        return new RazorProximityExpressionsResponse
+        {
+            Expressions = expressions,
+        };
     }
 }

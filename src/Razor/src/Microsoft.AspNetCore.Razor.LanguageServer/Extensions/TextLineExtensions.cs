@@ -5,59 +5,58 @@ using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+
+internal static class TextLineExtensions
 {
-    internal static class TextLineExtensions
+    public static string GetLeadingWhitespace(this TextLine line)
     {
-        public static string GetLeadingWhitespace(this TextLine line)
+        return line.ToString().GetLeadingWhitespace();
+    }
+
+    public static int GetIndentationSize(this TextLine line, long tabSize)
+    {
+        var text = line.Text;
+
+        Assumes.NotNull(text);
+
+        var indentation = 0;
+        for (var i = line.Start; i < line.End; i++)
         {
-            return line.ToString().GetLeadingWhitespace();
-        }
-
-        public static int GetIndentationSize(this TextLine line, long tabSize)
-        {
-            var text = line.Text;
-
-            Assumes.NotNull(text);
-
-            var indentation = 0;
-            for (var i = line.Start; i < line.End; i++)
+            var c = text[i];
+            if (c == '\t')
             {
-                var c = text[i];
-                if (c == '\t')
-                {
-                    indentation += (int)tabSize;
-                }
-                else if (char.IsWhiteSpace(c))
-                {
-                    indentation++;
-                }
-                else
-                {
-                    break;
-                }
+                indentation += (int)tabSize;
             }
-
-            return indentation;
-        }
-
-        public static int? GetFirstNonWhitespacePosition(this TextLine line)
-        {
-            var firstNonWhitespaceOffset = line.GetFirstNonWhitespaceOffset();
-
-            return firstNonWhitespaceOffset.HasValue
-                ? firstNonWhitespaceOffset + line.Start
-                : null;
-        }
-
-        public static int? GetFirstNonWhitespaceOffset(this TextLine line, int startOffset = 0)
-        {
-            if (startOffset > line.SpanIncludingLineBreak.Length)
+            else if (char.IsWhiteSpace(c))
             {
-                throw new ArgumentOutOfRangeException(nameof(startOffset), RazorLS.Resources.Invalid_Offset);
+                indentation++;
             }
-
-            return line.Text!.GetFirstNonWhitespaceOffset(TextSpan.FromBounds(line.Start + startOffset, line.EndIncludingLineBreak), out _);
+            else
+            {
+                break;
+            }
         }
+
+        return indentation;
+    }
+
+    public static int? GetFirstNonWhitespacePosition(this TextLine line)
+    {
+        var firstNonWhitespaceOffset = line.GetFirstNonWhitespaceOffset();
+
+        return firstNonWhitespaceOffset.HasValue
+            ? firstNonWhitespaceOffset + line.Start
+            : null;
+    }
+
+    public static int? GetFirstNonWhitespaceOffset(this TextLine line, int startOffset = 0)
+    {
+        if (startOffset > line.SpanIncludingLineBreak.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(startOffset), SR.Invalid_Offset);
+        }
+
+        return line.Text!.GetFirstNonWhitespaceOffset(TextSpan.FromBounds(line.Start + startOffset, line.EndIncludingLineBreak), out _);
     }
 }

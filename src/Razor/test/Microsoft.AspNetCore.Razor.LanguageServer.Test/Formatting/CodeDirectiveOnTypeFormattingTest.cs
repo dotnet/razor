@@ -8,159 +8,159 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
-{
-    public class CodeDirectiveOnTypeFormattingTest : FormattingTestBase
-    {
-        public CodeDirectiveOnTypeFormattingTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-        [Fact]
-        public async Task CloseCurly_Class_SingleLineAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+public class CodeDirectiveOnTypeFormattingTest : FormattingTestBase
+{
+    public CodeDirectiveOnTypeFormattingTest(ITestOutputHelper testOutput)
+        : base(testOutput)
+    {
+    }
+
+    [Fact]
+    public async Task CloseCurly_Class_SingleLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code {
                      public class Foo{}$$
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         public class Foo { }
                     }
                     """,
-                triggerCharacter: '}',
-                expectedChangedLines: 1);
-        }
+            triggerCharacter: '}',
+            expectedChangedLines: 1);
+    }
 
-        [Fact]
-        public async Task CloseCurly_Class_SingleLine_UseTabsAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CloseCurly_Class_SingleLine_UseTabsAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code {
                      public class Foo{}$$
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                     	public class Foo { }
                     }
                     """,
-                triggerCharacter: '}',
-                insertSpaces: false,
-                expectedChangedLines: 1);
-        }
+            triggerCharacter: '}',
+            insertSpaces: false,
+            expectedChangedLines: 1);
+    }
 
-        [Fact]
-        public async Task CloseCurly_Class_SingleLine_AdjustTabSizeAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CloseCurly_Class_SingleLine_AdjustTabSizeAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code {
                      public class Foo{}$$
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                           public class Foo { }
                     }
                     """,
-                triggerCharacter: '}',
-                tabSize: 6,
-                expectedChangedLines: 1);
-        }
+            triggerCharacter: '}',
+            tabSize: 6,
+            expectedChangedLines: 1);
+    }
 
-        [Fact]
-        public async Task CloseCurly_Class_MultiLineAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CloseCurly_Class_MultiLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code {
                      public class Foo{
                     }$$
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         public class Foo
                         {
                         }
                     }
                     """,
-                triggerCharacter: '}',
-                expectedChangedLines: 3);
-        }
+            triggerCharacter: '}',
+            expectedChangedLines: 3);
+    }
 
-        [Fact]
-        public async Task CloseCurly_Method_SingleLineAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CloseCurly_Method_SingleLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code {
                      public void Foo{}$$
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         public void Foo { }
                     }
                     """,
-                triggerCharacter: '}',
-                expectedChangedLines: 1);
-        }
+            triggerCharacter: '}',
+            expectedChangedLines: 1);
+    }
 
-        [Fact]
-        public async Task CloseCurly_Method_MultiLineAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CloseCurly_Method_MultiLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code {
                      public void Foo{
                     }$$
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         public void Foo
                         {
                         }
                     }
                     """,
-                triggerCharacter: '}',
-                expectedChangedLines: 3);
-        }
+            triggerCharacter: '}',
+            expectedChangedLines: 3);
+    }
 
-        [Fact]
-        public async Task CloseCurly_Property_SingleLineAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CloseCurly_Property_SingleLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code {
                      public string Foo{ get;set;}$$
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         public string Foo { get; set; }
                     }
                     """,
-                triggerCharacter: '}');
-        }
+            triggerCharacter: '}');
+    }
 
-        [Fact]
-        public async Task CloseCurly_Property_MultiLineAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CloseCurly_Property_MultiLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code {
                      public string Foo{
                     get;set;}$$
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         public string Foo
                         {
@@ -168,66 +168,66 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                triggerCharacter: '}');
-        }
+            triggerCharacter: '}');
+    }
 
-        [Fact]
-        public async Task CloseCurly_Property_StartOfBlockAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CloseCurly_Property_StartOfBlockAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code { public string Foo{ get;set;}$$
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         public string Foo { get; set; }
                     }
                     """,
-                triggerCharacter: '}');
-        }
+            triggerCharacter: '}');
+    }
 
-        [Fact]
-        public async Task Semicolon_ClassField_SingleLineAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task Semicolon_ClassField_SingleLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code {
                      public class Foo {private int _hello = 0;$$}
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         public class Foo { private int _hello = 0; }
                     }
                     """,
-                triggerCharacter: ';');
-        }
+            triggerCharacter: ';');
+    }
 
-        [Fact]
-        public async Task Semicolon_ClassField_MultiLineAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task Semicolon_ClassField_MultiLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code {
                         public class Foo{
                     private int _hello = 0;$$ }
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         public class Foo{
                             private int _hello = 0; }
                     }
                     """,
-                triggerCharacter: ';');
-        }
+            triggerCharacter: ';');
+    }
 
-        [Fact]
-        public async Task Semicolon_MethodVariableAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task Semicolon_MethodVariableAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code {
                         public void Foo()
                         {
@@ -235,7 +235,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         public void Foo()
                         {
@@ -243,15 +243,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                triggerCharacter: ';');
-        }
+            triggerCharacter: ';');
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/27135")]
-        public async Task Semicolon_Fluent_CallAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/27135")]
+    public async Task Semicolon_Fluent_CallAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @implements IDisposable
 
                     @code{
@@ -264,7 +264,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     }
 
                     """,
-                expected: """
+            expected: """
                     @implements IDisposable
 
                     @code{
@@ -277,14 +277,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     }
 
                     """,
-                triggerCharacter: ';');
-        }
+            triggerCharacter: ';');
+    }
 
-        [Fact]
-        public async Task ClosingBrace_MatchesCSharpIndentationAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task ClosingBrace_MatchesCSharpIndentationAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @page "/counter"
 
                     <h1>Counter</h1>
@@ -304,7 +304,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @page "/counter"
 
                     <h1>Counter</h1>
@@ -325,14 +325,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                triggerCharacter: '}');
-        }
+            triggerCharacter: '}');
+    }
 
-        [Fact]
-        public async Task ClosingBrace_DoesntMatchCSharpIndentationAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task ClosingBrace_DoesntMatchCSharpIndentationAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @page "/counter"
 
                     <h1>Counter</h1>
@@ -352,7 +352,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @page "/counter"
 
                     <h1>Counter</h1>
@@ -373,97 +373,97 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                triggerCharacter: '}');
-        }
+            triggerCharacter: '}');
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
-        public async Task CodeBlock_SemiColon_SingleLine1Async()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
+    public async Task CodeBlock_SemiColon_SingleLine1Async()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     <div></div>
                     @{ Debugger.Launch();$$}
                     <div></div>
                     """,
-                expected: """
+            expected: """
                     <div></div>
                     @{
                         Debugger.Launch();
                     }
                     <div></div>
                     """,
-                triggerCharacter: ';');
-        }
+            triggerCharacter: ';');
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
-        public async Task CodeBlock_SemiColon_SingleLine2Async()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
+    public async Task CodeBlock_SemiColon_SingleLine2Async()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     <div></div>
                     @{     Debugger.Launch(   )     ;$$ }
                     <div></div>
                     """,
-                expected: """
+            expected: """
                     <div></div>
                     @{
                         Debugger.Launch(); 
                     }
                     <div></div>
                     """,
-                triggerCharacter: ';');
-        }
+            triggerCharacter: ';');
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
-        public async Task CodeBlock_SemiColon_SingleLine3Async()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
+    public async Task CodeBlock_SemiColon_SingleLine3Async()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     <div>
                         @{     Debugger.Launch(   )     ;$$ }
                     </div>
                     """,
-                expected: """
+            expected: """
                     <div>
                         @{
                             Debugger.Launch(); 
                         }
                     </div>
                     """,
-                triggerCharacter: ';');
-        }
+            triggerCharacter: ';');
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
-        public async Task CodeBlock_SemiColon_MultiLineAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
+    public async Task CodeBlock_SemiColon_MultiLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     <div></div>
                     @{
                         var abc = 123;$$
                     }
                     <div></div>
                     """,
-                expected: """
+            expected: """
                     <div></div>
                     @{
                         var abc = 123;
                     }
                     <div></div>
                     """,
-                triggerCharacter: ';');
-        }
+            triggerCharacter: ';');
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
-        public async Task Switch_Statment_NestedHtml_NestedCodeBlock()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
+    public async Task Switch_Statment_NestedHtml_NestedCodeBlock()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @switch ("asdf")
                     {
                         case "asdf":
@@ -480,7 +480,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                             break;
                     }
                     """,
-                expected: """
+            expected: """
                     @switch ("asdf")
                     {
                         case "asdf":
@@ -497,15 +497,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                             break;
                     }
                     """,
-                triggerCharacter: ';');
-        }
+            triggerCharacter: ';');
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
-        public async Task NestedHtml_NestedCodeBlock()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
+    public async Task NestedHtml_NestedCodeBlock()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @if (true)
                     {
                         <div>
@@ -520,7 +520,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </div>
                     }
                     """,
-                expected: """
+            expected: """
                     @if (true)
                     {
                         <div>
@@ -535,15 +535,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </div>
                     }
                     """,
-                triggerCharacter: ';');
-        }
+            triggerCharacter: ';');
+    }
 
-        [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/36390")]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
-        public async Task NestedHtml_NestedCodeBlock_EndingBrace()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/36390")]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
+    public async Task NestedHtml_NestedCodeBlock_EndingBrace()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @if (true)
                     {
                         <div>
@@ -557,7 +557,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </div>
                     }
                     """,
-                expected: """
+            expected: """
                     @if (true)
                     {
                         <div>
@@ -571,15 +571,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </div>
                     }
                     """,
-                triggerCharacter: '}');
-        }
+            triggerCharacter: '}');
+    }
 
-        [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/36390")]
-        [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
-        public async Task NestedHtml_NestedCodeBlock_EndingBrace_WithCode()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/36390")]
+    [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
+    public async Task NestedHtml_NestedCodeBlock_EndingBrace_WithCode()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @if (true)
                     {
                         <div>
@@ -594,7 +594,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </div>
                     }
                     """,
-                expected: """
+            expected: """
                     @if (true)
                     {
                         <div>
@@ -609,14 +609,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         </div>
                     }
                     """,
-                triggerCharacter: '}');
-        }
+            triggerCharacter: '}');
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5698")]
-        public async Task Semicolon_NoDocumentChanges()
-        {
-            var input = """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/5698")]
+    public async Task Semicolon_NoDocumentChanges()
+    {
+        var input = """
                 @page "/"
 
                 @code {
@@ -627,15 +627,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                 }
                 """;
 
-            await RunOnTypeFormattingTestAsync(input, input.Replace("$$", ""), triggerCharacter: ';');
-        }
+        await RunOnTypeFormattingTestAsync(input, input.Replace("$$", ""), triggerCharacter: ';');
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5698")]
-        public async Task Semicolon_NoDocumentChanges2()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/5698")]
+    public async Task Semicolon_NoDocumentChanges2()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     <div>
                        <h5><a href="#"></a></h5>
                        <div class="collapse">
@@ -651,7 +651,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                        public string Test {get;$$}
                     }
                     """,
-                expected: """
+            expected: """
                     <div>
                        <h5><a href="#"></a></h5>
                        <div class="collapse">
@@ -667,17 +667,17 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                        public string Test { get; }
                     }
                     """,
-                triggerCharacter: ';',
-                tabSize: 3,
-                expectedChangedLines: 1);
-        }
+            triggerCharacter: ';',
+            tabSize: 3,
+            expectedChangedLines: 1);
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/5693")]
-        public async Task IfStatementInsideLambda()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/5693")]
+    public async Task IfStatementInsideLambda()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code
                     {
                         public RenderFragment RenderFoo()
@@ -692,7 +692,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @code
                     {
                         public RenderFragment RenderFoo()
@@ -707,14 +707,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                triggerCharacter: '}');
-        }
+            triggerCharacter: '}');
+    }
 
-        [Fact]
-        public async Task ComponentInCSharp1()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task ComponentInCSharp1()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code {
                         public void Sink(RenderFragment r)
                         {
@@ -729,7 +729,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         public void Sink(RenderFragment r)
                         {
@@ -744,14 +744,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                triggerCharacter: ';');
-        }
+            triggerCharacter: ';');
+    }
 
-        [Fact]
-        public async Task ComponentInCSharp2()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task ComponentInCSharp2()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code {
                         public void Sink(RenderFragment r)
                         {
@@ -766,7 +766,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
                         public void Sink(RenderFragment r)
                         {
@@ -781,15 +781,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                triggerCharacter: ';');
-        }
+            triggerCharacter: ';');
+    }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/6158")]
-        public async Task Format_NestedLambdas()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/6158")]
+    public async Task Format_NestedLambdas()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @code {
 
                         protected Action Goo(string input)
@@ -814,7 +814,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                expected: """
+            expected: """
                     @code {
 
                         protected Action Goo(string input)
@@ -839,14 +839,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                triggerCharacter: '}');
-        }
+            triggerCharacter: '}');
+    }
 
-        [Fact]
-        public async Task CloseCurly_UnrelatedEdit_DoesNothing()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CloseCurly_UnrelatedEdit_DoesNothing()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     <div>}$$</div>
 
                     @{
@@ -858,7 +858,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     	}
                     }
                     """,
-                expected: """
+            expected: """
                     <div>}</div>
                     
                     @{
@@ -870,8 +870,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                     	}
                     }
                     """,
-                triggerCharacter: '}',
-                insertSpaces: false);
-        }
+            triggerCharacter: '}',
+            insertSpaces: false);
     }
 }

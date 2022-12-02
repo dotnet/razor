@@ -18,84 +18,83 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.RazorExtension
+namespace Microsoft.VisualStudio.RazorExtension;
+
+[PackageRegistration(UseManagedResourcesOnly = true)]
+[AboutDialogInfo(PackageGuidString, "Razor (ASP.NET Core)", "#110", "#112", IconResourceID = "#400")]
+[ProvideService(typeof(RazorLanguageService))]
+[ProvideLanguageService(typeof(RazorLanguageService), RazorConstants.RazorLSPContentTypeName, 110)]
+[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider", Audience = ServiceAudience.Local)]
+[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64", Audience = ServiceAudience.Local)]
+[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64S", Audience = ServiceAudience.Local)]
+[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProviderCore64", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
+[ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProviderCore64S", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
+[ProvideMenuResource("Menus.ctmenu", 1)]
+[ProvideMenuResource("SyntaxVisualizerMenu.ctmenu", 1)]
+[ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
+[Guid(PackageGuidString)]
+internal sealed class RazorPackage : AsyncPackage
 {
-    [PackageRegistration(UseManagedResourcesOnly = true)]
-    [AboutDialogInfo(PackageGuidString, "Razor (ASP.NET Core)", "#110", "#112", IconResourceID = "#400")]
-    [ProvideService(typeof(RazorLanguageService))]
-    [ProvideLanguageService(typeof(RazorLanguageService), RazorConstants.RazorLSPContentTypeName, 110)]
-    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider", Audience = ServiceAudience.Local)]
-    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64", Audience = ServiceAudience.Local)]
-    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProvider64S", Audience = ServiceAudience.Local)]
-    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProviderCore64", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
-    [ProvideBrokeredServiceHubService("Microsoft.VisualStudio.Razor.TagHelperProviderCore64S", ServiceLocation = ProvideBrokeredServiceHubServiceAttribute.DefaultServiceLocation + @"\ServiceHubCore", Audience = ServiceAudience.Local)]
-    [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideMenuResource("SyntaxVisualizerMenu.ctmenu", 1)]
-    [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
-    [Guid(PackageGuidString)]
-    public sealed class RazorPackage : AsyncPackage
+    public const string PackageGuidString = "13b72f58-279e-49e0-a56d-296be02f0805";
+
+    internal const string GuidSyntaxVisualizerMenuCmdSetString = "a3a603a2-2b17-4ce2-bd21-cbb8ccc084ec";
+    internal static readonly Guid GuidSyntaxVisualizerMenuCmdSet = new Guid(GuidSyntaxVisualizerMenuCmdSetString);
+    internal const uint CmdIDRazorSyntaxVisualizer = 0x101;
+
+    protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
-        public const string PackageGuidString = "13b72f58-279e-49e0-a56d-296be02f0805";
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        internal const string GuidSyntaxVisualizerMenuCmdSetString = "a3a603a2-2b17-4ce2-bd21-cbb8ccc084ec";
-        internal static readonly Guid GuidSyntaxVisualizerMenuCmdSet = new Guid(GuidSyntaxVisualizerMenuCmdSetString);
-        internal const uint CmdIDRazorSyntaxVisualizer = 0x101;
+        cancellationToken.ThrowIfCancellationRequested();
 
-        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        var container = this as IServiceContainer;
+        container.AddService(typeof(RazorLanguageService), (container, type) =>
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            var componentModel = (IComponentModel)GetGlobalService(typeof(SComponentModel));
+            var breakpointResolver = componentModel.GetService<RazorBreakpointResolver>();
+            var proximityExpressionResolver = componentModel.GetService<RazorProximityExpressionResolver>();
+            var uiThreadOperationExecutor = componentModel.GetService<IUIThreadOperationExecutor>();
+            var editorAdaptersFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
+            var joinableTaskContext = componentModel.GetService<JoinableTaskContext>();
 
-            cancellationToken.ThrowIfCancellationRequested();
+            return new RazorLanguageService(breakpointResolver, proximityExpressionResolver, uiThreadOperationExecutor, editorAdaptersFactory, joinableTaskContext.Factory);
+        }, promote: true);
 
-            var container = this as IServiceContainer;
-            container.AddService(typeof(RazorLanguageService), (container, type) =>
-            {
-                var componentModel = (IComponentModel)GetGlobalService(typeof(SComponentModel));
-                var breakpointResolver = componentModel.GetService<RazorBreakpointResolver>();
-                var proximityExpressionResolver = componentModel.GetService<RazorProximityExpressionResolver>();
-                var uiThreadOperationExecutor = componentModel.GetService<IUIThreadOperationExecutor>();
-                var editorAdaptersFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
-                var joinableTaskContext = componentModel.GetService<JoinableTaskContext>();
+        // Add our command handlers for menu (commands must exist in the .vsct file).
+        if (await GetServiceAsync(typeof(IMenuCommandService)) is OleMenuCommandService mcs)
+        {
+            // Create the command for the tool window.
+            var toolwndCommandID = new CommandID(GuidSyntaxVisualizerMenuCmdSet, (int)CmdIDRazorSyntaxVisualizer);
+            var menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
+            mcs.AddCommand(menuToolWin);
+        }
+    }
 
-                return new RazorLanguageService(breakpointResolver, proximityExpressionResolver, uiThreadOperationExecutor, editorAdaptersFactory, joinableTaskContext.Factory);
-            }, promote: true);
+    /// <summary>
+    /// This function is called when the user clicks the menu item that shows the
+    /// tool window. See the Initialize method to see how the menu item is associated to
+    /// this function using the OleMenuCommandService service and the MenuCommand class.
+    /// </summary>
+    private void ShowToolWindow(object sender, EventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
 
-            // Add our command handlers for menu (commands must exist in the .vsct file).
-            if (await GetServiceAsync(typeof(IMenuCommandService)) is OleMenuCommandService mcs)
-            {
-                // Create the command for the tool window.
-                var toolwndCommandID = new CommandID(GuidSyntaxVisualizerMenuCmdSet, (int)CmdIDRazorSyntaxVisualizer);
-                var menuToolWin = new MenuCommand(ShowToolWindow, toolwndCommandID);
-                mcs.AddCommand(menuToolWin);
-            }
+        // Get the instance number 0 of this tool window. This window is single instance so this instance
+        // is actually the only one. The last flag is set to true so that if the tool window does not exist
+        // it will be created.
+        var window = (SyntaxVisualizerToolWindow)FindToolWindow(typeof(SyntaxVisualizerToolWindow), id: 0, create: true);
+        if (window?.Frame is not IVsWindowFrame windowFrame)
+        {
+            throw new NotSupportedException("Can not create window");
         }
 
-        /// <summary>
-        /// This function is called when the user clicks the menu item that shows the
-        /// tool window. See the Initialize method to see how the menu item is associated to
-        /// this function using the OleMenuCommandService service and the MenuCommand class.
-        /// </summary>
-        private void ShowToolWindow(object sender, EventArgs e)
+        // Initialize command handlers in the window
+        if (!window.CommandHandlersInitialized)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            // Get the instance number 0 of this tool window. This window is single instance so this instance
-            // is actually the only one. The last flag is set to true so that if the tool window does not exist
-            // it will be created.
-            var window = (SyntaxVisualizerToolWindow)FindToolWindow(typeof(SyntaxVisualizerToolWindow), id: 0, create: true);
-            if (window?.Frame is not IVsWindowFrame windowFrame)
-            {
-                throw new NotSupportedException("Can not create window");
-            }
-
-            // Initialize command handlers in the window
-            if (!window.CommandHandlersInitialized)
-            {
-                var mcs = (IMenuCommandService)GetService(typeof(IMenuCommandService));
-                window.InitializeCommands(mcs, GuidSyntaxVisualizerMenuCmdSet);
-            }
-
-            ErrorHandler.ThrowOnFailure(windowFrame.Show());
+            var mcs = (IMenuCommandService)GetService(typeof(IMenuCommandService));
+            window.InitializeCommands(mcs, GuidSyntaxVisualizerMenuCmdSet);
         }
+
+        ErrorHandler.ThrowOnFailure(windowFrame.Show());
     }
 }

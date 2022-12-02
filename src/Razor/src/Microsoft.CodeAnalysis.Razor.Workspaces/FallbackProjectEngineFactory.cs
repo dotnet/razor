@@ -7,33 +7,32 @@ using System;
 using System.Composition;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+[Export(typeof(IFallbackProjectEngineFactory))]
+internal class FallbackProjectEngineFactory : IFallbackProjectEngineFactory
 {
-    [Export(typeof(IFallbackProjectEngineFactory))]
-    internal class FallbackProjectEngineFactory : IFallbackProjectEngineFactory
+    public RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
     {
-        public RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
+        if (configuration is null)
         {
-            if (configuration is null)
-            {
-                throw new ArgumentNullException(nameof(configuration));
-            }
-
-            if (fileSystem is null)
-            {
-                throw new ArgumentNullException(nameof(fileSystem));
-            }
-
-            // This is a very basic implementation that will provide reasonable support without crashing.
-            // If the user falls into this situation, ideally they can realize that something is wrong and take
-            // action.
-            //
-            // This has no support for:
-            // - Tag Helpers
-            // - Imports
-            // - Default Imports
-            // - and will have a very limited set of directives
-            return RazorProjectEngine.Create(configuration, fileSystem, configure);
+            throw new ArgumentNullException(nameof(configuration));
         }
+
+        if (fileSystem is null)
+        {
+            throw new ArgumentNullException(nameof(fileSystem));
+        }
+
+        // This is a very basic implementation that will provide reasonable support without crashing.
+        // If the user falls into this situation, ideally they can realize that something is wrong and take
+        // action.
+        //
+        // This has no support for:
+        // - Tag Helpers
+        // - Imports
+        // - Default Imports
+        // - and will have a very limited set of directives
+        return RazorProjectEngine.Create(configuration, fileSystem, configure);
     }
 }

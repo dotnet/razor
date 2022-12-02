@@ -4,11 +4,10 @@
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.Telemetry;
 
-namespace Microsoft.AspNetCore.Razor.Common.Telemetry
+namespace Microsoft.AspNetCore.Razor.Telemetry;
+
+internal interface ITelemetryReporter
 {
-    internal interface ITelemetryReporter
-    {
-        void ReportEvent(string name, TelemetrySeverity severity);
-        void ReportEvent<T>(string name, TelemetrySeverity severity, ImmutableDictionary<string, T> values);
-    }
+    void ReportEvent(string name, TelemetrySeverity severity);
+    void ReportEvent<T>(string name, TelemetrySeverity severity, ImmutableDictionary<string, T> values);
 }

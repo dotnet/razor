@@ -5,12 +5,11 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
-{
-    internal abstract class OmniSharpDocumentProcessedListener
-    {
-        public abstract void Initialize(OmniSharpProjectSnapshotManager projectManager);
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
 
-        public abstract void DocumentProcessed(RazorCodeDocument codeDocument, OmniSharpDocumentSnapshot document);
-    }
+internal abstract class OmniSharpDocumentProcessedListener
+{
+    public abstract void Initialize(OmniSharpProjectSnapshotManager projectManager);
+
+    public abstract void DocumentProcessed(RazorCodeDocument codeDocument, OmniSharpDocumentSnapshot document);
 }

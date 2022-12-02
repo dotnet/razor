@@ -3,12 +3,11 @@
 
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces
-{
-    internal abstract class RazorDocumentServiceProviderFactory
-    {
-        public abstract IRazorDocumentServiceProvider CreateEmpty();
+namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-        public abstract IRazorDocumentServiceProvider Create(DynamicDocumentContainer documentContainer);
-    }
+internal abstract class RazorDocumentServiceProviderFactory
+{
+    public abstract IRazorDocumentServiceProvider CreateEmpty();
+
+    public abstract IRazorDocumentServiceProvider Create(DynamicDocumentContainer documentContainer);
 }

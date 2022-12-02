@@ -3,9 +3,8 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+internal class TextDocumentPositionParamsBridge : TextDocumentPositionParams, ITextDocumentPositionParams
 {
-    internal class TextDocumentPositionParamsBridge : TextDocumentPositionParams, ITextDocumentPositionParams
-    {
-    }
 }

@@ -5,10 +5,9 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Logging
+namespace Microsoft.VisualStudio.Editor.Razor.Logging;
+
+internal abstract class RazorLogHubTraceProvider
 {
-    internal abstract class RazorLogHubTraceProvider
-    {
-        public abstract Task<TraceSource?> InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken);
-    }
+    public abstract Task<TraceSource?> InitializeTraceAsync(string logIdentifier, int logHubSessionId, CancellationToken cancellationToken);
 }

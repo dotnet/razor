@@ -7,21 +7,20 @@ using System.Collections.Generic;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace Xunit
-{
-    internal class UITheoryDiscoverer : TheoryDiscoverer
-    {
-        public UITheoryDiscoverer(IMessageSink diagnosticMessageSink)
-            : base(diagnosticMessageSink)
-        {
-        }
+namespace Xunit;
 
-        protected override IEnumerable<IXunitTestCase> CreateTestCasesForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object[] dataRow)
+internal class UITheoryDiscoverer : TheoryDiscoverer
+{
+    public UITheoryDiscoverer(IMessageSink diagnosticMessageSink)
+        : base(diagnosticMessageSink)
+    {
+    }
+
+    protected override IEnumerable<IXunitTestCase> CreateTestCasesForDataRow(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo theoryAttribute, object[] dataRow)
+    {
+        return new[]
         {
-            return new[]
-            {
-                new UITestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, dataRow),
-            };
-        }
+            new UITestCase(DiagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), discoveryOptions.MethodDisplayOptionsOrDefault(), testMethod, dataRow),
+        };
     }
 }

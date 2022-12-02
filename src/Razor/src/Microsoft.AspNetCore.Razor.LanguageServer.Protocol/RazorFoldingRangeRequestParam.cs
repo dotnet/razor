@@ -4,11 +4,10 @@
 using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+
+internal class RazorFoldingRangeRequestParam : FoldingRangeParams
 {
-    internal class RazorFoldingRangeRequestParam : FoldingRangeParams
-    {
-        [DataMember(Name = "hostDocumentVersion")]
-        public int HostDocumentVersion { get; init; }
-    }
+    [DataMember(Name = "hostDocumentVersion")]
+    public int HostDocumentVersion { get; init; }
 }

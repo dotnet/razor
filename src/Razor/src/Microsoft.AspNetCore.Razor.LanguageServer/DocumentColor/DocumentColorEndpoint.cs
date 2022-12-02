@@ -8,63 +8,56 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor
+namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
+
+internal class DocumentColorEndpoint : IDocumentColorEndpoint
 {
-    internal class DocumentColorEndpoint : IDocumentColorEndpoint
+    private readonly ClientNotifierServiceBase _languageServer;
+
+    public DocumentColorEndpoint(ClientNotifierServiceBase languageServer)
     {
-        private readonly ClientNotifierServiceBase _languageServer;
-
-        public DocumentColorEndpoint(ClientNotifierServiceBase languageServer)
+        if (languageServer is null)
         {
-            if (languageServer is null)
-            {
-                throw new ArgumentNullException(nameof(languageServer));
-            }
-
-            _languageServer = languageServer;
+            throw new ArgumentNullException(nameof(languageServer));
         }
 
-        public bool MutatesSolutionState => false;
+        _languageServer = languageServer;
+    }
 
-        public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public bool MutatesSolutionState => false;
+
+    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    {
+        const string ServerCapabilities = "colorProvider";
+        var options = new SumType<bool, DocumentColorOptions>(new DocumentColorOptions());
+
+        return new RegistrationExtensionResult(ServerCapabilities, options);
+    }
+
+    public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentColorParams request)
+    {
+        return request.TextDocument;
+    }
+
+    public async Task<ColorInformation[]> HandleRequestAsync(DocumentColorParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+    {
+        var delegatedRequest = new DelegatedDocumentColorParams()
         {
-            const string ServerCapabilities = "colorProvider";
-            var options = new SumType<bool, DocumentColorOptions>(new DocumentColorOptions());
+            HostDocumentVersion = requestContext.GetRequiredDocumentContext().Version,
+            TextDocument = request.TextDocument
+        };
 
-            return new RegistrationExtensionResult(ServerCapabilities, options);
+        var documentColors = await _languageServer.SendRequestAsync<DelegatedDocumentColorParams, ColorInformation[]>(
+            RazorLanguageServerCustomMessageTargets.RazorProvideHtmlDocumentColorEndpoint,
+            delegatedRequest,
+            cancellationToken).ConfigureAwait(false);
+
+        if (documentColors is null)
+        {
+            return Array.Empty<ColorInformation>();
         }
 
-        public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentColorParams request)
-        {
-            return request.TextDocument;
-        }
-
-        public async Task<ColorInformation[]> HandleRequestAsync(DocumentColorParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
-        {
-            var documentContext = requestContext.DocumentContext;
-            if (documentContext is null)
-            {
-                return Array.Empty<ColorInformation>();
-            }
-
-            var delegatedRequest = new DelegatedDocumentColorParams
-            {
-                RequiredHostDocumentVersion = documentContext.Version,
-                TextDocument = request.TextDocument
-            };
-
-            var documentColors = await _languageServer.SendRequestAsync<DocumentColorParams, ColorInformation[]>(
-                RazorLanguageServerCustomMessageTargets.RazorProvideHtmlDocumentColorEndpoint,
-                delegatedRequest,
-                cancellationToken).ConfigureAwait(false);
-
-            if (documentColors is null)
-            {
-                return Array.Empty<ColorInformation>();
-            }
-
-            // HTML and Razor documents have identical mapping locations. Because of this we can return the result as-is.
-            return documentColors;
-        }
+        // HTML and Razor documents have identical mapping locations. Because of this we can return the result as-is.
+        return documentColors;
     }
 }

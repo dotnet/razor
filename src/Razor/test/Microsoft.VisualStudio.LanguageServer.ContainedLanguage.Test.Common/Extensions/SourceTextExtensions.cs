@@ -5,38 +5,37 @@ using System;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common.Extensions
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common.Extensions;
+
+internal static class SourceTextExtensions
 {
-    internal static class SourceTextExtensions
+    public static void GetLinesAndOffsets(
+        this SourceText sourceText,
+        Span span,
+        out int startLineNumber,
+        out int startOffset,
+        out int endLineNumber,
+        out int endOffset)
     {
-        public static void GetLinesAndOffsets(
-            this SourceText sourceText,
-            Span span,
-            out int startLineNumber,
-            out int startOffset,
-            out int endLineNumber,
-            out int endOffset)
+        if (sourceText is null)
         {
-            if (sourceText is null)
-            {
-                throw new ArgumentNullException(nameof(sourceText));
-            }
-
-            sourceText.GetLineAndOffset(span.Start, out startLineNumber, out startOffset);
-            sourceText.GetLineAndOffset(span.End, out endLineNumber, out endOffset);
+            throw new ArgumentNullException(nameof(sourceText));
         }
 
-        public static void GetLineAndOffset(this SourceText source, int position, out int lineNumber, out int offset)
+        sourceText.GetLineAndOffset(span.Start, out startLineNumber, out startOffset);
+        sourceText.GetLineAndOffset(span.End, out endLineNumber, out endOffset);
+    }
+
+    public static void GetLineAndOffset(this SourceText source, int position, out int lineNumber, out int offset)
+    {
+        if (source is null)
         {
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            var line = source.Lines.GetLineFromPosition(position);
-
-            lineNumber = line.LineNumber;
-            offset = position - line.Start;
+            throw new ArgumentNullException(nameof(source));
         }
+
+        var line = source.Lines.GetLineFromPosition(position);
+
+        lineNumber = line.LineNumber;
+        offset = position - line.Start;
     }
 }

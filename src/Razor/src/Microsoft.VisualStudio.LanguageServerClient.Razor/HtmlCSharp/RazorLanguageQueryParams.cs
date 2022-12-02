@@ -4,12 +4,11 @@
 using System;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
-{
-    internal class RazorLanguageQueryParams
-    {
-        public required Uri Uri { get; init; }
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 
-        public required Position Position { get; init; }
-    }
+internal class RazorLanguageQueryParams
+{
+    public required Uri Uri { get; init; }
+
+    public required Position Position { get; init; }
 }

@@ -5,31 +5,30 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer
+namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer;
+
+internal sealed class SourceMappingAdornment : Border
 {
-    internal sealed class SourceMappingAdornment : Border
+    internal SourceMappingAdornment(bool isStart, string toolTipText)
     {
-        internal SourceMappingAdornment(bool isStart, string toolTipText)
+        var lbl = new Label()
         {
-            var lbl = new Label()
-            {
-                Padding = new Thickness(0),
-                BorderThickness = new Thickness(0),
-                HorizontalContentAlignment = HorizontalAlignment.Left,
-                VerticalContentAlignment = VerticalAlignment.Top,
-                VerticalAlignment = VerticalAlignment.Stretch,
-                Background = Brushes.Yellow,
-                Foreground = Brushes.Black,
-                Width = isStart ? 15 : 10,
-                Content = isStart ? "<#" : ">",
-            };
+            Padding = new Thickness(0),
+            BorderThickness = new Thickness(0),
+            HorizontalContentAlignment = HorizontalAlignment.Left,
+            VerticalContentAlignment = VerticalAlignment.Top,
+            VerticalAlignment = VerticalAlignment.Stretch,
+            Background = Brushes.Yellow,
+            Foreground = Brushes.Black,
+            Width = isStart ? 15 : 10,
+            Content = isStart ? "<#" : ">",
+        };
 
-            if (!string.IsNullOrWhiteSpace(toolTipText))
-            {
-                lbl.ToolTip = toolTipText;
-            }
-
-            Child = lbl;
+        if (!string.IsNullOrWhiteSpace(toolTipText))
+        {
+            lbl.ToolTip = toolTipText;
         }
+
+        Child = lbl;
     }
 }

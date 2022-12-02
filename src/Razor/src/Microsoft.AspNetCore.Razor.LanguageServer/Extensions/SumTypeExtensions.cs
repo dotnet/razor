@@ -5,88 +5,87 @@ using System;
 using System.Linq;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+
+internal static class SumTypeExtensions
 {
-    internal static class SumTypeExtensions
+    internal static int Count(this SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> sumType)
     {
-        internal static int Count(this SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> sumType)
+        if (sumType.TryGetFirst(out var textDocumentEdit))
         {
-            if (sumType.TryGetFirst(out var textDocumentEdit))
-            {
-                return textDocumentEdit.Length;
-            }
-            else if (sumType.TryGetSecond(out var edits))
-            {
-                return edits.Length;
-            }
-            else
-            {
-                throw new NotImplementedException("Shouldn't be possible");
-            }
+            return textDocumentEdit.Length;
         }
-
-        internal static SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile> ElementAt(this SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> sumType, int elementIndex)
+        else if (sumType.TryGetSecond(out var edits))
         {
-            if (sumType.TryGetFirst(out var textDocumentEdits))
-            {
-                return textDocumentEdits[elementIndex];
-            }
-            else if (sumType.TryGetSecond(out var edits))
-            {
-                return edits[elementIndex];
-            }
-            else
-            {
-                throw new NotImplementedException("Shouldn't be possible");
-            }
+            return edits.Length;
         }
-
-        internal static SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] ToArray(this SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> sumType)
+        else
         {
-            if (sumType.TryGetFirst(out var textDocumentEdit))
-            {
-                return textDocumentEdit.Select(s => (SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>)s).ToArray();
-            }
-            else if (sumType.TryGetSecond(out var edits))
-            {
-                return edits.ToArray();
-            }
-            else
-            {
-                throw new NotImplementedException("Shouldn't be possible");
-            }
+            throw new NotImplementedException("Shouldn't be possible");
         }
+    }
 
-        internal static SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile> First(this SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> sumType)
+    internal static SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile> ElementAt(this SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> sumType, int elementIndex)
+    {
+        if (sumType.TryGetFirst(out var textDocumentEdits))
         {
-            if (sumType.TryGetFirst(out var textDocumentEdits))
-            {
-                return textDocumentEdits.First();
-            }
-            else if (sumType.TryGetSecond(out var edits))
-            {
-                return edits.First();
-            }
-            else
-            {
-                throw new NotImplementedException("Shouldn't be possible");
-            }
+            return textDocumentEdits[elementIndex];
         }
-
-        internal static SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile> Last(this SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> sumType)
+        else if (sumType.TryGetSecond(out var edits))
         {
-            if (sumType.TryGetFirst(out var textDocumentEdits))
-            {
-                return textDocumentEdits.Last();
-            }
-            else if (sumType.TryGetSecond(out var edits))
-            {
-                return edits.Last();
-            }
-            else
-            {
-                throw new NotImplementedException("Shouldn't be possible");
-            }
+            return edits[elementIndex];
+        }
+        else
+        {
+            throw new NotImplementedException("Shouldn't be possible");
+        }
+    }
+
+    internal static SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] ToArray(this SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> sumType)
+    {
+        if (sumType.TryGetFirst(out var textDocumentEdit))
+        {
+            return textDocumentEdit.Select(s => (SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>)s).ToArray();
+        }
+        else if (sumType.TryGetSecond(out var edits))
+        {
+            return edits.ToArray();
+        }
+        else
+        {
+            throw new NotImplementedException("Shouldn't be possible");
+        }
+    }
+
+    internal static SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile> First(this SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> sumType)
+    {
+        if (sumType.TryGetFirst(out var textDocumentEdits))
+        {
+            return textDocumentEdits.First();
+        }
+        else if (sumType.TryGetSecond(out var edits))
+        {
+            return edits.First();
+        }
+        else
+        {
+            throw new NotImplementedException("Shouldn't be possible");
+        }
+    }
+
+    internal static SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile> Last(this SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> sumType)
+    {
+        if (sumType.TryGetFirst(out var textDocumentEdits))
+        {
+            return textDocumentEdits.Last();
+        }
+        else if (sumType.TryGetSecond(out var edits))
+        {
+            return edits.Last();
+        }
+        else
+        {
+            throw new NotImplementedException("Shouldn't be possible");
         }
     }
 }

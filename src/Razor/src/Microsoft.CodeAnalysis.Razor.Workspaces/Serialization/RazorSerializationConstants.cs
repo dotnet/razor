@@ -3,10 +3,9 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Razor.Serialization
+namespace Microsoft.CodeAnalysis.Razor.Serialization;
+
+internal static class RazorSerializationConstants
 {
-    internal static class RazorSerializationConstants
-    {
-        public static readonly string HashCodePropertyName = "HashCode";
-    }
+    public static readonly string HashCodePropertyName = "HashCode";
 }

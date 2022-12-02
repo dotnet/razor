@@ -21,19 +21,19 @@ using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalLocation[],
     Microsoft.VisualStudio.LanguageServer.Protocol.DocumentLink[]>;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
-{
-    public class RazorDefinitionEndpointDelegationTest : SingleServerDelegatingEndpointTestBase
-    {
-        public RazorDefinitionEndpointDelegationTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 
-        [Fact]
-        public async Task Handle_SingleServer_CSharp_Method()
-        {
-            var input = """
+public class RazorDefinitionEndpointDelegationTest : SingleServerDelegatingEndpointTestBase
+{
+    public RazorDefinitionEndpointDelegationTest(ITestOutputHelper testOutput)
+        : base(testOutput)
+    {
+    }
+
+    [Fact]
+    public async Task Handle_SingleServer_CSharp_Method()
+    {
+        var input = """
                 <div></div>
                 @{
                     var x = Ge$$tX();
@@ -46,13 +46,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyCSharpGoToDefinitionAsync(input);
-        }
+        await VerifyCSharpGoToDefinitionAsync(input);
+    }
 
-        [Fact]
-        public async Task Handle_SingleServer_CSharp_Local()
-        {
-            var input = """
+    [Fact]
+    public async Task Handle_SingleServer_CSharp_Local()
+    {
+        var input = """
                 <div></div>
                 @{
                     var x = GetX();
@@ -67,13 +67,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyCSharpGoToDefinitionAsync(input);
-        }
+        await VerifyCSharpGoToDefinitionAsync(input);
+    }
 
-        [Fact]
-        public async Task Handle_SingleServer_CSharp_MetadataReference()
-        {
-            var input = """
+    [Fact]
+    public async Task Handle_SingleServer_CSharp_MetadataReference()
+    {
+        var input = """
                 <div></div>
                 @functions
                 {
@@ -81,70 +81,69 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            // Arrange
-            TestFileMarkupParser.GetPosition(input, out var output, out var cursorPosition);
+        // Arrange
+        TestFileMarkupParser.GetPosition(input, out var output, out var cursorPosition);
 
-            var codeDocument = CreateCodeDocument(output);
-            var razorFilePath = "C:/path/to/file.razor";
+        var codeDocument = CreateCodeDocument(output);
+        var razorFilePath = "C:/path/to/file.razor";
 
-            // Act
-            var result = await GetDefinitionResultAsync(codeDocument, razorFilePath, cursorPosition);
+        // Act
+        var result = await GetDefinitionResultAsync(codeDocument, razorFilePath, cursorPosition);
 
-            // Assert
-            Assert.NotNull(result.Value.Second);
-            var locations = result.Value.Second;
-            var location = Assert.Single(locations);
-            Assert.EndsWith("String.cs", location.Uri.ToString());
-            Assert.Equal(21, location.Range.Start.Line);
-        }
+        // Assert
+        Assert.NotNull(result.Value.Second);
+        var locations = result.Value.Second;
+        var location = Assert.Single(locations);
+        Assert.EndsWith("String.cs", location.Uri.ToString());
+        Assert.Equal(21, location.Range.Start.Line);
+    }
 
-        private async Task VerifyCSharpGoToDefinitionAsync(string input)
+    private async Task VerifyCSharpGoToDefinitionAsync(string input)
+    {
+        // Arrange
+        TestFileMarkupParser.GetPositionAndSpan(input, out var output, out var cursorPosition, out var expectedSpan);
+
+        var codeDocument = CreateCodeDocument(output);
+        var razorFilePath = "C:/path/to/file.razor";
+
+        // Act
+        var result = await GetDefinitionResultAsync(codeDocument, razorFilePath, cursorPosition);
+
+        // Assert
+        Assert.NotNull(result.Value.Second);
+        var locations = result.Value.Second;
+        var location = Assert.Single(locations);
+        Assert.Equal(new Uri(razorFilePath), location.Uri);
+
+        var expectedRange = expectedSpan.AsRange(codeDocument.GetSourceText());
+        Assert.Equal(expectedRange, location.Range);
+    }
+
+    private async Task<DefinitionResult?> GetDefinitionResultAsync(RazorCodeDocument codeDocument, string razorFilePath, int cursorPosition)
+    {
+        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+
+        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == new[] { Mock.Of<ProjectSnapshot>(MockBehavior.Strict) }, MockBehavior.Strict);
+        var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
+        var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
+        var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
+
+        var razorUri = new Uri(razorFilePath);
+        var documentContext = await DocumentContextFactory.TryCreateAsync(razorUri, DisposalToken);
+        var requestContext = CreateRazorRequestContext(documentContext);
+
+        var endpoint = new RazorDefinitionEndpoint(searchEngine, DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, LoggerFactory);
+
+        codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
+        var request = new TextDocumentPositionParamsBridge
         {
-            // Arrange
-            TestFileMarkupParser.GetPositionAndSpan(input, out var output, out var cursorPosition, out var expectedSpan);
-
-            var codeDocument = CreateCodeDocument(output);
-            var razorFilePath = "C:/path/to/file.razor";
-
-            // Act
-            var result = await GetDefinitionResultAsync(codeDocument, razorFilePath, cursorPosition);
-
-            // Assert
-            Assert.NotNull(result.Value.Second);
-            var locations = result.Value.Second;
-            var location = Assert.Single(locations);
-            Assert.Equal(new Uri(razorFilePath), location.Uri);
-
-            var expectedRange = expectedSpan.AsRange(codeDocument.GetSourceText());
-            Assert.Equal(expectedRange, location.Range);
-        }
-
-        private async Task<DefinitionResult?> GetDefinitionResultAsync(RazorCodeDocument codeDocument, string razorFilePath, int cursorPosition)
-        {
-            await CreateLanguageServerAsync(codeDocument, razorFilePath);
-
-            var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == new[] { Mock.Of<ProjectSnapshot>(MockBehavior.Strict) }, MockBehavior.Strict);
-            var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
-            var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
-            var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
-
-            var razorUri = new Uri(razorFilePath);
-            var documentContext = await DocumentContextFactory.TryCreateAsync(razorUri, DisposalToken);
-            var requestContext = CreateRazorRequestContext(documentContext);
-
-            var endpoint = new RazorDefinitionEndpoint(searchEngine, DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, LoggerFactory);
-
-            codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
-            var request = new TextDocumentPositionParamsBridge
+            TextDocument = new TextDocumentIdentifier
             {
-                TextDocument = new TextDocumentIdentifier
-                {
-                    Uri = new Uri(razorFilePath)
-                },
-                Position = new Position(line, offset)
-            };
+                Uri = new Uri(razorFilePath)
+            },
+            Position = new Position(line, offset)
+        };
 
-            return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
-        }
+        return await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
     }
 }

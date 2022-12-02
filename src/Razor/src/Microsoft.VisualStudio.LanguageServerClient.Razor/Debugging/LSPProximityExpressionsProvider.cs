@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
+
+internal abstract class LSPProximityExpressionsProvider
 {
-    internal abstract class LSPProximityExpressionsProvider
-    {
-        public abstract Task<IReadOnlyList<string>?> GetProximityExpressionsAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken);
-    }
+    public abstract Task<IReadOnlyList<string>?> GetProximityExpressionsAsync(LSPDocumentSnapshot documentSnapshot, Position position, CancellationToken cancellationToken);
 }

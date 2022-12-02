@@ -6,24 +6,23 @@ using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.VisualStudio.LanguageServices.Razor.Serialization;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+internal static class JsonConverterCollectionExtensions
 {
-    internal static class JsonConverterCollectionExtensions
+    public static JsonConverterCollection RegisterRazorConverters(this JsonConverterCollection collection)
     {
-        public static JsonConverterCollection RegisterRazorConverters(this JsonConverterCollection collection)
+        if (collection is null)
         {
-            if (collection is null)
-            {
-                throw new ArgumentNullException(nameof(collection));
-            }
-
-            collection.Add(TagHelperDescriptorJsonConverter.Instance);
-            collection.Add(RazorDiagnosticJsonConverter.Instance);
-            collection.Add(RazorExtensionJsonConverter.Instance);
-            collection.Add(RazorConfigurationJsonConverter.Instance);
-            collection.Add(ProjectSnapshotHandleJsonConverter.Instance);
-
-            return collection;
+            throw new ArgumentNullException(nameof(collection));
         }
+
+        collection.Add(TagHelperDescriptorJsonConverter.Instance);
+        collection.Add(RazorDiagnosticJsonConverter.Instance);
+        collection.Add(RazorExtensionJsonConverter.Instance);
+        collection.Add(RazorConfigurationJsonConverter.Instance);
+        collection.Add(ProjectSnapshotHandleJsonConverter.Instance);
+
+        return collection;
     }
 }

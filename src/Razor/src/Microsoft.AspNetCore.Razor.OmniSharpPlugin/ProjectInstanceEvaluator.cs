@@ -5,10 +5,9 @@
 
 using Microsoft.Build.Execution;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+public abstract class ProjectInstanceEvaluator
 {
-    public abstract class ProjectInstanceEvaluator
-    {
-        public abstract ProjectInstance Evaluate(ProjectInstance projectInstance);
-    }
+    public abstract ProjectInstance Evaluate(ProjectInstance projectInstance);
 }

@@ -3,27 +3,26 @@
 
 using System;
 using System.Composition;
-using Microsoft.AspNetCore.Razor.Common.Telemetry;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+[Shared]
+[ExportWorkspaceServiceFactory(typeof(TagHelperResolver), ServiceLayer.Default)]
+internal class DefaultTagHelperResolverFactory : IWorkspaceServiceFactory
 {
-    [Shared]
-    [ExportWorkspaceServiceFactory(typeof(TagHelperResolver), ServiceLayer.Default)]
-    internal class DefaultTagHelperResolverFactory : IWorkspaceServiceFactory
+    private readonly ITelemetryReporter _telemetryReporter;
+
+    [ImportingConstructor]
+    public DefaultTagHelperResolverFactory(ITelemetryReporter telemetryReporter)
     {
-        private readonly ITelemetryReporter _telemetryReporter;
+        _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
+    }
 
-        [ImportingConstructor]
-        public DefaultTagHelperResolverFactory(ITelemetryReporter telemetryReporter)
-        {
-            _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
-        }
-
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new DefaultTagHelperResolver(_telemetryReporter);
-        }
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+    {
+        return new DefaultTagHelperResolver(_telemetryReporter);
     }
 }

@@ -9,40 +9,39 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+public class RazorCodeDocumentExtensionsTest : TestBase
 {
-    public class RazorCodeDocumentExtensionsTest : TestBase
+    public RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        public RazorCodeDocumentExtensionsTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+    }
 
-        [Fact]
-        public void IsUnsupported_Unset_ReturnsFalse()
-        {
-            // Arrange
-            var codeDocument = TestRazorCodeDocument.CreateEmpty();
+    [Fact]
+    public void IsUnsupported_Unset_ReturnsFalse()
+    {
+        // Arrange
+        var codeDocument = TestRazorCodeDocument.CreateEmpty();
 
-            // Act
-            var result = codeDocument.IsUnsupported();
+        // Act
+        var result = codeDocument.IsUnsupported();
 
-            // Assert
-            Assert.False(result);
-        }
+        // Assert
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void IsUnsupported_Set_ReturnsTrue()
-        {
-            // Arrange
-            var codeDocument = TestRazorCodeDocument.CreateEmpty();
-            codeDocument.SetUnsupported();
+    [Fact]
+    public void IsUnsupported_Set_ReturnsTrue()
+    {
+        // Arrange
+        var codeDocument = TestRazorCodeDocument.CreateEmpty();
+        codeDocument.SetUnsupported();
 
-            // Act
-            var result = codeDocument.IsUnsupported();
+        // Act
+        var result = codeDocument.IsUnsupported();
 
-            // Assert
-            Assert.True(result);
-        }
+        // Assert
+        Assert.True(result);
     }
 }

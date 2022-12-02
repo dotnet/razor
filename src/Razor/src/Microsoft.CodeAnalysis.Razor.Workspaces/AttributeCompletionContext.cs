@@ -5,69 +5,68 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+internal class AttributeCompletionContext
 {
-    public class AttributeCompletionContext
+    public AttributeCompletionContext(
+        TagHelperDocumentContext documentContext,
+        IEnumerable<string> existingCompletions,
+        string currentTagName,
+        string? currentAttributeName,
+        IEnumerable<KeyValuePair<string, string>> attributes,
+        string? currentParentTagName,
+        bool currentParentIsTagHelper,
+        Func<string, bool> inHTMLSchema)
     {
-        public AttributeCompletionContext(
-            TagHelperDocumentContext documentContext,
-            IEnumerable<string> existingCompletions,
-            string currentTagName,
-            string? currentAttributeName,
-            IEnumerable<KeyValuePair<string, string>> attributes,
-            string? currentParentTagName,
-            bool currentParentIsTagHelper,
-            Func<string, bool> inHTMLSchema)
+        if (documentContext is null)
         {
-            if (documentContext is null)
-            {
-                throw new ArgumentNullException(nameof(documentContext));
-            }
-
-            if (existingCompletions is null)
-            {
-                throw new ArgumentNullException(nameof(existingCompletions));
-            }
-
-            if (currentTagName is null)
-            {
-                throw new ArgumentNullException(nameof(currentTagName));
-            }
-
-            if (attributes is null)
-            {
-                throw new ArgumentNullException(nameof(attributes));
-            }
-
-            if (inHTMLSchema is null)
-            {
-                throw new ArgumentNullException(nameof(inHTMLSchema));
-            }
-
-            DocumentContext = documentContext;
-            ExistingCompletions = existingCompletions;
-            CurrentTagName = currentTagName;
-            CurrentAttributeName = currentAttributeName;
-            Attributes = attributes;
-            CurrentParentTagName = currentParentTagName;
-            CurrentParentIsTagHelper = currentParentIsTagHelper;
-            InHTMLSchema = inHTMLSchema;
+            throw new ArgumentNullException(nameof(documentContext));
         }
 
-        public TagHelperDocumentContext DocumentContext { get; }
+        if (existingCompletions is null)
+        {
+            throw new ArgumentNullException(nameof(existingCompletions));
+        }
 
-        public IEnumerable<string> ExistingCompletions { get; }
+        if (currentTagName is null)
+        {
+            throw new ArgumentNullException(nameof(currentTagName));
+        }
 
-        public string CurrentTagName { get; }
+        if (attributes is null)
+        {
+            throw new ArgumentNullException(nameof(attributes));
+        }
 
-        public string? CurrentAttributeName { get; }
+        if (inHTMLSchema is null)
+        {
+            throw new ArgumentNullException(nameof(inHTMLSchema));
+        }
 
-        public IEnumerable<KeyValuePair<string, string>> Attributes { get; }
-
-        public string? CurrentParentTagName { get; }
-
-        public bool CurrentParentIsTagHelper { get; }
-
-        public Func<string, bool> InHTMLSchema { get; }
+        DocumentContext = documentContext;
+        ExistingCompletions = existingCompletions;
+        CurrentTagName = currentTagName;
+        CurrentAttributeName = currentAttributeName;
+        Attributes = attributes;
+        CurrentParentTagName = currentParentTagName;
+        CurrentParentIsTagHelper = currentParentIsTagHelper;
+        InHTMLSchema = inHTMLSchema;
     }
+
+    public TagHelperDocumentContext DocumentContext { get; }
+
+    public IEnumerable<string> ExistingCompletions { get; }
+
+    public string CurrentTagName { get; }
+
+    public string? CurrentAttributeName { get; }
+
+    public IEnumerable<KeyValuePair<string, string>> Attributes { get; }
+
+    public string? CurrentParentTagName { get; }
+
+    public bool CurrentParentIsTagHelper { get; }
+
+    public Func<string, bool> InHTMLSchema { get; }
 }

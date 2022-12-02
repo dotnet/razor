@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>$(DefaultNetFxTargetFramework)</TargetFramework>
     <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains the Razor design-time infrastructure for Visual Studio.</Description>
     <EnableApiCheck>false</EnableApiCheck>
     <RulesDirectory>$(PkgMicrosoft_NET_Sdk_Razor)\build\netstandard2.0\Rules\</RulesDirectory>
@@ -32,6 +32,15 @@
 
   <ItemGroup>
     <Reference Include="System.Xaml" />
+  </ItemGroup>
+
+  <ItemGroup Label="String Resources">
+    <EmbeddedResource Update="Resources\SR.resx">
+      <GenerateSource>true</GenerateSource>
+      <Namespace>$(ProjectName).Resources</Namespace>
+    </EmbeddedResource>
+
+    <Using Include="$(ProjectName).Resources" />
   </ItemGroup>
 
   <!--

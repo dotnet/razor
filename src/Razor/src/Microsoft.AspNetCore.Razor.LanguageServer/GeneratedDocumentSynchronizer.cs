@@ -6,45 +6,44 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal class GeneratedDocumentSynchronizer : DocumentProcessedListener
 {
-    internal class GeneratedDocumentSynchronizer : DocumentProcessedListener
+    private readonly GeneratedDocumentPublisher _publisher;
+    private readonly DocumentVersionCache _documentVersionCache;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+
+    public GeneratedDocumentSynchronizer(
+        GeneratedDocumentPublisher publisher,
+        DocumentVersionCache documentVersionCache,
+        ProjectSnapshotManagerDispatcher dispatcher)
     {
-        private readonly GeneratedDocumentPublisher _publisher;
-        private readonly DocumentVersionCache _documentVersionCache;
-        private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+        _publisher = publisher;
+        _documentVersionCache = documentVersionCache;
+        _dispatcher = dispatcher;
+    }
 
-        public GeneratedDocumentSynchronizer(
-            GeneratedDocumentPublisher publisher,
-            DocumentVersionCache documentVersionCache,
-            ProjectSnapshotManagerDispatcher dispatcher)
+    public override void Initialize(ProjectSnapshotManager projectManager)
+    {
+    }
+
+    public override void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot document)
+    {
+        _dispatcher.AssertDispatcherThread();
+
+        if (!_documentVersionCache.TryGetDocumentVersion(document, out var hostDocumentVersion))
         {
-            _publisher = publisher;
-            _documentVersionCache = documentVersionCache;
-            _dispatcher = dispatcher;
+            // Could not resolve document version
+            return;
         }
 
-        public override void Initialize(ProjectSnapshotManager projectManager)
-        {
-        }
+        var htmlText = codeDocument.GetHtmlSourceText();
 
-        public override void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot document)
-        {
-            _dispatcher.AssertDispatcherThread();
+        _publisher.PublishHtml(document.FilePath, htmlText, hostDocumentVersion.Value);
 
-            if (!_documentVersionCache.TryGetDocumentVersion(document, out var hostDocumentVersion))
-            {
-                // Could not resolve document version
-                return;
-            }
+        var csharpText = codeDocument.GetCSharpSourceText();
 
-            var htmlText = codeDocument.GetHtmlSourceText();
-
-            _publisher.PublishHtml(document.FilePath, htmlText, hostDocumentVersion.Value);
-
-            var csharpText = codeDocument.GetCSharpSourceText();
-
-            _publisher.PublishCSharp(document.FilePath, csharpText, hostDocumentVersion.Value);
-        }
+        _publisher.PublishCSharp(document.FilePath, csharpText, hostDocumentVersion.Value);
     }
 }

@@ -47,5 +47,22 @@ export function RunForStatementSuite() {
     </div>
 }`);
         });
+
+        it('Nested inside if', async () => {
+            await assertMatchesSnapshot(
+`@if (true)
+{
+    for (var i = 0; i < 10; i++) {
+        <p></p>
+    }
+}`);
+        });
+
+        it('Not in HTML', async () => {
+            await assertMatchesSnapshot(
+`<div>
+    for (this) is the best classification
+</div>`);
+        });
     });
 }
