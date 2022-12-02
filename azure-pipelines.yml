@@ -355,7 +355,6 @@ stages:
             continueOnError: true
             condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
-      - ${{ if eq(variables['System.TeamProject'], 'public') }}:
         - job: macOS
           pool:
             vmImage: macOS-11
@@ -378,7 +377,15 @@ stages:
                 arguments: $(Build.SourcesDirectory)/NuGet.config $Token
               env:
                 Token: $(dn-bot-dnceng-artifact-feeds-rw)
-          - script: eng/common/cibuild.sh
+          - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+            - script: eng/common/cibuild.sh
+              --configuration $(_BuildConfig)
+              --prepareMachine
+              --pack
+              --sign
+              $(_InternalRuntimeDownloadArgs)
+          - ${{ if eq(variables['System.TeamProject'], 'public') }}:
+            - script: eng/common/cibuild.sh
               --configuration $(_BuildConfig)
               --prepareMachine
               $(_InternalRuntimeDownloadArgs)
