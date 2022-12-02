@@ -29,12 +29,22 @@ var reports =
     let baselineCase = summary.GetBaseline(summary.GetLogicalGroupKey(report.BenchmarkCase))
     let baseline = summary.Reports.Single(r => r.BenchmarkCase == baselineCase)
     select (report, baseline);
-                                  
 
+int exitCode = 0;
 foreach ((var benchmark, var baseline) in reports)
 {
+    // Note: there are actual statistical tests we could do here, but this should suffice.
+    // We can invest more if we see consistent false positives
 
-    //benchmark.ResultStatistics.Mean
+    var ratio = benchmark.ResultStatistics.Mean / baseline.ResultStatistics.Mean;
 
-    // TODO: compare and decide on result
+    if (ratio > 1.1)
+    {
+        Console.WriteLine();
+        Console.WriteLine("Benchmark may have regressed!");
+        Console.WriteLine(benchmark.BenchmarkCase.DisplayInfo);
+        exitCode--;
+    }
 }
+
+return exitCode;
