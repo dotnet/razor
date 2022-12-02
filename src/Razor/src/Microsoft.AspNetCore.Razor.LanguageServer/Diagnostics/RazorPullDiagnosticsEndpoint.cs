@@ -49,12 +49,12 @@ internal class RazorPullDiagnosticsEndpoint
 
     public async Task<IEnumerable<VSInternalDiagnosticReport>?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {
-        var documentContext = context.GetRequiredDocumentContext();
-
-        if (!_languageServerFeatureOptions.SingleServerSupport)
+        if (!_languageServerFeatureOptions.SingleServerDiagnosticsSupport)
         {
             return default;
         }
+
+        var documentContext = context.GetRequiredDocumentContext();
 
         var delegatedParams = new DelegatedDiagnosticParams(documentContext.Identifier);
 
