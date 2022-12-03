@@ -378,9 +378,12 @@ stages:
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+          - powershell: dotnet restore
+            displayName: Restore project.assets.json
+            continueOnError: false
+            condition: always()
           - script: eng/common/cibuild.sh
               --configuration $(_BuildConfig)
-              --restore
               --prepareMachine
               --pack
               --sign
