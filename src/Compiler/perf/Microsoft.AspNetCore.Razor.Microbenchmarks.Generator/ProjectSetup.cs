@@ -73,7 +73,7 @@ internal static class ProjectSetup
 
     internal sealed class InMemoryAdditionalText : AdditionalText
     {
-        private SourceText _text;
+        private readonly SourceText _text;
 
         public InMemoryAdditionalText(SourceText text, string path)
         {
@@ -117,7 +117,7 @@ internal static class ProjectSetup
         {
             private readonly string _targetPath;
 
-            private AnalyzerConfigOptions _baseOptions;
+            private readonly AnalyzerConfigOptions _baseOptions;
 
             public TargetPathAnalyzerOptions(string name, AnalyzerConfigOptions baseOptions)
             {
