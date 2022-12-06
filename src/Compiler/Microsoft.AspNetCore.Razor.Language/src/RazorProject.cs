@@ -99,7 +99,10 @@ public abstract class RazorProject
         var fileNameIndex = path.LastIndexOf('/');
         var length = path.Length;
 
-        Debug.Assert(fileNameIndex != -1);
+        if (fileNameIndex == -1)
+        {
+            throw new InvalidOperationException($"Cannot find '/' in path '{path}'");
+        }
 
         if (string.Compare(path, fileNameIndex + 1, fileName, 0, fileName.Length, StringComparison.Ordinal) == 0)
         {
