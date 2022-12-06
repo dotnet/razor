@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -90,7 +90,15 @@ internal class DefaultRazorProjectFileSystem : RazorProjectFileSystem
                 path = path.Substring(1);
             }
 
-            absolutePath = Path.Combine(Root, path);
+            // Instead of `C:filename.ext`, we want `C:/filename.ext`.
+            if (Root.EndsWith(":", StringComparison.Ordinal) && !string.IsNullOrEmpty(path))
+            {
+                absolutePath = Root + "/" + path;
+            }
+            else
+            {
+                absolutePath = Path.Combine(Root, path);
+            }
         }
 
         absolutePath = absolutePath.Replace('\\', '/');

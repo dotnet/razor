@@ -97,19 +97,12 @@ public abstract class RazorProject
 
         StringBuilder builder;
         var fileNameIndex = path.LastIndexOf('/');
-
-        // Handle paths like `C:file.ext`.
-        if (fileNameIndex == -1)
-        {
-            fileNameIndex = path.LastIndexOf(':');
-        }
+        var length = path.Length;
 
         if (fileNameIndex == -1)
         {
             throw new InvalidOperationException($"Cannot find file name in path '{path}'");
         }
-
-        var length = path.Length;
 
         if (string.Compare(path, fileNameIndex + 1, fileName, 0, fileName.Length, StringComparison.Ordinal) == 0)
         {
