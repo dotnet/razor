@@ -66,7 +66,7 @@ steps:
         $branchData.insertionTitlePrefix = '[PR Validation]'
       }
       
-      # Logging information for debugging purposes
+      # Logging info for debugging
       Write-Host "branchName: '$branchName'"
       Write-Host "titlePrefix: '$branchData.insertionTitlePrefix'"
       Write-Host "createDraftPR: '$branchData.insertionCreateDraftPR'"
