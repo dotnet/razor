@@ -65,6 +65,11 @@ steps:
         $branchData.insertionCreateDraftPR = 'true'
         $branchData.insertionTitlePrefix = '[PR Validation]'
       }
+      
+      # Logging information for debugging purposes
+      Write-Host "branchName: '$branchName'"
+      Write-Host "titlePrefix: '$branchData.insertionTitlePrefix'"
+      Write-Host "createDraftPR: '$branchData.insertionCreateDraftPR'"
 
       # Set our template variables to reasonable defaults
       Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($true)"
@@ -82,10 +87,6 @@ steps:
       if ($null -ne $branchData.insertionCreateDraftPR)
       {
         Write-Host "##vso[task.setvariable variable=Template.CreateDraftPR]$($branchData.insertionCreateDraftPR)"
-      }
-
-      if ($null -ne $branchData.insertionCreateDraftPR)
-      {
         Write-Host "##vso[task.setvariable variable=Template.AutoComplete]$(-not $branchData.insertionCreateDraftPR)"
       }
 
