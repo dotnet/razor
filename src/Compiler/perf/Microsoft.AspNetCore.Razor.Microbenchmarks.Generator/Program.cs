@@ -5,6 +5,9 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Exporters.Csv;
 using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Diagnostics.Windows;
+using Microsoft.Diagnostics.Tracing.Session;
 
 Job baseJob = Job.Default;
 #if DEBUG
@@ -18,7 +21,13 @@ var config = ManualConfig.CreateMinimumViable()
             .AddJob(baseJob.WithCustomBuildConfiguration("Release").WithId("Current"))
             .AddJob(baseJob.WithCustomBuildConfiguration("Release_Nuget").WithId("Baseline").WithBaseline(true))
             .StopOnFirstError(true)
-            .AddExporter(CsvExporter.Default);
+            .AddExporter(CsvExporter.Default)
+            .AddDiagnoser(MemoryDiagnoser.Default);
+
+if (TraceEventSession.IsElevated() == true)
+{
+    config = config.AddDiagnoser(new EtwProfiler());
+}
 
 var results = BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, config);
 
