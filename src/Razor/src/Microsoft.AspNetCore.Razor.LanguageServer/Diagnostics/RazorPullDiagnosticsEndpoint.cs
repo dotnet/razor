@@ -18,14 +18,17 @@ internal class RazorPullDiagnosticsEndpoint
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ClientNotifierServiceBase _languageServer;
+    private readonly RazorTranslateDiagnosticsService _translateDiagnosticsService;
     protected readonly RazorDocumentMappingService DocumentMappingService;
 
     public RazorPullDiagnosticsEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
+        RazorTranslateDiagnosticsService translateDiagnosticsService,
         RazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+        _translateDiagnosticsService = translateDiagnosticsService ?? throw new ArgumentNullException(nameof(translateDiagnosticsService));
         DocumentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
     }
@@ -58,24 +61,22 @@ internal class RazorPullDiagnosticsEndpoint
 
         var delegatedParams = new DelegatedDiagnosticParams(documentContext.Identifier);
 
-        var delegatedResponse = await _languageServer.SendRequestAsync<DelegatedDiagnosticParams, IEnumerable<VSInternalDiagnosticReport>>(
+        var delegatedResponse = await _languageServer.SendRequestAsync<DelegatedDiagnosticParams, IEnumerable<VSInternalDiagnosticReport>?>(
             RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName,
             delegatedParams,
             cancellationToken).ConfigureAwait(false);
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+        if (delegatedResponse is null)
+        {
+            return default;
+        }
 
-        foreach(var report in delegatedResponse)
+        foreach (var report in delegatedResponse)
         {
             if (report.Diagnostics is not null)
             {
-                foreach(var diagnostic in report.Diagnostics)
-                {
-                    if(DocumentMappingService.TryMapFromProjectedDocumentRange(codeDocument, diagnostic.Range, out var razorRange))
-                    {
-                        diagnostic.Range = razorRange;
-                    }
-                }
+                var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, report.Diagnostics, documentContext, cancellationToken);
+                report.Diagnostics = mappedDiagnostics;
             }
         }
 

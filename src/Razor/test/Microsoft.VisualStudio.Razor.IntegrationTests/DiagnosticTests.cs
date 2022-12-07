@@ -47,4 +47,36 @@ public class DiagnosticTests : AbstractRazorEditorTest
                 Assert.Equal("Counter.razor(7, 9): error CS0127: Since 'Counter.Function()' returns void, a return keyword must not be followed by an object expression", error);
             });
     }
+
+    [IdeFact]
+    public async Task Diagnostics_ShowErrors_cshtml()
+    {
+        // Arrange
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.SetTextAsync(@"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang=""en"">
+<head>
+</head>
+
+<body>
+    <input asp-for=""Test"" />
+</body>
+</html>
+
+", ControlledHangMitigatingCancellationToken);
+
+        // Act
+        var errors = await TestServices.ErrorList.WaitForErrorsAsync("Error.cshtml", expectedCount: 1, ControlledHangMitigatingCancellationToken);
+
+        // Assert
+        Assert.Collection(errors,
+            (error) =>
+            {
+                Assert.Equal("Error.cshtml(10, 21): error CS1963: An expression tree may not contain a dynamic operation", error);
+            });
+    }
 }
