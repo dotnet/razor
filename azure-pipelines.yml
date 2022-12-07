@@ -386,6 +386,7 @@ stages:
           - script: eng/common/cibuild.sh
               --configuration $(_BuildConfig)
               --prepareMachine
+              --restore
               --pack
               --sign
               $(_InternalRuntimeDownloadArgs)
