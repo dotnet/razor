@@ -360,9 +360,8 @@ stages:
           vmImage: macOS-12
         strategy:
           matrix:
-            - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-              debug:
-                _BuildConfig: Debug
+            debug:
+              _BuildConfig: Debug
             release:
               _BuildConfig: Release
         steps:
