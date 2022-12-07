@@ -15,19 +15,19 @@ Generated Location: (1343:40,28 [5] )
 
 Source Location: (33:1,13 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |Item|
-Generated Location: (1562:49,13 [4] )
+Generated Location: (1555:49,13 [4] )
 |Item|
 
 Source Location: (42:1,22 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |Foo|
-Generated Location: (1789:58,22 [3] )
+Generated Location: (1774:58,22 [3] )
 |Foo|
 
 Source Location: (68:3,7 [38] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     MyClass Hello = new MyClass();
 |
-Generated Location: (2149:75,7 [38] )
+Generated Location: (2133:75,7 [38] )
 |
     MyClass Hello = new MyClass();
 |

@@ -39,7 +39,7 @@ using Microsoft.AspNetCore.Components.Web;
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-            __o = nameof(global::Test.MyComponent.
+            __o = ((global::Test.MyComponent)null).
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
              OnClick
@@ -47,7 +47,7 @@ using Microsoft.AspNetCore.Components.Web;
 #line default
 #line hidden
 #nullable disable
-            );
+            ;
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent);

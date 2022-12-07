@@ -50,7 +50,7 @@ using System.Collections.Generic;
 #line hidden
 #nullable disable
             ));
-            __o = nameof(__typeInference_CreateMyComponent_0.
+            __o = __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
              Item
@@ -58,8 +58,8 @@ using System.Collections.Generic;
 #line default
 #line hidden
 #nullable disable
-            );
-            __o = nameof(__typeInference_CreateMyComponent_0.
+            ;
+            __o = __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
                       MyEvent
@@ -67,7 +67,7 @@ using System.Collections.Generic;
 #line default
 #line hidden
 #nullable disable
-            );
+            ;
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);

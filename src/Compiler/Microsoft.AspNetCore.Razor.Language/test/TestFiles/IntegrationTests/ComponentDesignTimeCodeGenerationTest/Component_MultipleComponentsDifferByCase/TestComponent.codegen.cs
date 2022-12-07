@@ -32,7 +32,7 @@ namespace Test
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-            __o = nameof(global::Test.MyComponent.
+            __o = ((global::Test.MyComponent)null).
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
              IntProperty
@@ -40,7 +40,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            );
+            ;
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent);
@@ -60,7 +60,7 @@ __o = typeof(global::Test.MyComponent);
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-            __o = nameof(global::Test.Mycomponent.
+            __o = ((global::Test.Mycomponent)null).
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
              IntProperty
@@ -68,7 +68,7 @@ __o = typeof(global::Test.MyComponent);
 #line default
 #line hidden
 #nullable disable
-            );
+            ;
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.Mycomponent);

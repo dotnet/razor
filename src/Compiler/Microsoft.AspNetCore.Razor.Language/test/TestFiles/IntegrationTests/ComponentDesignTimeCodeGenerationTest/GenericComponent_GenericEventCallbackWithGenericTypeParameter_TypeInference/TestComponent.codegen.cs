@@ -44,7 +44,7 @@ using Test;
 #line hidden
 #nullable disable
             ));
-            __o = nameof(__typeInference_CreateMyComponent_0.
+            __o = __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
              Item
@@ -52,8 +52,8 @@ using Test;
 #line default
 #line hidden
 #nullable disable
-            );
-            __o = nameof(__typeInference_CreateMyComponent_0.
+            ;
+            __o = __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                       MyEvent
@@ -61,7 +61,7 @@ using Test;
 #line default
 #line hidden
 #nullable disable
-            );
+            ;
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);

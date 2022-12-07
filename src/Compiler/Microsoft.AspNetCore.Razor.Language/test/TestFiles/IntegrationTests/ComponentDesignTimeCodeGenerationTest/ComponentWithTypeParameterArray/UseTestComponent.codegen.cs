@@ -61,7 +61,7 @@ using Test;
 #nullable disable
             }
             );
-            __o = nameof(__typeInference_CreateTestComponent_0.
+            __o = __typeInference_CreateTestComponent_0.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
                Items1
@@ -69,8 +69,8 @@ using Test;
 #line default
 #line hidden
 #nullable disable
-            );
-            __o = nameof(__typeInference_CreateTestComponent_0.
+            ;
+            __o = __typeInference_CreateTestComponent_0.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
                              Items2
@@ -78,8 +78,8 @@ using Test;
 #line default
 #line hidden
 #nullable disable
-            );
-            __o = nameof(__typeInference_CreateTestComponent_0.
+            ;
+            __o = __typeInference_CreateTestComponent_0.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
                                            Items3
@@ -87,7 +87,7 @@ using Test;
 #line default
 #line hidden
 #nullable disable
-            );
+            ;
 #nullable restore
 #line 2 "x:\dir\subdir\Test\UseTestComponent.cshtml"
 __o = typeof(global::Test.TestComponent<>);

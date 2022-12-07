@@ -58,7 +58,7 @@ global::System.Object TChild = null!;
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-            __o = nameof(global::Test.MyComponent<string>.
+            __o = ((global::Test.MyComponent<TChild>)null).
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
                             MyEvent
@@ -66,7 +66,7 @@ global::System.Object TChild = null!;
 #line default
 #line hidden
 #nullable disable
-            );
+            ;
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);

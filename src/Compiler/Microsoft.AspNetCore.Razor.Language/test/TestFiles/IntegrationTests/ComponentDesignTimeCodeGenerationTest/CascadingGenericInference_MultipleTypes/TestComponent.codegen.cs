@@ -48,7 +48,7 @@ namespace Test
 #line hidden
 #nullable disable
                     );
-                    __o = nameof(__typeInference_CreateChild_1.
+                    __o = __typeInference_CreateChild_1.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
            ChildOnlyItems
@@ -56,7 +56,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-                    );
+                    ;
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.Child<,,,>);
@@ -66,7 +66,7 @@ __o = typeof(global::Test.Child<,,,>);
 #nullable disable
                 }
                 );
-                __o = nameof(__typeInference_CreateParent_0.
+                __o = __typeInference_CreateParent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
         Data
@@ -74,8 +74,8 @@ __o = typeof(global::Test.Child<,,,>);
 #line default
 #line hidden
 #nullable disable
-                );
-                __o = nameof(__typeInference_CreateParent_0.
+                ;
+                __o = __typeInference_CreateParent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                                                                            Other
@@ -83,7 +83,7 @@ __o = typeof(global::Test.Child<,,,>);
 #line default
 #line hidden
 #nullable disable
-                );
+                ;
             }
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"

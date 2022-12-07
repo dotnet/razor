@@ -30,7 +30,7 @@ namespace Test
 #nullable disable
             , -1, 
             __value => Value = __value);
-            __o = nameof(__typeInference_CreateMyComponent_0.
+            __o = __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                    Item
@@ -38,7 +38,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            );
+            ;
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);
@@ -56,7 +56,7 @@ __o = typeof(global::Test.MyComponent<>);
 #nullable disable
             , -1, 
             __value => Value = __value);
-            __o = nameof(__typeInference_CreateMyComponent_1.
+            __o = __typeInference_CreateMyComponent_1.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                    Item
@@ -64,7 +64,7 @@ __o = typeof(global::Test.MyComponent<>);
 #line default
 #line hidden
 #nullable disable
-            );
+            ;
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);

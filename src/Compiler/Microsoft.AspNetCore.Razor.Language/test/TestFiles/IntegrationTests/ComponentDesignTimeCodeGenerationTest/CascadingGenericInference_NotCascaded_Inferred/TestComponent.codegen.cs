@@ -49,7 +49,7 @@ __o = typeof(global::Test.Column<>);
 #nullable disable
                 }
                 );
-                __o = nameof(__typeInference_CreateGrid_0.
+                __o = __typeInference_CreateGrid_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
       Items
@@ -57,7 +57,7 @@ __o = typeof(global::Test.Column<>);
 #line default
 #line hidden
 #nullable disable
-                );
+                ;
             }
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"

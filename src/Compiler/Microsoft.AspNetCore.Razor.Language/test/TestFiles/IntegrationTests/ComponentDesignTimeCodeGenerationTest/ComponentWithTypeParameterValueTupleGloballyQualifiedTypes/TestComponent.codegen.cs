@@ -62,7 +62,7 @@ global::System.Object TParam = null!;
 #nullable disable
             }
             );
-            __o = nameof(__typeInference_CreateTestComponent_0.
+            __o = __typeInference_CreateTestComponent_0.
 #nullable restore
 #line 12 "x:\dir\subdir\Test\TestComponent.cshtml"
                InferParam
@@ -70,7 +70,7 @@ global::System.Object TParam = null!;
 #line default
 #line hidden
 #nullable disable
-            );
+            ;
 #nullable restore
 #line 12 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.TestComponent<>);

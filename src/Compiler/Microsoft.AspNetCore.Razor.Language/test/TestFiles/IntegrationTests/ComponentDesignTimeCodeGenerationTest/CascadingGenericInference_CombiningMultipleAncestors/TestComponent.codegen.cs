@@ -52,7 +52,7 @@ __o = typeof(global::Test.Child<,>);
 #nullable disable
                         }
                         );
-                        __o = nameof(__typeInference_CreateParentTwo_1.
+                        __o = __typeInference_CreateParentTwo_1.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                Value
@@ -60,7 +60,7 @@ __o = typeof(global::Test.Child<,>);
 #line default
 #line hidden
 #nullable disable
-                        );
+                        ;
                     }
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -71,7 +71,7 @@ __o = typeof(global::Test.ParentTwo<>);
 #nullable disable
                 }
                 );
-                __o = nameof(__typeInference_CreateParentOne_0.
+                __o = __typeInference_CreateParentOne_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
            Value
@@ -79,7 +79,7 @@ __o = typeof(global::Test.ParentTwo<>);
 #line default
 #line hidden
 #nullable disable
-                );
+                ;
             }
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"

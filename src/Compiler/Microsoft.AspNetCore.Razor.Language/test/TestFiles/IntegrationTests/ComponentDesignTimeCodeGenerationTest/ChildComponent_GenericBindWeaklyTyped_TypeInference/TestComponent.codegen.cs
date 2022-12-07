@@ -37,7 +37,7 @@ namespace Test
 #line hidden
 #nullable disable
             , -1, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => Value = __value, Value));
-            __o = nameof(__typeInference_CreateMyComponent_0.
+            __o = __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                               Value
@@ -45,7 +45,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            );
+            ;
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);

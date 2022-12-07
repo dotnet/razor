@@ -10,7 +10,7 @@ Generated Location: (1150:32,28 [1] )
 
 Source Location: (48:2,15 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |TestDynamic|
-Generated Location: (1521:44,15 [11] )
+Generated Location: (1522:44,15 [11] )
 |TestDynamic|
 
 Source Location: (77:4,7 [65] x:\dir\subdir\Test\TestComponent.cshtml)

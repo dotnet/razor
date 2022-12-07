@@ -68,7 +68,7 @@ __o = typeof(global::Test.TreeNode<>);
 #nullable disable
                         }
                         );
-                        __o = nameof(__typeInference_CreateTreeNode_1.
+                        __o = __typeInference_CreateTreeNode_1.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
               Item
@@ -76,7 +76,7 @@ __o = typeof(global::Test.TreeNode<>);
 #line default
 #line hidden
 #nullable disable
-                        );
+                        ;
                     }
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -98,7 +98,7 @@ __o = typeof(global::Test.TreeNode<>);
 #nullable disable
                 }
                 );
-                __o = nameof(__typeInference_CreateTreeNode_0.
+                __o = __typeInference_CreateTreeNode_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
           Item
@@ -106,7 +106,7 @@ __o = typeof(global::Test.TreeNode<>);
 #line default
 #line hidden
 #nullable disable
-                );
+                ;
             }
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"

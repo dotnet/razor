@@ -47,7 +47,7 @@ using Models;
             ;
             __builder.AddAttribute(-1, "ColumnsTemplate", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
                 var __typeInference_CreateColumn_0 = global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_0(__builder2, -1, default(WeatherForecast), -1, "", -1, "", -1, "", -1, "");
-                __o = nameof(__typeInference_CreateColumn_0.
+                __o = __typeInference_CreateColumn_0.
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
                              FieldName
@@ -55,7 +55,7 @@ using Models;
 #line default
 #line hidden
 #nullable disable
-                );
+                ;
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.Column<>);
