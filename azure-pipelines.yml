@@ -358,11 +358,11 @@ stages:
       - job: macOS
         pool:
           vmImage: macOS-12
-          archType: arm
         strategy:
           matrix:
-            debug:
-              _BuildConfig: Debug
+            - ${{ if eq(variables['System.TeamProject'], 'public') }}:
+              debug:
+                _BuildConfig: Debug
             release:
               _BuildConfig: Release
         steps:
@@ -379,7 +379,7 @@ stages:
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - powershell: dotnet restore
+          - script: dotnet restore
             displayName: Restore project.assets.json
             continueOnError: false
             condition: always()
