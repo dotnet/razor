@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Configurations>Debug;Release</Configurations>
+    <IsTestProject>true</IsTestProject>
+    <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +23,9 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
     <PackageReference Include="Microsoft.Build.Locator" />
+
+    <!-- TestSDK brings in an earlier nuget frameworks that breaks loading the test project -->
+    <PackageReference Include="NuGet.Frameworks" VersionOverride="6.4.0" />
   </ItemGroup>
 
   <!-- Reference the local source generator when building in regular configurations -->
