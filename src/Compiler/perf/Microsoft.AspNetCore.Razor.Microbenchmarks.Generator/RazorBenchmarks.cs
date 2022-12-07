@@ -10,37 +10,41 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Generator;
 public class RazorBenchmarks : AbstractBenchmark
 {
     [Benchmark]
-    public void Razor_Add_Independent() => RunRazorBenchmark(new(Independent, "Independent.razor"), null);
+    public GeneratorDriver Razor_Add_Independent() => RunRazorBenchmark(Independent, "Independent.razor", replaceExisting: false);
 
     [Benchmark]
-    public void Razor_Edit_Independent() => RunRazorBenchmark(new(Independent, "\\Pages\\Generated\\0.razor"), "\\0.razor");
+    public GeneratorDriver Razor_Edit_Independent() => RunRazorBenchmark(Independent, "\\0.razor");
 
     [Benchmark]
-    public void Razor_Remove_Independent() => RunRazorBenchmark(null, "\\0.razor");
+    public GeneratorDriver Razor_Remove_Independent() => RunRazorBenchmark(null, "\\0.razor");
 
     [Benchmark]
-    public void Razor_Edit_DependentIgnorable() => RunRazorBenchmark(new(DependentIgnorable, "\\Pages\\Counter.razor"), "Counter.razor");
+    public GeneratorDriver Razor_Edit_DependentIgnorable() => RunRazorBenchmark(DependentIgnorable, "Counter.razor");
 
     [Benchmark]
-    public void Razor_Edit_Dependent() => RunRazorBenchmark(new(Dependent, "\\Pages\\Counter.razor"), "Counter.razor");
+    public GeneratorDriver Razor_Edit_Dependent() => RunRazorBenchmark(Dependent, "Counter.razor");
 
     [Benchmark]
-    public void Razor_Remove_Dependent() => RunRazorBenchmark(null, "\\Counter.razor");
+    public GeneratorDriver Razor_Remove_Dependent() => RunRazorBenchmark(null, "\\Counter.razor");
 
 
-    private void RunRazorBenchmark(ProjectSetup.InMemoryAdditionalText? AddedFile, string? RemovedFileSuffix) => RunBenchmark((ProjectSetup.RazorProject project) =>
+    private GeneratorDriver RunRazorBenchmark(string? AddedFileContent, string FilePath, bool replaceExisting = true) => RunBenchmark((ProjectSetup.RazorProject project) =>
     {
-        var removedFile = RemovedFileSuffix is not null
-                            ? project.AdditionalTexts.Single(a => a.Path.EndsWith(RemovedFileSuffix, StringComparison.OrdinalIgnoreCase))
+        var removedFile = replaceExisting
+                            ? project.AdditionalTexts.Single(a => a.Path.EndsWith(FilePath, StringComparison.OrdinalIgnoreCase))
                             : null;
 
-        if (AddedFile is not null && removedFile is not null)
+        var addedFile = AddedFileContent is not null
+                            ? new ProjectSetup.InMemoryAdditionalText(AddedFileContent, replaceExisting ? removedFile!.Path : FilePath)
+                            : null;
+
+        if (addedFile is not null && removedFile is not null)
         {
-            return project.GeneratorDriver.ReplaceAdditionalText(removedFile, AddedFile);
+            return project.GeneratorDriver.ReplaceAdditionalText(removedFile, addedFile);
         }
-        else if (AddedFile is not null)
+        else if (addedFile is not null)
         {
-            return project.GeneratorDriver.AddAdditionalTexts(ImmutableArray.Create((AdditionalText)AddedFile));
+            return project.GeneratorDriver.AddAdditionalTexts(ImmutableArray.Create((AdditionalText)addedFile));
         }
         else if (removedFile is not null)
         {
@@ -56,9 +60,9 @@ public class RazorBenchmarks : AbstractBenchmark
     private const string DependentIgnorable = """
         @page "/counter"
 
-        <PageTitle>Counter edited</PageTitle>
+        <PageTitle>Counter</PageTitle>
 
-        <h1>Counter</h1>
+        <h1>Counter edited</h1>
 
         <p role="status">Current count: @currentCount</p>
 

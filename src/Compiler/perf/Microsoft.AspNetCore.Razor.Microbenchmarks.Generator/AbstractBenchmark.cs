@@ -27,13 +27,13 @@ public abstract class AbstractBenchmark
         _project = ProjectSetup.GetRazorProject(cold: Startup == StartupKind.Cold);
     }
 
-    protected void RunBenchmark(Func<ProjectSetup.RazorProject, GeneratorDriver> updateDriver)
+    protected GeneratorDriver RunBenchmark(Func<ProjectSetup.RazorProject, GeneratorDriver> updateDriver)
     {
         var compilation = _project!.Compilation;
         var driver = _project!.GeneratorDriver;
         driver = updateDriver(_project!);
 
         driver = driver.RunGenerators(compilation);
-        var result = driver.GetRunResult();
+        return driver;
     }
 }
