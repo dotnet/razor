@@ -71,7 +71,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var options = globalOptions.GetOptions(additionalText);
 
             if (!options.TryGetValue("build_metadata.AdditionalFiles.TargetPath", out var encodedRelativePath) ||
-                string.IsNullOrEmpty(encodedRelativePath))
+                string.IsNullOrWhiteSpace(encodedRelativePath))
             {
                 var diagnostic = Diagnostic.Create(
                     RazorDiagnostics.TargetPathNotProvided,

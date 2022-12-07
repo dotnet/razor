@@ -2380,8 +2380,11 @@ namespace MyApp
             Assert.Single(result.GeneratedSources);
         }
 
-        [Fact] // https://github.com/dotnet/razor/issues/7236
-        public async Task SourceGenerator_EmptyTargetPath()
+        [Theory] // https://github.com/dotnet/razor/issues/7236
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData("\n")]
+        public async Task SourceGenerator_EmptyTargetPath(string targetPath)
         {
             const string componentPath = "Component.razor";
             var project = CreateTestProject(new()
@@ -2394,7 +2397,7 @@ namespace MyApp
             {
                 optionsProvider.AdditionalTextOptions[componentPath] = new TestAnalyzerConfigOptions
                 {
-                    ["build_metadata.AdditionalFiles.TargetPath"] = string.Empty
+                    ["build_metadata.AdditionalFiles.TargetPath"] = targetPath
                 };
             });
 
