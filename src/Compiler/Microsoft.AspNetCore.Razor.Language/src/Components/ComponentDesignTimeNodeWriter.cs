@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -652,31 +653,39 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
         context.CodeWriter.Write(DesignTimeVariable);
         context.CodeWriter.Write(" = ");
-        context.CodeWriter.Write("nameof(");
 
         if (componentNode.TypeInferenceNode == null)
         {
-            context.CodeWriter.Write("global::");
+            context.CodeWriter.Write("((global::");
             context.CodeWriter.Write(componentNode.Component.GetTypeNamespace());
             context.CodeWriter.Write(".");
             context.CodeWriter.Write(componentNode.Component.GetTypeNameIdentifier());
             if (componentNode.Component.IsGenericTypedComponent())
             {
+                // If there are generic type components, but no type inference node, then it means
+                // the user specified the type parameters, so we can use them directly
                 context.CodeWriter.Write("<");
-                var typeArgumentCount = componentNode.Component.GetTypeParameters().Count();
-                for (var i = 0; i < typeArgumentCount; i++)
+
+                var i = 0;
+                foreach (var typeArgumentNode in componentNode.Children.OfType<ComponentTypeArgumentIntermediateNode>())
                 {
-                    if (i > 0)
+                    if (i++ > 0)
                     {
-                        context.CodeWriter.Write(",");
+                        context.CodeWriter.Write(", ");
                     }
-                    // We need to specify a type for the generic type parameters, but it doesn't matter which one, as we're just
-                    // getting the property name from nameof. If nameof ever supports open generics (ie, nameof(List<>.Count) then we
-                    // can remove this.
-                    context.CodeWriter.Write("string");
+
+                    foreach (var token in typeArgumentNode.Children.OfType<IntermediateToken>())
+                    {
+                        // As per WriteComponentTypeArgument, we expect every token to be C#, but check just in case
+                        if (token.IsCSharp)
+                        {
+                            context.CodeWriter.Write(token.Content);
+                        }
+                    }
                 }
                 context.CodeWriter.Write(">");
             }
+            context.CodeWriter.Write(")null)");
         }
         else
         {
@@ -702,7 +711,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
         // When doing a Find All Refs, sometimes the text content of the generated file shows up,
         // so being able to see "= default" in there would confuse users, so keep it on a separate line
-        context.CodeWriter.Write(");");
+        context.CodeWriter.Write(";");
         context.CodeWriter.WriteLine();
     }
 
