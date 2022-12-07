@@ -88,6 +88,12 @@ using Microsoft.VisualStudio.Shell;
     OldVersionUpperBound = "4.5.0.0",
     NewVersion = "4.5.0.0")]
 [assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.VisualStudio.Threading",
+    GenerateCodeBase = true,
+    OldVersionLowerBound = "17.4.0.0",
+    OldVersionUpperBound = "17.5.0.0",
+    NewVersion = "17.5.0.0")]
+[assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.VisualStudio.LanguageServices",
     GenerateCodeBase = true,
     OldVersionLowerBound = "4.4.0.0",
@@ -98,3 +104,4 @@ using Microsoft.VisualStudio.Shell;
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.LanguageServer.Protocol.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll")]
+[assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.Threading.dll")]
