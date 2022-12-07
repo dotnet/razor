@@ -52,7 +52,7 @@ internal class RazorPullDiagnosticsEndpoint
 
     public async Task<IEnumerable<VSInternalDiagnosticReport>?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {
-        if (!_languageServerFeatureOptions.SingleServerDiagnosticsSupport)
+        if (!_languageServerFeatureOptions.SingleServerSupport)
         {
             return default;
         }
