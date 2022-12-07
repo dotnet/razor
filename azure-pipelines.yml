@@ -357,7 +357,8 @@ stages:
 
       - job: macOS
         pool:
-          vmImage: macOS-11
+          vmImage: macOS-12
+          archType: arm
         strategy:
           matrix:
             debug:
