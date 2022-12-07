@@ -83,25 +83,25 @@ public class RazorBenchmarks : AbstractBenchmark
         """;
 
     private const string Dependent = """
-    @page "/counter"
+        @page "/counter"
 
-    <PageTitle>Counter edited</PageTitle>
+        <PageTitle>Counter</PageTitle>
 
-    <h1>Counter</h1>
+        <h1>Counter edited dependent</h1>
 
-    <p role="status">Current count: @currentCount</p>
+        <p role="status">Current count: @currentCount</p>
 
-    <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+        <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
-    @code {
+        @code {
+            
+            private int currentCount = 0;
 
-        private int currentCount = 0;
-
-        private void IncrementCount()
-        {
-            currentCount++;
+            private void IncrementCount()
+            {
+                currentCount++;
+            }
         }
-    }
 
-    """;
+        """;
 }
