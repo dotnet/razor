@@ -428,7 +428,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
             }
             else
             {
-                classifiedElementContainer.Add(new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement(s_newLine)));
+                classifiedElementContainer.Add(new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement()));
             }
 
             classifiedElementContainer.Add(new ContainerElement(ContainerElementStyle.Wrapped, glyph, new ClassifiedTextElement(classification.Type)));
