@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -19,10 +19,8 @@ internal class DesignTimeDirectivePass : IntermediateNodePassBase, IRazorDirecti
     {
         // Only supports design time. This pass rewrites directives so they will have the right design time
         // behavior and would break things if it ran for runtime.
-        if (!documentNode.Options.DesignTime)
-        {
-            return;
-        }
+
+        // PROTOTYPE: Figure out what this breaks in runtime, and why design time needs it
 
         var walker = new DesignTimeHelperWalker();
         walker.VisitDocument(documentNode);

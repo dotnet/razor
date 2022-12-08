@@ -57,17 +57,7 @@ public abstract class RazorProjectEngine
         throw new NotImplementedException();
     }
 
-    public virtual RazorCodeDocument ProcessDesignTime(RazorProjectItem projectItem)
-    {
-        if (projectItem == null)
-        {
-            throw new ArgumentNullException(nameof(projectItem));
-        }
-
-        var codeDocument = CreateCodeDocumentDesignTimeCore(projectItem);
-        ProcessCore(codeDocument);
-        return codeDocument;
-    }
+    public virtual RazorCodeDocument ProcessDesignTime(RazorProjectItem projectItem) => Process(projectItem);
 
     protected abstract RazorCodeDocument CreateCodeDocumentCore(RazorProjectItem projectItem);
 

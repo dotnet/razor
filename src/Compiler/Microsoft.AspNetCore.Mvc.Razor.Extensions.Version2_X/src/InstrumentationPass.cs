@@ -17,11 +17,6 @@ public class InstrumentationPass : IntermediateNodePassBase, IRazorOptimizationP
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
     {
-        if (documentNode.Options.DesignTime)
-        {
-            return;
-        }
-
         var walker = new Visitor();
         walker.VisitDocument(documentNode);
 

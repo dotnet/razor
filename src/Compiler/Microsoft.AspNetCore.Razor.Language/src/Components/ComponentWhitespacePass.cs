@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -35,11 +35,7 @@ internal class ComponentWhitespacePass : ComponentIntermediateNodePassBase, IRaz
             return;
         }
 
-        // There's no benefit running the whitespace trimmer during design-time builds
-        if (documentNode.Options.DesignTime)
-        {
-            return;
-        }
+        // PROTOTYPE: Does whitespace affect tooling?
 
         var razorLanguageVersion = codeDocument.GetParserOptions().Version;
         var useLegacyBehavior = razorLanguageVersion.CompareTo(RazorLanguageVersion.Version_5_0) < 0;

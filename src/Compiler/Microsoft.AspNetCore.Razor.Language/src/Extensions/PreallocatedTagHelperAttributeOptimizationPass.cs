@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -17,12 +17,6 @@ internal class PreallocatedTagHelperAttributeOptimizationPass : IntermediateNode
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
     {
-        // There's no value in executing this pass at design time, it just prevents some allocations.
-        if (documentNode.Options.DesignTime)
-        {
-            return;
-        }
-
         var walker = new PreallocatedTagHelperWalker();
         walker.VisitDocument(documentNode);
     }

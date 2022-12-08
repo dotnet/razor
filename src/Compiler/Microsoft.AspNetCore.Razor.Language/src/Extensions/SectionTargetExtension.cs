@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -9,9 +9,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Extensions;
 
 public sealed class SectionTargetExtension : ISectionTargetExtension
 {
-    // Compatibility for 1.X projects
-    private const string DefaultWriterName = "__razor_section_writer";
-
     public static readonly string DefaultSectionMethodName = "DefineSection";
 
     public string SectionMethodName { get; set; } = DefaultSectionMethodName;
@@ -24,20 +21,11 @@ public sealed class SectionTargetExtension : ISectionTargetExtension
             .Write(node.SectionName)
             .Write("\", ");
 
-        if (context.Options.DesignTime)
-        {
-            using (context.CodeWriter.BuildAsyncLambda(DefaultWriterName))
-            {
-                context.RenderChildren(node);
-            }
-        }
-        else
-        {
+            // PROTOTYPE: does this break 1.x projects?
             using (context.CodeWriter.BuildAsyncLambda())
             {
                 context.RenderChildren(node);
             }
-        }
 
         context.CodeWriter.WriteEndMethodInvocation(endLine: true);
     }

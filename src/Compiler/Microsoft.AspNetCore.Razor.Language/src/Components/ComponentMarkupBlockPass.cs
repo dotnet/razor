@@ -33,12 +33,7 @@ internal class ComponentMarkupBlockPass : ComponentIntermediateNodePassBase, IRa
             return;
         }
 
-        if (documentNode.Options.DesignTime)
-        {
-            // Nothing to do during design time.
-            return;
-        }
-
+        // PROTOTYPE: this will probably need changing to retain the 'insignificant' details of the HTML
         var findVisitor = new FindHtmlTreeVisitor();
         findVisitor.Visit(documentNode);
 

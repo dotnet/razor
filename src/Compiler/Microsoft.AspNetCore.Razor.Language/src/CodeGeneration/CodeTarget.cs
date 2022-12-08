@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -41,14 +41,6 @@ public abstract class CodeTarget
 
         var builder = new DefaultCodeTargetBuilder(codeDocument, options);
 
-        if (builder.Options.DesignTime)
-        {
-            AddDesignTimeDefaults(builder);
-        }
-        else
-        {
-            AddRuntimeDefaults(builder);
-        }
 
         if (configure != null)
         {
@@ -76,16 +68,6 @@ public abstract class CodeTarget
         var builder = new DefaultCodeTargetBuilder(codeDocument, options);
         configure?.Invoke(builder);
         return builder.Build();
-    }
-
-    internal static void AddDesignTimeDefaults(CodeTargetBuilder builder)
-    {
-
-    }
-
-    internal static void AddRuntimeDefaults(CodeTargetBuilder builder)
-    {
-
     }
 
     public abstract IntermediateNodeWriter CreateNodeWriter();

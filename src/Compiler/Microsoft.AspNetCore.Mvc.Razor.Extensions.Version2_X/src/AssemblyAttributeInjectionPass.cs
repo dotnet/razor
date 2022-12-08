@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -17,11 +17,6 @@ public class AssemblyAttributeInjectionPass : IntermediateNodePassBase, IRazorOp
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
     {
-        if (documentNode.Options.DesignTime)
-        {
-            return;
-        }
-
         var @namespace = documentNode.FindPrimaryNamespace();
         if (@namespace == null || string.IsNullOrEmpty(@namespace.Content))
         {

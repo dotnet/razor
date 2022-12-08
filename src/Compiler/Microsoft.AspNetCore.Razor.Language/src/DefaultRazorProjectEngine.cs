@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -133,73 +133,8 @@ internal class DefaultRazorProjectEngine : RazorProjectEngine
         return codeDocument;
     }
 
-    protected override RazorCodeDocument CreateCodeDocumentDesignTimeCore(RazorProjectItem projectItem)
-    {
-        if (projectItem == null)
-        {
-            throw new ArgumentNullException(nameof(projectItem));
-        }
+    protected override RazorCodeDocument CreateCodeDocumentDesignTimeCore(RazorProjectItem projectItem) => throw new NotImplementedException();
 
-        return CreateCodeDocumentDesignTimeCore(projectItem, configureParser: null, configureCodeGeneration: null);
-    }
-
-    protected RazorCodeDocument CreateCodeDocumentDesignTimeCore(
-        RazorProjectItem projectItem,
-        Action<RazorParserOptionsBuilder> configureParser,
-        Action<RazorCodeGenerationOptionsBuilder> configureCodeGeneration)
-    {
-        if (projectItem == null)
-        {
-            throw new ArgumentNullException(nameof(projectItem));
-        }
-
-        var sourceDocument = RazorSourceDocument.ReadFrom(projectItem);
-
-        var importItems = new List<RazorProjectItem>();
-        var features = ProjectFeatures.OfType<IImportProjectFeature>();
-        foreach (var feature in features)
-        {
-            importItems.AddRange(feature.GetImports(projectItem));
-        }
-
-        var importSourceDocuments = GetImportSourceDocuments(importItems, suppressExceptions: true);
-        return CreateCodeDocumentDesignTimeCore(sourceDocument, projectItem.FileKind, importSourceDocuments, tagHelpers: null, configureParser, configureCodeGeneration);
-    }
-
-    protected RazorCodeDocument CreateCodeDocumentDesignTimeCore(
-        RazorSourceDocument sourceDocument,
-        string fileKind,
-        IReadOnlyList<RazorSourceDocument> importSourceDocuments,
-        IReadOnlyList<TagHelperDescriptor> tagHelpers,
-        Action<RazorParserOptionsBuilder> configureParser,
-        Action<RazorCodeGenerationOptionsBuilder> configureCodeGeneration)
-    {
-        if (sourceDocument == null)
-        {
-            throw new ArgumentNullException(nameof(sourceDocument));
-        }
-
-        var parserOptions = GetRequiredFeature<IRazorParserOptionsFactoryProjectFeature>().Create(fileKind, builder =>
-        {
-            ConfigureDesignTimeParserOptions(builder);
-            configureParser?.Invoke(builder);
-        });
-        var codeGenerationOptions = GetRequiredFeature<IRazorCodeGenerationOptionsFactoryProjectFeature>().Create(fileKind, builder =>
-        {
-            ConfigureDesignTimeCodeGenerationOptions(builder);
-            configureCodeGeneration?.Invoke(builder);
-        });
-
-        var codeDocument = RazorCodeDocument.Create(sourceDocument, importSourceDocuments, parserOptions, codeGenerationOptions);
-        codeDocument.SetTagHelpers(tagHelpers);
-
-        if (fileKind != null)
-        {
-            codeDocument.SetFileKind(fileKind);
-        }
-
-        return codeDocument;
-    }
 
     public override RazorCodeDocument Process(RazorSourceDocument source, string fileKind, IReadOnlyList<RazorSourceDocument> importSources, IReadOnlyList<TagHelperDescriptor> tagHelpers)
     {
@@ -245,17 +180,7 @@ internal class DefaultRazorProjectEngine : RazorProjectEngine
         return codeDocument;
     }
 
-    public override RazorCodeDocument ProcessDesignTime(RazorSourceDocument source, string fileKind, IReadOnlyList<RazorSourceDocument> importSources, IReadOnlyList<TagHelperDescriptor> tagHelpers)
-    {
-        if (source == null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        var codeDocument = CreateCodeDocumentDesignTimeCore(source, fileKind, importSources, tagHelpers, configureParser: null, configureCodeGeneration: null);
-        ProcessCore(codeDocument);
-        return codeDocument;
-    }
+    public override RazorCodeDocument ProcessDesignTime(RazorSourceDocument source, string fileKind, IReadOnlyList<RazorSourceDocument> importSources, IReadOnlyList<TagHelperDescriptor> tagHelpers) => Process(source, fileKind, importSources, tagHelpers);
 
     protected override void ProcessCore(RazorCodeDocument codeDocument)
     {
@@ -285,21 +210,11 @@ internal class DefaultRazorProjectEngine : RazorProjectEngine
     {
     }
 
-    private void ConfigureDesignTimeParserOptions(RazorParserOptionsBuilder builder)
-    {
-        builder.SetDesignTime(true);
-    }
 
     private void ConfigureCodeGenerationOptions(RazorCodeGenerationOptionsBuilder builder)
     {
     }
 
-    private void ConfigureDesignTimeCodeGenerationOptions(RazorCodeGenerationOptionsBuilder builder)
-    {
-        builder.SetDesignTime(true);
-        builder.SuppressChecksum = true;
-        builder.SuppressMetadataAttributes = true;
-    }
 
     // Internal for testing
     internal static IReadOnlyList<RazorSourceDocument> GetImportSourceDocuments(

@@ -23,12 +23,6 @@ internal class ComponentMarkupEncodingPass : ComponentIntermediateNodePassBase, 
             return;
         }
 
-        if (documentNode.Options.DesignTime)
-        {
-            // Nothing to do during design time.
-            return;
-        }
-
         var rewriter = new Rewriter();
         rewriter.Visit(documentNode);
     }
