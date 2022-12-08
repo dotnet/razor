@@ -378,7 +378,14 @@ stages:
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - powershell: dotnet restore & eng/common/cibuild.sh
+          - _SignType: real
+          - _BuildArgs: /p:DotNetSignType=$(_SignType) /p:TeamName=$(_TeamName)
+              /p:OfficialBuildId=$(Build.BuildNumber)
+              /p:ManifestBuildBranch=$(Build.SourceBranchName)
+              /p:ManifestBuildNumber=$(Build.BuildNumber)
+              /p:VisualStudioDropName=Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)
+              /p:GenerateSbom=true
+          - script: dotnet restore & eng/common/cibuild.sh
               --restore
               --build
               --sign
@@ -386,7 +393,8 @@ stages:
               --publish
               --configuration $(_BuildConfig)
               --prepareMachine
-              $(_PublishArgs)
+              $(_BuildArgs)
+              /p:DotNetPublishUsingPipelines=true
               $(_InternalRuntimeDownloadArgs)
             name: Build
             displayName: Build
