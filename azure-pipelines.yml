@@ -386,7 +386,6 @@ stages:
               --publish
               --configuration $(_BuildConfig)
               --prepareMachine
-              $(_BuildArgs)
               $(_PublishArgs)
               $(_InternalRuntimeDownloadArgs)
             name: Build
