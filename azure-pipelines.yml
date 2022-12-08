@@ -378,7 +378,7 @@ stages:
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - script: dotnet restore & eng/common/cibuild.sh
+          - powershell: dotnet restore & eng/common/build.ps1
               --restore
               --build
               --sign
