@@ -418,9 +418,19 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
 
     private static ContainerElement CombineClassifiedTextRuns(IReadOnlyList<DescriptionClassification> descriptionClassifications, ImageElement glyph)
     {
+        var isFirstElement = true;
         var classifiedElementContainer = new List<ContainerElement>();
         foreach (var classification in descriptionClassifications)
         {
+            if (isFirstElement)
+            {
+                isFirstElement = false;
+            }
+            else
+            {
+                classifiedElementContainer.Add(new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement(s_newLine)));
+            }
+
             classifiedElementContainer.Add(new ContainerElement(ContainerElementStyle.Wrapped, glyph, new ClassifiedTextElement(classification.Type)));
 
             if (classification.Documentation.Count > 0)
