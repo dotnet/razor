@@ -378,10 +378,10 @@ stages:
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - script: dotnet restore
-            name: Restore
-            displayName: Restore
-            condition: succeeded()
+          - powershell: dotnet restore
+            displayName: dotnet restore
+            continueOnError: false
+            condition: always()
           - script: eng/common/cibuild.sh
               --restore
               --build
@@ -449,10 +449,10 @@ stages:
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - script: dotnet restore
-            name: Restore
-            displayName: Restore
-            condition: succeeded()
+          - powershell: dotnet restore
+            displayName: dotnet restore
+            continueOnError: false
+            condition: always()
           - script: eng/common/cibuild.sh
               --restore
               --build
