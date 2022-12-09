@@ -120,5 +120,8 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
 
         [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorValidateBreakpointRangeName, UseSingleObjectParameterDeserialization = true)]
         public abstract Task<Range?> ValidateBreakpointRangeAsync(DelegatedValidateBreakpointRangeParams request, CancellationToken cancellationToken);
+
+        [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorReferencesEndpointName, UseSingleObjectParameterDeserialization = true)]
+        public abstract Task<VSInternalReferenceItem[]?> ReferencesAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
     }
 }

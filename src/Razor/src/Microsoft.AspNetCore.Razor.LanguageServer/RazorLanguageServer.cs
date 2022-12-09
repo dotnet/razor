@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
@@ -155,6 +156,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             services.AddRegisteringHandler<DocumentColorEndpoint>();
             services.AddRegisteringHandler<FoldingRangeEndpoint>();
             services.AddRegisteringHandler<ValidateBreakpointRangeEndpoint>();
+            services.AddRegisteringHandler<FindAllReferencesEndpoint>();
         }
     }
 

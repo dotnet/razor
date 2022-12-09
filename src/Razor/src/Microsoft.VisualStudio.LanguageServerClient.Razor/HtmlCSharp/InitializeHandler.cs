@@ -113,6 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
                 _initializeResult.Capabilities.DocumentHighlightProvider = false;
                 _initializeResult.Capabilities.SignatureHelpProvider = null;
                 _initializeResult.Capabilities.ImplementationProvider = false;
+                _initializeResult.Capabilities.ReferencesProvider = false;
 
                 ((VSInternalServerCapabilities)_initializeResult.Capabilities).OnAutoInsertProvider = null;
             }

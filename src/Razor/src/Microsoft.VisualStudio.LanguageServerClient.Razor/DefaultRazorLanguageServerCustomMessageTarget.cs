@@ -1046,6 +1046,9 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor
         public override Task<ImplementationResult> ImplementationAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
             => DelegateTextDocumentPositionRequestAsync<ImplementationResult>(request, Methods.TextDocumentImplementationName, cancellationToken);
 
+        public override Task<VSInternalReferenceItem[]?> ReferencesAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+            => DelegateTextDocumentPositionRequestAsync<VSInternalReferenceItem[]?>(request, Methods.TextDocumentReferencesName, cancellationToken);
+
         private async Task<TResult?> DelegateTextDocumentPositionRequestAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
         {
             var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
