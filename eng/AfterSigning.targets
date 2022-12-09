@@ -42,6 +42,6 @@
           Condition="'$(OS)' == 'OSX'" />
     
     <Exec Command="powershell.exe -NonInteractive -command &quot;&amp;{ Write-Host &quot;Writing %(LanguageServiceBinary.ZipFile)...&quot; ; Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::CreateFromDirectory('%(LanguageServiceBinary.SourceDir)', '%(LanguageServiceBinary.ZipFile)') }&quot;"
-          Condition="Condition="'$(OS)' == 'WINDOWS_NT'" />
+          Condition="'$(OS)' == 'WINDOWS_NT'" />
   </Target>
 </Project>
