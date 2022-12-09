@@ -4,14 +4,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 
@@ -19,7 +20,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences
 {
     internal class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoint<ReferenceParamsBridge, VSInternalReferenceItem[]>, IVSFindAllReferencesEndpoint
     {
-        private VSInternalClientCapabilities? _clientCapabilities;
         private readonly LanguageServerFeatureOptions _featureOptions;
         private readonly RazorDocumentMappingService _documentMappingService;
 
@@ -28,7 +28,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences
             RazorDocumentMappingService documentMappingService,
             ClientNotifierServiceBase languageServer,
             ILoggerFactory loggerFactory,
-            LanguageServerFeatureOptions featureOptions)
+            LanguageServerFeatureOptions featureOptions,
+            TagHelperFactsService tagHelperFactsService,
+            HtmlFactsService htmlFactsService)
             : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<FindAllReferencesEndpoint>())
         {
             _featureOptions = featureOptions;
@@ -38,7 +40,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences
         public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
         {
             const string AssociatedServerCapability = "referencesProvider";
-            _clientCapabilities = clientCapabilities;
 
             var registrationOptions = new ReferenceOptions()
             {

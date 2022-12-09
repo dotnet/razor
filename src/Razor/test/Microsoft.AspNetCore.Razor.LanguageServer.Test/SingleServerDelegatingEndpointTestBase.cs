@@ -35,6 +35,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal LanguageServerFeatureOptions LanguageServerFeatureOptions { get; private set; }
         internal TestLanguageServer LanguageServer { get; private set; }
         internal RazorDocumentMappingService DocumentMappingService { get; private set; }
+        internal Microsoft.VisualStudio.Editor.Razor.TagHelperFactsService TagHelperFactsService { get; private set; }
+        internal Microsoft.VisualStudio.Editor.Razor.HtmlFactsService HtmlFactsService { get; private set; }
 
         protected SingleServerDelegatingEndpointTestBase(ITestOutputHelper testOutput)
             : base(testOutput)
@@ -67,6 +69,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 MockBehavior.Strict);
             LanguageServer = new TestLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
             DocumentMappingService = new DefaultRazorDocumentMappingService(LanguageServerFeatureOptions, DocumentContextFactory, LoggerFactory);
+            TagHelperFactsService = new Microsoft.VisualStudio.Editor.Razor.DefaultTagHelperFactsService();
+            HtmlFactsService = new Microsoft.VisualStudio.Editor.Razor.DefaultHtmlFactsService();
         }
 
         internal class TestLanguageServer : ClientNotifierServiceBase
