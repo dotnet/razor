@@ -378,7 +378,11 @@ stages:
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - script: dotnet restore & eng/common/cibuild.sh
+          - script: dotnet restore
+            name: Restore
+            displayName: Restore
+            condition: succeeded()
+          - script: eng/common/cibuild.sh
               --restore
               --build
               --sign
@@ -444,13 +448,33 @@ stages:
               arguments: $(Build.SourcesDirectory)/NuGet.config $Token
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
-        - script: eng/common/cibuild.sh
-            --configuration $(_BuildConfig)
-            --prepareMachine
-            $(_InternalRuntimeDownloadArgs)
-          name: Build
-          displayName: Build
-          condition: succeeded()
+        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+          - script: dotnet restore
+            name: Restore
+            displayName: Restore
+            condition: succeeded()
+          - script: eng/common/cibuild.sh
+              --restore
+              --build
+              --sign
+              --pack
+              --publish
+              --configuration $(_BuildConfig)
+              --prepareMachine
+              /p:DotNetSignType=real
+              /p:DotNetPublishUsingPipelines=true
+              $(_InternalRuntimeDownloadArgs)
+            name: Build
+            displayName: Build
+            condition: succeeded()
+        - ${{ if eq(variables['System.TeamProject'], 'public') }}:        
+          - script: eng/common/cibuild.sh
+              --configuration $(_BuildConfig)
+              --prepareMachine
+              $(_InternalRuntimeDownloadArgs)
+            name: Build
+            displayName: Build
+            condition: succeeded()
         - task: PublishBuildArtifacts@1
           displayName: Upload Test Results
           condition: always()
