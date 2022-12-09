@@ -53,9 +53,9 @@
   <Target Name="PublishAllRids">
     <ItemGroup>
       <!-- Transform RuntimeIdentifiers property to item -->
-      <RuntimeIdentifierForPublish Include="win-x64;win-x86;win-arm64" Condition="'$(OS)' == 'WINDOWS_NT'" />
-      <RuntimeIdentifierForPublish Include="osx-x64;osx-arm64" Condition="'$(OS)' == 'OSX'" />
-      <RuntimeIdentifierForPublish Include="linux-x64;linux-musl-x64;linux-arm64;linux-musl-arm64" Condition="'$(OS)' == 'UNIX'" />
+      <RuntimeIdentifierForPublish Include="win-x64;win-x86;win-arm64" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+      <RuntimeIdentifierForPublish Include="osx-x64;osx-arm64" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
+      <RuntimeIdentifierForPublish Include="linux-x64;linux-musl-x64;linux-arm64;linux-musl-arm64" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
 
       <!-- Transform RuntimeIdentifierForPublish items to project items to pass to MSBuild task -->
       <ProjectToPublish Include="@(RuntimeIdentifierForPublish->'$(MSBuildProjectFullPath)')">
