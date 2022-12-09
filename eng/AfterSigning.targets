@@ -34,6 +34,14 @@
 
     <MakeDir Directories="$(ZipOutputDir)" />
     <Delete Files="%(LanguageServiceBinary.ZipFile)" />
-    <Exec Command="powershell.exe -NonInteractive -command &quot;&amp;{ Write-Host &quot;Writing %(LanguageServiceBinary.ZipFile)...&quot; ; Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::CreateFromDirectory('%(LanguageServiceBinary.SourceDir)', '%(LanguageServiceBinary.ZipFile)') }&quot;" />
+    
+    <!-- Build a .zip file from each platform's directory and write it to 'artifacts' -->
+    <Exec Command="/bin/bash -c &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)&quot;" Condition="'$(OS)' == 'OSX'" />
+    <Exec Command="brew install --cask powershell" Condition="'$(OS)' == 'OSX'" />
+    <Exec Command="pwsh -NonInteractive -command &quot;&amp;{ Write-Host &quot;Writing %(LanguageServiceBinary.ZipFile)...&quot; ; Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::CreateFromDirectory('%(LanguageServiceBinary.SourceDir)', '%(LanguageServiceBinary.ZipFile)') }&quot;"
+          Condition="'$(OS)' == 'OSX'" />
+    
+    <Exec Command="powershell.exe -NonInteractive -command &quot;&amp;{ Write-Host &quot;Writing %(LanguageServiceBinary.ZipFile)...&quot; ; Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::CreateFromDirectory('%(LanguageServiceBinary.SourceDir)', '%(LanguageServiceBinary.ZipFile)') }&quot;"
+          Condition="Condition="'$(OS)' == 'WINDOWS_NT'" />
   </Target>
 </Project>
