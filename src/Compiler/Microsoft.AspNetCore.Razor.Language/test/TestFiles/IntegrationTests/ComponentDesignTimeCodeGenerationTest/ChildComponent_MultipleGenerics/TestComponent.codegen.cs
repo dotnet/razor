@@ -67,7 +67,7 @@ __o = System.Math.Max(0, item.Item);
 #nullable disable
             }
             ));
-            __o = ((global::Test.MyComponent<string, int>)null).
+            __o = ((global::Test.MyComponent<string, int>)default).
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                                       Item

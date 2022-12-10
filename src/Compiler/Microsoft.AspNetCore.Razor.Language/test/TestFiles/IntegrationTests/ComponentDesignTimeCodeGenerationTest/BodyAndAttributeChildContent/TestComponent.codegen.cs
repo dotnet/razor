@@ -55,7 +55,7 @@ namespace Test
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-            __o = ((global::Test.MyComponent)null).
+            __o = ((global::Test.MyComponent)default).
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
              Header

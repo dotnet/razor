@@ -34,7 +34,7 @@ namespace Test
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-            __o = ((global::Test.InputText)null).
+            __o = ((global::Test.InputText)default).
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                  Value

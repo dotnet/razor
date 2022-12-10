@@ -48,7 +48,7 @@ namespace Test
 #nullable disable
             }
             ));
-            __o = ((global::Test.MyComponent<string>)null).
+            __o = ((global::Test.MyComponent<string>)default).
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                           Item

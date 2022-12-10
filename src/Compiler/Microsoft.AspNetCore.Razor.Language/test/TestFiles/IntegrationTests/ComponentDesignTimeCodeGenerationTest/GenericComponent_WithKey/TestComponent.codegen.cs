@@ -50,7 +50,7 @@ namespace Test
 #line hidden
 #nullable disable
             );
-            __o = ((global::Test.MyComponent<int>)null).
+            __o = ((global::Test.MyComponent<int>)default).
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                        Item
