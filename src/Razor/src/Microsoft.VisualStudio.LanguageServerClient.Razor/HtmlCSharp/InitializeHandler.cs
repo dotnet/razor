@@ -115,6 +115,10 @@ internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeR
             _initializeResult.Capabilities.ImplementationProvider = false;
 
             ((VSInternalServerCapabilities)_initializeResult.Capabilities).OnAutoInsertProvider = null;
+        }
+
+        if (_languageServerFeatureOptions.SingleServerDiagnosticsSupport)
+        {
             ((VSInternalServerCapabilities)_initializeResult.Capabilities).SupportsDiagnosticRequests = false;
         }
 
