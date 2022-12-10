@@ -681,11 +681,15 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                         {
                             context.CodeWriter.Write(token.Content);
                         }
+                        else
+                        {
+                            Debug.Fail($"Unexpected non-C# content in a generic type parameter: '{token.Content}'");
+                        }
                     }
                 }
                 context.CodeWriter.Write(">");
             }
-            context.CodeWriter.Write(")null)");
+            context.CodeWriter.Write(")default)");
         }
         else
         {
