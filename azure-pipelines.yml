@@ -461,11 +461,12 @@ stages:
           - script: eng/common/dotnet-install.sh
             displayName: Install dotnet
             condition: succeeded()
-          - script: echo 'export DOTNET_ROOT=/__w/1/s/.dotnet' >> ~/.bashrc &&
+          - script: echo whereis dotnet &&
+              echo 'export DOTNET_ROOT=/__w/1/s/.dotnet' >> ~/.bashrc &&
               echo 'export PATH=$PATH:/__w/1/s/.dotnet' >> ~/.bashrc &&
               echo $PATH &&
               export DOTNET_ROOT=/__w/1/s/.dotnet &&
-              echo 'export PATH=$PATH:/__w/1/s/.dotnet
+              export PATH=$PATH:/__w/1/s/.dotnet'
             displayName: Add dotnet to path
             condition: succeeded()
           - script: dotnet restore
