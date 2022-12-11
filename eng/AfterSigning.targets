@@ -46,7 +46,9 @@
           Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
     
     <!-- Linux -->
-    <Exec Command="powershell.exe -NonInteractive -command &quot;&amp;{ Write-Host &quot;Writing %(LanguageServiceBinary.ZipFile)...&quot; ; Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::CreateFromDirectory('%(LanguageServiceBinary.SourceDir)', '%(LanguageServiceBinary.ZipFile)') }&quot;"
+    <Exec Command="sudo snap install powershell --classic"
+      Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+    <Exec Command="pwsh -NonInteractive -command &quot;&amp;{ Write-Host &quot;Writing %(LanguageServiceBinary.ZipFile)...&quot; ; Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::CreateFromDirectory('%(LanguageServiceBinary.SourceDir)', '%(LanguageServiceBinary.ZipFile)') }&quot;"
           Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
   </Target>
 </Project>
