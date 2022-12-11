@@ -458,8 +458,8 @@ stages:
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - script: export PATH="$PATH:$HOME/.dotnet"
-            displayName: Add dotnet to path
+          - script: eng/common/dotnet-install.sh
+            displayName: Install dotnet
             condition: succeeded()
           - script: dotnet restore
             displayName: dotnet restore
