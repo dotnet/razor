@@ -474,7 +474,7 @@ stages:
             displayName: dotnet restore 4
             continueOnError: true
           - script: whereis dotnet
-          - displayName: whereis dotnet
+            displayName: whereis dotnet
           - script: eng/common/cibuild.sh
               --restore
               --build
