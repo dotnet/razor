@@ -391,6 +391,7 @@ stages:
               --configuration $(_BuildConfig)
               --prepareMachine
               /p:DotNetSignType=real
+              /p:OfficialBuildId=$(Build.BuildNumber)
               /p:DotNetPublishUsingPipelines=true
               $(_InternalRuntimeDownloadArgs)
             name: Build
