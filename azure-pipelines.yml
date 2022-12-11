@@ -466,7 +466,7 @@ stages:
               echo 'export PATH=$PATH:/__w/1/s/.dotnet' >> ~/.bashrc &&
               echo $PATH &&
               export DOTNET_ROOT=/__w/1/s/.dotnet &&
-              export PATH=$PATH:/__w/1/s/.dotnet'
+              export PATH=$PATH:/__w/1/s/.dotnet
             displayName: Add dotnet to path
             condition: succeeded()
           - script: dotnet restore
