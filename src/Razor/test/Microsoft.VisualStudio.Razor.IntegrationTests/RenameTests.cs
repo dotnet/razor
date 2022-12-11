@@ -23,6 +23,8 @@ public class RenameTests : AbstractRazorEditorTest
 
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
+        await Task.Delay(500);
+
         // Act
         await TestServices.Editor.InvokeRenameAsync(ControlledHangMitigatingCancellationToken);
         TestServices.Input.Send("ZooperDooper{ENTER}");
@@ -44,6 +46,8 @@ public class RenameTests : AbstractRazorEditorTest
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.SurveyPromptFile, ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.PlaceCaretAsync("Title", charsOffset: 0, occurrence: 2, extendSelection: false, selectBlock: false, ControlledHangMitigatingCancellationToken);
+
+        await Task.Delay(1500);
 
         // Act
         await TestServices.Editor.InvokeRenameAsync(ControlledHangMitigatingCancellationToken);
