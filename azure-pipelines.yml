@@ -378,10 +378,9 @@ stages:
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - powershell: dotnet restore
+          - script: dotnet restore
             displayName: dotnet restore
-            continueOnError: false
-            condition: always()
+            condition: succeeded()
           - script: eng/common/cibuild.sh
               --restore
               --build
@@ -391,7 +390,8 @@ stages:
               --configuration $(_BuildConfig)
               --prepareMachine
               /p:DotNetSignType=real
-              /p:OfficialBuildId=$(Build.BuildNumber)
+              /p:ManifestBuildBranch=$(Build.SourceBranchName)
+              /p:ManifestBuildNumber=$(Build.BuildNumber)
               /p:DotNetPublishUsingPipelines=true
               $(_InternalRuntimeDownloadArgs)
             name: Build
@@ -450,10 +450,9 @@ stages:
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - powershell: dotnet restore
+          - script: dotnet restore
             displayName: dotnet restore
-            continueOnError: false
-            condition: always()
+            condition: succeeded()
           - script: eng/common/cibuild.sh
               --restore
               --build
