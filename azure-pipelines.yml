@@ -461,7 +461,7 @@ stages:
           - script: eng/common/dotnet-install.sh
             displayName: Install dotnet
             condition: succeeded()
-          - script: /__w/1/s/.dotnet/dotnet.exe restore
+          - script: $HOME/.dotnet/dotnet.exe restore
             displayName: dotnet restore
             condition: succeeded()
           - script: eng/common/cibuild.sh
