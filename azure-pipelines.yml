@@ -462,11 +462,10 @@ stages:
             displayName: Install dotnet
             condition: succeeded()
           - script: export DOTNET_ROOT=$HOME/.dotnet &&
-              export PATH=$PATH:$HOME/.dotnet:$HOME/.dotnet/tools &&
               export PATH=$PATH:$HOME/dotnet &&
               export DOTNET_ROOT=$HOME/.dotnet &&
-              export PATH=$PATH:$HOME/.dotnet:$HOME/.dotnet/tools &&
-              export PATH=$PATH:$HOME/dotnet
+              export PATH=$PATH:$HOME/dotnet &&
+              echo path
             displayName: Add dotnet to path
             condition: succeeded()
           - script: dotnet restore
