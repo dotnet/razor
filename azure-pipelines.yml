@@ -458,12 +458,17 @@ stages:
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - script: eng/common/dotnet-install.sh && whereis dotnet
+          - script: eng/common/dotnet-install.sh
             displayName: Install dotnet
             condition: succeeded()
-          - script: $HOME/.dotnet/dotnet.exe restore
+          - script: $HOME/usr/share/dotnet/dotnet restore
             displayName: dotnet restore
-            condition: succeeded()
+          - script: /usr/share/dotnet/dotnet restore
+            displayName: dotnet restore 2
+          - script: $HOME/.dotnet/dotnet restore
+            displayName: dotnet restore 3
+          - script: /__w/1/s/.dotnet/dotnet restore
+            displayName: dotnet restore 4
           - script: eng/common/cibuild.sh
               --restore
               --build
