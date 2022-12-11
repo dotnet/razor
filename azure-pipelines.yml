@@ -461,8 +461,6 @@ stages:
           - script: eng/common/dotnet-install.sh
             displayName: Install dotnet
             condition: succeeded()
-            displayName: Add dotnet to path
-            condition: succeeded()
           - script: /__w/1/s/.dotnet/dotnet.exe restore
             displayName: dotnet restore
             condition: succeeded()
