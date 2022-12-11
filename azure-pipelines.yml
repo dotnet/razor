@@ -461,20 +461,11 @@ stages:
           - script: eng/common/dotnet-install.sh
             displayName: Install dotnet
             condition: succeeded()
-          - script: $HOME/usr/share/dotnet/dotnet restore
-            displayName: dotnet restore
-            continueOnError: true
-          - script: /usr/share/dotnet/dotnet restore
-            displayName: dotnet restore 2
-            continueOnError: true
-          - script: $HOME/.dotnet/dotnet restore
-            displayName: dotnet restore 3
-            continueOnError: true
+          - script: restore.sh
+            displayName: restore
           - script: /__w/1/s/.dotnet/dotnet restore
-            displayName: dotnet restore 4
-            continueOnError: true
-          - script: whereis dotnet
-            displayName: whereis dotnet
+            displayName: dotnet restore
+            condition: succeeded()
           - script: eng/common/cibuild.sh
               --restore
               --build
