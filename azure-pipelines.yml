@@ -463,12 +463,18 @@ stages:
             condition: succeeded()
           - script: $HOME/usr/share/dotnet/dotnet restore
             displayName: dotnet restore
+            continueOnError: true
           - script: /usr/share/dotnet/dotnet restore
             displayName: dotnet restore 2
+            continueOnError: true
           - script: $HOME/.dotnet/dotnet restore
             displayName: dotnet restore 3
+            continueOnError: true
           - script: /__w/1/s/.dotnet/dotnet restore
             displayName: dotnet restore 4
+            continueOnError: true
+          - script: whereis dotnet
+          - displayName: whereis dotnet
           - script: eng/common/cibuild.sh
               --restore
               --build
