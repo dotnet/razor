@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Generator;
 
 public abstract class AbstractBenchmark
 {
-    ProjectSetup.RazorProject? _project;
+    private ProjectSetup.RazorProject? _project;
 
     internal ProjectSetup.RazorProject? Project => _project;
 
