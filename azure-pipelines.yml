@@ -306,7 +306,7 @@ stages:
         #     searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)'
         #   continueOnError: true
         #   condition: always()
-        
+
         # Publish an artifact that the RoslynInsertionTool is able to find by its name.
         - task: PublishBuildArtifacts@1
           displayName: Publish Artifact VSSetup
@@ -339,10 +339,10 @@ stages:
             ArtifactName: BlazorWasmDebuggingExtension
           continueOnError: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
-          
+
         - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)"
           displayName: Setting VisualStudio.DropName variable
-          
+
         # Publishes setup VSIXes to a drop.
         # Note: The insertion tool looks for the display name of this task in the logs.
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
@@ -446,6 +446,32 @@ stages:
               artifactType: Container
               parallel: true
 
+      # Source build
+      - job: Source_Build_Managed
+        displayName: Source-Build (Managed)
+        variables:
+          - _BuildConfig: Release
+        pool:
+          ${{ if eq(variables['System.TeamProject'], 'public') }}:
+            name: NetCore-Public
+            demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
+          ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+            name: NetCore1ESPool-Internal
+            demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+        workspace:
+          clean: all
+        steps:
+          - task: NodeTool@0
+            displayName: Install Node 10.x
+            inputs:
+              versionSpec: 10.x
+
+          - powershell: npm install -g yarn
+            displayName: Install yarn
+            condition: succeeded()
+
+          - template: /eng/common/templates/steps/source-build.yml
+
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - stage: publishBuildAssets
     displayName: Publish to Build Asset Registry
@@ -504,6 +530,6 @@ stages:
           componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
           componentBuildProjectName: internal
           sourceBranch: "$(ComponentBranchName)"
-          publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-razor/items?path=/eng/config/PublishData.json&versionType=commit&version=507dd3c0c9af56897c7d9f2830c82d690e0ef3d4&api-version=6.0"
+          publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-razor/items?path=/eng/config/PublishData.json&api-version=6.0"
           publishDataAccessToken: "$(System.AccessToken)"
           dropPath: '$(Pipeline.Workspace)\VSSetup'

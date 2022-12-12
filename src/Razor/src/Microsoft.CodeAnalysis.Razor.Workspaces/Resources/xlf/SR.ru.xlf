@@ -4,14 +4,14 @@
     <body>
       <trans-unit id="ArgumentCannotBeNullOrEmpty">
         <source>Value cannot be null or an empty string.</source>
-        <target state="new">Value cannot be null or an empty string.</target>
+        <target state="translated">Значение не может быть NULL или пустой строкой.</target>
         <note />
       </trans-unit>
       <trans-unit id="DirectiveSnippetDescription">
         <source>Insert a directive code snippet
 [Tab] to navigate between elements, [Enter] to complete</source>
-        <target state="new">Insert a directive code snippet
-[Tab] to navigate between elements, [Enter] to complete</target>
+        <target state="translated">Вставьте фрагмент кода директивы
+[Tab] для перемещения между элементами, нажмите [ВВОД] для завершения</target>
         <note />
       </trans-unit>
     </body>

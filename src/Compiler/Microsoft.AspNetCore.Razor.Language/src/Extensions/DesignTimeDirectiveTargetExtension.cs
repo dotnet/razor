@@ -158,7 +158,7 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
                     var stringSyntax = context.DocumentKind switch
                     {
                         "mvc.1.0.razor-page" => "Route",
-                        "component.1.0" => "ComponentRoute",
+                        "component.1.0" => "Route,Component",
                         _ => null
                     };
                     if (stringSyntax is not null)
