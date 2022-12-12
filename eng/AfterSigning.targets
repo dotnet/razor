@@ -47,11 +47,9 @@
     
     <!-- Linux -->
     <!-- Powershell install instructions adapted from https://learn.microsoft.com/en-us/powershell/scripting/install/install-ubuntu?view=powershell-7.3 -->
-    <Exec Command="sudo yum update" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
     <Exec Command="sudo yum install -y wget apt-transport-https software-properties-common" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
     <Exec Command="wget -q &quot;https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb&quot;" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
     <Exec Command="sudo dpkg -i packages-microsoft-prod.deb" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
-    <Exec Command="sudo yum update" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
     <Exec Command="sudo yum install -y powershell" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
     <Exec Command="pwsh -NonInteractive -command &quot;&amp;{ Write-Host &quot;Writing %(LanguageServiceBinary.ZipFile)...&quot; ; Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::CreateFromDirectory('%(LanguageServiceBinary.SourceDir)', '%(LanguageServiceBinary.ZipFile)') }&quot;"
           Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
