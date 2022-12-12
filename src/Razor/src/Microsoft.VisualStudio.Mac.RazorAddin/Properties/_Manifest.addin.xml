@@ -17,7 +17,6 @@
     <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.dll" />
     <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.Common.dll" />
     <Import assembly="Microsoft.AspNetCore.Razor.LanguageServer.Protocol.dll" />
-    <Import assembly="Microsoft.Extensions.ObjectPool.dll" />
     <Import assembly="Microsoft.Extensions.Options.dll" />
     <Import assembly="Microsoft.Extensions.Primitives.dll" />
     <Import assembly="Microsoft.Extensions.DependencyInjection.dll" />
@@ -28,6 +27,7 @@
     <!--
         Purposefully not including these actual dependencies because VS4Mac ships them for us on our behalf. This differs from VisualStudio windows.
 
+        <Import assembly="Microsoft.Extensions.ObjectPool.dll" />
         <Import assembly="Microsoft.Extensions.Logging.dll" />
         <Import assembly="Microsoft.Extensions.Logging.Abstractions.dll" />
         <Import assembly="System.IO.Pipelines.dll" />
