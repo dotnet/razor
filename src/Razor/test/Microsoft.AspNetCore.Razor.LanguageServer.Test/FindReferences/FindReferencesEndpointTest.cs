@@ -1,26 +1,49 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Internal;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences
 {
-    internal class FindReferencesEndpointTest : SingleServerDelegatingEndpointTestBase
+    public class FindReferencesEndpointTest : SingleServerDelegatingEndpointTestBase
     {
         public FindReferencesEndpointTest(ITestOutputHelper testOutput) : base(testOutput)
         {
         }
+
+        [Fact]
+        public Task FindCSharpReferences()
+            => VerifyCSharpFindAllReferencesAsyncAsync("""
+                @{
+                    void [|$$M|]()
+                    {
+                        [|M|]();
+                    }
+
+                    void N()
+                    {
+                        [|M|]();
+                    }
+                }
+                """);
 
         private async Task VerifyCSharpFindAllReferencesAsyncAsync(string input)
         {
@@ -35,9 +58,25 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences
             var endpoint = new FindAllReferencesEndpoint(
                 LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, LoggerFactory, LanguageServerFeatureOptions, TagHelperFactsService, HtmlFactsService);
 
-            codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
-            var request = new TextDocumentPositionParamsBridge
+            var sourceText = codeDocument.GetSourceText();
+            sourceText.GetLineAndOffset(cursorPosition, out var line, out var offset);
+
+            //var progressReported = false;
+            var completedTokenSource = new CancellationTokenSource();
+            var progressToken = new ProgressWithCompletion<object>((val) =>
             {
+                var results = Assert.IsType<VSInternalReferenceItem[]>(val);
+                //progressReported = true;
+                completedTokenSource.CancelAfter(0);
+            });
+
+            var request = new ReferenceParamsBridge
+            {
+                Context = new ReferenceContext()
+                {
+                    IncludeDeclaration = true
+                },
+                PartialResultToken = progressToken,
                 TextDocument = new TextDocumentIdentifier
                 {
                     Uri = new Uri(razorFilePath)
@@ -51,18 +90,18 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences
             var result = await endpoint.HandleRequestAsync(request, requestContext, DisposalToken);
 
             // Assert
-            Assert.NotNull(result.First);
-            var locations = result.First;
+            Assert.NotNull(result);
+            //Assert.True(progressReported);
 
-            Assert.Equal(expectedSpans.Length, locations.Length);
+            Assert.Equal(expectedSpans.Length, result.Length);
 
             var i = 0;
-            foreach (var location in locations.OrderBy(l => l.Range.Start.Line))
+            foreach (var referenceItem in result.OrderBy(l => l.Location.Range.Start.Line))
             {
-                Assert.Equal(new Uri(razorFilePath), location.Uri);
+                Assert.Equal(new Uri(razorFilePath), referenceItem.Location.Uri);
 
                 var expectedRange = expectedSpans[i].AsRange(codeDocument.GetSourceText());
-                Assert.Equal(expectedRange, location.Range);
+                Assert.Equal(expectedRange, referenceItem.Location.Range);
 
                 i++;
             }

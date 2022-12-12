@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -35,8 +36,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
         internal LanguageServerFeatureOptions LanguageServerFeatureOptions { get; private set; }
         internal TestLanguageServer LanguageServer { get; private set; }
         internal RazorDocumentMappingService DocumentMappingService { get; private set; }
-        internal Microsoft.VisualStudio.Editor.Razor.TagHelperFactsService TagHelperFactsService { get; private set; }
-        internal Microsoft.VisualStudio.Editor.Razor.HtmlFactsService HtmlFactsService { get; private set; }
+        internal TagHelperFactsService TagHelperFactsService { get; private set; }
+        internal HtmlFactsService HtmlFactsService { get; private set; }
 
         protected SingleServerDelegatingEndpointTestBase(ITestOutputHelper testOutput)
             : base(testOutput)
@@ -69,8 +70,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                 MockBehavior.Strict);
             LanguageServer = new TestLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
             DocumentMappingService = new DefaultRazorDocumentMappingService(LanguageServerFeatureOptions, DocumentContextFactory, LoggerFactory);
-            TagHelperFactsService = new Microsoft.VisualStudio.Editor.Razor.DefaultTagHelperFactsService();
-            HtmlFactsService = new Microsoft.VisualStudio.Editor.Razor.DefaultHtmlFactsService();
+            TagHelperFactsService = new DefaultTagHelperFactsService();
+            HtmlFactsService = new DefaultHtmlFactsService();
         }
 
         internal class TestLanguageServer : ClientNotifierServiceBase
@@ -107,10 +108,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer
                     RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName => await HandleRenameAsync(@params),
                     RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertEndpointName => await HandleOnAutoInsertAsync(@params),
                     RazorLanguageServerCustomMessageTargets.RazorValidateBreakpointRangeName => await HandleValidateBreakpointRangeAsync(@params),
+                    RazorLanguageServerCustomMessageTargets.RazorReferencesEndpointName => await HandleReferencesAsync(@params),
                     _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
                 };
 
                 return (TResponse)result;
+            }
+
+            private async Task<VSInternalReferenceItem[]> HandleReferencesAsync<TParams>(TParams @params)
+            {
+                var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
+                var delegatedRequest = new TextDocumentPositionParams()
+                {
+                    TextDocument = new TextDocumentIdentifier()
+                    {
+                        Uri = _csharpDocumentUri
+                    },
+                    Position = delegatedParams.ProjectedPosition
+                };
+
+                var result = await _csharpServer.ExecuteRequestAsync<TextDocumentPositionParams, VSInternalReferenceItem[]>(
+                    Methods.TextDocumentReferencesName,
+                    delegatedRequest,
+                    _cancellationToken);
+
+                return result;
             }
 
             private async Task<DefinitionResult?> HandleDefinitionAsync<T>(T @params)
