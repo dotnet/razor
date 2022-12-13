@@ -107,6 +107,10 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         {
         }
 
+        public void LogDebug(string _, params object[] _2)
+        {
+        }
+
         public void LogError(string message, params object[] @params)
         {
         }
