@@ -103,6 +103,11 @@ internal class LspLogger : IRazorLogger
     {
         ((ILogger)this).LogWarning(message, @params);
     }
+
+    public void LogDebug(string message, params object[] @params)
+    {
+        ((ILogger)this).LogDebug(message, @params);
+    }
 #pragma warning restore CA2254 // Template should be a static expression
 
     private class Disposable : IDisposable

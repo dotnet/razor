@@ -488,10 +488,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         {
             _fromDocument = fromDocument ?? throw new ArgumentNullException(nameof(fromDocument));
         }
-        public override async Task<TextAndVersion> LoadTextAndVersionAsync(
-           Workspace? workspace,
-           DocumentId? documentId,
-           CancellationToken cancellationToken)
+        public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
             var sourceText = await _fromDocument.GetTextAsync();
             var version = await _fromDocument.GetTextVersionAsync();
