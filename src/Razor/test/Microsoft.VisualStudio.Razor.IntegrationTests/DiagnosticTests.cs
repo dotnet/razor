@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -49,7 +50,39 @@ public class DiagnosticTests : AbstractRazorEditorTest
     }
 
     [IdeFact]
-    public async Task Diagnostics_ShowErrors_cshtml()
+    public async Task Diagnostics_ShowErrors_HtmlDiagnostics()
+    {
+        // Arrange
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.SetTextAsync(@"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang=""en"">
+<head>
+</head>
+
+<body>
+    <li>
+</body>
+</html>
+
+", ControlledHangMitigatingCancellationToken);
+
+        // Act
+        var errors = await TestServices.ErrorList.WaitForErrorsAsync("Error.cshtml", expectedCount: 1, ControlledHangMitigatingCancellationToken);
+
+        // Assert
+        Assert.Collection(errors,
+            (error) =>
+            {
+                Assert.Equal("Error.cshtml(10, 5): error HTML0204: Element 'li' cannot be nested inside element 'body'.", error);
+            });
+    }
+
+    [IdeFact]
+    public async Task Diagnostics_ShowErrors_CSHtml()
     {
         // Arrange
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
