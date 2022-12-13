@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -106,29 +107,37 @@ public class FindAllReferencesTests : AbstractRazorEditorTest
         // Assert
         var results = await TestServices.FindReferencesWindow.WaitForContentsAsync(ControlledHangMitigatingCancellationToken, expected: 3);
 
-        Assert.Collection(
-            results,
-            new Action<ITableEntryHandle2>[]
+        // Don't care about order, but Assert.Collection does
+        var orderedResults = results.Select(r =>
+        {
+            Assert.True(r.TryGetValue(StandardTableKeyNames.Text, out string code));
+            Assert.True(r.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
+
+            return new
             {
-                reference =>
-                {
-                    Assert.Equal(expected: "public string? Title { get; set; }", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    Assert.True(reference.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
-                    Assert.Equal(expected: "SurveyPrompt.razor", Path.GetFileName(documentName));
-                },
-                reference =>
-                {
-                    Assert.Equal(expected: "Title", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    Assert.True(reference.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
-                    Assert.Equal(expected: "Index.razor", Path.GetFileName(documentName));
-                },
-                reference =>
-                {
-                    Assert.Equal(expected: "Title", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    Assert.True(reference.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
-                    Assert.Equal(expected: "SurveyPrompt.razor", Path.GetFileName(documentName));
-                }
-            });
+                Code = code,
+                DocumentName = Path.GetFileName(documentName)
+            };
+        }).OrderBy(r => r.DocumentName).ThenBy(r => r.Code).ToArray();
+
+        Assert.Collection(
+            orderedResults,
+            reference =>
+            {
+                Assert.Equal(expected: "Index.razor", reference.DocumentName);
+                Assert.Equal(expected: "Title", reference.Code);
+            },
+            reference =>
+            {
+                Assert.Equal(expected: "SurveyPrompt.razor", reference.DocumentName);
+                Assert.Equal(expected: "public string? Title { get; set; }", reference.Code);
+            },
+            reference =>
+            {
+                Assert.Equal(expected: "SurveyPrompt.razor", reference.DocumentName);
+                Assert.Equal(expected: "Title", reference.Code);
+            }
+        );
     }
 
     [IdeFact]
@@ -153,7 +162,7 @@ public class FindAllReferencesTests : AbstractRazorEditorTest
                     [Microsoft.AspNetCore.Components.ParameterAttribute]
                     public string? MyProperty { get; set; }
                 }
-            
+
                 """,
             open: false,
             cancellationToken: ControlledHangMitigatingCancellationToken);
