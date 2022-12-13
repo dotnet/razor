@@ -19,7 +19,7 @@
   <Target Name="CustomizeInnerBuildArgs"
           BeforeTargets="GetSourceBuildCommandConfiguration">
     <PropertyGroup>
-      <InnerBuildArgs>$(InnerBuildArgs) /p:SourceBuildRuntimeIdentifier=$(TargetRuntimeIdentifier)</InnerBuildArgs>
+      <InnerBuildArgs>$(InnerBuildArgs) /p:SourceBuildRuntimeIdentifier=$(TargetRuntimeIdentifier) /p:Projects=$(InnerSourceBuildRepoRoot)\Razor.SourceBuild.slnf</InnerBuildArgs>
     </PropertyGroup>
   </Target>
 </Project>
