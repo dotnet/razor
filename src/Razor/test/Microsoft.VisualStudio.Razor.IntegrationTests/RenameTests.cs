@@ -31,7 +31,7 @@ public class RenameTests : AbstractRazorEditorTest
 
         // Assert
         // The rename operation causes SurveyPrompt.razor to be opened
-        await TestServices.Editor.WaitForActiveWindowByFileAsync(RazorProjectConstants.SurveyPromptFile, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.WaitForActiveWindowByFileAsync("SurveyPrompt.razor", ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.VerifyTextContainsAsync("public string? ZooperDooper { get; set; }", ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.VerifyTextContainsAsync("@ZooperDooper", ControlledHangMitigatingCancellationToken);
 
@@ -55,7 +55,7 @@ public class RenameTests : AbstractRazorEditorTest
 
         // Assert
         // The rename operation causes Index.razor to be opened
-        await TestServices.Editor.WaitForActiveWindowByFileAsync(RazorProjectConstants.IndexRazorFile, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.WaitForActiveWindowByFileAsync("Index.razor", ControlledHangMitigatingCancellationToken);
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.VerifyTextContainsAsync("<SurveyPrompt ZooperDooper=", ControlledHangMitigatingCancellationToken);
 
