@@ -7,46 +7,45 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+
+[Shared]
+[ExportLanguageServiceFactory(typeof(ProjectSnapshotManager), RazorLanguage.Name)]
+internal class DefaultProjectSnapshotManagerFactory : ILanguageServiceFactory
 {
-    [Shared]
-    [ExportLanguageServiceFactory(typeof(ProjectSnapshotManager), RazorLanguage.Name)]
-    internal class DefaultProjectSnapshotManagerFactory : ILanguageServiceFactory
+    private readonly IEnumerable<ProjectSnapshotChangeTrigger> _triggers;
+    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+
+    [ImportingConstructor]
+    public DefaultProjectSnapshotManagerFactory(
+        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        [ImportMany] IEnumerable<ProjectSnapshotChangeTrigger> triggers)
     {
-        private readonly IEnumerable<ProjectSnapshotChangeTrigger> _triggers;
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-
-        [ImportingConstructor]
-        public DefaultProjectSnapshotManagerFactory(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            [ImportMany] IEnumerable<ProjectSnapshotChangeTrigger> triggers)
+        if (projectSnapshotManagerDispatcher is null)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            if (triggers is null)
-            {
-                throw new ArgumentNullException(nameof(triggers));
-            }
-
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-            _triggers = triggers;
+            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
         }
 
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        if (triggers is null)
         {
-            if (languageServices is null)
-            {
-                throw new ArgumentNullException(nameof(languageServices));
-            }
-
-            return new DefaultProjectSnapshotManager(
-                _projectSnapshotManagerDispatcher,
-                languageServices.WorkspaceServices.GetRequiredService<ErrorReporter>(),
-                _triggers,
-                languageServices.WorkspaceServices.Workspace);
+            throw new ArgumentNullException(nameof(triggers));
         }
+
+        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _triggers = triggers;
+    }
+
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+    {
+        if (languageServices is null)
+        {
+            throw new ArgumentNullException(nameof(languageServices));
+        }
+
+        return new DefaultProjectSnapshotManager(
+            _projectSnapshotManagerDispatcher,
+            languageServices.WorkspaceServices.GetRequiredService<ErrorReporter>(),
+            _triggers,
+            languageServices.WorkspaceServices.Workspace);
     }
 }

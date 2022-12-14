@@ -3,21 +3,20 @@
 
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions
-{
-    internal static class SnapshotSpanExtensions
-    {
-        public static Range AsRange(this SnapshotSpan span)
-        {
-            var startPosition = span.Start.AsPosition();
-            var endPosition = span.End.AsPosition();
-            var range = new Range()
-            {
-                Start = startPosition,
-                End = endPosition,
-            };
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 
-            return range;
-        }
+internal static class SnapshotSpanExtensions
+{
+    public static Range AsRange(this SnapshotSpan span)
+    {
+        var startPosition = span.Start.AsPosition();
+        var endPosition = span.End.AsPosition();
+        var range = new Range()
+        {
+            Start = startPosition,
+            End = endPosition,
+        };
+
+        return range;
     }
 }

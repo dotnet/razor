@@ -3,10 +3,9 @@
 
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal abstract class ProjectSnapshotManagerAccessor
 {
-    internal abstract class ProjectSnapshotManagerAccessor
-    {
-        public abstract ProjectSnapshotManagerBase Instance { get; }
-    }
+    public abstract ProjectSnapshotManagerBase Instance { get; }
 }

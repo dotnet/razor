@@ -4,12 +4,11 @@
 using System;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
-{
-    internal class RazorProximityExpressionsParams
-    {
-        public required Uri Uri { get; init; }
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
 
-        public required Position Position { get; init; }
-    }
+internal class RazorProximityExpressionsParams
+{
+    public required Uri Uri { get; init; }
+
+    public required Position Position { get; init; }
 }

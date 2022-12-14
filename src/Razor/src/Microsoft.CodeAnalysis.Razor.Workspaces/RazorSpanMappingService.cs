@@ -11,93 +11,92 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+internal class RazorSpanMappingService : IRazorSpanMappingService
 {
-    internal class RazorSpanMappingService : IRazorSpanMappingService
+    private readonly DocumentSnapshot _document;
+
+    public RazorSpanMappingService(DocumentSnapshot document)
     {
-        private readonly DocumentSnapshot _document;
-
-        public RazorSpanMappingService(DocumentSnapshot document)
+        if (document is null)
         {
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            _document = document;
+            throw new ArgumentNullException(nameof(document));
         }
 
-        public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(
-            Document document,
-            IEnumerable<TextSpan> spans,
-            CancellationToken cancellationToken)
+        _document = document;
+    }
+
+    public async Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(
+        Document document,
+        IEnumerable<TextSpan> spans,
+        CancellationToken cancellationToken)
+    {
+        if (document is null)
         {
-            if (document is null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            if (spans is null)
-            {
-                throw new ArgumentNullException(nameof(spans));
-            }
-
-            // Called on an uninitialized document.
-            if (_document is null)
-            {
-                return ImmutableArray.Create<RazorMappedSpanResult>();
-            }
-
-            var source = await _document.GetTextAsync().ConfigureAwait(false);
-            var output = await _document.GetGeneratedOutputAsync().ConfigureAwait(false);
-
-            var results = ImmutableArray.CreateBuilder<RazorMappedSpanResult>();
-            foreach (var span in spans)
-            {
-                if (TryGetMappedSpans(span, source, output.GetCSharpDocument(), out var linePositionSpan, out var mappedSpan))
-                {
-                    results.Add(new RazorMappedSpanResult(output.Source.FilePath, linePositionSpan, mappedSpan));
-                }
-                else
-                {
-                    results.Add(default);
-                }
-            }
-
-            return results.ToImmutable();
+            throw new ArgumentNullException(nameof(document));
         }
 
-        // Internal for testing.
-        internal static bool TryGetMappedSpans(TextSpan span, SourceText source, RazorCSharpDocument output, out LinePositionSpan linePositionSpan, out TextSpan mappedSpan)
+        if (spans is null)
         {
-            var mappings = output.SourceMappings;
-            for (var i = 0; i < mappings.Count; i++)
+            throw new ArgumentNullException(nameof(spans));
+        }
+
+        // Called on an uninitialized document.
+        if (_document is null)
+        {
+            return ImmutableArray.Create<RazorMappedSpanResult>();
+        }
+
+        var source = await _document.GetTextAsync().ConfigureAwait(false);
+        var output = await _document.GetGeneratedOutputAsync().ConfigureAwait(false);
+
+        var results = ImmutableArray.CreateBuilder<RazorMappedSpanResult>();
+        foreach (var span in spans)
+        {
+            if (TryGetMappedSpans(span, source, output.GetCSharpDocument(), out var linePositionSpan, out var mappedSpan))
             {
-                var mapping = mappings[i];
-                var original = mapping.OriginalSpan.AsTextSpan();
-                var generated = mapping.GeneratedSpan.AsTextSpan();
+                results.Add(new RazorMappedSpanResult(output.Source.FilePath, linePositionSpan, mappedSpan));
+            }
+            else
+            {
+                results.Add(default);
+            }
+        }
 
-                if (!generated.Contains(span))
-                {
-                    // If the search span isn't contained within the generated span, it is not a match.
-                    // A C# identifier won't cover multiple generated spans.
-                    continue;
-                }
+        return results.ToImmutable();
+    }
 
-                var leftOffset = span.Start - generated.Start;
-                var rightOffset = span.End - generated.End;
-                if (leftOffset >= 0 && rightOffset <= 0)
-                {
-                    // This span mapping contains the span.
-                    mappedSpan = new TextSpan(original.Start + leftOffset, (original.End + rightOffset) - (original.Start + leftOffset));
-                    linePositionSpan = source.Lines.GetLinePositionSpan(mappedSpan);
-                    return true;
-                }
+    // Internal for testing.
+    internal static bool TryGetMappedSpans(TextSpan span, SourceText source, RazorCSharpDocument output, out LinePositionSpan linePositionSpan, out TextSpan mappedSpan)
+    {
+        var mappings = output.SourceMappings;
+        for (var i = 0; i < mappings.Count; i++)
+        {
+            var mapping = mappings[i];
+            var original = mapping.OriginalSpan.AsTextSpan();
+            var generated = mapping.GeneratedSpan.AsTextSpan();
+
+            if (!generated.Contains(span))
+            {
+                // If the search span isn't contained within the generated span, it is not a match.
+                // A C# identifier won't cover multiple generated spans.
+                continue;
             }
 
-            mappedSpan = default;
-            linePositionSpan = default;
-            return false;
+            var leftOffset = span.Start - generated.Start;
+            var rightOffset = span.End - generated.End;
+            if (leftOffset >= 0 && rightOffset <= 0)
+            {
+                // This span mapping contains the span.
+                mappedSpan = new TextSpan(original.Start + leftOffset, (original.End + rightOffset) - (original.Start + leftOffset));
+                linePositionSpan = source.Lines.GetLinePositionSpan(mappedSpan);
+                return true;
+            }
         }
+
+        mappedSpan = default;
+        linePositionSpan = default;
+        return false;
     }
 }

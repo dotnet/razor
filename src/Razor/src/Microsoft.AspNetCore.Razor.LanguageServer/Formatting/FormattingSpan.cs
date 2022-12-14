@@ -3,56 +3,55 @@
 
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
+internal class FormattingSpan
 {
-    internal class FormattingSpan
+    public FormattingSpan(
+        TextSpan span,
+        TextSpan blockSpan,
+        FormattingSpanKind spanKind,
+        FormattingBlockKind blockKind,
+        int razorIndentationLevel,
+        int htmlIndentationLevel,
+        bool isInClassBody = false,
+        int componentLambdaNestingLevel = 0)
     {
-        public FormattingSpan(
-            TextSpan span,
-            TextSpan blockSpan,
-            FormattingSpanKind spanKind,
-            FormattingBlockKind blockKind,
-            int razorIndentationLevel,
-            int htmlIndentationLevel,
-            bool isInClassBody = false,
-            int componentLambdaNestingLevel = 0)
+        Span = span;
+        BlockSpan = blockSpan;
+        Kind = spanKind;
+        BlockKind = blockKind;
+        RazorIndentationLevel = razorIndentationLevel;
+        HtmlIndentationLevel = htmlIndentationLevel;
+        IsInClassBody = isInClassBody;
+        ComponentLambdaNestingLevel = componentLambdaNestingLevel;
+    }
+
+    public TextSpan Span { get; }
+
+    public TextSpan BlockSpan { get; }
+
+    public FormattingBlockKind BlockKind { get; }
+
+    public FormattingSpanKind Kind { get; }
+
+    public int RazorIndentationLevel { get; }
+
+    public int HtmlIndentationLevel { get; }
+
+    public int IndentationLevel => RazorIndentationLevel + HtmlIndentationLevel;
+
+    public bool IsInClassBody { get; }
+
+    public int ComponentLambdaNestingLevel { get; }
+
+    public int MinCSharpIndentLevel
+    {
+        get
         {
-            Span = span;
-            BlockSpan = blockSpan;
-            Kind = spanKind;
-            BlockKind = blockKind;
-            RazorIndentationLevel = razorIndentationLevel;
-            HtmlIndentationLevel = htmlIndentationLevel;
-            IsInClassBody = isInClassBody;
-            ComponentLambdaNestingLevel = componentLambdaNestingLevel;
-        }
+            var baseIndent = IsInClassBody ? 2 : 3;
 
-        public TextSpan Span { get; }
-
-        public TextSpan BlockSpan { get; }
-
-        public FormattingBlockKind BlockKind { get; }
-
-        public FormattingSpanKind Kind { get; }
-
-        public int RazorIndentationLevel { get; }
-
-        public int HtmlIndentationLevel { get; }
-
-        public int IndentationLevel => RazorIndentationLevel + HtmlIndentationLevel;
-
-        public bool IsInClassBody { get; }
-
-        public int ComponentLambdaNestingLevel { get; }
-
-        public int MinCSharpIndentLevel
-        {
-            get
-            {
-                var baseIndent = IsInClassBody ? 2 : 3;
-
-                return baseIndent + ComponentLambdaNestingLevel;
-            }
+            return baseIndent + ComponentLambdaNestingLevel;
         }
     }
 }

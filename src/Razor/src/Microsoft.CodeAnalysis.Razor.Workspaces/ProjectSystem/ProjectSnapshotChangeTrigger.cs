@@ -3,12 +3,11 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
-{
-    internal abstract class ProjectSnapshotChangeTrigger
-    {
-        public virtual int InitializePriority { get; }
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-        public abstract void Initialize(ProjectSnapshotManagerBase projectManager);
-    }
+internal abstract class ProjectSnapshotChangeTrigger
+{
+    public virtual int InitializePriority { get; }
+
+    public abstract void Initialize(ProjectSnapshotManagerBase projectManager);
 }

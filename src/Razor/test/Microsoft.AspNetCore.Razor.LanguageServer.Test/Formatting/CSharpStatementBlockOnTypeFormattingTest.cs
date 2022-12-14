@@ -7,58 +7,58 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
-{
-    public class CSharpStatementBlockOnTypeFormattingTest : FormattingTestBase
-    {
-        public CSharpStatementBlockOnTypeFormattingTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-        [Fact]
-        public async Task CloseCurly_IfBlock_SingleLineAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+public class CSharpStatementBlockOnTypeFormattingTest : FormattingTestBase
+{
+    public CSharpStatementBlockOnTypeFormattingTest(ITestOutputHelper testOutput)
+        : base(testOutput)
+    {
+    }
+
+    [Fact]
+    public async Task CloseCurly_IfBlock_SingleLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @{
                      if(true){}$$
                     }
                     """,
-                expected: """
+            expected: """
                     @{
                         if (true) { }
                     }
                     """,
-                triggerCharacter: '}');
-        }
+            triggerCharacter: '}');
+    }
 
-        [Fact]
-        public async Task CloseCurly_IfBlock_MultiLineAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CloseCurly_IfBlock_MultiLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @{
                      if(true)
                     {
                      }$$
                     }
                     """,
-                expected: """
+            expected: """
                     @{
                         if (true)
                         {
                         }
                     }
                     """,
-                triggerCharacter: '}');
-        }
+            triggerCharacter: '}');
+    }
 
-        [Fact]
-        public async Task CloseCurly_MultipleStatementBlocksAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task CloseCurly_MultipleStatementBlocksAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     <div>
                         @{
                           if(true) { }
@@ -71,7 +71,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                      }$$
                     }
                     """,
-                expected: """
+            expected: """
                     <div>
                         @{
                             if(true) { }
@@ -84,43 +84,42 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
                         }
                     }
                     """,
-                triggerCharacter: '}');
-        }
+            triggerCharacter: '}');
+    }
 
-        [Fact]
-        public async Task Semicolon_Variable_SingleLineAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task Semicolon_Variable_SingleLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @{
                      var x = 'foo';$$
                     }
                     """,
-                expected: """
+            expected: """
                     @{
                         var x = 'foo';
                     }
                     """,
-                triggerCharacter: ';');
-        }
+            triggerCharacter: ';');
+    }
 
-        [Fact]
-        public async Task Semicolon_Variable_MultiLineAsync()
-        {
-            await RunOnTypeFormattingTestAsync(
-                input: """
+    [Fact]
+    public async Task Semicolon_Variable_MultiLineAsync()
+    {
+        await RunOnTypeFormattingTestAsync(
+            input: """
                     @{
                      var x = @"
                     foo";$$
                     }
                     """,
-                expected: """
+            expected: """
                     @{
                         var x = @"
                     foo";
                     }
                     """,
-                triggerCharacter: ';');
-        }
+            triggerCharacter: ';');
     }
 }

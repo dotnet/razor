@@ -6,73 +6,74 @@ using System.Net;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+
+public static class FilePathNormalizer
 {
-    public static class FilePathNormalizer
+    public static string NormalizeDirectory(string? directoryFilePath)
     {
-        public static string NormalizeDirectory(string directoryFilePath)
+        var normalized = Normalize(directoryFilePath);
+
+        if (!normalized.EndsWith("/", StringComparison.Ordinal))
         {
-            var normalized = Normalize(directoryFilePath);
-
-            if (!normalized.EndsWith("/", StringComparison.Ordinal))
-            {
-                normalized += '/';
-            }
-
-            return normalized;
+            normalized += '/';
         }
 
-        public static string Normalize(string filePath)
+        return normalized;
+    }
+
+    public static string Normalize(string? filePath)
+    {
+        if (string.IsNullOrEmpty(filePath))
         {
-            if (string.IsNullOrEmpty(filePath))
-            {
-                return "/";
-            }
-
-            var decodedPath = filePath.Contains("%") ? WebUtility.UrlDecode(filePath) : filePath;
-            var normalized = decodedPath.Replace('\\', '/');
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
-                normalized[0] == '/' &&
-                !normalized.StartsWith("//", StringComparison.OrdinalIgnoreCase))
-            {
-                // We've been provided a path that probably looks something like /C:/path/to
-                normalized = normalized.Substring(1);
-            }
-            else
-            {
-                // Already a valid path like C:/path or //path
-            }
-
-            return normalized;
+            return "/";
         }
 
-        public static Uri Normalize(Uri uri)
+        Assumes.NotNullOrEmpty(filePath);
+
+        var decodedPath = filePath.Contains("%") ? WebUtility.UrlDecode(filePath) : filePath;
+        var normalized = decodedPath.Replace('\\', '/');
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+            normalized[0] == '/' &&
+            !normalized.StartsWith("//", StringComparison.OrdinalIgnoreCase))
         {
-            var normalized = Normalize(uri.OriginalString);
-            return new Uri(normalized);
+            // We've been provided a path that probably looks something like /C:/path/to
+            normalized = normalized.Substring(1);
+        }
+        else
+        {
+            // Already a valid path like C:/path or //path
         }
 
-        public static string GetDirectory(string filePath)
+        return normalized;
+    }
+
+    public static Uri Normalize(Uri uri)
+    {
+        var normalized = Normalize(uri.OriginalString);
+        return new Uri(normalized);
+    }
+
+    public static string GetDirectory(string filePath)
+    {
+        if (string.IsNullOrEmpty(filePath))
         {
-            if (string.IsNullOrEmpty(filePath))
-            {
-                throw new InvalidOperationException(filePath);
-            }
-
-            var normalizedPath = Normalize(filePath);
-            var lastSeparatorIndex = normalizedPath.LastIndexOf('/');
-
-            var directory = normalizedPath.Substring(0, lastSeparatorIndex + 1);
-            return directory;
+            throw new InvalidOperationException(filePath);
         }
 
-        public static bool FilePathsEquivalent(string filePath1, string filePath2)
-        {
-            var normalizedFilePath1 = Normalize(filePath1);
-            var normalizedFilePath2 = Normalize(filePath2);
+        var normalizedPath = Normalize(filePath);
+        var lastSeparatorIndex = normalizedPath.LastIndexOf('/');
 
-            return FilePathComparer.Instance.Equals(normalizedFilePath1, normalizedFilePath2);
-        }
+        var directory = normalizedPath.Substring(0, lastSeparatorIndex + 1);
+        return directory;
+    }
+
+    public static bool FilePathsEquivalent(string filePath1, string filePath2)
+    {
+        var normalizedFilePath1 = Normalize(filePath1);
+        var normalizedFilePath2 = Normalize(filePath2);
+
+        return FilePathComparer.Instance.Equals(normalizedFilePath1, normalizedFilePath2);
     }
 }

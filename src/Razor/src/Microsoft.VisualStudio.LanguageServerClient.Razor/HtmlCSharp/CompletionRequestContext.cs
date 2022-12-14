@@ -3,7 +3,6 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp
-{
-    internal record CompletionRequestContext(Uri HostDocumentUri, Uri ProjectedDocumentUri, LanguageServerKind LanguageServerKind);
-}
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+
+internal record CompletionRequestContext(Uri HostDocumentUri, Uri ProjectedDocumentUri, LanguageServerKind LanguageServerKind);

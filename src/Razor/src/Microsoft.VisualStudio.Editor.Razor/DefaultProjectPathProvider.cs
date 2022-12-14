@@ -5,48 +5,47 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+internal class DefaultProjectPathProvider : ProjectPathProvider
 {
-    internal class DefaultProjectPathProvider : ProjectPathProvider
+    private readonly TextBufferProjectService _projectService;
+    private readonly LiveShareProjectPathProvider? _liveShareProjectPathProvider;
+
+    public DefaultProjectPathProvider(
+        TextBufferProjectService projectService,
+        LiveShareProjectPathProvider? liveShareProjectPathProvider)
     {
-        private readonly TextBufferProjectService _projectService;
-        private readonly LiveShareProjectPathProvider? _liveShareProjectPathProvider;
-
-        public DefaultProjectPathProvider(
-            TextBufferProjectService projectService,
-            LiveShareProjectPathProvider? liveShareProjectPathProvider)
+        if (projectService is null)
         {
-            if (projectService is null)
-            {
-                throw new ArgumentNullException(nameof(projectService));
-            }
-
-            _projectService = projectService;
-            _liveShareProjectPathProvider = liveShareProjectPathProvider;
+            throw new ArgumentNullException(nameof(projectService));
         }
 
-        public override bool TryGetProjectPath(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out string? filePath)
+        _projectService = projectService;
+        _liveShareProjectPathProvider = liveShareProjectPathProvider;
+    }
+
+    public override bool TryGetProjectPath(ITextBuffer textBuffer, [NotNullWhen(returnValue: true)] out string? filePath)
+    {
+        if (textBuffer is null)
         {
-            if (textBuffer is null)
-            {
-                throw new ArgumentNullException(nameof(textBuffer));
-            }
+            throw new ArgumentNullException(nameof(textBuffer));
+        }
 
-            if (_liveShareProjectPathProvider is not null &&
-                _liveShareProjectPathProvider.TryGetProjectPath(textBuffer, out filePath))
-            {
-                return true;
-            }
-
-            var project = _projectService.GetHostProject(textBuffer);
-            if (project is null)
-            {
-                filePath = null;
-                return false;
-            }
-
-            filePath = _projectService.GetProjectPath(project);
+        if (_liveShareProjectPathProvider is not null &&
+            _liveShareProjectPathProvider.TryGetProjectPath(textBuffer, out filePath))
+        {
             return true;
         }
+
+        var project = _projectService.GetHostProject(textBuffer);
+        if (project is null)
+        {
+            filePath = null;
+            return false;
+        }
+
+        filePath = _projectService.GetProjectPath(project);
+        return true;
     }
 }

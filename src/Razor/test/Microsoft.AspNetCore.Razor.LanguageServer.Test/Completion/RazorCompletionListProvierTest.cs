@@ -17,549 +17,548 @@ using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
+
+public class RazorCompletionListProvierTest : LanguageServerTestBase
 {
-    public class RazorCompletionListProvierTest : LanguageServerTestBase
+    private readonly RazorCompletionFactsService _completionFactsService;
+    private readonly CompletionListCache _completionListCache;
+    private readonly VSInternalClientCapabilities _clientCapabilities;
+    private readonly VSInternalCompletionContext _defaultCompletionContext;
+
+    public RazorCompletionListProvierTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly RazorCompletionFactsService _completionFactsService;
-        private readonly CompletionListCache _completionListCache;
-        private readonly VSInternalClientCapabilities _clientCapabilities;
-        private readonly VSInternalCompletionContext _defaultCompletionContext;
-
-        public RazorCompletionListProvierTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+        // Working around strong naming restriction.
+        var tagHelperFactsService = new DefaultTagHelperFactsService();
+        var tagHelperCompletionService = new LanguageServerTagHelperCompletionService(tagHelperFactsService);
+        var completionProviders = new RazorCompletionItemProvider[]
         {
-            // Working around strong naming restriction.
-            var tagHelperFactsService = new DefaultTagHelperFactsService();
-            var tagHelperCompletionService = new LanguageServerTagHelperCompletionService(tagHelperFactsService);
-            var completionProviders = new RazorCompletionItemProvider[]
-            {
-                new DirectiveCompletionItemProvider(),
-                new DirectiveAttributeCompletionItemProvider(tagHelperFactsService),
-                new DirectiveAttributeParameterCompletionItemProvider(tagHelperFactsService),
-                new TagHelperCompletionProvider(tagHelperCompletionService, new DefaultHtmlFactsService(), tagHelperFactsService)
-            };
+            new DirectiveCompletionItemProvider(),
+            new DirectiveAttributeCompletionItemProvider(tagHelperFactsService),
+            new DirectiveAttributeParameterCompletionItemProvider(tagHelperFactsService),
+            new TagHelperCompletionProvider(tagHelperCompletionService, new DefaultHtmlFactsService(), tagHelperFactsService)
+        };
 
-            _completionFactsService = new DefaultRazorCompletionFactsService(completionProviders);
-            _completionListCache = new CompletionListCache();
-            _clientCapabilities = new VSInternalClientCapabilities()
+        _completionFactsService = new DefaultRazorCompletionFactsService(completionProviders);
+        _completionListCache = new CompletionListCache();
+        _clientCapabilities = new VSInternalClientCapabilities()
+        {
+            TextDocument = new TextDocumentClientCapabilities()
             {
-                TextDocument = new TextDocumentClientCapabilities()
+                Completion = new VSInternalCompletionSetting()
                 {
-                    Completion = new VSInternalCompletionSetting()
+                    CompletionItemKind = new CompletionItemKindSetting()
                     {
-                        CompletionItemKind = new CompletionItemKindSetting()
-                        {
-                            ValueSet = new[] { CompletionItemKind.TagHelper }
-                        },
-                        CompletionList = new VSInternalCompletionListSetting()
-                        {
-                            CommitCharacters = true,
-                            Data = true,
-                        }
+                        ValueSet = new[] { CompletionItemKind.TagHelper }
+                    },
+                    CompletionList = new VSInternalCompletionListSetting()
+                    {
+                        CommitCharacters = true,
+                        Data = true,
                     }
                 }
-            };
+            }
+        };
 
-            _defaultCompletionContext = new VSInternalCompletionContext();
-        }
+        _defaultCompletionContext = new VSInternalCompletionContext();
+    }
 
-        [Fact]
-        public void IsApplicableTriggerContext_Deletion_ReturnsFalse()
+    [Fact]
+    public void IsApplicableTriggerContext_Deletion_ReturnsFalse()
+    {
+        // Arrange
+        var completionContext = new VSInternalCompletionContext()
         {
-            // Arrange
-            var completionContext = new VSInternalCompletionContext()
-            {
-                InvokeKind = VSInternalCompletionInvokeKind.Deletion
-            };
+            InvokeKind = VSInternalCompletionInvokeKind.Deletion
+        };
 
-            // Act
-            var result = RazorCompletionListProvider.IsApplicableTriggerContext(completionContext);
+        // Act
+        var result = RazorCompletionListProvider.IsApplicableTriggerContext(completionContext);
 
-            // Assert
-            Assert.False(result);
-        }
+        // Assert
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void IsApplicableTriggerContext_Explicit_ReturnsTrue()
+    [Fact]
+    public void IsApplicableTriggerContext_Explicit_ReturnsTrue()
+    {
+        // Arrange
+        var completionContext = new VSInternalCompletionContext()
         {
-            // Arrange
-            var completionContext = new VSInternalCompletionContext()
-            {
-                InvokeKind = VSInternalCompletionInvokeKind.Explicit
-            };
+            InvokeKind = VSInternalCompletionInvokeKind.Explicit
+        };
 
-            // Act
-            var result = RazorCompletionListProvider.IsApplicableTriggerContext(completionContext);
+        // Act
+        var result = RazorCompletionListProvider.IsApplicableTriggerContext(completionContext);
 
-            // Assert
-            Assert.True(result);
-        }
+        // Assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void IsApplicableTriggerContext_Typing_ReturnsTrue()
+    [Fact]
+    public void IsApplicableTriggerContext_Typing_ReturnsTrue()
+    {
+        // Arrange
+        var completionContext = new VSInternalCompletionContext()
         {
-            // Arrange
-            var completionContext = new VSInternalCompletionContext()
-            {
-                InvokeKind = VSInternalCompletionInvokeKind.Typing
-            };
+            InvokeKind = VSInternalCompletionInvokeKind.Typing
+        };
 
-            // Act
-            var result = RazorCompletionListProvider.IsApplicableTriggerContext(completionContext);
+        // Act
+        var result = RazorCompletionListProvider.IsApplicableTriggerContext(completionContext);
 
-            // Assert
-            Assert.True(result);
-        }
+        // Assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void TryConvert_Directive_ReturnsTrue()
+    [Fact]
+    public void TryConvert_Directive_ReturnsTrue()
+    {
+        // Arrange
+        var completionItem = new RazorCompletionItem("testDisplay", "testInsert", RazorCompletionItemKind.Directive);
+        var description = "Something";
+        completionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(description));
+
+        // Act
+        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(completionItem.DisplayText, converted.Label);
+        Assert.Equal(completionItem.InsertText, converted.InsertText);
+        Assert.Equal(completionItem.DisplayText, converted.FilterText);
+        Assert.Equal(completionItem.DisplayText, converted.SortText);
+        Assert.Null(converted.Detail);
+        Assert.Null(converted.Documentation);
+    }
+
+    [Fact]
+    public void TryConvert_Directive_SerializationDoesNotThrow()
+    {
+        // Arrange
+        var completionItem = new RazorCompletionItem("testDisplay", "testInsert", RazorCompletionItemKind.Directive);
+        var description = "Something";
+        completionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(description));
+        RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+
+        // Act & Assert
+        JsonConvert.SerializeObject(converted);
+    }
+
+    [Fact]
+    public void TryConvert_DirectiveAttributeTransition_SerializationDoesNotThrow()
+    {
+        // Arrange
+        var completionItem = DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
+        RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+
+        // Act & Assert
+        JsonConvert.SerializeObject(converted);
+    }
+
+    [Fact]
+    public void TryConvert_DirectiveAttributeTransition_ReturnsTrue()
+    {
+        // Arrange
+        var completionItem = DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
+
+        // Act
+        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+
+        // Assert
+        Assert.True(result);
+        Assert.False(converted.Preselect);
+        Assert.Equal(completionItem.DisplayText, converted.Label);
+        Assert.Equal(completionItem.InsertText, converted.InsertText);
+        Assert.Equal(completionItem.DisplayText, converted.FilterText);
+        Assert.Equal(completionItem.DisplayText, converted.SortText);
+        Assert.Null(converted.Detail);
+        Assert.Null(converted.Documentation);
+        Assert.NotNull(converted.Command);
+    }
+
+    [Fact]
+    public void TryConvert_MarkupTransition_ReturnsTrue()
+    {
+        // Arrange
+        var completionItem = MarkupTransitionCompletionItemProvider.MarkupTransitionCompletionItem;
+
+        // Act
+        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(completionItem.DisplayText, converted.Label);
+        Assert.Equal(completionItem.InsertText, converted.InsertText);
+        Assert.Equal(completionItem.DisplayText, converted.FilterText);
+        Assert.Equal(completionItem.DisplayText, converted.SortText);
+        Assert.Null(converted.Detail);
+        Assert.Null(converted.Documentation);
+        Assert.Equal(converted.CommitCharacters, completionItem.CommitCharacters.Select(c => c.Character));
+    }
+
+    [Fact]
+    public void TryConvert_MarkupTransition_SerializationDoesNotThrow()
+    {
+        // Arrange
+        var completionItem = MarkupTransitionCompletionItemProvider.MarkupTransitionCompletionItem;
+        RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+
+        // Act & Assert
+        JsonConvert.SerializeObject(converted);
+    }
+
+    [Fact]
+    public void TryConvert_DirectiveAttribute_ReturnsTrue()
+    {
+        // Arrange
+        var completionItem = new RazorCompletionItem("@testDisplay", "testInsert", RazorCompletionItemKind.DirectiveAttribute, commitCharacters: RazorCommitCharacter.FromArray(new[] { "=", ":" }));
+
+        // Act
+        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(completionItem.DisplayText, converted.Label);
+        Assert.Equal(completionItem.InsertText, converted.InsertText);
+        Assert.Equal(completionItem.InsertText, converted.FilterText);
+        Assert.Equal(completionItem.DisplayText, converted.SortText);
+        Assert.Equal(completionItem.CommitCharacters.Select(c => c.Character), converted.CommitCharacters);
+        Assert.Null(converted.Detail);
+        Assert.Null(converted.Documentation);
+        Assert.Null(converted.Command);
+    }
+
+    [Fact]
+    public void TryConvert_DirectiveAttributeParameter_ReturnsTrue()
+    {
+        // Arrange
+        var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.DirectiveAttributeParameter);
+
+        // Act
+        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(completionItem.DisplayText, converted.Label);
+        Assert.Equal(completionItem.InsertText, converted.InsertText);
+        Assert.Equal(completionItem.InsertText, converted.FilterText);
+        Assert.Equal(completionItem.InsertText, converted.SortText);
+        Assert.Null(converted.Detail);
+        Assert.Null(converted.Documentation);
+        Assert.Null(converted.Command);
+    }
+
+    [Fact]
+    public void TryConvert_TagHelperElement_ReturnsTrue()
+    {
+        // Arrange
+        var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.TagHelperElement);
+
+        // Act
+        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(completionItem.DisplayText, converted.Label);
+        Assert.Equal(completionItem.InsertText, converted.InsertText);
+        Assert.Equal(completionItem.InsertText, converted.FilterText);
+        Assert.Equal(completionItem.InsertText, converted.SortText);
+        Assert.Null(converted.Detail);
+        Assert.Null(converted.Documentation);
+        Assert.Null(converted.Command);
+    }
+
+    [Fact]
+    public void TryConvert_TagHelperAttribute_ForBool_ReturnsTrue()
+    {
+        // Arrange
+        var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.TagHelperAttribute);
+        var attributeCompletionDescription = new AggregateBoundAttributeDescription(new[] {
+            new BoundAttributeDescriptionInfo("System.Boolean", "Stuff", "format", "SomeDocs")
+        });
+        completionItem.SetAttributeCompletionDescription(attributeCompletionDescription);
+
+        // Act
+        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(completionItem.DisplayText, converted.Label);
+        Assert.Equal("format", converted.InsertText);
+        Assert.Equal(InsertTextFormat.Plaintext, converted.InsertTextFormat);
+        Assert.Equal(completionItem.InsertText, converted.FilterText);
+        Assert.Equal(completionItem.InsertText, converted.SortText);
+        Assert.Null(converted.Detail);
+        Assert.Null(converted.Documentation);
+        Assert.Null(converted.Command);
+    }
+
+    [Fact]
+    public void TryConvert_TagHelperAttribute_ForHtml_ReturnsTrue()
+    {
+        // Arrange
+        var completionItem = new RazorCompletionItem("format", "format=\"$0\"", RazorCompletionItemKind.TagHelperAttribute, isSnippet: true);
+        var attributeCompletionDescription = new AggregateBoundAttributeDescription(new BoundAttributeDescriptionInfo[] { });
+        completionItem.SetAttributeCompletionDescription(attributeCompletionDescription);
+
+        // Act
+        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(completionItem.DisplayText, converted.Label);
+        Assert.Equal("format=\"$0\"", converted.InsertText);
+        Assert.Equal(InsertTextFormat.Snippet, converted.InsertTextFormat);
+        Assert.Equal(completionItem.DisplayText, converted.FilterText);
+        Assert.Equal(completionItem.DisplayText, converted.SortText);
+        Assert.Null(converted.Detail);
+        Assert.Null(converted.Documentation);
+        Assert.Null(converted.Command);
+    }
+
+    [Fact]
+    public void TryConvert_TagHelperAttribute_ReturnsTrue()
+    {
+        // Arrange
+        var completionItem = new RazorCompletionItem("format", "format=\"$0\"", RazorCompletionItemKind.TagHelperAttribute, isSnippet: true);
+
+        // Act
+        var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(completionItem.DisplayText, converted.Label);
+        Assert.Equal("format=\"$0\"", converted.InsertText);
+        Assert.Equal(InsertTextFormat.Snippet, converted.InsertTextFormat);
+        Assert.Equal(completionItem.DisplayText, converted.FilterText);
+        Assert.Equal(completionItem.DisplayText, converted.SortText);
+        Assert.Null(converted.Detail);
+        Assert.Null(converted.Documentation);
+        Assert.Null(converted.Command);
+    }
+
+    // This is more of an integration test to validate that all the pieces work together
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
+    public async Task GetCompletionListAsync_ProvidesDirectiveCompletionItems()
+    {
+        // Arrange
+        var documentPath = "C:/path/to/document.cshtml";
+        var codeDocument = CreateCodeDocument("@");
+        var documentContext = TestDocumentContext.From(documentPath, codeDocument);
+        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
+
+        // Act
+        var completionList = await provider.GetCompletionListAsync(
+            absoluteIndex: 1, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
+
+        // Assert
+
+        // These are the default directives that don't need to be separately registered, they should always be part of the completion list.
+        Assert.Collection(completionList.Items,
+            item => Assert.Equal("addTagHelper", item.InsertText),
+            item => AssertDirectiveSnippet(item, "addTagHelper"),
+            item => Assert.Equal("removeTagHelper", item.InsertText),
+            item => AssertDirectiveSnippet(item, "removeTagHelper"),
+            item => Assert.Equal("tagHelperPrefix", item.InsertText),
+            item => AssertDirectiveSnippet(item, "tagHelperPrefix")
+        );
+    }
+
+    [Fact]
+    public async Task GetCompletionListAsync_ProvidesDirectiveCompletions_IncompleteTriggerOnDeletion()
+    {
+        // Arrange
+        var documentPath = "C:/path/to/document.cshtml";
+        var codeDocument = CreateCodeDocument("@");
+        var documentContext = TestDocumentContext.From(documentPath, codeDocument);
+        var completionContext = new VSInternalCompletionContext()
         {
-            // Arrange
-            var completionItem = new RazorCompletionItem("testDisplay", "testInsert", RazorCompletionItemKind.Directive);
-            var description = "Something";
-            completionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(description));
+            TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
+            InvokeKind = VSInternalCompletionInvokeKind.Deletion,
+        };
+        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
 
-            // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+        // Act
+        var completionList = await provider.GetCompletionListAsync(
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
 
-            // Assert
-            Assert.True(result);
-            Assert.Equal(completionItem.DisplayText, converted.Label);
-            Assert.Equal(completionItem.InsertText, converted.InsertText);
-            Assert.Equal(completionItem.DisplayText, converted.FilterText);
-            Assert.Equal(completionItem.DisplayText, converted.SortText);
-            Assert.Null(converted.Detail);
-            Assert.Null(converted.Documentation);
-        }
+        // Assert
 
-        [Fact]
-        public void TryConvert_Directive_SerializationDoesNotThrow()
+        // These are the default directives that don't need to be separately registered, they should always be part of the completion list.
+        Assert.Contains(completionList.Items, item => item.InsertText == "addTagHelper");
+        Assert.Contains(completionList.Items, item => item.InsertText == "removeTagHelper");
+        Assert.Contains(completionList.Items, item => item.InsertText == "tagHelperPrefix");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
+    public async Task GetCompletionListAsync_ProvidesInjectOnIncomplete_KeywordIn()
+    {
+        // Arrange
+        var documentPath = "C:/path/to/document.razor";
+        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
+        builder.TagMatchingRule(rule => rule.TagName = "Test");
+        builder.SetTypeName("TestNamespace.TestTagHelper");
+        var tagHelper = builder.Build();
+        var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
+        var codeDocument = CreateCodeDocument("@in");
+        codeDocument.SetTagHelperContext(tagHelperContext);
+        var documentContext = TestDocumentContext.From(documentPath, codeDocument);
+        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
+        var completionContext = new VSInternalCompletionContext()
         {
-            // Arrange
-            var completionItem = new RazorCompletionItem("testDisplay", "testInsert", RazorCompletionItemKind.Directive);
-            var description = "Something";
-            completionItem.SetDirectiveCompletionDescription(new DirectiveCompletionDescription(description));
-            RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+            TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
+        };
 
-            // Act & Assert
-            JsonConvert.SerializeObject(converted);
-        }
+        // Act
+        var completionList = await provider.GetCompletionListAsync(
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
 
-        [Fact]
-        public void TryConvert_DirectiveAttributeTransition_SerializationDoesNotThrow()
+        // Assert
+        Assert.Collection(completionList.Items,
+            item => Assert.Equal("addTagHelper", item.InsertText),
+            item => AssertDirectiveSnippet(item, "addTagHelper"),
+            item => Assert.Equal("removeTagHelper", item.InsertText),
+            item => AssertDirectiveSnippet(item, "removeTagHelper"),
+            item => Assert.Equal("tagHelperPrefix", item.InsertText),
+            item => AssertDirectiveSnippet(item, "tagHelperPrefix")
+        );
+    }
+
+    [Fact]
+    public async Task GetCompletionListAsync_DoesNotProvideInjectOnInvoked()
+    {
+        // Arrange
+        var documentPath = "C:/path/to/document.razor";
+        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
+        builder.TagMatchingRule(rule => rule.TagName = "Test");
+        builder.SetTypeName("TestNamespace.TestTagHelper");
+        var tagHelper = builder.Build();
+        var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
+        var codeDocument = CreateCodeDocument("@inje");
+        codeDocument.SetTagHelperContext(tagHelperContext);
+        var documentContext = TestDocumentContext.From(documentPath, codeDocument);
+        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
+        var completionContext = new VSInternalCompletionContext()
         {
-            // Arrange
-            var completionItem = DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
-            RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+            TriggerKind = CompletionTriggerKind.TriggerCharacter,
+        };
 
-            // Act & Assert
-            JsonConvert.SerializeObject(converted);
-        }
+        // Act
+        var completionList = await provider.GetCompletionListAsync(
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
 
-        [Fact]
-        public void TryConvert_DirectiveAttributeTransition_ReturnsTrue()
+        // Assert
+        Assert.Empty(completionList.Items);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
+    public async Task GetCompletionListAsync_ProvidesInjectOnIncomplete()
+    {
+        // Arrange
+        var documentPath = "C:/path/to/document.razor";
+        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
+        builder.TagMatchingRule(rule => rule.TagName = "Test");
+        builder.SetTypeName("TestNamespace.TestTagHelper");
+        var tagHelper = builder.Build();
+        var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
+        var codeDocument = CreateCodeDocument("@inje");
+        codeDocument.SetTagHelperContext(tagHelperContext);
+        var documentContext = TestDocumentContext.From(documentPath, codeDocument);
+        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
+        var completionContext = new VSInternalCompletionContext()
         {
-            // Arrange
-            var completionItem = DirectiveAttributeTransitionCompletionItemProvider.TransitionCompletionItem;
+            TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
+        };
 
-            // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+        // Act
+        var completionList = await provider.GetCompletionListAsync(
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
 
-            // Assert
-            Assert.True(result);
-            Assert.False(converted.Preselect);
-            Assert.Equal(completionItem.DisplayText, converted.Label);
-            Assert.Equal(completionItem.InsertText, converted.InsertText);
-            Assert.Equal(completionItem.DisplayText, converted.FilterText);
-            Assert.Equal(completionItem.DisplayText, converted.SortText);
-            Assert.Null(converted.Detail);
-            Assert.Null(converted.Documentation);
-            Assert.NotNull(converted.Command);
-        }
+        // Assert
+        Assert.Collection(completionList.Items,
+            item => Assert.Equal("addTagHelper", item.InsertText),
+            item => AssertDirectiveSnippet(item, "addTagHelper"),
+            item => Assert.Equal("removeTagHelper", item.InsertText),
+            item => AssertDirectiveSnippet(item, "removeTagHelper"),
+            item => Assert.Equal("tagHelperPrefix", item.InsertText),
+            item => AssertDirectiveSnippet(item, "tagHelperPrefix")
+        );
+    }
 
-        [Fact]
-        public void TryConvert_MarkupTransition_ReturnsTrue()
+    // This is more of an integration test to validate that all the pieces work together
+    [Fact]
+    public async Task GetCompletionListAsync_ProvidesTagHelperElementCompletionItems()
+    {
+        // Arrange
+        var documentPath = "C:/path/to/document.cshtml";
+        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
+        builder.TagMatchingRule(rule => rule.TagName = "Test");
+        builder.SetTypeName("TestNamespace.TestTagHelper");
+        var tagHelper = builder.Build();
+        var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
+        var codeDocument = CreateCodeDocument("<");
+        codeDocument.SetTagHelperContext(tagHelperContext);
+        var documentContext = TestDocumentContext.From(documentPath, codeDocument);
+        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
+
+        // Act
+        var completionList = await provider.GetCompletionListAsync(
+            absoluteIndex: 1, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
+
+        // Assert
+        Assert.Contains(completionList.Items, item => item.InsertText == "Test");
+    }
+
+    // This is more of an integration test to validate that all the pieces work together
+    [Fact]
+    public async Task GetCompletionListAsync_ProvidesTagHelperAttributeItems()
+    {
+        // Arrange
+        var documentPath = "C:/path/to/document.cshtml";
+        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
+        builder.TagMatchingRule(rule => rule.TagName = "*");
+        builder.BindAttribute(attribute =>
         {
-            // Arrange
-            var completionItem = MarkupTransitionCompletionItemProvider.MarkupTransitionCompletionItem;
+            attribute.Name = "testAttribute";
+            attribute.TypeName = typeof(string).FullName;
+            attribute.SetPropertyName("TestAttribute");
+        });
+        builder.SetTypeName("TestNamespace.TestTagHelper");
+        var tagHelper = builder.Build();
+        var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
+        var codeDocument = CreateCodeDocument("<test  ");
+        codeDocument.SetTagHelperContext(tagHelperContext);
+        var documentContext = TestDocumentContext.From(documentPath, codeDocument);
+        var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
 
-            // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+        // Act
+        var completionList = await provider.GetCompletionListAsync(
+            absoluteIndex: 6, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
 
-            // Assert
-            Assert.True(result);
-            Assert.Equal(completionItem.DisplayText, converted.Label);
-            Assert.Equal(completionItem.InsertText, converted.InsertText);
-            Assert.Equal(completionItem.DisplayText, converted.FilterText);
-            Assert.Equal(completionItem.DisplayText, converted.SortText);
-            Assert.Null(converted.Detail);
-            Assert.Null(converted.Documentation);
-            Assert.Equal(converted.CommitCharacters, completionItem.CommitCharacters.Select(c => c.Character));
-        }
+        // Assert
+        Assert.Contains(completionList.Items, item => item.InsertText == "testAttribute=\"$0\"");
+    }
 
-        [Fact]
-        public void TryConvert_MarkupTransition_SerializationDoesNotThrow()
-        {
-            // Arrange
-            var completionItem = MarkupTransitionCompletionItemProvider.MarkupTransitionCompletionItem;
-            RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
+    private static RazorCodeDocument CreateCodeDocument(string text)
+    {
+        var codeDocument = TestRazorCodeDocument.CreateEmpty();
+        var sourceDocument = TestRazorSourceDocument.Create(text);
+        var syntaxTree = RazorSyntaxTree.Parse(sourceDocument);
+        codeDocument.SetSyntaxTree(syntaxTree);
+        var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, Enumerable.Empty<TagHelperDescriptor>());
+        codeDocument.SetTagHelperContext(tagHelperDocumentContext);
+        return codeDocument;
+    }
 
-            // Act & Assert
-            JsonConvert.SerializeObject(converted);
-        }
-
-        [Fact]
-        public void TryConvert_DirectiveAttribute_ReturnsTrue()
-        {
-            // Arrange
-            var completionItem = new RazorCompletionItem("@testDisplay", "testInsert", RazorCompletionItemKind.DirectiveAttribute, commitCharacters: RazorCommitCharacter.FromArray(new[] { "=", ":" }));
-
-            // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(completionItem.DisplayText, converted.Label);
-            Assert.Equal(completionItem.InsertText, converted.InsertText);
-            Assert.Equal(completionItem.InsertText, converted.FilterText);
-            Assert.Equal(completionItem.DisplayText, converted.SortText);
-            Assert.Equal(completionItem.CommitCharacters.Select(c => c.Character), converted.CommitCharacters);
-            Assert.Null(converted.Detail);
-            Assert.Null(converted.Documentation);
-            Assert.Null(converted.Command);
-        }
-
-        [Fact]
-        public void TryConvert_DirectiveAttributeParameter_ReturnsTrue()
-        {
-            // Arrange
-            var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.DirectiveAttributeParameter);
-
-            // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(completionItem.DisplayText, converted.Label);
-            Assert.Equal(completionItem.InsertText, converted.InsertText);
-            Assert.Equal(completionItem.InsertText, converted.FilterText);
-            Assert.Equal(completionItem.InsertText, converted.SortText);
-            Assert.Null(converted.Detail);
-            Assert.Null(converted.Documentation);
-            Assert.Null(converted.Command);
-        }
-
-        [Fact]
-        public void TryConvert_TagHelperElement_ReturnsTrue()
-        {
-            // Arrange
-            var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.TagHelperElement);
-
-            // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(completionItem.DisplayText, converted.Label);
-            Assert.Equal(completionItem.InsertText, converted.InsertText);
-            Assert.Equal(completionItem.InsertText, converted.FilterText);
-            Assert.Equal(completionItem.InsertText, converted.SortText);
-            Assert.Null(converted.Detail);
-            Assert.Null(converted.Documentation);
-            Assert.Null(converted.Command);
-        }
-
-        [Fact]
-        public void TryConvert_TagHelperAttribute_ForBool_ReturnsTrue()
-        {
-            // Arrange
-            var completionItem = new RazorCompletionItem("format", "format", RazorCompletionItemKind.TagHelperAttribute);
-            var attributeCompletionDescription = new AggregateBoundAttributeDescription(new[] {
-                new BoundAttributeDescriptionInfo("System.Boolean", "Stuff", "format", "SomeDocs")
-            });
-            completionItem.SetAttributeCompletionDescription(attributeCompletionDescription);
-
-            // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(completionItem.DisplayText, converted.Label);
-            Assert.Equal("format", converted.InsertText);
-            Assert.Equal(InsertTextFormat.Plaintext, converted.InsertTextFormat);
-            Assert.Equal(completionItem.InsertText, converted.FilterText);
-            Assert.Equal(completionItem.InsertText, converted.SortText);
-            Assert.Null(converted.Detail);
-            Assert.Null(converted.Documentation);
-            Assert.Null(converted.Command);
-        }
-
-        [Fact]
-        public void TryConvert_TagHelperAttribute_ForHtml_ReturnsTrue()
-        {
-            // Arrange
-            var completionItem = new RazorCompletionItem("format", "format=\"$0\"", RazorCompletionItemKind.TagHelperAttribute, isSnippet: true);
-            var attributeCompletionDescription = new AggregateBoundAttributeDescription(new BoundAttributeDescriptionInfo[] { });
-            completionItem.SetAttributeCompletionDescription(attributeCompletionDescription);
-
-            // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(completionItem.DisplayText, converted.Label);
-            Assert.Equal("format=\"$0\"", converted.InsertText);
-            Assert.Equal(InsertTextFormat.Snippet, converted.InsertTextFormat);
-            Assert.Equal(completionItem.DisplayText, converted.FilterText);
-            Assert.Equal(completionItem.DisplayText, converted.SortText);
-            Assert.Null(converted.Detail);
-            Assert.Null(converted.Documentation);
-            Assert.Null(converted.Command);
-        }
-
-        [Fact]
-        public void TryConvert_TagHelperAttribute_ReturnsTrue()
-        {
-            // Arrange
-            var completionItem = new RazorCompletionItem("format", "format=\"$0\"", RazorCompletionItemKind.TagHelperAttribute, isSnippet: true);
-
-            // Act
-            var result = RazorCompletionListProvider.TryConvert(completionItem, _clientCapabilities, out var converted);
-
-            // Assert
-            Assert.True(result);
-            Assert.Equal(completionItem.DisplayText, converted.Label);
-            Assert.Equal("format=\"$0\"", converted.InsertText);
-            Assert.Equal(InsertTextFormat.Snippet, converted.InsertTextFormat);
-            Assert.Equal(completionItem.DisplayText, converted.FilterText);
-            Assert.Equal(completionItem.DisplayText, converted.SortText);
-            Assert.Null(converted.Detail);
-            Assert.Null(converted.Documentation);
-            Assert.Null(converted.Command);
-        }
-
-        // This is more of an integration test to validate that all the pieces work together
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
-        public async Task GetCompletionListAsync_ProvidesDirectiveCompletionItems()
-        {
-            // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
-            var codeDocument = CreateCodeDocument("@");
-            var documentContext = TestDocumentContext.From(documentPath, codeDocument);
-            var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
-
-            // Act
-            var completionList = await provider.GetCompletionListAsync(
-                absoluteIndex: 1, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
-
-            // Assert
-
-            // These are the default directives that don't need to be separately registered, they should always be part of the completion list.
-            Assert.Collection(completionList.Items,
-                item => Assert.Equal("addTagHelper", item.InsertText),
-                item => AssertDirectiveSnippet(item, "addTagHelper"),
-                item => Assert.Equal("removeTagHelper", item.InsertText),
-                item => AssertDirectiveSnippet(item, "removeTagHelper"),
-                item => Assert.Equal("tagHelperPrefix", item.InsertText),
-                item => AssertDirectiveSnippet(item, "tagHelperPrefix")
-            );
-        }
-
-        [Fact]
-        public async Task GetCompletionListAsync_ProvidesDirectiveCompletions_IncompleteTriggerOnDeletion()
-        {
-            // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
-            var codeDocument = CreateCodeDocument("@");
-            var documentContext = TestDocumentContext.From(documentPath, codeDocument);
-            var completionContext = new VSInternalCompletionContext()
-            {
-                TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
-                InvokeKind = VSInternalCompletionInvokeKind.Deletion,
-            };
-            var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
-
-            // Act
-            var completionList = await provider.GetCompletionListAsync(
-                absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
-
-            // Assert
-
-            // These are the default directives that don't need to be separately registered, they should always be part of the completion list.
-            Assert.Contains(completionList.Items, item => item.InsertText == "addTagHelper");
-            Assert.Contains(completionList.Items, item => item.InsertText == "removeTagHelper");
-            Assert.Contains(completionList.Items, item => item.InsertText == "tagHelperPrefix");
-        }
-
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
-        public async Task GetCompletionListAsync_ProvidesInjectOnIncomplete_KeywordIn()
-        {
-            // Arrange
-            var documentPath = "C:/path/to/document.razor";
-            var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
-            builder.TagMatchingRule(rule => rule.TagName = "Test");
-            builder.SetTypeName("TestNamespace.TestTagHelper");
-            var tagHelper = builder.Build();
-            var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
-            var codeDocument = CreateCodeDocument("@in");
-            codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentContext = TestDocumentContext.From(documentPath, codeDocument);
-            var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
-            var completionContext = new VSInternalCompletionContext()
-            {
-                TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
-            };
-
-            // Act
-            var completionList = await provider.GetCompletionListAsync(
-                absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
-
-            // Assert
-            Assert.Collection(completionList.Items,
-                item => Assert.Equal("addTagHelper", item.InsertText),
-                item => AssertDirectiveSnippet(item, "addTagHelper"),
-                item => Assert.Equal("removeTagHelper", item.InsertText),
-                item => AssertDirectiveSnippet(item, "removeTagHelper"),
-                item => Assert.Equal("tagHelperPrefix", item.InsertText),
-                item => AssertDirectiveSnippet(item, "tagHelperPrefix")
-            );
-        }
-
-        [Fact]
-        public async Task GetCompletionListAsync_DoesNotProvideInjectOnInvoked()
-        {
-            // Arrange
-            var documentPath = "C:/path/to/document.razor";
-            var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
-            builder.TagMatchingRule(rule => rule.TagName = "Test");
-            builder.SetTypeName("TestNamespace.TestTagHelper");
-            var tagHelper = builder.Build();
-            var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
-            var codeDocument = CreateCodeDocument("@inje");
-            codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentContext = TestDocumentContext.From(documentPath, codeDocument);
-            var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
-            var completionContext = new VSInternalCompletionContext()
-            {
-                TriggerKind = CompletionTriggerKind.TriggerCharacter,
-            };
-
-            // Act
-            var completionList = await provider.GetCompletionListAsync(
-                absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
-
-            // Assert
-            Assert.Empty(completionList.Items);
-        }
-
-        [Fact]
-        [WorkItem("https://github.com/dotnet/razor-tooling/issues/4547")]
-        public async Task GetCompletionListAsync_ProvidesInjectOnIncomplete()
-        {
-            // Arrange
-            var documentPath = "C:/path/to/document.razor";
-            var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
-            builder.TagMatchingRule(rule => rule.TagName = "Test");
-            builder.SetTypeName("TestNamespace.TestTagHelper");
-            var tagHelper = builder.Build();
-            var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
-            var codeDocument = CreateCodeDocument("@inje");
-            codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentContext = TestDocumentContext.From(documentPath, codeDocument);
-            var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
-            var completionContext = new VSInternalCompletionContext()
-            {
-                TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
-            };
-
-            // Act
-            var completionList = await provider.GetCompletionListAsync(
-                absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
-
-            // Assert
-            Assert.Collection(completionList.Items,
-                item => Assert.Equal("addTagHelper", item.InsertText),
-                item => AssertDirectiveSnippet(item, "addTagHelper"),
-                item => Assert.Equal("removeTagHelper", item.InsertText),
-                item => AssertDirectiveSnippet(item, "removeTagHelper"),
-                item => Assert.Equal("tagHelperPrefix", item.InsertText),
-                item => AssertDirectiveSnippet(item, "tagHelperPrefix")
-            );
-        }
-
-        // This is more of an integration test to validate that all the pieces work together
-        [Fact]
-        public async Task GetCompletionListAsync_ProvidesTagHelperElementCompletionItems()
-        {
-            // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
-            var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
-            builder.TagMatchingRule(rule => rule.TagName = "Test");
-            builder.SetTypeName("TestNamespace.TestTagHelper");
-            var tagHelper = builder.Build();
-            var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
-            var codeDocument = CreateCodeDocument("<");
-            codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentContext = TestDocumentContext.From(documentPath, codeDocument);
-            var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
-
-            // Act
-            var completionList = await provider.GetCompletionListAsync(
-                absoluteIndex: 1, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
-
-            // Assert
-            Assert.Contains(completionList.Items, item => item.InsertText == "Test");
-        }
-
-        // This is more of an integration test to validate that all the pieces work together
-        [Fact]
-        public async Task GetCompletionListAsync_ProvidesTagHelperAttributeItems()
-        {
-            // Arrange
-            var documentPath = "C:/path/to/document.cshtml";
-            var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
-            builder.TagMatchingRule(rule => rule.TagName = "*");
-            builder.BindAttribute(attribute =>
-            {
-                attribute.Name = "testAttribute";
-                attribute.TypeName = typeof(string).FullName;
-                attribute.SetPropertyName("TestAttribute");
-            });
-            builder.SetTypeName("TestNamespace.TestTagHelper");
-            var tagHelper = builder.Build();
-            var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
-            var codeDocument = CreateCodeDocument("<test  ");
-            codeDocument.SetTagHelperContext(tagHelperContext);
-            var documentContext = TestDocumentContext.From(documentPath, codeDocument);
-            var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, LoggerFactory);
-
-            // Act
-            var completionList = await provider.GetCompletionListAsync(
-                absoluteIndex: 6, _defaultCompletionContext, documentContext, _clientCapabilities, existingCompletions: null, DisposalToken);
-
-            // Assert
-            Assert.Contains(completionList.Items, item => item.InsertText == "testAttribute=\"$0\"");
-        }
-
-        private static RazorCodeDocument CreateCodeDocument(string text)
-        {
-            var codeDocument = TestRazorCodeDocument.CreateEmpty();
-            var sourceDocument = TestRazorSourceDocument.Create(text);
-            var syntaxTree = RazorSyntaxTree.Parse(sourceDocument);
-            codeDocument.SetSyntaxTree(syntaxTree);
-            var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, Enumerable.Empty<TagHelperDescriptor>());
-            codeDocument.SetTagHelperContext(tagHelperDocumentContext);
-            return codeDocument;
-        }
-
-        private static void AssertDirectiveSnippet(CompletionItem completionItem, string directive)
-        {
-            Assert.StartsWith(directive, completionItem.InsertText);
-            Assert.Equal(DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive].InsertText, completionItem.InsertText);
-            Assert.Equal(CompletionItemKind.Snippet, completionItem.Kind);
-        }
+    private static void AssertDirectiveSnippet(CompletionItem completionItem, string directive)
+    {
+        Assert.StartsWith(directive, completionItem.InsertText);
+        Assert.Equal(DirectiveCompletionItemProvider.s_singleLineDirectiveSnippets[directive].InsertText, completionItem.InsertText);
+        Assert.Equal(CompletionItemKind.Snippet, completionItem.Kind);
     }
 }

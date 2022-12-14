@@ -18,30 +18,30 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
-{
-    public class RazorDefinitionEndpointTest : TagHelperServiceTestBase
-    {
-        public RazorDefinitionEndpointTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 
-        [Fact]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_Element()
-        {
-            var content = """
+public class RazorDefinitionEndpointTest : TagHelperServiceTestBase
+{
+    public RazorDefinitionEndpointTest(ITestOutputHelper testOutput)
+        : base(testOutput)
+    {
+    }
+
+    [Fact]
+    public async Task GetOriginTagHelperBindingAsync_TagHelper_Element()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <te$$st1></test1>
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content, "Test1TagHelper", isRazorFile: false);
-        }
+        await VerifyOriginTagHelperBindingAsync(content, "Test1TagHelper", isRazorFile: false);
+    }
 
-        [Fact]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_StartTag_WithAttribute()
-        {
-            var content = """
+    [Fact]
+    public async Task GetOriginTagHelperBindingAsync_TagHelper_StartTag_WithAttribute()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <Co$$mponent1 @test="Increment"></Component1>
                 @code {
@@ -51,13 +51,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper");
-        }
+        await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper");
+    }
 
-        [Fact]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_EndTag_WithAttribute()
-        {
-            var content = """
+    [Fact]
+    public async Task GetOriginTagHelperBindingAsync_TagHelper_EndTag_WithAttribute()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <Component1 @test="Increment"></Comp$$onent1>
                 @code {
@@ -67,13 +67,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper");
-        }
+        await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper");
+    }
 
-        [Fact]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_Attribute_ReturnsNull()
-        {
-            var content = """
+    [Fact]
+    public async Task GetOriginTagHelperBindingAsync_TagHelper_Attribute_ReturnsNull()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <Component1 @te$$st="Increment"></Component1>
                 @code {
@@ -83,13 +83,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content);
-        }
+        await VerifyOriginTagHelperBindingAsync(content);
+    }
 
-        [Fact]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_AttributeValue_ReturnsNull()
-        {
-            var content = """
+    [Fact]
+    public async Task GetOriginTagHelperBindingAsync_TagHelper_AttributeValue_ReturnsNull()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <Component1 @test="Increm$$ent"></Component1>
                 @code {
@@ -99,13 +99,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content);
-        }
+        await VerifyOriginTagHelperBindingAsync(content);
+    }
 
-        [Fact]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_AfterAttributeEquals_ReturnsNull()
-        {
-            var content = """
+    [Fact]
+    public async Task GetOriginTagHelperBindingAsync_TagHelper_AfterAttributeEquals_ReturnsNull()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <Component1 @test="$$Increment"></Component1>
                 @code {
@@ -115,13 +115,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content);
-        }
+        await VerifyOriginTagHelperBindingAsync(content);
+    }
 
-        [Fact]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_AttributeEnd_ReturnsNull()
-        {
-            var content = """
+    [Fact]
+    public async Task GetOriginTagHelperBindingAsync_TagHelper_AttributeEnd_ReturnsNull()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <Component1 @test="Increment">$$</Component1>
                 @code {
@@ -131,13 +131,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content);
-        }
+        await VerifyOriginTagHelperBindingAsync(content);
+    }
 
-        [Fact]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_MultipleAttributes()
-        {
-            var content = """
+    [Fact]
+    public async Task GetOriginTagHelperBindingAsync_TagHelper_MultipleAttributes()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <Co$$mponent1 @test="Increment" @minimized></Component1>
                 @code {
@@ -147,13 +147,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper");
-        }
+        await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper");
+    }
 
-        [Fact]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_MalformedElement()
-        {
-            var content = """
+    [Fact]
+    public async Task GetOriginTagHelperBindingAsync_TagHelper_MalformedElement()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <Co$$mponent1</Component1>
                 @code {
@@ -163,13 +163,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper");
-        }
+        await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper");
+    }
 
-        [Fact]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_MalformedAttribute()
-        {
-            var content = """
+    [Fact]
+    public async Task GetOriginTagHelperBindingAsync_TagHelper_MalformedAttribute()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <Co$$mponent1 @test="Increment></Component1>
                 @code {
@@ -179,26 +179,26 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper");
-        }
+        await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper");
+    }
 
-        [Fact]
-        public async Task GetOriginTagHelperBindingAsync_HTML_MarkupElement()
-        {
-            var content = """
+    [Fact]
+    public async Task GetOriginTagHelperBindingAsync_HTML_MarkupElement()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <p>
                     <str$$ong></strong>
                 </p>
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content);
-        }
+        await VerifyOriginTagHelperBindingAsync(content);
+    }
 
-        [Fact]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_PropertyAttribute()
-        {
-            var content = """
+    [Fact]
+    public async Task GetOriginTagHelperBindingAsync_TagHelper_PropertyAttribute()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <Component1 boo$$l-val="true"></Component1>
                 @code {
@@ -208,13 +208,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
-        }
+        await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
+    }
 
-        [Fact]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_MinimizedPropertyAttribute()
-        {
-            var content = """
+    [Fact]
+    public async Task GetOriginTagHelperBindingAsync_TagHelper_MinimizedPropertyAttribute()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <Component1 boo$$l-val></Component1>
                 @code {
@@ -224,13 +224,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
-        }
+        await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
+    }
 
-        [Fact]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_MinimizedPropertyAttributeEdge1()
-        {
-            var content = """
+    [Fact]
+    public async Task GetOriginTagHelperBindingAsync_TagHelper_MinimizedPropertyAttributeEdge1()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <Component1 $$bool-val></Component1>
                 @code {
@@ -240,13 +240,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
-        }
+        await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
+    }
 
-        [Fact]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_MinimizedPropertyAttributeEdge2()
-        {
-            var content = """
+    [Fact]
+    public async Task GetOriginTagHelperBindingAsync_TagHelper_MinimizedPropertyAttributeEdge2()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <Component1 bool-val$$></Component1>
                 @code {
@@ -256,13 +256,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
-        }
+        await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/razor-tooling/issues/6775")]
-        public async Task GetOriginTagHelperBindingAsync_TagHelper_PropertyAttributeEdge()
-        {
-            var content = """
+    [Fact, WorkItem("https://github.com/dotnet/razor-tooling/issues/6775")]
+    public async Task GetOriginTagHelperBindingAsync_TagHelper_PropertyAttributeEdge()
+    {
+        var content = """
                 @addTagHelper *, TestAssembly
                 <Component1 bool-val$$="true"></Component1>
                 @code {
@@ -272,13 +272,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
-        }
+        await VerifyOriginTagHelperBindingAsync(content, "Component1TagHelper", "BoolVal");
+    }
 
-        [Fact]
-        public async Task GetNavigatePositionAsync_TagHelperProperty_CorrectRange1()
-        {
-            var content = """
+    [Fact]
+    public async Task GetNavigatePositionAsync_TagHelperProperty_CorrectRange1()
+    {
+        var content = """
                 <div>@Title</div>
 
                 @code
@@ -291,13 +291,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyNavigatePositionAsync(content, "Title");
-        }
+        await VerifyNavigatePositionAsync(content, "Title");
+    }
 
-        [Fact]
-        public async Task GetNavigatePositionAsync_TagHelperProperty_CorrectRange2()
-        {
-            var content = """
+    [Fact]
+    public async Task GetNavigatePositionAsync_TagHelperProperty_CorrectRange2()
+    {
+        var content = """
                 <div>@Title</div>
 
                 @code
@@ -307,13 +307,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyNavigatePositionAsync(content, "Title");
-        }
+        await VerifyNavigatePositionAsync(content, "Title");
+    }
 
-        [Fact]
-        public async Task GetNavigatePositionAsync_TagHelperProperty_CorrectRange3()
-        {
-            var content = """
+    [Fact]
+    public async Task GetNavigatePositionAsync_TagHelperProperty_CorrectRange3()
+    {
+        var content = """
                 <div>@Title</div>
 
                 @code
@@ -323,13 +323,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyNavigatePositionAsync(content, "Title");
-        }
+        await VerifyNavigatePositionAsync(content, "Title");
+    }
 
-        [Fact]
-        public async Task GetNavigatePositionAsync_TagHelperProperty_IgnoreInnerProperty()
-        {
-            var content = """
+    [Fact]
+    public async Task GetNavigatePositionAsync_TagHelperProperty_IgnoreInnerProperty()
+    {
+        var content = """
                 <div>@Title</div>
 
                 @code
@@ -343,67 +343,66 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition
                 }
                 """;
 
-            await VerifyNavigatePositionAsync(content, "Title");
-        }
-
-        #region Helpers
-        private async Task VerifyOriginTagHelperBindingAsync(string content, string tagHelperDescriptorName = null, string attributeDescriptorPropertyName = null, bool isRazorFile = true)
-        {
-            TestFileMarkupParser.GetPosition(content, out content, out var position);
-
-            SetupDocument(out _, out var documentSnapshot, content, isRazorFile);
-            var documentContext = CreateDocumentContext(new Uri(@"C:\file.razor"), documentSnapshot);
-
-            var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
-                documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), DisposalToken);
-
-            if (tagHelperDescriptorName is null)
-            {
-                Assert.Null(descriptor);
-            }
-            else
-            {
-                Assert.NotNull(descriptor);
-                Assert.Equal(tagHelperDescriptorName, descriptor!.Name);
-            }
-
-            if (attributeDescriptorPropertyName is null)
-            {
-                Assert.Null(attributeDescriptor);
-            }
-            else
-            {
-                Assert.NotNull(attributeDescriptor);
-                Assert.Equal(attributeDescriptorPropertyName, attributeDescriptor.GetPropertyName());
-            }
-        }
-
-        private async Task VerifyNavigatePositionAsync(string content, string propertyName)
-        {
-            TestFileMarkupParser.GetSpan(content, out content, out var selection);
-
-            SetupDocument(out var codeDocument, out _, content);
-            var expectedRange = selection.AsRange(codeDocument.GetSourceText());
-
-            var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
-
-            var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, propertyName, mappingService, Logger, DisposalToken);
-            Assert.NotNull(range);
-            Assert.Equal(expectedRange, range);
-        }
-
-        private void SetupDocument(out RazorCodeDocument codeDocument, out DocumentSnapshot documentSnapshot, string content, bool isRazorFile = true)
-        {
-            var sourceText = SourceText.From(content);
-            codeDocument = CreateCodeDocument(content, isRazorFile, DefaultTagHelpers);
-            var outDoc = codeDocument;
-            documentSnapshot = Mock.Of<DocumentSnapshot>(
-                d => d.GetTextAsync() == Task.FromResult(sourceText),
-                MockBehavior.Strict);
-            Mock.Get(documentSnapshot)
-                .Setup(s => s.GetGeneratedOutputAsync())
-                .ReturnsAsync(outDoc);
-        }
-        #endregion
+        await VerifyNavigatePositionAsync(content, "Title");
     }
+
+    #region Helpers
+    private async Task VerifyOriginTagHelperBindingAsync(string content, string tagHelperDescriptorName = null, string attributeDescriptorPropertyName = null, bool isRazorFile = true)
+    {
+        TestFileMarkupParser.GetPosition(content, out content, out var position);
+
+        SetupDocument(out _, out var documentSnapshot, content, isRazorFile);
+        var documentContext = CreateDocumentContext(new Uri(@"C:\file.razor"), documentSnapshot);
+
+        var (descriptor, attributeDescriptor) = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(
+            documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), DisposalToken);
+
+        if (tagHelperDescriptorName is null)
+        {
+            Assert.Null(descriptor);
+        }
+        else
+        {
+            Assert.NotNull(descriptor);
+            Assert.Equal(tagHelperDescriptorName, descriptor!.Name);
+        }
+
+        if (attributeDescriptorPropertyName is null)
+        {
+            Assert.Null(attributeDescriptor);
+        }
+        else
+        {
+            Assert.NotNull(attributeDescriptor);
+            Assert.Equal(attributeDescriptorPropertyName, attributeDescriptor.GetPropertyName());
+        }
+    }
+
+    private async Task VerifyNavigatePositionAsync(string content, string propertyName)
+    {
+        TestFileMarkupParser.GetSpan(content, out content, out var selection);
+
+        SetupDocument(out var codeDocument, out _, content);
+        var expectedRange = selection.AsRange(codeDocument.GetSourceText());
+
+        var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+
+        var range = await RazorDefinitionEndpoint.TryGetPropertyRangeAsync(codeDocument, propertyName, mappingService, Logger, DisposalToken);
+        Assert.NotNull(range);
+        Assert.Equal(expectedRange, range);
+    }
+
+    private void SetupDocument(out RazorCodeDocument codeDocument, out DocumentSnapshot documentSnapshot, string content, bool isRazorFile = true)
+    {
+        var sourceText = SourceText.From(content);
+        codeDocument = CreateCodeDocument(content, isRazorFile, DefaultTagHelpers);
+        var outDoc = codeDocument;
+        documentSnapshot = Mock.Of<DocumentSnapshot>(
+            d => d.GetTextAsync() == Task.FromResult(sourceText),
+            MockBehavior.Strict);
+        Mock.Get(documentSnapshot)
+            .Setup(s => s.GetGeneratedOutputAsync())
+            .ReturnsAsync(outDoc);
+    }
+    #endregion
 }

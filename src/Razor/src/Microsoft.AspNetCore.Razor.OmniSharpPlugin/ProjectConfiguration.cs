@@ -7,31 +7,30 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+public sealed class ProjectConfiguration
 {
-    public sealed class ProjectConfiguration
+    public ProjectConfiguration(RazorConfiguration configuration, IReadOnlyList<OmniSharpHostDocument> documents, string rootNamespace)
     {
-        public ProjectConfiguration(RazorConfiguration configuration, IReadOnlyList<OmniSharpHostDocument> documents, string rootNamespace)
+        if (configuration is null)
         {
-            if (configuration is null)
-            {
-                throw new ArgumentNullException(nameof(configuration));
-            }
-
-            if (documents is null)
-            {
-                throw new ArgumentNullException(nameof(documents));
-            }
-
-            Configuration = configuration;
-            Documents = documents;
-            RootNamespace = rootNamespace;
+            throw new ArgumentNullException(nameof(configuration));
         }
 
-        public RazorConfiguration Configuration { get; }
+        if (documents is null)
+        {
+            throw new ArgumentNullException(nameof(documents));
+        }
 
-        public IReadOnlyList<OmniSharpHostDocument> Documents { get; }
-
-        public string RootNamespace { get; }
+        Configuration = configuration;
+        Documents = documents;
+        RootNamespace = rootNamespace;
     }
+
+    public RazorConfiguration Configuration { get; }
+
+    public IReadOnlyList<OmniSharpHostDocument> Documents { get; }
+
+    public string RootNamespace { get; }
 }

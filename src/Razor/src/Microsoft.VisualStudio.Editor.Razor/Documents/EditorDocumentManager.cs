@@ -6,21 +6,20 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.VisualStudio.Editor.Razor.Documents
+namespace Microsoft.VisualStudio.Editor.Razor.Documents;
+
+internal abstract class EditorDocumentManager : IWorkspaceService
 {
-    internal abstract class EditorDocumentManager : IWorkspaceService
-    {
-        public abstract EditorDocument GetOrCreateDocument(
-            DocumentKey key,
-            EventHandler? changedOnDisk,
-            EventHandler? changedInEditor,
-            EventHandler? opened,
-            EventHandler? closed);
+    public abstract EditorDocument GetOrCreateDocument(
+        DocumentKey key,
+        EventHandler? changedOnDisk,
+        EventHandler? changedInEditor,
+        EventHandler? opened,
+        EventHandler? closed);
 
-        public abstract bool TryGetDocument(DocumentKey key, [NotNullWhen(returnValue: true)] out EditorDocument? document);
+    public abstract bool TryGetDocument(DocumentKey key, [NotNullWhen(returnValue: true)] out EditorDocument? document);
 
-        public abstract bool TryGetMatchingDocuments(string filePath, [NotNullWhen(returnValue: true)] out EditorDocument[]? documents);
+    public abstract bool TryGetMatchingDocuments(string filePath, [NotNullWhen(returnValue: true)] out EditorDocument[]? documents);
 
-        public abstract void RemoveDocument(EditorDocument document);
-    }
+    public abstract void RemoveDocument(EditorDocument document);
 }

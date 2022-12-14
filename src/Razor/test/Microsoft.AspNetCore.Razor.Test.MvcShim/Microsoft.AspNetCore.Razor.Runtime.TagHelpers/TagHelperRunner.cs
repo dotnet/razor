@@ -5,13 +5,12 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.AspNetCore.Razor.Runtime.TagHelpers
+namespace Microsoft.AspNetCore.Razor.Runtime.TagHelpers;
+
+public class TagHelperRunner
 {
-    public class TagHelperRunner
+    public Task RunAsync(TagHelperExecutionContext executionContext)
     {
-        public Task RunAsync(TagHelperExecutionContext executionContext)
-        {
-            throw null;
-        }
+        throw null;
     }
 }

@@ -6,15 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectToBuild Condition="'$(SdkTaskProjects)'==''" Include="$(MSBuildThisFileDirectory)..\razor-compiler.sln" />
-
-    <ProjectToBuild Condition="'$(OS)'=='WINDOWS_NT' and '$(SdkTaskProjects)'=='' And '$(BuildVsix)' != 'true'" Include="$(MSBuildThisFileDirectory)..\src\Razor\Razor.sln" />
-    <ProjectToBuild Condition="'$(OS)'=='WINDOWS_NT' and '$(SdkTaskProjects)'=='' And '$(BuildVsix)' == 'true'" Include="$(MSBuildThisFileDirectory)..\src\Razor\src\Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.csproj" />
-    <ProjectToBuild Condition="'$(OS)'=='WINDOWS_NT' and '$(SdkTaskProjects)'=='' And '$(BuildVsix)' == 'true'" Include="$(MSBuildThisFileDirectory)..\src\Razor\src\Microsoft.VisualStudio.RazorExtension.Dependencies\Microsoft.VisualStudio.RazorExtension.Dependencies.csproj" />
-
+    <ProjectToBuild Condition="'$(OS)'=='WINDOWS_NT' and '$(SdkTaskProjects)'==''" Include="$(MSBuildThisFileDirectory)..\Razor.sln" />
 
     <!-- Exclude VSIX projects on non-Windows -->
-    <ProjectToBuild Condition="'$(OS)'!='WINDOWS_NT' and '$(SdkTaskProjects)'==''" Include="$(MSBuildThisFileDirectory)..\src\Razor\Razor.Slim.slnf" />
+    <ProjectToBuild Condition="'$(OS)'!='WINDOWS_NT' and '$(SdkTaskProjects)'==''" Include="$(MSBuildThisFileDirectory)..\Razor.Slim.slnf" />
 
     <NodeJsProjects Include="$(RepoRoot)src\Razor\src\**\*.npmproj" Exclude="$(RepoRoot)src\**\node_modules\**" RestoreInParallel="false"/>
     <NodeJsProjects Include="$(RepoRoot)src\Razor\test\**\*.npmproj" Exclude="$(RepoRoot)src\**\node_modules\**" RestoreInParallel="false" />

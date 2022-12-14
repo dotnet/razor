@@ -6,7 +6,7 @@
       We rely on launch settings to run devenv with the appropriate hive that the vsixes have been deployed to.
     -->
 
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>$(DefaultNetFxTargetFramework)</TargetFramework>
 
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
   </PropertyGroup>

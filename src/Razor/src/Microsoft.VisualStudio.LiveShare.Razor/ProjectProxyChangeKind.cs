@@ -1,12 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-namespace Microsoft.VisualStudio.LiveShare.Razor
+namespace Microsoft.VisualStudio.LiveShare.Razor;
+
+public enum ProjectProxyChangeKind
 {
-    public enum ProjectProxyChangeKind
-    {
-        ProjectAdded,
-        ProjectRemoved,
-        ProjectChanged,
-    }
+    ProjectAdded,
+    ProjectRemoved,
+    ProjectChanged,
 }

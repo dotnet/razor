@@ -20,125 +20,124 @@ using Xunit;
 using Xunit.Abstractions;
 using RazorMapToDocumentRangesResponse = Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp.RazorMapToDocumentRangesResponse;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+
+public class RazorLSPSpanMappingServiceTest : TestBase
 {
-    public class RazorLSPSpanMappingServiceTest : TestBase
+    private readonly Uri _mockDocumentUri = new("C://project/path/document.razor");
+
+    private static readonly string s_mockGeneratedContent = $"Hello {Environment.NewLine} This is the source text in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
+    private static readonly string s_mockRazorContent = $"Hello {Environment.NewLine} This is the {Environment.NewLine} source text {Environment.NewLine} in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
+
+    private readonly SourceText _sourceTextGenerated;
+    private readonly SourceText _sourceTextRazor;
+
+    public RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private readonly Uri _mockDocumentUri = new("C://project/path/document.razor");
+        _sourceTextGenerated = SourceText.From(s_mockGeneratedContent);
+        _sourceTextRazor = SourceText.From(s_mockRazorContent);
+    }
 
-        private static readonly string s_mockGeneratedContent = $"Hello {Environment.NewLine} This is the source text in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
-        private static readonly string s_mockRazorContent = $"Hello {Environment.NewLine} This is the {Environment.NewLine} source text {Environment.NewLine} in the generated C# file. {Environment.NewLine} This is some more sample text for demo purposes.";
+    [Fact]
+    public async Task MapSpans_WithinRange_ReturnsMapping()
+    {
+        // Arrange
+        var called = false;
 
-        private readonly SourceText _sourceTextGenerated;
-        private readonly SourceText _sourceTextRazor;
+        var textSpan = new TextSpan(1, 10);
+        var spans = new TextSpan[] { textSpan };
 
-        public RazorLSPSpanMappingServiceTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+        var documentSnapshot = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
+        documentSnapshot.SetupGet(doc => doc.Uri).Returns(_mockDocumentUri);
+
+        var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
+
+        var textSpanAsRange = textSpan.AsRange(_sourceTextGenerated);
+        var mappedRange = new Range()
         {
-            _sourceTextGenerated = SourceText.From(s_mockGeneratedContent);
-            _sourceTextRazor = SourceText.From(s_mockRazorContent);
-        }
+            Start = new Position(2, 1),
+            End = new Position(2, 11)
+        };
 
-        [Fact]
-        public async Task MapSpans_WithinRange_ReturnsMapping()
+        var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
+        var mappingResult = new RazorMapToDocumentRangesResponse()
         {
-            // Arrange
-            var called = false;
-
-            var textSpan = new TextSpan(1, 10);
-            var spans = new TextSpan[] { textSpan };
-
-            var documentSnapshot = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
-            documentSnapshot.SetupGet(doc => doc.Uri).Returns(_mockDocumentUri);
-
-            var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
-
-            var textSpanAsRange = textSpan.AsRange(_sourceTextGenerated);
-            var mappedRange = new Range()
+            Ranges = new Range[] { mappedRange }
+        };
+        documentMappingProvider.Setup(dmp => dmp.MapToDocumentRangesAsync(It.IsAny<RazorLanguageKind>(), It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
+            .Callback<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) =>
             {
-                Start = new Position(2, 1),
-                End = new Position(2, 11)
-            };
+                Assert.Equal(RazorLanguageKind.CSharp, languageKind);
+                Assert.Equal(_mockDocumentUri, uri);
+                Assert.Single(ranges, textSpanAsRange);
+                called = true;
+            })
+            .ReturnsAsync(mappingResult);
 
-            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
-            var mappingResult = new RazorMapToDocumentRangesResponse()
+        var service = new RazorLSPSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
+
+        var expectedSpan = mappedRange.AsTextSpan(_sourceTextRazor);
+        var expectedLinePosition = _sourceTextRazor.Lines.GetLinePositionSpan(expectedSpan);
+        var expectedFilePath = _mockDocumentUri.LocalPath;
+        var expectedResult = (expectedFilePath, expectedLinePosition, expectedSpan);
+
+        // Act
+        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor).ConfigureAwait(false);
+
+        // Assert
+        Assert.True(called);
+        Assert.Single(result, expectedResult);
+    }
+
+    [Fact]
+    public async Task MapSpans_OutsideRange_ReturnsEmpty()
+    {
+        // Arrange
+        var called = false;
+
+        var textSpan = new TextSpan(10, 10);
+        var spans = new TextSpan[] { textSpan };
+
+        var documentSnapshot = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
+        documentSnapshot.SetupGet(doc => doc.Uri).Returns(_mockDocumentUri);
+
+        var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
+
+        var textSpanAsRange = textSpan.AsRange(_sourceTextGenerated);
+
+        var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
+        documentMappingProvider.Setup(dmp => dmp.MapToDocumentRangesAsync(It.IsAny<RazorLanguageKind>(), It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
+            .Callback<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) =>
             {
-                Ranges = new Range[] { mappedRange }
-            };
-            documentMappingProvider.Setup(dmp => dmp.MapToDocumentRangesAsync(It.IsAny<RazorLanguageKind>(), It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
-                .Callback<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) =>
-                {
-                    Assert.Equal(RazorLanguageKind.CSharp, languageKind);
-                    Assert.Equal(_mockDocumentUri, uri);
-                    Assert.Single(ranges, textSpanAsRange);
-                    called = true;
-                })
-                .ReturnsAsync(mappingResult);
+                Assert.Equal(RazorLanguageKind.CSharp, languageKind);
+                Assert.Equal(_mockDocumentUri, uri);
+                Assert.Single(ranges, textSpanAsRange);
+                called = true;
+            })
+            .ReturnsAsync(value: null);
 
-            var service = new RazorLSPSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
+        var service = new RazorLSPSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
 
-            var expectedSpan = mappedRange.AsTextSpan(_sourceTextRazor);
-            var expectedLinePosition = _sourceTextRazor.Lines.GetLinePositionSpan(expectedSpan);
-            var expectedFilePath = _mockDocumentUri.LocalPath;
-            var expectedResult = (expectedFilePath, expectedLinePosition, expectedSpan);
+        // Act
+        var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor).ConfigureAwait(false);
 
-            // Act
-            var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor).ConfigureAwait(false);
+        // Assert
+        Assert.True(called);
+        Assert.Empty(result);
+    }
 
-            // Assert
-            Assert.True(called);
-            Assert.Single(result, expectedResult);
-        }
+    [Fact]
+    public void MapSpans_GetMappedSpanResults_MappingErrorReturnsDefaultMappedSpan()
+    {
+        // Arrange
+        var sourceTextRazor = SourceText.From("");
+        var response = new RazorMapToDocumentRangesResponse { Ranges = new Range[] { Extensions.RangeExtensions.UndefinedRange } };
 
-        [Fact]
-        public async Task MapSpans_OutsideRange_ReturnsEmpty()
-        {
-            // Arrange
-            var called = false;
+        // Act
+        var results = RazorLSPSpanMappingService.GetMappedSpanResults(_mockDocumentUri.LocalPath, sourceTextRazor, response);
 
-            var textSpan = new TextSpan(10, 10);
-            var spans = new TextSpan[] { textSpan };
-
-            var documentSnapshot = new Mock<LSPDocumentSnapshot>(MockBehavior.Strict);
-            documentSnapshot.SetupGet(doc => doc.Uri).Returns(_mockDocumentUri);
-
-            var textSnapshot = new StringTextSnapshot(s_mockGeneratedContent, 1);
-
-            var textSpanAsRange = textSpan.AsRange(_sourceTextGenerated);
-
-            var documentMappingProvider = new Mock<LSPDocumentMappingProvider>(MockBehavior.Strict);
-            documentMappingProvider.Setup(dmp => dmp.MapToDocumentRangesAsync(It.IsAny<RazorLanguageKind>(), It.IsAny<Uri>(), It.IsAny<Range[]>(), It.IsAny<CancellationToken>()))
-                .Callback<RazorLanguageKind, Uri, Range[], CancellationToken>((languageKind, uri, ranges, ct) =>
-                {
-                    Assert.Equal(RazorLanguageKind.CSharp, languageKind);
-                    Assert.Equal(_mockDocumentUri, uri);
-                    Assert.Single(ranges, textSpanAsRange);
-                    called = true;
-                })
-                .ReturnsAsync(value: null);
-
-            var service = new RazorLSPSpanMappingService(documentMappingProvider.Object, documentSnapshot.Object, textSnapshot);
-
-            // Act
-            var result = await service.MapSpansAsyncTest(spans, _sourceTextGenerated, _sourceTextRazor).ConfigureAwait(false);
-
-            // Assert
-            Assert.True(called);
-            Assert.Empty(result);
-        }
-
-        [Fact]
-        public void MapSpans_GetMappedSpanResults_MappingErrorReturnsDefaultMappedSpan()
-        {
-            // Arrange
-            var sourceTextRazor = SourceText.From("");
-            var response = new RazorMapToDocumentRangesResponse { Ranges = new Range[] { Extensions.RangeExtensions.UndefinedRange } };
-
-            // Act
-            var results = RazorLSPSpanMappingService.GetMappedSpanResults(_mockDocumentUri.LocalPath, sourceTextRazor, response);
-
-            // Assert
-            Assert.True(results.Single().IsDefault);
-        }
+        // Assert
+        Assert.True(results.Single().IsDefault);
     }
 }

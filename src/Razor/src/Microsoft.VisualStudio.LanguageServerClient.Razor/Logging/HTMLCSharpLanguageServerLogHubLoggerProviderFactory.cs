@@ -4,16 +4,15 @@
 using System.Composition;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+
+[Shared]
+[Export(typeof(HTMLCSharpLanguageServerLogHubLoggerProviderFactory))]
+internal class HTMLCSharpLanguageServerLogHubLoggerProviderFactory : LogHubLoggerProviderFactoryBase
 {
-    [Shared]
-    [Export(typeof(HTMLCSharpLanguageServerLogHubLoggerProviderFactory))]
-    internal class HTMLCSharpLanguageServerLogHubLoggerProviderFactory : LogHubLoggerProviderFactoryBase
+    [ImportingConstructor]
+    public HTMLCSharpLanguageServerLogHubLoggerProviderFactory(RazorLogHubTraceProvider traceProvider)
+        : base(traceProvider)
     {
-        [ImportingConstructor]
-        public HTMLCSharpLanguageServerLogHubLoggerProviderFactory(RazorLogHubTraceProvider traceProvider)
-            : base(traceProvider)
-        {
-        }
     }
 }

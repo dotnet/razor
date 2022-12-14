@@ -3,12 +3,11 @@
 
 using MonoDevelop.Projects;
 
-namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem
-{
-    internal abstract class DotNetProjectHost
-    {
-        public abstract DotNetProject Project { get; }
+namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor.ProjectSystem;
 
-        public abstract void Subscribe();
-    }
+internal abstract class DotNetProjectHost
+{
+    public abstract DotNetProject Project { get; }
+
+    public abstract void Subscribe();
 }

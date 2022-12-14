@@ -4,10 +4,9 @@
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+[LanguageServerEndpoint(Methods.TextDocumentCodeActionName)]
+internal interface IVSCodeActionEndpoint : IRazorRequestHandler<CodeActionParams, SumType<Command, CodeAction>[]?>, IRegistrationExtension
 {
-    [LanguageServerEndpoint(Methods.TextDocumentCodeActionName)]
-    internal interface IVSCodeActionEndpoint : IRazorRequestHandler<CodeActionParams, SumType<Command, CodeAction>[]?>, IRegistrationExtension
-    {
-    }
 }

@@ -4,10 +4,9 @@
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.LinkedEditingRange
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.LinkedEditingRange;
+
+[LanguageServerEndpoint(Methods.TextDocumentLinkedEditingRangeName)]
+internal interface ILinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?>, IRegistrationExtension
 {
-    [LanguageServerEndpoint(Methods.TextDocumentLinkedEditingRangeName)]
-    internal interface ILinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?>, IRegistrationExtension
-    {
-    }
 }

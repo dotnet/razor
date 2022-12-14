@@ -7,24 +7,23 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert
+namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
+
+internal abstract class RazorOnAutoInsertProvider
 {
-    internal abstract class RazorOnAutoInsertProvider
+    internal readonly ILogger Logger;
+
+    public RazorOnAutoInsertProvider(ILoggerFactory loggerFactory)
     {
-        internal readonly ILogger Logger;
-
-        public RazorOnAutoInsertProvider(ILoggerFactory loggerFactory)
+        if (loggerFactory is null)
         {
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            Logger = loggerFactory.CreateLogger<RazorOnAutoInsertProvider>();
+            throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        public abstract string TriggerCharacter { get; }
-
-        public abstract bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format);
+        Logger = loggerFactory.CreateLogger<RazorOnAutoInsertProvider>();
     }
+
+    public abstract string TriggerCharacter { get; }
+
+    public abstract bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format);
 }

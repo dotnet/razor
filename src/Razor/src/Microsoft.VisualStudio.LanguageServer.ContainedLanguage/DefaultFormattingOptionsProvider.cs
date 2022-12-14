@@ -6,43 +6,42 @@ using System.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+
+[Shared]
+[Export(typeof(FormattingOptionsProvider))]
+internal class DefaultFormattingOptionsProvider : FormattingOptionsProvider
 {
-    [Shared]
-    [Export(typeof(FormattingOptionsProvider))]
-    internal class DefaultFormattingOptionsProvider : FormattingOptionsProvider
+    private readonly LSPDocumentManager _documentManager;
+    private readonly IIndentationManagerService _indentationManagerService;
+
+    [ImportingConstructor]
+    public DefaultFormattingOptionsProvider(
+        LSPDocumentManager documentManager,
+        IIndentationManagerService indentationManagerService)
     {
-        private readonly LSPDocumentManager _documentManager;
-        private readonly IIndentationManagerService _indentationManagerService;
+        _documentManager = documentManager;
+        _indentationManagerService = indentationManagerService;
+    }
 
-        [ImportingConstructor]
-        public DefaultFormattingOptionsProvider(
-            LSPDocumentManager documentManager,
-            IIndentationManagerService indentationManagerService)
+    public override FormattingOptions? GetOptions(Uri uri)
+    {
+        if (!_documentManager.TryGetDocument(uri, out var documentSnapshot))
         {
-            _documentManager = documentManager;
-            _indentationManagerService = indentationManagerService;
+            return null;
         }
-
-        public override FormattingOptions? GetOptions(Uri uri)
+        
+        _indentationManagerService.GetIndentation(
+            documentSnapshot.Snapshot.TextBuffer,
+            explicitFormat: false,
+            out var insertSpaces,
+            out var tabSize,
+            out _);
+        var formattingOptions = new FormattingOptions()
         {
-            if (!_documentManager.TryGetDocument(uri, out var documentSnapshot))
-            {
-                return null;
-            }
-            
-            _indentationManagerService.GetIndentation(
-                documentSnapshot.Snapshot.TextBuffer,
-                explicitFormat: false,
-                out var insertSpaces,
-                out var tabSize,
-                out _);
-            var formattingOptions = new FormattingOptions()
-            {
-                InsertSpaces = insertSpaces,
-                TabSize = tabSize,
-            };
-            return formattingOptions;
-        }
+            InsertSpaces = insertSpaces,
+            TabSize = tabSize,
+        };
+        return formattingOptions;
     }
 }

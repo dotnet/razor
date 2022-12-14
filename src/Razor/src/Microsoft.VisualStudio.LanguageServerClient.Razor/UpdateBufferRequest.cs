@@ -4,14 +4,13 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+
+internal class UpdateBufferRequest
 {
-    internal class UpdateBufferRequest
-    {
-        public int? HostDocumentVersion { get; init; }
+    public int? HostDocumentVersion { get; init; }
 
-        public string? HostDocumentFilePath { get; init; }
+    public string? HostDocumentFilePath { get; init; }
 
-        public required IReadOnlyList<TextChange> Changes { get; init; }
-    }
+    public required IReadOnlyList<TextChange> Changes { get; init; }
 }

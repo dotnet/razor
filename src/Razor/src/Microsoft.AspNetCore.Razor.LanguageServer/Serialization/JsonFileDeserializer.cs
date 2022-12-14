@@ -5,38 +5,37 @@ using System.IO;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
+
+internal abstract class JsonFileDeserializer
 {
-    internal abstract class JsonFileDeserializer
+    public static readonly JsonFileDeserializer Instance = new DefaultJsonFileDeserializer();
+
+    public abstract TValue? Deserialize<TValue>(string filePath) where TValue : class;
+
+    private class DefaultJsonFileDeserializer : JsonFileDeserializer
     {
-        public static readonly JsonFileDeserializer Instance = new DefaultJsonFileDeserializer();
+        private readonly JsonSerializer _serializer;
 
-        public abstract TValue? Deserialize<TValue>(string filePath) where TValue : class;
-
-        private class DefaultJsonFileDeserializer : JsonFileDeserializer
+        public DefaultJsonFileDeserializer()
         {
-            private readonly JsonSerializer _serializer;
+            _serializer = new JsonSerializer();
+            _serializer.Converters.RegisterRazorConverters();
+        }
 
-            public DefaultJsonFileDeserializer()
+        public override TValue? Deserialize<TValue>(string filePath) where TValue : class
+        {
+            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using var reader = new StreamReader(stream);
+            try
             {
-                _serializer = new JsonSerializer();
-                _serializer.Converters.RegisterRazorConverters();
+                var deserializedValue = (TValue?)_serializer.Deserialize(reader, typeof(TValue));
+                return deserializedValue;
             }
-
-            public override TValue? Deserialize<TValue>(string filePath) where TValue : class
+            catch
             {
-                using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-                using var reader = new StreamReader(stream);
-                try
-                {
-                    var deserializedValue = (TValue?)_serializer.Deserialize(reader, typeof(TValue));
-                    return deserializedValue;
-                }
-                catch
-                {
-                    // Swallow deserialization exceptions. There's many reasons they can happen, all out of our control.
-                    return null;
-                }
+                // Swallow deserialization exceptions. There's many reasons they can happen, all out of our control.
+                return null;
             }
         }
     }

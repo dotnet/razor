@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>$(DefaultNetFxTargetFramework)</TargetFramework>
     <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains the Visual Studio Language Server client infrastructure for Razor files.</Description>
     <EnableApiCheck>false</EnableApiCheck>
     <IsShippingPackage>false</IsShippingPackage>
@@ -34,6 +34,15 @@
       Now we aren't sure why this exposes a "flaky" issue; however, to workaround the break we pin the following packages to workaround the issue.
     -->
     <PackageReference Include="Microsoft.VisualStudio.RpcContracts" Version="$(MicrosoftVisualStudioRpcContractsPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup Label="String Resources">
+    <EmbeddedResource Update="Resources\SR.resx">
+      <GenerateSource>true</GenerateSource>
+      <Namespace>$(ProjectName).Resources</Namespace>
+    </EmbeddedResource>
+
+    <Using Include="$(ProjectName).Resources" />
   </ItemGroup>
 
 </Project>

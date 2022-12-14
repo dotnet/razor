@@ -5,10 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer
+namespace Microsoft.AspNetCore.Razor.LanguageServer;
+
+internal interface IOnInitialized
 {
-    internal interface IOnInitialized
-    {
-        Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken);
-    }
+    Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken);
 }

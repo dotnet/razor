@@ -5,96 +5,95 @@
 
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
-namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration
+namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
+
+public static class TestCodeRenderingContext
 {
-    public static class TestCodeRenderingContext
+    public static CodeRenderingContext CreateDesignTime(
+        string newLineString = null,
+        string suppressUniqueIds = "test",
+        RazorSourceDocument source = null,
+        IntermediateNodeWriter nodeWriter = null)
     {
-        public static CodeRenderingContext CreateDesignTime(
-            string newLineString = null,
-            string suppressUniqueIds = "test",
-            RazorSourceDocument source = null,
-            IntermediateNodeWriter nodeWriter = null)
+        var codeWriter = new CodeWriter();
+        var documentNode = new DocumentIntermediateNode();
+        var options = RazorCodeGenerationOptions.CreateDesignTimeDefault();
+
+        if (source is null)
         {
-            var codeWriter = new CodeWriter();
-            var documentNode = new DocumentIntermediateNode();
-            var options = RazorCodeGenerationOptions.CreateDesignTimeDefault();
-
-            if (source is null)
-            {
-                source = TestRazorSourceDocument.Create();
-            }
-
-            var codeDocument = RazorCodeDocument.Create(source);
-            if (newLineString != null)
-            {
-                codeDocument.Items[CodeRenderingContext.NewLineString] = newLineString;
-            }
-
-            if (suppressUniqueIds != null)
-            {
-                codeDocument.Items[CodeRenderingContext.SuppressUniqueIds] = suppressUniqueIds;
-            }
-
-            if (nodeWriter is null)
-            {
-                nodeWriter = new DesignTimeNodeWriter();
-            }
-
-            var context = new DefaultCodeRenderingContext(codeWriter, nodeWriter, codeDocument, documentNode, options);
-            context.Visitor = new RenderChildrenVisitor(context);
-
-            return context;
+            source = TestRazorSourceDocument.Create();
         }
 
-        public static CodeRenderingContext CreateRuntime(
-            string newLineString = null,
-            string suppressUniqueIds = "test",
-            RazorSourceDocument source = null,
-            IntermediateNodeWriter nodeWriter = null)
+        var codeDocument = RazorCodeDocument.Create(source);
+        if (newLineString != null)
         {
-            var codeWriter = new CodeWriter();
-            var documentNode = new DocumentIntermediateNode();
-            var options = RazorCodeGenerationOptions.CreateDefault();
-
-            if (source is null)
-            {
-                source = TestRazorSourceDocument.Create();
-            }
-
-            var codeDocument = RazorCodeDocument.Create(source);
-            if (newLineString != null)
-            {
-                codeDocument.Items[CodeRenderingContext.NewLineString] = newLineString;
-            }
-
-            if (suppressUniqueIds != null)
-            {
-                codeDocument.Items[CodeRenderingContext.SuppressUniqueIds] = suppressUniqueIds;
-            }
-
-            if (nodeWriter is null)
-            {
-                nodeWriter = new RuntimeNodeWriter();
-            }
-
-            var context = new DefaultCodeRenderingContext(codeWriter, nodeWriter, codeDocument, documentNode, options);
-            context.Visitor = new RenderChildrenVisitor(context);
-
-            return context;
+            codeDocument.Items[CodeRenderingContext.NewLineString] = newLineString;
         }
 
-        private class RenderChildrenVisitor : IntermediateNodeVisitor
+        if (suppressUniqueIds != null)
         {
-            private readonly CodeRenderingContext _context;
-            public RenderChildrenVisitor(CodeRenderingContext context)
-            {
-                _context = context;
-            }
+            codeDocument.Items[CodeRenderingContext.SuppressUniqueIds] = suppressUniqueIds;
+        }
 
-            public override void VisitDefault(IntermediateNode node)
-            {
-                _context.CodeWriter.WriteLine("Render Children");
-            }
+        if (nodeWriter is null)
+        {
+            nodeWriter = new DesignTimeNodeWriter();
+        }
+
+        var context = new DefaultCodeRenderingContext(codeWriter, nodeWriter, codeDocument, documentNode, options);
+        context.Visitor = new RenderChildrenVisitor(context);
+
+        return context;
+    }
+
+    public static CodeRenderingContext CreateRuntime(
+        string newLineString = null,
+        string suppressUniqueIds = "test",
+        RazorSourceDocument source = null,
+        IntermediateNodeWriter nodeWriter = null)
+    {
+        var codeWriter = new CodeWriter();
+        var documentNode = new DocumentIntermediateNode();
+        var options = RazorCodeGenerationOptions.CreateDefault();
+
+        if (source is null)
+        {
+            source = TestRazorSourceDocument.Create();
+        }
+
+        var codeDocument = RazorCodeDocument.Create(source);
+        if (newLineString != null)
+        {
+            codeDocument.Items[CodeRenderingContext.NewLineString] = newLineString;
+        }
+
+        if (suppressUniqueIds != null)
+        {
+            codeDocument.Items[CodeRenderingContext.SuppressUniqueIds] = suppressUniqueIds;
+        }
+
+        if (nodeWriter is null)
+        {
+            nodeWriter = new RuntimeNodeWriter();
+        }
+
+        var context = new DefaultCodeRenderingContext(codeWriter, nodeWriter, codeDocument, documentNode, options);
+        context.Visitor = new RenderChildrenVisitor(context);
+
+        return context;
+    }
+
+    private class RenderChildrenVisitor : IntermediateNodeVisitor
+    {
+        private readonly CodeRenderingContext _context;
+        public RenderChildrenVisitor(CodeRenderingContext context)
+        {
+            _context = context;
+        }
+
+        public override void VisitDefault(IntermediateNode node)
+        {
+            _context.CodeWriter.WriteLine("Render Children");
         }
     }
 }

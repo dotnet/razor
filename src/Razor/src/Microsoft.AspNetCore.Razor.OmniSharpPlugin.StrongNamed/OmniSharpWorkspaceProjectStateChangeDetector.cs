@@ -9,107 +9,107 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
+
+public class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectSnapshotManagerChangeTrigger
 {
-    public class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectSnapshotManagerChangeTrigger
+    public OmniSharpWorkspaceProjectStateChangeDetector(
+        OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator,
+        OmniSharpLanguageServerFeatureOptions languageServerFeatureOptions)
     {
-        public OmniSharpWorkspaceProjectStateChangeDetector(
-            OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator,
-            OmniSharpLanguageServerFeatureOptions languageServerFeatureOptions)
+        if (projectSnapshotManagerDispatcher is null)
+        {
+            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+        }
+
+        if (workspaceStateGenerator is null)
+        {
+            throw new ArgumentNullException(nameof(workspaceStateGenerator));
+        }
+
+        InternalWorkspaceProjectStateChangeDetector = new ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
+            projectSnapshotManagerDispatcher.InternalDispatcher,
+            workspaceStateGenerator.InternalWorkspaceStateGenerator,
+            languageServerFeatureOptions.InternalLanguageServerFeatureOptions);
+    }
+
+    internal WorkspaceProjectStateChangeDetector InternalWorkspaceProjectStateChangeDetector { get; }
+
+    public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+    {
+        InternalWorkspaceProjectStateChangeDetector.Initialize(projectManager.InternalProjectSnapshotManager);
+    }
+
+    private class ProjectSnapshotManagerWorkspaceProjectStateChangeDetector : WorkspaceProjectStateChangeDetector
+    {
+        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+
+        public ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
+            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            ProjectWorkspaceStateGenerator workspaceStateGenerator,
+            LanguageServerFeatureOptions languageServerFeatureOptions)
+            : base(workspaceStateGenerator, projectSnapshotManagerDispatcher, languageServerFeatureOptions)
         {
             if (projectSnapshotManagerDispatcher is null)
             {
                 throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
             }
 
-            if (workspaceStateGenerator is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceStateGenerator));
-            }
-
-            InternalWorkspaceProjectStateChangeDetector = new ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
-                projectSnapshotManagerDispatcher.InternalDispatcher,
-                workspaceStateGenerator.InternalWorkspaceStateGenerator,
-                languageServerFeatureOptions.InternalLanguageServerFeatureOptions);
+            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         }
 
-        internal WorkspaceProjectStateChangeDetector InternalWorkspaceProjectStateChangeDetector { get; }
-
-        public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+        // We override the InitializeSolution in order to enforce calls to this to be on the project snapshot manager's
+        // thread. OmniSharp currently has an issue where they update the Solution on multiple different threads resulting
+        // in change events dispatching through the Workspace on multiple different threads. This normalizes
+        // that abnormality.
+        protected override void InitializeSolution(Solution solution)
         {
-            InternalWorkspaceProjectStateChangeDetector.Initialize(projectManager.InternalProjectSnapshotManager);
+            _ = InitializeSolutionAsync(solution, CancellationToken.None);
         }
 
-        private class ProjectSnapshotManagerWorkspaceProjectStateChangeDetector : WorkspaceProjectStateChangeDetector
+        private async Task InitializeSolutionAsync(Solution solution, CancellationToken cancellationToken)
         {
-            private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-
-            public ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
-                ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-                ProjectWorkspaceStateGenerator workspaceStateGenerator,
-                LanguageServerFeatureOptions languageServerFeatureOptions)
-                : base(workspaceStateGenerator, projectSnapshotManagerDispatcher, languageServerFeatureOptions)
+            try
             {
-                if (projectSnapshotManagerDispatcher is null)
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                () =>
                 {
-                    throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-                }
-
-                _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+                    base.InitializeSolution(solution);
+                },
+                cancellationToken).ConfigureAwait(false);
             }
-
-            // We override the InitializeSolution in order to enforce calls to this to be on the project snapshot manager's
-            // thread. OmniSharp currently has an issue where they update the Solution on multiple different threads resulting
-            // in change events dispatching through the Workspace on multiple different threads. This normalizes
-            // that abnormality.
-            protected override void InitializeSolution(Solution solution)
+            catch (Exception ex)
             {
-                _ = InitializeSolutionAsync(solution, CancellationToken.None);
+                Debug.Fail("Unexpected error when initializing solution: " + ex);
             }
+        }
 
-            private async Task InitializeSolutionAsync(Solution solution, CancellationToken cancellationToken)
+        // We override Workspace_WorkspaceChanged in order to enforce calls to this to be on the project snapshot manager's
+        // thread. OmniSharp currently has an issue where they update the Solution on multiple different threads resulting
+        // in change events dispatching through the Workspace on multiple different threads. This normalizes
+        // that abnormality.
+        internal override void Workspace_WorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
+        {
+            Workspace_WorkspaceChangedAsync(sender, args).Forget();
+        }
+
+        private async Task Workspace_WorkspaceChangedAsync(object? sender, WorkspaceChangeEventArgs args)
+        {
+            try
             {
-                try
+                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                () =>
                 {
-                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                    () =>
-                    {
-                        base.InitializeSolution(solution);
-                    },
-                    cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    Debug.Fail("Unexpected error when initializing solution: " + ex);
-                }
+                    base.Workspace_WorkspaceChanged(sender, args);
+                },
+                CancellationToken.None).ConfigureAwait(false);
             }
-
-            // We override Workspace_WorkspaceChanged in order to enforce calls to this to be on the project snapshot manager's
-            // thread. OmniSharp currently has an issue where they update the Solution on multiple different threads resulting
-            // in change events dispatching through the Workspace on multiple different threads. This normalizes
-            // that abnormality.
-            internal override void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
+            catch (Exception ex)
             {
-                _ = Workspace_WorkspaceChangedAsync(sender, args, CancellationToken.None);
-            }
-
-            private async Task Workspace_WorkspaceChangedAsync(object sender, WorkspaceChangeEventArgs args, CancellationToken cancellationToken)
-            {
-                try
-                {
-                    await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                    () =>
-                    {
-                        base.Workspace_WorkspaceChanged(sender, args);
-                    },
-                    CancellationToken.None).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    Debug.Fail("Unexpected error when handling a workspace changed event: " + ex);
-                }
+                Debug.Fail("Unexpected error when handling a workspace changed event: " + ex);
             }
         }
     }

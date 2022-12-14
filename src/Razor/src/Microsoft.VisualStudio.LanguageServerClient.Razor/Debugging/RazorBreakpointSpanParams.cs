@@ -4,12 +4,11 @@
 using System;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging
-{
-    internal class RazorBreakpointSpanParams
-    {
-        public required Uri Uri { get; init; }
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Debugging;
 
-        public required Position Position { get; init; }
-    }
+internal class RazorBreakpointSpanParams
+{
+    public required Uri Uri { get; init; }
+
+    public required Position Position { get; init; }
 }

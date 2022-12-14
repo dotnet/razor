@@ -6,42 +6,41 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+public abstract class ElementCompletionResult
 {
-    public abstract class ElementCompletionResult
+    private ElementCompletionResult()
     {
-        private ElementCompletionResult()
+    }
+
+    public abstract IReadOnlyDictionary<string, IEnumerable<TagHelperDescriptor>> Completions { get; }
+
+    internal static ElementCompletionResult Create(Dictionary<string, HashSet<TagHelperDescriptor>> completions)
+    {
+        if (completions is null)
         {
+            throw new ArgumentNullException(nameof(completions));
         }
 
-        public abstract IReadOnlyDictionary<string, IEnumerable<TagHelperDescriptor>> Completions { get; }
+        var readonlyCompletions = completions.ToDictionary(
+            key => key.Key,
+            value => (IEnumerable<TagHelperDescriptor>)value.Value,
+            completions.Comparer);
+        var result = new DefaultElementCompletionResult(readonlyCompletions);
 
-        internal static ElementCompletionResult Create(Dictionary<string, HashSet<TagHelperDescriptor>> completions)
+        return result;
+    }
+
+    private class DefaultElementCompletionResult : ElementCompletionResult
+    {
+        private readonly IReadOnlyDictionary<string, IEnumerable<TagHelperDescriptor>> _completions;
+
+        public DefaultElementCompletionResult(IReadOnlyDictionary<string, IEnumerable<TagHelperDescriptor>> completions)
         {
-            if (completions is null)
-            {
-                throw new ArgumentNullException(nameof(completions));
-            }
-
-            var readonlyCompletions = completions.ToDictionary(
-                key => key.Key,
-                value => (IEnumerable<TagHelperDescriptor>)value.Value,
-                completions.Comparer);
-            var result = new DefaultElementCompletionResult(readonlyCompletions);
-
-            return result;
+            _completions = completions;
         }
 
-        private class DefaultElementCompletionResult : ElementCompletionResult
-        {
-            private readonly IReadOnlyDictionary<string, IEnumerable<TagHelperDescriptor>> _completions;
-
-            public DefaultElementCompletionResult(IReadOnlyDictionary<string, IEnumerable<TagHelperDescriptor>> completions)
-            {
-                _completions = completions;
-            }
-
-            public override IReadOnlyDictionary<string, IEnumerable<TagHelperDescriptor>> Completions => _completions;
-        }
+        public override IReadOnlyDictionary<string, IEnumerable<TagHelperDescriptor>> Completions => _completions;
     }
 }

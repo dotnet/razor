@@ -9,76 +9,75 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+internal abstract class ProjectSnapshotProjectEngineFactory : IWorkspaceService
 {
-    internal abstract class ProjectSnapshotProjectEngineFactory : IWorkspaceService
+    public abstract IProjectEngineFactory FindFactory(ProjectSnapshot project);
+
+    public abstract IProjectEngineFactory FindSerializableFactory(ProjectSnapshot project);
+
+    public RazorProjectEngine Create(ProjectSnapshot project)
     {
-        public abstract IProjectEngineFactory FindFactory(ProjectSnapshot project);
+        return Create(project, RazorProjectFileSystem.Create(Path.GetDirectoryName(project.FilePath)), null);
+    }
 
-        public abstract IProjectEngineFactory FindSerializableFactory(ProjectSnapshot project);
-
-        public RazorProjectEngine Create(ProjectSnapshot project)
+    public RazorProjectEngine Create(ProjectSnapshot project, RazorProjectFileSystem fileSystem)
+    {
+        if (project is null)
         {
-            return Create(project, RazorProjectFileSystem.Create(Path.GetDirectoryName(project.FilePath)), null);
+            throw new ArgumentNullException(nameof(project));
         }
 
-        public RazorProjectEngine Create(ProjectSnapshot project, RazorProjectFileSystem fileSystem)
+        if (fileSystem is null)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            if (fileSystem is null)
-            {
-                throw new ArgumentNullException(nameof(fileSystem));
-            }
-
-            return Create(project, fileSystem, null);
+            throw new ArgumentNullException(nameof(fileSystem));
         }
 
-        public RazorProjectEngine Create(ProjectSnapshot project, Action<RazorProjectEngineBuilder> configure)
-        {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
+        return Create(project, fileSystem, null);
+    }
 
-            return Create(project, RazorProjectFileSystem.Create(Path.GetDirectoryName(project.FilePath)), configure);
+    public RazorProjectEngine Create(ProjectSnapshot project, Action<RazorProjectEngineBuilder> configure)
+    {
+        if (project is null)
+        {
+            throw new ArgumentNullException(nameof(project));
         }
 
-        public RazorProjectEngine Create(ProjectSnapshot project, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
+        return Create(project, RazorProjectFileSystem.Create(Path.GetDirectoryName(project.FilePath)), configure);
+    }
+
+    public RazorProjectEngine Create(ProjectSnapshot project, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure)
+    {
+        if (project is null)
         {
-            if (project is null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            if (fileSystem is null)
-            {
-                throw new ArgumentNullException(nameof(fileSystem));
-            }
-
-            return Create(project.Configuration, fileSystem, configure);
+            throw new ArgumentNullException(nameof(project));
         }
 
-        public RazorProjectEngine Create(RazorConfiguration configuration, string directoryPath, Action<RazorProjectEngineBuilder> configure)
+        if (fileSystem is null)
         {
-            if (configuration is null)
-            {
-                throw new ArgumentNullException(nameof(configuration));
-            }
-
-            if (directoryPath is null)
-            {
-                throw new ArgumentNullException(nameof(directoryPath));
-            }
-
-            return Create(configuration, RazorProjectFileSystem.Create(directoryPath), configure);
+            throw new ArgumentNullException(nameof(fileSystem));
         }
+
+        return Create(project.Configuration, fileSystem, configure);
+    }
+
+    public RazorProjectEngine Create(RazorConfiguration configuration, string directoryPath, Action<RazorProjectEngineBuilder> configure)
+    {
+        if (configuration is null)
+        {
+            throw new ArgumentNullException(nameof(configuration));
+        }
+
+        if (directoryPath is null)
+        {
+            throw new ArgumentNullException(nameof(directoryPath));
+        }
+
+        return Create(configuration, RazorProjectFileSystem.Create(directoryPath), configure);
+    }
 
 #nullable enable
-        public abstract RazorProjectEngine? Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure);
+    public abstract RazorProjectEngine? Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure);
 #nullable disable
-    }
 }

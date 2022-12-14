@@ -8,36 +8,35 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+[Shared]
+[ExportLanguageServiceFactory(typeof(ImportDocumentManager), RazorLanguage.Name, ServiceLayer.Default)]
+internal class DefaultImportDocumentManagerFactory : ILanguageServiceFactory
 {
-    [Shared]
-    [ExportLanguageServiceFactory(typeof(ImportDocumentManager), RazorLanguage.Name, ServiceLayer.Default)]
-    internal class DefaultImportDocumentManagerFactory : ILanguageServiceFactory
+    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+
+    [ImportingConstructor]
+    public DefaultImportDocumentManagerFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-
-        [ImportingConstructor]
-        public DefaultImportDocumentManagerFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+        if (projectSnapshotManagerDispatcher is null)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
         }
 
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+    }
+
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+    {
+        if (languageServices is null)
         {
-            if (languageServices is null)
-            {
-                throw new ArgumentNullException(nameof(languageServices));
-            }
-
-            var errorReporter = languageServices.WorkspaceServices.GetRequiredService<ErrorReporter>();
-            var fileChangeTrackerFactory = languageServices.WorkspaceServices.GetRequiredService<FileChangeTrackerFactory>();
-
-            return new DefaultImportDocumentManager(_projectSnapshotManagerDispatcher, errorReporter, fileChangeTrackerFactory);
+            throw new ArgumentNullException(nameof(languageServices));
         }
+
+        var errorReporter = languageServices.WorkspaceServices.GetRequiredService<ErrorReporter>();
+        var fileChangeTrackerFactory = languageServices.WorkspaceServices.GetRequiredService<FileChangeTrackerFactory>();
+
+        return new DefaultImportDocumentManager(_projectSnapshotManagerDispatcher, errorReporter, fileChangeTrackerFactory);
     }
 }

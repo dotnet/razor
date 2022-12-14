@@ -5,25 +5,24 @@ using System;
 using Microsoft.CodeAnalysis.Razor;
 using Newtonsoft.Json;
 
-namespace Microsoft.VisualStudio.LiveShare.Razor.Serialization
+namespace Microsoft.VisualStudio.LiveShare.Razor.Serialization;
+
+internal static class LiveShareJsonConverterCollectionExtensions
 {
-    internal static class LiveShareJsonConverterCollectionExtensions
+    public static void RegisterRazorLiveShareConverters(this JsonConverterCollection collection)
     {
-        public static void RegisterRazorLiveShareConverters(this JsonConverterCollection collection)
+        if (collection is null)
         {
-            if (collection is null)
-            {
-                throw new ArgumentNullException(nameof(collection));
-            }
-
-            if (collection.Contains(ProjectSnapshotHandleProxyJsonConverter.Instance))
-            {
-                // Already registered.
-                return;
-            }
-
-            collection.Add(ProjectSnapshotHandleProxyJsonConverter.Instance);
-            collection.RegisterRazorConverters();
+            throw new ArgumentNullException(nameof(collection));
         }
+
+        if (collection.Contains(ProjectSnapshotHandleProxyJsonConverter.Instance))
+        {
+            // Already registered.
+            return;
+        }
+
+        collection.Add(ProjectSnapshotHandleProxyJsonConverter.Instance);
+        collection.RegisterRazorConverters();
     }
 }

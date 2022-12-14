@@ -41,7 +41,7 @@ internal static class RazorCodeActionFactory
 
     public static RazorVSInternalCodeAction CreateComponentFromTag(RazorCodeActionResolutionParams resolutionParams)
     {
-        var title = RazorLS.Resources.Create_Component_FromTag_Title;
+        var title = SR.Create_Component_FromTag_Title;
         var data = JToken.FromObject(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
@@ -54,7 +54,7 @@ internal static class RazorCodeActionFactory
 
     public static RazorVSInternalCodeAction CreateExtractToCodeBehind(RazorCodeActionResolutionParams resolutionParams)
     {
-        var title = RazorLS.Resources.ExtractTo_CodeBehind_Title;
+        var title = SR.ExtractTo_CodeBehind_Title;
         var data = JToken.FromObject(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {

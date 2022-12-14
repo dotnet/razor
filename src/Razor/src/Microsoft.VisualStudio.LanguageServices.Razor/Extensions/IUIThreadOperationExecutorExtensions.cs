@@ -7,29 +7,28 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor.Extensions
+namespace Microsoft.VisualStudio.LanguageServices.Razor.Extensions;
+
+internal static class IUIThreadOperationExecutorExtensions
 {
-    internal static class IUIThreadOperationExecutorExtensions
+    public static T? Execute<T>(
+        this IUIThreadOperationExecutor iUIThreadOperationExecutor,
+        string title,
+        string description,
+        bool allowCancellation,
+        bool showProgress,
+        Func<CancellationToken, Task<T>> func,
+        JoinableTaskFactory jtf)
     {
-        public static T? Execute<T>(
-            this IUIThreadOperationExecutor iUIThreadOperationExecutor,
-            string title,
-            string description,
-            bool allowCancellation,
-            bool showProgress,
-            Func<CancellationToken, Task<T>> func,
-            JoinableTaskFactory jtf)
+        T? obj = default;
+        var result = iUIThreadOperationExecutor.Execute(title, description, allowCancellation, showProgress,
+            (context) => jtf.Run(async () => obj = await func(context.UserCancellationToken)));
+
+        if (result == UIThreadOperationStatus.Canceled)
         {
-            T? obj = default;
-            var result = iUIThreadOperationExecutor.Execute(title, description, allowCancellation, showProgress,
-                (context) => jtf.Run(async () => obj = await func(context.UserCancellationToken)));
-
-            if (result == UIThreadOperationStatus.Canceled)
-            {
-                return default;
-            }
-
-            return obj;
+            return default;
         }
+
+        return obj;
     }
 }

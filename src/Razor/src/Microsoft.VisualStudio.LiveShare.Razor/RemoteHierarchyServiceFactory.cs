@@ -6,22 +6,21 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
 
-namespace Microsoft.VisualStudio.LiveShare.Razor
+namespace Microsoft.VisualStudio.LiveShare.Razor;
+
+/// <summary>
+/// In cloud scenarios a client will not have a project system which means any code running on the client needs to have the ability to
+/// query the remote project system. That is what this class is responsible for.
+/// </summary>
+[ExportCollaborationService(
+    typeof(IRemoteHierarchyService),
+    Name = nameof(IRemoteHierarchyService),
+    Scope = SessionScope.Host,
+    Role = ServiceRole.RemoteService)]
+internal sealed class RemoteHierarchyServiceFactory : ICollaborationServiceFactory
 {
-    /// <summary>
-    /// In cloud scenarios a client will not have a project system which means any code running on the client needs to have the ability to
-    /// query the remote project system. That is what this class is responsible for.
-    /// </summary>
-    [ExportCollaborationService(
-        typeof(IRemoteHierarchyService),
-        Name = nameof(IRemoteHierarchyService),
-        Scope = SessionScope.Host,
-        Role = ServiceRole.RemoteService)]
-    internal sealed class RemoteHierarchyServiceFactory : ICollaborationServiceFactory
+    public Task<ICollaborationService> CreateServiceAsync(CollaborationSession session, CancellationToken cancellationToken)
     {
-        public Task<ICollaborationService> CreateServiceAsync(CollaborationSession session, CancellationToken cancellationToken)
-        {
-            return Task.FromResult<ICollaborationService>(new RemoteHierarchyService(session, ThreadHelper.JoinableTaskFactory));
-        }
+        return Task.FromResult<ICollaborationService>(new RemoteHierarchyService(session, ThreadHelper.JoinableTaskFactory));
     }
 }

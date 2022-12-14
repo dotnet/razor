@@ -26,7 +26,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
     {
         get
         {
-            // Doing lazy intialization here to avoid making things really complicated when we don't
+            // Doing lazy initialization here to avoid making things really complicated when we don't
             // need to exercise this code in tests.
             if (_typeNameFeature == null)
             {
@@ -192,7 +192,6 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
             List<CascadingGenericTypeParameter>? receivesCascadingGenericTypes = null;
             foreach (var uncoveredBindingKey in bindings.Keys.ToList())
             {
-                var uncoveredBinding = bindings[uncoveredBindingKey];
                 foreach (var candidateAncestor in Ancestors.OfType<ComponentIntermediateNode>())
                 {
                     if (candidateAncestor.ProvidesCascadingGenericTypes != null
@@ -269,7 +268,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
             CreateTypeInferenceMethod(documentNode, node, receivesCascadingGenericTypes);
         }
 
-        private bool TryFindGenericTypeNames(BoundAttributeDescriptor boundAttribute, [NotNullWhen(true)] out IReadOnlyList<string>? typeParameters)
+        private bool TryFindGenericTypeNames(BoundAttributeDescriptor? boundAttribute, [NotNullWhen(true)] out IReadOnlyList<string>? typeParameters)
         {
             if (boundAttribute == null)
             {
@@ -347,7 +346,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                     attribute.GloballyQualifiedTypeName = globallyQualifiedTypeName;
                 }
 
-                if (attribute.BoundAttribute?.IsGenericTypedProperty() ?? false && attribute.TypeName != null)
+                if (attribute.BoundAttribute?.IsGenericTypedProperty() == true && attribute.TypeName != null)
                 {
                     // If we know the type name, then replace any generic type parameter inside it with
                     // the known types.
@@ -358,7 +357,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
                     // contains "global::" which will be the case in all cases as we've computed
                     // this information from the Roslyn symbol except for when the symbol is a generic
                     // type parameter. In which case, we mark it with an additional annotation to
-                    // acount for that during code generation and avoid trying to fully qualify
+                    // account for that during code generation and avoid trying to fully qualify
                     // the type name.
                     Debug.Assert(bindings != null || hasTypeArgumentSpecified == true);
                     if (hasTypeArgumentSpecified == true)
@@ -410,7 +409,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
 
             foreach (var childContent in node.ChildContents)
             {
-                if (childContent.BoundAttribute?.IsGenericTypedProperty() ?? false && childContent.TypeName != null)
+                if (childContent.BoundAttribute?.IsGenericTypedProperty() == true && childContent.TypeName != null)
                 {
                     // If we know the type name, then replace any generic type parameter inside it with
                     // the known types.
@@ -456,8 +455,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
             // Now we need to insert the type inference node into the tree.
             var namespaceNode = documentNode.Children
                 .OfType<NamespaceDeclarationIntermediateNode>()
-                .Where(n => n.Annotations.Contains(new KeyValuePair<object, object>(ComponentMetadata.Component.GenericTypedKey, bool.TrueString)))
-                .FirstOrDefault();
+                .FirstOrDefault(n => n.Annotations.Contains(new KeyValuePair<object, object>(ComponentMetadata.Component.GenericTypedKey, bool.TrueString)));
             if (namespaceNode == null)
             {
                 namespaceNode = new NamespaceDeclarationIntermediateNode()
@@ -474,8 +472,7 @@ internal class ComponentGenericTypePass : ComponentIntermediateNodePassBase, IRa
 
             var classNode = namespaceNode.Children
                 .OfType<ClassDeclarationIntermediateNode>()
-                .Where(n => n.ClassName == "TypeInference")
-                .FirstOrDefault();
+                .FirstOrDefault(n => n.ClassName == "TypeInference");
             if (classNode == null)
             {
                 classNode = new ClassDeclarationIntermediateNode()

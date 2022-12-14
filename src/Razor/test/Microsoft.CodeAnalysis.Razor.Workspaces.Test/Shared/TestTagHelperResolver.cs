@@ -11,28 +11,27 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Test.Common;
 
-namespace Microsoft.CodeAnalysis.Razor
+namespace Microsoft.CodeAnalysis.Razor;
+
+internal class TestTagHelperResolver : TagHelperResolver
 {
-    internal class TestTagHelperResolver : TagHelperResolver
+    public TestTagHelperResolver() : base(NoOpTelemetryReporter.Instance)
     {
-        public TestTagHelperResolver() : base(NoOpTelemetryReporter.Instance)
+    }
+
+    public TaskCompletionSource<TagHelperResolutionResult> CompletionSource { get; set; }
+
+    public List<TagHelperDescriptor> TagHelpers { get; set; } = new List<TagHelperDescriptor>();
+
+    public override Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
+    {
+        if (CompletionSource is null)
         {
+            return Task.FromResult(new TagHelperResolutionResult(TagHelpers.ToArray(), Array.Empty<RazorDiagnostic>()));
         }
-
-        public TaskCompletionSource<TagHelperResolutionResult> CompletionSource { get; set; }
-
-        public List<TagHelperDescriptor> TagHelpers { get; set; } = new List<TagHelperDescriptor>();
-
-        public override Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
+        else
         {
-            if (CompletionSource is null)
-            {
-                return Task.FromResult(new TagHelperResolutionResult(TagHelpers.ToArray(), Array.Empty<RazorDiagnostic>()));
-            }
-            else
-            {
-                return CompletionSource.Task;
-            }
+            return CompletionSource.Task;
         }
     }
 }

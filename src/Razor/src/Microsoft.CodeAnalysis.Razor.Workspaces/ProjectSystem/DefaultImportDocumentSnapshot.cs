@@ -10,80 +10,79 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem
+namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+
+internal class DefaultImportDocumentSnapshot : DocumentSnapshot
 {
-    internal class DefaultImportDocumentSnapshot : DocumentSnapshot
+    private readonly ProjectSnapshot _project;
+    private readonly RazorProjectItem _importItem;
+    private SourceText _sourceText;
+    private readonly VersionStamp _version;
+
+    public DefaultImportDocumentSnapshot(ProjectSnapshot project, RazorProjectItem item)
     {
-        private readonly ProjectSnapshot _project;
-        private readonly RazorProjectItem _importItem;
-        private SourceText _sourceText;
-        private readonly VersionStamp _version;
+        _project = project;
+        _importItem = item;
+        _version = VersionStamp.Default;
+    }
 
-        public DefaultImportDocumentSnapshot(ProjectSnapshot project, RazorProjectItem item)
+    public override string FileKind => null;
+
+    public override string FilePath => null;
+
+    public override string TargetPath => null;
+
+    public override bool SupportsOutput => false;
+
+    public override ProjectSnapshot Project => _project;
+
+    public override Task<RazorCodeDocument> GetGeneratedOutputAsync()
+    {
+        throw new NotSupportedException();
+    }
+
+    public override IReadOnlyList<DocumentSnapshot> GetImports()
+    {
+        return Array.Empty<DocumentSnapshot>();
+    }
+
+    public async override Task<SourceText> GetTextAsync()
+    {
+        using (var stream = _importItem.Read())
+        using (var reader = new StreamReader(stream))
         {
-            _project = project;
-            _importItem = item;
-            _version = VersionStamp.Default;
+            var content = await reader.ReadToEndAsync();
+            _sourceText = SourceText.From(content);
         }
 
-        public override string FileKind => null;
+        return _sourceText;
+    }
 
-        public override string FilePath => null;
+    public override Task<VersionStamp> GetTextVersionAsync()
+    {
+        return Task.FromResult(_version);
+    }
 
-        public override string TargetPath => null;
-
-        public override bool SupportsOutput => false;
-
-        public override ProjectSnapshot Project => _project;
-
-        public override Task<RazorCodeDocument> GetGeneratedOutputAsync()
+    public override bool TryGetText(out SourceText result)
+    {
+        if (_sourceText != null)
         {
-            throw new NotSupportedException();
-        }
-
-        public override IReadOnlyList<DocumentSnapshot> GetImports()
-        {
-            return Array.Empty<DocumentSnapshot>();
-        }
-
-        public async override Task<SourceText> GetTextAsync()
-        {
-            using (var stream = _importItem.Read())
-            using (var reader = new StreamReader(stream))
-            {
-                var content = await reader.ReadToEndAsync();
-                _sourceText = SourceText.From(content);
-            }
-
-            return _sourceText;
-        }
-
-        public override Task<VersionStamp> GetTextVersionAsync()
-        {
-            return Task.FromResult(_version);
-        }
-
-        public override bool TryGetText(out SourceText result)
-        {
-            if (_sourceText != null)
-            {
-                result = _sourceText;
-                return true;
-            }
-
-            result = null;
-            return false;
-        }
-
-        public override bool TryGetTextVersion(out VersionStamp result)
-        {
-            result = _version;
+            result = _sourceText;
             return true;
         }
 
-        public override bool TryGetGeneratedOutput(out RazorCodeDocument result)
-        {
-            throw new NotSupportedException();
-        }
+        result = null;
+        return false;
+    }
+
+    public override bool TryGetTextVersion(out VersionStamp result)
+    {
+        result = _version;
+        return true;
+    }
+
+    public override bool TryGetGeneratedOutput(out RazorCodeDocument result)
+    {
+        throw new NotSupportedException();
     }
 }

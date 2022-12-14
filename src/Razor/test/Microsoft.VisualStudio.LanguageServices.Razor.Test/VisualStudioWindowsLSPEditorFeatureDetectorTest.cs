@@ -10,169 +10,168 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor
+namespace Microsoft.VisualStudio.LanguageServices.Razor;
+
+public class VisualStudioWindowsLSPEditorFeatureDetectorTest : TestBase
 {
-    public class VisualStudioWindowsLSPEditorFeatureDetectorTest : TestBase
+    public VisualStudioWindowsLSPEditorFeatureDetectorTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        public VisualStudioWindowsLSPEditorFeatureDetectorTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+    }
+
+    [Fact]
+    public void IsLSPEditorAvailable_ProjectSupported_ReturnsTrue()
+    {
+        // Arrange
+        var logger = GetRazorLogger();
+        var featureDetector = new TestLSPEditorFeatureDetector(logger)
         {
-        }
+            ProjectSupportsLSPEditorValue = true,
+        };
 
-        [Fact]
-        public void IsLSPEditorAvailable_ProjectSupported_ReturnsTrue()
+        // Act
+        var result = featureDetector.IsLSPEditorAvailable("testMoniker", hierarchy: null);
+
+        // Assert
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void IsLSPEditorAvailable_LegacyEditorEnabled_ReturnsFalse()
+    {
+        // Arrange
+        var logger = GetRazorLogger();
+        var featureDetector = new TestLSPEditorFeatureDetector(logger)
         {
-            // Arrange
-            var logger = GetRazorLogger();
-            var featureDetector = new TestLSPEditorFeatureDetector(logger)
-            {
-                ProjectSupportsLSPEditorValue = true,
-            };
+            UseLegacyEditor = true,
+            ProjectSupportsLSPEditorValue = true,
+        };
 
-            // Act
-            var result = featureDetector.IsLSPEditorAvailable("testMoniker", hierarchy: null);
+        // Act
+        var result = featureDetector.IsLSPEditorAvailable("testMoniker", hierarchy: null);
 
-            // Assert
-            Assert.True(result);
-        }
+        // Assert
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void IsLSPEditorAvailable_LegacyEditorEnabled_ReturnsFalse()
+    [Fact]
+    public void IsLSPEditorAvailable_IsVSRemoteClient_ReturnsTrue()
+    {
+        // Arrange
+        var logger = GetRazorLogger();
+        var featureDetector = new TestLSPEditorFeatureDetector(logger)
         {
-            // Arrange
-            var logger = GetRazorLogger();
-            var featureDetector = new TestLSPEditorFeatureDetector(logger)
-            {
-                UseLegacyEditor = true,
-                ProjectSupportsLSPEditorValue = true,
-            };
+            IsVSRemoteClientValue = true,
+            ProjectSupportsLSPEditorValue = true,
+        };
 
-            // Act
-            var result = featureDetector.IsLSPEditorAvailable("testMoniker", hierarchy: null);
+        // Act
+        var result = featureDetector.IsLSPEditorAvailable("testMoniker", hierarchy: null);
 
-            // Assert
-            Assert.False(result);
-        }
+        // Assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void IsLSPEditorAvailable_IsVSRemoteClient_ReturnsTrue()
+    [Fact]
+    public void IsLSPEditorAvailable_UnsupportedProject_ReturnsFalse()
+    {
+        // Arrange
+        var logger = GetRazorLogger();
+        var featureDetector = new TestLSPEditorFeatureDetector(logger)
         {
-            // Arrange
-            var logger = GetRazorLogger();
-            var featureDetector = new TestLSPEditorFeatureDetector(logger)
-            {
-                IsVSRemoteClientValue = true,
-                ProjectSupportsLSPEditorValue = true,
-            };
+            ProjectSupportsLSPEditorValue = false,
+        };
 
-            // Act
-            var result = featureDetector.IsLSPEditorAvailable("testMoniker", hierarchy: null);
+        // Act
+        var result = featureDetector.IsLSPEditorAvailable("testMoniker", hierarchy: null);
 
-            // Assert
-            Assert.True(result);
-        }
+        // Assert
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void IsLSPEditorAvailable_UnsupportedProject_ReturnsFalse()
+    [Fact]
+    public void IsRemoteClient_VSRemoteClient_ReturnsTrue()
+    {
+        // Arrange
+        var logger = GetRazorLogger();
+        var featureDetector = new TestLSPEditorFeatureDetector(logger)
         {
-            // Arrange
-            var logger = GetRazorLogger();
-            var featureDetector = new TestLSPEditorFeatureDetector(logger)
-            {
-                ProjectSupportsLSPEditorValue = false,
-            };
+            IsVSRemoteClientValue = true,
+        };
 
-            // Act
-            var result = featureDetector.IsLSPEditorAvailable("testMoniker", hierarchy: null);
+        // Act
+        var result = featureDetector.IsRemoteClient();
 
-            // Assert
-            Assert.False(result);
-        }
+        // Assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void IsRemoteClient_VSRemoteClient_ReturnsTrue()
+    [Fact]
+    public void IsRemoteClient_LiveShareGuest_ReturnsTrue()
+    {
+        // Arrange
+        var logger = GetRazorLogger();
+        var featureDetector = new TestLSPEditorFeatureDetector(logger)
         {
-            // Arrange
-            var logger = GetRazorLogger();
-            var featureDetector = new TestLSPEditorFeatureDetector(logger)
-            {
-                IsVSRemoteClientValue = true,
-            };
+            IsLiveShareGuestValue = true,
+        };
 
-            // Act
-            var result = featureDetector.IsRemoteClient();
+        // Act
+        var result = featureDetector.IsRemoteClient();
 
-            // Assert
-            Assert.True(result);
-        }
+        // Assert
+        Assert.True(result);
+    }
 
-        [Fact]
-        public void IsRemoteClient_LiveShareGuest_ReturnsTrue()
-        {
-            // Arrange
-            var logger = GetRazorLogger();
-            var featureDetector = new TestLSPEditorFeatureDetector(logger)
-            {
-                IsLiveShareGuestValue = true,
-            };
+    [Fact]
+    public void IsRemoteClient_UnknownEnvironment_ReturnsFalse()
+    {
+        // Arrange
+        var logger = GetRazorLogger();
+        var featureDetector = new TestLSPEditorFeatureDetector(logger);
 
-            // Act
-            var result = featureDetector.IsRemoteClient();
+        // Act
+        var result = featureDetector.IsRemoteClient();
 
-            // Assert
-            Assert.True(result);
-        }
+        // Assert
+        Assert.False(result);
+    }
 
-        [Fact]
-        public void IsRemoteClient_UnknownEnvironment_ReturnsFalse()
-        {
-            // Arrange
-            var logger = GetRazorLogger();
-            var featureDetector = new TestLSPEditorFeatureDetector(logger);
+    private static RazorLogger GetRazorLogger()
+    {
+        var mock = new Mock<RazorLogger>(MockBehavior.Strict);
+        mock.Setup(l => l.LogVerbose(It.IsAny<string>()));
 
-            // Act
-            var result = featureDetector.IsRemoteClient();
-
-            // Assert
-            Assert.False(result);
-        }
-
-        private static RazorLogger GetRazorLogger()
-        {
-            var mock = new Mock<RazorLogger>(MockBehavior.Strict);
-            mock.Setup(l => l.LogVerbose(It.IsAny<string>()));
-
-            return mock.Object;
-        }
+        return mock.Object;
+    }
 
 #pragma warning disable CS0618 // Type or member is obsolete (Test constructor)
-        private class TestLSPEditorFeatureDetector : VisualStudioWindowsLSPEditorFeatureDetector
+    private class TestLSPEditorFeatureDetector : VisualStudioWindowsLSPEditorFeatureDetector
+    {
+        public TestLSPEditorFeatureDetector(RazorLogger logger)
+            : base(projectCapabilityResolver: null, logger)
         {
-            public TestLSPEditorFeatureDetector(RazorLogger logger)
-                : base(projectCapabilityResolver: null, logger)
-            {
-            }
-
-            public bool UseLegacyEditor { get; set; }
-
-            public bool IsLiveShareGuestValue { get; set; }
-
-            public bool IsLiveShareHostValue { get; set; }
-
-            public bool IsVSRemoteClientValue { get; set; }
-
-            public bool ProjectSupportsLSPEditorValue { get; set; }
-
-            public override bool IsLSPEditorAvailable() => !UseLegacyEditor;
-
-            public override bool IsLiveShareHost() => IsLiveShareHostValue;
-
-            private protected override bool IsLiveShareGuest() => IsLiveShareGuestValue;
-
-            private protected override bool IsVSRemoteClient() => IsVSRemoteClientValue;
-
-            private protected override bool ProjectSupportsLSPEditor(string documentMoniker, IVsHierarchy hierarchy) => ProjectSupportsLSPEditorValue;
         }
-#pragma warning restore CS0618 // Type or member is obsolete (Test constructor)
+
+        public bool UseLegacyEditor { get; set; }
+
+        public bool IsLiveShareGuestValue { get; set; }
+
+        public bool IsLiveShareHostValue { get; set; }
+
+        public bool IsVSRemoteClientValue { get; set; }
+
+        public bool ProjectSupportsLSPEditorValue { get; set; }
+
+        public override bool IsLSPEditorAvailable() => !UseLegacyEditor;
+
+        public override bool IsLiveShareHost() => IsLiveShareHostValue;
+
+        private protected override bool IsLiveShareGuest() => IsLiveShareGuestValue;
+
+        private protected override bool IsVSRemoteClient() => IsVSRemoteClientValue;
+
+        private protected override bool ProjectSupportsLSPEditor(string documentMoniker, IVsHierarchy hierarchy) => ProjectSupportsLSPEditorValue;
     }
+#pragma warning restore CS0618 // Type or member is obsolete (Test constructor)
 }

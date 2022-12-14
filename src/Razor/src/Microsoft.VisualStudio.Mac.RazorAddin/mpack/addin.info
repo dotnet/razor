@@ -2,7 +2,9 @@
   <Runtime>
     <Import assembly="Microsoft.VisualStudio.Editor.Razor.dll" />
     <Import assembly="Microsoft.CodeAnalysis.Razor.Workspaces.dll" />
+    <Import assembly="Microsoft.AspNetCore.Razor.Common.dll" />
     <Import assembly="Microsoft.AspNetCore.Razor.Language.dll" />
+    <Import assembly="Microsoft.AspNetCore.Razor.LanguageSupport.dll" />
     <Import assembly="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll" />
     <Import assembly="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />
     <Import assembly="Microsoft.AspNetCore.Mvc.Razor.Extensions.dll" />
@@ -25,6 +27,7 @@
     <!--
         Purposefully not including these actual dependencies because VS4Mac ships them for us on our behalf. This differs from VisualStudio windows.
 
+        <Import assembly="Microsoft.Extensions.ObjectPool.dll" />
         <Import assembly="Microsoft.Extensions.Logging.dll" />
         <Import assembly="Microsoft.Extensions.Logging.Abstractions.dll" />
         <Import assembly="System.IO.Pipelines.dll" />

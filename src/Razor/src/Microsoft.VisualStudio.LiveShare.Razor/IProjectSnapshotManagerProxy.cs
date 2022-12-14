@@ -5,12 +5,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.VisualStudio.LiveShare.Razor
-{
-    public interface IProjectSnapshotManagerProxy
-    {
-        event EventHandler<ProjectChangeEventProxyArgs>? Changed;
+namespace Microsoft.VisualStudio.LiveShare.Razor;
 
-        Task<ProjectSnapshotManagerProxyState> GetProjectManagerStateAsync(CancellationToken cancellationToken);
-    }
+public interface IProjectSnapshotManagerProxy
+{
+    event EventHandler<ProjectChangeEventProxyArgs>? Changed;
+
+    Task<ProjectSnapshotManagerProxyState> GetProjectManagerStateAsync(CancellationToken cancellationToken);
 }

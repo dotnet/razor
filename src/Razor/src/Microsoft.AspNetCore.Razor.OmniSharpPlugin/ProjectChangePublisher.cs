@@ -3,10 +3,9 @@
 
 #nullable disable
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+internal abstract class ProjectChangePublisher
 {
-    internal abstract class ProjectChangePublisher
-    {
-        public abstract void SetPublishFilePath(string projectFilePath, string publishFilePath);
-    }
+    public abstract void SetPublishFilePath(string projectFilePath, string publishFilePath);
 }

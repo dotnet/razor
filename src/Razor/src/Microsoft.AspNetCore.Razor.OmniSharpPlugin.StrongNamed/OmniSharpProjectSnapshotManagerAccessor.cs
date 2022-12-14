@@ -3,10 +3,9 @@
 
 #nullable disable
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+public abstract class OmniSharpProjectSnapshotManagerAccessor
 {
-    public abstract class OmniSharpProjectSnapshotManagerAccessor
-    {
-        public abstract OmniSharpProjectSnapshotManager Instance { get; }
-    }
+    public abstract OmniSharpProjectSnapshotManager Instance { get; }
 }

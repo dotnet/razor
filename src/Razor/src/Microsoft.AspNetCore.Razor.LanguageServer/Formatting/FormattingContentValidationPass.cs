@@ -11,61 +11,60 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+
+internal class FormattingContentValidationPass : FormattingPassBase
 {
-    internal class FormattingContentValidationPass : FormattingPassBase
+    private readonly ILogger _logger;
+
+    public FormattingContentValidationPass(
+        RazorDocumentMappingService documentMappingService,
+        ClientNotifierServiceBase server,
+        ILoggerFactory loggerFactory)
+        : base(documentMappingService, server)
     {
-        private readonly ILogger _logger;
-
-        public FormattingContentValidationPass(
-            RazorDocumentMappingService documentMappingService,
-            ClientNotifierServiceBase server,
-            ILoggerFactory loggerFactory)
-            : base(documentMappingService, server)
+        if (loggerFactory is null)
         {
-            if (loggerFactory is null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            _logger = loggerFactory.CreateLogger<FormattingContentValidationPass>();
+            throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        // We want this to run at the very end.
-        public override int Order => DefaultOrder + 1000;
+        _logger = loggerFactory.CreateLogger<FormattingContentValidationPass>();
+    }
 
-        public override bool IsValidationPass => true;
+    // We want this to run at the very end.
+    public override int Order => DefaultOrder + 1000;
 
-        // Internal for testing.
-        internal bool DebugAssertsEnabled { get; set; } = true;
+    public override bool IsValidationPass => true;
 
-        public override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+    // Internal for testing.
+    internal bool DebugAssertsEnabled { get; set; } = true;
+
+    public override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
+    {
+        if (result.Kind != RazorLanguageKind.Razor)
         {
-            if (result.Kind != RazorLanguageKind.Razor)
-            {
-                // We don't care about changes to projected documents here.
-                return Task.FromResult(result);
-            }
-
-            var text = context.SourceText;
-            var edits = result.Edits;
-            var changes = edits.Select(e => e.AsTextChange(text));
-            var changedText = text.WithChanges(changes);
-
-            if (!text.NonWhitespaceContentEquals(changedText))
-            {
-                // Looks like we removed some non-whitespace content as part of formatting. Oops.
-                // Discard this formatting result.
-
-                if (DebugAssertsEnabled)
-                {
-                    Debug.Fail("A formatting result was rejected because it was going to change non-whitespace content in the document.");
-                }
-
-                return Task.FromResult(new FormattingResult(Array.Empty<TextEdit>()));
-            }
-
+            // We don't care about changes to projected documents here.
             return Task.FromResult(result);
         }
+
+        var text = context.SourceText;
+        var edits = result.Edits;
+        var changes = edits.Select(e => e.AsTextChange(text));
+        var changedText = text.WithChanges(changes);
+
+        if (!text.NonWhitespaceContentEquals(changedText))
+        {
+            // Looks like we removed some non-whitespace content as part of formatting. Oops.
+            // Discard this formatting result.
+
+            if (DebugAssertsEnabled)
+            {
+                Debug.Fail("A formatting result was rejected because it was going to change non-whitespace content in the document.");
+            }
+
+            return Task.FromResult(new FormattingResult(Array.Empty<TextEdit>()));
+        }
+
+        return Task.FromResult(result);
     }
 }

@@ -8,32 +8,31 @@ using Microsoft.CodeAnalysis;
 using OmniSharp;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin
+namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+
+public abstract class OmniSharpWorkspaceTestBase : OmniSharpTestBase
 {
-    public abstract class OmniSharpWorkspaceTestBase : OmniSharpTestBase
+    protected OmniSharpWorkspace Workspace { get; }
+    protected Project Project { get; }
+
+    protected OmniSharpWorkspaceTestBase(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        protected OmniSharpWorkspace Workspace { get; }
-        protected Project Project { get; }
+        Workspace = TestOmniSharpWorkspace.Create(LoggerFactory);
+        AddDisposable(Workspace);
 
-        protected OmniSharpWorkspaceTestBase(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-            Workspace = TestOmniSharpWorkspace.Create(LoggerFactory);
-            AddDisposable(Workspace);
+        var projectId = ProjectId.CreateNewId();
+        var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "TestProject", "TestAssembly", LanguageNames.CSharp, filePath: "/path/to/project.csproj");
+        Workspace.AddProject(projectInfo);
+        Project = Workspace.CurrentSolution.Projects.FirstOrDefault();
+    }
 
-            var projectId = ProjectId.CreateNewId();
-            var projectInfo = ProjectInfo.Create(projectId, VersionStamp.Default, "TestProject", "TestAssembly", LanguageNames.CSharp, filePath: "/path/to/project.csproj");
-            Workspace.AddProject(projectInfo);
-            Project = Workspace.CurrentSolution.Projects.FirstOrDefault();
-        }
-
-        protected Document AddRoslynDocument(string filePath)
-        {
-            var backgroundDocumentId = DocumentId.CreateNewId(Project.Id);
-            var backgroundDocumentInfo = DocumentInfo.Create(backgroundDocumentId, filePath ?? "EmptyFile", filePath: filePath);
-            Workspace.AddDocument(backgroundDocumentInfo);
-            var addedDocument = Workspace.CurrentSolution.GetDocument(backgroundDocumentId);
-            return addedDocument;
-        }
+    protected Document AddRoslynDocument(string filePath)
+    {
+        var backgroundDocumentId = DocumentId.CreateNewId(Project.Id);
+        var backgroundDocumentInfo = DocumentInfo.Create(backgroundDocumentId, filePath ?? "EmptyFile", filePath: filePath);
+        Workspace.AddDocument(backgroundDocumentInfo);
+        var addedDocument = Workspace.CurrentSolution.GetDocument(backgroundDocumentId);
+        return addedDocument;
     }
 }

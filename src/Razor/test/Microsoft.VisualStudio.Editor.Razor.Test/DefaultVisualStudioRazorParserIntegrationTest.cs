@@ -21,731 +21,730 @@ using Xunit;
 using Xunit.Abstractions;
 using SystemDebugger = System.Diagnostics.Debugger;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotManagerDispatcherTestBase
 {
-    public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotManagerDispatcherTestBase
+    private const string TestLinePragmaFileName = @"C:\This\Path\Is\Just\For\Line\Pragmas.cshtml";
+    private const string TestProjectPath = @"C:\This\Path\Is\Just\For\Project.csproj";
+
+    private readonly ProjectSnapshot _projectSnapshot;
+    private readonly CodeAnalysis.Workspace _workspace;
+
+    public DefaultVisualStudioRazorParserIntegrationTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        private const string TestLinePragmaFileName = @"C:\This\Path\Is\Just\For\Line\Pragmas.cshtml";
-        private const string TestProjectPath = @"C:\This\Path\Is\Just\For\Project.csproj";
+        _workspace = CodeAnalysis.TestWorkspace.Create();
+        AddDisposable(_workspace);
 
-        private readonly ProjectSnapshot _projectSnapshot;
-        private readonly CodeAnalysis.Workspace _workspace;
+        _projectSnapshot = new EphemeralProjectSnapshot(_workspace.Services, TestProjectPath);
+    }
 
-        public DefaultVisualStudioRazorParserIntegrationTest(ITestOutputHelper testOutput)
-            : base(testOutput)
+    [UIFact]
+    public async Task NoDocumentSnapshotParsesComponentFileCorrectly()
+    {
+        // Arrange
+        var snapshot = new StringTextSnapshot("@code { }");
+        var testBuffer = new TestTextBuffer(snapshot);
+        var documentTracker = CreateDocumentTracker(testBuffer, filePath: "C:\\This\\Path\\Is\\Just\\For\\component.razor");
+        using (var manager = CreateParserManager(documentTracker))
         {
-            _workspace = CodeAnalysis.TestWorkspace.Create();
-            AddDisposable(_workspace);
+            // Act
+            await manager.InitializeWithDocumentAsync(snapshot);
 
-            _projectSnapshot = new EphemeralProjectSnapshot(_workspace.Services, TestProjectPath);
+            // Assert
+            Assert.Equal(1, manager._parseCount);
+
+            var codeDocument = await manager.InnerParser.GetLatestCodeDocumentAsync(snapshot);
+            Assert.Equal(FileKinds.Component, codeDocument.GetFileKind());
+
+            // @code is only applicable in component files so we're verifying that `@code` was treated as a directive.
+            var directiveNodes = manager.CurrentSyntaxTree.Root.DescendantNodes().Where(child => child.Kind == SyntaxKind.RazorDirective);
+            Assert.Single(directiveNodes);
         }
+    }
 
-        [UIFact]
-        public async Task NoDocumentSnapshotParsesComponentFileCorrectly()
+    [UIFact]
+    public async Task BufferChangeStartsFullReparseIfChangeOverlapsMultipleSpans()
+    {
+        // Arrange
+        var original = new StringTextSnapshot("Foo @bar Baz");
+        using (var manager = CreateParserManager(original))
         {
-            // Arrange
-            var snapshot = new StringTextSnapshot("@code { }");
-            var testBuffer = new TestTextBuffer(snapshot);
-            var documentTracker = CreateDocumentTracker(testBuffer, filePath: "C:\\This\\Path\\Is\\Just\\For\\component.razor");
-            using (var manager = CreateParserManager(documentTracker))
-            {
-                // Act
-                await manager.InitializeWithDocumentAsync(snapshot);
+            var changed = new StringTextSnapshot("Foo @bap Daz");
+            var edit = new TestEdit(7, 3, original, changed, "p D");
 
-                // Assert
-                Assert.Equal(1, manager._parseCount);
+            await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
 
-                var codeDocument = await manager.InnerParser.GetLatestCodeDocumentAsync(snapshot);
-                Assert.Equal(FileKinds.Component, codeDocument.GetFileKind());
+            // Act - 1
+            await manager.ApplyEditAndWaitForParseAsync(edit);
 
-                // @code is only applicable in component files so we're verifying that `@code` was treated as a directive.
-                var directiveNodes = manager.CurrentSyntaxTree.Root.DescendantNodes().Where(child => child.Kind == SyntaxKind.RazorDirective);
-                Assert.Single(directiveNodes);
-            }
+            // Assert - 1
+            Assert.Equal(2, manager._parseCount);
+
+            // Act - 2
+            await manager.ApplyEditAndWaitForParseAsync(edit);
+
+            // Assert - 2
+            Assert.Equal(3, manager._parseCount);
         }
+    }
 
-        [UIFact]
-        public async Task BufferChangeStartsFullReparseIfChangeOverlapsMultipleSpans()
+    [UIFact]
+    public async Task AwaitPeriodInsertionAcceptedProvisionally()
+    {
+        // Arrange
+        var original = new StringTextSnapshot("foo @await Html baz");
+        using (var manager = CreateParserManager(original))
         {
-            // Arrange
-            var original = new StringTextSnapshot("Foo @bar Baz");
-            using (var manager = CreateParserManager(original))
-            {
-                var changed = new StringTextSnapshot("Foo @bap Daz");
-                var edit = new TestEdit(7, 3, original, changed, "p D");
+            var changed = new StringTextSnapshot("foo @await Html. baz");
+            var edit = new TestEdit(15, 0, original, changed, ".");
+            await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
 
-                await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
+            // Act
+            await manager.ApplyEditAndWaitForReparseAsync(edit);
 
-                // Act - 1
-                await manager.ApplyEditAndWaitForParseAsync(edit);
-
-                // Assert - 1
-                Assert.Equal(2, manager._parseCount);
-
-                // Act - 2
-                await manager.ApplyEditAndWaitForParseAsync(edit);
-
-                // Assert - 2
-                Assert.Equal(3, manager._parseCount);
-            }
+            // Assert
+            Assert.Equal(2, manager._parseCount);
+            VerifyCurrentSyntaxTree(manager);
         }
+    }
 
-        [UIFact]
-        public async Task AwaitPeriodInsertionAcceptedProvisionally()
-        {
-            // Arrange
-            var original = new StringTextSnapshot("foo @await Html baz");
-            using (var manager = CreateParserManager(original))
-            {
-                var changed = new StringTextSnapshot("foo @await Html. baz");
-                var edit = new TestEdit(15, 0, original, changed, ".");
-                await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
-
-                // Act
-                await manager.ApplyEditAndWaitForReparseAsync(edit);
-
-                // Assert
-                Assert.Equal(2, manager._parseCount);
-                VerifyCurrentSyntaxTree(manager);
-            }
-        }
-
-        [UIFact]
-        public async Task ImpExprAcceptsDCIInStmtBlkAfterIdentifiers()
-        {
-            // ImplicitExpressionAcceptsDotlessCommitInsertionsInStatementBlockAfterIdentifiers
-            var changed = new StringTextSnapshot("@{" + Environment.NewLine
-                                                + "    @DateTime." + Environment.NewLine
-                                                + "}");
-            var original = new StringTextSnapshot("@{" + Environment.NewLine
-                                            + "    @DateTime" + Environment.NewLine
+    [UIFact]
+    public async Task ImpExprAcceptsDCIInStmtBlkAfterIdentifiers()
+    {
+        // ImplicitExpressionAcceptsDotlessCommitInsertionsInStatementBlockAfterIdentifiers
+        var changed = new StringTextSnapshot("@{" + Environment.NewLine
+                                            + "    @DateTime." + Environment.NewLine
                                             + "}");
+        var original = new StringTextSnapshot("@{" + Environment.NewLine
+                                        + "    @DateTime" + Environment.NewLine
+                                        + "}");
 
-            var edit = new TestEdit(15 + Environment.NewLine.Length, 0, original, changed, ".");
-            using (var manager = CreateParserManager(original))
-            {
-                void ApplyAndVerifyPartialChange(TestEdit testEdit, string expectedCode)
-                {
-                    manager.ApplyEdit(testEdit);
-                    Assert.Equal(1, manager._parseCount);
-
-                    VerifyPartialParseTree(manager, changed.GetText(), expectedCode);
-                };
-
-                await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
-
-                // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
-                ApplyAndVerifyPartialChange(edit, "DateTime.");
-
-                original = changed;
-                changed = new StringTextSnapshot("@{" + Environment.NewLine
-                                                + "    @DateTime.." + Environment.NewLine
-                                                + "}");
-                edit = new TestEdit(16 + Environment.NewLine.Length, 0, original, changed, ".");
-
-                ApplyAndVerifyPartialChange(edit, "DateTime..");
-
-                original = changed;
-                changed = new StringTextSnapshot("@{" + Environment.NewLine
-                                                + "    @DateTime.Now." + Environment.NewLine
-                                                + "}");
-                edit = new TestEdit(16 + Environment.NewLine.Length, 0, original, changed, "Now");
-
-                ApplyAndVerifyPartialChange(edit, "DateTime.Now.");
-            }
-        }
-
-        [UIFact]
-        public async Task ImpExprAcceptsDCIInStatementBlock()
+        var edit = new TestEdit(15 + Environment.NewLine.Length, 0, original, changed, ".");
+        using (var manager = CreateParserManager(original))
         {
-            // ImpExprAcceptsDotlessCommitInsertionsInStatementBlock
-            var changed = new StringTextSnapshot("@{" + Environment.NewLine
-                                                    + "    @DateT." + Environment.NewLine
-                                                    + "}");
-            var original = new StringTextSnapshot("@{" + Environment.NewLine
-                                            + "    @DateT" + Environment.NewLine
+            void ApplyAndVerifyPartialChange(TestEdit testEdit, string expectedCode)
+            {
+                manager.ApplyEdit(testEdit);
+                Assert.Equal(1, manager._parseCount);
+
+                VerifyPartialParseTree(manager, changed.GetText(), expectedCode);
+            }
+
+            await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
+
+            // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
+            ApplyAndVerifyPartialChange(edit, "DateTime.");
+
+            original = changed;
+            changed = new StringTextSnapshot("@{" + Environment.NewLine
+                                            + "    @DateTime.." + Environment.NewLine
                                             + "}");
+            edit = new TestEdit(16 + Environment.NewLine.Length, 0, original, changed, ".");
 
-            var edit = new TestEdit(12 + Environment.NewLine.Length, 0, original, changed, ".");
-            using (var manager = CreateParserManager(original))
-            {
-                void ApplyAndVerifyPartialChange(TestEdit testEdit, string expectedCode)
-                {
-                    manager.ApplyEdit(testEdit);
-                    Assert.Equal(1, manager._parseCount);
-                    VerifyPartialParseTree(manager, changed.GetText(), expectedCode);
-                };
+            ApplyAndVerifyPartialChange(edit, "DateTime..");
 
-                await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
+            original = changed;
+            changed = new StringTextSnapshot("@{" + Environment.NewLine
+                                            + "    @DateTime.Now." + Environment.NewLine
+                                            + "}");
+            edit = new TestEdit(16 + Environment.NewLine.Length, 0, original, changed, "Now");
 
-                // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
-                ApplyAndVerifyPartialChange(edit, "DateT.");
+            ApplyAndVerifyPartialChange(edit, "DateTime.Now.");
+        }
+    }
 
-                original = changed;
-                changed = new StringTextSnapshot("@{" + Environment.NewLine
-                                                + "    @DateTime." + Environment.NewLine
+    [UIFact]
+    public async Task ImpExprAcceptsDCIInStatementBlock()
+    {
+        // ImpExprAcceptsDotlessCommitInsertionsInStatementBlock
+        var changed = new StringTextSnapshot("@{" + Environment.NewLine
+                                                + "    @DateT." + Environment.NewLine
                                                 + "}");
-                edit = new TestEdit(12 + Environment.NewLine.Length, 0, original, changed, "ime");
+        var original = new StringTextSnapshot("@{" + Environment.NewLine
+                                        + "    @DateT" + Environment.NewLine
+                                        + "}");
 
-                ApplyAndVerifyPartialChange(edit, "DateTime.");
-            }
-        }
-
-        [UIFact]
-        public async Task ImpExprProvisionallyAcceptsDCI()
+        var edit = new TestEdit(12 + Environment.NewLine.Length, 0, original, changed, ".");
+        using (var manager = CreateParserManager(original))
         {
-            // ImpExprProvisionallyAcceptsDotlessCommitInsertions
-            var changed = new StringTextSnapshot("foo @DateT. baz");
-            var original = new StringTextSnapshot("foo @DateT baz");
-            var edit = new TestEdit(10, 0, original, changed, ".");
-            using (var manager = CreateParserManager(original))
+            void ApplyAndVerifyPartialChange(TestEdit testEdit, string expectedCode)
             {
-                void ApplyAndVerifyPartialChange(TestEdit testEdit, string expectedCode)
-                {
-                    manager.ApplyEdit(testEdit);
-                    Assert.Equal(1, manager._parseCount);
-
-                    VerifyPartialParseTree(manager, testEdit.NewSnapshot.GetText(), expectedCode);
-                };
-
-                await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
-
-                // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
-                ApplyAndVerifyPartialChange(edit, "DateT.");
-
-                original = changed;
-                changed = new StringTextSnapshot("foo @DateTime. baz");
-                edit = new TestEdit(10, 0, original, changed, "ime");
-
-                ApplyAndVerifyPartialChange(edit, "DateTime.");
-
-                // Verify the reparse finally comes
-                await manager.WaitForReparseAsync();
-
-                Assert.Equal(2, manager._parseCount);
-                VerifyCurrentSyntaxTree(manager);
-            }
-        }
-
-        [UIFact(Skip = "https://github.com/dotnet/aspnetcore/issues/17234")]
-        public async Task ImpExprProvisionallyAcceptsDCIAfterIdentifiers_CompletesSyntaxTreeRequest()
-        {
-            var original = new StringTextSnapshot("foo @DateTime baz", versionNumber: 0);
-            var changed = new StringTextSnapshot("foo @DateTime. baz", versionNumber: 1);
-            var edit = new TestEdit(13, 0, original, changed, ".");
-            using (var manager = CreateParserManager(original))
-            {
-                void ApplyAndVerifyPartialChange(TestEdit testEdit, string expectedCode)
-                {
-                    manager.ApplyEdit(testEdit);
-                    Assert.Equal(1, manager._parseCount);
-
-                    VerifyPartialParseTree(manager, testEdit.NewSnapshot.GetText(), expectedCode);
-                };
-
-                await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
-                var codeDocumentTask = manager.InnerParser.GetLatestCodeDocumentAsync(changed);
-
-                Assert.False(codeDocumentTask.IsCompleted);
-
-                // Perform a partially parsed accepted change
-                ApplyAndVerifyPartialChange(edit, "DateTime.");
-
-                Assert.True(codeDocumentTask.IsCompleted);
-            }
-        }
-
-        [UIFact]
-        public async Task ImpExprProvisionallyAcceptsDCIAfterIdentifiers()
-        {
-            // ImplicitExpressionProvisionallyAcceptsDotlessCommitInsertionsAfterIdentifiers
-            var changed = new StringTextSnapshot("foo @DateTime. baz");
-            var original = new StringTextSnapshot("foo @DateTime baz");
-            var edit = new TestEdit(13, 0, original, changed, ".");
-            using (var manager = CreateParserManager(original))
-            {
-                void ApplyAndVerifyPartialChange(TestEdit testEdit, string expectedCode)
-                {
-                    manager.ApplyEdit(testEdit);
-                    Assert.Equal(1, manager._parseCount);
-
-                    VerifyPartialParseTree(manager, testEdit.NewSnapshot.GetText(), expectedCode);
-                };
-
-                await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
-
-                // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
-                ApplyAndVerifyPartialChange(edit, "DateTime.");
-
-                original = changed;
-                changed = new StringTextSnapshot("foo @DateTime.. baz");
-                edit = new TestEdit(14, 0, original, changed, ".");
-
-                ApplyAndVerifyPartialChange(edit, "DateTime..");
-
-                original = changed;
-                changed = new StringTextSnapshot("foo @DateTime.Now. baz");
-                edit = new TestEdit(14, 0, original, changed, "Now");
-
-                ApplyAndVerifyPartialChange(edit, "DateTime.Now.");
-
-                // Verify the reparse eventually happens
-                await manager.WaitForReparseAsync();
-
-                Assert.Equal(2, manager._parseCount);
-                VerifyCurrentSyntaxTree(manager);
-            }
-        }
-
-        [UIFact]
-        public async Task ImpExprProvisionallyAccCaseInsensitiveDCI_NewRoslynIntegration()
-        {
-            // ImplicitExpressionProvisionallyAcceptsCaseInsensitiveDotlessCommitInsertions_NewRoslynIntegration
-            var original = new StringTextSnapshot("foo @date baz");
-            var changed = new StringTextSnapshot("foo @date. baz");
-            var edit = new TestEdit(9, 0, original, changed, ".");
-            using (var manager = CreateParserManager(original))
-            {
-                void ApplyAndVerifyPartialChange(Action applyEdit, string expectedCode)
-                {
-                    applyEdit();
-                    Assert.Equal(1, manager._parseCount);
-
-                    VerifyPartialParseTree(manager, changed.GetText(), expectedCode);
-                };
-
-                await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
-
-                // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
-
-                // @date => @date.
-                ApplyAndVerifyPartialChange(() => manager.ApplyEdit(edit), "date.");
-
-                original = changed;
-                changed = new StringTextSnapshot("foo @date baz");
-                edit = new TestEdit(9, 1, original, changed, "");
-
-                // @date. => @date
-                ApplyAndVerifyPartialChange(() => manager.ApplyEdit(edit), "date");
-
-                original = changed;
-                changed = new StringTextSnapshot("foo @DateTime baz");
-                edit = new TestEdit(5, 4, original, changed, "DateTime");
-
-                // @date => @DateTime
-                ApplyAndVerifyPartialChange(() => manager.ApplyEdit(edit), "DateTime");
-
-                original = changed;
-                changed = new StringTextSnapshot("foo @DateTime. baz");
-                edit = new TestEdit(13, 0, original, changed, ".");
-
-                // @DateTime => @DateTime.
-                ApplyAndVerifyPartialChange(() => manager.ApplyEdit(edit), "DateTime.");
-
-                // Verify the reparse eventually happens
-                await manager.WaitForReparseAsync();
-
-                Assert.Equal(2, manager._parseCount);
-                VerifyCurrentSyntaxTree(manager);
-            }
-        }
-
-        [UIFact]
-        public async Task ImpExprRejectsAcceptableChangeIfPrevWasProvisionallyAccepted()
-        {
-            // ImplicitExpressionRejectsChangeWhichWouldHaveBeenAcceptedIfLastChangeWasProvisionallyAcceptedOnDifferentSpan
-            // Arrange
-            var dotTyped = new TestEdit(8, 0, new StringTextSnapshot("foo @foo @bar"), new StringTextSnapshot("foo @foo. @bar"), ".");
-            var charTyped = new TestEdit(14, 0, new StringTextSnapshot("foo @foo. @bar"), new StringTextSnapshot("foo @foo. @barb"), "b");
-            using (var manager = CreateParserManager(dotTyped.OldSnapshot))
-            {
-                await manager.InitializeWithDocumentAsync(dotTyped.OldSnapshot);
-
-                // Apply the dot change
-                await manager.ApplyEditAndWaitForReparseAsync(dotTyped);
-
-                // Act (apply the identifier start char change)
-                await manager.ApplyEditAndWaitForParseAsync(charTyped);
-
-                // Assert
-                Assert.Equal(2, manager._parseCount);
-                VerifyPartialParseTree(manager, charTyped.NewSnapshot.GetText());
-            }
-        }
-
-        [UIFact]
-        public async Task ImpExprAcceptsIdentifierTypedAfterDotIfLastChangeProvisional()
-        {
-            // ImplicitExpressionAcceptsIdentifierTypedAfterDotIfLastChangeWasProvisionalAcceptanceOfDot
-            // Arrange
-            var dotTyped = new TestEdit(8, 0, new StringTextSnapshot("foo @foo bar"), new StringTextSnapshot("foo @foo. bar"), ".");
-            var charTyped = new TestEdit(9, 0, new StringTextSnapshot("foo @foo. bar"), new StringTextSnapshot("foo @foo.b bar"), "b");
-            using (var manager = CreateParserManager(dotTyped.OldSnapshot))
-            {
-                await manager.InitializeWithDocumentAsync(dotTyped.OldSnapshot);
-
-                // Apply the dot change
-                manager.ApplyEdit(dotTyped);
-
-                // Act (apply the identifier start char change)
-                manager.ApplyEdit(charTyped);
-
-                // Assert
+                manager.ApplyEdit(testEdit);
                 Assert.Equal(1, manager._parseCount);
-                VerifyPartialParseTree(manager, charTyped.NewSnapshot.GetText());
+                VerifyPartialParseTree(manager, changed.GetText(), expectedCode);
             }
+
+            await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
+
+            // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
+            ApplyAndVerifyPartialChange(edit, "DateT.");
+
+            original = changed;
+            changed = new StringTextSnapshot("@{" + Environment.NewLine
+                                            + "    @DateTime." + Environment.NewLine
+                                            + "}");
+            edit = new TestEdit(12 + Environment.NewLine.Length, 0, original, changed, "ime");
+
+            ApplyAndVerifyPartialChange(edit, "DateTime.");
         }
+    }
 
-        [UIFact]
-        public async Task ImpExpr_AcceptsParenthesisAtEnd_SingleEdit()
+    [UIFact]
+    public async Task ImpExprProvisionallyAcceptsDCI()
+    {
+        // ImpExprProvisionallyAcceptsDotlessCommitInsertions
+        var changed = new StringTextSnapshot("foo @DateT. baz");
+        var original = new StringTextSnapshot("foo @DateT baz");
+        var edit = new TestEdit(10, 0, original, changed, ".");
+        using (var manager = CreateParserManager(original))
         {
-            // Arrange
-            var edit = new TestEdit(8, 0, new StringTextSnapshot("foo @foo bar"), new StringTextSnapshot("foo @foo() bar"), "()");
-
-            using (var manager = CreateParserManager(edit.OldSnapshot))
+            void ApplyAndVerifyPartialChange(TestEdit testEdit, string expectedCode)
             {
-                await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
-
-                // Apply the () edit
-                manager.ApplyEdit(edit);
-
-                // Assert
+                manager.ApplyEdit(testEdit);
                 Assert.Equal(1, manager._parseCount);
-                VerifyPartialParseTree(manager, edit.NewSnapshot.GetText());
+
+                VerifyPartialParseTree(manager, testEdit.NewSnapshot.GetText(), expectedCode);
             }
+
+            await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
+
+            // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
+            ApplyAndVerifyPartialChange(edit, "DateT.");
+
+            original = changed;
+            changed = new StringTextSnapshot("foo @DateTime. baz");
+            edit = new TestEdit(10, 0, original, changed, "ime");
+
+            ApplyAndVerifyPartialChange(edit, "DateTime.");
+
+            // Verify the reparse finally comes
+            await manager.WaitForReparseAsync();
+
+            Assert.Equal(2, manager._parseCount);
+            VerifyCurrentSyntaxTree(manager);
         }
+    }
 
-        [UIFact]
-        public async Task ImpExpr_AcceptsParenthesisAtEnd_TwoEdits()
+    [UIFact(Skip = "https://github.com/dotnet/aspnetcore/issues/17234")]
+    public async Task ImpExprProvisionallyAcceptsDCIAfterIdentifiers_CompletesSyntaxTreeRequest()
+    {
+        var original = new StringTextSnapshot("foo @DateTime baz", versionNumber: 0);
+        var changed = new StringTextSnapshot("foo @DateTime. baz", versionNumber: 1);
+        var edit = new TestEdit(13, 0, original, changed, ".");
+        using (var manager = CreateParserManager(original))
         {
-            // Arrange
-            var edit1 = new TestEdit(8, 0, new StringTextSnapshot("foo @foo bar"), new StringTextSnapshot("foo @foo( bar"), "(");
-            var edit2 = new TestEdit(9, 0, new StringTextSnapshot("foo @foo( bar"), new StringTextSnapshot("foo @foo() bar"), ")");
-            using (var manager = CreateParserManager(edit1.OldSnapshot))
+            void ApplyAndVerifyPartialChange(TestEdit testEdit, string expectedCode)
             {
-                await manager.InitializeWithDocumentAsync(edit1.OldSnapshot);
-
-                // Apply the ( edit
-                manager.ApplyEdit(edit1);
-
-                // Apply the ) edit
-                manager.ApplyEdit(edit2);
-
-                // Assert
+                manager.ApplyEdit(testEdit);
                 Assert.Equal(1, manager._parseCount);
-                VerifyPartialParseTree(manager, edit2.NewSnapshot.GetText());
-            }
-        }
 
-        [UIFact]
-        public async Task ImpExprCorrectlyTriggersReparseIfIfKeywordTyped()
-        {
-            await RunTypeKeywordTestAsync("if");
-        }
-
-        [UIFact]
-        public async Task ImpExprCorrectlyTriggersReparseIfDoKeywordTyped()
-        {
-            await RunTypeKeywordTestAsync("do");
-        }
-
-        [UIFact]
-        public async Task ImpExprCorrectlyTriggersReparseIfTryKeywordTyped()
-        {
-            await RunTypeKeywordTestAsync("try");
-        }
-
-        [UIFact]
-        public async Task ImplicitExpressionCorrectlyTriggersReparseIfForKeywordTyped()
-        {
-            await RunTypeKeywordTestAsync("for");
-        }
-
-        [UIFact]
-        public async Task ImpExprCorrectlyTriggersReparseIfForEachKeywordTyped()
-        {
-            await RunTypeKeywordTestAsync("foreach");
-        }
-
-        [UIFact]
-        public async Task ImpExprCorrectlyTriggersReparseIfWhileKeywordTyped()
-        {
-            await RunTypeKeywordTestAsync("while");
-        }
-
-        [UIFact]
-        public async Task ImpExprCorrectlyTriggersReparseIfSwitchKeywordTyped()
-        {
-            await RunTypeKeywordTestAsync("switch");
-        }
-
-        [UIFact]
-        public async Task ImpExprCorrectlyTriggersReparseIfLockKeywordTyped()
-        {
-            await RunTypeKeywordTestAsync("lock");
-        }
-
-        [UIFact]
-        public async Task ImpExprCorrectlyTriggersReparseIfUsingKeywordTyped()
-        {
-            await RunTypeKeywordTestAsync("using");
-        }
-
-        [UIFact]
-        public async Task ImpExprCorrectlyTriggersReparseIfSectionKeywordTyped()
-        {
-            await RunTypeKeywordTestAsync("section");
-        }
-
-        [UIFact]
-        public async Task ImpExprCorrectlyTriggersReparseIfInheritsKeywordTyped()
-        {
-            await RunTypeKeywordTestAsync("inherits");
-        }
-
-        [UIFact]
-        public async Task ImpExprCorrectlyTriggersReparseIfFunctionsKeywordTyped()
-        {
-            await RunTypeKeywordTestAsync("functions");
-        }
-
-        [UIFact]
-        public async Task ImpExprCorrectlyTriggersReparseIfNamespaceKeywordTyped()
-        {
-            await RunTypeKeywordTestAsync("namespace");
-        }
-
-        [UIFact]
-        public async Task ImpExprCorrectlyTriggersReparseIfClassKeywordTyped()
-        {
-            await RunTypeKeywordTestAsync("class");
-        }
-
-        private void VerifyPartialParseTree(TestParserManager manager, string content, string expectedCode = null)
-        {
-            if (expectedCode != null)
-            {
-                // Verify if the syntax tree represents the expected input.
-                var syntaxTreeContent = manager.PartialParsingSyntaxTreeRoot.ToFullString();
-                Assert.Contains(expectedCode, syntaxTreeContent, StringComparison.Ordinal);
+                VerifyPartialParseTree(manager, testEdit.NewSnapshot.GetText(), expectedCode);
             }
 
-            var sourceDocument = TestRazorSourceDocument.Create(content);
-            var syntaxTree = RazorSyntaxTree.Create(manager.PartialParsingSyntaxTreeRoot, sourceDocument, manager.CurrentSyntaxTree.Diagnostics, manager.CurrentSyntaxTree.Options);
-            BaselineTest(syntaxTree);
-        }
+            await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
+            var codeDocumentTask = manager.InnerParser.GetLatestCodeDocumentAsync(changed);
 
-        private void VerifyCurrentSyntaxTree(TestParserManager manager)
-        {
-            BaselineTest(manager.CurrentSyntaxTree);
-        }
+            Assert.False(codeDocumentTask.IsCompleted);
 
-        private TestParserManager CreateParserManager(VisualStudioDocumentTracker documentTracker)
+            // Perform a partially parsed accepted change
+            ApplyAndVerifyPartialChange(edit, "DateTime.");
+
+            Assert.True(codeDocumentTask.IsCompleted);
+        }
+    }
+
+    [UIFact]
+    public async Task ImpExprProvisionallyAcceptsDCIAfterIdentifiers()
+    {
+        // ImplicitExpressionProvisionallyAcceptsDotlessCommitInsertionsAfterIdentifiers
+        var changed = new StringTextSnapshot("foo @DateTime. baz");
+        var original = new StringTextSnapshot("foo @DateTime baz");
+        var edit = new TestEdit(13, 0, original, changed, ".");
+        using (var manager = CreateParserManager(original))
         {
-            var templateEngineFactory = CreateProjectEngineFactory();
-            var parser = new DefaultVisualStudioRazorParser(
-                JoinableTaskFactory.Context,
-                documentTracker,
-                templateEngineFactory,
-                new DefaultErrorReporter(),
-                new TestCompletionBroker())
+            void ApplyAndVerifyPartialChange(TestEdit testEdit, string expectedCode)
             {
-                // We block idle work with the below reset events. Therefore, make tests fast and have the idle timer fire as soon as possible.
-                _idleDelay = TimeSpan.FromMilliseconds(1),
-                NotifyUIIdleStart = new ManualResetEventSlim(),
-                BlockBackgroundIdleWork = new ManualResetEventSlim(),
-            };
+                manager.ApplyEdit(testEdit);
+                Assert.Equal(1, manager._parseCount);
 
-            parser.StartParser();
+                VerifyPartialParseTree(manager, testEdit.NewSnapshot.GetText(), expectedCode);
+            }
 
-            return new TestParserManager(parser);
+            await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
+
+            // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
+            ApplyAndVerifyPartialChange(edit, "DateTime.");
+
+            original = changed;
+            changed = new StringTextSnapshot("foo @DateTime.. baz");
+            edit = new TestEdit(14, 0, original, changed, ".");
+
+            ApplyAndVerifyPartialChange(edit, "DateTime..");
+
+            original = changed;
+            changed = new StringTextSnapshot("foo @DateTime.Now. baz");
+            edit = new TestEdit(14, 0, original, changed, "Now");
+
+            ApplyAndVerifyPartialChange(edit, "DateTime.Now.");
+
+            // Verify the reparse eventually happens
+            await manager.WaitForReparseAsync();
+
+            Assert.Equal(2, manager._parseCount);
+            VerifyCurrentSyntaxTree(manager);
         }
+    }
 
-        private TestParserManager CreateParserManager(ITextSnapshot originalSnapshot)
+    [UIFact]
+    public async Task ImpExprProvisionallyAccCaseInsensitiveDCI_NewRoslynIntegration()
+    {
+        // ImplicitExpressionProvisionallyAcceptsCaseInsensitiveDotlessCommitInsertions_NewRoslynIntegration
+        var original = new StringTextSnapshot("foo @date baz");
+        var changed = new StringTextSnapshot("foo @date. baz");
+        var edit = new TestEdit(9, 0, original, changed, ".");
+        using (var manager = CreateParserManager(original))
         {
-            var textBuffer = new TestTextBuffer(originalSnapshot);
-            var documentTracker = CreateDocumentTracker(textBuffer);
-
-            return CreateParserManager(documentTracker);
-        }
-
-        private static ProjectSnapshotProjectEngineFactory CreateProjectEngineFactory(IEnumerable<TagHelperDescriptor> tagHelpers = null)
-        {
-            var fileSystem = new TestRazorProjectFileSystem();
-            var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, fileSystem, builder =>
+            void ApplyAndVerifyPartialChange(Action applyEdit, string expectedCode)
             {
-                RazorExtensions.Register(builder);
+                applyEdit();
+                Assert.Equal(1, manager._parseCount);
 
-                builder.AddDefaultImports("@addTagHelper *, Test");
+                VerifyPartialParseTree(manager, changed.GetText(), expectedCode);
+            }
 
-                if (tagHelpers != null)
+            await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
+
+            // This is the process of a dotless commit when doing "." insertions to commit intellisense changes.
+
+            // @date => @date.
+            ApplyAndVerifyPartialChange(() => manager.ApplyEdit(edit), "date.");
+
+            original = changed;
+            changed = new StringTextSnapshot("foo @date baz");
+            edit = new TestEdit(9, 1, original, changed, "");
+
+            // @date. => @date
+            ApplyAndVerifyPartialChange(() => manager.ApplyEdit(edit), "date");
+
+            original = changed;
+            changed = new StringTextSnapshot("foo @DateTime baz");
+            edit = new TestEdit(5, 4, original, changed, "DateTime");
+
+            // @date => @DateTime
+            ApplyAndVerifyPartialChange(() => manager.ApplyEdit(edit), "DateTime");
+
+            original = changed;
+            changed = new StringTextSnapshot("foo @DateTime. baz");
+            edit = new TestEdit(13, 0, original, changed, ".");
+
+            // @DateTime => @DateTime.
+            ApplyAndVerifyPartialChange(() => manager.ApplyEdit(edit), "DateTime.");
+
+            // Verify the reparse eventually happens
+            await manager.WaitForReparseAsync();
+
+            Assert.Equal(2, manager._parseCount);
+            VerifyCurrentSyntaxTree(manager);
+        }
+    }
+
+    [UIFact]
+    public async Task ImpExprRejectsAcceptableChangeIfPrevWasProvisionallyAccepted()
+    {
+        // ImplicitExpressionRejectsChangeWhichWouldHaveBeenAcceptedIfLastChangeWasProvisionallyAcceptedOnDifferentSpan
+        // Arrange
+        var dotTyped = new TestEdit(8, 0, new StringTextSnapshot("foo @foo @bar"), new StringTextSnapshot("foo @foo. @bar"), ".");
+        var charTyped = new TestEdit(14, 0, new StringTextSnapshot("foo @foo. @bar"), new StringTextSnapshot("foo @foo. @barb"), "b");
+        using (var manager = CreateParserManager(dotTyped.OldSnapshot))
+        {
+            await manager.InitializeWithDocumentAsync(dotTyped.OldSnapshot);
+
+            // Apply the dot change
+            await manager.ApplyEditAndWaitForReparseAsync(dotTyped);
+
+            // Act (apply the identifier start char change)
+            await manager.ApplyEditAndWaitForParseAsync(charTyped);
+
+            // Assert
+            Assert.Equal(2, manager._parseCount);
+            VerifyPartialParseTree(manager, charTyped.NewSnapshot.GetText());
+        }
+    }
+
+    [UIFact]
+    public async Task ImpExprAcceptsIdentifierTypedAfterDotIfLastChangeProvisional()
+    {
+        // ImplicitExpressionAcceptsIdentifierTypedAfterDotIfLastChangeWasProvisionalAcceptanceOfDot
+        // Arrange
+        var dotTyped = new TestEdit(8, 0, new StringTextSnapshot("foo @foo bar"), new StringTextSnapshot("foo @foo. bar"), ".");
+        var charTyped = new TestEdit(9, 0, new StringTextSnapshot("foo @foo. bar"), new StringTextSnapshot("foo @foo.b bar"), "b");
+        using (var manager = CreateParserManager(dotTyped.OldSnapshot))
+        {
+            await manager.InitializeWithDocumentAsync(dotTyped.OldSnapshot);
+
+            // Apply the dot change
+            manager.ApplyEdit(dotTyped);
+
+            // Act (apply the identifier start char change)
+            manager.ApplyEdit(charTyped);
+
+            // Assert
+            Assert.Equal(1, manager._parseCount);
+            VerifyPartialParseTree(manager, charTyped.NewSnapshot.GetText());
+        }
+    }
+
+    [UIFact]
+    public async Task ImpExpr_AcceptsParenthesisAtEnd_SingleEdit()
+    {
+        // Arrange
+        var edit = new TestEdit(8, 0, new StringTextSnapshot("foo @foo bar"), new StringTextSnapshot("foo @foo() bar"), "()");
+
+        using (var manager = CreateParserManager(edit.OldSnapshot))
+        {
+            await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
+
+            // Apply the () edit
+            manager.ApplyEdit(edit);
+
+            // Assert
+            Assert.Equal(1, manager._parseCount);
+            VerifyPartialParseTree(manager, edit.NewSnapshot.GetText());
+        }
+    }
+
+    [UIFact]
+    public async Task ImpExpr_AcceptsParenthesisAtEnd_TwoEdits()
+    {
+        // Arrange
+        var edit1 = new TestEdit(8, 0, new StringTextSnapshot("foo @foo bar"), new StringTextSnapshot("foo @foo( bar"), "(");
+        var edit2 = new TestEdit(9, 0, new StringTextSnapshot("foo @foo( bar"), new StringTextSnapshot("foo @foo() bar"), ")");
+        using (var manager = CreateParserManager(edit1.OldSnapshot))
+        {
+            await manager.InitializeWithDocumentAsync(edit1.OldSnapshot);
+
+            // Apply the ( edit
+            manager.ApplyEdit(edit1);
+
+            // Apply the ) edit
+            manager.ApplyEdit(edit2);
+
+            // Assert
+            Assert.Equal(1, manager._parseCount);
+            VerifyPartialParseTree(manager, edit2.NewSnapshot.GetText());
+        }
+    }
+
+    [UIFact]
+    public async Task ImpExprCorrectlyTriggersReparseIfIfKeywordTyped()
+    {
+        await RunTypeKeywordTestAsync("if");
+    }
+
+    [UIFact]
+    public async Task ImpExprCorrectlyTriggersReparseIfDoKeywordTyped()
+    {
+        await RunTypeKeywordTestAsync("do");
+    }
+
+    [UIFact]
+    public async Task ImpExprCorrectlyTriggersReparseIfTryKeywordTyped()
+    {
+        await RunTypeKeywordTestAsync("try");
+    }
+
+    [UIFact]
+    public async Task ImplicitExpressionCorrectlyTriggersReparseIfForKeywordTyped()
+    {
+        await RunTypeKeywordTestAsync("for");
+    }
+
+    [UIFact]
+    public async Task ImpExprCorrectlyTriggersReparseIfForEachKeywordTyped()
+    {
+        await RunTypeKeywordTestAsync("foreach");
+    }
+
+    [UIFact]
+    public async Task ImpExprCorrectlyTriggersReparseIfWhileKeywordTyped()
+    {
+        await RunTypeKeywordTestAsync("while");
+    }
+
+    [UIFact]
+    public async Task ImpExprCorrectlyTriggersReparseIfSwitchKeywordTyped()
+    {
+        await RunTypeKeywordTestAsync("switch");
+    }
+
+    [UIFact]
+    public async Task ImpExprCorrectlyTriggersReparseIfLockKeywordTyped()
+    {
+        await RunTypeKeywordTestAsync("lock");
+    }
+
+    [UIFact]
+    public async Task ImpExprCorrectlyTriggersReparseIfUsingKeywordTyped()
+    {
+        await RunTypeKeywordTestAsync("using");
+    }
+
+    [UIFact]
+    public async Task ImpExprCorrectlyTriggersReparseIfSectionKeywordTyped()
+    {
+        await RunTypeKeywordTestAsync("section");
+    }
+
+    [UIFact]
+    public async Task ImpExprCorrectlyTriggersReparseIfInheritsKeywordTyped()
+    {
+        await RunTypeKeywordTestAsync("inherits");
+    }
+
+    [UIFact]
+    public async Task ImpExprCorrectlyTriggersReparseIfFunctionsKeywordTyped()
+    {
+        await RunTypeKeywordTestAsync("functions");
+    }
+
+    [UIFact]
+    public async Task ImpExprCorrectlyTriggersReparseIfNamespaceKeywordTyped()
+    {
+        await RunTypeKeywordTestAsync("namespace");
+    }
+
+    [UIFact]
+    public async Task ImpExprCorrectlyTriggersReparseIfClassKeywordTyped()
+    {
+        await RunTypeKeywordTestAsync("class");
+    }
+
+    private void VerifyPartialParseTree(TestParserManager manager, string content, string expectedCode = null)
+    {
+        if (expectedCode != null)
+        {
+            // Verify if the syntax tree represents the expected input.
+            var syntaxTreeContent = manager.PartialParsingSyntaxTreeRoot.ToFullString();
+            Assert.Contains(expectedCode, syntaxTreeContent, StringComparison.Ordinal);
+        }
+
+        var sourceDocument = TestRazorSourceDocument.Create(content);
+        var syntaxTree = RazorSyntaxTree.Create(manager.PartialParsingSyntaxTreeRoot, sourceDocument, manager.CurrentSyntaxTree.Diagnostics, manager.CurrentSyntaxTree.Options);
+        BaselineTest(syntaxTree);
+    }
+
+    private void VerifyCurrentSyntaxTree(TestParserManager manager)
+    {
+        BaselineTest(manager.CurrentSyntaxTree);
+    }
+
+    private TestParserManager CreateParserManager(VisualStudioDocumentTracker documentTracker)
+    {
+        var templateEngineFactory = CreateProjectEngineFactory();
+        var parser = new DefaultVisualStudioRazorParser(
+            JoinableTaskFactory.Context,
+            documentTracker,
+            templateEngineFactory,
+            new DefaultErrorReporter(),
+            new TestCompletionBroker())
+        {
+            // We block idle work with the below reset events. Therefore, make tests fast and have the idle timer fire as soon as possible.
+            _idleDelay = TimeSpan.FromMilliseconds(1),
+            NotifyUIIdleStart = new ManualResetEventSlim(),
+            BlockBackgroundIdleWork = new ManualResetEventSlim(),
+        };
+
+        parser.StartParser();
+
+        return new TestParserManager(parser);
+    }
+
+    private TestParserManager CreateParserManager(ITextSnapshot originalSnapshot)
+    {
+        var textBuffer = new TestTextBuffer(originalSnapshot);
+        var documentTracker = CreateDocumentTracker(textBuffer);
+
+        return CreateParserManager(documentTracker);
+    }
+
+    private static ProjectSnapshotProjectEngineFactory CreateProjectEngineFactory(IEnumerable<TagHelperDescriptor> tagHelpers = null)
+    {
+        var fileSystem = new TestRazorProjectFileSystem();
+        var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, fileSystem, builder =>
+        {
+            RazorExtensions.Register(builder);
+
+            builder.AddDefaultImports("@addTagHelper *, Test");
+
+            if (tagHelpers != null)
+            {
+                builder.AddTagHelpers(tagHelpers);
+            }
+        });
+
+        return new TestProjectSnapshotProjectEngineFactory()
+        {
+            Engine = projectEngine,
+        };
+    }
+
+    private async Task RunTypeKeywordTestAsync(string keyword)
+    {
+        // Arrange
+        var before = "@" + keyword.Substring(0, keyword.Length - 1);
+        var after = "@" + keyword;
+        var changed = new StringTextSnapshot(after);
+        var old = new StringTextSnapshot(before);
+        var change = new SourceChange(keyword.Length, 0, keyword[keyword.Length - 1].ToString());
+        var edit = new TestEdit(change, old, changed);
+        using (var manager = CreateParserManager(old))
+        {
+            await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
+
+            // Act
+            await manager.ApplyEditAndWaitForParseAsync(edit);
+
+            // Assert
+            Assert.Equal(2, manager._parseCount);
+        }
+    }
+
+    private static void DoWithTimeoutIfNotDebugging(Func<int, bool> withTimeout)
+    {
+#if DEBUG
+        if (SystemDebugger.IsAttached)
+        {
+            withTimeout(Timeout.Infinite);
+        }
+        else
+        {
+#endif
+            Assert.True(withTimeout((int)TimeSpan.FromSeconds(5).TotalMilliseconds), "Timeout expired!");
+#if DEBUG
+        }
+#endif
+    }
+
+    private VisualStudioDocumentTracker CreateDocumentTracker(Text.ITextBuffer textBuffer, string filePath = TestLinePragmaFileName)
+    {
+        var focusedTextView = Mock.Of<ITextView>(textView => textView.HasAggregateFocus == true, MockBehavior.Strict);
+        var documentTracker = Mock.Of<VisualStudioDocumentTracker>(tracker =>
+            tracker.TextBuffer == textBuffer &&
+            tracker.TextViews == new[] { focusedTextView } &&
+            tracker.FilePath == filePath &&
+            tracker.ProjectPath == TestProjectPath &&
+            tracker.ProjectSnapshot == _projectSnapshot &&
+            tracker.IsSupportedProject == true, MockBehavior.Strict);
+        textBuffer.Properties.AddProperty(typeof(VisualStudioDocumentTracker), documentTracker);
+
+        return documentTracker;
+    }
+
+    private class TestParserManager : IDisposable
+    {
+        public int _parseCount;
+
+        private readonly ManualResetEventSlim _parserComplete;
+        private readonly ManualResetEventSlim _reparseComplete;
+        private readonly TestTextBuffer _testBuffer;
+        private readonly DefaultVisualStudioRazorParser _parser;
+
+        public TestParserManager(DefaultVisualStudioRazorParser parser)
+        {
+            _parserComplete = new ManualResetEventSlim();
+            _reparseComplete = new ManualResetEventSlim();
+
+            _testBuffer = (TestTextBuffer)parser.TextBuffer;
+            _parseCount = 0;
+
+            _parser = parser;
+            parser.DocumentStructureChanged += (sender, args) =>
+            {
+                CurrentSyntaxTree = args.CodeDocument.GetSyntaxTree();
+
+                Interlocked.Increment(ref _parseCount);
+
+                if (args.SourceChange is null)
                 {
-                    builder.AddTagHelpers(tagHelpers);
+                    // Reparse occurred
+                    _reparseComplete.Set();
                 }
-            });
 
-            return new TestProjectSnapshotProjectEngineFactory()
-            {
-                Engine = projectEngine,
+                _parserComplete.Set();
             };
         }
 
-        private async Task RunTypeKeywordTestAsync(string keyword)
+        public RazorSyntaxTree CurrentSyntaxTree { get; private set; }
+
+        public SyntaxNode PartialParsingSyntaxTreeRoot => _parser._partialParser.ModifiedSyntaxTreeRoot;
+
+        public VisualStudioRazorParser InnerParser => _parser;
+
+        public async Task InitializeWithDocumentAsync(ITextSnapshot snapshot)
         {
-            // Arrange
-            var before = "@" + keyword.Substring(0, keyword.Length - 1);
-            var after = "@" + keyword;
-            var changed = new StringTextSnapshot(after);
-            var old = new StringTextSnapshot(before);
-            var change = new SourceChange(keyword.Length, 0, keyword[keyword.Length - 1].ToString());
-            var edit = new TestEdit(change, old, changed);
-            using (var manager = CreateParserManager(old))
-            {
-                await manager.InitializeWithDocumentAsync(edit.OldSnapshot);
-
-                // Act
-                await manager.ApplyEditAndWaitForParseAsync(edit);
-
-                // Assert
-                Assert.Equal(2, manager._parseCount);
-            }
+            var old = new StringTextSnapshot(string.Empty);
+            var initialChange = new SourceChange(0, 0, snapshot.GetText());
+            var edit = new TestEdit(initialChange, old, snapshot);
+            await ApplyEditAndWaitForParseAsync(edit);
         }
 
-        private static void DoWithTimeoutIfNotDebugging(Func<int, bool> withTimeout)
+        public void ApplyEdit(TestEdit edit)
         {
-#if DEBUG
-            if (SystemDebugger.IsAttached)
-            {
-                withTimeout(Timeout.Infinite);
-            }
-            else
-            {
-#endif
-                Assert.True(withTimeout((int)TimeSpan.FromSeconds(5).TotalMilliseconds), "Timeout expired!");
-#if DEBUG
-            }
-#endif
+            _testBuffer.ApplyEdit(edit);
         }
 
-        private VisualStudioDocumentTracker CreateDocumentTracker(Text.ITextBuffer textBuffer, string filePath = TestLinePragmaFileName)
+        public async Task ApplyEditAndWaitForParseAsync(TestEdit edit)
         {
-            var focusedTextView = Mock.Of<ITextView>(textView => textView.HasAggregateFocus == true, MockBehavior.Strict);
-            var documentTracker = Mock.Of<VisualStudioDocumentTracker>(tracker =>
-                tracker.TextBuffer == textBuffer &&
-                tracker.TextViews == new[] { focusedTextView } &&
-                tracker.FilePath == filePath &&
-                tracker.ProjectPath == TestProjectPath &&
-                tracker.ProjectSnapshot == _projectSnapshot &&
-                tracker.IsSupportedProject == true, MockBehavior.Strict);
-            textBuffer.Properties.AddProperty(typeof(VisualStudioDocumentTracker), documentTracker);
-
-            return documentTracker;
+            ApplyEdit(edit);
+            await WaitForParseAsync();
         }
 
-        private class TestParserManager : IDisposable
+        public async Task ApplyEditAndWaitForReparseAsync(TestEdit edit)
         {
-            public int _parseCount;
-
-            private readonly ManualResetEventSlim _parserComplete;
-            private readonly ManualResetEventSlim _reparseComplete;
-            private readonly TestTextBuffer _testBuffer;
-            private readonly DefaultVisualStudioRazorParser _parser;
-
-            public TestParserManager(DefaultVisualStudioRazorParser parser)
-            {
-                _parserComplete = new ManualResetEventSlim();
-                _reparseComplete = new ManualResetEventSlim();
-
-                _testBuffer = (TestTextBuffer)parser.TextBuffer;
-                _parseCount = 0;
-
-                _parser = parser;
-                parser.DocumentStructureChanged += (sender, args) =>
-                {
-                    CurrentSyntaxTree = args.CodeDocument.GetSyntaxTree();
-
-                    Interlocked.Increment(ref _parseCount);
-
-                    if (args.SourceChange is null)
-                    {
-                        // Reparse occurred
-                        _reparseComplete.Set();
-                    }
-
-                    _parserComplete.Set();
-                };
-            }
-
-            public RazorSyntaxTree CurrentSyntaxTree { get; private set; }
-
-            public SyntaxNode PartialParsingSyntaxTreeRoot => _parser._partialParser.ModifiedSyntaxTreeRoot;
-
-            public VisualStudioRazorParser InnerParser => _parser;
-
-            public async Task InitializeWithDocumentAsync(ITextSnapshot snapshot)
-            {
-                var old = new StringTextSnapshot(string.Empty);
-                var initialChange = new SourceChange(0, 0, snapshot.GetText());
-                var edit = new TestEdit(initialChange, old, snapshot);
-                await ApplyEditAndWaitForParseAsync(edit);
-            }
-
-            public void ApplyEdit(TestEdit edit)
-            {
-                _testBuffer.ApplyEdit(edit);
-            }
-
-            public async Task ApplyEditAndWaitForParseAsync(TestEdit edit)
-            {
-                ApplyEdit(edit);
-                await WaitForParseAsync();
-            }
-
-            public async Task ApplyEditAndWaitForReparseAsync(TestEdit edit)
-            {
-                ApplyEdit(edit);
-                await WaitForReparseAsync();
-            }
-
-            public async Task WaitForParseAsync()
-            {
-                // Get off of the UI thread so we can wait for the document structure changed event to fire
-                await Task.Run(() => DoWithTimeoutIfNotDebugging(_parserComplete.Wait));
-
-                _parserComplete.Reset();
-            }
-
-            public async Task WaitForReparseAsync()
-            {
-                Assert.True(_parser._idleTimer is not null);
-
-                // Allow background idle work to continue
-                _parser.BlockBackgroundIdleWork.Set();
-
-                // Get off of the UI thread so we can wait for the idle timer to fire
-                await Task.Run(() => DoWithTimeoutIfNotDebugging(_parser.NotifyUIIdleStart.Wait));
-
-                Assert.Null(_parser._idleTimer);
-
-                // Get off of the UI thread so we can wait for the document structure changed event to fire for reparse
-                await Task.Run(() => DoWithTimeoutIfNotDebugging(_reparseComplete.Wait));
-
-                _reparseComplete.Reset();
-                _parser.BlockBackgroundIdleWork.Reset();
-                _parser.NotifyUIIdleStart.Reset();
-            }
-
-            public void Dispose()
-            {
-                _parser.Dispose();
-                _parserComplete.Dispose();
-                _reparseComplete.Dispose();
-            }
+            ApplyEdit(edit);
+            await WaitForReparseAsync();
         }
 
-        private class TestCompletionBroker : VisualStudioCompletionBroker
+        public async Task WaitForParseAsync()
         {
-            public override bool IsCompletionActive(ITextView textView) => false;
+            // Get off of the UI thread so we can wait for the document structure changed event to fire
+            await Task.Run(() => DoWithTimeoutIfNotDebugging(_parserComplete.Wait));
+
+            _parserComplete.Reset();
         }
+
+        public async Task WaitForReparseAsync()
+        {
+            Assert.True(_parser._idleTimer is not null);
+
+            // Allow background idle work to continue
+            _parser.BlockBackgroundIdleWork.Set();
+
+            // Get off of the UI thread so we can wait for the idle timer to fire
+            await Task.Run(() => DoWithTimeoutIfNotDebugging(_parser.NotifyUIIdleStart.Wait));
+
+            Assert.Null(_parser._idleTimer);
+
+            // Get off of the UI thread so we can wait for the document structure changed event to fire for reparse
+            await Task.Run(() => DoWithTimeoutIfNotDebugging(_reparseComplete.Wait));
+
+            _reparseComplete.Reset();
+            _parser.BlockBackgroundIdleWork.Reset();
+            _parser.NotifyUIIdleStart.Reset();
+        }
+
+        public void Dispose()
+        {
+            _parser.Dispose();
+            _parserComplete.Dispose();
+            _reparseComplete.Dispose();
+        }
+    }
+
+    private class TestCompletionBroker : VisualStudioCompletionBroker
+    {
+        public override bool IsCompletionActive(ITextView textView) => false;
     }
 }

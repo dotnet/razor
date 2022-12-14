@@ -4,10 +4,9 @@
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.VisualStudio.Editor.Razor
+namespace Microsoft.VisualStudio.Editor.Razor;
+
+internal abstract class VisualStudioCompletionBroker : ILanguageService
 {
-    internal abstract class VisualStudioCompletionBroker : ILanguageService
-    {
-        public abstract bool IsCompletionActive(ITextView textView);
-    }
+    public abstract bool IsCompletionActive(ITextView textView);
 }

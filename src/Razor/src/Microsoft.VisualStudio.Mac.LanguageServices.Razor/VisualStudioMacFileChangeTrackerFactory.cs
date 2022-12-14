@@ -5,30 +5,29 @@ using System;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Documents;
 
-namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
+namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor;
+
+internal class VisualStudioMacFileChangeTrackerFactory : FileChangeTrackerFactory
 {
-    internal class VisualStudioMacFileChangeTrackerFactory : FileChangeTrackerFactory
+    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+
+    public VisualStudioMacFileChangeTrackerFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
     {
-        private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-
-        public VisualStudioMacFileChangeTrackerFactory(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+        if (projectSnapshotManagerDispatcher is null)
         {
-            if (projectSnapshotManagerDispatcher is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-            }
-
-            _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
         }
 
-        public override FileChangeTracker Create(string filePath)
-        {
-            if (string.IsNullOrEmpty(filePath))
-            {
-                throw new ArgumentException(Resources.ArgumentCannotBeNullOrEmpty, nameof(filePath));
-            }
+        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+    }
 
-            return new VisualStudioMacFileChangeTracker(filePath, _projectSnapshotManagerDispatcher);
+    public override FileChangeTracker Create(string filePath)
+    {
+        if (string.IsNullOrEmpty(filePath))
+        {
+            throw new ArgumentException(SR.ArgumentCannotBeNullOrEmpty, nameof(filePath));
         }
+
+        return new VisualStudioMacFileChangeTracker(filePath, _projectSnapshotManagerDispatcher);
     }
 }

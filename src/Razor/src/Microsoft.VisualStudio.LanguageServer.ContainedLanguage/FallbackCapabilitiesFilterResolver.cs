@@ -4,10 +4,9 @@
 using System;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+
+internal abstract class FallbackCapabilitiesFilterResolver
 {
-    internal abstract class FallbackCapabilitiesFilterResolver
-    {
-        public abstract Func<JToken, bool> Resolve(string lspRequestMethodName);
-    }
+    public abstract Func<JToken, bool> Resolve(string lspRequestMethodName);
 }

@@ -11,108 +11,107 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using MonoDevelop.Ide;
 
-namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor
+namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor;
+
+internal class VisualStudioMacEditorDocumentManager : EditorDocumentManagerBase
 {
-    internal class VisualStudioMacEditorDocumentManager : EditorDocumentManagerBase
+    public VisualStudioMacEditorDocumentManager(
+        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        JoinableTaskContext joinableTaskContext,
+        FileChangeTrackerFactory fileChangeTrackerFactory)
+        : base(projectSnapshotManagerDispatcher, joinableTaskContext, fileChangeTrackerFactory)
     {
-        public VisualStudioMacEditorDocumentManager(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-            JoinableTaskContext joinableTaskContext,
-            FileChangeTrackerFactory fileChangeTrackerFactory)
-            : base(projectSnapshotManagerDispatcher, joinableTaskContext, fileChangeTrackerFactory)
+    }
+
+    protected override ITextBuffer? GetTextBufferForOpenDocument(string filePath)
+    {
+        if (filePath is null)
         {
+            throw new ArgumentNullException(nameof(filePath));
         }
 
-        protected override ITextBuffer? GetTextBufferForOpenDocument(string filePath)
+        var document = IdeApp.Workbench.GetDocument(filePath);
+        return document?.GetContent<ITextBuffer>();
+    }
+
+    protected override void OnDocumentOpened(EditorDocument document)
+    {
+    }
+
+    protected override void OnDocumentClosed(EditorDocument document)
+    {
+    }
+
+    public void HandleDocumentOpened(string filePath, ITextBuffer textBuffer)
+    {
+        JoinableTaskContext.AssertUIThread();
+
+        lock (Lock)
         {
-            if (filePath is null)
+            if (!TryGetMatchingDocuments(filePath, out var documents))
             {
-                throw new ArgumentNullException(nameof(filePath));
+                // This isn't a document that we're interesting in.
+                return;
             }
 
-            var document = IdeApp.Workbench.GetDocument(filePath);
-            return document?.GetContent<ITextBuffer>();
+            BufferLoaded(textBuffer, filePath, documents);
         }
+    }
 
-        protected override void OnDocumentOpened(EditorDocument document)
+    public void HandleDocumentClosed(string filePath)
+    {
+        JoinableTaskContext.AssertUIThread();
+
+        lock (Lock)
         {
-        }
-
-        protected override void OnDocumentClosed(EditorDocument document)
-        {
-        }
-
-        public void HandleDocumentOpened(string filePath, ITextBuffer textBuffer)
-        {
-            JoinableTaskContext.AssertUIThread();
-
-            lock (Lock)
-            {
-                if (!TryGetMatchingDocuments(filePath, out var documents))
-                {
-                    // This isn't a document that we're interesting in.
-                    return;
-                }
-
-                BufferLoaded(textBuffer, filePath, documents);
-            }
-        }
-
-        public void HandleDocumentClosed(string filePath)
-        {
-            JoinableTaskContext.AssertUIThread();
-
-            lock (Lock)
-            {
-                if (!TryGetMatchingDocuments(filePath, out var documents))
-                {
-                    return;
-                }
-
-                // We have to deal with some complications here due to renames and event ordering and such.
-                // We might see multiple documents open for a cookie (due to linked files), but only one of them
-                // has been renamed. In that case, we just process the change that we know about.
-                var matchingFilePaths = documents.Select(d => d.DocumentFilePath);
-                var filePaths = new HashSet<string>(matchingFilePaths, FilePathComparer.Instance);
-
-                foreach (var file in filePaths)
-                {
-                    DocumentClosed(file);
-                }
-            }
-        }
-
-        public void HandleDocumentRenamed(string fromFilePath, string toFilePath, ITextBuffer textBuffer)
-        {
-            JoinableTaskContext.AssertUIThread();
-
-            if (string.Equals(fromFilePath, toFilePath, FilePathComparison.Instance))
+            if (!TryGetMatchingDocuments(filePath, out var documents))
             {
                 return;
             }
 
-            lock (Lock)
-            {
-                // Treat a rename as a close + reopen.
-                //
-                // Due to ordering issues, we could see a partial rename. This is why we need to pass the new
-                // file path here.
-                DocumentClosed(fromFilePath);
-            }
+            // We have to deal with some complications here due to renames and event ordering and such.
+            // We might see multiple documents open for a cookie (due to linked files), but only one of them
+            // has been renamed. In that case, we just process the change that we know about.
+            var matchingFilePaths = documents.Select(d => d.DocumentFilePath);
+            var filePaths = new HashSet<string>(matchingFilePaths, FilePathComparer.Instance);
 
-            DocumentOpened(toFilePath, textBuffer);
+            foreach (var file in filePaths)
+            {
+                DocumentClosed(file);
+            }
+        }
+    }
+
+    public void HandleDocumentRenamed(string fromFilePath, string toFilePath, ITextBuffer textBuffer)
+    {
+        JoinableTaskContext.AssertUIThread();
+
+        if (string.Equals(fromFilePath, toFilePath, FilePathComparison.Instance))
+        {
+            return;
         }
 
-        public void BufferLoaded(ITextBuffer textBuffer, string filePath, EditorDocument[] documents)
+        lock (Lock)
         {
-            JoinableTaskContext.AssertUIThread();
+            // Treat a rename as a close + reopen.
+            //
+            // Due to ordering issues, we could see a partial rename. This is why we need to pass the new
+            // file path here.
+            DocumentClosed(fromFilePath);
+        }
 
-            lock (Lock)
+        DocumentOpened(toFilePath, textBuffer);
+    }
+
+    public void BufferLoaded(ITextBuffer textBuffer, string filePath, EditorDocument[] documents)
+    {
+        JoinableTaskContext.AssertUIThread();
+
+        lock (Lock)
+        {
+            for (var i = 0; i < documents.Length; i++)
             {
-                for (var i = 0; i < documents.Length; i++)
-                {
-                    DocumentOpened(filePath, textBuffer);
-                }
+                DocumentOpened(filePath, textBuffer);
             }
         }
     }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
+using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
@@ -96,6 +97,13 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<RazorCompletionItemProvider, TagHelperCompletionProvider>();
     }
 
+    public static void AddDiagnosticServices(this IServiceCollection services)
+    {
+        services.AddHandler<RazorTranslateDiagnosticsEndpoint>();
+        services.AddRegisteringHandler<RazorPullDiagnosticsEndpoint>();
+        services.AddSingleton<RazorTranslateDiagnosticsService>();
+    }
+
     public static void AddHoverServices(this IServiceCollection services)
     {
         services.AddRegisteringHandler<RazorHoverEndpoint>();
@@ -131,6 +139,10 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<RazorCodeActionProvider, ComponentAccessibilityCodeActionProvider>();
         services.AddSingleton<RazorCodeActionResolver, CreateComponentCodeActionResolver>();
         services.AddSingleton<RazorCodeActionResolver, AddUsingsCodeActionResolver>();
+
+        // Html Code actions
+        services.AddSingleton<HtmlCodeActionProvider, DefaultHtmlCodeActionProvider>();
+        services.AddSingleton<HtmlCodeActionResolver, DefaultHtmlCodeActionResolver>();
     }
 
     public static void AddTextDocumentServices(this IServiceCollection services)

@@ -3,10 +3,9 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
+
+internal class RazorDocumentRangeFormattingResponse
 {
-    internal class RazorDocumentRangeFormattingResponse
-    {
-        public required TextEdit[] Edits { get; set; }
-    }
+    public required TextEdit[] Edits { get; set; }
 }

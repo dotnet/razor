@@ -8,91 +8,90 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage
+namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
+
+public class UriExtensionsTest : TestBase
 {
-    public class UriExtensionsTest : TestBase
+    public UriExtensionsTest(ITestOutputHelper testOutput)
+        : base(testOutput)
     {
-        public UriExtensionsTest(ITestOutputHelper testOutput)
-            : base(testOutput)
-        {
-        }
+    }
 
-        [OSSkipConditionFact(new[] { "OSX", "Linux" })]
-        public void GetAbsoluteOrUNCPath_AbsolutePath_ReturnsAbsolutePath()
-        {
-            // Arrange
-            var uri = new Uri("c:\\Some\\path\\to\\file.cshtml");
+    [OSSkipConditionFact(new[] { "OSX", "Linux" })]
+    public void GetAbsoluteOrUNCPath_AbsolutePath_ReturnsAbsolutePath()
+    {
+        // Arrange
+        var uri = new Uri("c:\\Some\\path\\to\\file.cshtml");
 
-            // Act
-            var path = uri.GetAbsoluteOrUNCPath();
+        // Act
+        var path = uri.GetAbsoluteOrUNCPath();
 
-            // Assert
-            Assert.Equal(uri.AbsolutePath, path);
-        }
+        // Assert
+        Assert.Equal(uri.AbsolutePath, path);
+    }
 
-        [OSSkipConditionFact(new[] { "OSX", "Linux" })]
-        public void GetAbsoluteOrUNCPath_AbsolutePath_HandlesPlusPaths()
-        {
-            // Arrange
-            var uri = new Uri("c:\\Some\\path\\to\\file+2.cshtml");
+    [OSSkipConditionFact(new[] { "OSX", "Linux" })]
+    public void GetAbsoluteOrUNCPath_AbsolutePath_HandlesPlusPaths()
+    {
+        // Arrange
+        var uri = new Uri("c:\\Some\\path\\to\\file+2.cshtml");
 
-            // Act
-            var path = uri.GetAbsoluteOrUNCPath();
+        // Act
+        var path = uri.GetAbsoluteOrUNCPath();
 
-            // Assert
-            Assert.Equal(uri.AbsolutePath, path);
-        }
+        // Assert
+        Assert.Equal(uri.AbsolutePath, path);
+    }
 
-        [OSSkipConditionFact(new[] { "OSX", "Linux" })]
-        public void GetAbsoluteOrUNCPath_AbsolutePath_HandlesSpacePaths()
-        {
-            // Arrange
-            var uri = new Uri("c:\\Some\\path\\to\\file path.cshtml");
+    [OSSkipConditionFact(new[] { "OSX", "Linux" })]
+    public void GetAbsoluteOrUNCPath_AbsolutePath_HandlesSpacePaths()
+    {
+        // Arrange
+        var uri = new Uri("c:\\Some\\path\\to\\file path.cshtml");
 
-            // Act
-            var path = uri.GetAbsoluteOrUNCPath();
+        // Act
+        var path = uri.GetAbsoluteOrUNCPath();
 
-            // Assert
-            Assert.Equal("c:/Some/path/to/file path.cshtml", path);
-        }
+        // Assert
+        Assert.Equal("c:/Some/path/to/file path.cshtml", path);
+    }
 
-        [Fact]
-        public void GetAbsoluteOrUNCPath_UNCPath_ReturnsLocalPath()
-        {
-            // Arrange
-            var uri = new Uri("//Some/path/to/file.cshtml");
+    [Fact]
+    public void GetAbsoluteOrUNCPath_UNCPath_ReturnsLocalPath()
+    {
+        // Arrange
+        var uri = new Uri("//Some/path/to/file.cshtml");
 
-            // Act
-            var path = uri.GetAbsoluteOrUNCPath();
+        // Act
+        var path = uri.GetAbsoluteOrUNCPath();
 
-            // Assert
-            Assert.Equal(uri.LocalPath, path);
-        }
+        // Assert
+        Assert.Equal(uri.LocalPath, path);
+    }
 
-        [Fact]
-        public void GetAbsoluteOrUNCPath_UNCPath_HandlesPlusPaths()
-        {
-            // Arrange
-            var uri = new Uri("//Some/path/to/file+2.cshtml");
+    [Fact]
+    public void GetAbsoluteOrUNCPath_UNCPath_HandlesPlusPaths()
+    {
+        // Arrange
+        var uri = new Uri("//Some/path/to/file+2.cshtml");
 
-            // Act
-            var path = uri.GetAbsoluteOrUNCPath();
+        // Act
+        var path = uri.GetAbsoluteOrUNCPath();
 
-            // Assert
-            Assert.Equal(uri.LocalPath, path);
-        }
+        // Assert
+        Assert.Equal(uri.LocalPath, path);
+    }
 
-        [Fact]
-        public void GetAbsoluteOrUNCPath_UNCPath_HandlesSpacePaths()
-        {
-            // Arrange
-            var uri = new Uri("//Some/path/to/file path.cshtml");
+    [Fact]
+    public void GetAbsoluteOrUNCPath_UNCPath_HandlesSpacePaths()
+    {
+        // Arrange
+        var uri = new Uri("//Some/path/to/file path.cshtml");
 
-            // Act
-            var path = uri.GetAbsoluteOrUNCPath();
+        // Act
+        var path = uri.GetAbsoluteOrUNCPath();
 
-            // Assert
-            Assert.Equal(@"\\some\path\to\file path.cshtml", path);
-        }
+        // Assert
+        Assert.Equal(@"\\some\path\to\file path.cshtml", path);
     }
 }

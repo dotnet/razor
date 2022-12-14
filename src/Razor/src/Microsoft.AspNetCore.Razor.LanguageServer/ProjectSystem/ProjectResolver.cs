@@ -4,12 +4,11 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem
-{
-    internal abstract class ProjectResolver
-    {
-        public abstract bool TryResolveProject(string documentFilePath, [NotNullWhen(true)] out ProjectSnapshot? projectSnapshot, bool enforceDocumentInProject = true);
+namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
-        public abstract ProjectSnapshot GetMiscellaneousProject();
-    }
+internal abstract class ProjectResolver
+{
+    public abstract bool TryResolveProject(string documentFilePath, [NotNullWhen(true)] out ProjectSnapshot? projectSnapshot, bool enforceDocumentInProject = true);
+
+    public abstract ProjectSnapshot GetMiscellaneousProject();
 }

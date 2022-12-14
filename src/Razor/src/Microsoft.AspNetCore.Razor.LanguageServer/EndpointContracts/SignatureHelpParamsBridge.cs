@@ -4,9 +4,8 @@
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp
+namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
+
+internal class SignatureHelpParamsBridge : SignatureHelpParams, ITextDocumentPositionParams
 {
-    internal class SignatureHelpParamsBridge : SignatureHelpParams, ITextDocumentPositionParams
-    {
-    }
 }

@@ -3,11 +3,9 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.AspNetCore.Razor.Common.Telemetry;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
-using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
@@ -18,8 +16,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
-using Microsoft.AspNetCore.Razor.LanguageServer.Telemetry;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -99,6 +97,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 
         services.AddLifeCycleServices(this, serverManager);
 
+        services.AddDiagnosticServices();
         services.AddSemanticTokensServices();
         services.AddDocumentManagmentServices();
         services.AddCompletionServices(featureOptions);
@@ -143,7 +142,6 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             services.AddRegisteringHandler<ImplementationEndpoint>();
             services.AddRegisteringHandler<SignatureHelpEndpoint>();
             services.AddRegisteringHandler<DocumentHighlightEndpoint>();
-            services.AddHandler<RazorDiagnosticsEndpoint>();
             services.AddHandler<RazorConfigurationEndpoint>();
             services.AddRegisteringHandler<OnAutoInsertEndpoint>();
             services.AddHandler<MonitorProjectConfigurationFilePathEndpoint>();
