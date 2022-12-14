@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -61,7 +62,7 @@ internal class RazorPullDiagnosticsEndpoint
 
         var delegatedParams = new DelegatedDiagnosticParams(documentContext.Identifier);
 
-        var delegatedResponse = await _languageServer.SendRequestAsync<DelegatedDiagnosticParams, IEnumerable<VSInternalDiagnosticReport>?>(
+        var delegatedResponse = await _languageServer.SendRequestAsync<DelegatedDiagnosticParams, RazorPullDiagnosticResponse?>(
             RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName,
             delegatedParams,
             cancellationToken).ConfigureAwait(false);
@@ -71,7 +72,7 @@ internal class RazorPullDiagnosticsEndpoint
             return default;
         }
 
-        foreach (var report in delegatedResponse)
+        foreach (var report in delegatedResponse.CSharpDiagnostics)
         {
             if (report.Diagnostics is not null)
             {
@@ -80,6 +81,15 @@ internal class RazorPullDiagnosticsEndpoint
             }
         }
 
-        return delegatedResponse;
+        foreach (var report in delegatedResponse.HtmlDiagnostics)
+        {
+            if (report.Diagnostics is not null)
+            {
+                var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, report.Diagnostics, documentContext, cancellationToken);
+                report.Diagnostics = mappedDiagnostics;
+            }
+        }
+
+        return delegatedResponse.CSharpDiagnostics.Concat(delegatedResponse.HtmlDiagnostics);
     }
 }

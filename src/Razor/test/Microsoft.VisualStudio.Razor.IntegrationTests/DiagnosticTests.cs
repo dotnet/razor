@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 public class DiagnosticTests : AbstractRazorEditorTest
 {
     [IdeFact]
-    public async Task Diagnostics_ShowErrors()
+    public async Task Diagnostics_ShowErrors_Razor()
     {
         // Arrange
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
@@ -49,8 +49,8 @@ public class DiagnosticTests : AbstractRazorEditorTest
             });
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8023")]
-    public async Task Diagnostics_ShowErrors_HtmlDiagnostics()
+    [IdeFact]
+    public async Task Diagnostics_ShowErrors_Html()
     {
         // Arrange
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
@@ -82,7 +82,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
     }
 
     [IdeFact]
-    public async Task Diagnostics_ShowErrors_CSHtml()
+    public async Task Diagnostics_ShowErrors_CSharp()
     {
         // Arrange
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
@@ -110,6 +110,43 @@ public class DiagnosticTests : AbstractRazorEditorTest
             (error) =>
             {
                 Assert.Equal("Error.cshtml(10, 21): error CS1963: An expression tree may not contain a dynamic operation", error);
+            });
+    }
+
+    [IdeFact]
+    public async Task Diagnostics_ShowErrors_CSharpAndHtml()
+    {
+        // Arrange
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.ErrorCshtmlFile, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.SetTextAsync(@"
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang=""en"">
+<head>
+</head>
+
+<body>
+    <input asp-for=""Test"" />
+    <li>
+</body>
+</html>
+
+", ControlledHangMitigatingCancellationToken);
+
+        // Act
+        var errors = await TestServices.ErrorList.WaitForErrorsAsync("Error.cshtml", expectedCount: 1, ControlledHangMitigatingCancellationToken);
+
+        // Assert
+        Assert.Collection(errors,
+            (error) =>
+            {
+                Assert.Equal("Error.cshtml(10, 21): error CS1963: An expression tree may not contain a dynamic operation", error);
+            },
+            (error) =>
+            {
+                Assert.Equal("Error.cshtml(11, 6): warning HTML0204: Element 'li' cannot be nested inside element 'body'.", error);
             });
     }
 }
