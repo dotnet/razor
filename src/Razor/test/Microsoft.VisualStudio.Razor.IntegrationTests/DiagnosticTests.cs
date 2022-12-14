@@ -77,7 +77,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
         Assert.Collection(errors,
             (error) =>
             {
-                Assert.Equal("Error.cshtml(10, 5): error HTML0001: Element start tag is missing closing angle bracket.", error);
+                Assert.Equal("Error.cshtml(10, 6): warning HTML0001: Element start tag is missing closing angle bracket.", error);
             });
     }
 
