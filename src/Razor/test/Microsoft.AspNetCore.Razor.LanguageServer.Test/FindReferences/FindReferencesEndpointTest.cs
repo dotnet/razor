@@ -32,17 +32,22 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences
         [Fact]
         public Task FindCSharpReferences()
             => VerifyCSharpFindAllReferencesAsyncAsync("""
+
                 @{
-                    void [|$$M|]()
+                    const string [|$$S|] = "";
+
+                    string M()
                     {
-                        [|M|]();
+                        return [|S|];
                     }
 
-                    void N()
+                    string N()
                     {
-                        [|M|]();
+                        return [|S|];
                     }
                 }
+
+                <p>@[|S|]</p>
                 """);
 
         private async Task VerifyCSharpFindAllReferencesAsyncAsync(string input)

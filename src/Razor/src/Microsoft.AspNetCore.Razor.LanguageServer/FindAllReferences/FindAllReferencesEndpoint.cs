@@ -43,7 +43,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences
 
             var registrationOptions = new ReferenceOptions()
             {
-                WorkDoneProgress = true,
+                // TODO: GH issue link to support progress 
+                WorkDoneProgress = false,
             };
 
             return new RegistrationExtensionResult(AssociatedServerCapability, new SumType<bool, ReferenceOptions>(registrationOptions));
