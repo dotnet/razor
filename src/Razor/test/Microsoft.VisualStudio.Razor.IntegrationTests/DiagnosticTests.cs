@@ -49,7 +49,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
             });
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8023")]
     public async Task Diagnostics_ShowErrors_HtmlDiagnostics()
     {
         // Arrange
@@ -64,7 +64,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
 </head>
 
 <body>
-    <li>
+    <p
 </body>
 </html>
 
@@ -77,7 +77,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
         Assert.Collection(errors,
             (error) =>
             {
-                Assert.Equal("Error.cshtml(10, 5): error HTML0204: Element 'li' cannot be nested inside element 'body'.", error);
+                Assert.Equal("Error.cshtml(10, 5): error HTML0001: Element start tag is missing closing angle bracket.", error);
             });
     }
 
