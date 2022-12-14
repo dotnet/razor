@@ -144,7 +144,7 @@ internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeR
     {
         _ = Task.Run(async () =>
         {
-            var containedLanguageServerClients = await EnsureContainedLanguageServersInitializedAsync().ConfigureAwait(false);
+            var containedLanguageServerClients = GetContainedLanguageClients();
 
             var mergedCapabilities = GetMergedServerCapabilities(containedLanguageServerClients);
 
@@ -480,10 +480,9 @@ internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeR
     }
 
     // Ensures all contained language servers that we rely on are started.
-    private async Task<List<ILanguageClient>> EnsureContainedLanguageServersInitializedAsync()
+    private List<ILanguageClient> GetContainedLanguageClients()
     {
         var relevantLanguageClients = new List<ILanguageClient>();
-        var clientLoadTasks = new List<Task>();
 
 #pragma warning disable CS0618 // Type or member is obsolete
         foreach (var languageClientAndMetadata in _languageServiceBroker.LanguageClients)
@@ -504,13 +503,8 @@ internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeR
                 metadata.ContentTypes.Contains(RazorLSPConstants.HtmlLSPDelegationContentTypeName))
             {
                 relevantLanguageClients.Add(languageClientAndMetadata.Value);
-
-                var loadAsyncTask = _languageClientBroker.LoadAsync(metadata, languageClientAndMetadata.Value);
-                clientLoadTasks.Add(loadAsyncTask);
             }
         }
-
-        await Task.WhenAll(clientLoadTasks).ConfigureAwait(false);
 
         return relevantLanguageClients;
 
