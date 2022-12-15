@@ -630,8 +630,8 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             return;
         }
 
-        // Write the name of the property, for rename support. 
-        // __o = nameof(global::ComponentName.PropertyName);
+        // Write the name of the property, for rename support.
+        // __o = ((global::ComponentName)default).PropertyName;
         var originalAttributeName = node.Annotations[ComponentMetadata.Common.OriginalAttributeName]?.ToString() ?? node.AttributeName;
 
         int offset;
@@ -713,8 +713,6 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             context.CodeWriter.WriteLine(node.PropertyName);
         }
 
-        // When doing a Find All Refs, sometimes the text content of the generated file shows up,
-        // so being able to see "= default" in there would confuse users, so keep it on a separate line
         context.CodeWriter.Write(";");
         context.CodeWriter.WriteLine();
     }
