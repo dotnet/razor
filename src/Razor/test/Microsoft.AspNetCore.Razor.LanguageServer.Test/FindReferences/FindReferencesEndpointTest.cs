@@ -61,12 +61,10 @@ public class FindReferencesEndpointTest : SingleServerDelegatingEndpointTestBase
         var sourceText = codeDocument.GetSourceText();
         sourceText.GetLineAndOffset(cursorPosition, out var line, out var offset);
 
-        //var progressReported = false;
         var completedTokenSource = new CancellationTokenSource();
         var progressToken = new ProgressWithCompletion<object>((val) =>
         {
             var results = Assert.IsType<VSInternalReferenceItem[]>(val);
-            //progressReported = true;
             completedTokenSource.CancelAfter(0);
         });
 
@@ -91,7 +89,6 @@ public class FindReferencesEndpointTest : SingleServerDelegatingEndpointTestBase
 
         // Assert
         Assert.NotNull(result);
-        //Assert.True(progressReported);
 
         Assert.Equal(expectedSpans.Length, result.Length);
 
