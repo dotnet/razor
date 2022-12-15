@@ -7,10 +7,9 @@ using System.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+[LanguageServerEndpoint(Methods.TextDocumentReferencesName)]
+internal interface IVSFindAllReferencesEndpoint : IRazorRequestHandler<ReferenceParamsBridge, VSInternalReferenceItem[]?>, IRegistrationExtension
 {
-    [LanguageServerEndpoint(Methods.TextDocumentReferencesName)]
-    internal interface IVSFindAllReferencesEndpoint : IRazorRequestHandler<ReferenceParamsBridge, VSInternalReferenceItem[]?>, IRegistrationExtension
-    {
-    }
 }

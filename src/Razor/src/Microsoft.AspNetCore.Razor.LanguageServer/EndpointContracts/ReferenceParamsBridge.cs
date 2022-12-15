@@ -6,9 +6,8 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts
+namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+
+internal class ReferenceParamsBridge : ReferenceParams, ITextDocumentPositionParams
 {
-    internal class ReferenceParamsBridge : ReferenceParams, ITextDocumentPositionParams
-    {
-    }
 }
