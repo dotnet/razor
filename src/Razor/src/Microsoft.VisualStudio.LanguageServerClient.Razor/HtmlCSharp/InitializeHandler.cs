@@ -484,34 +484,13 @@ internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeR
     {
         var relevantLanguageClients = new List<ILanguageClient>();
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        foreach (var languageClientAndMetadata in _languageServiceBroker.LanguageClients)
-#pragma warning restore CS0618 // Type or member is obsolete
+        var releventatClientsAndMetadata = RazorLanguageServerClient.GetReleventContainedLanguageClientsAndMetadata(_languageServiceBroker);
+
+        foreach (var languageClientAndMetadata in releventatClientsAndMetadata)
         {
-            if (languageClientAndMetadata.Metadata is not ILanguageClientMetadata metadata)
-            {
-                continue;
-            }
-
-            if (metadata is IIsUserExperienceDisabledMetadata userExperienceDisabledMetadata &&
-                userExperienceDisabledMetadata.IsUserExperienceDisabled)
-            {
-                continue;
-            }
-
-            if (IsCSharpApplicable(metadata) ||
-                metadata.ContentTypes.Contains(RazorLSPConstants.HtmlLSPDelegationContentTypeName))
-            {
-                relevantLanguageClients.Add(languageClientAndMetadata.Value);
-            }
+            relevantLanguageClients.Add(languageClientAndMetadata.Value);
         }
 
         return relevantLanguageClients;
-
-        static bool IsCSharpApplicable(ILanguageClientMetadata metadata)
-        {
-            return metadata.ContentTypes.Contains(RazorLSPConstants.CSharpContentTypeName) &&
-                metadata.ClientName == CSharpVirtualDocumentFactory.CSharpClientName;
-        }
     }
 }

@@ -167,12 +167,12 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         return connection;
     }
 
-    private async Task EnsureContainedLanguageServersInitializedAsync()
+    internal static IEnumerable<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>> GetReleventContainedLanguageClientsAndMetadata(ILanguageServiceBroker2 languageServiceBroker)
     {
-        var clientLoadTasks = new List<Task>();
+        var releventClientAndMetadata = new List<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>>();
 
 #pragma warning disable CS0618 // Type or member is obsolete
-        foreach (var languageClientAndMetadata in _languageServiceBroker.LanguageClients)
+        foreach (var languageClientAndMetadata in languageServiceBroker.LanguageClients)
 #pragma warning restore CS0618 // Type or member is obsolete
         {
             if (languageClientAndMetadata.Metadata is not ILanguageClientMetadata metadata)
@@ -189,18 +189,37 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             if (IsCSharpApplicable(metadata) ||
                 metadata.ContentTypes.Contains(RazorLSPConstants.HtmlLSPDelegationContentTypeName))
             {
-                var loadAsyncTask = _languageClientBroker.LoadAsync(metadata, languageClientAndMetadata.Value);
-                clientLoadTasks.Add(loadAsyncTask);
+                releventClientAndMetadata.Add(languageClientAndMetadata);
             }
         }
 
-        await Task.WhenAll(clientLoadTasks).ConfigureAwait(false);
+        return releventClientAndMetadata;
 
         static bool IsCSharpApplicable(ILanguageClientMetadata metadata)
         {
             return metadata.ContentTypes.Contains(RazorLSPConstants.CSharpContentTypeName) &&
                 metadata.ClientName == CSharpVirtualDocumentFactory.CSharpClientName;
         }
+    }
+
+    private async Task EnsureContainedLanguageServersInitializedAsync()
+    {
+        var releventClientsAndMetadata = GetReleventContainedLanguageClientsAndMetadata(_languageServiceBroker);
+
+        var clientLoadTasks = new List<Task>();
+
+        foreach (var languageClientAndMetadata in releventClientsAndMetadata)
+        {
+            if (languageClientAndMetadata.Metadata is not ILanguageClientMetadata metadata)
+            {
+                continue;
+            }
+
+            var loadAsyncTask = _languageClientBroker.LoadAsync(metadata, languageClientAndMetadata.Value);
+            clientLoadTasks.Add(loadAsyncTask);
+        }
+
+        await Task.WhenAll(clientLoadTasks).ConfigureAwait(false);
     }
 
     private void ConfigureLanguageServer(IServiceCollection serviceCollection)
