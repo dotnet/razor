@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -205,19 +204,9 @@ internal static class SyntaxNodeExtensions
 
     public static string GetContent<TNode>(this TNode node) where TNode : SyntaxNode
     {
-        var builder = new StringBuilder();
-        foreach (var token in node.DescendantNodesAndSelf())
-        {
-            if (!token.IsToken)
-            {
-                continue;
-            }
-
-            var syntaxToken = (SyntaxToken)token;
-            builder.Append(syntaxToken.Content);
-        }
-
-        return builder.ToString();
+        using var writer = new System.IO.StringWriter();
+        node.Green.WriteTo(writer);
+        return writer.ToString();
     }
 
     private class DiagnosticSyntaxWalker : SyntaxWalker
