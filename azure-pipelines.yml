@@ -110,6 +110,7 @@ stages:
       enablePublishBuildArtifacts: true
       enablePublishTestResults: true
       enableTelemetry: true
+      enableSourcebuild: true
       helixRepo: dotnet/razor
       helixType: build.product/
       # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
@@ -418,32 +419,6 @@ stages:
               artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
               artifactType: Container
               parallel: true
-
-      # Source build
-      - job: Source_Build_Managed
-        displayName: Source-Build (Managed)
-        variables:
-          - _BuildConfig: Release
-        pool:
-          ${{ if eq(variables['System.TeamProject'], 'public') }}:
-            name: NetCore-Public
-            demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
-          ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-            name: NetCore1ESPool-Internal
-            demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
-        workspace:
-          clean: all
-        steps:
-          - task: NodeTool@0
-            displayName: Install Node 10.x
-            inputs:
-              versionSpec: 10.x
-
-          - powershell: npm install -g yarn
-            displayName: Install yarn
-            condition: succeeded()
-
-          - template: /eng/common/templates/steps/source-build.yml
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - stage: publishBuildAssets
