@@ -40,7 +40,7 @@ internal class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoint<Refer
 
         var registrationOptions = new ReferenceOptions()
         {
-            // TODO: GH issue link to support progress 
+            // https://github.com/dotnet/razor/issues/8033
             WorkDoneProgress = false,
         };
 
@@ -90,9 +90,6 @@ internal class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoint<Refer
                 remappedLocations.Add(referenceItem);
                 continue;
             }
-
-            var documentContext = requestContext.GetRequiredDocumentContext();
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
             var (itemUri, mappedRange) = await _documentMappingService.MapFromProjectedDocumentRangeAsync(referenceItem.Location.Uri, referenceItem.Location.Range, cancellationToken);
 
