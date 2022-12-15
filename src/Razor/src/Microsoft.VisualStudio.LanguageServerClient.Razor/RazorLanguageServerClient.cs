@@ -162,6 +162,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         var logHubLogger = _loggerProvider.CreateLogger("Razor");
         var razorLogger = new LoggerAdapter(logHubLogger);
         _server = RazorLanguageServerWrapper.Create(serverStream, serverStream, razorLogger, _projectSnapshotManagerDispatcher, ConfigureLanguageServer, _languageServerFeatureOptions);
+        // This must not happen on an RPC endpoint due to UIThread concerns, so ActivateAsync was chosen.
         await EnsureContainedLanguageServersInitializedAsync();
         var connection = new Connection(clientStream, clientStream);
         return connection;
