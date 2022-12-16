@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -204,7 +205,8 @@ internal static class SyntaxNodeExtensions
 
     public static string GetContent<TNode>(this TNode node) where TNode : SyntaxNode
     {
-        using var writer = new System.IO.StringWriter();
+        using var _ = StringBuilderPool.GetPooledObject(out var sb);
+        using var writer = new System.IO.StringWriter(sb);
         node.Green.WriteTo(writer);
         return writer.ToString();
     }
