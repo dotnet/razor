@@ -49,7 +49,7 @@ public class FindAllReferencesTests : AbstractRazorEditorTest
             });
     }
 
-    [IdeFact(Skip = "Will be enabled by a one line change after https://github.com/dotnet/razor/issues/6655 goes in")]
+    [IdeFact]
     public async Task FindAllReferences_ComponentAttribute_FromRazor()
     {
         // Open the file
