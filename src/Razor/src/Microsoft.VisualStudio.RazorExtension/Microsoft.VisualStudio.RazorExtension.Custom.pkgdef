@@ -54,9 +54,3 @@
 "Value"=dword:00000001
 "Title"="Enable enhanced Razor LSP server (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"
-
-[$RootKey$\FeatureFlags\Razor\LSP\SingleServerDiagnostics]
-"Description"="Enable single server diagnostics support when editing Razor (ASP.NET Core)."
-"Value"=dword:00000000
-"Title"="Enable enhanced Razor LSP diagnostics (requires restart)"
-"PreviewPaneChannels"="IntPreview,int.main"

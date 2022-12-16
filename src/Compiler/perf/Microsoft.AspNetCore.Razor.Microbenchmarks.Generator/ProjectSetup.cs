@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -13,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Generator;
-internal static class ProjectSetup
+public static class ProjectSetup
 {
     internal static async Task<RazorProject> GetRazorProjectAsync(bool cold = true)
     {
@@ -69,7 +68,7 @@ internal static class ProjectSetup
         return comp;
     }
 
-    internal record RazorProject(GeneratorDriver GeneratorDriver, Compilation Compilation, ImmutableArray<AdditionalText> AdditionalTexts, CSharpParseOptions ParseOptions, AnalyzerConfigOptionsProvider OptionsProvider);
+    public record RazorProject(GeneratorDriver GeneratorDriver, Compilation Compilation, ImmutableArray<AdditionalText> AdditionalTexts, CSharpParseOptions ParseOptions, AnalyzerConfigOptionsProvider OptionsProvider);
 
     internal sealed class InMemoryAdditionalText : AdditionalText
     {

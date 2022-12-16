@@ -24,6 +24,4 @@ internal class TestLanguageServerFeatureOptions : LanguageServerFeatureOptions
     public override bool SingleServerCompletionSupport => false;
 
     public override bool SingleServerSupport => false;
-
-    public override bool SingleServerDiagnosticsSupport => false;
 }
