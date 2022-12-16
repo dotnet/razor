@@ -49,11 +49,13 @@ internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocument
 
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
-        var documentContext = requestContext.GetRequiredDocumentContext();
-        return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
-                documentContext.Identifier,
-                projection.Position,
-                projection.LanguageKind));
+        throw new InvalidOperationException();
+
+        //var documentContext = requestContext.GetRequiredDocumentContext();
+        //return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
+        //        documentContext.Identifier,
+        //        projection.Position,
+        //        projection.LanguageKind));
     }
 
     protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
