@@ -6,10 +6,8 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Microsoft.AspNetCore.Razor.Telemetry;
 

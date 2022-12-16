@@ -143,7 +143,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
 
         var logHubLogger = _loggerProvider.CreateLogger("Razor");
-        var razorLogger = new LoggerAdapter(logHubLogger);
+        var razorLogger = new LoggerAdapter(logHubLogger, null);
         _server = RazorLanguageServerWrapper.Create(serverStream, serverStream, razorLogger, _projectSnapshotManagerDispatcher, ConfigureLanguageServer, _languageServerFeatureOptions);
 
         var connection = new Connection(clientStream, clientStream);
