@@ -33,7 +33,7 @@ export class CodeActionsHandler {
         codeActionParams: SerializableCodeActionParams,
         cancellationToken: vscode.CancellationToken) {
         try {
-            const razorDocumentUri = vscode.Uri.parse(codeActionParams.textDocument.uri);
+            const razorDocumentUri = vscode.Uri.parse(codeActionParams.textDocument.uri, true);
             const razorDocument = await this.documentManager.getDocument(razorDocumentUri);
             if (razorDocument === undefined) {
                 return this.emptyCodeActionResponse;
