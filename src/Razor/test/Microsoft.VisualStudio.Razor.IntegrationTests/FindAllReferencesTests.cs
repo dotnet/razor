@@ -65,29 +65,37 @@ public class FindAllReferencesTests : AbstractRazorEditorTest
         // Assert
         var results = await TestServices.FindReferencesWindow.WaitForContentsAsync(ControlledHangMitigatingCancellationToken, expected: 3);
 
-        Assert.Collection(
-            results,
-            new Action<ITableEntryHandle2>[]
+        // Don't care about order, but Assert.Collection does
+        var orderedResults = results.Select(r =>
+        {
+            Assert.True(r.TryGetValue(StandardTableKeyNames.Text, out string code));
+            Assert.True(r.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
+
+            return new
             {
-                reference =>
-                {
-                    Assert.Equal(expected: "public string? Title { get; set; }", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    Assert.True(reference.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
-                    Assert.Equal(expected: "SurveyPrompt.razor", Path.GetFileName(documentName));
-                },
-                reference =>
-                {
-                    Assert.Equal(expected: "Title", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    Assert.True(reference.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
-                    Assert.Equal(expected: "Index.razor", Path.GetFileName(documentName));
-                },
-                reference =>
-                {
-                    Assert.Equal(expected: "Title", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    Assert.True(reference.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
-                    Assert.Equal(expected: "SurveyPrompt.razor", Path.GetFileName(documentName));
-                }
-            });
+                Code = code,
+                DocumentName = Path.GetFileName(documentName)
+            };
+        }).OrderBy(r => r.DocumentName).ThenBy(r => r.Code).ToArray();
+
+        Assert.Collection(
+            orderedResults,
+            reference =>
+            {
+                Assert.Equal("Index.razor", reference.DocumentName);
+                Assert.Equal("Title", reference.Code);
+            },
+            reference =>
+            {
+                Assert.Equal("SurveyPrompt.razor", reference.DocumentName);
+                Assert.Equal("public string? Title { get; set; }", reference.Code);
+            },
+            reference =>
+            {
+                Assert.Equal("SurveyPrompt.razor", reference.DocumentName);
+                Assert.Equal("Title", reference.Code);
+            }
+        );
     }
 
     [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8036")]
