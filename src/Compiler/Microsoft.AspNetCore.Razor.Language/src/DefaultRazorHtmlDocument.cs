@@ -30,7 +30,7 @@ internal class DefaultRazorHtmlDocument : RazorHtmlDocument
         _options = options;
     }
 
-    public override string GeneratedHtml => _generatedHtml;
+    public override string GeneratedCode => _generatedHtml;
 
     public override RazorCodeGenerationOptions Options => _options;
 }

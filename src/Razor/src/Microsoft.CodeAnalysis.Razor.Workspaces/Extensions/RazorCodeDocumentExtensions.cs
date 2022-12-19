@@ -66,7 +66,7 @@ internal static class RazorCodeDocumentExtensions
         if (sourceTextObj is null)
         {
             var htmlDocument = document.GetHtmlDocument();
-            var sourceText = SourceText.From(htmlDocument.GeneratedHtml);
+            var sourceText = SourceText.From(htmlDocument.GeneratedCode);
             document.Items[s_htmlSourceTextKey] = sourceText;
 
             return sourceText;
