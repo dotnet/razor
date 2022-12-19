@@ -26,15 +26,10 @@
       ClassName="Microsoft.AspNetCore.Mvc.Razor.Extensions.RazorExtensionsResources" />
 
     <Compile Include="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.LanguageSupport\NullableAttributes.cs" LinkBase="LanguageSupport" />
-
-    <Compile Include="$(RepositoryRoot)\src\Razor\src\Microsoft.AspNetCore.Razor.Common\PooledObjects\**\*.cs" LinkBase="PooledObjects" />
-
-    <Compile Include="$(RepositoryRoot)\src\Razor\src\Microsoft.AspNetCore.Razor.Common\Utilities\**\*.cs" LinkBase="Utilities" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
