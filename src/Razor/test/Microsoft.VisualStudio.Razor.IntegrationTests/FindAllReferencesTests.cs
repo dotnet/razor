@@ -49,7 +49,7 @@ public class FindAllReferencesTests : AbstractRazorEditorTest
             });
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8036")]
     public async Task FindAllReferences_ComponentAttribute_FromRazor()
     {
         // Open the file
@@ -90,7 +90,7 @@ public class FindAllReferencesTests : AbstractRazorEditorTest
             });
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8036")]
     public async Task FindAllReferences_ComponentAttribute_FromCSharpInRazor()
     {
         // Open the file
