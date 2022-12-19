@@ -10,11 +10,11 @@ import { RazorLanguageServerClient } from '../RazorLanguageServerClient';
 import { RazorLogger } from '../RazorLogger';
 import { convertRangeFromSerializable } from '../RPC/SerializableRange';
 import { RazorCodeAction } from './RazorCodeAction';
-import { SerializableCodeActionParams } from './SerializableCodeActionParams';
+import { SerializableDelegatedCodeActionParams } from './SerializableDelegatedCodeActionParams';
 
 export class CodeActionsHandler {
     private static readonly provideCodeActionsEndpoint = 'razor/provideCodeActions';
-    private codeActionRequestType: RequestType<SerializableCodeActionParams, RazorCodeAction[], any> = new RequestType(CodeActionsHandler.provideCodeActionsEndpoint);
+    private codeActionRequestType: RequestType<SerializableDelegatedCodeActionParams, RazorCodeAction[], any> = new RequestType(CodeActionsHandler.provideCodeActionsEndpoint);
     private emptyCodeActionResponse: RazorCodeAction[] = [];
 
     constructor(
@@ -24,15 +24,16 @@ export class CodeActionsHandler {
 
     public register() {
         // tslint:disable-next-line: no-floating-promises
-        this.serverClient.onRequestWithParams<SerializableCodeActionParams, RazorCodeAction[], any>(
+        this.serverClient.onRequestWithParams<SerializableDelegatedCodeActionParams, RazorCodeAction[], any>(
             this.codeActionRequestType,
             async (request, token) => this.provideCodeActions(request, token));
     }
 
     private async provideCodeActions(
-        codeActionParams: SerializableCodeActionParams,
+        delegatedCodeActionParams: SerializableDelegatedCodeActionParams,
         cancellationToken: vscode.CancellationToken) {
         try {
+            const codeActionParams = delegatedCodeActionParams.codeActionParams;
             const razorDocumentUri = vscode.Uri.parse(codeActionParams.textDocument.uri, true);
             const razorDocument = await this.documentManager.getDocument(razorDocumentUri);
             if (razorDocument === undefined) {
