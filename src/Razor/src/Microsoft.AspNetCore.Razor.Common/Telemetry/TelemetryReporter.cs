@@ -61,7 +61,9 @@ internal class TelemetryReporter : ITelemetryReporter
             {
                 // We (potentially) have multiple exceptions; let's just report each of them
                 foreach (var innerException in aggregateException.Flatten().InnerExceptions)
+                {
                     ReportFault(innerException, message, @params);
+                }
 
                 return;
             }
@@ -69,7 +71,7 @@ internal class TelemetryReporter : ITelemetryReporter
             var currentProcess = Process.GetCurrentProcess();
 
             var faultEvent = new FaultEvent(
-                eventName: "dotnet/razor/fault",
+                eventName: GetTelemetryName("fault"),
                 description: GetDescription(exception),
                 FaultSeverity.General,
                 exceptionObject: exception,
@@ -82,18 +84,15 @@ internal class TelemetryReporter : ITelemetryReporter
                     return 0;
                 });
 
-            foreach (var session in _telemetrySessions)
-            {
-                session.PostEvent(faultEvent);
-            }
+            Report(faultEvent);
         }
         catch (Exception)
         {
         }
     }
 
-    private static string GetTelemetryName(string name) => "razor/" + name;
-    private static string GetPropertyName(string name) => "razor." + name;
+    private static string GetTelemetryName(string name) => "dotnet/razor/" + name;
+    private static string GetPropertyName(string name) => "dotnet.razor." + name;
 
     private void Report(TelemetryEvent telemetryEvent)
     {
