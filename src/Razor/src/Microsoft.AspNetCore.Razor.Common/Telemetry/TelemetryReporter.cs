@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
@@ -46,6 +47,51 @@ internal class TelemetryReporter : ITelemetryReporter
         Report(telemetryEvent);
     }
 
+    public void ReportFault(Exception exception, string? message, object[] @params)
+    {
+        try
+        {
+            if (exception is OperationCanceledException { InnerException: { } oceInnerException })
+            {
+                ReportFault(oceInnerException, message, @params);
+                return;
+            }
+
+            if (exception is AggregateException aggregateException)
+            {
+                // We (potentially) have multiple exceptions; let's just report each of them
+                foreach (var innerException in aggregateException.Flatten().InnerExceptions)
+                    ReportFault(innerException, message, @params);
+
+                return;
+            }
+
+            var currentProcess = Process.GetCurrentProcess();
+
+            var faultEvent = new FaultEvent(
+                eventName: "dotnet/razor/fault",
+                description: GetDescription(exception),
+                FaultSeverity.General,
+                exceptionObject: exception,
+                gatherEventDetails: faultUtility =>
+                {
+                    // Returning "0" signals that, if sampled, we should send data to Watson.
+                    // Any other value will cancel the Watson report. We never want to trigger a process dump manually,
+                    // we'll let TargetedNotifications determine if a dump should be collected.
+                    // See https://aka.ms/roslynnfwdocs for more details
+                    return 0;
+                });
+
+            foreach (var session in _telemetrySessions)
+            {
+                session.PostEvent(faultEvent);
+            }
+        }
+        catch (Exception)
+        {
+        }
+    }
+
     private static string GetTelemetryName(string name) => "razor/" + name;
     private static string GetPropertyName(string name) => "razor." + name;
 
@@ -72,5 +118,46 @@ internal class TelemetryReporter : ITelemetryReporter
             // which isn't good, but not catastrophic for a user
             _logger?.LogError(e, "Failed logging telemetry event");
         }
+    }
+
+    private static string GetDescription(Exception exception)
+    {
+        const string CodeAnalysisNamespace = nameof(Microsoft) + "." + nameof(CodeAnalysis);
+
+        // Be resilient to failing here.  If we can't get a suitable name, just fall back to the standard name we
+        // used to report.
+        try
+        {
+            // walk up the stack looking for the first call from a type that isn't in the ErrorReporting namespace.
+            var frames = new StackTrace(exception).GetFrames();
+
+            // On the .NET Framework, GetFrames() can return null even though it's not documented as such.
+            // At least one case here is if the exception's stack trace itself is null.
+            if (frames != null)
+            {
+                foreach (var frame in frames)
+                {
+                    var method = frame?.GetMethod();
+                    var methodName = method?.Name;
+                    if (methodName == null)
+                        continue;
+
+                    var declaringTypeName = method?.DeclaringType?.FullName;
+                    if (declaringTypeName == null)
+                        continue;
+
+                    if (!declaringTypeName.StartsWith(CodeAnalysisNamespace))
+                        continue;
+
+                    return declaringTypeName + "." + methodName;
+                }
+            }
+        }
+        catch
+        {
+        }
+
+        // If we couldn't get a stack, do this
+        return exception.Message;
     }
 }
