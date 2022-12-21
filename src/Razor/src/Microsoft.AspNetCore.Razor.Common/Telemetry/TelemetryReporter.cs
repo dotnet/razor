@@ -122,6 +122,7 @@ internal class TelemetryReporter : ITelemetryReporter
     private static string GetDescription(Exception exception)
     {
         const string CodeAnalysisNamespace = nameof(Microsoft) + "." + nameof(CodeAnalysis);
+        const string AspNetCoreNamespace = nameof(Microsoft) + "." + nameof(AspNetCoreNamespace);
 
         // Be resilient to failing here.  If we can't get a suitable name, just fall back to the standard name we
         // used to report.
@@ -145,7 +146,8 @@ internal class TelemetryReporter : ITelemetryReporter
                     if (declaringTypeName == null)
                         continue;
 
-                    if (!declaringTypeName.StartsWith(CodeAnalysisNamespace))
+                    if (!declaringTypeName.StartsWith(CodeAnalysisNamespace) &&
+                        !declaringTypeName.StartsWith(AspNetCoreNamespace))
                         continue;
 
                     return declaringTypeName + "." + methodName;
