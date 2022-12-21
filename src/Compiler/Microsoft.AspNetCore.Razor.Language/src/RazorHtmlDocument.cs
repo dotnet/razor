@@ -16,7 +16,9 @@ internal abstract class RazorHtmlDocument : IRazorGeneratedDocument
 
     public abstract IReadOnlyList<SourceMapping> SourceMappings { get; }
 
-    public static RazorHtmlDocument Create(string generatedHtml, RazorCodeGenerationOptions options, SourceMapping[] sourceMappings)
+    public abstract RazorCodeDocument CodeDocument { get; }
+
+    public static RazorHtmlDocument Create(RazorCodeDocument codeDocument, string generatedHtml, RazorCodeGenerationOptions options, SourceMapping[] sourceMappings)
     {
         if (generatedHtml == null)
         {
@@ -28,6 +30,6 @@ internal abstract class RazorHtmlDocument : IRazorGeneratedDocument
             throw new ArgumentNullException(nameof(options));
         }
 
-        return new DefaultRazorHtmlDocument(generatedHtml, options, sourceMappings);
+        return new DefaultRazorHtmlDocument(codeDocument, generatedHtml, options, sourceMappings);
     }
 }

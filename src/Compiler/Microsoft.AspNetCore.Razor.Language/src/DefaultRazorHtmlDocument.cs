@@ -13,8 +13,10 @@ internal class DefaultRazorHtmlDocument : RazorHtmlDocument
     private readonly string _generatedHtml;
     private readonly RazorCodeGenerationOptions _options;
     private readonly SourceMapping[] _sourceMappings;
+    private readonly RazorCodeDocument _codeDocument;
 
     public DefaultRazorHtmlDocument(
+        RazorCodeDocument codeDocument,
         string generatedHtml,
         RazorCodeGenerationOptions options,
         SourceMapping[] sourceMappings)
@@ -29,6 +31,7 @@ internal class DefaultRazorHtmlDocument : RazorHtmlDocument
             throw new ArgumentNullException(nameof(options));
         }
 
+        _codeDocument = codeDocument;
         _generatedHtml = generatedHtml;
         _options = options;
         _sourceMappings = sourceMappings;
@@ -39,4 +42,6 @@ internal class DefaultRazorHtmlDocument : RazorHtmlDocument
     public override RazorCodeGenerationOptions Options => _options;
 
     public override IReadOnlyList<SourceMapping> SourceMappings => _sourceMappings;
+
+    public override RazorCodeDocument CodeDocument => _codeDocument;
 }

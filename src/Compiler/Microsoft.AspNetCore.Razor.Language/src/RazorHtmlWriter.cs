@@ -89,7 +89,7 @@ internal class RazorHtmlWriter : SyntaxWalker
 
         var sourceMappings = writer.SourceMappings.ToArray();
 
-        var razorHtmlDocument = new DefaultRazorHtmlDocument(generatedHtml, options, sourceMappings);
+        var razorHtmlDocument = new DefaultRazorHtmlDocument(codeDocument, generatedHtml, options, sourceMappings);
         return razorHtmlDocument;
     }
 

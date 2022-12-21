@@ -20,9 +20,11 @@ public abstract class RazorCSharpDocument : IRazorGeneratedDocument
 
     public abstract RazorCodeGenerationOptions Options { get; }
 
+    public abstract RazorCodeDocument CodeDocument { get; }
+
     internal virtual IReadOnlyList<LinePragma> LinePragmas { get; }
 
-    public static RazorCSharpDocument Create(string generatedCode, RazorCodeGenerationOptions options, IEnumerable<RazorDiagnostic> diagnostics)
+    public static RazorCSharpDocument Create(RazorCodeDocument codeDocument, string generatedCode, RazorCodeGenerationOptions options, IEnumerable<RazorDiagnostic> diagnostics)
     {
         if (generatedCode == null)
         {
@@ -39,10 +41,11 @@ public abstract class RazorCSharpDocument : IRazorGeneratedDocument
             throw new ArgumentNullException(nameof(diagnostics));
         }
 
-        return new DefaultRazorCSharpDocument(generatedCode, options, diagnostics.ToArray(), sourceMappings: null, linePragmas: null);
+        return new DefaultRazorCSharpDocument(codeDocument, generatedCode, options, diagnostics.ToArray(), sourceMappings: null, linePragmas: null);
     }
 
     public static RazorCSharpDocument Create(
+        RazorCodeDocument codeDocument,
         string generatedCode,
         RazorCodeGenerationOptions options,
         IEnumerable<RazorDiagnostic> diagnostics,
@@ -69,6 +72,6 @@ public abstract class RazorCSharpDocument : IRazorGeneratedDocument
             throw new ArgumentNullException(nameof(sourceMappings));
         }
 
-        return new DefaultRazorCSharpDocument(generatedCode, options, diagnostics.ToArray(), sourceMappings.ToArray(), linePragmas.ToArray());
+        return new DefaultRazorCSharpDocument(codeDocument, generatedCode, options, diagnostics.ToArray(), sourceMappings.ToArray(), linePragmas.ToArray());
     }
 }

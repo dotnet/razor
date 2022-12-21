@@ -10,4 +10,5 @@ public interface IRazorGeneratedDocument
     string GeneratedCode { get; }
     RazorCodeGenerationOptions Options { get; }
     IReadOnlyList<SourceMapping> SourceMappings { get; }
+    RazorCodeDocument CodeDocument { get; }
 }

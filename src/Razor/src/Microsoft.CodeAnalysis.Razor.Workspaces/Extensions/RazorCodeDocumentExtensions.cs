@@ -74,4 +74,18 @@ internal static class RazorCodeDocumentExtensions
 
         return (SourceText)sourceTextObj;
     }
+
+    public static SourceText GetGeneratedSourceText(this RazorCodeDocument document, IRazorGeneratedDocument generatedDocument)
+    {
+        if (generatedDocument is RazorCSharpDocument)
+        {
+            return GetCSharpSourceText(document);
+        }
+        else if (generatedDocument is RazorHtmlDocument)
+        {
+            return GetHtmlSourceText(document);
+        }
+
+        throw new InvalidOperationException("Unknown generated document type");
+    }
 }
