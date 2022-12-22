@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -36,6 +37,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
     private readonly ILanguageClientBroker _languageClientBroker;
     private readonly ILanguageServiceBroker2 _languageServiceBroker;
+    private readonly ITelemetryReporter _telemetryReporter;
     private readonly RazorLanguageServerCustomMessageTarget _customMessageTarget;
     private readonly ILanguageClientMiddleLayer _middleLayer;
     private readonly LSPRequestInvoker _requestInvoker;
@@ -67,6 +69,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ILanguageClientBroker languageClientBroker,
         ILanguageServiceBroker2 languageServiceBroker,
+        ITelemetryReporter telemetryReporter,
         [Import(AllowDefault = true)] VisualStudioHostServicesProvider? vsHostWorkspaceServicesProvider)
     {
         if (customTarget is null)
@@ -114,6 +117,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             throw new ArgumentNullException(nameof(languageServiceBroker));
         }
 
+        if (telemetryReporter is null)
+        {
+            throw new ArgumentNullException(nameof(telemetryReporter));
+        }
+
         _customMessageTarget = customTarget;
         _middleLayer = middleLayer;
         _requestInvoker = requestInvoker;
@@ -124,6 +132,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         _languageClientBroker = languageClientBroker;
         _languageServiceBroker = languageServiceBroker;
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _telemetryReporter = telemetryReporter;
     }
 
     public string Name => RazorLSPConstants.RazorLanguageServerName;
@@ -160,7 +169,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
 
         var logHubLogger = _loggerProvider.CreateLogger("Razor");
-        var razorLogger = new LoggerAdapter(logHubLogger);
+        var razorLogger = new LoggerAdapter(logHubLogger, _telemetryReporter);
         _server = RazorLanguageServerWrapper.Create(serverStream, serverStream, razorLogger, _projectSnapshotManagerDispatcher, ConfigureLanguageServer, _languageServerFeatureOptions);
         // This must not happen on an RPC endpoint due to UIThread concerns, so ActivateAsync was chosen.
         await EnsureContainedLanguageServersInitializedAsync();
