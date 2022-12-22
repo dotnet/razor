@@ -255,7 +255,7 @@ internal class CodeActionEndpoint : IVSCodeActionEndpoint
         {
             // For C# we have to map the ranges to the generated document
             if (!_documentMappingService.TryMapToProjectedDocumentRange(
-                    context.CodeDocument,
+                    context.CodeDocument.GetCSharpDocument(),
                     context.Request.Range,
                     out var projectedRange))
             {
@@ -266,7 +266,7 @@ internal class CodeActionEndpoint : IVSCodeActionEndpoint
             if (context.Request.Context is VSInternalCodeActionContext vsContext &&
                 vsContext.SelectionRange is not null &&
                 _documentMappingService.TryMapToProjectedDocumentRange(
-                    context.CodeDocument,
+                    context.CodeDocument.GetCSharpDocument(),
                     vsContext.SelectionRange,
                     out var selectionRange))
             {
