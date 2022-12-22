@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
@@ -131,7 +131,7 @@ public class GoToDefinitionTests : AbstractRazorEditorTest
         await TestServices.Editor.WaitForCurrentLineTextAsync("public bool MyProperty { get; set; }", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8036")]
     public async Task GoToDefinition_ComponentAttribute_InCSharpFile()
     {
         // Create the files
