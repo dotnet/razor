@@ -3,7 +3,6 @@
   <Target Name="_PublishLanguageServerRids" AfterTargets="Pack">
     <PropertyGroup>
       <LanguageServerProject>$(MSBuildThisFileDirectory)..\src\Razor\src\rzls\rzls.csproj</LanguageServerProject>
-      <RazorSolutionPath>$(MSBuildThisFileDirectory)..\Razor.sln</RazorSolutionPath>
     </PropertyGroup>
 
     <MSBuild Projects="$(LanguageServerProject)"
