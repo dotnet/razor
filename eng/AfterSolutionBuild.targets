@@ -4,9 +4,11 @@
     <PropertyGroup>
       <LanguageServerProject>$(MSBuildThisFileDirectory)..\src\Razor\src\rzls\rzls.csproj</LanguageServerProject>
     </PropertyGroup>
-
-    <MSBuild Projects="$(LanguageServerProject)"
-             Targets="Restore;PublishAllRids" />
+    
+    <Target Name="Restore">
+      <MSBuild Projects="$(LanguageServerProject)"
+               Targets="Restore;PublishAllRids" />
+    </Target>
   </Target>
 
 </Project>
