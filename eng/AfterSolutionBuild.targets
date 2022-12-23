@@ -3,12 +3,13 @@
   <Target Name="_PublishLanguageServerRids" AfterTargets="Pack">
     <PropertyGroup>
       <LanguageServerProject>$(MSBuildThisFileDirectory)..\src\Razor\src\rzls\rzls.csproj</LanguageServerProject>
+      <RazorSolutionPath>$(MSBuildThisFileDirectory)..\Razor.sln</RazorSolutionPath>
     </PropertyGroup>
     
-    <Target Name="Restore">
-      <MSBuild Projects="$(LanguageServerProject)"
-               Targets="Restore;PublishAllRids" />
-    </Target>
+    <MSBuild Projects="$(RazorSolutionPath)"
+             Targets="Restore" />
+    <MSBuild Projects="$(LanguageServerProject)"
+             Targets="PublishAllRids" />
   </Target>
 
 </Project>
