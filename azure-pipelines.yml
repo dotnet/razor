@@ -110,7 +110,7 @@ stages:
       enablePublishBuildArtifacts: true
       enablePublishTestResults: true
       enableTelemetry: true
-      enableSourcebuild: true
+      enableSourcebuild: false
       helixRepo: dotnet/razor
       helixType: build.product/
       # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
@@ -329,29 +329,49 @@ stages:
             continueOnError: true
             condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
-      - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-        - job: macOS
-          pool:
-            vmImage: macOS-11
-          strategy:
+      - job: macOS
+        pool:
+          vmImage: macOS-12
+        strategy:
+          ${{ if eq(variables['System.TeamProject'], 'public') }}:
             matrix:
               debug:
                 _BuildConfig: Debug
               release:
                 _BuildConfig: Release
-          steps:
-          - task: NodeTool@0
-            displayName: Install Node 10.x
+          ${{ if ne(variables['System.TeamProject'], 'public') }}:
+            matrix:
+              release:
+                _BuildConfig: Release
+        steps:
+        - task: NodeTool@0
+          displayName: Install Node 10.x
+          inputs:
+            versionSpec: 10.x
+        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+          - task: Bash@3
+            displayName: Setup Private Feeds Credentials
             inputs:
-              versionSpec: 10.x
-          - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-            - task: Bash@3
-              displayName: Setup Private Feeds Credentials
-              inputs:
-                filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.sh
-                arguments: $(Build.SourcesDirectory)/NuGet.config $Token
-              env:
-                Token: $(dn-bot-dnceng-artifact-feeds-rw)
+              filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.sh
+              arguments: $(Build.SourcesDirectory)/NuGet.config $Token
+            env:
+              Token: $(dn-bot-dnceng-artifact-feeds-rw)
+        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+          - script: eng/common/cibuild.sh
+              --restore
+              --build
+              --sign
+              --pack
+              --publish
+              --configuration $(_BuildConfig)
+              --prepareMachine
+              /p:DotNetSignType=real
+              /p:DotNetPublishUsingPipelines=true
+              $(_InternalRuntimeDownloadArgs)
+            name: Build
+            displayName: Build
+            condition: succeeded()
+        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - script: eng/common/cibuild.sh
               --configuration $(_BuildConfig)
               --prepareMachine
@@ -359,50 +379,71 @@ stages:
             name: Build
             displayName: Build
             condition: succeeded()
-          - task: PublishBuildArtifacts@1
-            displayName: Upload TestResults
-            condition: always()
-            continueOnError: true
-            inputs:
-              pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
-              artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
-              artifactType: Container
-              parallel: true
+        - task: PublishBuildArtifacts@1
+          displayName: Upload TestResults
+          condition: always()
+          continueOnError: true
+          inputs:
+            pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
+            artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
+            artifactType: Container
+            parallel: true
 
-        - job: Linux
-          container:
-            image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7
-            options: --init # This ensures all the stray defunct processes are reaped.
-          pool:
-            ${{ if eq(variables['System.TeamProject'], 'public') }}:
-              vmImage: ubuntu-latest
-            ${{ if eq(variables['System.TeamProject'], 'internal') }}:
-              name: NetCore1ESPool-Internal
-              demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+      - job: Linux
+        container:
+          image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7
+          options: --init # This ensures all the stray defunct processes are reaped.
+        pool:
+          ${{ if eq(variables['System.TeamProject'], 'public') }}:
+            vmImage: ubuntu-latest
+          ${{ if eq(variables['System.TeamProject'], 'internal') }}:
+            name: NetCore1ESPool-Internal
+            demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
 
-          variables:
-          - LC_ALL: 'en_US.UTF-8'
-          - LANG: 'en_US.UTF-8'
-          - LANGUAGE: 'en_US.UTF-8'
-          strategy:
+        variables:
+        - LC_ALL: 'en_US.UTF-8'
+        - LANG: 'en_US.UTF-8'
+        - LANGUAGE: 'en_US.UTF-8'
+        strategy:
+          ${{ if eq(variables['System.TeamProject'], 'public') }}:
             matrix:
               debug:
                 _BuildConfig: Debug
               release:
                 _BuildConfig: Release
-          steps:
-          - task: NodeTool@0
-            displayName: Install Node 10.x
+          ${{ if ne(variables['System.TeamProject'], 'public') }}:
+            matrix:
+              release:
+                _BuildConfig: Release
+        steps:
+        - task: NodeTool@0
+          displayName: Install Node 10.x
+          inputs:
+            versionSpec: 10.x
+        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+          - task: Bash@3
+            displayName: Setup Private Feeds Credentials
             inputs:
-              versionSpec: 10.x
-          - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-            - task: Bash@3
-              displayName: Setup Private Feeds Credentials
-              inputs:
-                filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.sh
-                arguments: $(Build.SourcesDirectory)/NuGet.config $Token
-              env:
-                Token: $(dn-bot-dnceng-artifact-feeds-rw)
+              filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.sh
+              arguments: $(Build.SourcesDirectory)/NuGet.config $Token
+            env:
+              Token: $(dn-bot-dnceng-artifact-feeds-rw)
+        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+          - script: eng/common/cibuild.sh
+              --restore
+              --build
+              --sign
+              --pack
+              --publish
+              --configuration $(_BuildConfig)
+              --prepareMachine
+              /p:DotNetSignType=real
+              /p:DotNetPublishUsingPipelines=true
+              $(_InternalRuntimeDownloadArgs)
+            name: Build
+            displayName: Build
+            condition: succeeded()
+        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - script: eng/common/cibuild.sh
               --configuration $(_BuildConfig)
               --prepareMachine
@@ -410,15 +451,15 @@ stages:
             name: Build
             displayName: Build
             condition: succeeded()
-          - task: PublishBuildArtifacts@1
-            displayName: Upload Test Results
-            condition: always()
-            continueOnError: true
-            inputs:
-              pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
-              artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
-              artifactType: Container
-              parallel: true
+        - task: PublishBuildArtifacts@1
+          displayName: Upload Test Results
+          condition: always()
+          continueOnError: true
+          inputs:
+            pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
+            artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
+            artifactType: Container
+            parallel: true
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - stage: publishBuildAssets
