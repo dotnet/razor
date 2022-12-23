@@ -48,4 +48,6 @@ internal static class RazorLanguageServerCustomMessageTargets
     public const string RazorValidateBreakpointRangeName = "razor/validateBreakpointRange";
 
     public const string RazorPullDiagnosticEndpointName = "razor/pullDiagnostics";
+
+    public const string RazorReferencesEndpointName = "razor/references";
 }
