@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <GitHubRepositoryName>razor-compiler</GitHubRepositoryName>
+    <GitHubRepositoryName>razor</GitHubRepositoryName>
     <SourceBuildManagedOnly>true</SourceBuildManagedOnly>
     <CloneSubmodulesToInnerSourceBuildRepo>false</CloneSubmodulesToInnerSourceBuildRepo>
   </PropertyGroup>

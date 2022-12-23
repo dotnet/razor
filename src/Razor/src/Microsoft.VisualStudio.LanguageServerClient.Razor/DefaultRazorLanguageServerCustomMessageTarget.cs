@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
@@ -751,11 +752,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             }
         }, cancellationToken);
 
-        var allTasks = Task.WhenAll(htmlTask, csharpTask);
-
         try
         {
-            await allTasks.ConfigureAwait(false);
+            await Task.WhenAll(htmlTask, csharpTask).ConfigureAwait(false);
         }
         catch (Exception)
         {
@@ -1130,39 +1129,63 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     public override Task<ImplementationResult> ImplementationAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
         => DelegateTextDocumentPositionRequestAsync<ImplementationResult>(request, Methods.TextDocumentImplementationName, cancellationToken);
 
-    public override async Task<IEnumerable<VSInternalDiagnosticReport>?> DiagnosticsAsync(DelegatedDiagnosticParams request, CancellationToken cancellationToken)
+    public override Task<VSInternalReferenceItem[]?> ReferencesAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+        => DelegateTextDocumentPositionRequestAsync<VSInternalReferenceItem[]>(request, Methods.TextDocumentReferencesName, cancellationToken);
+
+    public override async Task<RazorPullDiagnosticResponse?> DiagnosticsAsync(DelegatedDiagnosticParams request, CancellationToken cancellationToken)
     {
-        var (synchronized, csharpVirtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
-            request.HostDocument.Version,
-            request.HostDocument.Uri,
+        var csharpTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<CSharpVirtualDocumentSnapshot>(request.HostDocument, RazorLSPConstants.RazorCSharpLanguageServerName, cancellationToken), cancellationToken);
+        var htmlTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<HtmlVirtualDocumentSnapshot>(request.HostDocument, RazorLSPConstants.HtmlLanguageServerName, cancellationToken), cancellationToken);
+
+        try
+        {
+            await Task.WhenAll(htmlTask, csharpTask).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // Return null if any of the tasks getting diagnostics results in an error
+            return null;
+        }
+
+        var csharpDiagnostics = await csharpTask.ConfigureAwait(false) ?? Array.Empty<VSInternalDiagnosticReport>();
+        var htmlDiagnostics = await htmlTask.ConfigureAwait(false) ?? Array.Empty<VSInternalDiagnosticReport>();
+
+        return new RazorPullDiagnosticResponse(csharpDiagnostics, htmlDiagnostics);
+    }
+
+    private async Task<VSInternalDiagnosticReport[]?> GetVirtualDocumentPullDiagnosticsAsync<TVirtualDocumentSnapshot>(VersionedTextDocumentIdentifier hostDocument, string delegatedLanguageServerName, CancellationToken cancellationToken)
+        where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
+    {
+        var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
+            hostDocument.Version,
+            hostDocument.Uri,
             cancellationToken).ConfigureAwait(false);
         if (!synchronized)
         {
             return null;
         }
 
-        var csharpRequest = new VSInternalDocumentDiagnosticsParams
+        var request = new VSInternalDocumentDiagnosticsParams
         {
             TextDocument = new TextDocumentIdentifier
             {
-                Uri = csharpVirtualDocument.Uri,
+                Uri = virtualDocument.Uri,
             },
         };
-        var csharpResponse = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
-            csharpVirtualDocument.Snapshot.TextBuffer,
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
+            virtualDocument.Snapshot.TextBuffer,
             VSInternalMethods.DocumentPullDiagnosticName,
-            RazorLSPConstants.RazorCSharpLanguageServerName,
-            csharpRequest,
+            delegatedLanguageServerName,
+            request,
             cancellationToken).ConfigureAwait(false);
 
-        if (csharpResponse is null)
+        if (response is null)
         {
-            return default;
+            return null;
         }
 
-        return csharpResponse.Response;
+        return response.Response;
     }
-
     private async Task<TResult?> DelegateTextDocumentPositionRequestAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
     {
         var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
