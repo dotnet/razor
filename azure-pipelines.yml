@@ -356,10 +356,10 @@ stages:
               arguments: $(Build.SourcesDirectory)/NuGet.config $Token
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
+        - script: dotnet restore
+          displayName: dotnet restore
+          condition: succeeded()
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - script: dotnet restore
-            displayName: dotnet restore
-            condition: succeeded()
           - script: eng/common/cibuild.sh
               --restore
               --build
@@ -431,15 +431,15 @@ stages:
               arguments: $(Build.SourcesDirectory)/NuGet.config $Token
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
+        - script: eng/common/dotnet-install.sh
+          displayName: Install dotnet
+          condition: succeeded()
+        - script: ./restore.sh
+          displayName: restore
+        - script: /__w/1/s/.dotnet/dotnet restore
+          displayName: dotnet restore
+          condition: succeeded()
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - script: eng/common/dotnet-install.sh
-            displayName: Install dotnet
-            condition: succeeded()
-          - script: ./restore.sh
-            displayName: restore
-          - script: /__w/1/s/.dotnet/dotnet restore
-            displayName: dotnet restore
-            condition: succeeded()
           - script: eng/common/cibuild.sh
               --restore
               --build
