@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <MSBuild Projects="$(LanguageServerProject)"
-             Targets="PublishAllRids" />
+             Targets="restore;PublishAllRids" />
   </Target>
 
 </Project>
