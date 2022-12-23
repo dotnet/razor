@@ -110,7 +110,7 @@ stages:
       enablePublishBuildArtifacts: true
       enablePublishTestResults: true
       enableTelemetry: true
-      enableSourcebuild: true
+      enableSourcebuild: false
       helixRepo: dotnet/razor
       helixType: build.product/
       # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
