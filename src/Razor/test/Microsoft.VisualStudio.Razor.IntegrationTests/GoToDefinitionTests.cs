@@ -131,7 +131,7 @@ public class GoToDefinitionTests : AbstractRazorEditorTest
         await TestServices.Editor.WaitForCurrentLineTextAsync("public bool MyProperty { get; set; }", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8036")]
+    [IdeFact]
     public async Task GoToDefinition_ComponentAttribute_InCSharpFile()
     {
         // Create the files

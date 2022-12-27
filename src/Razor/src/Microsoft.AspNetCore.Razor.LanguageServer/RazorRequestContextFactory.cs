@@ -50,11 +50,15 @@ internal class RazorRequestContextFactory : IRequestContextFactory<RazorRequestC
             documentContext = await documentContextFactory.TryCreateAsync(uri, cancellationToken);
         }
 
-        var loggerFactory = _lspServices.GetRequiredService<ILoggerFactory>();
-        var logger = loggerFactory.CreateLogger(queueItem.MethodName);
-        var lspLogger = new LoggerAdapter(logger, _lspServices.GetRequiredService<ITelemetryReporter>());
+        var loggerAdapter = (LoggerAdapter?)_lspServices.TryGetService(typeof(LoggerAdapter));
+        if (loggerAdapter is null)
+        {
+            var loggerFactory = _lspServices.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger(queueItem.MethodName);
+            loggerAdapter = new LoggerAdapter(new[] { logger }, _lspServices.GetRequiredService<ITelemetryReporter>());
+        }
 
-        var requestContext = new RazorRequestContext(documentContext, lspLogger, _lspServices);
+        var requestContext = new RazorRequestContext(documentContext, loggerAdapter, _lspServices);
 
         return requestContext;
     }

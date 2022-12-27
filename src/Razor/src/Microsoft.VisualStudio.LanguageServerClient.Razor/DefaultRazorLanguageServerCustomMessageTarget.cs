@@ -724,6 +724,11 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             return null;
         }
 
+        if (htmlRanges is null || csharpRanges is null)
+        {
+            return null;
+        }
+
         return new(htmlRanges.ToImmutableArray(), csharpRanges.ToImmutableArray());
     }
 

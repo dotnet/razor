@@ -73,6 +73,11 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             lspLogger.Initialize(serverManager);
         }
 
+        if (_logger is LoggerAdapter adapter)
+        {
+            services.AddSingleton<LoggerAdapter>(adapter);
+        }
+
         services.AddSingleton<ILspLogger>(_logger);
         if (_logger is ILogger ilogger)
         {
