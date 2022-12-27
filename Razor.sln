@@ -184,6 +184,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.Microbenchmarks.Generator", "src\Compiler\perf\Microsoft.AspNetCore.Razor.Microbenchmarks.Generator\Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.csproj", "{7400A168-2552-49C7-93E3-D4DAA90C216F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp", "src\Razor\src\Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp\Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.csproj", "{3E2B6DF5-524F-4909-8A66-7F8C6383620A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -776,6 +778,14 @@ Global
 		{7400A168-2552-49C7-93E3-D4DAA90C216F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7400A168-2552-49C7-93E3-D4DAA90C216F}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
 		{7400A168-2552-49C7-93E3-D4DAA90C216F}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
+		{3E2B6DF5-524F-4909-8A66-7F8C6383620A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E2B6DF5-524F-4909-8A66-7F8C6383620A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E2B6DF5-524F-4909-8A66-7F8C6383620A}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E2B6DF5-524F-4909-8A66-7F8C6383620A}.DebugNoVSIX|Any CPU.Build.0 = Debug|Any CPU
+		{3E2B6DF5-524F-4909-8A66-7F8C6383620A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E2B6DF5-524F-4909-8A66-7F8C6383620A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E2B6DF5-524F-4909-8A66-7F8C6383620A}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
+		{3E2B6DF5-524F-4909-8A66-7F8C6383620A}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -861,6 +871,7 @@ Global
 		{A9F9B5E5-C5C2-4860-BE56-038C70ADBAC9} = {FB7C870E-A173-4F75-BE63-4EF39C79A759}
 		{23E48E5E-91FC-421E-B122-C7D084FCE39A} = {92463391-81BE-462B-AC3C-78C6C760741F}
 		{7400A168-2552-49C7-93E3-D4DAA90C216F} = {C2C98051-0F39-47F2-80B6-E72B29159F2C}
+		{3E2B6DF5-524F-4909-8A66-7F8C6383620A} = {3C0D6505-79B3-49D0-B4C3-176F0F1836ED}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0035341D-175A-4D05-95E6-F1C2785A1E26}
