@@ -7,6 +7,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal class MarkupChunkGenerator : SpanChunkGenerator
 {
+    public static readonly MarkupChunkGenerator Instance = new();
+
+    private MarkupChunkGenerator() { }
+
     public override string ToString()
     {
         return "Markup";
