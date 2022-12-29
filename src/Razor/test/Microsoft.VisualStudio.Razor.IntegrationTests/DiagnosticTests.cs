@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class DiagnosticTests : AbstractRazorEditorTest
 {
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8036")]
     public async Task Diagnostics_ShowErrors_Razor()
     {
         // Arrange
@@ -77,10 +77,6 @@ public class DiagnosticTests : AbstractRazorEditorTest
             (error) =>
             {
                 Assert.Equal("Error.cshtml(10, 6): warning HTML0001: Element start tag is missing closing angle bracket.", error);
-            },
-            (error) =>
-            {
-                Assert.Equal("Error.cshtml(4, 2): warning HTML0210: Document type", error);
             });
     }
 
@@ -139,7 +135,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
 ", ControlledHangMitigatingCancellationToken);
 
         // Act
-        var errors = await TestServices.ErrorList.WaitForErrorsAsync("Error.cshtml", expectedCount: 3, ControlledHangMitigatingCancellationToken);
+        var errors = await TestServices.ErrorList.WaitForErrorsAsync("Error.cshtml", expectedCount: 2, ControlledHangMitigatingCancellationToken);
 
         // Assert
         Assert.Collection(errors,
@@ -150,10 +146,6 @@ public class DiagnosticTests : AbstractRazorEditorTest
             (error) =>
             {
                 Assert.Equal("Error.cshtml(11, 6): warning HTML0204: Element 'li' cannot be nested inside element 'body'.", error);
-            },
-            (error) =>
-            {
-                Assert.Equal("Error.cshtml(4, 2): warning HTML0210: Document type", error);
             });
     }
 }
