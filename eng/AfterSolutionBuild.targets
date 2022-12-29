@@ -1,6 +1,6 @@
 <Project>
 
-  <Target Name="_PublishLanguageServerRids" AfterTargets="Pack">
+  <Target Name="_PublishLanguageServerRids" AfterTargets="Pack" Condition="'$(DotNetBuildFromSource)' != 'true'">
     <PropertyGroup>
       <LanguageServerProject>$(MSBuildThisFileDirectory)..\src\Razor\src\rzls\rzls.csproj</LanguageServerProject>
       <RazorSolutionPath>$(MSBuildThisFileDirectory)..\Razor.sln</RazorSolutionPath>
