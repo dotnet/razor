@@ -3,9 +3,11 @@
 
 #nullable disable
 
+using System.Runtime.CompilerServices;
+
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-internal class MarkupChunkGenerator : SpanChunkGenerator
+internal sealed class MarkupChunkGenerator : SpanChunkGenerator
 {
     public static readonly MarkupChunkGenerator Instance = new();
 
@@ -14,5 +16,15 @@ internal class MarkupChunkGenerator : SpanChunkGenerator
     public override string ToString()
     {
         return "Markup";
+    }
+
+    public override bool Equals(object obj)
+    {
+        return ReferenceEquals(this, obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return RuntimeHelpers.GetHashCode(this);
     }
 }
