@@ -9,6 +9,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 using Microsoft.Build.Execution;
@@ -20,8 +22,8 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin;
 [Shared]
 [Export(typeof(IMSBuildEventSink))]
 [Export(typeof(IRazorDocumentChangeListener))]
-[Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
-internal class MSBuildProjectManager : IMSBuildEventSink, IOmniSharpProjectSnapshotManagerChangeTrigger, IRazorDocumentChangeListener
+[Export(typeof(AbstractOmniSharpProjectSnapshotManagerChangeTrigger))]
+internal class MSBuildProjectManager : AbstractOmniSharpProjectSnapshotManagerChangeTrigger, IMSBuildEventSink, IRazorDocumentChangeListener
 {
     // Internal for testing
     internal const string IntermediateOutputPathPropertyName = "IntermediateOutputPath";
@@ -33,7 +35,7 @@ internal class MSBuildProjectManager : IMSBuildEventSink, IOmniSharpProjectSnaps
     private readonly ILogger _logger;
     private readonly IEnumerable<ProjectConfigurationProvider> _projectConfigurationProviders;
     private readonly ProjectInstanceEvaluator _projectInstanceEvaluator;
-    private readonly ProjectChangePublisher _projectConfigurationPublisher;
+    private readonly IProjectChangePublisher _projectConfigurationPublisher;
     private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private OmniSharpProjectSnapshotManagerBase? _projectManager;
 
@@ -41,7 +43,7 @@ internal class MSBuildProjectManager : IMSBuildEventSink, IOmniSharpProjectSnaps
     public MSBuildProjectManager(
         [ImportMany] IEnumerable<ProjectConfigurationProvider> projectConfigurationProviders,
         ProjectInstanceEvaluator projectInstanceEvaluator,
-        ProjectChangePublisher projectConfigurationPublisher,
+        IProjectChangePublisher projectConfigurationPublisher,
         OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ILoggerFactory loggerFactory)
     {
@@ -79,7 +81,7 @@ internal class MSBuildProjectManager : IMSBuildEventSink, IOmniSharpProjectSnaps
 
     public OmniSharpProjectSnapshotManagerBase ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} was unexpectedly 'null'. Has {nameof(Initialize)} been called?");
 
-    public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+    internal override void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
     {
         if (projectManager is null)
         {
@@ -295,7 +297,7 @@ internal class MSBuildProjectManager : IMSBuildEventSink, IOmniSharpProjectSnaps
             var projectDirectory = projectInstance.GetPropertyValue(MSBuildProjectDirectoryPropertyName);
             if (string.IsNullOrEmpty(projectDirectory))
             {
-                // This should never be true but we're beign extra careful.
+                // This should never be true but we're being extra careful.
                 path = null;
                 return false;
             }

@@ -10,8 +10,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Extensions;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using OmniSharp;
@@ -74,7 +76,7 @@ internal class BackgroundDocumentProcessedPublisher : OmniSharpDocumentProcessed
 
     // A Razor file has been processed, this portion is responsible for the decision of whether we need to create or update
     // the Razor documents background C# representation.
-    public override void DocumentProcessed(RazorCodeDocument codeDocument, OmniSharpDocumentSnapshot document)
+    internal override void DocumentProcessed(RazorCodeDocument codeDocument, OmniSharpDocumentSnapshot document)
     {
         if (document is null)
         {
@@ -131,7 +133,7 @@ internal class BackgroundDocumentProcessedPublisher : OmniSharpDocumentProcessed
         }
     }
 
-    public override void Initialize(OmniSharpProjectSnapshotManager projectManager)
+    internal override void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {

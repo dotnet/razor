@@ -5,6 +5,8 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
 using OmniSharp;
@@ -35,7 +37,7 @@ internal class ExportDefaultOmniSharpProjectSnapshotManagerAccessor : DefaultOmn
     [ImportingConstructor]
     public ExportDefaultOmniSharpProjectSnapshotManagerAccessor(
         RemoteTextLoaderFactory remoteTextLoaderFactory,
-        [ImportMany] IEnumerable<IOmniSharpProjectSnapshotManagerChangeTrigger> projectChangeTriggers,
+        [ImportMany] IEnumerable<AbstractOmniSharpProjectSnapshotManagerChangeTrigger> projectChangeTriggers,
         OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         OmniSharpWorkspace workspace) : base(remoteTextLoaderFactory, projectChangeTriggers, projectSnapshotManagerDispatcher, workspace)
     {
@@ -43,8 +45,8 @@ internal class ExportDefaultOmniSharpProjectSnapshotManagerAccessor : DefaultOmn
 }
 
 [Shared]
-[Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
-public class ExportOmniSharpWorkspaceProjectStateChangeDetector : OmniSharpWorkspaceProjectStateChangeDetector
+[Export(typeof(AbstractOmniSharpProjectSnapshotManagerChangeTrigger))]
+internal class ExportOmniSharpWorkspaceProjectStateChangeDetector : OmniSharpWorkspaceProjectStateChangeDetector
 {
     [ImportingConstructor]
     public ExportOmniSharpWorkspaceProjectStateChangeDetector(
@@ -57,9 +59,9 @@ public class ExportOmniSharpWorkspaceProjectStateChangeDetector : OmniSharpWorks
 }
 
 [Shared]
-[Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
+[Export(typeof(AbstractOmniSharpProjectSnapshotManagerChangeTrigger))]
 [Export(typeof(OmniSharpProjectWorkspaceStateGenerator))]
-public class ExportOmniSharpProjectWorkspaceStateGenerator : OmniSharpProjectWorkspaceStateGenerator
+internal class ExportOmniSharpProjectWorkspaceStateGenerator : OmniSharpProjectWorkspaceStateGenerator
 {
     [ImportingConstructor]
     public ExportOmniSharpProjectWorkspaceStateGenerator(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher) : base(projectSnapshotManagerDispatcher)
@@ -68,8 +70,8 @@ public class ExportOmniSharpProjectWorkspaceStateGenerator : OmniSharpProjectWor
 }
 
 [Shared]
-[Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
-public class ExportOmniSharpBackgroundDocumentGenerator : OmniSharpBackgroundDocumentGenerator
+[Export(typeof(AbstractOmniSharpProjectSnapshotManagerChangeTrigger))]
+internal class ExportOmniSharpBackgroundDocumentGenerator : OmniSharpBackgroundDocumentGenerator
 {
     [ImportingConstructor]
     public ExportOmniSharpBackgroundDocumentGenerator(

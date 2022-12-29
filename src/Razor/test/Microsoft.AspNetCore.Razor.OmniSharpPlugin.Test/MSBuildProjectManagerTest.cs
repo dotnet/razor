@@ -8,8 +8,9 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.OmniSharpPlugin;
@@ -44,7 +45,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
         var msbuildProjectManager = new MSBuildProjectManager(
             Enumerable.Empty<ProjectConfigurationProvider>(),
             CreateProjectInstanceEvaluator(),
-            Mock.Of<ProjectChangePublisher>(MockBehavior.Strict),
+            Mock.Of<IProjectChangePublisher>(MockBehavior.Strict),
             Dispatcher,
             LoggerFactory);
         var projectManager = CreateProjectSnapshotManager();
@@ -88,7 +89,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
         var msbuildProjectManager = new MSBuildProjectManager(
             Enumerable.Empty<ProjectConfigurationProvider>(),
             CreateProjectInstanceEvaluator(),
-            Mock.Of<ProjectChangePublisher>(MockBehavior.Strict),
+            Mock.Of<IProjectChangePublisher>(MockBehavior.Strict),
             Dispatcher,
             LoggerFactory);
         var projectManager = CreateProjectSnapshotManager();
@@ -126,7 +127,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
         var msbuildProjectManager = new MSBuildProjectManager(
             Enumerable.Empty<ProjectConfigurationProvider>(),
             CreateProjectInstanceEvaluator(),
-            Mock.Of<ProjectChangePublisher>(MockBehavior.Strict),
+            Mock.Of<IProjectChangePublisher>(MockBehavior.Strict),
             Dispatcher,
             LoggerFactory);
         var projectManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
@@ -158,7 +159,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
         var msbuildProjectManager = new MSBuildProjectManager(
             Enumerable.Empty<ProjectConfigurationProvider>(),
             CreateProjectInstanceEvaluator(),
-            Mock.Of<ProjectChangePublisher>(MockBehavior.Strict),
+            Mock.Of<IProjectChangePublisher>(MockBehavior.Strict),
             Dispatcher,
             LoggerFactory);
         var projectManager = CreateProjectSnapshotManager();
@@ -200,7 +201,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
         var configurationProvider = new Mock<ProjectConfigurationProvider>(MockBehavior.Strict);
         configurationProvider.Setup(provider => provider.TryResolveConfiguration(It.IsAny<ProjectConfigurationProviderContext>(), out projectConfiguration))
             .Returns(true);
-        var projectChangePublisher = new Mock<ProjectChangePublisher>(MockBehavior.Strict);
+        var projectChangePublisher = new Mock<IProjectChangePublisher>(MockBehavior.Strict);
         projectChangePublisher.Setup(p => p.SetPublishFilePath(It.IsAny<string>(), It.IsAny<string>())).Verifiable();
         var msbuildProjectManager = new MSBuildProjectManager(
             new[] { configurationProvider.Object },

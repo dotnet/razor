@@ -5,7 +5,7 @@
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
-internal abstract class ProjectChangePublisher
+internal interface IProjectChangePublisher
 {
     public abstract void SetPublishFilePath(string projectFilePath, string publishFilePath);
 }

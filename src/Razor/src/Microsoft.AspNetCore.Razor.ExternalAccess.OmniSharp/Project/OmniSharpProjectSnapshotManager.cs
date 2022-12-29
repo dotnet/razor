@@ -6,9 +6,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-public abstract class OmniSharpProjectSnapshotManager
+internal abstract class OmniSharpProjectSnapshotManager
 {
     public abstract event EventHandler<OmniSharpProjectChangeEventArgs> Changed;
 

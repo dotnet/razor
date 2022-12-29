@@ -5,6 +5,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -21,12 +22,14 @@ public class DefaultProjectChangePublisherTest : OmniSharpTestBase
     }
 
     [Theory]
-    [InlineData(OmniSharpProjectChangeKind.DocumentAdded)]
-    [InlineData(OmniSharpProjectChangeKind.DocumentRemoved)]
-    [InlineData(OmniSharpProjectChangeKind.ProjectChanged)]
-    public async Task ProjectManager_Changed_EnqueuesPublish(OmniSharpProjectChangeKind changeKind)
+    [InlineData(nameof(OmniSharpProjectChangeKind.DocumentAdded))]
+    [InlineData(nameof(OmniSharpProjectChangeKind.DocumentRemoved))]
+    [InlineData(nameof(OmniSharpProjectChangeKind.ProjectChanged))]
+    public async Task ProjectManager_Changed_EnqueuesPublish(string changeKindStr)
     {
         // Arrange
+        var changeKind = (OmniSharpProjectChangeKind)Enum.Parse(typeof(OmniSharpProjectChangeKind), changeKindStr);
+
         var serializationSuccessful = false;
         var projectSnapshot = CreateProjectSnapshot("/path/to/project.csproj");
         var expectedPublishFilePath = "/path/to/obj/bin/Debug/project.razor.json";

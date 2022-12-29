@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed.Serialization;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -15,9 +16,9 @@ using Newtonsoft.Json;
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
 [Shared]
-[Export(typeof(ProjectChangePublisher))]
-[Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
-internal class DefaultProjectChangePublisher : ProjectChangePublisher, IOmniSharpProjectSnapshotManagerChangeTrigger
+[Export(typeof(IProjectChangePublisher))]
+[Export(typeof(AbstractOmniSharpProjectSnapshotManagerChangeTrigger))]
+internal class DefaultProjectChangePublisher : AbstractOmniSharpProjectSnapshotManagerChangeTrigger, IProjectChangePublisher
 {
     private const string TempFileExt = ".temp";
 
@@ -55,7 +56,7 @@ internal class DefaultProjectChangePublisher : ProjectChangePublisher, IOmniShar
     // 250ms between publishes to prevent bursts of changes yet still be responsive to changes.
     internal int EnqueueDelay { get; set; } = 250;
 
-    public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+    internal override void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
     {
         if (projectManager is null)
         {
@@ -66,7 +67,7 @@ internal class DefaultProjectChangePublisher : ProjectChangePublisher, IOmniShar
         _projectManager.Changed += ProjectManager_Changed;
     }
 
-    public override void SetPublishFilePath(string projectFilePath, string publishFilePath)
+    public void SetPublishFilePath(string projectFilePath, string publishFilePath)
     {
         lock (_publishLock)
         {

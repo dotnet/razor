@@ -3,11 +3,12 @@
 
 #nullable disable
 
+using Microsoft;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-public enum OmniSharpProjectChangeKind
+internal enum OmniSharpProjectChangeKind
 {
     ProjectAdded = ProjectChangeKind.ProjectAdded,
     ProjectRemoved = ProjectChangeKind.ProjectRemoved,

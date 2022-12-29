@@ -8,20 +8,22 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-public class DefaultOmniSharpProjectSnapshotManagerAccessor : OmniSharpProjectSnapshotManagerAccessor
+internal class DefaultOmniSharpProjectSnapshotManagerAccessor : OmniSharpProjectSnapshotManagerAccessor
 {
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
-    private readonly IEnumerable<IOmniSharpProjectSnapshotManagerChangeTrigger> _projectChangeTriggers;
+    private readonly IEnumerable<AbstractOmniSharpProjectSnapshotManagerChangeTrigger> _projectChangeTriggers;
     private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly Workspace _workspace;
     private OmniSharpProjectSnapshotManager _instance;
 
     public DefaultOmniSharpProjectSnapshotManagerAccessor(
         RemoteTextLoaderFactory remoteTextLoaderFactory,
-        IEnumerable<IOmniSharpProjectSnapshotManagerChangeTrigger> projectChangeTriggers,
+        IEnumerable<AbstractOmniSharpProjectSnapshotManagerChangeTrigger> projectChangeTriggers,
         OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         Workspace workspace)
     {
@@ -51,7 +53,7 @@ public class DefaultOmniSharpProjectSnapshotManagerAccessor : OmniSharpProjectSn
         _workspace = workspace;
     }
 
-    public override OmniSharpProjectSnapshotManager Instance
+    internal override OmniSharpProjectSnapshotManager Instance
     {
         get
         {

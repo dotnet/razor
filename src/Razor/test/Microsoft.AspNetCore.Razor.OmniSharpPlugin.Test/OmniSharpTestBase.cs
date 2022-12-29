@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -52,7 +53,7 @@ public abstract class OmniSharpTestBase : LanguageServerTestBase
         AddDisposable((IDisposable)Dispatcher.DispatcherScheduler);
     }
 
-    protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath)
+    internal OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath)
     {
         var projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Default);
         var projectSnapshot = _createTestProjectSnapshotMethod.Invoke(null, new object[] { projectFilePath, projectWorkspaceState });
@@ -61,7 +62,7 @@ public abstract class OmniSharpTestBase : LanguageServerTestBase
         return omniSharpProjectSnapshot;
     }
 
-    protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath, string[] documentFilePaths)
+    internal OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath, string[] documentFilePaths)
     {
         var projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Default);
         var projectSnapshot = _createWithDocumentsTestProjectSnapshotMethod.Invoke(null, new object[] { projectFilePath, documentFilePaths, projectWorkspaceState });
@@ -70,7 +71,7 @@ public abstract class OmniSharpTestBase : LanguageServerTestBase
         return omniSharpProjectSnapshot;
     }
 
-    protected OmniSharpProjectSnapshotManagerBase CreateProjectSnapshotManager(bool allowNotifyListeners = false)
+    internal OmniSharpProjectSnapshotManagerBase CreateProjectSnapshotManager(bool allowNotifyListeners = false)
     {
         var dispatcher = _dispatcherProperty.GetValue(Dispatcher);
         var testSnapshotManager = _createProjectSnapshotManagerMethod.Invoke(null, new object[] { dispatcher });

@@ -114,7 +114,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    public override IReadOnlyCollection<string> OpenDocuments
+    internal override IReadOnlyCollection<string> OpenDocuments
     {
         get
         {
@@ -124,7 +124,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    public override Workspace Workspace { get; }
+    internal override Workspace Workspace { get; }
 
     public override ProjectSnapshot GetLoadedProject(string filePath)
     {
@@ -167,7 +167,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         return _openDocuments.Contains(documentFilePath);
     }
 
-    public override void DocumentAdded(HostProject hostProject, HostDocument document, TextLoader textLoader)
+    internal override void DocumentAdded(HostProject hostProject, HostDocument document, TextLoader textLoader)
     {
         if (hostProject is null)
         {
@@ -208,7 +208,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    public override void DocumentRemoved(HostProject hostProject, HostDocument document)
+    internal override void DocumentRemoved(HostProject hostProject, HostDocument document)
     {
         if (hostProject is null)
         {
@@ -246,7 +246,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    public override void DocumentOpened(string projectFilePath, string documentFilePath, SourceText sourceText)
+    internal override void DocumentOpened(string projectFilePath, string documentFilePath, SourceText sourceText)
     {
         if (projectFilePath is null)
         {
@@ -311,7 +311,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    public override void DocumentClosed(string projectFilePath, string documentFilePath, TextLoader textLoader)
+    internal override void DocumentClosed(string projectFilePath, string documentFilePath, TextLoader textLoader)
     {
         if (projectFilePath is null)
         {
@@ -359,7 +359,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    public override void DocumentChanged(string projectFilePath, string documentFilePath, SourceText sourceText)
+    internal override void DocumentChanged(string projectFilePath, string documentFilePath, SourceText sourceText)
     {
         if (projectFilePath is null)
         {
@@ -423,7 +423,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    public override void DocumentChanged(string projectFilePath, string documentFilePath, TextLoader textLoader)
+    internal override void DocumentChanged(string projectFilePath, string documentFilePath, TextLoader textLoader)
     {
         if (projectFilePath is null)
         {
@@ -469,7 +469,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    public override void ProjectAdded(HostProject hostProject)
+    internal override void ProjectAdded(HostProject hostProject)
     {
         if (hostProject is null)
         {
@@ -492,7 +492,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         NotifyListeners(older: null, entry.GetSnapshot(), documentFilePath: null, ProjectChangeKind.ProjectAdded);
     }
 
-    public override void ProjectConfigurationChanged(HostProject hostProject)
+    internal override void ProjectConfigurationChanged(HostProject hostProject)
     {
         if (hostProject is null)
         {
@@ -525,7 +525,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    public override void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState projectWorkspaceState)
+    internal override void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState projectWorkspaceState)
     {
         if (projectFilePath is null)
         {
@@ -563,7 +563,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    public override void ProjectRemoved(HostProject hostProject)
+    internal override void ProjectRemoved(HostProject hostProject)
     {
         if (hostProject is null)
         {
@@ -581,17 +581,17 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    public override void SolutionOpened()
+    internal override void SolutionOpened()
     {
         IsSolutionClosing = false;
     }
 
-    public override void SolutionClosed()
+    internal override void SolutionClosed()
     {
         IsSolutionClosing = true;
     }
 
-    public override void ReportError(Exception exception)
+    internal override void ReportError(Exception exception)
     {
         if (exception is null)
         {
@@ -601,7 +601,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         _errorReporter.ReportError(exception);
     }
 
-    public override void ReportError(Exception exception, ProjectSnapshot project)
+    internal override void ReportError(Exception exception, ProjectSnapshot project)
     {
         if (exception is null)
         {
@@ -611,7 +611,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         _errorReporter.ReportError(exception, project);
     }
 
-    public override void ReportError(Exception exception, HostProject hostProject)
+    internal override void ReportError(Exception exception, HostProject hostProject)
     {
         if (exception is null)
         {

@@ -4,11 +4,12 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 
-public sealed class OmniSharpDocumentSnapshot
+internal sealed class OmniSharpDocumentSnapshot
 {
     private readonly DocumentSnapshot _documentSnapshot;
     private readonly object _projectLock;

@@ -6,14 +6,15 @@
 using System;
 using System.Composition;
 using System.Threading;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
 [Shared]
 [Export(typeof(IRazorDocumentChangeListener))]
-[Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
-internal class DocumentChangedSynchronizationService : IRazorDocumentChangeListener, IOmniSharpProjectSnapshotManagerChangeTrigger
+[Export(typeof(AbstractOmniSharpProjectSnapshotManagerChangeTrigger))]
+internal class DocumentChangedSynchronizationService : AbstractOmniSharpProjectSnapshotManagerChangeTrigger, IRazorDocumentChangeListener
 {
     private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private OmniSharpProjectSnapshotManagerBase _projectManager;
@@ -29,7 +30,7 @@ internal class DocumentChangedSynchronizationService : IRazorDocumentChangeListe
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
     }
 
-    public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+    internal override void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
     {
         if (projectManager is null)
         {

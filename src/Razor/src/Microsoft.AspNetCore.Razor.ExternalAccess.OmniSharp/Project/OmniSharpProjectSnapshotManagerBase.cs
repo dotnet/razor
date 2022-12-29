@@ -3,12 +3,14 @@
 
 #nullable disable
 
+using Microsoft;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-public abstract class OmniSharpProjectSnapshotManagerBase : OmniSharpProjectSnapshotManager
+internal abstract class OmniSharpProjectSnapshotManagerBase : OmniSharpProjectSnapshotManager
 {
     internal abstract ProjectSnapshotManagerBase InternalProjectSnapshotManager { get; }
 

@@ -6,9 +6,9 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 
-public sealed class OmniSharpHostDocumentComparer : IEqualityComparer<OmniSharpHostDocument>
+internal sealed class OmniSharpHostDocumentComparer : IEqualityComparer<OmniSharpHostDocument>
 {
     public static readonly OmniSharpHostDocumentComparer Instance = new();
 

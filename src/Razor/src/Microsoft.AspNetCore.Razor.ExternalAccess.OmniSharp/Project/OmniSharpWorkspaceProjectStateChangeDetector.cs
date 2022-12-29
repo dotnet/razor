@@ -5,15 +5,16 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-public class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectSnapshotManagerChangeTrigger
+internal class OmniSharpWorkspaceProjectStateChangeDetector : AbstractOmniSharpProjectSnapshotManagerChangeTrigger
 {
     public OmniSharpWorkspaceProjectStateChangeDetector(
         OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -38,7 +39,7 @@ public class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectSna
 
     internal WorkspaceProjectStateChangeDetector InternalWorkspaceProjectStateChangeDetector { get; }
 
-    public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+    internal override void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
     {
         InternalWorkspaceProjectStateChangeDetector.Initialize(projectManager.InternalProjectSnapshotManager);
     }

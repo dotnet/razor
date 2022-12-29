@@ -5,12 +5,13 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-public sealed class OmniSharpProjectSnapshot
+internal sealed class OmniSharpProjectSnapshot
 {
     internal readonly ProjectSnapshot InternalProjectSnapshot;
 

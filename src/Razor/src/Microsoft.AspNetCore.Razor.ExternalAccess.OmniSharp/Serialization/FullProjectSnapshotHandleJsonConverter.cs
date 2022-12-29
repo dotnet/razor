@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed.Serialization;

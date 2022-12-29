@@ -6,9 +6,9 @@
 using System;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 
-public sealed class OmniSharpHostDocument
+internal sealed class OmniSharpHostDocument
 {
     public OmniSharpHostDocument(string filePath, string targetPath, string kind)
     {

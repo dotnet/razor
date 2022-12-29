@@ -6,9 +6,9 @@
 using System;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-public class OmniSharpProjectChangeEventArgs : EventArgs
+internal class OmniSharpProjectChangeEventArgs : EventArgs
 {
     internal OmniSharpProjectChangeEventArgs(ProjectChangeEventArgs args) : this(
         OmniSharpProjectSnapshot.Convert(args.Older),
