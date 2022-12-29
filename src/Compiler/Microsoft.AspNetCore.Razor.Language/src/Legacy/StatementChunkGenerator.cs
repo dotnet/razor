@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-internal class StatementChunkGenerator : SpanChunkGenerator
+internal sealed class StatementChunkGenerator : SpanChunkGenerator
 {
     public static readonly StatementChunkGenerator Instance = new();
 
