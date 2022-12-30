@@ -39,7 +39,7 @@ public abstract class OmniSharpTestBase : LanguageServerTestBase
 
         var testProjectSnapshotManagerType = commonTestAssembly.GetType("Microsoft.AspNetCore.Razor.Test.Common.TestProjectSnapshotManager");
         var strongNamedAssembly = Assembly.Load("Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp");
-        var defaultSnapshotManagerType = strongNamedAssembly.GetType("Microsoft.AspNetCore.Razor.OmniSharpPlugin.DefaultOmniSharpProjectSnapshotManager");
+        var defaultSnapshotManagerType = strongNamedAssembly.GetType("Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project.DefaultOmniSharpProjectSnapshotManager");
 
         _createTestProjectSnapshotMethod = testProjectSnapshotType.GetMethod("Create", new[] { typeof(string), typeof(ProjectWorkspaceState) });
         _createWithDocumentsTestProjectSnapshotMethod = testProjectSnapshotType.GetMethod("Create", new[] { typeof(string), typeof(string[]), typeof(ProjectWorkspaceState) });
