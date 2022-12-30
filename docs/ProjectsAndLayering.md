@@ -92,7 +92,7 @@ target the broadest set of frameworks.
 - Microsoft.AspNetCore.Razor.Test.MvcShim.Version1_X (`net7.0`;`net472`)
 - Microsoft.AspNetCore.Razor.Test.MvcShim.Version2_X (`net7.0`;`net4720`)
 
-### Tooling Core TEsts
+### Tooling Core Tests
 
 - Microsoft.CodeAnalysis.Razor.Workspaces.Test (`net7.0`;`net472` - only on Windows)
 - Microsoft.CodeAnalysis.Razor.Workspaces.Test.Common (`net7.0`;`net472`)
