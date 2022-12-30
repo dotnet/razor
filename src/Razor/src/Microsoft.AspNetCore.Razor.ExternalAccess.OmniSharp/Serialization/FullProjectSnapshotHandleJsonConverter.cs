@@ -7,7 +7,7 @@ using System;
 using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed.Serialization;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Serialization;
 
 internal class OmniSharpProjectSnapshotHandleJsonConverter : JsonConverter
 {

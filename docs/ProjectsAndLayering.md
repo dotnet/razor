@@ -74,7 +74,7 @@ target the broadest set of frameworks.
 - Target Framework: `net472`
 - Projects:
   - Microsoft.AspNetCore.Razor.OmniSharpPlugin
-  - Microsoft.AspNetCore.Razor.OmniSHarpPlugin.StrongNamed
+  - Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp
 
 # Testing Layers
 

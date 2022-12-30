@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp;
 
 [Shared]
 [ExportWorkspaceServiceFactory(typeof(TagHelperResolver), ServiceLayer.Default)]

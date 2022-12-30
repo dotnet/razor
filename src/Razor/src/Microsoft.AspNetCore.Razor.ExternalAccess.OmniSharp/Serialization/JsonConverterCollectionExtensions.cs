@@ -6,7 +6,7 @@
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed.Serialization;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Serialization;
 
 public static class JsonConverterCollectionExtensions
 {

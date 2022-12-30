@@ -9,7 +9,7 @@ using System.Composition;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
-using Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed.Serialization;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Serialization;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 

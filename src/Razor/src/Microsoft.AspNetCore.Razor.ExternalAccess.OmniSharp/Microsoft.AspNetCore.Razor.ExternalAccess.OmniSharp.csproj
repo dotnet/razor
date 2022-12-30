@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-
   <ItemGroup>
     <ProjectReference Include="../Microsoft.AspNetCore.Razor.LanguageServer.Common/Microsoft.AspNetCore.Razor.LanguageServer.Common.csproj" />
   </ItemGroup>

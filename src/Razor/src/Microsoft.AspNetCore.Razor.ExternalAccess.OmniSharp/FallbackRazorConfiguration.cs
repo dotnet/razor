@@ -6,7 +6,7 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp;
 
 public class FallbackRazorConfiguration
 {
