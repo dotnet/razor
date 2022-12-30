@@ -77,7 +77,7 @@ internal class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoint<Refer
                 continue;
             }
 
-            // Temporary fix for code-behind leaking through
+            // Temporary fix for codebehind leaking through
             // Revert when https://github.com/dotnet/aspnetcore/issues/22512 is resolved
             referenceItem.DefinitionText = FilterReferenceDisplayText(referenceItem.DefinitionText);
             referenceItem.Text = FilterReferenceDisplayText(referenceItem.Text);
