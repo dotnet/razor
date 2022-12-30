@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using Microsoft;
 using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;

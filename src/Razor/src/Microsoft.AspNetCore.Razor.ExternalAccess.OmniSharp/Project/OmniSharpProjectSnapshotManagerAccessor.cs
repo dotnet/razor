@@ -3,8 +3,6 @@
 
 #nullable disable
 
-using Microsoft;
-
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
 public abstract class OmniSharpProjectSnapshotManagerAccessor
