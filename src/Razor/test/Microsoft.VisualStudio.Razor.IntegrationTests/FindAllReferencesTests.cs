@@ -199,10 +199,10 @@ public class FindAllReferencesTests : AbstractRazorEditorTest
 
     private static (string Code, string DocumentName)[] OrderResults(ImmutableArray<ITableEntryHandle2> results)
     => results.Select(r =>
-    {
-        Assert.True(r.TryGetValue(StandardTableKeyNames.Text, out string code));
-        Assert.True(r.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
+        {
+            Assert.True(r.TryGetValue(StandardTableKeyNames.Text, out string code));
+            Assert.True(r.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
 
-        return (Code: code, DocumentName: Path.GetFileName(documentName));
-    }).OrderBy(r => r.DocumentName).ThenBy(r => r.Code).ToArray();
+            return (Code: code, DocumentName: Path.GetFileName(documentName));
+        }).OrderBy(r => r.DocumentName).ThenBy(r => r.Code).ToArray();
 }
