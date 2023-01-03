@@ -12,16 +12,10 @@ internal abstract class ProjectEngineFactory : IProjectEngineFactory
 {
     protected abstract string AssemblyName { get; }
 
-    public abstract RazorProjectEngine Create(
+    public RazorProjectEngine Create(
         RazorConfiguration configuration,
         RazorProjectFileSystem fileSystem,
-        Action<RazorProjectEngineBuilder> configure);
-
-    protected RazorProjectEngine Create(
-        RazorConfiguration configuration,
-        RazorProjectFileSystem fileSystem,
-        Action<RazorProjectEngineBuilder> configure,
-        bool registerCompilerFeatures)
+        Action<RazorProjectEngineBuilder> configure)
     {
         // Rewrite the assembly name into a full name just like this one, but with the name of the MVC design time assembly.
         var assemblyFullName = typeof(RazorProjectEngine).Assembly.FullName;
@@ -35,15 +29,13 @@ internal abstract class ProjectEngineFactory : IProjectEngineFactory
         var extension = new AssemblyExtension(configuration.ConfigurationName, Assembly.Load(assemblyName));
         var initializer = extension.CreateInitializer();
 
-        return RazorProjectEngine.Create(configuration, fileSystem, b =>
+        return RazorProjectEngine.Create(configuration, fileSystem, builder =>
         {
-            if (registerCompilerFeatures)
-            {
-                CompilerFeatures.Register(b);
-            }
-
-            initializer.Initialize(b);
-            configure?.Invoke(b);
+            PreInitialize(builder);
+            initializer.Initialize(builder);
+            configure?.Invoke(builder);
         });
     }
+
+    protected virtual void PreInitialize(RazorProjectEngineBuilder builder) { }
 }
