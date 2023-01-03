@@ -37,6 +37,8 @@ internal class VisualStudioMacLanguageServerFeatureOptions : LanguageServerFeatu
 
     public override bool SingleServerSupport => false;
 
+    public override bool SupportsDelegatedCodeActions => true;
+
     private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
 
 }

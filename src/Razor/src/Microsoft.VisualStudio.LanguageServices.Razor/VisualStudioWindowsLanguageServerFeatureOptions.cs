@@ -58,5 +58,7 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
 
     public override bool SingleServerSupport => _singleServerSupport.Value;
 
+    public override bool SupportsDelegatedCodeActions => true;
+
     private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
 }

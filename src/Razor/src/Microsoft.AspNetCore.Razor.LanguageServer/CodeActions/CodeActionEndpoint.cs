@@ -83,9 +83,9 @@ internal class CodeActionEndpoint : IVSCodeActionEndpoint
 
         // HTML code actions aren't currently supported in VS Code:
         // https://github.com/dotnet/razor/issues/8062
-        var delegatedCodeActions = _languageServerFeatureOptions.ProjectConfigurationFileName == LanguageServerConstants.DefaultProjectConfigurationFile
-            ? Array.Empty<RazorVSInternalCodeAction>()
-            : await GetDelegatedCodeActionsAsync(documentContext, razorCodeActionContext, cancellationToken).ConfigureAwait(false);
+        var delegatedCodeActions = _languageServerFeatureOptions.SupportsDelegatedCodeActions
+            ? await GetDelegatedCodeActionsAsync(documentContext, razorCodeActionContext, cancellationToken).ConfigureAwait(false)
+            : Array.Empty<RazorVSInternalCodeAction>();
 
         cancellationToken.ThrowIfCancellationRequested();
 
