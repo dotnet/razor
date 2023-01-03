@@ -182,12 +182,12 @@ public class FindAllReferencesTests : AbstractRazorEditorTest
             orderedResults,
             reference =>
             {
-                Assert.Equal(expected: "MyComponent.razor.cs", reference.DocumentName);
+                Assert.Equal(expected: "MyComponent.razor", reference.DocumentName);
                 Assert.Equal(expected: "@MyProperty", reference.Code);
             },
             reference =>
             {
-                Assert.Equal(expected: "MyComponent.razor", reference.DocumentName);
+                Assert.Equal(expected: "MyComponent.razor.cs", reference.DocumentName);
                 Assert.Equal(expected: "public string? MyProperty { get; set; }", reference.Code);
             },
             reference =>
