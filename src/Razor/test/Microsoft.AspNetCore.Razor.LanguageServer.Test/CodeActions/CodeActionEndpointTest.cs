@@ -42,7 +42,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             MockBehavior.Strict);
 
         _languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(
-            l => l.SupportsFileManipulation == true,
+            l => l.SupportsFileManipulation == true && l.ProjectConfigurationFileName == "project.razor.vs.json",
             MockBehavior.Strict);
 
         _languageServer = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
