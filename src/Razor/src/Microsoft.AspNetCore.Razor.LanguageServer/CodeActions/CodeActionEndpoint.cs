@@ -81,7 +81,11 @@ internal class CodeActionEndpoint : IVSCodeActionEndpoint
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var delegatedCodeActions = await GetDelegatedCodeActionsAsync(documentContext, razorCodeActionContext, cancellationToken).ConfigureAwait(false);
+        // HTML code actions aren't currently supported in VS Code:
+        // https://github.com/dotnet/razor/issues/8062
+        var delegatedCodeActions = _languageServerFeatureOptions.SupportsDelegatedCodeActions
+            ? await GetDelegatedCodeActionsAsync(documentContext, razorCodeActionContext, cancellationToken).ConfigureAwait(false)
+            : Array.Empty<RazorVSInternalCodeAction>();
 
         cancellationToken.ThrowIfCancellationRequested();
 

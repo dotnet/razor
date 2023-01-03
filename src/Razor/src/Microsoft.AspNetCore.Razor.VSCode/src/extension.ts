@@ -7,7 +7,6 @@ import * as vscode from 'vscode';
 import * as vscodeapi from 'vscode';
 import { ExtensionContext } from 'vscode';
 import { BlazorDebugConfigurationProvider } from './BlazorDebug/BlazorDebugConfigurationProvider';
-import { CodeActionsHandler } from './CodeActions/CodeActionsHandler';
 import { RazorCodeActionRunner } from './CodeActions/RazorCodeActionRunner';
 import { RazorCodeLensProvider } from './CodeLens/RazorCodeLensProvider';
 import { ColorPresentationHandler } from './ColorPresentation/ColorPresentationHandler';
@@ -80,10 +79,6 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 documentManager,
                 csharpFeature.projectionProvider,
                 languageServiceClient,
-                logger);
-            const codeActionHandler = new CodeActionsHandler(
-                documentManager,
-                languageServerClient,
                 logger);
             const semanticTokenHandler = new SemanticTokensRangeHandler(languageServerClient);
             const colorPresentationHandler = new ColorPresentationHandler(
@@ -194,7 +189,6 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
 
             razorFormattingFeature.register();
             razorCodeActionRunner.register();
-            codeActionHandler.register();
             colorPresentationHandler.register();
             documentColorHandler.register();
             foldingRangeHandler.register();
