@@ -113,7 +113,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
             });
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8065")]
     public async Task Diagnostics_ShowErrors_CSharpAndHtml()
     {
         // Arrange
