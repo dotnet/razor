@@ -2,13 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
@@ -49,7 +49,7 @@ public class FindAllReferencesTests : AbstractRazorEditorTest
             });
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8036")]
+    [IdeFact]
     public async Task FindAllReferences_ComponentAttribute_FromRazor()
     {
         // Open the file
@@ -65,29 +65,26 @@ public class FindAllReferencesTests : AbstractRazorEditorTest
         // Assert
         var results = await TestServices.FindReferencesWindow.WaitForContentsAsync(ControlledHangMitigatingCancellationToken, expected: 3);
 
+        var orderedResults = OrderResults(results);
+
         Assert.Collection(
-            results,
-            new Action<ITableEntryHandle2>[]
+            orderedResults,
+            reference =>
             {
-                reference =>
-                {
-                    Assert.Equal(expected: "public string? Title { get; set; }", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    Assert.True(reference.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
-                    Assert.Equal(expected: "SurveyPrompt.razor", Path.GetFileName(documentName));
-                },
-                reference =>
-                {
-                    Assert.Equal(expected: "Title", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    Assert.True(reference.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
-                    Assert.Equal(expected: "Index.razor", Path.GetFileName(documentName));
-                },
-                reference =>
-                {
-                    Assert.Equal(expected: "Title", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    Assert.True(reference.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
-                    Assert.Equal(expected: "SurveyPrompt.razor", Path.GetFileName(documentName));
-                }
-            });
+                Assert.Equal("Index.razor", reference.DocumentName);
+                Assert.Equal("Title", reference.Code);
+            },
+            reference =>
+            {
+                Assert.Equal("SurveyPrompt.razor", reference.DocumentName);
+                Assert.Equal("public string? Title { get; set; }", reference.Code);
+            },
+            reference =>
+            {
+                Assert.Equal("SurveyPrompt.razor", reference.DocumentName);
+                Assert.Equal("Title", reference.Code);
+            }
+        );
     }
 
     [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8036")]
@@ -107,18 +104,7 @@ public class FindAllReferencesTests : AbstractRazorEditorTest
         // Assert
         var results = await TestServices.FindReferencesWindow.WaitForContentsAsync(ControlledHangMitigatingCancellationToken, expected: 3);
 
-        // Don't care about order, but Assert.Collection does
-        var orderedResults = results.Select(r =>
-        {
-            Assert.True(r.TryGetValue(StandardTableKeyNames.Text, out string code));
-            Assert.True(r.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
-
-            return new
-            {
-                Code = code,
-                DocumentName = Path.GetFileName(documentName)
-            };
-        }).OrderBy(r => r.DocumentName).ThenBy(r => r.Code).ToArray();
+        var orderedResults = OrderResults(results);
 
         Assert.Collection(
             orderedResults,
@@ -190,28 +176,33 @@ public class FindAllReferencesTests : AbstractRazorEditorTest
         // Assert
         var results = await TestServices.FindReferencesWindow.WaitForContentsAsync(ControlledHangMitigatingCancellationToken, expected: 3);
 
+        var orderedResults = OrderResults(results);
+
         Assert.Collection(
-            results,
-            new Action<ITableEntryHandle2>[]
+            orderedResults,
+            reference =>
             {
-                reference =>
-                {
-                    Assert.Equal(expected: "public string? MyProperty { get; set; }", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    Assert.True(reference.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
-                    Assert.Equal(expected: "MyComponent.razor.cs", Path.GetFileName(documentName));
-                },
-                reference =>
-                {
-                    Assert.Equal(expected: "@MyProperty", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    Assert.True(reference.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
-                    Assert.Equal(expected: "MyComponent.razor", Path.GetFileName(documentName));
-                },
-                reference =>
-                {
-                    Assert.Equal(expected: "<MyComponent MyProperty=\"123\" />", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                    Assert.True(reference.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
-                    Assert.Equal(expected: "MyPage.razor", Path.GetFileName(documentName));
-                }
+                Assert.Equal(expected: "MyComponent.razor", reference.DocumentName);
+                Assert.Equal(expected: "@MyProperty", reference.Code);
+            },
+            reference =>
+            {
+                Assert.Equal(expected: "MyComponent.razor.cs", reference.DocumentName);
+                Assert.Equal(expected: "public string? MyProperty { get; set; }", reference.Code);
+            },
+            reference =>
+            {
+                Assert.Equal(expected: "MyPage.razor", reference.DocumentName);
+                Assert.Equal(expected: "<MyComponent MyProperty=\"123\" />", reference.Code);
             });
     }
+
+    private static (string Code, string DocumentName)[] OrderResults(ImmutableArray<ITableEntryHandle2> results)
+    => results.Select(r =>
+        {
+            Assert.True(r.TryGetValue(StandardTableKeyNames.Text, out string code));
+            Assert.True(r.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
+
+            return (Code: code, DocumentName: Path.GetFileName(documentName));
+        }).OrderBy(r => r.DocumentName).ThenBy(r => r.Code).ToArray();
 }
