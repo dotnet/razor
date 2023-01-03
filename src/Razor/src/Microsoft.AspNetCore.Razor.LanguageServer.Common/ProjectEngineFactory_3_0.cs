@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor;
 using System;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -10,8 +11,5 @@ internal class ProjectEngineFactory_3_0 : ProjectEngineFactory
 {
     protected override string AssemblyName { get; } = "Microsoft.AspNetCore.Mvc.Razor.Extensions";
 
-    public override RazorProjectEngine Create(
-        RazorConfiguration configuration,
-        RazorProjectFileSystem fileSystem,
-        Action<RazorProjectEngineBuilder> configure) => Create(configuration, fileSystem, configure, registerCompilerFeatures: true);
+    protected override void PreInitialize(RazorProjectEngineBuilder builder) => CompilerFeatures.Register(builder);
 }

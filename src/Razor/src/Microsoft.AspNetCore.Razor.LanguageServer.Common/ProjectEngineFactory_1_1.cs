@@ -9,9 +9,4 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 internal class ProjectEngineFactory_1_1 : ProjectEngineFactory
 {
     protected override string AssemblyName { get; } = "Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X";
-
-    public override RazorProjectEngine Create(
-        RazorConfiguration configuration,
-        RazorProjectFileSystem fileSystem,
-        Action<RazorProjectEngineBuilder> configure) => Create(configuration, fileSystem, configure, registerCompilerFeatures: false);
 }
