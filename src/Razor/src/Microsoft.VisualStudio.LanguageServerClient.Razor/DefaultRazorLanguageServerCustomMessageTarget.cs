@@ -1140,7 +1140,11 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             request,
             cancellationToken).ConfigureAwait(false);
 
-        if (response is null)
+        // Sometimes web tools will respond with a non-null response, of an array of diagnostics with a single element
+        // in it, but the actual diagnostics (and every other property) in that element are null. This confuses VS, and
+        // means we don't get squiggles for C# diagnostics, unless there are also Html diagnostics.
+        // This check ensures we catch that, and just return an empty result for Html diagnostics.
+        if (response?.Response is null or [{ Diagnostics: null }, ..])
         {
             return null;
         }
