@@ -149,7 +149,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
         Assert.Collection(errors,
             (error) =>
             {
-                Assert.Equal("Error.cshtml(10, 21): error CS1963: An expression tree may not contain a dynamic operation", error);
+                Assert.Equal("Error.cshtml(9, 21): error CS1963: An expression tree may not contain a dynamic operation", error);
             });
     }
 
