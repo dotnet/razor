@@ -65,11 +65,7 @@ internal class OutputWindowLogger : ILogger
 
         private readonly JoinableTaskContext _threadingContext;
         private readonly IServiceProvider _serviceProvider;
-
-        public void WriteLine(string value)
-        {
-            WriteLineInternal(value);
-        }
+        private IVsOutputWindowPane? _doNotAccessDirectlyOutputPane;
 
         public OutputPane(JoinableTaskContext threadingContext)
         {
@@ -77,7 +73,10 @@ internal class OutputWindowLogger : ILogger
             _serviceProvider = ServiceProvider.GlobalProvider;
         }
 
-        private IVsOutputWindowPane? _doNotAccessDirectlyOutputPane;
+        public void WriteLine(string value)
+        {
+            WriteLineInternal(value);
+        }
 
         private void WriteLineInternal(string value)
         {
