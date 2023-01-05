@@ -135,8 +135,9 @@ public class GoToDefinitionTests : AbstractRazorEditorTest
     public async Task GoToDefinition_ComponentAttribute_InCSharpFile()
     {
         // Create the files
+        const string MyComponentPath = "MyComponent.cs";
         await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
-            "MyComponent.cs",
+            MyComponentPath,
             """
             using Microsoft.AspNetCore.Components;
             
@@ -144,18 +145,23 @@ public class GoToDefinitionTests : AbstractRazorEditorTest
 
             public class MyComponent : ComponentBase
             {
-                [Parameter] public string MyProperty { get; set; }
+                [Parameter] public string? MyProperty { get; set; }
             }
             """,
             cancellationToken: ControlledHangMitigatingCancellationToken);
 
+        await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(ControlledHangMitigatingCancellationToken);
+        await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
+
+        const string MyPagePath = "MyPage.razor";
         await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
-            "MyPage.razor",
+            MyPagePath,
             """
             <MyComponent MyProperty="123" />
             """,
             open: true,
             cancellationToken: ControlledHangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, MyPagePath, ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
@@ -165,8 +171,8 @@ public class GoToDefinitionTests : AbstractRazorEditorTest
         await TestServices.Editor.InvokeGoToDefinitionAsync(ControlledHangMitigatingCancellationToken);
 
         // Assert
-        await TestServices.Editor.WaitForActiveWindowAsync("MyComponent.cs", ControlledHangMitigatingCancellationToken);
-        await TestServices.Editor.WaitForCurrentLineTextAsync("[Parameter] public string MyProperty { get; set; }", ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.WaitForActiveWindowAsync(MyComponentPath, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.WaitForCurrentLineTextAsync("[Parameter] public string? MyProperty { get; set; }", ControlledHangMitigatingCancellationToken);
     }
 
     [IdeFact]
