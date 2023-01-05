@@ -106,18 +106,7 @@ public class FindAllReferencesTests : AbstractRazorEditorTest
         // Assert
         var results = await TestServices.FindReferencesWindow.WaitForContentsAsync(ControlledHangMitigatingCancellationToken, expected: 3);
 
-        // Don't care about order, but Assert.Collection does
-        var orderedResults = results.Select(r =>
-        {
-            Assert.True(r.TryGetValue(StandardTableKeyNames.Text, out string code));
-            Assert.True(r.TryGetValue(StandardTableKeyNames.DocumentName, out string documentName));
-
-            return new
-            {
-                Code = code,
-                DocumentName = Path.GetFileName(documentName)
-            };
-        }).OrderBy(r => r.DocumentName).ThenBy(r => r.Code).ToArray();
+        var orderedResults = OrderResults(results);
 
         Assert.Collection(
             orderedResults,
