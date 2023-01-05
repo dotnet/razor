@@ -15,6 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 [Export(typeof(OutputWindowLogger))]
 internal class OutputWindowLogger : ILogger
 {
+    private const LogLevel MinimumLogLevel = LogLevel.Warning;
     private readonly OutputPane _outputPane;
 
     [ImportingConstructor]
@@ -37,25 +38,18 @@ internal class OutputWindowLogger : ILogger
 
     public bool IsEnabled(LogLevel logLevel)
     {
-        return true;
+        return logLevel >= MinimumLogLevel;
     }
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
-        switch (logLevel)
+        if (IsEnabled(logLevel))
         {
-            case LogLevel.Critical:
-            case LogLevel.Error:
-            case LogLevel.Warning:
-                _outputPane.WriteLine(formatter(state, exception));
-                if (exception is not null)
-                {
-                    _outputPane.WriteLine(exception.ToString());
-                }
-
-                break;
-            default:
-                break;
+            _outputPane.WriteLine(formatter(state, exception));
+            if (exception is not null)
+            {
+                _outputPane.WriteLine(exception.ToString());
+            }
         }
     }
 
