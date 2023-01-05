@@ -1151,6 +1151,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         return response.Response;
     }
+
     private async Task<TResult?> DelegateTextDocumentPositionRequestAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
     {
         var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
