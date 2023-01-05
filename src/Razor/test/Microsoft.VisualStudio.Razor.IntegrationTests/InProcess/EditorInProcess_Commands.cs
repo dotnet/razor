@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using static Microsoft.VisualStudio.VSConstants;
@@ -45,7 +46,12 @@ internal partial class EditorInProcess
     {
         var commandGuid = typeof(VSStd2KCmdID).GUID;
         var commandId = VSStd2KCmdID.RENAME;
-        await ExecuteCommandAsync(commandGuid, (uint)commandId, cancellationToken);
+
+        // Rename seems to be extra-succeptable to COM exceptions
+        await Helper.RetryAsync<bool?>(async (cancellationToken) => {
+            await ExecuteCommandAsync(commandGuid, (uint)commandId, cancellationToken);
+            return true;
+        }, TimeSpan.FromSeconds(1), cancellationToken);
     }
 
     public async Task CloseDocumentWindowAsync(CancellationToken cancellationToken)

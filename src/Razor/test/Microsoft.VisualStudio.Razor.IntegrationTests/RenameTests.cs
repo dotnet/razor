@@ -1,7 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
@@ -85,6 +88,7 @@ public class RenameTests : AbstractRazorEditorTest
                 """,
             open: false,
             cancellationToken: ControlledHangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(ControlledHangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
             "MyPage.razor",
@@ -99,10 +103,10 @@ public class RenameTests : AbstractRazorEditorTest
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, "MyComponent.razor.cs", ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.PlaceCaretAsync("MyProperty", charsOffset: 0, occurrence: 2, extendSelection: false, selectBlock: false, ControlledHangMitigatingCancellationToken);
-        await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(ControlledHangMitigatingCancellationToken);
 
         // Act
         await TestServices.Editor.InvokeRenameAsync(ControlledHangMitigatingCancellationToken);
+
         TestServices.Input.Send("ZooperDooper{ENTER}");
 
         // Assert
@@ -136,6 +140,8 @@ public class RenameTests : AbstractRazorEditorTest
             }
             """,
             cancellationToken: ControlledHangMitigatingCancellationToken);
+
+        await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(ControlledHangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
             "MyPage.razor",
