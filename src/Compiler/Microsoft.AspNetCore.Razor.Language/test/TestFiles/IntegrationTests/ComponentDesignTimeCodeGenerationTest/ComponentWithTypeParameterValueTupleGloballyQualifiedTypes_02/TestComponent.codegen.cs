@@ -92,7 +92,7 @@ void __TypeConstraints_TValue<TValue>() where TValue : struct
 #line hidden
 #nullable disable
             );
-            __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Collections.Generic.List<(decimalDomain, decimalValue)>>(
+            __o = global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Collections.Generic.List<(decimal Domain, decimal Value)>>(
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
                      null
