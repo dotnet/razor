@@ -147,7 +147,7 @@ public class RenameTests : AbstractRazorEditorTest
             cancellationToken: ControlledHangMitigatingCancellationToken);
 
         await WaitForComponentInitializeAsync(ControlledHangMitigatingCancellationToken);
-        await  TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, MyComponentPath, saveFile: true, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, MyComponentPath, saveFile: true, ControlledHangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
             "MyPage.razor",
