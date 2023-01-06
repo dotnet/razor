@@ -1,10 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
-using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
@@ -66,16 +64,20 @@ public class RenameTests : AbstractRazorEditorTest
     public async Task Rename_ComponentAttribute_FromCSharpInCSharp()
     {
         // Create the file
+        const string MyComponentRazorPath = "MyComponent.razor";
         await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
-            "MyComponent.razor",
+            MyComponentRazorPath,
             """
                 @MyProperty
                 """,
-            open: false,
+            open: true,
             cancellationToken: ControlledHangMitigatingCancellationToken);
+        await WaitForComponentInitializeAsync(ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, MyComponentRazorPath, saveFile: true, ControlledHangMitigatingCancellationToken);
 
+        const string MyComponentCSharpPath = "MyComponent.razor.cs";
         await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
-            "MyComponent.razor.cs",
+            MyComponentCSharpPath,
             """
                 namespace BlazorProject;
 
@@ -86,9 +88,10 @@ public class RenameTests : AbstractRazorEditorTest
                 }
             
                 """,
-            open: false,
+            open: true,
             cancellationToken: ControlledHangMitigatingCancellationToken);
-        await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(ControlledHangMitigatingCancellationToken);
+        await WaitForComponentInitializeAsync(ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, MyComponentCSharpPath, saveFile: true, ControlledHangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
             "MyPage.razor",
@@ -125,8 +128,9 @@ public class RenameTests : AbstractRazorEditorTest
     public async Task Rename_ComponentAttribute_BoundAttribute()
     {
         // Create the files
+        const string MyComponentPath = "MyComponent.razor";
         await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
-            "MyComponent.razor",
+            MyComponentPath,
             """
             <div></div>
 
@@ -139,9 +143,11 @@ public class RenameTests : AbstractRazorEditorTest
                 public EventCallback<string?> ValueChanged { get; set; }
             }
             """,
+            open: true,
             cancellationToken: ControlledHangMitigatingCancellationToken);
 
-        await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(ControlledHangMitigatingCancellationToken);
+        await WaitForComponentInitializeAsync(ControlledHangMitigatingCancellationToken);
+        await  TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, MyComponentPath, saveFile: true, ControlledHangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
             "MyPage.razor",
@@ -156,6 +162,7 @@ public class RenameTests : AbstractRazorEditorTest
             cancellationToken: ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.WaitForOutlineRegionsAsync(ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.PlaceCaretAsync("Value=", charsOffset: -1, ControlledHangMitigatingCancellationToken);
 
@@ -170,5 +177,11 @@ public class RenameTests : AbstractRazorEditorTest
 
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, "MyPage.razor", ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.VerifyTextContainsAsync("<MyComponent @bind-ZooperDooper=\"value\"></MyComponent>", ControlledHangMitigatingCancellationToken);
+    }
+
+    private async Task WaitForComponentInitializeAsync(CancellationToken cancellationToken)
+    {
+        // Wait for it to initialize by building
+        await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(cancellationToken);
     }
 }
