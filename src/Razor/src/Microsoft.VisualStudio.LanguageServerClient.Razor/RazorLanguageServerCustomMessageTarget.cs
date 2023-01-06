@@ -125,4 +125,7 @@ internal abstract class RazorLanguageServerCustomMessageTarget
 
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<RazorPullDiagnosticResponse?> DiagnosticsAsync(DelegatedDiagnosticParams request, CancellationToken cancellationToken);
+
+    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorReferencesEndpointName, UseSingleObjectParameterDeserialization = true)]
+    public abstract Task<VSInternalReferenceItem[]?> ReferencesAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
 }

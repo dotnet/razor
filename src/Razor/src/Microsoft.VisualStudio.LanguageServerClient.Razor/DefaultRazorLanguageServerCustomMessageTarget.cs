@@ -713,11 +713,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             }
         }, cancellationToken);
 
-        var allTasks = Task.WhenAll(htmlTask, csharpTask);
-
         try
         {
-            await allTasks.ConfigureAwait(false);
+            await Task.WhenAll(htmlTask, csharpTask).ConfigureAwait(false);
         }
         catch (Exception)
         {
@@ -1092,16 +1090,17 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     public override Task<ImplementationResult> ImplementationAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
         => DelegateTextDocumentPositionRequestAsync<ImplementationResult>(request, Methods.TextDocumentImplementationName, cancellationToken);
 
+    public override Task<VSInternalReferenceItem[]?> ReferencesAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
+        => DelegateTextDocumentPositionRequestAsync<VSInternalReferenceItem[]>(request, Methods.TextDocumentReferencesName, cancellationToken);
+
     public override async Task<RazorPullDiagnosticResponse?> DiagnosticsAsync(DelegatedDiagnosticParams request, CancellationToken cancellationToken)
     {
         var csharpTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<CSharpVirtualDocumentSnapshot>(request.HostDocument, RazorLSPConstants.RazorCSharpLanguageServerName, cancellationToken), cancellationToken);
         var htmlTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<HtmlVirtualDocumentSnapshot>(request.HostDocument, RazorLSPConstants.HtmlLanguageServerName, cancellationToken), cancellationToken);
 
-        var allTasks = Task.WhenAll(htmlTask, csharpTask);
-
         try
         {
-            await allTasks.ConfigureAwait(false);
+            await Task.WhenAll(htmlTask, csharpTask).ConfigureAwait(false);
         }
         catch (Exception)
         {
@@ -1141,13 +1140,18 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             request,
             cancellationToken).ConfigureAwait(false);
 
-        if (response is null)
+        // If the delegated server wants to remove all diagnostics about a document, they will send back a response with an item, but that
+        // item will have null diagnostics (and every other property). We don't want to propagate that back out to the client, because
+        // it would make the client remove all diagnostics for the .razor file, including potentially any returned from other delegated
+        // servers.
+        if (response?.Response is null or [{ Diagnostics: null }, ..])
         {
             return null;
         }
 
         return response.Response;
     }
+
     private async Task<TResult?> DelegateTextDocumentPositionRequestAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
     {
         var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
