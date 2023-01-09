@@ -489,7 +489,7 @@ public class Tag
     }
 
     [Fact]
-    public void ComponentWithTypeParameterValueTupleGloballyQualifiedTypes_01()
+    public void ComponentWithTypeParameterValueTupleGloballyQualifiedTypes()
     {
         // Arrange
         var classes = @"
@@ -534,7 +534,7 @@ public struct MyStruct
     }
 
     [Fact] // https://github.com/dotnet/razor/issues/7628
-    public void ComponentWithTypeParameterValueTupleGloballyQualifiedTypes_02()
+    public void ComponentWithTypeParameterValueTuple_ExplicitGenericArguments()
     {
         // Act
         var generated = CompileToCSharp("""
