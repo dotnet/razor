@@ -65,11 +65,14 @@ internal class DesignTimeHelperResponseRewriter : DelegatedCompletionResponseRew
         var items = completionList.Items;
         filteredItems.SetCapacityIfLarger(items.Length);
 
-        var shouldRemoveAllDesignTimeItems = StartsWithDoubleUnderscore(owner, sourceText);
+        // If the current identifier doesn't start with "__", we remove common design-time helpers *and*
+        // any item starting with "__" from the completion list. Otherwise, we only remove the common
+        // design-time helpers.
+        var removeAllDoubleUnderscoreItems = !StartsWithDoubleUnderscore(owner, sourceText);
 
         foreach (var item in items)
         {
-            if (s_designTimeHelpers.Contains(item.Label) || (shouldRemoveAllDesignTimeItems && item.Label.StartsWith("__")))
+            if (s_designTimeHelpers.Contains(item.Label) || (removeAllDoubleUnderscoreItems && item.Label.StartsWith("__")))
             {
                 continue;
             }
@@ -88,16 +91,13 @@ internal class DesignTimeHelperResponseRewriter : DelegatedCompletionResponseRew
 
     private static bool StartsWithDoubleUnderscore(RazorSyntaxNode owner, SourceText sourceText)
     {
-        // If the current identifier starts with "__", only trim out common design time helpers from the list.
-        // In all other cases, trim out both common design-time helpers and all completion items starting with "__".
-
         var span = owner.Span;
         if (span.Length < 2)
         {
-            return true;
+            return false;
         }
 
         var start = span.Start;
-        return sourceText[start] != '_' || sourceText[start + 1] != '_';
+        return sourceText[start] == '_' || sourceText[start + 1] == '_';
     }
 }

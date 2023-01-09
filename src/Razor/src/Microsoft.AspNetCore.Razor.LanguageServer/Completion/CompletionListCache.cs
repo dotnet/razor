@@ -39,6 +39,9 @@ internal sealed class CompletionListCache
 
             _items[index] = new Slot(id, completionList, context);
 
+            // _nextIndex should always point to the index where we'll access the next element
+            // in the circular buffer. Here, we check to see if it is after the last index.
+            // If it is, we change it to the first index to properly "wrap around" the array.
             if (_nextIndex == MaxCacheSize)
             {
                 _nextIndex = 0;
@@ -62,6 +65,8 @@ internal sealed class CompletionListCache
             {
                 index--;
 
+                // If we're before the first index in the array, switch to the last index to
+                // "wrap around" the array.
                 if (index < 0)
                 {
                     index = MaxCacheSize - 1;
