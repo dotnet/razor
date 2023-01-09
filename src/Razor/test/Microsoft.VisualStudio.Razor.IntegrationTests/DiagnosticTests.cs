@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class DiagnosticTests : AbstractRazorEditorTest
 {
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8036")]
+    [IdeFact]
     public async Task Diagnostics_ShowErrors_Razor()
     {
         // Arrange

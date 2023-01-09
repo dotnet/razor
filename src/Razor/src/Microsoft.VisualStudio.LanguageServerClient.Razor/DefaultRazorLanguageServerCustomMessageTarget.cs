@@ -1124,8 +1124,14 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             return null;
         }
 
-        var csharpDiagnostics = await csharpTask.ConfigureAwait(false) ?? Array.Empty<VSInternalDiagnosticReport>();
-        var htmlDiagnostics = await htmlTask.ConfigureAwait(false) ?? Array.Empty<VSInternalDiagnosticReport>();
+        var csharpDiagnostics = await csharpTask.ConfigureAwait(false);
+        var htmlDiagnostics = await htmlTask.ConfigureAwait(false);
+
+        if (csharpDiagnostics is null || htmlDiagnostics is null)
+        {
+            // If either is null we don't have a complete view and returning anything will cause us to "lock-in" incomplete info. So we return null and wait for a re-try.
+            return null;
+        }
 
         return new RazorPullDiagnosticResponse(csharpDiagnostics, htmlDiagnostics);
     }
@@ -1167,6 +1173,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         return response.Response;
     }
+
     private async Task<TResult?> DelegateTextDocumentPositionRequestAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
     {
         var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
