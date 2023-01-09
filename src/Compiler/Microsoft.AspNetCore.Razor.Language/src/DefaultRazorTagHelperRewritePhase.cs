@@ -10,8 +10,6 @@ internal class DefaultRazorTagHelperRewritePhase : RazorEnginePhaseBase
     protected override void ExecuteCore(RazorCodeDocument codeDocument)
     {
         var syntaxTree = codeDocument.GetPreTagHelperSyntaxTree();
-        ThrowForMissingDocumentDependency(syntaxTree);
-
         var context = codeDocument.GetTagHelperContext();
         if (syntaxTree is null || context.TagHelpers.Count == 0)
         {
