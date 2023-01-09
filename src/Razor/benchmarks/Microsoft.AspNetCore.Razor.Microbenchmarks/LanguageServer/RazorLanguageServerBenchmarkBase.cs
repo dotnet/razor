@@ -33,8 +33,8 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         RepoRoot = current.FullName;
 
         var (_, serverStream) = FullDuplexStream.CreatePair();
-        var logger = new NoopLogger();
-        RazorLanguageServer = RazorLanguageServerWrapper.Create(serverStream, serverStream, logger, configure: (collection) => {
+        Logger = new NoopLogger();
+        RazorLanguageServer = RazorLanguageServerWrapper.Create(serverStream, serverStream, Logger, configure: (collection) => {
             collection.AddSingleton<ClientNotifierServiceBase, NoopClientNotifierService>();
             Builder(collection);
         });
@@ -47,6 +47,8 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
     protected string RepoRoot { get; }
 
     private protected RazorLanguageServerWrapper RazorLanguageServer { get; }
+
+    private protected IRazorLogger Logger { get; }
 
     internal DocumentSnapshot GetDocumentSnapshot(string projectFilePath, string filePath, string targetPath)
     {
