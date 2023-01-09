@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal class DefaultRazorTagHelperBinderPhase : RazorEnginePhaseBase, IRazorTagHelperBinderPhase
+internal class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePhaseBase
 {
     protected override void ExecuteCore(RazorCodeDocument codeDocument)
     {
@@ -69,16 +69,7 @@ internal class DefaultRazorTagHelperBinderPhase : RazorEnginePhaseBase, IRazorTa
 
         var context = TagHelperDocumentContext.Create(tagHelperPrefix, descriptors);
         codeDocument.SetTagHelperContext(context);
-
-        if (descriptors.Count == 0)
-        {
-            // No descriptors, no-op.
-            return;
-        }
-
-        var rewrittenSyntaxTree = TagHelperParseTreeRewriter.Rewrite(syntaxTree, tagHelperPrefix, descriptors, out _);
-
-        codeDocument.SetSyntaxTree(rewrittenSyntaxTree);
+        codeDocument.SetPreTagHelperSyntaxTree(syntaxTree);
     }
 
     private static bool MatchesDirective(TagHelperDescriptor descriptor, string typePattern, string assemblyName)
