@@ -11,13 +11,14 @@ internal static class SummaryExtensions
 {
     public static int ToExitCode(this IEnumerable<Summary> summaries)
     {
-        // an empty summary means that initial filtering and validation did not allow to run
+        // an empty summary means that initial filtering and validation did not allow
+        // any benchmarks to run.
         if (!summaries.Any())
         {
             return 1;
         }
 
-        // if anything has failed, it's an error
+        // If anything has failed, it's an error.
         if (summaries.Any(summary => summary.HasAnyErrors()))
         {
             return 1;
