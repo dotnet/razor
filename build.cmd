@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 setlocal
 
 set _args=-restore -build %*
