@@ -15,8 +15,8 @@
   <ItemGroup>
     <PackageReference Include="OmniSharp.MSBuild" Version="$(OmniSharpMSBuildPackageVersion)" />
     <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildPackageVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(Tooling_MicrosoftCodeAnalysisCSharpFeaturesPackageVersion)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp" Version="$(Tooling_MicrosoftCodeAnalysisExternalAccessOmniSharpCSharpPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(MicrosoftCodeAnalysisCSharpFeaturesPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CSharp" Version="$(MicrosoftCodeAnalysisExternalAccessOmniSharpCSharpPackageVersion)" />
   </ItemGroup>
 
 </Project>
