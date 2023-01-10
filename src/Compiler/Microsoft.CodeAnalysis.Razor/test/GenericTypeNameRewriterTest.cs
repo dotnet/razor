@@ -30,6 +30,42 @@ public class GenericTypeNameRewriterTest
     // Tuples
     [InlineData("List<(TItem1 X, TItem2 Y)>", "List<(Type1 X, Type2 Y)>")]
     [InlineData("List<(TItem1, TItem2)>", "List<(Type1, Type2)>")]
+    [InlineData("List<(TItem1/*test*/,TItem2)>", "List<(Type1/*test*/,Type2)>")]
+    [InlineData("List<(TItem1/*test*/X, TItem2 Y)>", "List<(Type1/*test*/X, Type2 Y)>")]
+    [InlineData("""
+        List<(TItem1 X // Test
+        , TItem2 Y)>
+        """,
+        """
+        List<(Type1 X // Test
+        , Type2 Y)>
+        """)]
+    [InlineData("""
+        List<(TItem1// Test
+        X, TItem2 Y)>
+        """,
+        """
+        List<(Type1// Test
+        X, Type2 Y)>
+        """)]
+    [InlineData("""
+        List<(TItem1
+        X, TItem2 Y)>
+        """,
+        """
+        List<(Type1
+        X, Type2 Y)>
+        """)]
+    [InlineData("""
+        List<(TItem1 X /* Test
+        another line */,
+        TItem2 Y)>
+        """,
+        """
+        List<(Type1 X /* Test
+        another line */,
+        Type2 Y)>
+        """)]
     public void GenericTypeNameRewriter_CanReplaceTypeParametersWithTypeArguments(string original, string expected)
     {
         // Arrange
