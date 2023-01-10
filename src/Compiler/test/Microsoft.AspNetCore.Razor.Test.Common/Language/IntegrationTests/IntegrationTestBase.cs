@@ -582,14 +582,12 @@ public abstract class IntegrationTestBase
         codeDocument.Source.CopyTo(0, charBuffer, 0, codeDocument.Source.Length);
         var sourceContent = new string(charBuffer);
 
-        for (var j = 0; j < htmlDocument.SourceMappings.Count; j++)
+        foreach (var mapping in htmlDocument.SourceMappings)
         {
-            var mapping = htmlDocument.SourceMappings[j];
-
             var actualSpan = htmlDocument.GeneratedCode.Substring(mapping.GeneratedSpan.AbsoluteIndex, mapping.GeneratedSpan.Length);
             var expectedSpan = sourceContent.Substring(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
 
-            if (!string.Equals(expectedSpan, actualSpan, StringComparison.Ordinal))
+            if (expectedSpan != actualSpan)
             {
                 throw new XunitException(
                     $"Found the span {mapping.OriginalSpan} in the output mappings but it contains " +
