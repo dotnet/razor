@@ -1,22 +1,22 @@
-# Build Razor Tooling from Source
+﻿# Build Razor Tooling from Source
 
-Building Razor Tooling from source allows you to tweak and customize the Razor tooling experience for ASP.NET Core, and to contribute your improvements back to the project.
+Building Razor from source allows you to tweak and customize the Razor compiler and tooling experience for ASP.NET Core, and to contribute your improvements back to the project.
 
-See <https://github.com/dotnet/razor-tooling/issues> for known issues and to track ongoing work.
+See <https://github.com/dotnet/razor/issues> for known issues and to track ongoing work.
 
 ## Clone the source code
 
 For a new copy of the project, run:
 
 ```ps1
-git clone https://github.com/dotnet/razor-tooling.git
+git clone https://github.com/dotnet/razor.git
 ```
 
 ## Install pre-requisites
 
 ### Windows
 
-Building Razor Tooling on Windows requires:
+Building Razor on Windows requires:
 
 * Windows 10, version 1803 or newer
 * At least 10 GB of disk space and a good internet connection (our build scripts download a lot of tools and dependencies)
@@ -27,7 +27,7 @@ Building Razor Tooling on Windows requires:
 
 ### macOS/Linux
 
-Building Razor Tooling on macOS or Linux requires:
+Building Razor on macOS or Linux requires:
 
 * If using macOS, you need macOS Sierra or newer.
 * If using Linux, you need a machine with all .NET Core Linux prerequisites: <https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites>

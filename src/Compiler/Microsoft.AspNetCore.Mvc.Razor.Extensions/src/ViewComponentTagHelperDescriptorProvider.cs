@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -40,10 +40,10 @@ public sealed class ViewComponentTagHelperDescriptorProvider : RazorEngineFeatur
         var types = new List<INamedTypeSymbol>();
         var visitor = new ViewComponentTypeVisitor(vcAttribute, nonVCAttribute, types);
 
-        var targetAssembly = context.Items.GetTargetAssembly();
-        if (targetAssembly is not null)
+        var targetSymbol = context.Items.GetTargetSymbol();
+        if (targetSymbol is not null)
         {
-            visitor.Visit(targetAssembly.GlobalNamespace);
+            visitor.Visit(targetSymbol);
         }
         else
         {

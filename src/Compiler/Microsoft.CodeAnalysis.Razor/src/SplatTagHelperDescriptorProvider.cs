@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -37,8 +37,8 @@ internal class SplatTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             return;
         }
 
-        var targetAssembly = context.Items.GetTargetAssembly();
-        if (targetAssembly is not null && !SymbolEqualityComparer.Default.Equals(targetAssembly, renderTreeBuilder.ContainingAssembly))
+        var targetSymbol = context.Items.GetTargetSymbol();
+        if (targetSymbol is not null && !SymbolEqualityComparer.Default.Equals(targetSymbol, renderTreeBuilder.ContainingAssembly))
         {
             return;
         }

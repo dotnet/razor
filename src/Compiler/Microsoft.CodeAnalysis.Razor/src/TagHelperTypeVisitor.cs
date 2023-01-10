@@ -19,6 +19,11 @@ internal class TagHelperTypeVisitor : SymbolVisitor
         _results = results;
     }
 
+    public override void VisitAssembly(IAssemblySymbol symbol)
+    {
+        Visit(symbol.GlobalNamespace);
+    }
+
     public override void VisitNamedType(INamedTypeSymbol symbol)
     {
         if (IsTagHelper(symbol))

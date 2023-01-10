@@ -1,4 +1,4 @@
-# Running Microbenchmarks
+﻿# Running Microbenchmarks
 
 Compile the solution in Release mode (so binaries are available in release)
 
