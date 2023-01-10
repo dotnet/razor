@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePhaseBase
+internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePhaseBase
 {
     protected override void ExecuteCore(RazorCodeDocument codeDocument)
     {

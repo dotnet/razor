@@ -58,24 +58,24 @@ public static class RazorCodeDocumentExtensions
         document.Items[typeof(TagHelpersHolder)] = new TagHelpersHolder(tagHelpers);
     }
 
-    internal static IReadOnlyList<TagHelperDescriptor> GetReferencedTagHelpers(this RazorCodeDocument document)
+    internal static ISet<TagHelperDescriptor> GetReferencedTagHelpers(this RazorCodeDocument document)
     {
         if (document == null)
         {
             throw new ArgumentNullException(nameof(document));
         }
 
-        return (document.Items[nameof(GetReferencedTagHelpers)] as TagHelpersHolder)?.TagHelpers;
+        return document.Items[nameof(GetReferencedTagHelpers)] as ISet<TagHelperDescriptor>;
     }
 
-    internal static void SetReferencedTagHelpers(this RazorCodeDocument document, IReadOnlyList<TagHelperDescriptor> tagHelpers)
+    internal static void SetReferencedTagHelpers(this RazorCodeDocument document, ISet<TagHelperDescriptor> tagHelpers)
     {
         if (document == null)
         {
             throw new ArgumentNullException(nameof(document));
         }
 
-        document.Items[nameof(GetReferencedTagHelpers)] = new TagHelpersHolder(tagHelpers);
+        document.Items[nameof(GetReferencedTagHelpers)] = tagHelpers;
     }
 
     public static RazorSyntaxTree GetPreTagHelperSyntaxTree(this RazorCodeDocument document)

@@ -5,7 +5,7 @@
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 
 namespace Microsoft.AspNetCore.Razor.Language;
-internal class DefaultRazorTagHelperRewritePhase : RazorEnginePhaseBase
+internal sealed class DefaultRazorTagHelperRewritePhase : RazorEnginePhaseBase
 {
     protected override void ExecuteCore(RazorCodeDocument codeDocument)
     {
