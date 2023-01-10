@@ -63,6 +63,8 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
         return new RegistrationExtensionResult(ServerCapability, new SumType<bool, RenameOptions>(options));
     }
 
+    public override bool MutatesSolutionState { get; } = true;
+
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName;

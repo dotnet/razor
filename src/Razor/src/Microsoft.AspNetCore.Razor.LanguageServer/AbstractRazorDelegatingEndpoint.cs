@@ -53,7 +53,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
     /// </remarks>
     protected abstract string CustomMessageTarget { get; }
 
-    public bool MutatesSolutionState { get; } = false;
+    public virtual bool MutatesSolutionState { get; } = false;
 
     /// <summary>
     /// The delegated object to send to the <see cref="CustomMessageTarget"/>
