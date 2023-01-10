@@ -60,7 +60,7 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
     public override TextEdit[] GetProjectedDocumentEdits(IRazorGeneratedDocument generatedDocument, TextEdit[] edits)
     {
         var projectedEdits = new List<TextEdit>();
-        var csharpSourceText = generatedDocument.GetSourceText();
+        var csharpSourceText = GetGeneratedSourceText(generatedDocument);
         var lastNewLineAddedToLine = 0;
 
         foreach (var edit in edits)
@@ -265,6 +265,11 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
             throw new ArgumentNullException(nameof(originalRange));
         }
 
+        if (generatedDocument.CodeDocument is not { } codeDocument)
+        {
+            throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
+        }
+
         projectedRange = default;
 
         if ((originalRange.End.Line < originalRange.Start.Line) ||
@@ -276,7 +281,7 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
             return false;
         }
 
-        var sourceText = generatedDocument.CodeDocument.GetSourceText();
+        var sourceText = codeDocument.GetSourceText();
         var range = originalRange;
         if (!IsRangeWithinDocument(range, sourceText))
         {
@@ -324,6 +329,11 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
             throw new ArgumentNullException(nameof(generatedDocument));
         }
 
+        if (generatedDocument.CodeDocument is not { } codeDocument)
+        {
+            throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
+        }
+
         foreach (var mapping in generatedDocument.SourceMappings)
         {
             var generatedSpan = mapping.GeneratedSpan;
@@ -338,7 +348,7 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
                     // Found the generated span that contains the csharp absolute index
 
                     originalIndex = mapping.OriginalSpan.AbsoluteIndex + distanceIntoGeneratedSpan;
-                    var originalLocation = generatedDocument.CodeDocument.Source.Lines.GetLocation(originalIndex);
+                    var originalLocation = codeDocument.Source.Lines.GetLocation(originalIndex);
                     originalPosition = new Position(originalLocation.LineIndex, originalLocation.CharacterIndex);
                     return true;
                 }
@@ -363,6 +373,11 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
             throw new ArgumentNullException(nameof(generatedDocument));
         }
 
+        if (generatedDocument.CodeDocument is not { } codeDocument)
+        {
+            throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
+        }
+
         foreach (var mapping in generatedDocument.SourceMappings)
         {
             var originalSpan = mapping.OriginalSpan;
@@ -383,7 +398,7 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
             {
                 // The "next" C# location is only valid if it is on the same line in the source document
                 // as the requested position.
-                generatedDocument.CodeDocument.GetSourceText().GetLineAndOffset(absoluteIndex, out var hostDocumentLine, out _);
+                codeDocument.GetSourceText().GetLineAndOffset(absoluteIndex, out var hostDocumentLine, out _);
 
                 if (mapping.OriginalSpan.LineIndex == hostDocumentLine)
                 {
@@ -402,7 +417,7 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
 
         static Position GetProjectedPosition(IRazorGeneratedDocument generatedDocument, int projectedIndex)
         {
-            var generatedSource = generatedDocument.GetSourceText();
+            var generatedSource = GetGeneratedSourceText(generatedDocument);
             var generatedLinePosition = generatedSource.Lines.GetLinePosition(projectedIndex);
             var projectedPosition = new Position(generatedLinePosition.Line, generatedLinePosition.Character);
             return projectedPosition;
@@ -585,7 +600,7 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
     {
         originalRange = default;
 
-        var csharpSourceText = generatedDocument.GetSourceText();
+        var csharpSourceText = GetGeneratedSourceText(generatedDocument);
         var range = projectedRange;
         if (!IsRangeWithinDocument(range, csharpSourceText))
         {
@@ -615,9 +630,14 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
 
     private bool TryMapFromProjectedDocumentRangeInclusive(IRazorGeneratedDocument generatedDocument, Range projectedRange, [NotNullWhen(returnValue: true)] out Range? originalRange)
     {
+        if (generatedDocument.CodeDocument is not { } codeDocument)
+        {
+            throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
+        }
+
         originalRange = default;
 
-        var csharpSourceText = generatedDocument.GetSourceText();
+        var csharpSourceText = GetGeneratedSourceText(generatedDocument);
         var projectedRangeAsSpan = projectedRange.AsTextSpan(csharpSourceText);
         var range = projectedRange;
         var startIndex = projectedRangeAsSpan.Start;
@@ -659,7 +679,7 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
             // We're intersecting or overlapping a single mapping, lets choose that.
 
             var mapping = candidateMappings[0];
-            originalRange = ConvertMapping(generatedDocument.CodeDocument.Source, mapping);
+            originalRange = ConvertMapping(codeDocument.Source, mapping);
             return true;
         }
         else
@@ -696,6 +716,11 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
 
     private bool TryMapFromProjectedDocumentRangeInferred(IRazorGeneratedDocument generatedDocument, Range projectedRange, [NotNullWhen(returnValue: true)] out Range? originalRange)
     {
+        if (generatedDocument.CodeDocument is not { } codeDocument)
+        {
+            throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
+        }
+
         // Inferred mapping behavior is a superset of inclusive mapping behavior so if the range is "inclusive" lets use that mapping.
         if (TryMapFromProjectedDocumentRangeInclusive(generatedDocument, projectedRange, out originalRange))
         {
@@ -705,7 +730,7 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
         // Doesn't map so lets try and infer some mappings
 
         originalRange = default;
-        var csharpSourceText = generatedDocument.GetSourceText();
+        var csharpSourceText = GetGeneratedSourceText(generatedDocument);
         var projectedRangeAsSpan = projectedRange.AsTextSpan(csharpSourceText);
         SourceMapping? mappingBeforeProjectedRange = null;
         SourceMapping? mappingAfterProjectedRange = null;
@@ -735,7 +760,7 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
             return false;
         }
 
-        var sourceDocument = generatedDocument.CodeDocument.Source;
+        var sourceDocument = codeDocument.Source;
         var originalSpanBeforeProjectedRange = mappingBeforeProjectedRange.OriginalSpan;
         var originalEndBeforeProjectedRange = originalSpanBeforeProjectedRange.AbsoluteIndex + originalSpanBeforeProjectedRange.Length;
         var originalEndPositionBeforeProjectedRange = sourceDocument.Lines.GetLocation(originalEndBeforeProjectedRange);
@@ -919,5 +944,15 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
         {
             return null;
         }
+    }
+
+    private static SourceText GetGeneratedSourceText(IRazorGeneratedDocument generatedDocument)
+    {
+        if (generatedDocument.CodeDocument is not { } codeDocument)
+        {
+            throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
+        }
+
+        return codeDocument.GetGeneratedSourceText(generatedDocument);
     }
 }
