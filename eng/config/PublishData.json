@@ -1,14 +1,14 @@
 {
   "branches": {
-    "main": {
+    "release/17.4": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.4",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[17.5p2]"
+      "insertionTitlePrefix": "[17.4]"
     }
   }
 }
