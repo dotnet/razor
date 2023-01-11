@@ -188,6 +188,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         if (!document.TryGetText(out var sourceText))
         {
             Debug.Fail("Document source text should already be available.");
+            return;
         }
 
         var convertedDiagnostics = diagnostics.Select(razorDiagnostic => RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText));

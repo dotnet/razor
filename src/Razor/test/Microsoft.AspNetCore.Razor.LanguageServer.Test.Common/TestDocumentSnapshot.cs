@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
@@ -15,11 +15,14 @@ internal class TestDocumentSnapshot : DefaultDocumentSnapshot
 {
     private RazorCodeDocument? _codeDocument;
 
-    public static TestDocumentSnapshot Create(string filePath) => Create(filePath, string.Empty);
+    public static TestDocumentSnapshot Create(string filePath)
+        => Create(filePath, string.Empty);
 
-    public static TestDocumentSnapshot Create(string filePath, VersionStamp version) => Create(filePath, string.Empty, version);
+    public static TestDocumentSnapshot Create(string filePath, VersionStamp version)
+        => Create(filePath, string.Empty, version);
 
-    public static TestDocumentSnapshot Create(string filePath, string text) => Create(filePath, text, VersionStamp.Default);
+    public static TestDocumentSnapshot Create(string filePath, string text)
+        => Create(filePath, text, VersionStamp.Default);
 
     public static TestDocumentSnapshot Create(string filePath, string text, VersionStamp version)
     {
@@ -53,10 +56,8 @@ internal class TestDocumentSnapshot : DefaultDocumentSnapshot
         return Task.FromResult(_codeDocument);
     }
 
-    public override IReadOnlyList<DocumentSnapshot> GetImports()
-    {
-        return Array.Empty<DocumentSnapshot>();
-    }
+    public override ImmutableArray<DocumentSnapshot> GetImports()
+        => ImmutableArray<DocumentSnapshot>.Empty;
 
     public override bool TryGetGeneratedOutput(out RazorCodeDocument result)
     {

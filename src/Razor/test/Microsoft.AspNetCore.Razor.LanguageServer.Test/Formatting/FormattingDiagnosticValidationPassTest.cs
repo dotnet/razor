@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -168,7 +169,7 @@ public class Foo { }
         var documentSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
         documentSnapshot
             .Setup(d => d.GetImports())
-            .Returns(Array.Empty<DocumentSnapshot>());
+            .Returns(ImmutableArray<DocumentSnapshot>.Empty);
         documentSnapshot
             .Setup(d => d.GetGeneratedOutputAsync())
             .ReturnsAsync(codeDocument);

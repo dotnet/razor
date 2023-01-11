@@ -215,9 +215,9 @@ public class FormattingTestBase : RazorIntegrationTestBase
     }
 
     protected static TextEdit Edit(int startLine, int startChar, int endLine, int endChar, string newText)
-        => new TextEdit()
+        => new()
         {
-            Range = new VisualStudio.LanguageServer.Protocol.Range
+            Range = new Range
             {
                 Start = new Position(startLine, startChar),
                 End = new Position(endLine, endChar),
@@ -286,7 +286,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             .ReturnsAsync(codeDocument);
         documentSnapshot
             .Setup(d => d.GetImports())
-            .Returns(new[] { importsSnapshot.Object });
+            .Returns(ImmutableArray.Create(importsSnapshot.Object));
         documentSnapshot
             .Setup(d => d.Project.GetProjectEngine())
             .Returns(projectEngine);
@@ -308,11 +308,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
 
     private static string GetProjectDirectory()
     {
-        var repoRoot = SearchUp(AppContext.BaseDirectory, "global.json");
-        if (repoRoot is null)
-        {
-            repoRoot = AppContext.BaseDirectory;
-        }
+        var repoRoot = SearchUp(AppContext.BaseDirectory, "global.json") ?? AppContext.BaseDirectory;
 
         var assemblyName = typeof(FormattingTestBase).Assembly.GetName().Name;
         var projectDirectory = Path.Combine(repoRoot, "src", "Razor", "test", assemblyName!);

@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
@@ -13,6 +12,9 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal class DefaultDocumentSnapshot : DocumentSnapshot
 {
+    public DefaultProjectSnapshot ProjectInternal { get; }
+    public DocumentState State { get; }
+
     public DefaultDocumentSnapshot(DefaultProjectSnapshot project, DocumentState state)
     {
         if (project is null)
@@ -29,10 +31,6 @@ internal class DefaultDocumentSnapshot : DocumentSnapshot
         State = state;
     }
 
-    public DefaultProjectSnapshot ProjectInternal { get; }
-
-    public DocumentState State { get; }
-
     public override string FileKind => State.HostDocument.FileKind;
 
     public override string FilePath => State.HostDocument.FilePath;
@@ -43,19 +41,14 @@ internal class DefaultDocumentSnapshot : DocumentSnapshot
 
     public override bool SupportsOutput => true;
 
-    public override IReadOnlyList<DocumentSnapshot> GetImports()
-    {
-        return State.GetImports(ProjectInternal);
-    }
+    public override ImmutableArray<DocumentSnapshot> GetImports()
+        => State.GetImports(ProjectInternal);
 
     public override Task<SourceText> GetTextAsync()
-    {
-        return State.GetTextAsync();
-    }
+        => State.GetTextAsync();
+
     public override Task<VersionStamp> GetTextVersionAsync()
-    {
-        return State.GetTextVersionAsync();
-    }
+        => State.GetTextVersionAsync();
 
     public override async Task<RazorCodeDocument> GetGeneratedOutputAsync()
     {
@@ -63,17 +56,13 @@ internal class DefaultDocumentSnapshot : DocumentSnapshot
         return output;
     }
 
-    public override bool TryGetText(out SourceText result)
-    {
-        return State.TryGetText(out result);
-    }
+    public override bool TryGetText([NotNullWhen(true)] out SourceText? result)
+        => State.TryGetText(out result);
 
     public override bool TryGetTextVersion(out VersionStamp result)
-    {
-        return State.TryGetTextVersion(out result);
-    }
+        => State.TryGetTextVersion(out result);
 
-    public override bool TryGetGeneratedOutput(out RazorCodeDocument result)
+    public override bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
     {
         if (State.IsGeneratedOutputResultAvailable)
         {

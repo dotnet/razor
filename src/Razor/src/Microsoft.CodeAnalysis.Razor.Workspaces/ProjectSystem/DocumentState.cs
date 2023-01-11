@@ -3,11 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -92,7 +94,7 @@ internal class DocumentState
         return ComputedState.GetGeneratedOutputAndVersionAsync(project, document);
     }
 
-    public IReadOnlyList<DocumentSnapshot> GetImports(DefaultProjectSnapshot project)
+    public ImmutableArray<DocumentSnapshot> GetImports(DefaultProjectSnapshot project)
     {
         return GetImportsCore(project);
     }
@@ -129,16 +131,16 @@ internal class DocumentState
 
     public bool TryGetText([NotNullWhen(true)] out SourceText? result)
     {
-        if (_sourceText != null)
+        if (_sourceText is { } sourceText)
         {
-            result = _sourceText;
+            result = sourceText;
             return true;
         }
 
-        if (_loaderTask != null && _loaderTask.IsCompleted)
+        if (_loaderTask is { } loaderTask && loaderTask.IsCompleted)
         {
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-            result = _loaderTask.Result.Text;
+            result = loaderTask.Result.Text;
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
             return true;
         }
@@ -149,16 +151,16 @@ internal class DocumentState
 
     public bool TryGetTextVersion(out VersionStamp result)
     {
-        if (_version != null)
+        if (_version is { } version)
         {
-            result = _version.Value;
+            result = version;
             return true;
         }
 
-        if (_loaderTask != null && _loaderTask.IsCompleted)
+        if (_loaderTask is { } loaderTask && loaderTask.IsCompleted)
         {
 #pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
-            result = _loaderTask.Result.Version;
+            result = loaderTask.Result.Version;
 #pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
             return true;
         }
@@ -238,7 +240,7 @@ internal class DocumentState
         return new DocumentState(Services, HostDocument, null, null, loader);
     }
 
-    private IReadOnlyList<DocumentSnapshot> GetImportsCore(DefaultProjectSnapshot project)
+    private ImmutableArray<DocumentSnapshot> GetImportsCore(DefaultProjectSnapshot project)
     {
         var projectEngine = project.GetProjectEngine();
         var importFeatures = projectEngine.ProjectFeatures.OfType<IImportProjectFeature>();
@@ -246,10 +248,11 @@ internal class DocumentState
         var importItems = importFeatures.SelectMany(f => f.GetImports(projectItem));
         if (importItems is null)
         {
-            return Array.Empty<DocumentSnapshot>();
+            return ImmutableArray<DocumentSnapshot>.Empty;
         }
 
-        var imports = new List<DocumentSnapshot>();
+        using var _ = ArrayBuilderPool<DocumentSnapshot>.GetPooledObject(out var imports);
+
         foreach (var item in importItems)
         {
             if (item.PhysicalPath is null)
@@ -271,7 +274,7 @@ internal class DocumentState
             }
         }
 
-        return imports;
+        return imports.ToImmutable();
     }
 
     // See design notes on ProjectState.ComputedStateTracker.

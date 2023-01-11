@@ -109,7 +109,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
                 Assert.Equal(processedOpenDocument.FilePath.TrimStart('/'), @params.Uri.AbsolutePath);
                 var diagnostic = Assert.Single(@params.Diagnostics);
                 var razorDiagnostic = s_singleDiagnostic[0];
-                processedOpenDocument.TryGetText(out var sourceText);
+                Assert.True(processedOpenDocument.TryGetText(out var sourceText));
                 var expectedDiagnostic = RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText);
                 Assert.Equal(expectedDiagnostic.Message, diagnostic.Message);
                 Assert.Equal(expectedDiagnostic.Severity, diagnostic.Severity);
@@ -145,7 +145,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
                 Assert.Equal(processedOpenDocument.FilePath.TrimStart('/'), @params.Uri.AbsolutePath);
                 var diagnostic = Assert.Single(@params.Diagnostics);
                 var razorDiagnostic = s_singleDiagnostic[0];
-                processedOpenDocument.TryGetText(out var sourceText);
+                Assert.True(processedOpenDocument.TryGetText(out var sourceText));
                 var expectedDiagnostic = RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText);
                 Assert.Equal(expectedDiagnostic.Message, diagnostic.Message);
                 Assert.Equal(expectedDiagnostic.Severity, diagnostic.Severity);

@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -16,7 +15,7 @@ internal class DefaultImportDocumentSnapshot : DocumentSnapshot
 {
     private readonly ProjectSnapshot _project;
     private readonly RazorProjectItem _importItem;
-    private SourceText _sourceText;
+    private SourceText? _sourceText;
     private readonly VersionStamp _version;
 
     public DefaultImportDocumentSnapshot(ProjectSnapshot project, RazorProjectItem item)
@@ -26,25 +25,19 @@ internal class DefaultImportDocumentSnapshot : DocumentSnapshot
         _version = VersionStamp.Default;
     }
 
-    public override string FileKind => null;
-
-    public override string FilePath => null;
-
-    public override string TargetPath => null;
+    public override string FileKind => null!;
+    public override string FilePath => null!;
+    public override string TargetPath => null!;
 
     public override bool SupportsOutput => false;
 
     public override ProjectSnapshot Project => _project;
 
     public override Task<RazorCodeDocument> GetGeneratedOutputAsync()
-    {
-        throw new NotSupportedException();
-    }
+        => throw new NotSupportedException();
 
-    public override IReadOnlyList<DocumentSnapshot> GetImports()
-    {
-        return Array.Empty<DocumentSnapshot>();
-    }
+    public override ImmutableArray<DocumentSnapshot> GetImports()
+        => ImmutableArray<DocumentSnapshot>.Empty;
 
     public async override Task<SourceText> GetTextAsync()
     {
@@ -63,11 +56,11 @@ internal class DefaultImportDocumentSnapshot : DocumentSnapshot
         return Task.FromResult(_version);
     }
 
-    public override bool TryGetText(out SourceText result)
+    public override bool TryGetText([NotNullWhen(true)] out SourceText? result)
     {
-        if (_sourceText != null)
+        if (_sourceText is { } sourceText)
         {
-            result = _sourceText;
+            result = sourceText;
             return true;
         }
 
@@ -81,8 +74,6 @@ internal class DefaultImportDocumentSnapshot : DocumentSnapshot
         return true;
     }
 
-    public override bool TryGetGeneratedOutput(out RazorCodeDocument result)
-    {
-        throw new NotSupportedException();
-    }
+    public override bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result)
+        => throw new NotSupportedException();
 }
