@@ -23,7 +23,7 @@ public class WrapWithTagTests : AbstractRazorEditorTest
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
         // Act
-        TestServices.Input.Send("{ALT}{SHIFT}w");
+        TestServices.Input.Send("%+w");
 
         // Assert
         await TestServices.Editor.WaitForCurrentLineTextAsync("<div><h1>Counter</h1></div>", ControlledHangMitigatingCancellationToken);
@@ -40,7 +40,7 @@ public class WrapWithTagTests : AbstractRazorEditorTest
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
         // Act
-        TestServices.Input.Send("{ALT}{SHIFT}w");
+        TestServices.Input.Send("%+w");
 
         // Assert
         await TestServices.Editor.WaitForCurrentLineTextAsync("<p><div><em>Loading...</em></div></p>", ControlledHangMitigatingCancellationToken);
@@ -57,7 +57,7 @@ public class WrapWithTagTests : AbstractRazorEditorTest
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
         // Act
-        TestServices.Input.Send("{ALT}{SHIFT}w");
+        TestServices.Input.Send("%+w");
 
         // Assert
         await TestServices.Editor.WaitForCurrentLineTextAsync("<div><SurveyPrompt Title=\"How is Blazor working for you?\" /></div>", ControlledHangMitigatingCancellationToken);
