@@ -162,7 +162,7 @@ internal static class IServiceCollectionExtensions
 
     public static void AddOptionsServices(this IServiceCollection services)
     {
-        services.AddSingleton<RazorConfigurationService, DefaultRazorConfigurationService>();
+        services.AddSingleton<IConfigurationSyncService, DefaultRazorConfigurationService>();
         services.AddSingleton<RazorLSPOptionsMonitor>();
         services.AddSingleton<IOptionsMonitor<RazorLSPOptions>, RazorLSPOptionsMonitor>();
     }

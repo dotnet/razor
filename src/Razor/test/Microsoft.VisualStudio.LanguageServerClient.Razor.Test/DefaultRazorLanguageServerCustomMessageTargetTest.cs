@@ -34,13 +34,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
 {
     private readonly ITextBuffer _textBuffer;
-    private readonly EditorSettingsManager _editorSettingsManager;
+    private readonly IClientSettingsManager _editorSettingsManager;
 
     public DefaultRazorLanguageServerCustomMessageTargetTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _textBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
-        _editorSettingsManager = new DefaultEditorSettingsManager(Array.Empty<EditorSettingsChangedTrigger>());
+        _editorSettingsManager = new EditorSettingsManager(Array.Empty<EditorSettingsChangedTrigger>());
     }
 
     [Fact]

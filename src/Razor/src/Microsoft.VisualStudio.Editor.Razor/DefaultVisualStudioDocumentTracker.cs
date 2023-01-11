@@ -106,7 +106,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
 
     public override RazorConfiguration? Configuration => _projectSnapshot?.Configuration;
 
-    public override EditorSettings EditorSettings => _workspaceEditorSettings.Current;
+    public override ClientSpaceSettings EditorSettings => _workspaceEditorSettings.Current.EditorSettings;
 
     public override IReadOnlyList<TagHelperDescriptor>? TagHelpers => ProjectSnapshot?.TagHelpers;
 
@@ -272,7 +272,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
     }
 
     // Internal for testing
-    internal void EditorSettingsManager_Changed(object sender, EditorSettingsChangedEventArgs args)
+    internal void EditorSettingsManager_Changed(object sender, ClientSettingsChangedEventArgs args)
         => _ = OnContextChangedAsync(ContextChangeKind.EditorSettingsChanged);
 
     // Internal for testing

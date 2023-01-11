@@ -45,7 +45,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     private readonly JoinableTaskFactory _joinableTaskFactory;
     private readonly LSPRequestInvoker _requestInvoker;
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
-    private readonly EditorSettingsManager _editorSettingsManager;
+    private readonly IClientSettingsManager _editorSettingsManager;
     private readonly LSPDocumentSynchronizer _documentSynchronizer;
     private readonly ILogger _logger;
 
@@ -55,7 +55,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         JoinableTaskContext joinableTaskContext,
         LSPRequestInvoker requestInvoker,
         FormattingOptionsProvider formattingOptionsProvider,
-        EditorSettingsManager editorSettingsManager,
+        IClientSettingsManager editorSettingsManager,
         LSPDocumentSynchronizer documentSynchronizer,
         OutputWindowLogger logger)
     {
@@ -553,9 +553,12 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         {
             // Right now in VS we only care about editor settings, but we should update this logic later if
             // we want to support Razor and HTML settings as well.
-            var setting = item.Section == "vs.editor.razor"
-                ? _editorSettingsManager.Current
-                : new object();
+            var setting = item.Section switch
+            {
+                "vs.editor.razor" => _editorSettingsManager.GetClientSettings(),
+                _ => new object()
+            };
+
             result.Add(setting);
         }
 

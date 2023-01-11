@@ -34,8 +34,8 @@ public class RazorDocumentOptionsServiceTest : WorkspaceTestBase
     public async Task RazorDocumentOptionsService_ReturnsCorrectOptions_UseTabs()
     {
         // Arrange
-        var editorSettings = new EditorSettings(indentWithTabs: true, indentSize: 4);
-        var editorSettingsManager = new DefaultEditorSettingsManager(Array.Empty<EditorSettingsChangedTrigger>());
+        var editorSettings = new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 4);
+        var editorSettingsManager = new EditorSettingsManager(Array.Empty<EditorSettingsChangedTrigger>());
         editorSettingsManager.Update(editorSettings);
         var optionsService = new RazorDocumentOptionsService(editorSettingsManager);
 
@@ -61,8 +61,8 @@ public class RazorDocumentOptionsServiceTest : WorkspaceTestBase
     public async Task RazorDocumentOptionsService_ReturnsCorrectOptions_UseSpaces()
     {
         // Arrange
-        var editorSettings = new EditorSettings(indentWithTabs: false, indentSize: 2);
-        var editorSettingsManager = new DefaultEditorSettingsManager(Array.Empty<EditorSettingsChangedTrigger>());
+        var editorSettings = new ClientSpaceSettings(IndentWithTabs: false, IndentSize: 2);
+        var editorSettingsManager = new EditorSettingsManager(Array.Empty<EditorSettingsChangedTrigger>());
         editorSettingsManager.Update(editorSettings);
         var optionsService = new RazorDocumentOptionsService(editorSettingsManager);
 

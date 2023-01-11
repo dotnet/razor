@@ -5,5 +5,5 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal abstract class EditorSettingsChangedTrigger
 {
-    public abstract void Initialize(EditorSettingsManager editorSettingsManager);
+    public abstract void Initialize(IClientSettingsManager editorSettingsManager);
 }

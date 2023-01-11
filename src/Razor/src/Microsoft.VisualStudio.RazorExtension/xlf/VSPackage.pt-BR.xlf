@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../VSPackage.resx">
     <body>
+      <trans-unit id="1050">
+        <source>Advanced</source>
+        <target state="new">Advanced</target>
+        <note>Advanced Page Group. Name must match the pkgdef definition</note>
+      </trans-unit>
       <trans-unit id="110">
         <source>Razor (ASP.NET Core)</source>
         <target state="translated">Razor (ASP.NET Core)</target>
@@ -12,9 +17,24 @@
         <target state="translated">Fornece serviços de idiomas para ASP.NET Core Razor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Formatting">
+        <source>Formatting</source>
+        <target state="new">Formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="RazorSyntaxVisualizer">
         <source>Razor Syntax Visualizer</source>
         <target state="translated">Razor Syntax Visualizer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_FormattingOnTypeDescription">
+        <source>If true, formatting will be enabled while typing</source>
+        <target state="new">If true, formatting will be enabled while typing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_FormattingOnTypeDisplayName">
+        <source>Format On Type</source>
+        <target state="new">Format On Type</target>
         <note />
       </trans-unit>
     </body>
