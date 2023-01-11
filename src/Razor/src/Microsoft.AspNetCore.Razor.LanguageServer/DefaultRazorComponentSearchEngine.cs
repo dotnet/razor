@@ -108,7 +108,7 @@ internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
             return null;
         }
 
-        var lookupSymbolName = RemoveGenericContent(typeName);
+        var lookupSymbolName = DefaultRazorComponentSearchEngine.RemoveGenericContent(typeName);
 
         var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
             () => _projectSnapshotManager.Projects.ToArray(),
@@ -119,7 +119,10 @@ internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
             foreach (var path in project.DocumentFilePaths)
             {
                 // Get document and code document
-                var documentSnapshot = project.GetDocument(path);
+                if (project.GetDocument(path) is not { } documentSnapshot)
+                {
+                    continue;
+                }
 
                 // Rule out if not Razor component with correct name
                 if (!IsPathCandidateForComponent(documentSnapshot, lookupSymbolName))
@@ -146,7 +149,7 @@ internal class DefaultRazorComponentSearchEngine : RazorComponentSearchEngine
         return null;
     }
 
-    private StringSegment RemoveGenericContent(StringSegment typeName)
+    private static StringSegment RemoveGenericContent(StringSegment typeName)
     {
         var genericSeparatorStart = typeName.IndexOf('<');
         if (genericSeparatorStart > 0)

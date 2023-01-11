@@ -47,8 +47,8 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         var closedHostDocument = new HostDocument("C:/project/closed_document.cshtml", "C:/project/closed_document.cshtml");
         testProjectManager.DocumentAdded(hostProject, closedHostDocument, TextLoader.From(textAndVersion));
 
-        _openedDocument = testProjectManager.Projects[0].GetDocument(openedHostDocument.FilePath);
-        _closedDocument = testProjectManager.Projects[0].GetDocument(closedHostDocument.FilePath);
+        _openedDocument = testProjectManager.Projects[0].GetDocument(openedHostDocument.FilePath).AssumeNotNull();
+        _closedDocument = testProjectManager.Projects[0].GetDocument(closedHostDocument.FilePath).AssumeNotNull();
         _projectManager = testProjectManager;
         _testCodeDocument = TestRazorCodeDocument.CreateEmpty();
     }
@@ -69,25 +69,25 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask)
             .Verifiable();
-        using (var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServerDocument, LoggerFactory)
+
+        using var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServerDocument, LoggerFactory)
         {
             BlockBackgroundWorkCompleting = new ManualResetEventSlim(initialState: true),
             NotifyBackgroundWorkCompleting = new ManualResetEventSlim(initialState: false),
-        })
-        {
-            publisher.Initialize(_projectManager);
-            publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument);
-            Assert.True(publisher.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(2)));
-            publisher.NotifyBackgroundWorkCompleting.Reset();
+        };
 
-            // Act
-            publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument);
-            publisher.BlockBackgroundWorkCompleting.Set();
+        publisher.Initialize(_projectManager);
+        publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument);
+        Assert.True(publisher.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(2)));
+        publisher.NotifyBackgroundWorkCompleting.Reset();
 
-            // Assert
-            // Verify that background work starts completing "again"
-            Assert.True(publisher.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(2)));
-        }
+        // Act
+        publisher.DocumentProcessed(_testCodeDocument, processedOpenDocument);
+        publisher.BlockBackgroundWorkCompleting.Set();
+
+        // Assert
+        // Verify that background work starts completing "again"
+        Assert.True(publisher.NotifyBackgroundWorkCompleting.Wait(TimeSpan.FromSeconds(2)));
     }
 
     [Fact]
@@ -97,6 +97,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         var processedOpenDocument = TestDocumentSnapshot.Create(_openedDocument.FilePath);
         var codeDocument = CreateCodeDocument(s_singleDiagnostic);
         processedOpenDocument.With(codeDocument);
+
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         languageServer
             .Setup(server => server.SendNotificationAsync(
@@ -115,16 +116,15 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
                 Assert.Equal(expectedDiagnostic.Range, diagnostic.Range);
             })
             .Returns(Task.CompletedTask);
-        using (var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory))
-        {
-            publisher.Initialize(_projectManager);
 
-            // Act
-            await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        using var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory);
+        publisher.Initialize(_projectManager);
 
-            // Assert
-            languageServer.VerifyAll();
-        }
+        // Act
+        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+
+        // Assert
+        languageServer.VerifyAll();
     }
 
     [Fact]
@@ -153,17 +153,15 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
             })
             .Returns(Task.CompletedTask);
 
-        using (var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory))
-        {
-            publisher.PublishedDiagnostics[processedOpenDocument.FilePath] = s_emptyDiagnostics;
-            publisher.Initialize(_projectManager);
+        using var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory);
+        publisher.PublishedDiagnostics[processedOpenDocument.FilePath] = s_emptyDiagnostics;
+        publisher.Initialize(_projectManager);
 
-            // Act
-            await publisher.PublishDiagnosticsAsync(processedOpenDocument);
+        // Act
+        await publisher.PublishDiagnosticsAsync(processedOpenDocument);
 
-            // Assert
-            languageServer.VerifyAll();
-        }
+        // Assert
+        languageServer.VerifyAll();
     }
 
     [Fact]
@@ -216,14 +214,12 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     {
         // Arrange
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        using (var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory))
-        {
-            publisher.PublishedDiagnostics[_openedDocument.FilePath] = s_singleDiagnostic;
-            publisher.Initialize(_projectManager);
+        using var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory);
+        publisher.PublishedDiagnostics[_openedDocument.FilePath] = s_singleDiagnostic;
+        publisher.Initialize(_projectManager);
 
-            // Act & Assert
-            publisher.ClearClosedDocuments();
-        }
+        // Act & Assert
+        publisher.ClearClosedDocuments();
     }
 
     [Fact]
@@ -231,14 +227,12 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     {
         // Arrange
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        using (var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory))
-        {
-            publisher.PublishedDiagnostics[_closedDocument.FilePath] = s_emptyDiagnostics;
-            publisher.Initialize(_projectManager);
+        using var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory);
+        publisher.PublishedDiagnostics[_closedDocument.FilePath] = s_emptyDiagnostics;
+        publisher.Initialize(_projectManager);
 
-            // Act & Assert
-            publisher.ClearClosedDocuments();
-        }
+        // Act & Assert
+        publisher.ClearClosedDocuments();
     }
 
     [Fact]
@@ -246,18 +240,16 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     {
         // Arrange
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        using (var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory))
-        {
-            publisher.PublishedDiagnostics[_closedDocument.FilePath] = s_emptyDiagnostics;
-            publisher.PublishedDiagnostics[_openedDocument.FilePath] = s_emptyDiagnostics;
-            publisher.Initialize(_projectManager);
+        using var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory);
+        publisher.PublishedDiagnostics[_closedDocument.FilePath] = s_emptyDiagnostics;
+        publisher.PublishedDiagnostics[_openedDocument.FilePath] = s_emptyDiagnostics;
+        publisher.Initialize(_projectManager);
 
-            // Act
-            publisher.ClearClosedDocuments();
+        // Act
+        publisher.ClearClosedDocuments();
 
-            // Assert
-            Assert.NotNull(publisher._documentClosedTimer);
-        }
+        // Assert
+        Assert.NotNull(publisher._documentClosedTimer);
     }
 
     private static RazorCodeDocument CreateCodeDocument(params RazorDiagnostic[] diagnostics)

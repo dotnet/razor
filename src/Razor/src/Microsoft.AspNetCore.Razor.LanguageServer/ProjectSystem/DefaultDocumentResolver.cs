@@ -46,6 +46,6 @@ internal class DefaultDocumentResolver : DocumentResolver
         }
 
         document = project.GetDocument(normalizedPath);
-        return true;
+        return document is not null;
     }
 }

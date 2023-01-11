@@ -275,22 +275,28 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
         {
             case ProjectChangeKind.ProjectAdded:
                 {
-                    var projectSnapshot = args.Newer!;
-                    foreach (var documentFilePath in projectSnapshot.DocumentFilePaths)
+                    var newProject = args.Newer.AssumeNotNull();
+
+                    foreach (var documentFilePath in newProject.DocumentFilePaths)
                     {
-                        var document = projectSnapshot.GetDocument(documentFilePath);
-                        Enqueue(document);
+                        if (newProject.GetDocument(documentFilePath) is { } document)
+                        {
+                            Enqueue(document);
+                        }
                     }
 
                     break;
                 }
             case ProjectChangeKind.ProjectChanged:
                 {
-                    var projectSnapshot = args.Newer!;
-                    foreach (var documentFilePath in projectSnapshot.DocumentFilePaths)
+                    var newProject = args.Newer.AssumeNotNull();
+
+                    foreach (var documentFilePath in newProject.DocumentFilePaths)
                     {
-                        var document = projectSnapshot.GetDocument(documentFilePath);
-                        Enqueue(document);
+                        if (newProject.GetDocument(documentFilePath) is { } document)
+                        {
+                            Enqueue(document);
+                        }
                     }
 
                     break;
@@ -298,13 +304,17 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 
             case ProjectChangeKind.DocumentAdded:
                 {
-                    var projectSnapshot = args.Newer!;
-                    var document = projectSnapshot.GetDocument(args.DocumentFilePath);
-                    Enqueue(document);
+                    var newProject = args.Newer.AssumeNotNull();
+                    var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    foreach (var relatedDocument in projectSnapshot.GetRelatedDocuments(document))
+                    if (newProject.GetDocument(documentFilePath) is { } document)
                     {
-                        Enqueue(relatedDocument);
+                        Enqueue(document);
+
+                        foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
+                        {
+                            Enqueue(relatedDocument);
+                        }
                     }
 
                     break;
@@ -312,13 +322,17 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 
             case ProjectChangeKind.DocumentChanged:
                 {
-                    var projectSnapshot = args.Newer!;
-                    var document = projectSnapshot.GetDocument(args.DocumentFilePath);
-                    Enqueue(document);
+                    var newProject = args.Newer.AssumeNotNull();
+                    var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    foreach (var relatedDocument in projectSnapshot.GetRelatedDocuments(document))
+                    if (newProject.GetDocument(documentFilePath) is { } document)
                     {
-                        Enqueue(relatedDocument);
+                        Enqueue(document);
+
+                        foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
+                        {
+                            Enqueue(relatedDocument);
+                        }
                     }
 
                     break;
@@ -326,13 +340,19 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 
             case ProjectChangeKind.DocumentRemoved:
                 {
-                    var olderProject = args.Older!;
-                    var document = olderProject.GetDocument(args.DocumentFilePath);
+                    var newProject = args.Newer.AssumeNotNull();
+                    var oldProject = args.Older.AssumeNotNull();
+                    var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    foreach (var relatedDocument in olderProject.GetRelatedDocuments(document))
+                    if (oldProject.GetDocument(documentFilePath) is { } document)
                     {
-                        var newerRelatedDocument = args.Newer!.GetDocument(relatedDocument.FilePath);
-                        Enqueue(newerRelatedDocument);
+                        foreach (var relatedDocument in oldProject.GetRelatedDocuments(document))
+                        {
+                            if (newProject.GetDocument(relatedDocument.FilePath) is { } newRelatedDocument)
+                            {
+                                Enqueue(newRelatedDocument);
+                            }
+                        }
                     }
 
                     break;

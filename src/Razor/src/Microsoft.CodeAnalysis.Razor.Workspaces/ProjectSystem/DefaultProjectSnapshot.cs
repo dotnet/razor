@@ -3,8 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -30,7 +31,7 @@ internal class DefaultProjectSnapshot : ProjectSnapshot
 
     public ProjectState State { get; }
 
-    public override RazorConfiguration Configuration => HostProject.Configuration;
+    public override RazorConfiguration? Configuration => HostProject.Configuration;
 
     public override IEnumerable<string> DocumentFilePaths => State.Documents.Keys;
 
@@ -46,9 +47,9 @@ internal class DefaultProjectSnapshot : ProjectSnapshot
 
     public override IReadOnlyList<TagHelperDescriptor> TagHelpers => State.TagHelpers;
 
-    public override ProjectWorkspaceState ProjectWorkspaceState => State.ProjectWorkspaceState;
+    public override ProjectWorkspaceState? ProjectWorkspaceState => State.ProjectWorkspaceState;
 
-    public override DocumentSnapshot GetDocument(string filePath)
+    public override DocumentSnapshot? GetDocument(string filePath)
     {
         lock (_lock)
         {
@@ -59,8 +60,7 @@ internal class DefaultProjectSnapshot : ProjectSnapshot
                 _documents.Add(filePath, result);
             }
 
-            // TODO: Fix nullability of ProjectSnapshot.GetDocument(...) - https://github.com/dotnet/razor/issues/7945
-            return result!;
+            return result;
         }
     }
 
@@ -74,22 +74,32 @@ internal class DefaultProjectSnapshot : ProjectSnapshot
         return State.ImportsToRelatedDocuments.ContainsKey(document.TargetPath);
     }
 
-    public override IEnumerable<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document)
+    public override ImmutableArray<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document)
     {
         if (document is null)
         {
             throw new ArgumentNullException(nameof(document));
         }
 
-        if (State.ImportsToRelatedDocuments.TryGetValue(document.TargetPath, out var relatedDocuments))
+        if (!State.ImportsToRelatedDocuments.TryGetValue(document.TargetPath, out var relatedDocuments))
         {
-            lock (_lock)
-            {
-                return relatedDocuments.Select(GetDocument).ToArray();
-            }
+            return ImmutableArray<DocumentSnapshot>.Empty;
         }
 
-        return Array.Empty<DocumentSnapshot>();
+        lock (_lock)
+        {
+            using var _ = ArrayBuilderPool<DocumentSnapshot>.GetPooledObject(out var builder);
+
+            foreach (var relatedDocumentFilePath in relatedDocuments)
+            {
+                if (GetDocument(relatedDocumentFilePath) is { } relatedDocument)
+                {
+                    builder.Add(relatedDocument);
+                }
+            }
+
+            return builder.ToImmutableArray();
+        }
     }
 
     public override RazorProjectEngine GetProjectEngine()

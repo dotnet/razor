@@ -198,7 +198,7 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
             return false;
         }
 
-        var latestEntry = documentEntries[documentEntries.Count - 1];
+        var latestEntry = documentEntries[^1];
 
         version = latestEntry.Version;
         return true;
@@ -210,8 +210,10 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
         {
             if (DocumentLookup.ContainsKey(documentPath))
             {
-                var document = projectSnapshot.GetDocument(documentPath);
-                MarkAsLatestVersion(document);
+                if (projectSnapshot.GetDocument(documentPath) is { } document)
+                {
+                    MarkAsLatestVersion(document);
+                }
             }
         }
     }

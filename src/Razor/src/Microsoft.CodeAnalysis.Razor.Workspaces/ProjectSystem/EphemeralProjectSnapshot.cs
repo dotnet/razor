@@ -1,11 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -33,19 +33,23 @@ internal class EphemeralProjectSnapshot : ProjectSnapshot
         _projectEngine = new Lazy<RazorProjectEngine>(CreateProjectEngine);
     }
 
-    public override RazorConfiguration Configuration => FallbackRazorConfiguration.Latest;
+    public override RazorConfiguration? Configuration { get; } = FallbackRazorConfiguration.Latest;
 
     public override IEnumerable<string> DocumentFilePaths => Array.Empty<string>();
 
     public override string FilePath { get; }
 
-    public override string RootNamespace { get; }
+    public override string? RootNamespace { get; }
 
     public override VersionStamp Version { get; } = VersionStamp.Default;
 
+    public override LanguageVersion CSharpLanguageVersion { get; } = LanguageVersion.Default;
+
     public override IReadOnlyList<TagHelperDescriptor> TagHelpers { get; } = Array.Empty<TagHelperDescriptor>();
 
-    public override DocumentSnapshot GetDocument(string filePath)
+    public override ProjectWorkspaceState? ProjectWorkspaceState { get; } = null;
+
+    public override DocumentSnapshot? GetDocument(string filePath)
     {
         if (filePath is null)
         {
@@ -65,14 +69,14 @@ internal class EphemeralProjectSnapshot : ProjectSnapshot
         return false;
     }
 
-    public override IEnumerable<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document)
+    public override ImmutableArray<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document)
     {
         if (document is null)
         {
             throw new ArgumentNullException(nameof(document));
         }
 
-        return Array.Empty<DocumentSnapshot>();
+        return ImmutableArray<DocumentSnapshot>.Empty;
     }
 
     public override RazorProjectEngine GetProjectEngine()

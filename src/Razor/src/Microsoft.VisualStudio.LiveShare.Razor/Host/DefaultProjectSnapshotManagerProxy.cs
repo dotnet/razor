@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Threading;
@@ -126,7 +127,7 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
 
         var projectWorkspaceState = new ProjectWorkspaceState(project.TagHelpers, project.CSharpLanguageVersion);
         var projectFilePath = _session.ConvertLocalPathToSharedUri(project.FilePath);
-        var projectHandleProxy = new ProjectSnapshotHandleProxy(projectFilePath, project.Configuration, project.RootNamespace, projectWorkspaceState);
+        var projectHandleProxy = new ProjectSnapshotHandleProxy(projectFilePath, project.Configuration.AssumeNotNull(), project.RootNamespace, projectWorkspaceState);
         return projectHandleProxy;
     }
 

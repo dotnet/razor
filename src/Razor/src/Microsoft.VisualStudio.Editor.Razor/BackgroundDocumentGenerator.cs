@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Internal;
@@ -294,10 +295,10 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
         }
     }
 
-    private void ProjectManager_Changed(object sender, ProjectChangeEventArgs e)
+    private void ProjectManager_Changed(object sender, ProjectChangeEventArgs args)
     {
         // We don't want to do any work on solution close
-        if (e.SolutionIsClosing)
+        if (args.SolutionIsClosing)
         {
             _solutionIsClosing = true;
             return;
@@ -305,24 +306,32 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 
         _solutionIsClosing = false;
 
-        switch (e.Kind)
+        switch (args.Kind)
         {
             case ProjectChangeKind.ProjectAdded:
                 {
-                    var projectSnapshot = e.Newer!;
-                    foreach (var documentFilePath in projectSnapshot.DocumentFilePaths)
+                    var newProject = args.Newer.AssumeNotNull();
+
+                    foreach (var documentFilePath in newProject.DocumentFilePaths)
                     {
-                        Enqueue(projectSnapshot, projectSnapshot.GetDocument(documentFilePath));
+                        if (newProject.GetDocument(documentFilePath) is { } document)
+                        {
+                            Enqueue(newProject, document);
+                        }
                     }
 
                     break;
                 }
             case ProjectChangeKind.ProjectChanged:
                 {
-                    var projectSnapshot = e.Newer!;
-                    foreach (var documentFilePath in projectSnapshot.DocumentFilePaths)
+                    var newProject = args.Newer.AssumeNotNull();
+
+                    foreach (var documentFilePath in newProject.DocumentFilePaths)
                     {
-                        Enqueue(projectSnapshot, projectSnapshot.GetDocument(documentFilePath));
+                        if (newProject.GetDocument(documentFilePath) is { } document)
+                        {
+                            Enqueue(newProject, document);
+                        }
                     }
 
                     break;
@@ -331,13 +340,17 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
             case ProjectChangeKind.DocumentAdded:
             case ProjectChangeKind.DocumentChanged:
                 {
-                    var project = e.Newer!;
-                    var document = project.GetDocument(e.DocumentFilePath);
+                    var newProject = args.Newer.AssumeNotNull();
+                    var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    Enqueue(project, document);
-                    foreach (var relatedDocument in project.GetRelatedDocuments(document))
+                    if (newProject.GetDocument(documentFilePath) is { } document)
                     {
-                        Enqueue(project, relatedDocument);
+                        Enqueue(newProject, document);
+
+                        foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
+                        {
+                            Enqueue(newProject, relatedDocument);
+                        }
                     }
 
                     break;
@@ -347,11 +360,16 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
                 {
                     // For removals use the old snapshot to find the removed document, so we can figure out
                     // what the imports were in the new snapshot.
-                    var document = e.Older!.GetDocument(e.DocumentFilePath);
+                    var newProject = args.Newer.AssumeNotNull();
+                    var oldProject = args.Older.AssumeNotNull();
+                    var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    foreach (var relatedDocument in e.Newer!.GetRelatedDocuments(document))
+                    if (oldProject.GetDocument(documentFilePath) is { } document)
                     {
-                        Enqueue(e.Newer, relatedDocument);
+                        foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
+                        {
+                            Enqueue(newProject, relatedDocument);
+                        }
                     }
 
                     break;
@@ -364,7 +382,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
                 }
 
             default:
-                throw new InvalidOperationException($"Unknown ProjectChangeKind {e.Kind}");
+                throw new InvalidOperationException($"Unknown ProjectChangeKind {args.Kind}");
         }
     }
 }

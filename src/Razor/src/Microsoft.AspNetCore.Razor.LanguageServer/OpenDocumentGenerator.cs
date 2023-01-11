@@ -88,11 +88,14 @@ internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger, IDisposable
         {
             case ProjectChangeKind.ProjectChanged:
                 {
-                    var projectSnapshot = args.Newer!;
-                    foreach (var documentFilePath in projectSnapshot.DocumentFilePaths)
+                    var newProject = args.Newer.AssumeNotNull();
+
+                    foreach (var documentFilePath in newProject.DocumentFilePaths)
                     {
-                        var document = projectSnapshot.GetDocument(documentFilePath);
-                        TryEnqueue(document);
+                        if (newProject.GetDocument(documentFilePath) is { } document)
+                        {
+                            TryEnqueue(document);
+                        }
                     }
 
                     break;
@@ -100,14 +103,17 @@ internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger, IDisposable
 
             case ProjectChangeKind.DocumentAdded:
                 {
-                    var projectSnapshot = args.Newer!;
-                    var document = projectSnapshot.GetDocument(args.DocumentFilePath);
+                    var newProject = args.Newer.AssumeNotNull();
+                    var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    // We don't enqueue the current document because added documents are by default closed.
-
-                    foreach (var relatedDocument in projectSnapshot.GetRelatedDocuments(document))
+                    if (newProject.GetDocument(documentFilePath) is { } document)
                     {
-                        TryEnqueue(relatedDocument);
+                        // We don't enqueue the current document because added documents are by default closed.
+
+                        foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
+                        {
+                            TryEnqueue(relatedDocument);
+                        }
                     }
 
                     break;
@@ -115,14 +121,17 @@ internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger, IDisposable
 
             case ProjectChangeKind.DocumentChanged:
                 {
-                    var projectSnapshot = args.Newer!;
-                    var document = projectSnapshot.GetDocument(args.DocumentFilePath);
+                    var newProject = args.Newer.AssumeNotNull();
+                    var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    TryEnqueue(document);
-
-                    foreach (var relatedDocument in projectSnapshot.GetRelatedDocuments(document))
+                    if (newProject.GetDocument(documentFilePath) is { } document)
                     {
-                        TryEnqueue(relatedDocument);
+                        TryEnqueue(document);
+
+                        foreach (var relatedDocument in newProject.GetRelatedDocuments(document))
+                        {
+                            TryEnqueue(relatedDocument);
+                        }
                     }
 
                     break;
@@ -130,13 +139,19 @@ internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger, IDisposable
 
             case ProjectChangeKind.DocumentRemoved:
                 {
-                    var olderProject = args.Older!;
-                    var document = olderProject.GetDocument(args.DocumentFilePath);
+                    var newProject = args.Newer.AssumeNotNull();
+                    var oldProject = args.Older.AssumeNotNull();
+                    var documentFilePath = args.DocumentFilePath.AssumeNotNull();
 
-                    foreach (var relatedDocument in olderProject.GetRelatedDocuments(document))
+                    if (oldProject.GetDocument(documentFilePath) is { } document)
                     {
-                        var newerRelatedDocument = args.Newer!.GetDocument(relatedDocument.FilePath);
-                        TryEnqueue(newerRelatedDocument);
+                        foreach (var relatedDocument in oldProject.GetRelatedDocuments(document))
+                        {
+                            if (newProject.GetDocument(relatedDocument.FilePath) is { } newRelatedDocument)
+                            {
+                                TryEnqueue(newRelatedDocument);
+                            }
+                        }
                     }
 
                     break;

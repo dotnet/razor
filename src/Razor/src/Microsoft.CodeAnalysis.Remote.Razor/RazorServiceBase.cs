@@ -3,10 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.ServiceHub.Framework;
@@ -57,13 +59,19 @@ internal abstract class RazorServiceBase : IDisposable
 
         public override RazorConfiguration? Configuration { get; }
 
-        public override IEnumerable<string> DocumentFilePaths => Array.Empty<string>();
+        public override IEnumerable<string> DocumentFilePaths { get; } = Array.Empty<string>();
 
         public override string FilePath { get; }
 
         public override string? RootNamespace { get; }
 
         public override VersionStamp Version { get; }
+
+        public override LanguageVersion CSharpLanguageVersion { get; } = LanguageVersion.Default;
+
+        public override IReadOnlyList<TagHelperDescriptor> TagHelpers { get; } = Array.Empty<TagHelperDescriptor>();
+
+        public override ProjectWorkspaceState? ProjectWorkspaceState { get; } = null;
 
         public override DocumentSnapshot? GetDocument(string filePath)
         {
@@ -77,8 +85,10 @@ internal abstract class RazorServiceBase : IDisposable
 
         public override bool IsImportDocument(DocumentSnapshot document) => throw new NotImplementedException();
 
-        public override IEnumerable<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document) => throw new NotImplementedException();
+        public override ImmutableArray<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document)
+            => throw new NotImplementedException();
 
-        public override RazorProjectEngine GetProjectEngine() => throw new NotImplementedException();
+        public override RazorProjectEngine GetProjectEngine()
+            => throw new NotImplementedException();
     }
 }

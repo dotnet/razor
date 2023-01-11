@@ -22,9 +22,11 @@ internal sealed class ProjectRazorJson
         var documents = new List<DocumentSnapshotHandle>();
         foreach (var documentFilePath in project.DocumentFilePaths)
         {
-            var document = project.GetDocument(documentFilePath);
-            var documentHandle = new DocumentSnapshotHandle(document.FilePath, document.TargetPath, document.FileKind);
-            documents.Add(documentHandle);
+            if (project.GetDocument(documentFilePath) is { } document)
+            {
+                var documentHandle = new DocumentSnapshotHandle(document.FilePath, document.TargetPath, document.FileKind);
+                documents.Add(documentHandle);
+            }
         }
 
         Documents = documents;

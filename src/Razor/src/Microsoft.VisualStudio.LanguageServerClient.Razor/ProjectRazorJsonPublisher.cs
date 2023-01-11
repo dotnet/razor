@@ -315,16 +315,15 @@ internal class ProjectRazorJsonPublisher : ProjectSnapshotChangeTrigger
             if (projectSnapshot.DocumentFilePaths.Any(d => AspNetCore.Razor.Language.FileKinds.GetFileKindFromFilePath(d)
                 .Equals(AspNetCore.Razor.Language.FileKinds.Component, StringComparison.OrdinalIgnoreCase)))
             {
-                foreach (var document in projectSnapshot.DocumentFilePaths)
+                foreach (var documentFilePath in projectSnapshot.DocumentFilePaths)
                 {
                     // We want to wait until at least one document has been processed (meaning it became a TagHelper.
                     // Because we don't have a way to tell which TagHelpers were created from the local project just from their descriptors we have to improvise
                     // We assume that a document has been processed if at least one Component matches the name of one of our files.
-                    var fileName = Path.GetFileNameWithoutExtension(document);
+                    var fileName = Path.GetFileNameWithoutExtension(documentFilePath);
 
-                    var documentSnapshot = projectSnapshot.GetDocument(document);
-
-                    if (documentSnapshot.FileKind.Equals(AspNetCore.Razor.Language.FileKinds.Component, StringComparison.OrdinalIgnoreCase) &&
+                    if (projectSnapshot.GetDocument(documentFilePath) is { } documentSnapshot &&
+                        documentSnapshot.FileKind.Equals(AspNetCore.Razor.Language.FileKinds.Component, StringComparison.OrdinalIgnoreCase) &&
                         projectSnapshot.TagHelpers.Any(t => t.Name.EndsWith("." + fileName, StringComparison.OrdinalIgnoreCase)))
                     {
                         // Documents have been processed, lets publish

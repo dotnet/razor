@@ -63,6 +63,8 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
             return document;
         }, DisposalToken);
 
+        Assert.NotNull(unrelatedDocumentSnapshot);
+
         var mainCodeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(documentSnapshot, DisposalToken);
         var unrelatedCodeDocumentReference = await ProcessDocumentAndRetrieveOutputAsync(unrelatedDocumentSnapshot, DisposalToken);
 
@@ -163,8 +165,7 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
             var textLoader = new SourceTextLoader("<p>Hello World</p>", _hostDocument.FilePath);
             _projectManager.DocumentAdded(_hostProject, _hostDocument, textLoader);
             var project = _projectManager.GetLoadedProject(_hostProject.FilePath);
-            var document = project.GetDocument(_hostDocument.FilePath);
-            return document;
+            return project.GetDocument(_hostDocument.FilePath).AssumeNotNull();
         }, cancellationToken);
     }
 
