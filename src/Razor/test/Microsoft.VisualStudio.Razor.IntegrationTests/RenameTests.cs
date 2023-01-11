@@ -109,7 +109,6 @@ public class RenameTests : AbstractRazorEditorTest
 
         // Act
         await TestServices.Editor.InvokeRenameAsync(ControlledHangMitigatingCancellationToken);
-
         TestServices.Input.Send("ZooperDooper{ENTER}");
 
         // Assert
