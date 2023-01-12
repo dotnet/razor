@@ -25,7 +25,6 @@ using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -47,7 +46,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
     private readonly EditorSettingsManager _editorSettingsManager;
     private readonly LSPDocumentSynchronizer _documentSynchronizer;
-    private readonly OutputWindowLogger _outputWindowLogger;
+    private readonly ILogger _logger;
 
     [ImportingConstructor]
     public DefaultRazorLanguageServerCustomMessageTarget(
@@ -57,7 +56,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         FormattingOptionsProvider formattingOptionsProvider,
         EditorSettingsManager editorSettingsManager,
         LSPDocumentSynchronizer documentSynchronizer,
-        OutputWindowLogger outputWindowLogger)
+        ILogger logger)
     {
         if (documentManager is null)
         {
@@ -89,9 +88,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             throw new ArgumentNullException(nameof(documentSynchronizer));
         }
 
-        if (outputWindowLogger is null)
+        if (logger is null)
         {
-            throw new ArgumentNullException(nameof(outputWindowLogger));
+            throw new ArgumentNullException(nameof(logger));
         }
 
         _documentManager = (TrackingLSPDocumentManager)documentManager;
@@ -106,7 +105,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         _formattingOptionsProvider = formattingOptionsProvider;
         _editorSettingsManager = editorSettingsManager;
         _documentSynchronizer = documentSynchronizer;
-        _outputWindowLogger = outputWindowLogger;
+        _logger = logger;
     }
 
     // Testing constructor
@@ -734,6 +733,8 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             return null;
         }
 
+        // Since VS FoldingRanges doesn't poll once it has a non-null result returning a partial result can lock us
+        // into an incomplete view until we edit the document. Better to wait for the other server to be ready.
         if (htmlRanges is null || csharpRanges is null)
         {
             return null;
@@ -1119,7 +1120,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         }
         catch (Exception e)
         {
-            _outputWindowLogger.LogError(e, "Exception thrown in PullDiagnostic delegation");
+            _logger.LogError(e, "Exception thrown in PullDiagnostic delegation");
             // Return null if any of the tasks getting diagnostics results in an error
             return null;
         }
