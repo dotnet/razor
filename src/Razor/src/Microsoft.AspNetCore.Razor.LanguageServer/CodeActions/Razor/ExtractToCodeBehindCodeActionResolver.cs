@@ -76,8 +76,6 @@ internal class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
             Host = string.Empty,
         }.Uri;
 
-        codeBehindUri = new Uri(codeBehindUri.AbsoluteUri);
-
         var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         if (text is null)
         {
