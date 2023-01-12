@@ -68,7 +68,7 @@ internal class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
             return null;
         }
 
-        var codeBehindPath = ExtractToCodeBehindCodeActionResolver.GenerateCodeBehindPath(path);
+        var codeBehindPath = GenerateCodeBehindPath(path);
         var codeBehindUri = new UriBuilder
         {
             Scheme = Uri.UriSchemeFile,
