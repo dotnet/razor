@@ -31,7 +31,7 @@ public class WrapWithTagTests : AbstractRazorEditorTest
         // Open the file
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.FetchDataRazorFile, ControlledHangMitigatingCancellationToken);
 
-        await TestServices.Editor.PlaceCaretAsync("<em", charsOffset: -1, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("<em", charsOffset: 1, ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
