@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ArgumentOutOfRange_NeedNonNegNum">
         <source>Non-negative number required.</source>
-        <target state="new">Non-negative number required.</target>
+        <target state="translated">É necessário um número não negativo.</target>
         <note />
       </trans-unit>
     </body>
