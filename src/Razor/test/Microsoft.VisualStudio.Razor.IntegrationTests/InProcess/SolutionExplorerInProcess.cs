@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using Microsoft.VisualStudio.Razor.IntegrationTests;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Shell;
@@ -140,6 +141,23 @@ internal partial class SolutionExplorerInProcess
         {
             await OpenFileAsync(projectName, fileName, cancellationToken);
         }
+    }
+
+    internal async Task WaitForComponentAsync(string projectName, string componentName, CancellationToken cancellationToken)
+    {
+        var project = await GetProjectAsync(projectName, cancellationToken);
+
+        var localPath = (string)project.Properties.Item("LocalPath").Value;
+        var style = "Debug";
+        var framework = "net6.0";
+
+        var razorJsonPath = Path.Combine(localPath, "obj", style, framework, "project.razor.vs.json");
+
+        await Helper.RetryAsync(ct => {
+            var jsonContents = File.ReadAllText(razorJsonPath);
+
+            return Task.FromResult(jsonContents.Contains($"TypeNameIdentifier\":\"{componentName}\""));
+        }, TimeSpan.FromSeconds(1), cancellationToken);
     }
 
     /// <returns>

@@ -80,9 +80,10 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         }
         else
         {
-            services.AddSingleton<LoggerAdapter>((provider) => {
+            services.AddSingleton<LoggerAdapter>((provider) =>
+            {
                 var loggers = provider.GetServices<ILogger>();
-                if (loggers.Count() is <= 0)
+                if (!loggers.Any())
                 {
                     throw new InvalidOperationException("No loggers were registered");
                 }
