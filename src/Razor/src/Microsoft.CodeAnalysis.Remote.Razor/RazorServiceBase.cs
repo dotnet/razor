@@ -59,7 +59,7 @@ internal abstract class RazorServiceBase : IDisposable
 
         public override RazorConfiguration? Configuration { get; }
 
-        public override IEnumerable<string> DocumentFilePaths { get; } = Array.Empty<string>();
+        public override IEnumerable<string> DocumentFilePaths => Array.Empty<string>();
 
         public override string FilePath { get; }
 
@@ -67,11 +67,11 @@ internal abstract class RazorServiceBase : IDisposable
 
         public override VersionStamp Version { get; }
 
-        public override LanguageVersion CSharpLanguageVersion { get; } = LanguageVersion.Default;
+        public override LanguageVersion CSharpLanguageVersion => LanguageVersion.Default;
 
-        public override IReadOnlyList<TagHelperDescriptor> TagHelpers { get; } = Array.Empty<TagHelperDescriptor>();
+        public override IReadOnlyList<TagHelperDescriptor> TagHelpers => Array.Empty<TagHelperDescriptor>();
 
-        public override ProjectWorkspaceState? ProjectWorkspaceState { get; } = null;
+        public override ProjectWorkspaceState? ProjectWorkspaceState => null;
 
         public override DocumentSnapshot? GetDocument(string filePath)
         {

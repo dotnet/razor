@@ -33,7 +33,7 @@ internal class EphemeralProjectSnapshot : ProjectSnapshot
         _projectEngine = new Lazy<RazorProjectEngine>(CreateProjectEngine);
     }
 
-    public override RazorConfiguration? Configuration { get; } = FallbackRazorConfiguration.Latest;
+    public override RazorConfiguration? Configuration => FallbackRazorConfiguration.Latest;
 
     public override IEnumerable<string> DocumentFilePaths => Array.Empty<string>();
 
@@ -41,13 +41,13 @@ internal class EphemeralProjectSnapshot : ProjectSnapshot
 
     public override string? RootNamespace { get; }
 
-    public override VersionStamp Version { get; } = VersionStamp.Default;
+    public override VersionStamp Version => VersionStamp.Default;
 
-    public override LanguageVersion CSharpLanguageVersion { get; } = LanguageVersion.Default;
+    public override LanguageVersion CSharpLanguageVersion => LanguageVersion.Default;
 
-    public override IReadOnlyList<TagHelperDescriptor> TagHelpers { get; } = Array.Empty<TagHelperDescriptor>();
+    public override IReadOnlyList<TagHelperDescriptor> TagHelpers => Array.Empty<TagHelperDescriptor>();
 
-    public override ProjectWorkspaceState? ProjectWorkspaceState { get; } = null;
+    public override ProjectWorkspaceState? ProjectWorkspaceState => null;
 
     public override DocumentSnapshot? GetDocument(string filePath)
     {
