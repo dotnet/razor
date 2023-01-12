@@ -65,7 +65,7 @@ internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvide
         if (IsTagUnknown(startTag, context))
         {
             AddComponentAccessFromTag(context, startTag, codeActions);
-            ComponentAccessibilityCodeActionProvider.AddCreateComponentFromTag(context, startTag, codeActions);
+            AddCreateComponentFromTag(context, startTag, codeActions);
         }
 
         return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(codeActions);
