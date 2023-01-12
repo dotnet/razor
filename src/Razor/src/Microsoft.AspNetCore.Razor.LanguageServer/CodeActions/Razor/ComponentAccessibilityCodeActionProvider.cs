@@ -65,7 +65,7 @@ internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvide
         if (IsTagUnknown(startTag, context))
         {
             AddComponentAccessFromTag(context, startTag, codeActions);
-            AddCreateComponentFromTag(context, startTag, codeActions);
+            ComponentAccessibilityCodeActionProvider.AddCreateComponentFromTag(context, startTag, codeActions);
         }
 
         return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(codeActions);
@@ -82,7 +82,7 @@ internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvide
         return true;
     }
 
-    private void AddCreateComponentFromTag(RazorCodeActionContext context, MarkupStartTagSyntax startTag, List<RazorVSInternalCodeAction> container)
+    private static void AddCreateComponentFromTag(RazorCodeActionContext context, MarkupStartTagSyntax startTag, List<RazorVSInternalCodeAction> container)
     {
         if (context is null)
         {
@@ -99,6 +99,7 @@ internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvide
 
         var directoryName = Path.GetDirectoryName(path);
         Assumes.NotNull(directoryName);
+        directoryName = FilePathNormalizer.NormalizeDirectory(directoryName);
 
         var newComponentPath = Path.Combine(directoryName, $"{startTag.Name.Content}.razor");
         if (File.Exists(newComponentPath))

@@ -215,6 +215,7 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
         var newFileName = $"{newName}{Path.GetExtension(originalPath)}";
         var directoryName = Path.GetDirectoryName(originalPath);
         Assumes.NotNull(directoryName);
+        directoryName = FilePathNormalizer.NormalizeDirectory(directoryName);
         var newPath = Path.Combine(directoryName, newFileName);
         return newPath;
     }

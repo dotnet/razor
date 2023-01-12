@@ -68,13 +68,15 @@ internal class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
             return null;
         }
 
-        var codeBehindPath = GenerateCodeBehindPath(path);
+        var codeBehindPath = ExtractToCodeBehindCodeActionResolver.GenerateCodeBehindPath(path);
         var codeBehindUri = new UriBuilder
         {
             Scheme = Uri.UriSchemeFile,
             Path = codeBehindPath,
             Host = string.Empty,
         }.Uri;
+
+        codeBehindUri = new Uri(codeBehindUri.AbsoluteUri);
 
         var text = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         if (text is null)
@@ -139,7 +141,7 @@ internal class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
     /// </summary>
     /// <param name="path">The origin file path.</param>
     /// <returns>A non-existent file path with the same base name and a codebehind extension.</returns>
-    private string GenerateCodeBehindPath(string path)
+    private static string GenerateCodeBehindPath(string path)
     {
         var n = 0;
         string codeBehindPath;
@@ -148,6 +150,7 @@ internal class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
             var identifier = n > 0 ? n.ToString(CultureInfo.InvariantCulture) : string.Empty;  // Make it look nice
             var directoryName = Path.GetDirectoryName(path);
             Assumes.NotNull(directoryName);
+            directoryName = FilePathNormalizer.NormalizeDirectory(directoryName);
 
             codeBehindPath = Path.Combine(
                 directoryName,
