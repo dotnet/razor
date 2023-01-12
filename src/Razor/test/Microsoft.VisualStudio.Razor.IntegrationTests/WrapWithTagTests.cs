@@ -1,10 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -35,7 +31,7 @@ public class WrapWithTagTests : AbstractRazorEditorTest
         // Open the file
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.FetchDataRazorFile, ControlledHangMitigatingCancellationToken);
 
-        await TestServices.Editor.PlaceCaretAsync("em", charsOffset: -1, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("<em", charsOffset: -1, ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
