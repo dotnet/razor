@@ -80,7 +80,15 @@ internal class OutputWindowLogger : ILogger
                 return;
             }
 
-            pane.OutputStringThreadSafe(value + Environment.NewLine);
+            // https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.ivsoutputwindowpane.outputstringthreadsafe?view=visualstudiosdk-2022#remarks
+            if (pane is IVsOutputWindowPaneNoPump noPumpPane)
+            {
+                noPumpPane.OutputStringNoPump(value + Environment.NewLine);
+            }
+            else
+            {
+                pane.OutputStringThreadSafe(value + Environment.NewLine);
+            }
         }
 
         private IVsOutputWindowPane GetPane()
