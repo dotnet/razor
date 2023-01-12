@@ -483,6 +483,6 @@ stages:
           componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
           componentBuildProjectName: internal
           sourceBranch: "$(ComponentBranchName)"
-          publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-razor/items?path=/eng/config/PublishData.json&version=release/17.4&api-version=6.0"
+          publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-razor/items?path=/eng/config/PublishData.json&version=release/17.4.x&api-version=6.0"
           publishDataAccessToken: "$(System.AccessToken)"
           dropPath: '$(Pipeline.Workspace)\VSSetup'
