@@ -190,7 +190,7 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
 
     public void AddFileRenameForComponent(List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges, DocumentSnapshot documentSnapshot, string newPath)
     {
-        // VS code expects path to start with '/'
+        // VS Code in Windows expects path to start with '/'
         var updatedOldPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !documentSnapshot.FilePath.StartsWith("/")
             ? '/' + documentSnapshot.FilePath
             : documentSnapshot.FilePath;
@@ -201,7 +201,7 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
             Scheme = Uri.UriSchemeFile,
         }.Uri;
 
-        // VS code expects path to start with '/'
+        // VS Code in Windows expects path to start with '/'
         var updatedNewPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !newPath.StartsWith("/")
             ? '/' + newPath
             : newPath;
@@ -251,12 +251,12 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
             return;
         }
 
+        // VS Code in Windows expects path to start with '/'
         var updatedPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !documentSnapshot.FilePath.StartsWith("/")
             ? "/" + documentSnapshot.FilePath
             : documentSnapshot.FilePath;
         var uri = new UriBuilder
         {
-            // VS code expects path to start with '/'
             Path = updatedPath,
             Host = string.Empty,
             Scheme = Uri.UriSchemeFile,
