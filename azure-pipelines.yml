@@ -482,7 +482,7 @@ stages:
           -TsaPublish $True
 
   - stage: insert
-    dependsOn: publish_using_darc
+    dependsOn: build
     displayName: Insert to VS
     jobs:
     - job: insert
