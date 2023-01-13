@@ -367,6 +367,7 @@ stages:
               --prepareMachine
               /p:DotNetSignType=real
               /p:DotNetPublishUsingPipelines=true
+              /p:OfficialBuildId=$(Build.BuildNumber)
               $(_InternalRuntimeDownloadArgs)
             name: Build
             displayName: Build
@@ -439,6 +440,7 @@ stages:
               --prepareMachine
               /p:DotNetSignType=real
               /p:DotNetPublishUsingPipelines=true
+              /p:OfficialBuildId=$(Build.BuildNumber)
               $(_InternalRuntimeDownloadArgs)
             name: Build
             displayName: Build
