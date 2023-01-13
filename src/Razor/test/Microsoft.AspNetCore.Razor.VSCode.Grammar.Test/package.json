@@ -15,7 +15,7 @@
     "@types/node": "^9.4.7",
     "jest": "^24.9.0",
     "jsdom": "16.5.0",
-    "minimatch": "3.0.5",
+    "minimatch": "3.0.6",
     "node-notifier": "8.0.1",
     "rimraf": "2.6.3",
     "ts-jest": "^24.0.0",
