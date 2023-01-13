@@ -192,13 +192,15 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
     {
         var oldUri = new UriBuilder
         {
-            Path = documentSnapshot.FilePath,
+            // VS code expects path to start with '/'
+            Path = documentSnapshot.FilePath.StartsWith("/") ? documentSnapshot.FilePath : '/' + documentSnapshot.FilePath,
             Host = string.Empty,
             Scheme = Uri.UriSchemeFile,
         }.Uri;
         var newUri = new UriBuilder
         {
-            Path = newPath,
+            // VS code expects path to start with '/'
+            Path = newPath.StartsWith("/") ? newPath : '/' + newPath,
             Host = string.Empty,
             Scheme = Uri.UriSchemeFile,
         }.Uri;
@@ -243,7 +245,8 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
 
         var uri = new UriBuilder
         {
-            Path = documentSnapshot.FilePath,
+            // VS code expects path to start with '/'
+            Path = documentSnapshot.FilePath.StartsWith("/") ? documentSnapshot.FilePath : "/" + documentSnapshot.FilePath,
             Host = string.Empty,
             Scheme = Uri.UriSchemeFile,
         }.Uri;

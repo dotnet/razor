@@ -72,7 +72,8 @@ internal class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
         var codeBehindUri = new UriBuilder
         {
             Scheme = Uri.UriSchemeFile,
-            Path = codeBehindPath,
+            // VS Code expects path to start with '/'
+            Path = codeBehindPath.StartsWith("/") ? codeBehindPath : '/' + codeBehindPath,
             Host = string.Empty,
         }.Uri;
 

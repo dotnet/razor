@@ -61,7 +61,8 @@ internal class CreateComponentCodeActionResolver : RazorCodeActionResolver
         var newComponentUri = new UriBuilder()
         {
             Scheme = Uri.UriSchemeFile,
-            Path = actionParams.Path,
+			// VS code expects path to start with '/'
+			Path = actionParams.Path.StartsWith("/") ? actionParams.Path : '/' + actionParams.Path,
             Host = string.Empty,
         }.Uri;
 
