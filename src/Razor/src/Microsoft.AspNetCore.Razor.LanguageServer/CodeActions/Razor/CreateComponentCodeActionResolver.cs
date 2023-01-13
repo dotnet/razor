@@ -62,9 +62,9 @@ internal class CreateComponentCodeActionResolver : RazorCodeActionResolver
         }
 
 		// VS code expects path to start with '/'
-        var updatedPath = !_languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash || actionParams.Path.StartsWith("/")
-			? actionParams.Path
-			: '/' + actionParams.Path;
+        var updatedPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !actionParams.Path.StartsWith("/")
+			? '/' + actionParams.Path
+			: actionParams.Path;
         var newComponentUri = new UriBuilder()
         {
             Scheme = Uri.UriSchemeFile,

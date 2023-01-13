@@ -76,9 +76,9 @@ internal class ExtractToCodeBehindCodeActionResolver : RazorCodeActionResolver
         var codeBehindPath = GenerateCodeBehindPath(path);
 
         // VS Code in Windows expects path to start with '/'
-        var updatedCodeBehindPath = !_languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash || codeBehindPath.StartsWith("/")
-            ? codeBehindPath
-            : '/' + codeBehindPath;
+        var updatedCodeBehindPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !codeBehindPath.StartsWith("/")
+            ? '/' + codeBehindPath
+            : codeBehindPath;
 
         var codeBehindUri = new UriBuilder
         {
