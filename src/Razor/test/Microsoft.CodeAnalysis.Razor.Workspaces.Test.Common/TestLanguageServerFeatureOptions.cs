@@ -26,4 +26,6 @@ internal class TestLanguageServerFeatureOptions : LanguageServerFeatureOptions
     public override bool SingleServerSupport => false;
 
     public override bool SupportsDelegatedCodeActions => false;
+
+    public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => false;
 }
