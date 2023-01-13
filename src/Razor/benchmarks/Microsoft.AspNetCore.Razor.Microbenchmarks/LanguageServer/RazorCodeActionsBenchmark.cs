@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -31,6 +32,15 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
     private Range? HtmlCodeActionRange { get; set; }
     private RazorRequestContext RazorRequestContext { get; set; }
 
+    public enum FileTypes
+    {
+        Small,
+        Large
+    }
+
+    [ParamsAllValues]
+    public FileTypes FileType { get; set; }
+
     [GlobalSetup]
     public async Task SetupAsync()
     {
@@ -48,27 +58,7 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
         var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
         _filePath = Path.Combine(projectRoot, "Components", "Pages", $"Generated.razor");
 
-        var content = """
-            @using System;
-
-            @{
-                var y = 456;
-            }
-            
-            <|H|div>
-                <span>@DateTime.Now</span>
-                @if (true)
-                {
-                    <span>@y</span>
-                }
-            </div>
-
-            @co|R|de {
-                private void |C|Goo()
-                {
-                }
-            }
-            """;
+        var content = GetFileContents(this.FileType);
 
         var htmlCodeActionIndex = content.IndexOf("|H|");
         content = content.Replace("|H|", "");
@@ -106,6 +96,46 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
                 End = new Position(line, offset)
             };
         }
+    }
+
+    private string GetFileContents(FileTypes fileType)
+    {
+        var sb = new StringBuilder();
+
+        sb.Append("""
+            @using System;
+            """);
+
+        for (var i = 0; i < (fileType == FileTypes.Small ? 1 : 100); i++)
+        {
+            sb.Append($$"""
+            @{
+                var y{{i}} = 456;
+            }
+
+            <div>
+                <p>Hello there Mr {{i}}</p>
+            </div>
+            """);
+        }
+
+        sb.Append("""
+            <|H|div>
+                <span>@DateTime.Now</span>
+                @if (true)
+                {
+                    <span>@y</span>
+                }
+            </div>
+
+            @co|R|de {
+                private void |C|Goo()
+                {
+                }
+            }"
+            """);
+
+        return sb.ToString();
     }
 
     [Benchmark(Description = "Lightbulbs")]
