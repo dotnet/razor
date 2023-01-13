@@ -43,26 +43,29 @@ public class LoggerAdapter : IRazorLogger
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
-        foreach(var logger in _loggers)
+        foreach (var logger in _loggers)
         {
-            logger.Log(logLevel, eventId, state, exception, formatter);
+            if (logger.IsEnabled(logLevel))
+            {
+                logger.Log(logLevel, eventId, state, exception, formatter);
+            }
         }
     }
 
     public void LogEndContext(string message, params object[] @params)
     {
-        foreach(var logger in _loggers)
-        {
-            logger.LogInformation("Exiting: {}", message);
-        }
+        LogInformation("Exiting: {}", message);
     }
 
     public void LogError(string message, params object[] @params)
     {
 #pragma warning disable CA2254 // Template should be a static expression
-        foreach(var logger in _loggers)
+        foreach (var logger in _loggers)
         {
-            logger.LogError(message, @params);
+            if (logger.IsEnabled(LogLevel.Error))
+            {
+                logger.LogError(message, @params);
+            }
         }
 
         if (_telemetryReporter is not null)
@@ -82,9 +85,12 @@ public class LoggerAdapter : IRazorLogger
 
     public void LogException(Exception exception, string? message = null, params object[] @params)
     {
-        foreach(var logger in _loggers)
+        foreach (var logger in _loggers)
         {
-            logger.LogError(exception, message, @params);
+            if (logger.IsEnabled(LogLevel.Error))
+            {
+                logger.LogError(exception, message, @params);
+            }
         }
 
         _telemetryReporter?.ReportFault(exception, message, @params);
@@ -92,33 +98,39 @@ public class LoggerAdapter : IRazorLogger
 
     public void LogInformation(string message, params object[] @params)
     {
-        foreach(var logger in _loggers)
+        foreach (var logger in _loggers)
         {
-            logger.LogInformation(message, @params);
+            if (logger.IsEnabled(LogLevel.Information))
+            {
+                logger.LogInformation(message, @params);
+            }
         }
     }
 
     public void LogDebug(string message, params object[] @params)
     {
-        foreach(var logger in _loggers)
+        foreach (var logger in _loggers)
         {
-            logger.LogDebug(message, @params);
+            if (logger.IsEnabled(LogLevel.Debug))
+            {
+                logger.LogDebug(message, @params);
+            }
         }
     }
 
     public void LogStartContext(string message, params object[] @params)
     {
-        foreach(var logger in _loggers)
-        {
-            logger.LogInformation("Entering: {}", message);
-        }
+        LogInformation("Entering: {}", message);
     }
 
     public void LogWarning(string message, params object[] @params)
     {
-        foreach(var logger in _loggers)
+        foreach (var logger in _loggers)
         {
-            logger.LogWarning(message, @params);
+            if (logger.IsEnabled(LogLevel.Warning))
+            {
+                logger.LogWarning(message, @params);
+            }
         }
 #pragma warning restore CA2254 // Template should be a static expression
     }

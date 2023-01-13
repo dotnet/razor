@@ -136,6 +136,8 @@ public class GoToDefinitionTests : AbstractRazorEditorTest
     {
         // Create the files
         const string MyComponentPath = "MyComponent.cs";
+        const string MyPagePath = "MyPage.razor";
+
         await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
             MyComponentPath,
             """
@@ -153,7 +155,6 @@ public class GoToDefinitionTests : AbstractRazorEditorTest
         await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(ControlledHangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
 
-        const string MyPagePath = "MyPage.razor";
         await TestServices.SolutionExplorer.AddFileAsync(RazorProjectConstants.BlazorProjectName,
             MyPagePath,
             """
@@ -161,7 +162,6 @@ public class GoToDefinitionTests : AbstractRazorEditorTest
             """,
             open: true,
             cancellationToken: ControlledHangMitigatingCancellationToken);
-        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, MyPagePath, ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
