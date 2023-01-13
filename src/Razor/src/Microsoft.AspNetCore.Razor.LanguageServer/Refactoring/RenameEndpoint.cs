@@ -188,19 +188,28 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
         }
     }
 
-    public static void AddFileRenameForComponent(List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges, DocumentSnapshot documentSnapshot, string newPath)
+    public void AddFileRenameForComponent(List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges, DocumentSnapshot documentSnapshot, string newPath)
     {
+        // VS code expects path to start with '/'
+        var updatedOldPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && documentSnapshot.FilePath.StartsWith("/")
+            ? documentSnapshot.FilePath
+            : '/' + documentSnapshot.FilePath;
         var oldUri = new UriBuilder
         {
-            // VS code expects path to start with '/'
-            Path = documentSnapshot.FilePath.StartsWith("/") ? documentSnapshot.FilePath : '/' + documentSnapshot.FilePath,
+
+            Path = updatedOldPath,
             Host = string.Empty,
             Scheme = Uri.UriSchemeFile,
         }.Uri;
+
+        // VS code expects path to start with '/'
+        var updatedNewPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && newPath.StartsWith("/")
+            ? newPath
+            : '/' + newPath;
         var newUri = new UriBuilder
         {
-            // VS code expects path to start with '/'
-            Path = newPath.StartsWith("/") ? newPath : '/' + newPath,
+
+            Path = updatedNewPath,
             Host = string.Empty,
             Scheme = Uri.UriSchemeFile,
         }.Uri;
@@ -221,7 +230,7 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
         return newPath;
     }
 
-    private static async Task AddEditsForCodeDocumentAsync(
+    private async Task AddEditsForCodeDocumentAsync(
         List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges,
         IReadOnlyList<TagHelperDescriptor> originTagHelpers,
         string newName,
@@ -243,10 +252,13 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
             return;
         }
 
+        var updatedPath = _languageServerFeatureOptions.ReturnCodeActionAndRenamePathsWithPrefixedSlash && documentSnapshot.FilePath.StartsWith("/")
+            ? documentSnapshot.FilePath
+            : "/" + documentSnapshot.FilePath;
         var uri = new UriBuilder
         {
             // VS code expects path to start with '/'
-            Path = documentSnapshot.FilePath.StartsWith("/") ? documentSnapshot.FilePath : "/" + documentSnapshot.FilePath,
+            Path = updatedPath,
             Host = string.Empty,
             Scheme = Uri.UriSchemeFile,
         }.Uri;
