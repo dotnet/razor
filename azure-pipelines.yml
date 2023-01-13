@@ -360,12 +360,10 @@ stages:
           - script: eng/common/cibuild.sh
               --restore
               --build
-              --sign
               --pack
               --publish
               --configuration $(_BuildConfig)
               --prepareMachine
-              /p:DotNetSignType=real
               /p:DotNetPublishUsingPipelines=true
               /p:OfficialBuildId=$(Build.BuildNumber)
               $(_InternalRuntimeDownloadArgs)
@@ -433,12 +431,10 @@ stages:
           - script: eng/common/cibuild.sh
               --restore
               --build
-              --sign
               --pack
               --publish
               --configuration $(_BuildConfig)
               --prepareMachine
-              /p:DotNetSignType=real
               /p:DotNetPublishUsingPipelines=true
               /p:OfficialBuildId=$(Build.BuildNumber)
               $(_InternalRuntimeDownloadArgs)
