@@ -181,6 +181,72 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
     }
 
     [Fact]
+    public async Task Handle_AtEndOfCodeDirective_ReturnsResult()
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        var contents = "@page \"/test\"\n@code { private var x = 1; }";
+        var request = new CodeActionParams()
+        {
+            TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+            Range = new Range(),
+        };
+
+        var location = new SourceLocation(contents.IndexOf(" {", StringComparison.Ordinal), -1, -1);
+        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
+
+        var provider = new ExtractToCodeBehindCodeActionProvider();
+
+        // Act
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+
+        // Assert
+        Assert.NotNull(commandOrCodeActionContainer);
+        var codeAction = Assert.Single(commandOrCodeActionContainer);
+        var razorCodeActionResolutionParams = ((JObject)codeAction.Data!).ToObject<RazorCodeActionResolutionParams>();
+        Assert.NotNull(razorCodeActionResolutionParams);
+        var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
+        Assert.NotNull(actionParams);
+        Assert.Equal(14, actionParams.RemoveStart);
+        Assert.Equal(19, actionParams.ExtractStart);
+        Assert.Equal(42, actionParams.ExtractEnd);
+        Assert.Equal(42, actionParams.RemoveEnd);
+    }
+
+    [Fact]
+    public async Task Handle_AtEndOfCodeDirectiveWithNoSpace_ReturnsResult()
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        var contents = "@page \"/test\"\n@code{ private var x = 1; }";
+        var request = new CodeActionParams()
+        {
+            TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+            Range = new Range(),
+        };
+
+        var location = new SourceLocation(contents.IndexOf("{", StringComparison.Ordinal), -1, -1);
+        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
+
+        var provider = new ExtractToCodeBehindCodeActionProvider();
+
+        // Act
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+
+        // Assert
+        Assert.NotNull(commandOrCodeActionContainer);
+        var codeAction = Assert.Single(commandOrCodeActionContainer);
+        var razorCodeActionResolutionParams = ((JObject)codeAction.Data!).ToObject<RazorCodeActionResolutionParams>();
+        Assert.NotNull(razorCodeActionResolutionParams);
+        var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
+        Assert.NotNull(actionParams);
+        Assert.Equal(14, actionParams.RemoveStart);
+        Assert.Equal(19, actionParams.ExtractStart);
+        Assert.Equal(41, actionParams.ExtractEnd);
+        Assert.Equal(41, actionParams.RemoveEnd);
+    }
+
+    [Fact]
     public async Task Handle_InCodeDirective_SupportsFileCreationFalse_ReturnsNull()
     {
         // Arrange

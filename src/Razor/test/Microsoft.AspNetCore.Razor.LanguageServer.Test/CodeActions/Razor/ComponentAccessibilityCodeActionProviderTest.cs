@@ -170,6 +170,33 @@ public class ComponentAccessibilityCodeActionProviderTest : LanguageServerTestBa
     }
 
     [Fact]
+    public async Task Handle_NewComponent_CaretInAttribute_ReturnsResult()
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        var contents = "<NewComponent checked goo=\"blah\"></NewComponent>";
+        var request = new CodeActionParams()
+        {
+            TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+        };
+
+        var location = new SourceLocation(23, -1, -1);
+        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("Component", StringComparison.Ordinal), 9), supportsFileCreation: true);
+
+        var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService());
+
+        // Act
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+
+        // Assert
+        Assert.NotNull(commandOrCodeActionContainer);
+        var command = Assert.Single(commandOrCodeActionContainer);
+        Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, command.Title);
+        Assert.NotNull(command.Data);
+    }
+
+    [Fact]
     public async Task Handle_NewComponent_SupportsFileCreationFalse_ReturnsEmpty()
     {
         // Arrange

@@ -7,6 +7,7 @@ using System.Composition;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
@@ -164,9 +165,9 @@ internal class DefaultTagHelperFactsService : TagHelperFactsService
         return matchingDescriptors;
     }
 
-    internal override IEnumerable<KeyValuePair<string, string>> StringifyAttributes(SyntaxList<RazorSyntaxNode> attributes)
+    internal override List<KeyValuePair<string, string>> StringifyAttributes(SyntaxList<RazorSyntaxNode> attributes)
     {
-        var stringifiedAttributes = new List<KeyValuePair<string, string>>();
+        using var _ =  ListPool<KeyValuePair<string, string>>.GetPooledObject(out var stringifiedAttributes);
 
         for (var i = 0; i < attributes.Count; i++)
         {

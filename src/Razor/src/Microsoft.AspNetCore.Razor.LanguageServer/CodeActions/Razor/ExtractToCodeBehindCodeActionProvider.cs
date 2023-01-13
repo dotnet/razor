@@ -54,8 +54,17 @@ internal class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
             return s_emptyResult;
         }
 
-        var node = owner.Ancestors().FirstOrDefault(n => n.Kind == SyntaxKind.RazorDirective);
-        if (node is not RazorDirectiveSyntax directiveNode)
+        var directiveNode = owner?.Parent switch
+        {
+            // When the caret is '@code$$ {' or '@code$${' then tree is:
+            // RazorDirective -> RazorDirectiveBody -> CSharpCodeBlock -> (MetaCode or TextLiteral)
+            CSharpCodeBlockSyntax { Parent: { Parent: RazorDirectiveSyntax d } } => d,
+            // When the caret is '@$$code' or '@c$$ode' or '@co$$de' or '@cod$$e' then tree is:
+            // RazorDirective -> RazorDirectiveBody -> MetaCode
+            RazorDirectiveBodySyntax { Parent: RazorDirectiveSyntax d } => d,
+            _ => null
+        };
+        if (directiveNode is null)
         {
             return s_emptyResult;
         }
@@ -73,19 +82,19 @@ internal class ExtractToCodeBehindCodeActionProvider : RazorCodeActionProvider
             return s_emptyResult;
         }
 
-        var csharpCodeBlockNode = directiveNode.Body.DescendantNodes().FirstOrDefault(n => n is CSharpCodeBlockSyntax);
+        var csharpCodeBlockNode = (directiveNode.Body as RazorDirectiveBodySyntax)?.CSharpCode;
         if (csharpCodeBlockNode is null)
-        {
-            return s_emptyResult;
-        }
-
-        if (HasUnsupportedChildren(csharpCodeBlockNode))
         {
             return s_emptyResult;
         }
 
         // Do not provide code action if the cursor is inside the code block
         if (context.Location.AbsoluteIndex > csharpCodeBlockNode.SpanStart)
+        {
+            return s_emptyResult;
+        }
+
+        if (HasUnsupportedChildren(csharpCodeBlockNode))
         {
             return s_emptyResult;
         }
