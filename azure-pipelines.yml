@@ -110,7 +110,7 @@ stages:
       enablePublishBuildArtifacts: true
       enablePublishTestResults: true
       enableTelemetry: true
-      enableSourcebuild: true
+      enableSourcebuild: false
       helixRepo: dotnet/razor
       helixType: build.product/
       # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
@@ -357,7 +357,7 @@ stages:
               arguments: $(Build.SourcesDirectory)/NuGet.config $Token
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
-        - ${{ if and(ne(variables['System.TeamProject'], 'public'), ne(variables['DotNetBuildFromSource'], 'true')) }}:
+        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - script: eng/common/cibuild.sh
               --restore
               --build
@@ -371,7 +371,7 @@ stages:
             name: Build
             displayName: Build
             condition: succeeded()
-        - ${{ if or(eq(variables['System.TeamProject'], 'public'), eq(variables['DotNetBuildFromSource'], 'true')) }}:
+        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - script: eng/common/cibuild.sh
               --configuration $(_BuildConfig)
               --prepareMachine
