@@ -108,7 +108,6 @@ stages:
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
       enablePublishBuildArtifacts: true
-
       enablePublishTestResults: true
       enableTelemetry: true
       enableSourcebuild: true
@@ -358,7 +357,7 @@ stages:
               arguments: $(Build.SourcesDirectory)/NuGet.config $Token
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
-        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+        - ${{ if and(ne(variables['System.TeamProject'], 'public'), ne(variables['DotNetBuildFromSource'], 'true')) }}:
           - script: eng/common/cibuild.sh
               --restore
               --build
@@ -372,7 +371,7 @@ stages:
             name: Build
             displayName: Build
             condition: succeeded()
-        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
+        - ${{ if or(eq(variables['System.TeamProject'], 'public'), eq(variables['DotNetBuildFromSource'], 'true')) }}:
           - script: eng/common/cibuild.sh
               --configuration $(_BuildConfig)
               --prepareMachine
@@ -482,7 +481,7 @@ stages:
           -TsaPublish $True
 
   - stage: insert
-    dependsOn: build
+    dependsOn: publish_using_darc
     displayName: Insert to VS
     jobs:
     - job: insert
