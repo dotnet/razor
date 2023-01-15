@@ -19,6 +19,7 @@ public class WrapWithTagTests : AbstractRazorEditorTest
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
         // Act
+        // % == Alt, + == Shift, so this is Alt+Shift+W
         TestServices.Input.Send("%+w");
 
         // Assert
@@ -36,10 +37,65 @@ public class WrapWithTagTests : AbstractRazorEditorTest
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
         // Act
+        // % == Alt, + == Shift, so this is Alt+Shift+W
         TestServices.Input.Send("%+w");
 
         // Assert
         await TestServices.Editor.WaitForCurrentLineTextAsync("<p><div><em>Loading...</em></div></p>", ControlledHangMitigatingCancellationToken);
+    }
+
+    [IdeFact]
+    public async Task WrapWithTag_Multiline()
+    {
+        // Open the file
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.SetTextAsync("""
+            @{
+                var items = new[] { 1, 2, 3, 4 };
+            }
+
+            <PageTitle>Temp</PageTitle>
+
+            <div>
+                <table>
+                    @foreach (var item in items) {
+                        <tr>
+                            <td>@item</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+            """, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.PlaceCaretAsync("table", charsOffset: -1, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
+
+        // Act
+        // % == Alt, + == Shift, so this is Alt+Shift+W
+        TestServices.Input.Send("%+w");
+
+        // Assert
+        await TestServices.Editor.VerifyTextContainsAsync("""
+            @{
+                var items = new[] { 1, 2, 3, 4 };
+            }
+
+            <PageTitle>Temp</PageTitle>
+
+            <div>
+                <div>
+                    <table>
+                        @foreach (var item in items) {
+                            <tr>
+                                <td>@item</td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+            """, ControlledHangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -53,6 +109,7 @@ public class WrapWithTagTests : AbstractRazorEditorTest
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
         // Act
+        // % == Alt, + == Shift, so this is Alt+Shift+W
         TestServices.Input.Send("%+w");
 
         // Assert
