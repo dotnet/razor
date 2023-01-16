@@ -77,7 +77,7 @@ public class WrapWithTagTests : AbstractRazorEditorTest
         TestServices.Input.Send("%+w");
 
         // Assert
-        await TestServices.Editor.VerifyTextContainsAsync("""
+        await TestServices.Editor.WaitForTextChangeAsync("""
             @{
                 var items = new[] { 1, 2, 3, 4 };
             }
