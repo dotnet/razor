@@ -167,7 +167,7 @@ internal class DefaultTagHelperFactsService : TagHelperFactsService
 
     internal override List<KeyValuePair<string, string>> StringifyAttributes(SyntaxList<RazorSyntaxNode> attributes)
     {
-        using var _ =  ListPool<KeyValuePair<string, string>>.GetPooledObject(out var stringifiedAttributes);
+        var stringifiedAttributes = new List<KeyValuePair<string, string>>();
 
         for (var i = 0; i < attributes.Count; i++)
         {
