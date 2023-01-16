@@ -215,10 +215,10 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
         Assert.NotNull(razorCodeActionResolutionParams);
         var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
-        Assert.Equal(14, actionParams.RemoveStart);
-        Assert.Equal(19, actionParams.ExtractStart);
-        Assert.Equal(42, actionParams.ExtractEnd);
-        Assert.Equal(42, actionParams.RemoveEnd);
+        Assert.Equal(15, actionParams.RemoveStart);
+        Assert.Equal(20, actionParams.ExtractStart);
+        Assert.Equal(43, actionParams.ExtractEnd);
+        Assert.Equal(43, actionParams.RemoveEnd);
     }
 
     [Fact]
@@ -253,10 +253,10 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
         Assert.NotNull(razorCodeActionResolutionParams);
         var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
-        Assert.Equal(14, actionParams.RemoveStart);
-        Assert.Equal(19, actionParams.ExtractStart);
-        Assert.Equal(41, actionParams.ExtractEnd);
-        Assert.Equal(41, actionParams.RemoveEnd);
+        Assert.Equal(15, actionParams.RemoveStart);
+        Assert.Equal(20, actionParams.ExtractStart);
+        Assert.Equal(42, actionParams.ExtractEnd);
+        Assert.Equal(42, actionParams.RemoveEnd);
     }
 
     [Fact]
@@ -320,10 +320,10 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
         Assert.NotNull(razorCodeActionResolutionParams);
         var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
-        Assert.Equal(14, actionParams.RemoveStart);
-        Assert.Equal(24, actionParams.ExtractStart);
-        Assert.Equal(47, actionParams.ExtractEnd);
-        Assert.Equal(47, actionParams.RemoveEnd);
+        Assert.Equal(15, actionParams.RemoveStart);
+        Assert.Equal(25, actionParams.ExtractStart);
+        Assert.Equal(48, actionParams.ExtractEnd);
+        Assert.Equal(48, actionParams.RemoveEnd);
     }
 
     [Fact]
