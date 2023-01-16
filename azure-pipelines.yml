@@ -362,7 +362,6 @@ stages:
               --restore
               --build
               --pack
-              --publish
               --configuration $(_BuildConfig)
               --prepareMachine
               /p:DotNetPublishUsingPipelines=true
@@ -433,7 +432,6 @@ stages:
               --restore
               --build
               --pack
-              --publish
               --configuration $(_BuildConfig)
               --prepareMachine
               /p:DotNetPublishUsingPipelines=true
