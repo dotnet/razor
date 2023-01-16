@@ -418,10 +418,9 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
             throw new ArgumentNullException(nameof(codeDocument));
         }
 
-        var syntaxTree = codeDocument.GetSyntaxTree();
-        var classifiedSpans = syntaxTree.GetClassifiedSpans();
-        var tagHelperSpans = syntaxTree.GetTagHelperSpans();
-        var documentLength = codeDocument.GetSourceText().Length;
+        var classifiedSpans = GetClassifiedSpans(codeDocument);
+        var tagHelperSpans = GetTagHelperSpans(codeDocument);
+        var documentLength = codeDocument.Source.Length;
         var languageKind = GetLanguageKindCore(classifiedSpans, tagHelperSpans, originalIndex, documentLength, rightAssociative);
 
         return languageKind;
@@ -902,5 +901,45 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
         }
 
         return edits;
+    }
+
+    private static IReadOnlyList<ClassifiedSpanInternal> GetClassifiedSpans(RazorCodeDocument document)
+    {
+        // Since this service is called so often, we get a good performance improvement by caching these values
+        // for this code document. If the document changes, as the user types, then the document instance will be
+        // different, so we don't need to worry about invalidating the cache.
+        var classifiedSpans = (IReadOnlyList<ClassifiedSpanInternal>)document.Items[typeof(ClassifiedSpanInternal)];
+        if (classifiedSpans is null)
+        {
+            var syntaxTree = document.GetSyntaxTree();
+
+            var visitor = new ClassifiedSpanVisitor(syntaxTree.Source);
+            visitor.Visit(syntaxTree.Root);
+            classifiedSpans = visitor.ClassifiedSpans;
+
+            document.Items[typeof(ClassifiedSpanInternal)] = classifiedSpans;
+        }
+
+        return classifiedSpans;
+    }
+
+    private static IReadOnlyList<TagHelperSpanInternal> GetTagHelperSpans(RazorCodeDocument document)
+    {
+        // Since this service is called so often, we get a good performance improvement by caching these values
+        // for this code document. If the document changes, as the user types, then the document instance will be
+        // different, so we don't need to worry about invalidating the cache.
+        var tagHelperSpans = (IReadOnlyList<TagHelperSpanInternal>)document.Items[typeof(TagHelperSpanInternal)];
+        if (tagHelperSpans is null)
+        {
+            var syntaxTree = document.GetSyntaxTree();
+
+            var visitor = new TagHelperSpanVisitor(syntaxTree.Source);
+            visitor.Visit(syntaxTree.Root);
+            tagHelperSpans = visitor.TagHelperSpans;
+
+            document.Items[typeof(TagHelperSpanInternal)] = tagHelperSpans;
+        }
+
+        return tagHelperSpans;
     }
 }
