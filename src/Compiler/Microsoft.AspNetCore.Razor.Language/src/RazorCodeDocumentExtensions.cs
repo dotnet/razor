@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -17,6 +17,7 @@ public static class RazorCodeDocumentExtensions
     private static readonly char[] PathSeparators = new char[] { '/', '\\' };
     private static readonly char[] NamespaceSeparators = new char[] { '.' };
     private static readonly object CssScopeKey = new object();
+    private static readonly object NamespaceKey = new object();
 
     public static TagHelperDocumentContext GetTagHelperContext(this RazorCodeDocument document)
     {
@@ -251,6 +252,14 @@ public static class RazorCodeDocumentExtensions
             throw new ArgumentNullException(nameof(document));
         }
 
+        @namespace = (string)document.Items[NamespaceKey];
+
+        // If we cached the result, then we're done!
+        if (@namespace is not null)
+        {
+            return true;
+        }
+
         var filePath = document.Source.FilePath;
         if (filePath == null || document.Source.RelativePath == null || filePath.Length < document.Source.RelativePath.Length)
         {
@@ -370,6 +379,8 @@ public static class RazorCodeDocumentExtensions
         }
 
         @namespace = builder.ToString();
+
+        document.Items[NamespaceKey] = @namespace;
 
         return true;
 
