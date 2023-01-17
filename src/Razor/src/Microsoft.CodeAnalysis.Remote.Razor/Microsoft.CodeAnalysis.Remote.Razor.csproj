@@ -4,8 +4,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains the Razor design-time infrastructure.</Description>
     <EnableApiCheck>false</EnableApiCheck>
-    <IsShippingPackage Condition="'$(OS)' == 'Windows_NT'">false</IsShippingPackage>
+    <IsShippingPackage>false</IsShippingPackage>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <IsPackable Condition="'$(OS)' != 'Windows_NT'">false</IsPackable>
 
     <!--
       Razor.ServiceHub won't always match the other packages Roslyn ships. This is ignorable.
