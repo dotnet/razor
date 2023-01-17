@@ -7,7 +7,6 @@ using System.Composition;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
