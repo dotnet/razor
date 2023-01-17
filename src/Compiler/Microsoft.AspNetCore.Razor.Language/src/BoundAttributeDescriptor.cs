@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -50,16 +51,21 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
 
     public bool CaseSensitive { get; protected set; }
 
-    private bool? _isDirectiveAttribute;
+    private bool _directiveAttributeSet;
+    private bool _isDirectiveAttribute;
 
     public bool IsDirectiveAttribute
     {
         get
         {
-            _isDirectiveAttribute ??= Metadata.TryGetValue(ComponentMetadata.Common.DirectiveAttribute, out var value) &&
-                    string.Equals(bool.TrueString, value);
+            if (!_directiveAttributeSet)
+            {
+                _isDirectiveAttribute = Metadata.TryGetValue(ComponentMetadata.Common.DirectiveAttribute, out var value) &&
+                        string.Equals(bool.TrueString, value);
+                _directiveAttributeSet = true;
+            }
 
-            return _isDirectiveAttribute.Value;
+            return _isDirectiveAttribute;
         }
     }
 
