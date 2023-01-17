@@ -169,7 +169,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
 
         AddAllowedChildrenCompletions(completionContext, elementCompletions);
 
-        if (elementCompletions.Any())
+        if (elementCompletions.Count > 0)
         {
             // If the containing element is already a TagHelper and only allows certain children.
             var emptyResult = ElementCompletionResult.Create(elementCompletions);
@@ -265,7 +265,7 @@ internal class LanguageServerTagHelperCompletionService : TagHelperCompletionSer
                 return;
             }
 
-            HashSet<TagHelperDescriptor> existingRuleDescriptors;
+            HashSet<TagHelperDescriptor>? existingRuleDescriptors;
             if (tagHelperDescriptors is not null)
             {
                 existingRuleDescriptors = tagHelperDescriptors;
