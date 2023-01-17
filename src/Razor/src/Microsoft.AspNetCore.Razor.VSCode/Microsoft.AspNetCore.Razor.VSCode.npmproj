@@ -8,7 +8,7 @@
     <IsPackable>true</IsPackable>
 
     <!-- We technically ship this to a blob feed and then manually integrate with O#. Don't want this package making its way anywhere else. -->
-    <IsShippingPackage>false</IsShippingPackage>
+    <IsShippingPackage Condition="'$(OS)' == 'Windows_NT'">false</IsShippingPackage>
   </PropertyGroup>
 
   <ItemGroup>

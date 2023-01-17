@@ -4,7 +4,7 @@
     <TargetFrameworks>$(DefaultNetCoreTargetFramework);netstandard2.0;$(DefaultNetFxTargetFramework)</TargetFrameworks>
     <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains the Razor design-time infrastructure.</Description>
     <EnableApiCheck>false</EnableApiCheck>
-    <IsShippingPackage>false</IsShippingPackage>
+    <IsShippingPackage Condition="'$(OS)' == 'Windows_NT'">false</IsShippingPackage>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
 
