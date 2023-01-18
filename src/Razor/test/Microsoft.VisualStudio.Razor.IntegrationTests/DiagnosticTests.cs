@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -9,7 +8,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class DiagnosticTests : AbstractRazorEditorTest
 {
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8036")]
+    [IdeFact]
     public async Task Diagnostics_ShowErrors_Razor()
     {
         // Arrange
@@ -176,7 +175,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
 ", ControlledHangMitigatingCancellationToken);
 
         // Act
-        var errors = await TestServices.ErrorList.WaitForErrorsAsync("Error.cshtml", expectedCount: 1, ControlledHangMitigatingCancellationToken);
+        var errors = await TestServices.ErrorList.WaitForErrorsAsync("Error.cshtml", expectedCount: 2, ControlledHangMitigatingCancellationToken);
 
         // Assert
         Assert.Collection(errors,
