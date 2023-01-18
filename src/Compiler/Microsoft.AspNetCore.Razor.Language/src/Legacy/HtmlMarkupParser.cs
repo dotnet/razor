@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -2156,7 +2156,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
 
     private void DefaultMarkupSpanContext(SpanContextBuilder spanContext)
     {
-        spanContext.ChunkGenerator = new MarkupChunkGenerator();
+        spanContext.ChunkGenerator = MarkupChunkGenerator.Instance;
         spanContext.EditHandler = new SpanEditHandler(LanguageTokenizeString, AcceptedCharactersInternal.Any);
     }
 

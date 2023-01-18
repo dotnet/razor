@@ -4,9 +4,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.Extensions.Logging;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -49,11 +48,10 @@ internal class RazorRequestContextFactory : IRequestContextFactory<RazorRequestC
             documentContext = await documentContextFactory.TryCreateAsync(uri, cancellationToken);
         }
 
-        var loggerFactory = _lspServices.GetRequiredService<ILoggerFactory>();
-        var logger = loggerFactory.CreateLogger(queueItem.MethodName);
-        var lspLogger = new LoggerAdapter(logger);
+        var loggerAdapter = _lspServices.GetRequiredService<LoggerAdapter>();
+        loggerAdapter.LogDebug("Entering method {methodName}.", queueItem.MethodName);
 
-        var requestContext = new RazorRequestContext(documentContext, lspLogger, _lspServices);
+        var requestContext = new RazorRequestContext(documentContext, loggerAdapter, _lspServices);
 
         return requestContext;
     }

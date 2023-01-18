@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -17,7 +17,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             {
                 if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                 {
-                    tagHelperFeature.TargetAssembly = assembly;
+                    tagHelperFeature.TargetSymbol = assembly;
                     descriptors.AddRange(tagHelperFeature.GetDescriptors());
                 }
             }
@@ -29,7 +29,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var compilationWithDeclarations = compilation.AddSyntaxTrees(syntaxTrees);
 
             tagHelperFeature.Compilation = compilationWithDeclarations;
-            tagHelperFeature.TargetAssembly = compilationWithDeclarations.Assembly;
+            tagHelperFeature.TargetSymbol = compilationWithDeclarations.Assembly;
 
             return tagHelperFeature.GetDescriptors();
         }
