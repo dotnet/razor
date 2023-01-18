@@ -334,7 +334,7 @@ internal class CodeActionEndpoint : IVSCodeActionEndpoint
 
     private static ImmutableHashSet<string> GetAllAvailableCodeActionNames()
     {
-        var _ = ArrayBuilderPool<string>.GetPooledObject(out var availableCodeActionNames);
+        using var _ = ArrayBuilderPool<string>.GetPooledObject(out var availableCodeActionNames);
 
         var refactoringProviderNames = typeof(RazorPredefinedCodeRefactoringProviderNames)
             .GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Public)
