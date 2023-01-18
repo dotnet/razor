@@ -39,6 +39,6 @@
 
   <ItemGroup>
     <!-- Package changes to enable dev17 builds that have incoherent versions -->
-    <PackageReference Include="Microsoft.IO.Redist" Version="4.7.1" />
+    <PackageReference Include="Microsoft.IO.Redist" Version="6.0.0" />
   </ItemGroup>
 </Project>

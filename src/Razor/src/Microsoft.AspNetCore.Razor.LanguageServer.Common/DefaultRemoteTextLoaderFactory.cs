@@ -37,9 +37,8 @@ public class DefaultRemoteTextLoaderFactory : RemoteTextLoaderFactory
             _filePath = filePath;
         }
 
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
-
             TextAndVersion textAndVersion;
 
             try

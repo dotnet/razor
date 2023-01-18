@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
@@ -79,7 +80,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
             registrationService.Register(workspace);
 
             var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
-            var languageServer = languageServerFactory.CreateLanguageServer(serverRpc, capabilitiesProvider);
+            var languageServer = languageServerFactory.CreateLanguageServer(serverRpc, capabilitiesProvider, workspace.Services.HostServices);
 
             serverRpc.StartListening();
             return languageServer;
