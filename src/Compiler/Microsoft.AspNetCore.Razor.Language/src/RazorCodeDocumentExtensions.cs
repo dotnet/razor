@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -56,6 +56,46 @@ public static class RazorCodeDocumentExtensions
         }
 
         document.Items[typeof(TagHelpersHolder)] = new TagHelpersHolder(tagHelpers);
+    }
+
+    internal static ISet<TagHelperDescriptor> GetReferencedTagHelpers(this RazorCodeDocument document)
+    {
+        if (document == null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        return document.Items[nameof(GetReferencedTagHelpers)] as ISet<TagHelperDescriptor>;
+    }
+
+    internal static void SetReferencedTagHelpers(this RazorCodeDocument document, ISet<TagHelperDescriptor> tagHelpers)
+    {
+        if (document == null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        document.Items[nameof(GetReferencedTagHelpers)] = tagHelpers;
+    }
+
+    public static RazorSyntaxTree GetPreTagHelperSyntaxTree(this RazorCodeDocument document)
+    {
+        if (document == null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        return document.Items[nameof(GetPreTagHelperSyntaxTree)] as RazorSyntaxTree;
+    }
+
+    public static void SetPreTagHelperSyntaxTree(this RazorCodeDocument document, RazorSyntaxTree syntaxTree)
+    {
+        if (document == null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        document.Items[nameof(GetPreTagHelperSyntaxTree)] = syntaxTree;
     }
 
     public static RazorSyntaxTree GetSyntaxTree(this RazorCodeDocument document)
