@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.DependencyModel.Resolution;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
@@ -67,21 +66,6 @@ namespace MyApp.Pages
 
             Assert.Empty(result.Diagnostics);
             Assert.Single(result.GeneratedSources);
-        }
-
-        internal class InMemoryAdditionalText : AdditionalText
-        {
-            private readonly SourceText _content;
-
-            public InMemoryAdditionalText(string path, string content)
-            {
-                Path = path;
-                _content = SourceText.From(content, Encoding.UTF8);
-            }
-
-            public override string Path { get; }
-
-            public override SourceText GetText(CancellationToken cancellationToken = default) => _content;
         }
 
         [Fact]
@@ -151,74 +135,25 @@ namespace MyApp.Pages
 
             Assert.Collection(eventListener.Events,
                 e => Assert.Equal("ComputeRazorSourceGeneratorOptions", e.EventName),
-                e =>
-                {
-                    Assert.Equal("GenerateDeclarationCodeStart", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Index.razor", file);
-                },
-                e =>
-                {
-                    Assert.Equal("GenerateDeclarationCodeStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Index.razor", file);
-                },
-                e =>
-                {
-                    Assert.Equal("GenerateDeclarationCodeStart", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Counter.razor", file);
-                },
-                e =>
-                {
-                    Assert.Equal("GenerateDeclarationCodeStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Counter.razor", file);
-                },
+                e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Index.razor"),
+                e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Index.razor"),
+                e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Counter.razor"),
+                e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Counter.razor"),
                 e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
                 e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
                 e => Assert.Equal("DiscoverTagHelpersFromReferencesStart", e.EventName),
                 e => Assert.Equal("DiscoverTagHelpersFromReferencesStop", e.EventName),
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Index.razor", file);
-                },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Index.razor", file);
-                },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Counter.razor", file);
-                },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Counter.razor", file);
-                },
-                e =>
-                {
-                    Assert.Equal("AddSyntaxTrees", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("Pages_Index_razor.g.cs", file);
-                },
-                e =>
-                {
-                    Assert.Equal("AddSyntaxTrees", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("Pages_Counter_razor.g.cs", file);
-                });
+                e => e.AssertSingleItem("RazorCodeGenerateStart", "/Pages/Index.razor"),
+                e => e.AssertSingleItem("RazorCodeGenerateStop", "/Pages/Index.razor"),
+                e => e.AssertSingleItem("RazorCodeGenerateStart", "/Pages/Counter.razor"),
+                e => e.AssertSingleItem("RazorCodeGenerateStop", "/Pages/Counter.razor"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+            );
         }
 
         [Fact]
-        public async Task IncrementalCompilation_DoesNotReexecuteSteps_WhenRazorFilesAreUnchanged()
+        public async Task IncrementalCompilation_DoesNotReExecuteSteps_WhenRazorFilesAreUnchanged()
         {
             // Arrange
             using var eventListener = new RazorEventListener();
@@ -400,36 +335,12 @@ namespace MyApp.Pages
             Assert.Equal(2, result.GeneratedSources.Length);
 
             Assert.Collection(eventListener.Events,
-               e =>
-               {
-                   Assert.Equal("GenerateDeclarationCodeStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("GenerateDeclarationCodeStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("AddSyntaxTrees", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("Pages_Counter_razor.g.cs", file);
-               });
+               e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Counter.razor"),
+               e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Counter.razor"),
+               e => e.AssertSingleItem("RazorCodeGenerateStart", "/Pages/Counter.razor"),
+               e => e.AssertSingleItem("RazorCodeGenerateStop", "/Pages/Counter.razor"),
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+            );
         }
 
         [Fact]
@@ -765,38 +676,14 @@ __builder.AddContent(3, count);
             Assert.Equal(2, result.GeneratedSources.Length);
 
             Assert.Collection(eventListener.Events,
-               e =>
-               {
-                   Assert.Equal("GenerateDeclarationCodeStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("GenerateDeclarationCodeStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
+               e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Counter.razor"),
+               e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Counter.razor"),
                e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("AddSyntaxTrees", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("Pages_Counter_razor.g.cs", file);
-               });
+               e => e.AssertSingleItem("RazorCodeGenerateStart", "/Pages/Counter.razor"),
+               e => e.AssertSingleItem("RazorCodeGenerateStop", "/Pages/Counter.razor"),
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+            );
         }
 
         [Fact]
@@ -945,50 +832,16 @@ __builder.AddContent(3, count);
             Assert.Equal(2, result.GeneratedSources.Length);
 
             Assert.Collection(eventListener.Events,
-               e =>
-               {
-                   Assert.Equal("GenerateDeclarationCodeStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("GenerateDeclarationCodeStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
+               e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Counter.razor"),
+               e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Counter.razor"),
                e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Index.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Index.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("AddSyntaxTrees", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("Pages_Counter_razor.g.cs", file);
-               });
+               e => e.AssertSingleItem("RazorCodeGenerateStart", "/Pages/Index.razor"),
+               e => e.AssertSingleItem("RazorCodeGenerateStop", "/Pages/Index.razor"),
+               e => e.AssertSingleItem("RazorCodeGenerateStart", "/Pages/Counter.razor"),
+               e => e.AssertSingleItem("RazorCodeGenerateStop", "/Pages/Counter.razor"),
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+            );
         }
 
         [Fact]
@@ -1120,36 +973,12 @@ using SurveyPromptRootNamspace;
                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
                e => Assert.Equal("DiscoverTagHelpersFromReferencesStart", e.EventName),
                e => Assert.Equal("DiscoverTagHelpersFromReferencesStop", e.EventName),
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Index.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Index.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("AddSyntaxTrees", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("Pages_Index_razor.g.cs", file);
-               });
+               e => e.AssertSingleItem("RazorCodeGenerateStart", "/Pages/Index.razor"),
+               e => e.AssertSingleItem("RazorCodeGenerateStop", "/Pages/Index.razor"),
+               e => e.AssertSingleItem("RazorCodeGenerateStart", "/Pages/Counter.razor"),
+               e => e.AssertSingleItem("RazorCodeGenerateStop", "/Pages/Counter.razor"),
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs")
+            );
 
             // Verify caching
             eventListener.Events.Clear();
@@ -1305,42 +1134,13 @@ namespace AspNetCoreGeneratedDocument
                 e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
                 e => Assert.Equal("DiscoverTagHelpersFromReferencesStart", e.EventName),
                 e => Assert.Equal("DiscoverTagHelpersFromReferencesStop", e.EventName),
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Index.cshtml", file);
-                },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Index.cshtml", file);
-                },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Views/Shared/_Layout.cshtml", file);
-                },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Views/Shared/_Layout.cshtml", file);
-                },
-                e =>
-                {
-                    Assert.Equal("AddSyntaxTrees", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("Pages_Index_cshtml.g.cs", file);
-                },
-                e =>
-                {
-                    Assert.Equal("AddSyntaxTrees", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("Views_Shared__Layout_cshtml.g.cs", file);
-                });
+                e => e.AssertSingleItem("RazorCodeGenerateStart", "/Pages/Index.cshtml"),
+                e => e.AssertSingleItem("RazorCodeGenerateStop", "/Pages/Index.cshtml"),
+                e => e.AssertSingleItem("RazorCodeGenerateStart", "/Views/Shared/_Layout.cshtml"),
+                e => e.AssertSingleItem("RazorCodeGenerateStop", "/Views/Shared/_Layout.cshtml"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_cshtml.g.cs"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Views_Shared__Layout_cshtml.g.cs")
+            );
         }
 
         [Fact]
@@ -1532,24 +1332,10 @@ namespace AspNetCoreGeneratedDocument
             Assert.Equal(2, result.GeneratedSources.Length);
 
             Assert.Collection(eventListener.Events,
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Views/Shared/_Layout.cshtml", file);
-               },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Views/Shared/_Layout.cshtml", file);
-                },
-                e =>
-                {
-                    Assert.Equal("AddSyntaxTrees", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("Views_Shared__Layout_cshtml.g.cs", file);
-                });
+               e => e.AssertSingleItem("RazorCodeGenerateStart", "/Views/Shared/_Layout.cshtml"),
+               e => e.AssertSingleItem("RazorCodeGenerateStop", "/Views/Shared/_Layout.cshtml"),
+               e => e.AssertSingleItem("AddSyntaxTrees", "Views_Shared__Layout_cshtml.g.cs")
+            );
         }
 
         [Fact]
@@ -1853,7 +1639,92 @@ public class HeaderTagHelper : TagHelper
 }", Encoding.UTF8)).Project;
             compilation = await project.GetCompilationAsync();
 
-            result = RunGenerator(compilation!, ref driver);
+            result = RunGenerator(compilation!, ref driver)
+                  .VerifyOutputsMatch(result, (0, @"
+#pragma checksum ""Pages/Index.cshtml"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""5d59ecd7b7cf7355d7f60234988be34b81a8b614""
+// <auto-generated/>
+#pragma warning disable 1591
+[assembly: global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute(typeof(AspNetCoreGeneratedDocument.Pages_Index), @""mvc.1.0.view"", @""/Pages/Index.cshtml"")]
+namespace AspNetCoreGeneratedDocument
+{
+    #line hidden
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Rendering;
+    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Pages/Index.cshtml"")]
+    [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
+    #nullable restore
+    internal sealed class Pages_Index : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
+    #nullable disable
+    {
+        #line hidden
+        #pragma warning disable 0649
+        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperExecutionContext __tagHelperExecutionContext;
+        #pragma warning restore 0649
+        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperRunner __tagHelperRunner = new global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperRunner();
+        #pragma warning disable 0169
+        private string __tagHelperStringValueBuffer;
+        #pragma warning restore 0169
+        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeManager __backed__tagHelperScopeManager = null;
+        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeManager __tagHelperScopeManager
+        {
+            get
+            {
+                if (__backed__tagHelperScopeManager == null)
+                {
+                    __backed__tagHelperScopeManager = new global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeManager(StartTagHelperWritingScope, EndTagHelperWritingScope);
+                }
+                return __backed__tagHelperScopeManager;
+            }
+        }
+        private global::MyApp.HeaderTagHelper __MyApp_HeaderTagHelper;
+        #pragma warning disable 1998
+        public async override global::System.Threading.Tasks.Task ExecuteAsync()
+        {
+            WriteLiteral(""\r\n"");
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin(""h2"", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, ""5d59ecd7b7cf7355d7f60234988be34b81a8b6142529"", async() => {
+                WriteLiteral(""Hello world"");
+            }
+            );
+            __MyApp_HeaderTagHelper = CreateTagHelper<global::MyApp.HeaderTagHelper>();
+            __tagHelperExecutionContext.Add(__MyApp_HeaderTagHelper);
+            await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
+            if (!__tagHelperExecutionContext.Output.IsContentModified)
+            {
+                await __tagHelperExecutionContext.SetOutputContentAsync();
+            }
+            Write(__tagHelperExecutionContext.Output);
+            __tagHelperExecutionContext = __tagHelperScopeManager.End();
+        }
+        #pragma warning restore 1998
+        #nullable restore
+        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+        public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
+        #nullable disable
+        #nullable restore
+        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+        public global::Microsoft.AspNetCore.Mvc.IUrlHelper Url { get; private set; } = default!;
+        #nullable disable
+        #nullable restore
+        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+        public global::Microsoft.AspNetCore.Mvc.IViewComponentHelper Component { get; private set; } = default!;
+        #nullable disable
+        #nullable restore
+        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+        public global::Microsoft.AspNetCore.Mvc.Rendering.IJsonHelper Json { get; private set; } = default!;
+        #nullable disable
+        #nullable restore
+        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+        public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<dynamic> Html { get; private set; } = default!;
+        #nullable disable
+    }
+}
+#pragma warning restore 1591
+"));
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
@@ -1861,36 +1732,12 @@ public class HeaderTagHelper : TagHelper
             Assert.Collection(eventListener.Events,
                e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Index.cshtml", file);
-               },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Index.cshtml", file);
-                },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Views/Shared/_Layout.cshtml", file);
-               },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Views/Shared/_Layout.cshtml", file);
-                },
-                e =>
-                {
-                    Assert.Equal("AddSyntaxTrees", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("Pages_Index_cshtml.g.cs", file);
-                });
+               e => e.AssertSingleItem("RazorCodeGenerateStart", "/Pages/Index.cshtml"),
+               e => e.AssertSingleItem("RazorCodeGenerateStop", "/Pages/Index.cshtml"),
+               e => e.AssertSingleItem("RazorCodeGenerateStart", "/Views/Shared/_Layout.cshtml"),
+               e => e.AssertSingleItem("RazorCodeGenerateStop", "/Views/Shared/_Layout.cshtml"),
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_cshtml.g.cs")
+           );
         }
 
         [Fact]
@@ -2549,6 +2396,21 @@ namespace MyApp
             return project;
         }
 
+        private class InMemoryAdditionalText : AdditionalText
+        {
+            private readonly SourceText _content;
+
+            public InMemoryAdditionalText(string path, string content)
+            {
+                Path = path;
+                _content = SourceText.From(content, Encoding.UTF8);
+            }
+
+            public override string Path { get; }
+
+            public override SourceText GetText(CancellationToken cancellationToken = default) => _content;
+        }
+
         private class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
         {
             public override AnalyzerConfigOptions GlobalOptions => TestGlobalOptions;
@@ -2662,6 +2524,13 @@ namespace MyApp
                 .Replace("\\r\\n", "\\n");                                     // embedded new-lines
             Assert.StartsWith("#pragma", trimmed);
             return trimmed.Substring(trimmed.IndexOf('\n') + 1);
+        }
+
+        public static void AssertSingleItem(this RazorEventListener.RazorEvent e, string expectedEventName, string expectedFileName)
+        {
+            Assert.Equal(expectedEventName, e.EventName);
+            var file = Assert.Single(e.Payload);
+            Assert.Equal(expectedFileName, file);
         }
     }
 
