@@ -14,6 +14,6 @@ internal static class SymbolExtensions
 
     internal static bool HasFullName(this ISymbol symbol, string fullName)
     {
-        return symbol.ToDisplayString(FullNameTypeDisplayFormat).Equals(fullName, StringComparison.OrdinalIgnoreCase);
+        return symbol.ToDisplayString(FullNameTypeDisplayFormat).Equals(fullName, StringComparison.Ordinal);
     }
 }

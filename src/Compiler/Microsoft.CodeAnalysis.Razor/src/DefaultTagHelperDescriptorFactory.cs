@@ -121,7 +121,7 @@ internal class DefaultTagHelperDescriptorFactory
 
     private void AddAllowedChildren(INamedTypeSymbol type, TagHelperDescriptorBuilder builder)
     {
-        var restrictChildrenAttribute = type.GetAttributes().Where(a => a.AttributeClass.HasFullName(TagHelperTypes.RestrictChildrenAttribute)).FirstOrDefault();
+        var restrictChildrenAttribute = type.GetAttributes().FirstOrDefault(a => a.AttributeClass.HasFullName(TagHelperTypes.RestrictChildrenAttribute));
         if (restrictChildrenAttribute == null)
         {
             return;
@@ -156,7 +156,7 @@ internal class DefaultTagHelperDescriptorFactory
     private void AddTagOutputHint(INamedTypeSymbol type, TagHelperDescriptorBuilder builder)
     {
         string outputElementHint = null;
-        var outputElementHintAttribute = type.GetAttributes().Where(a => a.AttributeClass.HasFullName(TagHelperTypes.OutputElementHintAttribute)).FirstOrDefault();
+        var outputElementHintAttribute = type.GetAttributes().FirstOrDefault(a => a.AttributeClass.HasFullName(TagHelperTypes.OutputElementHintAttribute));
         if (outputElementHintAttribute != null)
         {
             outputElementHint = (string)(outputElementHintAttribute.ConstructorArguments[0]).Value;
