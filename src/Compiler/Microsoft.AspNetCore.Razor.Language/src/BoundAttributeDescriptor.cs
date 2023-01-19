@@ -55,7 +55,7 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
     // 0: Uninitialized
     // 1: false
     // 2: true
-    private int _isDirectiveAttribute = 0;
+    private int _isDirectiveAttribute;
 
     public bool IsDirectiveAttribute
     {
