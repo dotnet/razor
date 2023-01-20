@@ -164,7 +164,7 @@ internal class DefaultTagHelperFactsService : TagHelperFactsService
         return matchingDescriptors;
     }
 
-    internal override IEnumerable<KeyValuePair<string, string>> StringifyAttributes(SyntaxList<RazorSyntaxNode> attributes)
+    internal override List<KeyValuePair<string, string>> StringifyAttributes(SyntaxList<RazorSyntaxNode> attributes)
     {
         var stringifiedAttributes = new List<KeyValuePair<string, string>>();
 
