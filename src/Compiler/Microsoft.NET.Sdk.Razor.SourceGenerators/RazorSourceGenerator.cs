@@ -81,55 +81,65 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStop(sourceItem.FilePath);
 
-                    return result;
+                    return (result, sourceItem.FilePath);
                 });
 
             var generatedDeclarationSyntaxTrees = generatedDeclarationCode
                 .Combine(parseOptions)
                 .Select(static (pair, _) =>
                 {
-                    var (generatedDeclarationCode, parseOptions) = pair;
-                    return CSharpSyntaxTree.ParseText(generatedDeclarationCode, (CSharpParseOptions)parseOptions);
+                    var ((generatedDeclarationCode, filePath), parseOptions) = pair;
+                    return CSharpSyntaxTree.ParseText(generatedDeclarationCode, (CSharpParseOptions)parseOptions, filePath);
+                });
+
+            var tagHelpersFromComponents = generatedDeclarationSyntaxTrees
+                .Combine(compilation)
+                .Combine(razorSourceGeneratorOptions)
+                .SelectMany(static (pair, ct) =>
+                {
+
+                    var ((generatedDeclarationSyntaxTree, compilation), razorSourceGeneratorOptions) = pair;
+                    RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromComponentStart(generatedDeclarationSyntaxTree.FilePath);
+
+                    var tagHelperFeature = new StaticCompilationTagHelperFeature();
+                    var discoveryProjectEngine = GetDiscoveryProjectEngine(compilation.References.ToImmutableArray(), tagHelperFeature);
+
+                    var compilationWithDeclarations = compilation.AddSyntaxTrees(generatedDeclarationSyntaxTree);
+
+                    // try and find the specific class this component is declaring, falling back to the assembly if for any reason we can't
+                    ISymbol targetSymbol = compilationWithDeclarations.Assembly;
+                    var classSyntax = generatedDeclarationSyntaxTree.GetRoot(ct).DescendantNodes().SingleOrDefault(n => n.IsKind(CodeAnalysis.CSharp.SyntaxKind.ClassDeclaration));
+                    if (classSyntax is not null)
+                    {
+                        targetSymbol = compilationWithDeclarations.GetSemanticModel(generatedDeclarationSyntaxTree).GetDeclaredSymbol(classSyntax, ct) ?? targetSymbol;
+                    }
+
+                    tagHelperFeature.Compilation = compilationWithDeclarations;
+                    tagHelperFeature.TargetSymbol = targetSymbol;
+
+                    var result = (IList<TagHelperDescriptor>)tagHelperFeature.GetDescriptors();
+                    RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromComponentStop(generatedDeclarationSyntaxTree.FilePath);
+                    return result;
                 });
 
             var tagHelpersFromCompilation = compilation
-                .Combine(generatedDeclarationSyntaxTrees.Collect())
                 .Combine(razorSourceGeneratorOptions)
                 .Select(static (pair, _) =>
                 {
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStart();
 
-                    var ((compilation, generatedDeclarationSyntaxTrees), razorSourceGeneratorOptions) = pair;
+                    var (compilation, razorSourceGeneratorOptions) = pair;
 
                     var tagHelperFeature = new StaticCompilationTagHelperFeature();
                     var discoveryProjectEngine = GetDiscoveryProjectEngine(compilation.References.ToImmutableArray(), tagHelperFeature);
 
-                    var compilationWithDeclarations = compilation.AddSyntaxTrees(generatedDeclarationSyntaxTrees);
-
-                    tagHelperFeature.Compilation = compilationWithDeclarations;
-                    tagHelperFeature.TargetSymbol = compilationWithDeclarations.Assembly;
+                    tagHelperFeature.Compilation = compilation;
+                    tagHelperFeature.TargetSymbol = compilation.Assembly;
 
                     var result = (IList<TagHelperDescriptor>)tagHelperFeature.GetDescriptors();
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStop();
                     return result;
-                })
-                .WithLambdaComparer(static (a, b) =>
-                {
-                    if (a.Count != b.Count)
-                    {
-                        return false;
-                    }
-
-                    for (var i = 0; i < a.Count; i++)
-                    {
-                        if (!a[i].Equals(b[i]))
-                        {
-                            return false;
-                        }
-                    }
-
-                    return true;
-                }, getHashCode: static a => a.Count);
+                });
 
             var tagHelpersFromReferences = compilation
                 .Combine(razorSourceGeneratorOptions)
@@ -187,12 +197,13 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return (ICollection<TagHelperDescriptor>)descriptors;
                 });
 
-            var allTagHelpers = tagHelpersFromCompilation
+            var allTagHelpers = tagHelpersFromComponents.Collect()
+                .Combine(tagHelpersFromCompilation)
                 .Combine(tagHelpersFromReferences)
                 .Select(static (pair, _) =>
                 {
-                    var (tagHelpersFromCompilation, tagHelpersFromReferences) = pair;
-                    var count = tagHelpersFromCompilation.Count + tagHelpersFromReferences.Count;
+                    var ((tagHelpersFromComponents, tagHelpersFromCompilation), tagHelpersFromReferences) = pair;
+                    var count = tagHelpersFromCompilation.Count + tagHelpersFromReferences.Count+ tagHelpersFromComponents.Length;
                     if (count == 0)
                     {
                         return Array.Empty<TagHelperDescriptor>();
@@ -201,6 +212,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     var allTagHelpers = new TagHelperDescriptor[count];
                     tagHelpersFromCompilation.CopyTo(allTagHelpers, 0);
                     tagHelpersFromReferences.CopyTo(allTagHelpers, tagHelpersFromCompilation.Count);
+                    tagHelpersFromComponents.CopyTo(allTagHelpers, tagHelpersFromCompilation.Count + tagHelpersFromReferences.Count);
 
                     return allTagHelpers;
                 });

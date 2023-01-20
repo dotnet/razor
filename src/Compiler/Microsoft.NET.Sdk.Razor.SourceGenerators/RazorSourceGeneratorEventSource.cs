@@ -59,5 +59,13 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         private const int GenerateDeclarationSyntaxTreeStopId = 14;
         [Event(GenerateDeclarationSyntaxTreeStopId, Level = EventLevel.Informational)]
         public void GenerateDeclarationSyntaxTreeStop() => WriteEvent(GenerateDeclarationSyntaxTreeStopId);
+
+        private const int DiscoverTagHelpersFromComponentStartId = 15;
+        [Event(DiscoverTagHelpersFromComponentStartId, Level = EventLevel.Informational)]
+        public void DiscoverTagHelpersFromComponentStart(string filePath) => WriteEvent(DiscoverTagHelpersFromComponentStartId, filePath);
+
+        private const int DiscoverTagHelpersFromComponentStopId = 16;
+        [Event(DiscoverTagHelpersFromComponentStopId, Level = EventLevel.Informational)]
+        public void DiscoverTagHelpersFromComponentStop(string filePath) => WriteEvent(DiscoverTagHelpersFromComponentStopId, filePath);
     }
 }
