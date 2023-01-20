@@ -7,12 +7,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.AspNetCore.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-    internal class HtmlFormatter
+internal class HtmlFormatter
     {
         private readonly DocumentVersionCache _documentVersionCache;
         private readonly ClientNotifierServiceBase _server;

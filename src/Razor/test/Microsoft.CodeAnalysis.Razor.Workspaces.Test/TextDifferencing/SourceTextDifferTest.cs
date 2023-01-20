@@ -1,15 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.CodeAnalysis.Razor.TextDifferencing;
 
 public class SourceTextDifferTest : TestBase
 {
@@ -58,30 +57,33 @@ public class SourceTextDifferTest : TestBase
     public void GetMinimalTextChanges_ReturnsExpectedResults()
     {
         // Arrange
-        var oldText = SourceText.From(@"
-<div>
-  Hello!
-</div>
-".Replace(Environment.NewLine, "\r\n", StringComparison.Ordinal));
-        var newText = SourceText.From(@"
-<div>
-  Hola!
-</div>".Replace(Environment.NewLine, "\r\n", StringComparison.Ordinal));
+        var oldText = SourceText.From("""
+            <div>
+              Hello!
+            </div>
+            """
+            .Replace(Environment.NewLine, "\r\n"));
+
+        var newText = SourceText.From("""
+            <div>
+              Hola!
+            </div>
+            """
+            .Replace(Environment.NewLine, "\r\n"));
 
         // Act 1
         var characterChanges = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, lineDiffOnly: false);
 
         // Assert 1
         Assert.Collection(characterChanges,
-            change => Assert.Equal(new TextChange(TextSpan.FromBounds(12, 13), "o"), change),
-            change => Assert.Equal(new TextChange(TextSpan.FromBounds(14, 16), "a"), change),
-            change => Assert.Equal(new TextChange(TextSpan.FromBounds(25, 27), string.Empty), change));
+            change => Assert.Equal(new TextChange(TextSpan.FromBounds(10, 11), "o"), change),
+            change => Assert.Equal(new TextChange(TextSpan.FromBounds(12, 14), "a"), change));
 
         // Act 2
         var lineChanges = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, lineDiffOnly: true);
 
         // Assert 2
         var change = Assert.Single(lineChanges);
-        Assert.Equal(new TextChange(TextSpan.FromBounds(9, 27), "  Hola!\r\n</div>"), change);
+        Assert.Equal(new TextChange(TextSpan.FromBounds(7, 17), "  Hola!\r\n"), change);
     }
 }

@@ -7,7 +7,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.AspNetCore.Razor.TextDifferencing;
 
 internal class SourceTextDiffer : TextDiffer
 {
