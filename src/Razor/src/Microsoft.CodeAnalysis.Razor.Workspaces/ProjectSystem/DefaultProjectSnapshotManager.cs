@@ -30,6 +30,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     // created lazily.
     private readonly Dictionary<string, Entry> _projects;
     private readonly HashSet<string> _openDocuments;
+    private readonly LoadTextOptions LoadTextOptions = new LoadTextOptions(SourceHashAlgorithm.Sha256);
 
     // We have a queue for changes because if one change results in another change aka, add -> open we want to make sure the "add" finishes running first before "open" is notified.
     private readonly Queue<ProjectChangeEventArgs> _notificationWork;
@@ -193,7 +194,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             {
                 var loader = textLoader is null
                     ? DocumentState.EmptyLoader
-                    : (() => textLoader.LoadTextAndVersionAsync(default, CancellationToken.None));
+                    : (() => textLoader.LoadTextAndVersionAsync(LoadTextOptions, CancellationToken.None));
                 var state = entry.State.WithAddedHostDocument(document, loader);
 
                 // Document updates can no-op.
@@ -343,7 +344,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             {
                 var state = entry.State.WithChangedHostDocument(
                     older.HostDocument,
-                    async () => await textLoader.LoadTextAndVersionAsync(default, cancellationToken: default));
+                    async () => await textLoader.LoadTextAndVersionAsync(LoadTextOptions, cancellationToken: default));
 
                 _openDocuments.Remove(documentFilePath);
 
@@ -455,7 +456,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             {
                 var state = entry.State.WithChangedHostDocument(
                     older.HostDocument,
-                    async () => await textLoader.LoadTextAndVersionAsync(default, cancellationToken: default));
+                    async () => await textLoader.LoadTextAndVersionAsync(LoadTextOptions, cancellationToken: default));
 
                 // Document updates can no-op.
                 if (!ReferenceEquals(state, entry.State))
