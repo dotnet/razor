@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 
 public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmarkBase
 {
-    private DefaultRazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
+    private RazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
 
     private DocumentVersionCache VersionCache { get; set; }
 
@@ -129,7 +129,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
     private void EnsureServicesInitialized()
     {
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-        RazorSemanticTokenService = (languageServer.GetRequiredService<RazorSemanticTokensInfoService>() as TestRazorSemanticTokensInfoService)!;
+        RazorSemanticTokenService = languageServer.GetRequiredService<RazorSemanticTokensInfoService>();
         VersionCache = languageServer.GetRequiredService<DocumentVersionCache>();
         ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<ProjectSnapshotManagerDispatcher>();
     }
