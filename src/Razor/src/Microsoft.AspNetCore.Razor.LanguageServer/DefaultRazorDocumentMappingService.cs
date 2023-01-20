@@ -123,7 +123,7 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
                 // Strictly speaking we could be dropping more lines than we need to, because our mapping point could be anywhere within the edit
                 // but we know that the C# formatter will only be returning blank lines up until the first bit of content that needs to be indented
                 // so we can ignore all but the last line. This assert ensures that is true, just in case something changes in Roslyn
-                Debug.Assert(lastNewLine == 0 || edit.NewText.Substring(0, lastNewLine - 1).All(c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
+                Debug.Assert(lastNewLine == 0 || edit.NewText[..(lastNewLine - 1)].All(c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
 
                 var proposedRange = new Range { Start = new Position(range.End.Line, 0), End = new Position(range.End.Line, range.End.Character) };
                 startSync = proposedRange.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out startIndex);
@@ -140,7 +140,7 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
                 {
                     projectedEdits.Add(new TextEdit()
                     {
-                        NewText = edit.NewText.Substring(lastNewLine),
+                        NewText = edit.NewText[lastNewLine..],
                         Range = new Range { Start = hostDocumentStart!, End = hostDocumentEnd! },
                     });
                     continue;

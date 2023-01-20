@@ -116,7 +116,7 @@ internal class DefaultTagHelperFactsService : TagHelperFactsService
             return matchingDescriptors;
         }
 
-        var tagNameWithoutPrefix = tagName.Substring(prefix.Length);
+        var tagNameWithoutPrefix = tagName[prefix.Length..];
         for (var i = 0; i < descriptors.Count; i++)
         {
             var descriptor = descriptors[i];
