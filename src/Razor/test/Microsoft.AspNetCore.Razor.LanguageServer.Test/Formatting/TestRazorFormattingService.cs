@@ -65,7 +65,7 @@ internal class TestRazorFormattingService
 
         var passes = new List<IFormattingPass>()
         {
-            new HtmlFormattingPass(mappingService, client, versionCache, loggerFactory),
+            new HtmlFormattingPass(mappingService, client, versionCache, optionsMoniter, loggerFactory),
             new CSharpFormattingPass(mappingService, client, loggerFactory),
             new CSharpOnTypeFormattingPass(mappingService, client, optionsMoniter, loggerFactory),
             new RazorFormattingPass(mappingService, client, loggerFactory),
