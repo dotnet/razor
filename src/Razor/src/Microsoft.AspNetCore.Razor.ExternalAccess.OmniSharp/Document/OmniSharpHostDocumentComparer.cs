@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;

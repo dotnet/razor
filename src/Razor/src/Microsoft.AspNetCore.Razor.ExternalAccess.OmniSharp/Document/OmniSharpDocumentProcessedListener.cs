@@ -3,13 +3,12 @@
 
 #nullable disable
 
-using Microsoft;
 using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 
-public abstract class OmniSharpDocumentProcessedListener
+internal abstract class OmniSharpDocumentProcessedListener
 {
     internal abstract void Initialize(OmniSharpProjectSnapshotManager projectManager);
 

@@ -3,9 +3,6 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
 internal abstract class OmniSharpProjectSnapshotManager

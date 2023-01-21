@@ -5,7 +5,7 @@
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-public abstract class OmniSharpProjectSnapshotManagerAccessor
+internal abstract class OmniSharpProjectSnapshotManagerAccessor
 {
     internal abstract OmniSharpProjectSnapshotManager Instance { get; }
 }

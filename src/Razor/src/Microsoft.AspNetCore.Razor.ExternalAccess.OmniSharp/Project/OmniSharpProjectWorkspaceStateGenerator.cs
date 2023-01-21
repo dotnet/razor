@@ -3,8 +3,6 @@
 
 #nullable disable
 
-using System;
-using System.Threading;
 using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;

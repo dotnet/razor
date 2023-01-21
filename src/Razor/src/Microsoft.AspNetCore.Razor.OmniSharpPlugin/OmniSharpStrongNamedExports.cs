@@ -84,7 +84,7 @@ internal class ExportOmniSharpBackgroundDocumentGenerator : OmniSharpBackgroundD
 
 [Shared]
 [Export(typeof(OmniSharpLanguageServerFeatureOptions))]
-public class ExportOmniSharpLanguageServerFeatureOptions : OmniSharpLanguageServerFeatureOptions
+internal class ExportOmniSharpLanguageServerFeatureOptions : OmniSharpLanguageServerFeatureOptions
 {
     [ImportingConstructor]
     public ExportOmniSharpLanguageServerFeatureOptions() : base()

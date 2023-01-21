@@ -3,15 +3,12 @@
 
 #nullable disable
 
-using System;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-public abstract class OmniSharpProjectSnapshotManagerDispatcher
+internal abstract class OmniSharpProjectSnapshotManagerDispatcher
 {
     internal ProjectSnapshotManagerDispatcher InternalDispatcher { get; private protected set; }
 

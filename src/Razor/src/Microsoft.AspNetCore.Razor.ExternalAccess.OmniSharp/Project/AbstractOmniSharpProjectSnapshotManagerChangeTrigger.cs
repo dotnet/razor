@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using Microsoft;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 

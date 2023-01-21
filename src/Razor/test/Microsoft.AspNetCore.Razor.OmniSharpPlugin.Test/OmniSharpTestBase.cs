@@ -29,7 +29,7 @@ public abstract class OmniSharpTestBase : LanguageServerTestBase
     private readonly ConstructorInfo _omniSharpProjectSnapshotMangerConstructor;
     private readonly ConstructorInfo _omniSharpSnapshotConstructor;
 
-    protected OmniSharpProjectSnapshotManagerDispatcher Dispatcher { get; }
+    internal OmniSharpProjectSnapshotManagerDispatcher Dispatcher { get; }
 
     protected OmniSharpTestBase(ITestOutputHelper testOutput)
         : base(testOutput)

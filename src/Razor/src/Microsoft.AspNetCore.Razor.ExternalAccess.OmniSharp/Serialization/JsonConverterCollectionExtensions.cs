@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Serialization;
 
-public static class JsonConverterCollectionExtensions
+internal static class JsonConverterCollectionExtensions
 {
     public static void RegisterOmniSharpRazorConverters(this JsonConverterCollection collection)
     {

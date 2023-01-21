@@ -3,12 +3,11 @@
 
 #nullable disable
 
-using System;
 using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp;
 
-public class FallbackRazorConfiguration
+internal class FallbackRazorConfiguration
 {
     public static RazorConfiguration SelectConfiguration(Version version) => CodeAnalysis.Razor.ProjectSystem.FallbackRazorConfiguration.SelectConfiguration(version);
 }

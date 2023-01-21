@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System;
 using System.Composition;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Host;

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp;
 
-public class OmniSharpLanguageServerFeatureOptions
+internal class OmniSharpLanguageServerFeatureOptions
 {
     private LanguageServerFeatureOptions _internalLanguageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
 
