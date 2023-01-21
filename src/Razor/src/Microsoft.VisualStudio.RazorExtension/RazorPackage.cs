@@ -33,12 +33,10 @@ namespace Microsoft.VisualStudio.RazorExtension;
 [ProvideMenuResource("Menus.ctmenu", 1)]
 [ProvideMenuResource("SyntaxVisualizerMenu.ctmenu", 1)]
 [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
-[ProvideOptionPage(typeof(AdvancedOptionPage), RazorCategory, "Advanced", 0, pageNameResourceID: 1050, true)]
+[ProvideLanguageEditorOptionPage(typeof(AdvancedOptionPage), RazorConstants.RazorLSPContentTypeName, category: null, "Advanced", pageNameResourceId: "#1050", keywordListResourceId: 1060)]
 [Guid(PackageGuidString)]
 public sealed class RazorPackage : AsyncPackage
 {
-    private const string RazorCategory = "Text Editor\\Razor (ASP.NET Core)";
-
     public const string PackageGuidString = "13b72f58-279e-49e0-a56d-296be02f0805";
 
     internal const string GuidSyntaxVisualizerMenuCmdSetString = "a3a603a2-2b17-4ce2-bd21-cbb8ccc084ec";

@@ -121,6 +121,10 @@
     <value>Advanced</value>
     <comment>Advanced Page Group. Name must match the pkgdef definition</comment>
   </data>
+  <data name="1060" xml:space="preserve">
+    <value>Formatting; Format On Type;</value>
+    <comment>Delimited list of search terms for the advanced options page</comment>
+  </data>
   <data name="110" xml:space="preserve">
     <value>Razor (ASP.NET Core)</value>
   </data>
