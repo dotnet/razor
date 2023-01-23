@@ -46,7 +46,7 @@ internal class RazorCompletionListProvider
     public virtual async Task<VSInternalCompletionList?> GetCompletionListAsync(
         int absoluteIndex,
         VSInternalCompletionContext completionContext,
-        DocumentContext documentContext,
+        VersionedDocumentContext documentContext,
         VSInternalClientCapabilities clientCapabilities,
         HashSet<string>? existingCompletions,
         CancellationToken cancellationToken)

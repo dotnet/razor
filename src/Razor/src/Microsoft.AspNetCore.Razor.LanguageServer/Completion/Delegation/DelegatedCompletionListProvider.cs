@@ -46,7 +46,7 @@ internal class DelegatedCompletionListProvider
     public virtual async Task<VSInternalCompletionList?> GetCompletionListAsync(
         int absoluteIndex,
         VSInternalCompletionContext completionContext,
-        DocumentContext documentContext,
+        VersionedDocumentContext documentContext,
         VSInternalClientCapabilities clientCapabilities,
         CancellationToken cancellationToken)
     {
@@ -144,7 +144,7 @@ internal class DelegatedCompletionListProvider
     }
 
     private async Task<ProvisionalCompletionInfo?> TryGetProvisionalCompletionInfoAsync(
-        DocumentContext documentContext,
+        VersionedDocumentContext documentContext,
         VSInternalCompletionContext completionContext,
         Projection projection,
         CancellationToken cancellationToken)

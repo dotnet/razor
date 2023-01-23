@@ -44,4 +44,12 @@ internal static class TestDocumentContext
         var codeDocument = RazorCodeDocument.Create(sourceDocument);
         return From(filePath, codeDocument);
     }
+
+    public static VersionedDocumentContext From(string filePath, int hostDocumentVersion)
+    {
+        var properties = new RazorSourceDocumentProperties(filePath, filePath);
+        var sourceDocument = RazorSourceDocument.Create(content: string.Empty, properties);
+        var codeDocument = RazorCodeDocument.Create(sourceDocument);
+        return From(filePath, codeDocument, hostDocumentVersion);
+    }
 }
