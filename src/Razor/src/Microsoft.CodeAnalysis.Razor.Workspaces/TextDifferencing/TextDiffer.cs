@@ -13,38 +13,37 @@ namespace Microsoft.AspNetCore.Razor.TextDifferencing;
 // Note: Some variable names in this class are not be fully compliant with the C# naming guidelines
 // in the interest of using the same terminology discussed in the paper for ease of understanding.
 //
-internal abstract class TextDiffer
+internal abstract partial class TextDiffer
 {
-    protected abstract int OldTextLength { get; }
+    public abstract int OldSourceLength { get; }
+    public abstract int NewSourceLength { get; }
 
-    protected abstract int NewTextLength { get; }
-
-    protected abstract bool ContentEquals(int oldTextIndex, int newTextIndex);
+    public abstract bool SourceEqual(int oldSourceIndex, int newSourceIndex);
 
     protected IReadOnlyList<DiffEdit> ComputeDiff()
     {
         var edits = new List<DiffEdit>();
 
         // Initialize the vectors to use for forward and reverse searches.
-        var max = NewTextLength + OldTextLength;
+        var max = NewSourceLength + OldSourceLength;
         var vf = new int[(2 * max) + 1];
         var vr = new int[(2 * max) + 1];
 
-        ComputeDiffRecursive(edits, 0, OldTextLength, 0, NewTextLength, vf, vr);
+        ComputeDiffRecursive(edits, 0, OldSourceLength, 0, NewSourceLength, vf, vr);
 
         return edits;
     }
 
     private void ComputeDiffRecursive(List<DiffEdit> edits, int lowA, int highA, int lowB, int highB, int[] vf, int[] vr)
     {
-        while (lowA < highA && lowB < highB && ContentEquals(lowA, lowB))
+        while (lowA < highA && lowB < highB && SourceEqual(lowA, lowB))
         {
             // Skip equal text at the start.
             lowA++;
             lowB++;
         }
 
-        while (lowA < highA && lowB < highB && ContentEquals(highA - 1, highB - 1))
+        while (lowA < highA && lowB < highB && SourceEqual(highA - 1, highB - 1))
         {
             // Skip equal text at the end.
             highA--;
@@ -126,7 +125,7 @@ internal abstract class TextDiffer
                 var y = x - k;
 
                 // Traverse diagonal if possible.
-                while (x < highA && y < highB && ContentEquals(x, y))
+                while (x < highA && y < highB && SourceEqual(x, y))
                 {
                     x++;
                     y++;
@@ -169,7 +168,7 @@ internal abstract class TextDiffer
                 var y = x - k;
 
                 // Traverse diagonal if possible.
-                while (x > lowA && y > lowB && ContentEquals(x - 1, y - 1))
+                while (x > lowA && y > lowB && SourceEqual(x - 1, y - 1))
                 {
                     x--;
                     y--;
@@ -193,6 +192,6 @@ internal abstract class TextDiffer
             }
         }
 
-        throw new InvalidOperationException("Shouldn't reach here.");
+        throw Assumes.NotReachable();
     }
 }

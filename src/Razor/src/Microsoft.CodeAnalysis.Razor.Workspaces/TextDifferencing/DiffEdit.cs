@@ -5,32 +5,20 @@ namespace Microsoft.AspNetCore.Razor.TextDifferencing;
 
 internal readonly struct DiffEdit
 {
-    public DiffEdit(Type operation, int pos, int? newTextPosition)
+    public DiffEditKind Kind { get; }
+    public int Position { get; }
+    public int? NewTextPosition { get; }
+
+    private DiffEdit(DiffEditKind kind, int position, int? newTextPosition)
     {
-        Operation = operation;
-        Position = pos;
+        Kind = kind;
+        Position = position;
         NewTextPosition = newTextPosition;
     }
 
-    public Type Operation { get; }
+    public static DiffEdit Insert(int position, int newTextPosition)
+        => new(DiffEditKind.Insert, position, newTextPosition);
 
-    public int Position { get; }
-
-    public int? NewTextPosition { get; }
-
-    public static DiffEdit Insert(int pos, int newTextPos)
-    {
-        return new DiffEdit(Type.Insert, pos, newTextPos);
-    }
-
-    public static DiffEdit Delete(int pos)
-    {
-        return new DiffEdit(Type.Delete, pos, newTextPosition: null);
-    }
-
-    internal enum Type
-    {
-        Insert,
-        Delete,
-    }
+    public static DiffEdit Delete(int position)
+        => new(DiffEditKind.Delete, position, newTextPosition: null);
 }

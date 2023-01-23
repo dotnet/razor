@@ -4,29 +4,64 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.TextDifferencing;
 
-internal class SourceTextDiffer : TextDiffer
+internal abstract partial class SourceTextDiffer : TextDiffer
 {
-    private readonly bool _lineDiffOnly;
+    protected readonly SourceText OldText;
+    protected readonly SourceText NewText;
 
-    private SourceTextDiffer(SourceText oldText, SourceText newText, bool lineDiffOnly)
+    protected SourceTextDiffer(SourceText oldText, SourceText newText)
     {
-        OldText = oldText;
-        NewText = newText;
-        _lineDiffOnly = lineDiffOnly;
+        OldText = oldText ?? throw new ArgumentNullException(nameof(oldText));
+        NewText = newText ?? throw new ArgumentNullException(nameof(newText));
     }
 
-    private SourceText OldText { get; }
+    protected abstract int GetEditPosition(DiffEdit edit);
+    protected abstract int AppendEdit(DiffEdit edit, StringBuilder builder);
 
-    private SourceText NewText { get; }
+    private IReadOnlyList<TextChange> ConsolidateEdits(IReadOnlyList<DiffEdit> edits)
+    {
+        // Scan through the list of edits and collapse them into a minimal set of TextChanges.
+        // This method assumes that there are no overlapping changes and the changes are sorted.
 
-    protected override int OldTextLength => _lineDiffOnly ? OldText.Lines.Count : OldText.Length;
+        var minimalChanges = new List<TextChange>();
 
-    protected override int NewTextLength => _lineDiffOnly ? NewText.Lines.Count : NewText.Length;
+        var start = 0;
+        var end = 0;
+
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
+        foreach (var edit in edits)
+        {
+            var startPosition = GetEditPosition(edit);
+            if (startPosition != end)
+            {
+                // Previous edit's end doesn't match the new edit's start.
+                // Output the text change we were tracking.
+                if (start != end || builder.Length > 0)
+                {
+                    minimalChanges.Add(new TextChange(TextSpan.FromBounds(start, end), builder.ToString()));
+                    builder.Clear();
+                }
+
+                start = startPosition;
+            }
+
+            end = AppendEdit(edit, builder);
+        }
+
+        if (start != end || builder.Length > 0)
+        {
+            minimalChanges.Add(new TextChange(TextSpan.FromBounds(start, end), builder.ToString()));
+        }
+
+        return minimalChanges;
+    }
 
     public static IReadOnlyList<TextChange> GetMinimalTextChanges(SourceText oldText, SourceText newText, bool lineDiffOnly = true)
     {
@@ -49,97 +84,16 @@ internal class SourceTextDiffer : TextDiffer
             return newText.GetTextChanges(oldText);
         }
 
-        var differ = new SourceTextDiffer(oldText, newText, lineDiffOnly);
+        SourceTextDiffer differ = lineDiffOnly
+            ? new LineDiffer(oldText, newText)
+            : new CharDiffer(oldText, newText);
+
         var edits = differ.ComputeDiff();
 
-        var changes = differ.ProcessChanges(edits);
+        var changes = differ.ConsolidateEdits(edits);
 
         Debug.Assert(oldText.WithChanges(changes).ContentEquals(newText), "Incorrect minimal changes");
 
         return changes;
-    }
-
-    protected override bool ContentEquals(int oldTextIndex, int newTextIndex)
-    {
-        if (_lineDiffOnly)
-        {
-            var oldLine = OldText.Lines[oldTextIndex];
-            var oldLineText = oldLine.Text!.GetSubText(oldLine.SpanIncludingLineBreak);
-
-            var newLine = NewText.Lines[newTextIndex];
-            var newLineText = newLine.Text!.GetSubText(newLine.SpanIncludingLineBreak);
-
-            return oldLineText.ContentEquals(newLineText);
-        }
-
-        return OldText[oldTextIndex] == NewText[newTextIndex];
-    }
-
-    private IReadOnlyList<TextChange> ProcessChanges(IReadOnlyList<DiffEdit> edits)
-    {
-        // Scan through the list of edits and collapse them into a minimal set of TextChanges.
-        // This method assumes that there are no overlapping changes and the changes are sorted.
-
-        var minimalChanges = new List<TextChange>();
-
-        var start = 0;
-        var end = 0;
-
-        using var _ = StringBuilderPool.GetPooledObject(out var builder);
-
-        foreach (var edit in edits)
-        {
-            var startPosition = _lineDiffOnly ? OldText.Lines[edit.Position].Start : edit.Position;
-            if (startPosition != end)
-            {
-                // Previous edit's end doesn't match the new edit's start.
-                // Output the text change we were tracking.
-                if (start != end || builder.Length > 0)
-                {
-                    minimalChanges.Add(new TextChange(TextSpan.FromBounds(start, end), builder.ToString()));
-                    builder.Clear();
-                }
-
-                start = startPosition;
-            }
-
-            end = AppendEdit(edit);
-        }
-
-        if (start != end || builder.Length > 0)
-        {
-            minimalChanges.Add(new TextChange(TextSpan.FromBounds(start, end), builder.ToString()));
-        }
-
-        return minimalChanges;
-
-        // Appends the new edit's content to the buffer and returns the end position.
-        int AppendEdit(DiffEdit edit)
-        {
-            if (_lineDiffOnly)
-            {
-                if (edit.Operation == DiffEdit.Type.Insert)
-                {
-                    Assumes.NotNull(edit.NewTextPosition);
-                    var newLine = NewText.Lines[edit.NewTextPosition.Value];
-                    builder.Append(newLine.Text!.ToString(newLine.SpanIncludingLineBreak));
-                    return OldText.Lines[edit.Position].Start;
-                }
-                else
-                {
-                    return OldText.Lines[edit.Position].EndIncludingLineBreak;
-                }
-            }
-            else
-            {
-                if (edit.Operation == DiffEdit.Type.Insert)
-                {
-                    builder.Append(NewText[edit.NewTextPosition!.Value]);
-                    return edit.Position;
-                }
-
-                return edit.Position + 1;
-            }
-        }
     }
 }
