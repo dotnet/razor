@@ -13,12 +13,12 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 public class DefaultEditorSettingsManagerTest : ProjectSnapshotManagerDispatcherTestBase
 {
-    private readonly IEnumerable<EditorSettingsChangedTrigger> _editorSettingsChangeTriggers;
+    private readonly IEnumerable<ClientSettingsChangedTrigger> _editorSettingsChangeTriggers;
 
     public DefaultEditorSettingsManagerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _editorSettingsChangeTriggers = Array.Empty<EditorSettingsChangedTrigger>();
+        _editorSettingsChangeTriggers = Array.Empty<ClientSettingsChangedTrigger>();
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class DefaultEditorSettingsManagerTest : ProjectSnapshotManagerDispatcher
             new TestChangeTrigger(),
             new TestChangeTrigger(),
         };
-        var manager = new EditorSettingsManager(triggers);
+        var manager = new ClientSettingsManager(triggers);
 
         // Assert
         Assert.All(triggers, (trigger) => Assert.True(trigger.Initialized));
@@ -40,7 +40,7 @@ public class DefaultEditorSettingsManagerTest : ProjectSnapshotManagerDispatcher
     public void InitialSettingsAreDefault()
     {
         // Act
-        var manager = new EditorSettingsManager(_editorSettingsChangeTriggers);
+        var manager = new ClientSettingsManager(_editorSettingsChangeTriggers);
 
         // Assert
         Assert.Equal(ClientSettings.Default, manager.GetClientSettings());
@@ -50,7 +50,7 @@ public class DefaultEditorSettingsManagerTest : ProjectSnapshotManagerDispatcher
     public void Update_TriggersChangedIfEditorSettingsAreDifferent()
     {
         // Arrange
-        var manager = new EditorSettingsManager(_editorSettingsChangeTriggers);
+        var manager = new ClientSettingsManager(_editorSettingsChangeTriggers);
         var called = false;
         manager.Changed += (caller, args) => called = true;
         var settings = new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 7);
@@ -60,14 +60,14 @@ public class DefaultEditorSettingsManagerTest : ProjectSnapshotManagerDispatcher
 
         // Assert
         Assert.True(called);
-        Assert.Equal(settings, manager.GetClientSettings().EditorSettings);
+        Assert.Equal(settings, manager.GetClientSettings().ClientSpaceSettings);
     }
 
     [Fact]
     public void Update_DoesNotTriggerChangedIfEditorSettingsAreSame()
     {
         // Arrange
-        var manager = new EditorSettingsManager(_editorSettingsChangeTriggers);
+        var manager = new ClientSettingsManager(_editorSettingsChangeTriggers);
         var called = false;
         manager.Changed += (caller, args) => called = true;
         var originalSettings = manager.GetClientSettings();
@@ -84,7 +84,7 @@ public class DefaultEditorSettingsManagerTest : ProjectSnapshotManagerDispatcher
     public void Update_TriggersChangedIfAdvancedSettingsAreDifferent()
     {
         // Arrange
-        var manager = new EditorSettingsManager(_editorSettingsChangeTriggers);
+        var manager = new ClientSettingsManager(_editorSettingsChangeTriggers);
         var called = false;
         manager.Changed += (caller, args) => called = true;
         var settings = new ClientAdvancedSettings(FormatOnType: false);
@@ -101,7 +101,7 @@ public class DefaultEditorSettingsManagerTest : ProjectSnapshotManagerDispatcher
     public void Update_DoesNotTriggerChangedIfAdvancedSettingsAreSame()
     {
         // Arrange
-        var manager = new EditorSettingsManager(_editorSettingsChangeTriggers);
+        var manager = new ClientSettingsManager(_editorSettingsChangeTriggers);
         var called = false;
         manager.Changed += (caller, args) => called = true;
         var originalSettings = manager.GetClientSettings();
@@ -114,11 +114,11 @@ public class DefaultEditorSettingsManagerTest : ProjectSnapshotManagerDispatcher
         Assert.Same(originalSettings, manager.GetClientSettings());
     }
 
-    private class TestChangeTrigger : EditorSettingsChangedTrigger
+    private class TestChangeTrigger : ClientSettingsChangedTrigger
     {
         public bool Initialized { get; private set; }
 
-        public override void Initialize(IClientSettingsManager editorSettingsManager)
+        public override void Initialize(IClientSettingsManager clientSettingsManager)
         {
             Initialized = true;
         }

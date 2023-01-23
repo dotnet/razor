@@ -40,7 +40,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
         : base(testOutput)
     {
         _textBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
-        _editorSettingsManager = new EditorSettingsManager(Array.Empty<EditorSettingsChangedTrigger>());
+        _editorSettingsManager = new ClientSettingsManager(Array.Empty<ClientSettingsChangedTrigger>());
     }
 
     [Fact]

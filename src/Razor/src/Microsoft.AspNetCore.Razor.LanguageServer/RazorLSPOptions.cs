@@ -15,7 +15,7 @@ public record RazorLSPOptions(
     bool FormatOnType)
 {
     public RazorLSPOptions(Trace trace, bool enableFormatting, bool autoClosingTags, ClientSettings settings)
-        : this(trace, enableFormatting, autoClosingTags, !settings.EditorSettings.IndentWithTabs, settings.EditorSettings.IndentSize, settings.AdvancedSettings.FormatOnType)
+        : this(trace, enableFormatting, autoClosingTags, !settings.ClientSpaceSettings.IndentWithTabs, settings.ClientSpaceSettings.IndentSize, settings.AdvancedSettings.FormatOnType)
     {
     }
 

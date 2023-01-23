@@ -2,98 +2,72 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Razor.Editor;
-using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.Extensions.Internal;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
+#pragma warning disable CS0618 // Type or member is obsolete
 
-[System.Composition.Shared]
-[Export(typeof(IClientSettingsManager))]
-internal class EditorSettingsManager : IClientSettingsManager
+[Obsolete("Use IClientSettingsManager instead")]
+public abstract class EditorSettingsManager
 {
-    public event EventHandler<ClientSettingsChangedEventArgs>? Changed;
+    public abstract event EventHandler<EditorSettingsChangedEventArgs>? Changed;
 
-    private readonly object _settingsUpdateLock = new();
-    private readonly IAdvancedSettingsStorage? _advancedSettingsStorage;
-    private readonly RazorGlobalOptions? _globalOptions;
-    private ClientSettings _settings;
+    public abstract EditorSettings Current { get; }
 
-    [ImportingConstructor]
-    public EditorSettingsManager(
-        [ImportMany] IEnumerable<EditorSettingsChangedTrigger> editorSettingsChangeTriggers,
-        IAdvancedSettingsStorage? advancedSettingsStorage = null,
-        RazorGlobalOptions? globalOptions = null)
+    public abstract void Update(EditorSettings updateSettings);
+}
+
+public sealed class EditorSettingsChangedEventArgs : EventArgs
+{
+    public EditorSettingsChangedEventArgs(EditorSettings settings)
     {
-        _settings = ClientSettings.Default;
-
-        // update Roslyn's global options (null in tests):
-        if (globalOptions is not null)
+        if (settings is null)
         {
-            globalOptions.TabSize = _settings.EditorSettings.IndentSize;
-            globalOptions.UseTabs = _settings.EditorSettings.IndentWithTabs;
+            throw new ArgumentNullException(nameof(settings));
         }
 
-        foreach (var changeTrigger in editorSettingsChangeTriggers)
-        {
-            changeTrigger.Initialize(this);
-        }
-
-        _advancedSettingsStorage = advancedSettingsStorage;
-        _globalOptions = globalOptions;
-
-        if (_advancedSettingsStorage is not null)
-        {
-            _advancedSettingsStorage.Changed += AdvancedSettingsChanged;
-        }
+        Settings = settings;
     }
 
-    public void Update(ClientSpaceSettings updatedSettings)
+    public EditorSettings Settings { get; }
+}
+
+[Obsolete("Use ClientSettings instead")]
+public sealed class EditorSettings : IEquatable<EditorSettings>
+{
+    public static readonly EditorSettings Default = new(indentWithTabs: false, indentSize: 4);
+
+    public EditorSettings(bool indentWithTabs, int indentSize)
     {
-        if (updatedSettings is null)
+        if (indentSize < 0)
         {
-            throw new ArgumentNullException(nameof(updatedSettings));
+            throw new ArgumentOutOfRangeException(nameof(indentSize));
         }
 
-        // update Roslyn's global options (null in tests):
-        if (_globalOptions is not null)
-        {
-            _globalOptions.TabSize = updatedSettings.IndentSize;
-            _globalOptions.UseTabs = updatedSettings.IndentWithTabs;
-        }
-
-        lock (_settingsUpdateLock)
-        {
-            UpdateSettings_NoLock(_settings with { EditorSettings = updatedSettings });
-        }
+        IndentWithTabs = indentWithTabs;
+        IndentSize = indentSize;
     }
 
-    public ClientSettings GetClientSettings() => _settings;
+    public bool IndentWithTabs { get; }
 
-    public void Update(ClientAdvancedSettings advancedSettings)
+    public int IndentSize { get; }
+
+    public bool Equals(EditorSettings? other)
+        => other is not null &&
+           IndentWithTabs == other.IndentWithTabs &&
+           IndentSize == other.IndentSize;
+
+    public override bool Equals(object? other)
     {
-        if (advancedSettings is null)
-        {
-            throw new ArgumentNullException(nameof(advancedSettings));
-        }
-
-        lock (_settingsUpdateLock)
-        {
-            UpdateSettings_NoLock(_settings with { AdvancedSettings = advancedSettings });
-        }
+        return Equals(other as EditorSettings);
     }
 
-    private void AdvancedSettingsChanged(object sender, ClientAdvancedSettingsChangedEventArgs e) => Update(e.Settings);
-
-    private void UpdateSettings_NoLock(ClientSettings settings)
+    public override int GetHashCode()
     {
-        if (!_settings.Equals(settings))
-        {
-            _settings = settings;
+        var combiner = HashCodeCombiner.Start();
+        combiner.Add(IndentWithTabs);
+        combiner.Add(IndentSize);
 
-            var args = new ClientSettingsChangedEventArgs(_settings);
-            Changed?.Invoke(this, args);
-        }
+        return combiner.CombinedHash;
     }
 }

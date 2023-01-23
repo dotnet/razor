@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 public interface IClientSettingsManager
 {
-    event EventHandler<ClientSettingsChangedEventArgs>? Changed;
+    event EventHandler<ClientSettingsChangedEventArgs>? ClientSettingsChanged;
 
     void Update(ClientSpaceSettings updateSettings);
 

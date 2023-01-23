@@ -56,13 +56,13 @@ internal class DefaultWorkspaceEditorSettings : WorkspaceEditorSettings
     // Internal for testing
     internal virtual void AttachToEditorSettingsManager()
     {
-        _clientSettingsManager.Changed += _onChanged;
+        _clientSettingsManager.ClientSettingsChanged += _onChanged;
     }
 
     // Internal for testing
     internal virtual void DetachFromEditorSettingsManager()
     {
-        _clientSettingsManager.Changed -= _onChanged;
+        _clientSettingsManager.ClientSettingsChanged -= _onChanged;
     }
 
     public override ClientSettings Current => _clientSettingsManager.GetClientSettings();
