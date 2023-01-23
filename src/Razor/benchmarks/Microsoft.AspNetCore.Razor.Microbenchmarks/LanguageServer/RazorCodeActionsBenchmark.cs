@@ -79,7 +79,7 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
         CSharpCodeActionRange = ToRange(csharpCodeActionIndex);
         HtmlCodeActionRange = ToRange(htmlCodeActionIndex);
 
-        var documentContext = new DocumentContext(DocumentUri, DocumentSnapshot, 1);
+        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, 1);
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(CancellationToken.None);
         // Need a root namespace for the Extract to Code Behind light bulb to be happy
