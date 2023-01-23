@@ -48,7 +48,7 @@ internal class DefaultRazorFormattingService : RazorFormattingService
     }
 
     public override async Task<TextEdit[]> FormatAsync(
-        DocumentContext documentContext,
+        VersionedDocumentContext documentContext,
         Range? range,
         FormattingOptions options,
         CancellationToken cancellationToken)
