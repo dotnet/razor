@@ -13,24 +13,28 @@ internal static class TestDocumentContext
 {
     public static DocumentContext Create(Uri uri) => Create(uri, string.Empty);
 
-    public static DocumentContext Create(Uri uri, string text, int version = 0)
+    public static DocumentContext Create(Uri uri, string text)
     {
         var snapshot = TestDocumentSnapshot.Create(uri.GetAbsoluteOrUNCPath(), text);
-        return new DocumentContext(uri, snapshot, version);
+        return new DocumentContext(uri, snapshot);
     }
 
-    public static DocumentContext From(string filePath, RazorCodeDocument codeDocument, int hostDocumentVersion)
+    public static VersionedDocumentContext From(string filePath, RazorCodeDocument codeDocument, int hostDocumentVersion)
     {
         var content = codeDocument.GetSourceText().ToString();
         var documentSnapshot = TestDocumentSnapshot.Create(filePath, content);
         documentSnapshot.With(codeDocument);
         var uri = new Uri(filePath);
-        return new DocumentContext(uri, documentSnapshot, hostDocumentVersion);
+        return new VersionedDocumentContext(uri, documentSnapshot, hostDocumentVersion);
     }
 
     public static DocumentContext From(string filePath, RazorCodeDocument codeDocument)
     {
-        return From(filePath, codeDocument, hostDocumentVersion: 0);
+        var content = codeDocument.GetSourceText().ToString();
+        var documentSnapshot = TestDocumentSnapshot.Create(filePath, content);
+        documentSnapshot.With(codeDocument);
+        var uri = new Uri(filePath);
+        return new DocumentContext(uri, documentSnapshot);
     }
 
     public static DocumentContext From(string filePath)
