@@ -21,7 +21,7 @@ internal class RazorRequestContextFactory : IRequestContextFactory<RazorRequestC
 
     public async Task<RazorRequestContext> CreateRequestContextAsync<TRequestParams>(IQueueItem<RazorRequestContext> queueItem, TRequestParams @params, CancellationToken cancellationToken)
     {
-        DocumentContext? documentContext = null;
+        VersionedDocumentContext? documentContext = null;
         var textDocumentHandler = queueItem.MethodHandler as ITextDocumentIdentifierHandler;
 
         Uri? uri = null;
@@ -45,7 +45,7 @@ internal class RazorRequestContextFactory : IRequestContextFactory<RazorRequestC
         if (uri is not null)
         {
             var documentContextFactory = _lspServices.GetRequiredService<DocumentContextFactory>();
-            documentContext = await documentContextFactory.TryCreateAsync(uri, cancellationToken);
+            documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, cancellationToken);
         }
 
         var loggerAdapter = _lspServices.GetRequiredService<LoggerAdapter>();
