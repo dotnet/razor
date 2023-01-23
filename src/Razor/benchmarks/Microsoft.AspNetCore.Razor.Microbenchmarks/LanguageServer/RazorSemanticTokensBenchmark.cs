@@ -30,7 +30,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 
     private DocumentSnapshot DocumentSnapshot => DocumentContext.Snapshot;
 
-    private DocumentContext DocumentContext { get; set; }
+    private VersionedDocumentContext DocumentContext { get; set; }
 
     private Range Range { get; set; }
 
@@ -56,7 +56,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
         var documentUri = new Uri(filePath);
         var documentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
         var version = 1;
-        DocumentContext = new DocumentContext(documentUri, documentSnapshot, version);
+        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, version);
 
         var text = await DocumentContext.GetSourceTextAsync(CancellationToken.None).ConfigureAwait(false);
         Range = new Range

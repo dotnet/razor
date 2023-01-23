@@ -24,7 +24,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 
     private DocumentVersionCache VersionCache { get; set; }
 
-    private DocumentContext DocumentContext { get; set; }
+    private VersionedDocumentContext DocumentContext { get; set; }
 
     private Uri DocumentUri => DocumentContext.Uri;
 
@@ -53,7 +53,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 
         var documentUri = new Uri(filePath);
         var documentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
-        DocumentContext = new DocumentContext(documentUri, documentSnapshot, version: 1);
+        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, version: 1);
 
         var text = await DocumentSnapshot.GetTextAsync().ConfigureAwait(false);
         Range = new Range
