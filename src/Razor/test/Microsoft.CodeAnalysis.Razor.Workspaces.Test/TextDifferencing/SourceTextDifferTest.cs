@@ -35,8 +35,8 @@ public class SourceTextDifferTest : TestBase
     public void GetMinimalTextChanges_ReturnsAccurateResults(string oldStr, string newStr)
     {
         // Arrange
-        var oldText = SourceText.From(oldStr);
-        var newText = SourceText.From(newStr);
+        var oldText = CreateSourceText(oldStr);
+        var newText = CreateSourceText(newStr);
 
         // Act 1
         var characterChanges = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, lineDiffOnly: false);
@@ -57,19 +57,17 @@ public class SourceTextDifferTest : TestBase
     public void GetMinimalTextChanges_ReturnsExpectedResults()
     {
         // Arrange
-        var oldText = SourceText.From("""
+        var oldText = CreateSourceText("""
             <div>
               Hello!
             </div>
-            """
-            .Replace(Environment.NewLine, "\r\n"));
+            """);
 
-        var newText = SourceText.From("""
+        var newText = CreateSourceText("""
             <div>
               Hola!
             </div>
-            """
-            .Replace(Environment.NewLine, "\r\n"));
+            """);
 
         // Act 1
         var characterChanges = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, lineDiffOnly: false);
@@ -86,4 +84,10 @@ public class SourceTextDifferTest : TestBase
         var change = Assert.Single(lineChanges);
         Assert.Equal(new TextChange(TextSpan.FromBounds(7, 17), "  Hola!\r\n"), change);
     }
+
+    private static SourceText CreateSourceText(string input)
+        => SourceText.From(FixLineEndings(input));
+
+    private static string FixLineEndings(string input)
+        => input.Replace(Environment.NewLine, "\r\n");
 }

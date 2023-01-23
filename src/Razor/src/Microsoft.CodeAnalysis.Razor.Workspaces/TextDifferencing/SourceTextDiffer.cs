@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.TextDifferencing;
 
-internal abstract partial class SourceTextDiffer : TextDiffer
+internal abstract partial class SourceTextDiffer : TextDiffer, IDisposable
 {
     protected readonly SourceText OldText;
     protected readonly SourceText NewText;
@@ -19,6 +19,10 @@ internal abstract partial class SourceTextDiffer : TextDiffer
     {
         OldText = oldText ?? throw new ArgumentNullException(nameof(oldText));
         NewText = newText ?? throw new ArgumentNullException(nameof(newText));
+    }
+
+    public virtual void Dispose()
+    {
     }
 
     protected abstract int GetEditPosition(DiffEdit edit);
@@ -84,7 +88,7 @@ internal abstract partial class SourceTextDiffer : TextDiffer
             return newText.GetTextChanges(oldText);
         }
 
-        SourceTextDiffer differ = lineDiffOnly
+        using SourceTextDiffer differ = lineDiffOnly
             ? new LineDiffer(oldText, newText)
             : new CharDiffer(oldText, newText);
 

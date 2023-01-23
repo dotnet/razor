@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Razor.TextDifferencing;
 
 namespace Microsoft.AspNetCore.Razor.TextDifferencing;
 
@@ -26,15 +27,15 @@ internal abstract partial class TextDiffer
 
         // Initialize the vectors to use for forward and reverse searches.
         var max = NewSourceLength + OldSourceLength;
-        var vf = new int[(2 * max) + 1];
-        var vr = new int[(2 * max) + 1];
+        using var vf = IntArray.Create((2 * max) + 1);
+        using var vr = IntArray.Create((2 * max) + 1);
 
         ComputeDiffRecursive(edits, 0, OldSourceLength, 0, NewSourceLength, vf, vr);
 
         return edits;
     }
 
-    private void ComputeDiffRecursive(List<DiffEdit> edits, int lowA, int highA, int lowB, int highB, int[] vf, int[] vr)
+    private void ComputeDiffRecursive(List<DiffEdit> edits, int lowA, int highA, int lowB, int highB, IntArray vf, IntArray vr)
     {
         while (lowA < highA && lowB < highB && SourceEqual(lowA, lowB))
         {
@@ -81,7 +82,7 @@ internal abstract partial class TextDiffer
         }
     }
 
-    private (int, int) FindMiddleSnake(int lowA, int highA, int lowB, int highB, int[] vf, int[] vr)
+    private (int, int) FindMiddleSnake(int lowA, int highA, int lowB, int highB, IntArray vf, IntArray vr)
     {
         var n = highA - lowA;
         var m = highB - lowB;
