@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -6,6 +6,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -48,6 +50,26 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
     public string DisplayName { get; protected set; }
 
     public bool CaseSensitive { get; protected set; }
+
+    // We need this to be atomic so:
+    // 0: Uninitialized
+    // 1: false
+    // 2: true
+    private int _isDirectiveAttribute;
+
+    public bool IsDirectiveAttribute
+    {
+        get
+        {
+            if (_isDirectiveAttribute == 0)
+            {
+                _isDirectiveAttribute = Metadata.TryGetValue(ComponentMetadata.Common.DirectiveAttribute, out var value) &&
+                        string.Equals(bool.TrueString, value) ? 2 : 1;
+            }
+
+            return _isDirectiveAttribute == 2;
+        }
+    }
 
     public IReadOnlyList<RazorDiagnostic> Diagnostics { get; protected set; }
 
