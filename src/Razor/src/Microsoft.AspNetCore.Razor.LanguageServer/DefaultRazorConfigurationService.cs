@@ -130,15 +130,32 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
         }
     }
 
-    private ClientSettings? ExtractVSOptions(JObject[] result)
+    private ClientSettings ExtractVSOptions(JObject[] result)
     {
         try
         {
-            return result[2]?.ToObject<ClientSettings>();
+            var settings = result[2]?.ToObject<ClientSettings>();
+            if (settings is null)
+            {
+                return ClientSettings.Default;
+            }
+
+            // Deserializing can result in null properties. Fill with default as needed
+            if (settings.ClientSpaceSettings is null)
+            {
+                settings = settings with { ClientSpaceSettings = ClientSpaceSettings.Default };
+            }
+
+            if (settings.AdvancedSettings is null)
+            {
+                settings = settings with { AdvancedSettings = ClientAdvancedSettings.Default };
+            }
+
+            return settings;
         }
         catch (JsonReaderException)
         {
-            return null;
+            return ClientSettings.Default;
         }
     }
 

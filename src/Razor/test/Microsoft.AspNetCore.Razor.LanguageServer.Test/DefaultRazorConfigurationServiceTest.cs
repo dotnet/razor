@@ -50,7 +50,7 @@ public class DefaultRazorConfigurationServiceTest : LanguageServerTestBase
 
         var vsEditorJsonString = """
             {
-                "EditorSettings": {
+                "ClientSpaceSettings": {
                     "IndentSize": 8,
                     "IndentWithTabs": "false"
                 },
@@ -124,7 +124,7 @@ public class DefaultRazorConfigurationServiceTest : LanguageServerTestBase
             """;
         var vsEditorJsonString = """
             {
-                "EditorSettings": {
+                "ClientSpaceSettings": {
                     "IndentSize": 8,
                     "IndentWithTabs": "true"
                 },
@@ -167,7 +167,7 @@ public class DefaultRazorConfigurationServiceTest : LanguageServerTestBase
 ".Trim();
         var vsEditorJsonString = @"
 {
-    ""EditorSettings"": {
+    ""ClientSpaceSettings"": {
           ""IndentSize"": ""supposedToBeAnInt"",
           ""IndentWithTabs"": 4
     }
