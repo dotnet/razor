@@ -22,7 +22,6 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 {
     public override event EventHandler<ProjectChangeEventArgs> Changed;
 
-    private readonly ErrorReporter _errorReporter;
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly ProjectSnapshotChangeTrigger[] _triggers;
 
@@ -62,9 +61,9 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
 
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _errorReporter = errorReporter;
         _triggers = triggers.OrderByDescending(trigger => trigger.InitializePriority).ToArray();
         Workspace = workspace;
+        ErrorReporter = errorReporter;
 
         _projects = new Dictionary<string, Entry>(FilePathComparer.Instance);
         _openDocuments = new HashSet<string>(FilePathComparer.Instance);
@@ -126,6 +125,8 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     }
 
     public override Workspace Workspace { get; }
+
+    public override ErrorReporter ErrorReporter { get; }
 
     public override ProjectSnapshot GetLoadedProject(string filePath)
     {
@@ -599,7 +600,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(exception));
         }
 
-        _errorReporter.ReportError(exception);
+        ErrorReporter.ReportError(exception);
     }
 
     public override void ReportError(Exception exception, ProjectSnapshot project)
@@ -609,7 +610,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(exception));
         }
 
-        _errorReporter.ReportError(exception, project);
+        ErrorReporter.ReportError(exception, project);
     }
 
     public override void ReportError(Exception exception, HostProject hostProject)
@@ -620,7 +621,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
 
         var snapshot = hostProject?.FilePath is null ? null : GetLoadedProject(hostProject.FilePath);
-        _errorReporter.ReportError(exception, snapshot);
+        ErrorReporter.ReportError(exception, snapshot);
     }
 
     private void NotifyListeners(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind)

@@ -47,7 +47,7 @@ public class RenameEndpointTest : LanguageServerTestBase
     public async Task Handle_Rename_FileManipulationNotSupported_ReturnsNull()
     {
         // Arrange
-        var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == false, MockBehavior.Strict);
+        var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == false && options.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false, MockBehavior.Strict);
         var endpoint = CreateEndpoint(languageServerFeatureOptions);
         var uri = new Uri("file:///c:/First/Component1.razor");
         var request = new RenameParamsBridge
@@ -421,7 +421,8 @@ public class RenameEndpointTest : LanguageServerTestBase
     public async Task Handle_Rename_SingleServer_CallsDelegatedLanguageServer()
     {
         // Arrange
-        var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == true, MockBehavior.Strict);
+        var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(
+            options => options.SupportsFileManipulation == true && options.SingleServerSupport == true && options.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false, MockBehavior.Strict);
 
         var delegatedEdit = new WorkspaceEdit();
 
@@ -469,7 +470,8 @@ public class RenameEndpointTest : LanguageServerTestBase
     public async Task Handle_Rename_SingleServer_DoesntDelegateForRazor()
     {
         // Arrange
-        var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == true, MockBehavior.Strict);
+        var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(
+            options => options.SupportsFileManipulation == true && options.SingleServerSupport == true && options.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false, MockBehavior.Strict);
         var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
         documentMappingServiceMock
@@ -640,7 +642,8 @@ public class RenameEndpointTest : LanguageServerTestBase
             d.TryCreateAsync(new Uri(itemDirectory2.FilePath), It.IsAny<CancellationToken>()) == Task.FromResult(directory2Component), MockBehavior.Strict);
 
         var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
-        languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == false, MockBehavior.Strict);
+        languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(
+            options => options.SupportsFileManipulation == true && options.SingleServerSupport == false && options.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false, MockBehavior.Strict);
 
         var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
         documentMappingServiceMock

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
+using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
@@ -172,6 +173,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             services.AddHandler<RazorBreakpointSpanEndpoint>();
             services.AddHandler<RazorProximityExpressionsEndpoint>();
             services.AddRegisteringHandler<DocumentColorEndpoint>();
+            services.AddHandler<ColorPresentationEndpoint>();
             services.AddRegisteringHandler<FoldingRangeEndpoint>();
             services.AddRegisteringHandler<ValidateBreakpointRangeEndpoint>();
             services.AddRegisteringHandler<FindAllReferencesEndpoint>();

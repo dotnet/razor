@@ -4,9 +4,9 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
+import { SerializableRenameDocument } from '../Rename/SerializableRenameDocument';
 import { SerializableCreateDocument } from './SerializableCreateDocument';
 import { SerializableDeleteDocument } from './SerializableDeleteDocument';
-import { SerializableRenameDocument } from './SerializableRenameDocument';
 import { SerializableTextDocumentEdit } from './SerializableTextDocumentEdit';
 import { convertTextEditFromSerializable, SerializableTextEdit } from './SerializableTextEdit';
 
