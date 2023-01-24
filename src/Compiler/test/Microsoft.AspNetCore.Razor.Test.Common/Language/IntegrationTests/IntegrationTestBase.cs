@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Sdk;
 
@@ -573,15 +574,13 @@ public abstract class IntegrationTestBase
 
         var baseline = testFile.ReadAllText();
 
-        // Normalize newlines to match those in the baseline.
-        var actualBaseline = serializedMappings.Replace("\r", "").Replace("\n", "\r\n");
-
-        Assert.Equal(baseline, actualBaseline);
+        AssertEx.AssertEqualToleratingWhitespaceDifferences(baseline, serializedMappings);
 
         var charBuffer = new char[codeDocument.Source.Length];
         codeDocument.Source.CopyTo(0, charBuffer, 0, codeDocument.Source.Length);
         var sourceContent = new string(charBuffer);
 
+        var problems = new List<string>();
         foreach (var mapping in htmlDocument.SourceMappings)
         {
             var actualSpan = htmlDocument.GeneratedCode.Substring(mapping.GeneratedSpan.AbsoluteIndex, mapping.GeneratedSpan.Length);
@@ -589,10 +588,15 @@ public abstract class IntegrationTestBase
 
             if (expectedSpan != actualSpan)
             {
-                throw new XunitException(
+                problems.Add(
                     $"Found the span {mapping.OriginalSpan} in the output mappings but it contains " +
                     $"'{EscapeWhitespace(actualSpan)}' instead of '{EscapeWhitespace(expectedSpan)}'.");
             }
+        }
+
+        if (problems.Count > 0)
+        {
+            throw new XunitException(string.Join(Environment.NewLine, problems));
         }
     }
 

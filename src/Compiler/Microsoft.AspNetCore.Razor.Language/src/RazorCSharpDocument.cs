@@ -32,7 +32,7 @@ public abstract class RazorCSharpDocument : IRazorGeneratedDocument
     public static RazorCSharpDocument Create(string generatedCode, RazorCodeGenerationOptions options, IEnumerable<RazorDiagnostic> diagnostics, IEnumerable<SourceMapping> sourceMappings, IEnumerable<LinePragma> linePragmas)
         => Create(codeDocument: null, generatedCode, options, diagnostics, sourceMappings, linePragmas);
 
-        public static RazorCSharpDocument Create(RazorCodeDocument codeDocument, string generatedCode, RazorCodeGenerationOptions options, IEnumerable<RazorDiagnostic> diagnostics)
+    public static RazorCSharpDocument Create(RazorCodeDocument codeDocument, string generatedCode, RazorCodeGenerationOptions options, IEnumerable<RazorDiagnostic> diagnostics)
     {
         if (generatedCode == null)
         {
