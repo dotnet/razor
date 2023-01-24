@@ -101,7 +101,7 @@ internal class ClientSettingsManager : EditorSettingsManager, IClientSettingsMan
             var args = new ClientSettingsChangedEventArgs(_settings);
             ClientSettingsChanged?.Invoke(this, args);
             Changed?.Invoke(this,
-                new(new EditorSettings(_settings.ClientSpaceSettings.IndentWithTabs, _settings.ClientSpaceSettings.IndentSize));
+                new(new EditorSettings(_settings.ClientSpaceSettings.IndentWithTabs, _settings.ClientSpaceSettings.IndentSize)));
         }
     }
 
