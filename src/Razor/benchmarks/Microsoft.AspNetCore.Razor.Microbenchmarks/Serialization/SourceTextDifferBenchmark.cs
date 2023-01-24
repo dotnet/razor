@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization;
@@ -25,7 +26,15 @@ public class SourceTextDifferBenchmark
         var changedText = largeFileText.Insert(100, "<");
         _largeFileMinimalChanges = SourceText.From(changedText);
 
-        changedText = largeFileText.Substring(largeFileText.Length / 2).Reverse().ToString();
+        // Reverse the last half of the file
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
+        foreach (var ch in largeFileText[(largeFileText.Length / 2)..].Reverse())
+        {
+            builder.Append(ch);
+        }
+
+        changedText = builder.ToString();
         _largeFileSignificantChanges = SourceText.From(changedText);
     }
 
