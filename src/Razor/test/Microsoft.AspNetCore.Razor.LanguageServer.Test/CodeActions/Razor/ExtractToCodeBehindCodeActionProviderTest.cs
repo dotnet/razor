@@ -241,7 +241,7 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
         var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
 
-        var provider = new ExtractToCodeBehindCodeActionProvider();
+        var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
 
         // Act
         var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
