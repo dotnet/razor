@@ -590,9 +590,9 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
 
     private class VisualStudioParserOptionsFeature : RazorEngineFeatureBase, IConfigureRazorCodeGenerationOptionsFeature
     {
-        private readonly EditorSettings _settings;
+        private readonly ClientSpaceSettings _settings;
 
-        public VisualStudioParserOptionsFeature(EditorSettings settings)
+        public VisualStudioParserOptionsFeature(ClientSpaceSettings settings)
         {
             _settings = settings;
         }
