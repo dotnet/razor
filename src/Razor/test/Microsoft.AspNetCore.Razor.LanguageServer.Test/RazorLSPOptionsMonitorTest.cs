@@ -29,8 +29,8 @@ public class RazorLSPOptionsMonitorTest : TestBase
     public async Task UpdateAsync_Invokes_OnChangeRegistration()
     {
         // Arrange
-        var expectedOptions = new RazorLSPOptions(Trace.Messages, enableFormatting: false, autoClosingTags: true, insertSpaces: true, tabSize: 4);
-        var configService = Mock.Of<RazorConfigurationService>(
+        var expectedOptions = new RazorLSPOptions(Trace.Messages, EnableFormatting: false, AutoClosingTags: true, InsertSpaces: true, TabSize: 4, FormatOnType: true);
+        var configService = Mock.Of<IConfigurationSyncService>(
             f => f.GetLatestOptionsAsync(DisposalToken) == Task.FromResult(expectedOptions),
             MockBehavior.Strict);
         var optionsMonitor = new RazorLSPOptionsMonitor(configService, _cache);
@@ -51,8 +51,8 @@ public class RazorLSPOptionsMonitorTest : TestBase
     public async Task UpdateAsync_DoesNotInvoke_OnChangeRegistration_AfterDispose()
     {
         // Arrange
-        var expectedOptions = new RazorLSPOptions(Trace.Messages, enableFormatting: false, autoClosingTags: true, insertSpaces: true, tabSize: 4);
-        var configService = Mock.Of<RazorConfigurationService>(
+        var expectedOptions = new RazorLSPOptions(Trace.Messages, EnableFormatting: false, AutoClosingTags: true, InsertSpaces: true, TabSize: 4, FormatOnType: true);
+        var configService = Mock.Of<IConfigurationSyncService>(
             f => f.GetLatestOptionsAsync(DisposalToken) == Task.FromResult(expectedOptions),
             MockBehavior.Strict);
         var optionsMonitor = new RazorLSPOptionsMonitor(configService, _cache);
@@ -78,7 +78,7 @@ public class RazorLSPOptionsMonitorTest : TestBase
     public async Task UpdateAsync_ConfigReturnsNull_DoesNotInvoke_OnChangeRegistration()
     {
         // Arrange
-        var configService = new Mock<RazorConfigurationService>(MockBehavior.Strict).Object;
+        var configService = new Mock<IConfigurationSyncService>(MockBehavior.Strict).Object;
         Mock.Get(configService)
             .Setup(s => s.GetLatestOptionsAsync(DisposalToken))
             .ReturnsAsync(value: null);

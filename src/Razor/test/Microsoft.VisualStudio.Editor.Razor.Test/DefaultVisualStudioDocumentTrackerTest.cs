@@ -53,7 +53,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         Mock.Get(_importDocumentManager).Setup(m => m.OnSubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
         Mock.Get(_importDocumentManager).Setup(m => m.OnUnsubscribed(It.IsAny<VisualStudioDocumentTracker>())).Verifiable();
 
-        _workspaceEditorSettings = new DefaultWorkspaceEditorSettings(Mock.Of<EditorSettingsManager>(MockBehavior.Strict));
+        _workspaceEditorSettings = new DefaultWorkspaceEditorSettings(Mock.Of<IClientSettingsManager>(MockBehavior.Strict));
 
         _someTagHelpers = new List<TagHelperDescriptor>()
         {
