@@ -31,11 +31,9 @@ internal abstract class ProjectEngineFactory : IProjectEngineFactory
 
         return RazorProjectEngine.Create(configuration, fileSystem, builder =>
         {
-            PreInitialize(builder);
-            initializer.Initialize(builder);
+			CompilerFeatures.Register(builder);
+			initializer.Initialize(builder);
             configure?.Invoke(builder);
         });
     }
-
-    protected virtual void PreInitialize(RazorProjectEngineBuilder builder) { }
 }
