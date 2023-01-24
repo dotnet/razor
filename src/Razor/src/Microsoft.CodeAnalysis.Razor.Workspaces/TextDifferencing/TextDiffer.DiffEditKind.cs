@@ -3,8 +3,11 @@
 
 namespace Microsoft.AspNetCore.Razor.TextDifferencing;
 
-internal enum DiffEditKind : byte
+internal abstract partial class TextDiffer
 {
-    Insert,
-    Delete,
+    protected enum DiffEditKind : byte
+    {
+        Insert,
+        Delete,
+    }
 }

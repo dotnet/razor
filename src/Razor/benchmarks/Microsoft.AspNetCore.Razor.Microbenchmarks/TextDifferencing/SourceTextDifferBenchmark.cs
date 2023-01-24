@@ -41,18 +41,18 @@ public class SourceTextDifferBenchmark
     [Benchmark(Description = "Line Diff - One line change (Typing)")]
     public void LineDiff_LargeFile_OneLineChanged()
     {
-        SourceTextDiffer.GetMinimalTextChanges(_largeFileOriginal!, _largeFileMinimalChanges!, lineDiffOnly: true);
+        SourceTextDiffer.GetMinimalTextChanges(_largeFileOriginal!, _largeFileMinimalChanges!, DiffKind.Line);
     }
 
     [Benchmark(Description = "Line Diff - Significant Changes (Copy-paste)")]
     public void LineDiff_LargeFile_SignificantlyDifferent()
     {
-        SourceTextDiffer.GetMinimalTextChanges(_largeFileOriginal!, _largeFileSignificantChanges!, lineDiffOnly: true);
+        SourceTextDiffer.GetMinimalTextChanges(_largeFileOriginal!, _largeFileSignificantChanges!, DiffKind.Line);
     }
 
     [Benchmark(Description = "Character Diff - One character change (Typing)")]
     public void CharDiff_LargeFile_OneCharChanged()
     {
-        SourceTextDiffer.GetMinimalTextChanges(_largeFileOriginal!, _largeFileMinimalChanges!, lineDiffOnly: false);
+        SourceTextDiffer.GetMinimalTextChanges(_largeFileOriginal!, _largeFileMinimalChanges!, DiffKind.Char);
     }
 }

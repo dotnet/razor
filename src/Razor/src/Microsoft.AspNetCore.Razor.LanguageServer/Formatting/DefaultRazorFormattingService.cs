@@ -117,7 +117,7 @@ internal class DefaultRazorFormattingService : RazorFormattingService
         }
 
         // Only send back the minimum edits
-        var minimalChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, lineDiffOnly: false);
+        var minimalChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, changedText, DiffKind.Char);
         var finalEdits = minimalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
         return finalEdits;

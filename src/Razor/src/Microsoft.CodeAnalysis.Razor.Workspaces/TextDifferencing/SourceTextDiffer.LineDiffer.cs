@@ -43,14 +43,6 @@ internal partial class SourceTextDiffer
             Return(_appendBuffer);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static char[] Rent(int minimumLength)
-            => ArrayPool<char>.Shared.Rent(minimumLength);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Return(char[] array, bool clearArray = false)
-            => ArrayPool<char>.Shared.Return(array, clearArray);
-
         public override bool SourceEqual(int oldSourceIndex, int newSourceIndex)
         {
             var oldLine = _oldLines[oldSourceIndex];
@@ -75,8 +67,8 @@ internal partial class SourceTextDiffer
             // Copy the text into char arrays for comparison. Note: To avoid allocation,
             // we try to reuse the same char buffers and only grow them when a longer
             // line is encountered.
-            var oldChars = GetBuffer(ref _oldLineBuffer, length);
-            var newChars = GetBuffer(ref _newLineBuffer, length);
+            var oldChars = EnsureBuffer(ref _oldLineBuffer, length);
+            var newChars = EnsureBuffer(ref _newLineBuffer, length);
 
             OldText.CopyTo(oldSpan.Start, oldChars, 0, length);
             NewText.CopyTo(newSpan.Start, newChars, 0, length);
@@ -92,24 +84,6 @@ internal partial class SourceTextDiffer
             return true;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static char[] GetBuffer(ref char[] array, int length)
-        {
-            return array.Length >= length
-                ? array
-                : GetNewBuffer(ref array, length);
-
-            static char[] GetNewBuffer(ref char[] array, int length)
-            {
-                // We need a larger buffer. Return this array to the pool
-                // and rent a new one.
-                Return(array);
-                array = Rent(length);
-
-                return array;
-            }
-        }
-
         protected override int GetEditPosition(DiffEdit edit)
             => _oldLines[edit.Position].Start;
 
@@ -118,24 +92,26 @@ internal partial class SourceTextDiffer
             if (edit.Kind == DiffEditKind.Insert)
             {
                 Assumes.NotNull(edit.NewTextPosition);
+                var newTextPosition = edit.NewTextPosition.GetValueOrDefault();
 
-                var newLine = _newLines[edit.NewTextPosition.Value];
-
-                var newSpan = newLine.SpanIncludingLineBreak;
-                if (newSpan.Length > 0)
+                for (var i = 0; i < edit.Length; i++)
                 {
-                    var buffer = GetBuffer(ref _appendBuffer, newSpan.Length);
-                    NewText.CopyTo(newSpan.Start, buffer, 0, newSpan.Length);
+                    var newLine = _newLines[newTextPosition + i];
 
-                    builder.Append(buffer, 0, newSpan.Length);
+                    var newSpan = newLine.SpanIncludingLineBreak;
+                    if (newSpan.Length > 0)
+                    {
+                        var buffer = EnsureBuffer(ref _appendBuffer, newSpan.Length);
+                        NewText.CopyTo(newSpan.Start, buffer, 0, newSpan.Length);
+
+                        builder.Append(buffer, 0, newSpan.Length);
+                    }
                 }
 
                 return _oldLines[edit.Position].Start;
             }
-            else
-            {
-                return _oldLines[edit.Position].EndIncludingLineBreak;
-            }
+
+            return _oldLines[edit.Position + edit.Length - 1].EndIncludingLineBreak;
         }
     }
 }

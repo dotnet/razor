@@ -2,8 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -21,14 +23,47 @@ internal abstract partial class SourceTextDiffer : TextDiffer, IDisposable
         NewText = newText ?? throw new ArgumentNullException(nameof(newText));
     }
 
-    public virtual void Dispose()
-    {
-    }
+    public abstract void Dispose();
 
     protected abstract int GetEditPosition(DiffEdit edit);
     protected abstract int AppendEdit(DiffEdit edit, StringBuilder builder);
 
-    private IReadOnlyList<TextChange> ConsolidateEdits(IReadOnlyList<DiffEdit> edits)
+    /// <summary>
+    ///  Rents a char array of at least <paramref name="minimumLength"/> from the shared array pool.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected static char[] Rent(int minimumLength)
+        => ArrayPool<char>.Shared.Rent(minimumLength);
+
+    /// <summary>
+    ///  Returns a char array to the shared array pool.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected static void Return(char[] array, bool clearArray = false)
+        => ArrayPool<char>.Shared.Return(array, clearArray);
+
+    /// <summary>
+    ///  Ensures that <paramref name="array"/> contains a char array of at least <paramref name="minimumLength"/>.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected static char[] EnsureBuffer(ref char[] array, int minimumLength)
+    {
+        return array.Length >= minimumLength
+            ? array
+            : GetNewBuffer(ref array, minimumLength);
+
+        static char[] GetNewBuffer(ref char[] array, int minimumLength)
+        {
+            // We need a larger buffer. Return this array to the pool
+            // and rent a new one.
+            Return(array);
+            array = Rent(minimumLength);
+
+            return array;
+        }
+    }
+
+    private IReadOnlyList<TextChange> ConsolidateEdits(List<DiffEdit> edits)
     {
         // Scan through the list of edits and collapse them into a minimal set of TextChanges.
         // This method assumes that there are no overlapping changes and the changes are sorted.
@@ -67,7 +102,7 @@ internal abstract partial class SourceTextDiffer : TextDiffer, IDisposable
         return minimalChanges;
     }
 
-    public static IReadOnlyList<TextChange> GetMinimalTextChanges(SourceText oldText, SourceText newText, bool lineDiffOnly = true)
+    public static IReadOnlyList<TextChange> GetMinimalTextChanges(SourceText oldText, SourceText newText, DiffKind kind = DiffKind.Line)
     {
         if (oldText is null)
         {
@@ -88,7 +123,7 @@ internal abstract partial class SourceTextDiffer : TextDiffer, IDisposable
             return newText.GetTextChanges(oldText);
         }
 
-        using SourceTextDiffer differ = lineDiffOnly
+        using SourceTextDiffer differ = kind == DiffKind.Line
             ? new LineDiffer(oldText, newText)
             : new CharDiffer(oldText, newText);
 

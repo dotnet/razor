@@ -39,14 +39,14 @@ public class SourceTextDifferTest : TestBase
         var newText = CreateSourceText(newStr);
 
         // Act 1
-        var characterChanges = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, lineDiffOnly: false);
+        var characterChanges = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, DiffKind.Char);
 
         // Assert 1
         var changedText = oldText.WithChanges(characterChanges);
         Assert.Equal(newStr, changedText.ToString());
 
         // Act 2
-        var lineChanges = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, lineDiffOnly: false);
+        var lineChanges = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, DiffKind.Char);
 
         // Assert 2
         changedText = oldText.WithChanges(lineChanges);
@@ -70,7 +70,7 @@ public class SourceTextDifferTest : TestBase
             """);
 
         // Act 1
-        var characterChanges = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, lineDiffOnly: false);
+        var characterChanges = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, DiffKind.Char);
 
         // Assert 1
         Assert.Collection(characterChanges,
@@ -78,11 +78,52 @@ public class SourceTextDifferTest : TestBase
             change => Assert.Equal(new TextChange(TextSpan.FromBounds(12, 14), "a"), change));
 
         // Act 2
-        var lineChanges = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, lineDiffOnly: true);
+        var lineChanges = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, DiffKind.Line);
 
         // Assert 2
         var change = Assert.Single(lineChanges);
         Assert.Equal(new TextChange(TextSpan.FromBounds(7, 17), "  Hola!\r\n"), change);
+    }
+
+    [Fact]
+    public void GetMinimalTextChanges_MultiLineChange_ReturnsExpectedResults()
+    {
+        // Arrange
+        var oldText = CreateSourceText("""
+            These
+            are
+            multiple
+            lines
+            of
+            text
+            """);
+
+        var newText = CreateSourceText("""
+            THESE
+            are
+            MULTIPLE
+            LINES
+            OF
+            text
+            """);
+
+        // Act 1
+        var characterChanges = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, DiffKind.Char);
+
+        // Assert 1
+        Assert.Collection(characterChanges,
+            change => Assert.Equal(new TextChange(TextSpan.FromBounds(1, 5), "HESE"), change),
+            change => Assert.Equal(new TextChange(TextSpan.FromBounds(12, 20), "MULTIPLE"), change),
+            change => Assert.Equal(new TextChange(TextSpan.FromBounds(22, 27), "LINES"), change),
+            change => Assert.Equal(new TextChange(TextSpan.FromBounds(29, 31), "OF"), change));
+
+        // Act 2
+        var lineChanges = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, DiffKind.Line);
+
+        // Assert 2
+        Assert.Collection(lineChanges,
+            change => Assert.Equal(new TextChange(TextSpan.FromBounds(0, 7), "THESE\r\n"), change),
+            change => Assert.Equal(new TextChange(TextSpan.FromBounds(12, 33), "MULTIPLE\r\nLINES\r\nOF\r\n"), change));
     }
 
     private static SourceText CreateSourceText(string input)

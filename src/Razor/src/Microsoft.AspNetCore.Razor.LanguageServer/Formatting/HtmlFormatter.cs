@@ -104,7 +104,7 @@ internal class HtmlFormatter
             var changedText = htmlSourceText.WithChanges(textChanges);
 
             // Now we use our minimal text differ algorithm to get the bare minimum of edits
-            var minimalChanges = SourceTextDiffer.GetMinimalTextChanges(htmlSourceText, changedText, lineDiffOnly: false);
+            var minimalChanges = SourceTextDiffer.GetMinimalTextChanges(htmlSourceText, changedText, DiffKind.Char);
             var minimalEdits = minimalChanges.Select(f => f.AsTextEdit(htmlSourceText)).ToArray();
 
             return minimalEdits;

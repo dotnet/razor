@@ -524,7 +524,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
     {
         var changes = edits.Select(e => e.AsTextChange(originalText));
         originalTextWithChanges = originalText.WithChanges(changes);
-        var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, originalTextWithChanges, lineDiffOnly: false);
+        var cleanChanges = SourceTextDiffer.GetMinimalTextChanges(originalText, originalTextWithChanges, DiffKind.Char);
         var cleanEdits = cleanChanges.Select(c => c.AsTextEdit(originalText)).ToArray();
         return cleanEdits;
     }

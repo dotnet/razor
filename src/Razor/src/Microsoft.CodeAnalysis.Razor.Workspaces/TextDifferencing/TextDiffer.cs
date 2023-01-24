@@ -21,21 +21,22 @@ internal abstract partial class TextDiffer
 
     public abstract bool SourceEqual(int oldSourceIndex, int newSourceIndex);
 
-    protected IReadOnlyList<DiffEdit> ComputeDiff()
+    protected List<DiffEdit> ComputeDiff()
     {
-        var edits = new List<DiffEdit>();
+        var edits = new List<DiffEdit>(capacity: 4);
+        var builder = new DiffEditBuilder(edits);
 
         // Initialize the vectors to use for forward and reverse searches.
         var max = NewSourceLength + OldSourceLength;
         using var vf = IntArray.Create((2 * max) + 1);
         using var vr = IntArray.Create((2 * max) + 1);
 
-        ComputeDiffRecursive(edits, 0, OldSourceLength, 0, NewSourceLength, vf, vr);
+        ComputeDiffRecursive(builder, 0, OldSourceLength, 0, NewSourceLength, vf, vr);
 
         return edits;
     }
 
-    private void ComputeDiffRecursive(List<DiffEdit> edits, int lowA, int highA, int lowB, int highB, IntArray vf, IntArray vr)
+    private void ComputeDiffRecursive(DiffEditBuilder edits, int lowA, int highA, int lowB, int highB, IntArray vf, IntArray vr)
     {
         while (lowA < highA && lowB < highB && SourceEqual(lowA, lowB))
         {
@@ -56,7 +57,7 @@ internal abstract partial class TextDiffer
             // Base case 1: We've reached the end of original text. Insert whatever is remaining in the new text.
             while (lowB < highB)
             {
-                edits.Add(DiffEdit.Insert(lowA, lowB));
+                edits.AddInsert(lowA, lowB);
                 lowB++;
             }
         }
@@ -65,7 +66,7 @@ internal abstract partial class TextDiffer
             // Base case 2: We've reached the end of new text. Delete whatever is remaining in the original text.
             while (lowA < highA)
             {
-                edits.Add(DiffEdit.Delete(lowA));
+                edits.AddDelete(lowA);
                 lowA++;
             }
         }

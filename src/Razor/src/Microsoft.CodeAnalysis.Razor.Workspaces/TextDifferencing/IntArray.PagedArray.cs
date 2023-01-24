@@ -10,6 +10,7 @@ internal abstract partial class IntArray
     private class PagedArray : IntArray
     {
         private readonly int[][] _pages;
+        private (int[] Page, int Start) _recentPage;
 
         public PagedArray(int length)
             : base(length)
@@ -51,6 +52,22 @@ internal abstract partial class IntArray
         }
 
         public override ref int this[int index]
-            => ref _pages[index / PageSize][index % PageSize];
+        {
+            get
+            {
+                // See if this index falls within _recentPage. If not, request the
+                // appropriate page.
+                if (_recentPage is not (int[] page, int start) ||
+                    index < start || index >= start + page.Length)
+                {
+                    var pageIndex = index / PageSize;
+                    page = _pages[pageIndex];
+                    start = pageIndex * PageSize;
+                    _recentPage = (page, start);
+                }
+
+                return ref page[index - start];
+            }
+        }
     }
 }
