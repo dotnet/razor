@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Razor.TextDifferencing;
 
 namespace Microsoft.AspNetCore.Razor.TextDifferencing;
 
@@ -28,8 +27,8 @@ internal abstract partial class TextDiffer
 
         // Initialize the vectors to use for forward and reverse searches.
         var max = NewSourceLength + OldSourceLength;
-        using var vf = IntArray.Create((2 * max) + 1);
-        using var vr = IntArray.Create((2 * max) + 1);
+        using var vf = new IntArray((2 * max) + 1);
+        using var vr = new IntArray((2 * max) + 1);
 
         ComputeDiffRecursive(builder, 0, OldSourceLength, 0, NewSourceLength, vf, vr);
 

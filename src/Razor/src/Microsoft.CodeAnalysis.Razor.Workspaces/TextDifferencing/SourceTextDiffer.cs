@@ -32,14 +32,14 @@ internal abstract partial class SourceTextDiffer : TextDiffer, IDisposable
     ///  Rents a char array of at least <paramref name="minimumLength"/> from the shared array pool.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected static char[] Rent(int minimumLength)
+    protected static char[] RentArray(int minimumLength)
         => ArrayPool<char>.Shared.Rent(minimumLength);
 
     /// <summary>
     ///  Returns a char array to the shared array pool.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected static void Return(char[] array, bool clearArray = false)
+    protected static void ReturnArray(char[] array, bool clearArray = false)
         => ArrayPool<char>.Shared.Return(array, clearArray);
 
     /// <summary>
@@ -56,8 +56,8 @@ internal abstract partial class SourceTextDiffer : TextDiffer, IDisposable
         {
             // We need a larger buffer. Return this array to the pool
             // and rent a new one.
-            Return(array);
-            array = Rent(minimumLength);
+            ReturnArray(array);
+            array = RentArray(minimumLength);
 
             return array;
         }

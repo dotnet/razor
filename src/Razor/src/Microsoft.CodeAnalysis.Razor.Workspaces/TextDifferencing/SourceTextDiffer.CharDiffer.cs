@@ -18,7 +18,7 @@ internal partial class SourceTextDiffer
         public CharDiffer(SourceText oldText, SourceText newText)
             : base(oldText, newText)
         {
-            _appendBuffer = Rent(1024);
+            _appendBuffer = RentArray(1024);
 
             OldSourceLength = oldText.Length;
             NewSourceLength = newText.Length;
@@ -26,7 +26,7 @@ internal partial class SourceTextDiffer
 
         public override void Dispose()
         {
-            Return(_appendBuffer);
+            ReturnArray(_appendBuffer);
         }
 
         public override bool SourceEqual(int oldSourceIndex, int newSourceIndex)

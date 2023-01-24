@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Buffers;
-using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
 
@@ -25,9 +23,9 @@ internal partial class SourceTextDiffer
         public LineDiffer(SourceText oldText, SourceText newText)
             : base(oldText, newText)
         {
-            _oldLineBuffer = Rent(1024);
-            _newLineBuffer = Rent(1024);
-            _appendBuffer = Rent(1024);
+            _oldLineBuffer = RentArray(1024);
+            _newLineBuffer = RentArray(1024);
+            _appendBuffer = RentArray(1024);
 
             _oldLines = oldText.Lines;
             _newLines = newText.Lines;
@@ -38,9 +36,9 @@ internal partial class SourceTextDiffer
 
         public override void Dispose()
         {
-            Return(_oldLineBuffer);
-            Return(_newLineBuffer);
-            Return(_appendBuffer);
+            ReturnArray(_oldLineBuffer);
+            ReturnArray(_newLineBuffer);
+            ReturnArray(_appendBuffer);
         }
 
         public override bool SourceEqual(int oldSourceIndex, int newSourceIndex)

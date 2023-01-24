@@ -35,8 +35,8 @@ public class SourceTextDifferTest : TestBase
     public void GetMinimalTextChanges_ReturnsAccurateResults(string oldStr, string newStr)
     {
         // Arrange
-        var oldText = CreateSourceText(oldStr);
-        var newText = CreateSourceText(newStr);
+        var oldText = CreateSourceText(oldStr, fixLineEndings: false);
+        var newText = CreateSourceText(newStr, fixLineEndings: false);
 
         // Act 1
         var characterChanges = SourceTextDiffer.GetMinimalTextChanges(oldText, newText, DiffKind.Char);
@@ -126,8 +126,15 @@ public class SourceTextDifferTest : TestBase
             change => Assert.Equal(new TextChange(TextSpan.FromBounds(12, 33), "MULTIPLE\r\nLINES\r\nOF\r\n"), change));
     }
 
-    private static SourceText CreateSourceText(string input)
-        => SourceText.From(FixLineEndings(input));
+    private static SourceText CreateSourceText(string input, bool fixLineEndings = true)
+    {
+        if (fixLineEndings)
+        {
+            input = FixLineEndings(input);
+        }
+
+        return SourceText.From(input);
+    }
 
     private static string FixLineEndings(string input)
         => input.Replace(Environment.NewLine, "\r\n");
