@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public interface IRazorGeneratedDocument
+internal interface IRazorGeneratedDocument
 {
     string GeneratedCode { get; }
     RazorCodeGenerationOptions Options { get; }
