@@ -87,7 +87,7 @@ internal class CodeActionEndpoint : IVSCodeActionEndpoint
         // https://github.com/dotnet/razor/issues/8062
         var delegatedCodeActions = _languageServerFeatureOptions.SupportsDelegatedCodeActions
             ? await GetDelegatedCodeActionsAsync(documentContext, razorCodeActionContext, cancellationToken).ConfigureAwait(false)
-            : Array.Empty<RazorVSInternalCodeAction>();
+            : ImmutableArray.Create<RazorVSInternalCodeAction>();
 
         cancellationToken.ThrowIfCancellationRequested();
 
