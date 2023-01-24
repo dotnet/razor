@@ -22,7 +22,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 
 public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 {
-    private DefaultRazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
+    private RazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
 
     private DocumentVersionCache VersionCache { get; set; }
 
@@ -116,14 +116,17 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
     private void EnsureServicesInitialized()
     {
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-        RazorSemanticTokenService = languageServer.GetRequiredService<RazorSemanticTokensInfoService>() as TestRazorSemanticTokensInfoService;
+        RazorSemanticTokenService = languageServer.GetRequiredService<RazorSemanticTokensInfoService>();
         VersionCache = languageServer.GetRequiredService<DocumentVersionCache>();
         ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<ProjectSnapshotManagerDispatcher>();
     }
 
     internal class TestRazorSemanticTokensInfoService : DefaultRazorSemanticTokensInfoService
     {
-        public TestRazorSemanticTokensInfoService(ClientNotifierServiceBase languageServer, RazorDocumentMappingService documentMappingService, LoggerFactory loggerFactory)
+        public TestRazorSemanticTokensInfoService(
+            ClientNotifierServiceBase languageServer,
+            RazorDocumentMappingService documentMappingService,
+            ILoggerFactory loggerFactory)
             : base(languageServer, documentMappingService, loggerFactory)
         {
         }

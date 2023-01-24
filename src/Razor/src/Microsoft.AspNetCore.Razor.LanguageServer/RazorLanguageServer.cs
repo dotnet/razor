@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
@@ -73,10 +74,29 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             lspLogger.Initialize(serverManager);
         }
 
-        services.AddSingleton<ILspLogger>(_logger);
-        if (_logger is ILogger ilogger)
+        if (_logger is LoggerAdapter adapter)
         {
-            services.AddSingleton<ILogger>(ilogger);
+            services.AddSingleton<LoggerAdapter>(adapter);
+        }
+        else
+        {
+            services.AddSingleton<LoggerAdapter>((provider) =>
+            {
+                var loggers = provider.GetServices<ILogger>();
+                if (!loggers.Any())
+                {
+                    throw new InvalidOperationException("No loggers were registered");
+                }
+
+                var telemetryReporter = provider.GetRequiredService<ITelemetryReporter>();
+                return new LoggerAdapter(loggers, telemetryReporter);
+            });
+        }
+
+        services.AddSingleton<ILspLogger>(_logger);
+        if (_logger is ILogger iLogger)
+        {
+            services.AddSingleton<ILogger>(iLogger);
         }
 
         services.AddSingleton<ErrorReporter, LanguageServerErrorReporter>();

@@ -59,7 +59,15 @@ Before opening the `Razor.sln` file in Visual Studio or VS Code, you need to per
    in PowerShell. For more information on execution policies, you can read the [execution policy docs](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-executionpolicy).
 
 2. Use the `.\startvs.cmd Razor.sln` script to open Visual Studio with the Razor solution. This script first sets the required
-environment variables.
+environment variables. In addition, the following switches can be specified:
+
+   * `-chooseVS`: When specified, displays a list of the installed Visual Studio instances and prompts to
+     pick an instance to launch. By default, the newest recently installed instance of Visual Studio is
+     launched.
+   * `-includeRoslynDeps`: When specified, sets an environment variable that causes the Roslyn dependences
+     of Razor to be deployed. This can be useful if the latest Razor bits depend on a breaking change in
+     Roslyn that isn't available in the version of Visual Studio being targeted. If you encounter errors
+     when debugging the Razor bits that you've built and deployed, setting this switch _might_ fix them.
 
 3. Set `Microsoft.VisualStudio.RazorExtension` as the startup project.
 
