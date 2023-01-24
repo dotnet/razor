@@ -141,7 +141,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer!);
     }
 
     [Fact]
@@ -372,7 +372,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var commandOrCodeActionContainer = await codeActionEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
-        Assert.Null(commandOrCodeActionContainer);
+        Assert.Empty(commandOrCodeActionContainer!);
     }
 
     [Fact]

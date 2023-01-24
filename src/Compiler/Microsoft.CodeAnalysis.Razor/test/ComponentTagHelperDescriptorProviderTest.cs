@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -1671,7 +1671,7 @@ namespace Test
 
         var context = TagHelperDescriptorProviderContext.Create();
         context.SetCompilation(compilation);
-        context.Items.SetTargetAssembly((IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(compilation.References.First(r => r.Display.Contains("Microsoft.CodeAnalysis.Razor.Test.dll"))));
+        context.Items.SetTargetSymbol((IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(compilation.References.First(r => r.Display.Contains("Microsoft.CodeAnalysis.Razor.Test.dll"))));
         var provider = new ComponentTagHelperDescriptorProvider();
 
         // Act

@@ -21,10 +21,12 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -46,6 +48,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
     private readonly EditorSettingsManager _editorSettingsManager;
     private readonly LSPDocumentSynchronizer _documentSynchronizer;
+    private readonly ILogger _logger;
 
     [ImportingConstructor]
     public DefaultRazorLanguageServerCustomMessageTarget(
@@ -54,7 +57,8 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         LSPRequestInvoker requestInvoker,
         FormattingOptionsProvider formattingOptionsProvider,
         EditorSettingsManager editorSettingsManager,
-        LSPDocumentSynchronizer documentSynchronizer)
+        LSPDocumentSynchronizer documentSynchronizer,
+        OutputWindowLogger logger)
     {
         if (documentManager is null)
         {
@@ -86,6 +90,11 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             throw new ArgumentNullException(nameof(documentSynchronizer));
         }
 
+        if (logger is null)
+        {
+            throw new ArgumentNullException(nameof(logger));
+        }
+
         _documentManager = (TrackingLSPDocumentManager)documentManager;
 
         if (_documentManager is null)
@@ -98,6 +107,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         _formattingOptionsProvider = formattingOptionsProvider;
         _editorSettingsManager = editorSettingsManager;
         _documentSynchronizer = documentSynchronizer;
+        _logger = logger;
     }
 
     // Testing constructor
@@ -763,6 +773,13 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             return null;
         }
 
+        // Since VS FoldingRanges doesn't poll once it has a non-null result returning a partial result can lock us
+        // into an incomplete view until we edit the document. Better to wait for the other server to be ready.
+        if (htmlRanges is null || csharpRanges is null)
+        {
+            return null;
+        }
+
         return new(htmlRanges.ToImmutableArray(), csharpRanges.ToImmutableArray());
     }
 
@@ -1141,14 +1158,21 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         {
             await Task.WhenAll(htmlTask, csharpTask).ConfigureAwait(false);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            _logger.LogError(e, "Exception thrown in PullDiagnostic delegation");
             // Return null if any of the tasks getting diagnostics results in an error
             return null;
         }
 
-        var csharpDiagnostics = await csharpTask.ConfigureAwait(false) ?? Array.Empty<VSInternalDiagnosticReport>();
-        var htmlDiagnostics = await htmlTask.ConfigureAwait(false) ?? Array.Empty<VSInternalDiagnosticReport>();
+        var csharpDiagnostics = await csharpTask.ConfigureAwait(false);
+        var htmlDiagnostics = await htmlTask.ConfigureAwait(false);
+
+        if (csharpDiagnostics is null || htmlDiagnostics is null)
+        {
+            // If either is null we don't have a complete view and returning anything will cause us to "lock-in" incomplete info. So we return null and wait for a re-try.
+            return null;
+        }
 
         return new RazorPullDiagnosticResponse(csharpDiagnostics, htmlDiagnostics);
     }
@@ -1179,13 +1203,18 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             request,
             cancellationToken).ConfigureAwait(false);
 
-        if (response is null)
+        // If the delegated server wants to remove all diagnostics about a document, they will send back a response with an item, but that
+        // item will have null diagnostics (and every other property). We don't want to propagate that back out to the client, because
+        // it would make the client remove all diagnostics for the .razor file, including potentially any returned from other delegated
+        // servers.
+        if (response?.Response is null or [{ Diagnostics: null }, ..])
         {
             return null;
         }
 
         return response.Response;
     }
+
     private async Task<TResult?> DelegateTextDocumentPositionRequestAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
     {
         var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);

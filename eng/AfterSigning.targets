@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <Target Name="_EnsureVSIXWasGenerated" AfterTargets="GenerateVisualStudioInsertionManifests" Condition="'$(OS)'=='WINDOWS_NT' AND '$(ArcadeBuildFromSource)' != 'true'">
     <PropertyGroup>
       <VSSetupDir>$(ArtifactsDir)VSSetup\</VSSetupDir>

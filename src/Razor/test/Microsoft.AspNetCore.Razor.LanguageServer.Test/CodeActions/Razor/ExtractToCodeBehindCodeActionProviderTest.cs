@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -31,14 +32,19 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = "c:/Test.razor";
-        var contents = "@page \"/test\"\n@code {}";
+        var contents = """
+            @page "/test"
+            @$$code {}
+            """;
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
         var request = new CodeActionParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
             Range = new Range(),
         };
 
-        var location = new SourceLocation(contents.IndexOf("code", StringComparison.Ordinal), -1, -1);
+        var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
@@ -56,14 +62,19 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = "c:/Test.razor";
-        var contents = "@page \"/test\"\n@code {}";
+        var contents = """
+            @page "/$$test"
+            @code {}
+            """;
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
         var request = new CodeActionParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
             Range = new Range(),
         };
 
-        var location = new SourceLocation(contents.IndexOf("test", StringComparison.Ordinal), -1, -1);
+        var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
@@ -80,14 +91,19 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = "c:/Test.razor";
-        var contents = "@page \"/test\"\n@code {}";
+        var contents = """
+            @page "/test"
+            @code {$$}
+            """;
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
         var request = new CodeActionParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
             Range = new Range(),
         };
 
-        var location = new SourceLocation(contents.IndexOf("code", StringComparison.Ordinal) + 6, -1, -1);
+        var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
@@ -104,14 +120,19 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = "c:/Test.razor";
-        var contents = "@page \"/test\"\n@code";
+        var contents = """
+            @page "/test"
+            @$$code
+            """;
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
         var request = new CodeActionParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
             Range = new Range(),
         };
 
-        var location = new SourceLocation(contents.IndexOf("code", StringComparison.Ordinal), -1, -1);
+        var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
@@ -128,14 +149,24 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = "c:/Test.razor";
-        var contents = "@page \"/test\"\n@code { void Test() { <h1>Hello, world!</h1> } }";
+        var contents = """
+            @page "/test"
+            @$$code {
+                void Test()
+                {
+                    <h1>Hello, world!</h1>
+                }
+            }
+            """;
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
         var request = new CodeActionParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
             Range = new Range(),
         };
 
-        var location = new SourceLocation(contents.IndexOf("code", StringComparison.Ordinal), -1, -1);
+        var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
@@ -147,19 +178,29 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
         Assert.Null(commandOrCodeActionContainer);
     }
 
-    [Fact]
-    public async Task Handle_InCodeDirective_SupportsFileCreationTrue_ReturnsResult()
+    [Theory]
+    [InlineData("@$$code")]
+    [InlineData("@c$$ode")]
+    [InlineData("@co$$de")]
+    [InlineData("@cod$$e")]
+    [InlineData("@code$$")]
+    public async Task Handle_InCodeDirective_SupportsFileCreationTrue_ReturnsResult(string codeDirective)
     {
         // Arrange
         var documentPath = "c:/Test.razor";
-        var contents = "@page \"/test\"\n@code { private var x = 1; }";
+        var contents = $$"""
+            @page "/test"
+            {{codeDirective}} { private var x = 1; }
+            """;
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
         var request = new CodeActionParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
             Range = new Range(),
         };
 
-        var location = new SourceLocation(contents.IndexOf("code", StringComparison.Ordinal), -1, -1);
+        var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
@@ -174,8 +215,46 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
         Assert.NotNull(razorCodeActionResolutionParams);
         var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
-        Assert.Equal(14, actionParams.RemoveStart);
-        Assert.Equal(19, actionParams.ExtractStart);
+        Assert.Equal(15, actionParams.RemoveStart);
+        Assert.Equal(20, actionParams.ExtractStart);
+        Assert.Equal(43, actionParams.ExtractEnd);
+        Assert.Equal(43, actionParams.RemoveEnd);
+    }
+
+    [Fact]
+    public async Task Handle_AtEndOfCodeDirectiveWithNoSpace_ReturnsResult()
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        var contents = """
+            @page "/test"
+            @code$${ private var x = 1; }
+            """;
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
+        var request = new CodeActionParams()
+        {
+            TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
+            Range = new Range(),
+        };
+
+        var location = new SourceLocation(cursorPosition, -1, -1);
+        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: true);
+
+        var provider = new ExtractToCodeBehindCodeActionProvider();
+
+        // Act
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+
+        // Assert
+        Assert.NotNull(commandOrCodeActionContainer);
+        var codeAction = Assert.Single(commandOrCodeActionContainer);
+        var razorCodeActionResolutionParams = ((JObject)codeAction.Data!).ToObject<RazorCodeActionResolutionParams>();
+        Assert.NotNull(razorCodeActionResolutionParams);
+        var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
+        Assert.NotNull(actionParams);
+        Assert.Equal(15, actionParams.RemoveStart);
+        Assert.Equal(20, actionParams.ExtractStart);
         Assert.Equal(42, actionParams.ExtractEnd);
         Assert.Equal(42, actionParams.RemoveEnd);
     }
@@ -185,14 +264,19 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = "c:/Test.razor";
-        var contents = "@page \"/test\"\n@code { private var x = 1; }";
+        var contents = """
+            @page "/test"
+            @$$code { private var x = 1; }
+            """;
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
         var request = new CodeActionParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
             Range = new Range(),
         };
 
-        var location = new SourceLocation(contents.IndexOf("code", StringComparison.Ordinal), -1, -1);
+        var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents, supportsFileCreation: false);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
@@ -209,14 +293,19 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = "c:/Test.razor";
-        var contents = "@page \"/test\"\n@functions { private var x = 1; }";
+        var contents = """
+            @page "/test"
+            @$$functions { private var x = 1; }
+            """;
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
         var request = new CodeActionParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
             Range = new Range(),
         };
 
-        var location = new SourceLocation(contents.IndexOf("functions", StringComparison.Ordinal), -1, -1);
+        var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
@@ -231,10 +320,10 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
         Assert.NotNull(razorCodeActionResolutionParams);
         var actionParams = ((JObject)razorCodeActionResolutionParams.Data).ToObject<ExtractToCodeBehindCodeActionParams>();
         Assert.NotNull(actionParams);
-        Assert.Equal(14, actionParams.RemoveStart);
-        Assert.Equal(24, actionParams.ExtractStart);
-        Assert.Equal(47, actionParams.ExtractEnd);
-        Assert.Equal(47, actionParams.RemoveEnd);
+        Assert.Equal(15, actionParams.RemoveStart);
+        Assert.Equal(25, actionParams.ExtractStart);
+        Assert.Equal(48, actionParams.ExtractEnd);
+        Assert.Equal(48, actionParams.RemoveEnd);
     }
 
     [Fact]
@@ -242,14 +331,19 @@ public class ExtractToCodeBehindCodeActionProviderTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = "c:/Test.razor";
-        var contents = "@page \"/test\"\n@code { private var x = 1; }";
+        var contents = """
+            @page "/test"
+            @$$code { private var x = 1; }
+            """;
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
         var request = new CodeActionParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = new Uri(documentPath) },
             Range = new Range(),
         };
 
-        var location = new SourceLocation(contents.IndexOf("code", StringComparison.Ordinal), -1, -1);
+        var location = new SourceLocation(cursorPosition, -1, -1);
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents, relativePath: null);
 
         var provider = new ExtractToCodeBehindCodeActionProvider(LoggerFactory);
