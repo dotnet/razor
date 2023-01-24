@@ -43,7 +43,7 @@ internal abstract partial class SourceTextDiffer : TextDiffer, IDisposable
         => ArrayPool<char>.Shared.Return(array, clearArray);
 
     /// <summary>
-    ///  Ensures that <paramref name="array"/> contains a char array of at least <paramref name="minimumLength"/>.
+    ///  Ensures that <paramref name="array"/> references a char array of at least <paramref name="minimumLength"/>.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected static char[] EnsureBuffer(ref char[] array, int minimumLength)

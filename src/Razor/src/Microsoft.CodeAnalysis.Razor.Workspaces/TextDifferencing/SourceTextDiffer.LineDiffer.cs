@@ -17,8 +17,8 @@ internal partial class SourceTextDiffer
         private char[] _newLineBuffer;
         private char[] _appendBuffer;
 
-        public override int OldSourceLength { get; }
-        public override int NewSourceLength { get; }
+        protected override int OldSourceLength { get; }
+        protected override int NewSourceLength { get; }
 
         public LineDiffer(SourceText oldText, SourceText newText)
             : base(oldText, newText)
@@ -41,7 +41,7 @@ internal partial class SourceTextDiffer
             ReturnArray(_appendBuffer);
         }
 
-        public override bool SourceEqual(int oldSourceIndex, int newSourceIndex)
+        protected override bool SourceEqual(int oldSourceIndex, int newSourceIndex)
         {
             var oldLine = _oldLines[oldSourceIndex];
             var newLine = _newLines[newSourceIndex];

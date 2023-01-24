@@ -15,10 +15,10 @@ namespace Microsoft.AspNetCore.Razor.TextDifferencing;
 //
 internal abstract partial class TextDiffer
 {
-    public abstract int OldSourceLength { get; }
-    public abstract int NewSourceLength { get; }
+    protected abstract int OldSourceLength { get; }
+    protected abstract int NewSourceLength { get; }
 
-    public abstract bool SourceEqual(int oldSourceIndex, int newSourceIndex);
+    protected abstract bool SourceEqual(int oldSourceIndex, int newSourceIndex);
 
     protected List<DiffEdit> ComputeDiff()
     {
