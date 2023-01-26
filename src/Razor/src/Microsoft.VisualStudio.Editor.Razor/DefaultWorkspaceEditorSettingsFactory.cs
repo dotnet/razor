@@ -14,10 +14,10 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 [ExportLanguageServiceFactory(typeof(WorkspaceEditorSettings), RazorLanguage.Name)]
 internal class DefaultWorkspaceEditorSettingsFactory : ILanguageServiceFactory
 {
-    private readonly IClientSettingsManager _editorSettingsManager;
+    private readonly EditorSettingsManager _editorSettingsManager;
 
     [ImportingConstructor]
-    public DefaultWorkspaceEditorSettingsFactory(IClientSettingsManager editorSettingsManager)
+    public DefaultWorkspaceEditorSettingsFactory(EditorSettingsManager editorSettingsManager)
     {
         if (editorSettingsManager is null)
         {

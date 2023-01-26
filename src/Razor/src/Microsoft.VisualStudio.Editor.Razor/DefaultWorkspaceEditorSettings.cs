@@ -8,23 +8,23 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal class DefaultWorkspaceEditorSettings : WorkspaceEditorSettings
 {
-    private readonly IClientSettingsManager _clientSettingsManager;
-    private readonly EventHandler<ClientSettingsChangedEventArgs> _onChanged;
-    private EventHandler<ClientSettingsChangedEventArgs>? _changed;
+    private readonly EditorSettingsManager _editorSettingsManager;
+    private readonly EventHandler<EditorSettingsChangedEventArgs> _onChanged;
+    private EventHandler<EditorSettingsChangedEventArgs>? _changed;
     private int _listenerCount = 0;
 
-    public DefaultWorkspaceEditorSettings(IClientSettingsManager clientSettingsManager)
+    public DefaultWorkspaceEditorSettings(EditorSettingsManager editorSettingsManager)
     {
-        if (clientSettingsManager is null)
+        if (editorSettingsManager is null)
         {
-            throw new ArgumentNullException(nameof(clientSettingsManager));
+            throw new ArgumentNullException(nameof(editorSettingsManager));
         }
 
-        _clientSettingsManager = clientSettingsManager;
+        _editorSettingsManager = editorSettingsManager;
         _onChanged = OnChanged;
     }
 
-    public override event EventHandler<ClientSettingsChangedEventArgs> Changed
+    public override event EventHandler<EditorSettingsChangedEventArgs> Changed
     {
         add
         {
@@ -56,23 +56,23 @@ internal class DefaultWorkspaceEditorSettings : WorkspaceEditorSettings
     // Internal for testing
     internal virtual void AttachToEditorSettingsManager()
     {
-        _clientSettingsManager.ClientSettingsChanged += _onChanged;
+        _editorSettingsManager.Changed += _onChanged;
     }
 
     // Internal for testing
     internal virtual void DetachFromEditorSettingsManager()
     {
-        _clientSettingsManager.ClientSettingsChanged -= _onChanged;
+        _editorSettingsManager.Changed -= _onChanged;
     }
 
-    public override ClientSettings Current => _clientSettingsManager.GetClientSettings();
+    public override EditorSettings Current => _editorSettingsManager.Current;
 
     // Internal for testing
-    internal void OnChanged(object sender, ClientSettingsChangedEventArgs e)
+    internal void OnChanged(object sender, EditorSettingsChangedEventArgs e)
     {
         Assumes.True(_changed is not null, nameof(OnChanged) + " should not be invoked when there are no listeners.");
 
-        var args = new ClientSettingsChangedEventArgs(Current);
+        var args = new EditorSettingsChangedEventArgs(Current);
         _changed.Invoke(this, args);
     }
 }

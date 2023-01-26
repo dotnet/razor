@@ -59,15 +59,14 @@ public class FormattingTestBase : RazorIntegrationTestBase
         set { s_fileName.Value = value; }
     }
 
-    protected internal async Task RunFormattingTestAsync(
+    protected async Task RunFormattingTestAsync(
         string input,
         string expected,
         int tabSize = 4,
         bool insertSpaces = true,
         string? fileKind = null,
         IReadOnlyList<TagHelperDescriptor>? tagHelpers = null,
-        bool allowDiagnostics = false,
-        RazorLSPOptions? razorLSPOptions = null)
+        bool allowDiagnostics = false)
     {
         // Arrange
         fileKind ??= FileKinds.Component;
@@ -88,7 +87,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             InsertSpaces = insertSpaces,
         };
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument, documentSnapshot, LoggerFactory, razorLSPOptions);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument, documentSnapshot, LoggerFactory);
         var documentContext = new DocumentContext(uri, documentSnapshot, version: 1);
 
         // Act
@@ -113,8 +112,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         int tabSize = 4,
         bool insertSpaces = true,
         string? fileKind = null,
-        int? expectedChangedLines = null,
-        RazorLSPOptions? razorLSPOptions = null)
+        int? expectedChangedLines = null)
     {
         // Arrange
         fileKind ??= FileKinds.Component;
@@ -130,7 +128,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
-        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument, documentSnapshot, LoggerFactory, razorLSPOptions);
+        var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument, documentSnapshot, LoggerFactory);
         var options = new FormattingOptions()
         {
             TabSize = tabSize,

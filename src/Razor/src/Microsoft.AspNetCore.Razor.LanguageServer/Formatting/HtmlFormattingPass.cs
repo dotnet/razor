@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
@@ -22,13 +21,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 internal class HtmlFormattingPass : FormattingPassBase
 {
     private readonly ILogger _logger;
-    private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
     public HtmlFormattingPass(
         RazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase server,
         DocumentVersionCache documentVersionCache,
-        IOptionsMonitor<RazorLSPOptions> optionsMonitor,
         ILoggerFactory loggerFactory)
         : base(documentMappingService, server)
     {
@@ -40,7 +37,6 @@ internal class HtmlFormattingPass : FormattingPassBase
         _logger = loggerFactory.CreateLogger<HtmlFormattingPass>();
 
         HtmlFormatter = new HtmlFormatter(server, documentVersionCache);
-        _optionsMonitor = optionsMonitor;
     }
 
     // We want this to run first because it uses the client HTML formatter.
@@ -56,7 +52,7 @@ internal class HtmlFormattingPass : FormattingPassBase
 
         TextEdit[] htmlEdits;
 
-        if (context.IsFormatOnType && result.Kind == RazorLanguageKind.Html && _optionsMonitor.CurrentValue.FormatOnType)
+        if (context.IsFormatOnType && result.Kind == RazorLanguageKind.Html)
         {
             htmlEdits = await HtmlFormatter.FormatOnTypeAsync(context, cancellationToken).ConfigureAwait(false);
         }
