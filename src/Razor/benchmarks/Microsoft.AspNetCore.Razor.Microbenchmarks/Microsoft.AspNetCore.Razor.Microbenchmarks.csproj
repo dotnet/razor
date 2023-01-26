@@ -22,6 +22,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Resources\**\*.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\**\*.*" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Include="..\..\test\Microsoft.CodeAnalysis.Razor.Workspaces.Test.Common\TestServices.cs">
       <Link>TestServices\%(FileName)%(Extension)</Link>
     </Compile>
@@ -37,8 +45,6 @@
     <Compile Include="..\..\test\Microsoft.AspNetCore.Razor.Test.Common\NoOpTelemetryReporter.cs">
       <Link>TestServices\%(FileName)%(Extension)</Link>
     </Compile>
-
-    <None Include="MSN.cshtml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="taghelpers.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="ProjectSystem\project.razor.json" CopyToOutputDirectory="PreserveNewest" />
     
