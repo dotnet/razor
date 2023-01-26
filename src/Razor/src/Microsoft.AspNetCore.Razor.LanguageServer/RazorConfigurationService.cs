@@ -6,10 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-/// <summary>
-/// Service that syncs settings from the client to the LSP server
-/// </summary>
-internal interface IConfigurationSyncService
+internal abstract class RazorConfigurationService
 {
-    Task<RazorLSPOptions?> GetLatestOptionsAsync(CancellationToken cancellationToken);
+    public abstract Task<RazorLSPOptions?> GetLatestOptionsAsync(CancellationToken cancellationToken);
 }

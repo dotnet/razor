@@ -5,9 +5,9 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Razor.Editor;
 
-public sealed class ClientSettingsChangedEventArgs : EventArgs
+public sealed class EditorSettingsChangedEventArgs : EventArgs
 {
-    public ClientSettingsChangedEventArgs(ClientSettings settings)
+    public EditorSettingsChangedEventArgs(EditorSettings settings)
     {
         if (settings is null)
         {
@@ -17,5 +17,5 @@ public sealed class ClientSettingsChangedEventArgs : EventArgs
         Settings = settings;
     }
 
-    public ClientSettings Settings { get; }
+    public EditorSettings Settings { get; }
 }

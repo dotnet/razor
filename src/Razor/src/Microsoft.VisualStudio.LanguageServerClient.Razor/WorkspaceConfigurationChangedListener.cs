@@ -15,8 +15,8 @@ using Newtonsoft.Json.Linq;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 [Shared]
-[Export(typeof(ClientSettingsChangedTrigger))]
-internal class WorkspaceConfigurationChangedListener : ClientSettingsChangedTrigger
+[Export(typeof(EditorSettingsChangedTrigger))]
+internal class WorkspaceConfigurationChangedListener : EditorSettingsChangedTrigger
 {
     private readonly LSPRequestInvoker _requestInvoker;
 
@@ -31,12 +31,12 @@ internal class WorkspaceConfigurationChangedListener : ClientSettingsChangedTrig
         _requestInvoker = requestInvoker;
     }
 
-    public override void Initialize(IClientSettingsManager editorSettingsManager)
+    public override void Initialize(EditorSettingsManager editorSettingsManager)
     {
-        editorSettingsManager.ClientSettingsChanged += EditorSettingsManager_Changed;
+        editorSettingsManager.Changed += EditorSettingsManager_Changed;
     }
 
-    private void EditorSettingsManager_Changed(object sender, ClientSettingsChangedEventArgs args)
+    private void EditorSettingsManager_Changed(object sender, EditorSettingsChangedEventArgs args)
     {
         _ = EditorSettingsManager_ChangedAsync();
     }
