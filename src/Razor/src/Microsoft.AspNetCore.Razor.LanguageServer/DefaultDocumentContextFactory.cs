@@ -32,10 +32,10 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
     }
 
     public override Task<DocumentContext?> TryCreateAsync(Uri documentUri, CancellationToken cancellationToken)
-     => TryCreateCoreAsync(documentUri, versioned: false, cancellationToken);
+        => TryCreateCoreAsync(documentUri, versioned: false, cancellationToken);
 
     public async override Task<VersionedDocumentContext?> TryCreateForOpenDocumentAsync(Uri documentUri, CancellationToken cancellationToken)
-     => (VersionedDocumentContext?)await TryCreateCoreAsync(documentUri, versioned: true, cancellationToken).ConfigureAwait(false);
+        => (VersionedDocumentContext?)await TryCreateCoreAsync(documentUri, versioned: true, cancellationToken).ConfigureAwait(false);
 
     private async Task<DocumentContext?> TryCreateCoreAsync(Uri documentUri, bool versioned, CancellationToken cancellationToken)
     {
