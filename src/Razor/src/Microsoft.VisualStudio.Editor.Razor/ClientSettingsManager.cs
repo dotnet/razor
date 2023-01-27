@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-#pragma warning disable CS0618 // Type or member is obsolete. Needed until EditorSettingsManager can be removed
-
 [System.Composition.Shared]
 [Export(typeof(IClientSettingsManager))]
 [Export(typeof(EditorSettingsManager))]

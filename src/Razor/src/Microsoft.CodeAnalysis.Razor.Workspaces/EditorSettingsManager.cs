@@ -5,9 +5,7 @@ using System;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
-#pragma warning disable CS0618 // Type or member is obsolete
 
-[Obsolete("Use IClientSettingsManager instead")]
 public abstract class EditorSettingsManager
 {
     public abstract event EventHandler<EditorSettingsChangedEventArgs>? Changed;
@@ -32,7 +30,6 @@ public sealed class EditorSettingsChangedEventArgs : EventArgs
     public EditorSettings Settings { get; }
 }
 
-[Obsolete("Use ClientSettings instead")]
 public sealed class EditorSettings : IEquatable<EditorSettings>
 {
     public static readonly EditorSettings Default = new(indentWithTabs: false, indentSize: 4);
