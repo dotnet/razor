@@ -809,7 +809,7 @@ internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
             }
 
             var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(virtualDocumentUri);
-            var documentContext = await _documentContextFactory.TryCreateAsync(razorDocumentUri, cancellationToken).ConfigureAwait(false);
+            var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(razorDocumentUri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
                 continue;

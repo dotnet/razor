@@ -74,7 +74,7 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
 
         RazorPosition = ToPosition(razorCodeActionIndex);
 
-        var documentContext = new DocumentContext(DocumentUri, DocumentSnapshot, 1);
+        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, 1);
         RazorRequestContext = new RazorRequestContext(documentContext, Logger, languageServer.GetLspServices());
 
         Position ToPosition(int index)
@@ -147,7 +147,7 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
         {
         }
 
-        public override Task<VSInternalCompletionList?> GetCompletionListAsync(int absoluteIndex, VSInternalCompletionContext completionContext, DocumentContext documentContext, VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        public override Task<VSInternalCompletionList?> GetCompletionListAsync(int absoluteIndex, VSInternalCompletionContext completionContext, VersionedDocumentContext documentContext, VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
             return Task.FromResult<VSInternalCompletionList?>(
                 new VSInternalCompletionList
