@@ -18,7 +18,7 @@ internal class DefaultRazorParsingPhase : RazorEnginePhaseBase, IRazorParsingPha
     {
         var options = codeDocument.GetParserOptions() ?? _optionsFeature.GetOptions();
         var syntaxTree = RazorSyntaxTree.Parse(codeDocument.Source, options);
-        codeDocument.SetSyntaxTree(syntaxTree);
+        codeDocument.SetPreTagHelperSyntaxTree(syntaxTree);
 
         var importSyntaxTrees = new RazorSyntaxTree[codeDocument.Imports.Count];
         for (var i = 0; i < codeDocument.Imports.Count; i++)
