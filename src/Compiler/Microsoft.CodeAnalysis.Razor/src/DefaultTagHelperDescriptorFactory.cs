@@ -378,7 +378,7 @@ internal class DefaultTagHelperDescriptorFactory
                     property.Parameters.Length == 0 &&
                     property.GetMethod != null &&
                     property.GetMethod.DeclaredAccessibility == Accessibility.Public &&
-                    property.GetAttributes().Where(a => a.AttributeClass.HasFullName(TagHelperTypes.HtmlAttributeNotBoundAttribute)).FirstOrDefault() == null &&
+                    property.GetAttributes().FirstOrDefault(a => a.AttributeClass.HasFullName(TagHelperTypes.HtmlAttributeNotBoundAttribute)) == null &&
                     (property.GetAttributes().Any(a => a.AttributeClass.HasFullName(TagHelperTypes.HtmlAttributeNameAttribute)) ||
                     property.SetMethod != null && property.SetMethod.DeclaredAccessibility == Accessibility.Public ||
                     IsPotentialDictionaryProperty(property)) &&
@@ -399,7 +399,7 @@ internal class DefaultTagHelperDescriptorFactory
     {
         if (ExcludeHidden)
         {
-            var editorBrowsableAttribute = symbol.GetAttributes().Where(a => a.AttributeClass.HasFullName(typeof(EditorBrowsableAttribute).FullName)).FirstOrDefault();
+            var editorBrowsableAttribute = symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass.HasFullName(typeof(EditorBrowsableAttribute).FullName));
 
             if (editorBrowsableAttribute == null)
             {
