@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable enable
 
@@ -9,7 +9,6 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal sealed class DefaultRazorTagHelperRewritePhase : RazorEnginePhaseBase
 {
-    private static readonly ISet<TagHelperDescriptor> EmptyTagHelperSet = new HashSet<TagHelperDescriptor>();
 
     protected override void ExecuteCore(RazorCodeDocument codeDocument)
     {
@@ -17,7 +16,7 @@ internal sealed class DefaultRazorTagHelperRewritePhase : RazorEnginePhaseBase
         var context = codeDocument.GetTagHelperContext();
 
         var rewrittenSyntaxTree = syntaxTree;
-        var usedHelpers = EmptyTagHelperSet;
+        ISet<TagHelperDescriptor> usedHelpers = new HashSet<TagHelperDescriptor>();
 
         if (syntaxTree is not null && context?.TagHelpers.Count > 0)
         {
