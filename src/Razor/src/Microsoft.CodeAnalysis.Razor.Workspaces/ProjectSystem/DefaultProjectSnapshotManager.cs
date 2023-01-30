@@ -126,7 +126,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     internal override Workspace Workspace { get; }
 
-    public override ErrorReporter ErrorReporter { get; }
+    internal override ErrorReporter ErrorReporter { get; }
 
     public override ProjectSnapshot GetLoadedProject(string filePath)
     {

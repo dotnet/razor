@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Serialization;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
@@ -47,7 +46,7 @@ internal class DefaultProjectChangePublisher : AbstractOmniSharpProjectSnapshotM
             Formatting = Formatting.Indented,
         };
 
-        _serializer.Converters.RegisterRazorConverters();
+        _serializer.Converters.RegisterOmniSharpRazorConverters();
         _publishFilePathMappings = new Dictionary<string, string>(FilePathComparer.Instance);
         DeferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
         _pendingProjectPublishes = new Dictionary<string, OmniSharpProjectSnapshot>(FilePathComparer.Instance);
@@ -95,8 +94,7 @@ internal class DefaultProjectChangePublisher : AbstractOmniSharpProjectSnapshotM
         // by the time we move the tempfile into its place
         using (var writer = tempFileInfo.CreateText())
         {
-            var projectRazorJson = new ProjectRazorJson(publishFilePath, projectSnapshot.InternalProjectSnapshot);
-            _serializer.Serialize(writer, projectRazorJson);
+            _serializer.Serialize(writer, projectSnapshot);
         }
 
         var fileInfo = new FileInfo(publishFilePath);
