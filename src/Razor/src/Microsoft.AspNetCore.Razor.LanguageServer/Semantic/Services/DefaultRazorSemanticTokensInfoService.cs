@@ -47,7 +47,7 @@ internal class DefaultRazorSemanticTokensInfoService : RazorSemanticTokensInfoSe
     public override async Task<SemanticTokens?> GetSemanticTokensAsync(
         TextDocumentIdentifier textDocumentIdentifier,
         Range range,
-        DocumentContext documentContext,
+        VersionedDocumentContext documentContext,
         CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
@@ -119,7 +119,7 @@ internal class DefaultRazorSemanticTokensInfoService : RazorSemanticTokensInfoSe
     {
         // We'll try to call into the mapping service to map to the projected range for us. If that doesn't work,
         // we'll try to find the minimal range ourselves.
-        if (!_documentMappingService.TryMapToProjectedDocumentRange(codeDocument, razorRange, out var csharpRange) &&
+        if (!_documentMappingService.TryMapToProjectedDocumentRange(codeDocument.GetCSharpDocument(), razorRange, out var csharpRange) &&
             !TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
         {
             // There's no C# in the range.
@@ -150,7 +150,7 @@ internal class DefaultRazorSemanticTokensInfoService : RazorSemanticTokensInfoSe
 
             var semanticRange = DataToSemanticRange(
                 lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
-            if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, semanticRange.Range, out var originalRange))
+            if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), semanticRange.Range, out var originalRange))
             {
                 var razorSemanticRange = new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers);
                 if (razorRange is null || razorRange.OverlapsWith(razorSemanticRange.Range))

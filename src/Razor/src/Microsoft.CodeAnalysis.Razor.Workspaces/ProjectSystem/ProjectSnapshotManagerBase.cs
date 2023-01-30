@@ -13,6 +13,8 @@ internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
 {
     internal abstract Workspace Workspace { get; }
 
+    internal abstract ErrorReporter ErrorReporter { get; }
+
     internal abstract IReadOnlyCollection<string> OpenDocuments { get; }
 
     internal abstract void DocumentAdded(HostProject hostProject, HostDocument hostDocument, TextLoader textLoader);

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
@@ -493,6 +494,10 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var (synchronized, htmlDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
             documentColorParams.HostDocumentVersion, documentColorParams.TextDocument.Uri, cancellationToken);
+        if (!synchronized)
+        {
+            return new List<ColorInformation>();
+        }
 
         documentColorParams.TextDocument.Uri = htmlDoc.Uri;
         var htmlTextBuffer = htmlDoc.Snapshot.TextBuffer;
@@ -513,6 +518,40 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         }
 
         return colorInformation;
+    }
+
+    public override async Task<IReadOnlyList<ColorPresentation>> ProvideHtmlColorPresentationAsync(DelegatedColorPresentationParams colorPresentationParams, CancellationToken cancellationToken)
+    {
+        if (colorPresentationParams is null)
+        {
+            throw new ArgumentNullException(nameof(colorPresentationParams));
+        }
+
+        var (synchronized, htmlDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+            colorPresentationParams.RequiredHostDocumentVersion, colorPresentationParams.TextDocument.Uri, cancellationToken);
+        if (!synchronized)
+        {
+            return new List<ColorPresentation>();
+        }
+
+        colorPresentationParams.TextDocument.Uri = htmlDoc.Uri;
+        var htmlTextBuffer = htmlDoc.Snapshot.TextBuffer;
+        var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<ColorPresentationParams, ColorPresentation[]>(
+            htmlTextBuffer,
+            ColorPresentationEndpoint.ColorPresentationMethodName,
+            colorPresentationParams,
+            cancellationToken).ConfigureAwait(false);
+
+        var colorPresentation = new List<ColorPresentation>();
+        await foreach (var response in requests)
+        {
+            if (response.Response is not null)
+            {
+                colorPresentation.AddRange(response.Response);
+            }
+        }
+
+        return colorPresentation;
     }
 
     private static bool SupportsCodeActionResolve(JToken token)

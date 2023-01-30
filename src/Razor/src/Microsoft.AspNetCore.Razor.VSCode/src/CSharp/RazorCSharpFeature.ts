@@ -4,8 +4,8 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as vscode from 'vscode';
+import { RazorDocumentManager } from '../Document/RazorDocumentManager';
 import { IEventEmitterFactory } from '../IEventEmitterFactory';
-import { RazorDocumentManager } from '../RazorDocumentManager';
 import { RazorLogger } from '../RazorLogger';
 import { CSharpPreviewPanel } from './CSharpPreviewPanel';
 import { CSharpProjectedDocumentContentProvider } from './CSharpProjectedDocumentContentProvider';

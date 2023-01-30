@@ -88,7 +88,7 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
         }
 
         var hostDocumentUri = context.OriginalRequestParams.HostDocument.Uri;
-        var documentContext = await _documentContextFactory.TryCreateAsync(hostDocumentUri, cancellationToken).ConfigureAwait(false);
+        var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(hostDocumentUri, cancellationToken).ConfigureAwait(false);
         if (documentContext is null)
         {
             return resolvedCompletionItem;

@@ -3,7 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import { IProjectedDocument } from 'microsoft.aspnetcore.razor.vscode/dist/IProjectedDocument';
+import { IProjectedDocument } from 'microsoft.aspnetcore.razor.vscode/dist/Projection/IProjectedDocument';
 import * as vscode from 'microsoft.aspnetcore.razor.vscode/dist/vscodeAdapter';
 
 export class TestProjectedDocument implements IProjectedDocument {

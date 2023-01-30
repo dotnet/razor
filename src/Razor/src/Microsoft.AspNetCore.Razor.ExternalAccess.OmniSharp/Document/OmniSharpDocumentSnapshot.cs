@@ -53,10 +53,7 @@ internal sealed class OmniSharpDocumentSnapshot
         {
             lock (_projectLock)
             {
-                if (_project is null)
-                {
-                    _project = new OmniSharpProjectSnapshot(_documentSnapshot.Project);
-                }
+                _project ??= new OmniSharpProjectSnapshot(_documentSnapshot.Project);
             }
 
             return _project;

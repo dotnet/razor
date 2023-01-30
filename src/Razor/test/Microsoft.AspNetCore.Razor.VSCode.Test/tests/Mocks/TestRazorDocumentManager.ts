@@ -3,9 +3,9 @@
 * Licensed under the MIT License. See License.txt in the project root for license information.
 * ------------------------------------------------------------------------------------------ */
 
-import { IRazorDocument } from 'microsoft.aspnetcore.razor.vscode/dist/IRazorDocument';
-import { IRazorDocumentChangeEvent } from 'microsoft.aspnetcore.razor.vscode/dist/IRazorDocumentChangeEvent';
-import { IRazorDocumentManager } from 'microsoft.aspnetcore.razor.vscode/dist/IRazorDocumentManager';
+import { IRazorDocument } from 'microsoft.aspnetcore.razor.vscode/dist/Document/IRazorDocument';
+import { IRazorDocumentChangeEvent } from 'microsoft.aspnetcore.razor.vscode/dist/Document/IRazorDocumentChangeEvent';
+import { IRazorDocumentManager } from 'microsoft.aspnetcore.razor.vscode/dist/Document/IRazorDocumentManager';
 import * as vscode from 'microsoft.aspnetcore.razor.vscode/dist/vscodeAdapter';
 import { TestEventEmitter } from './TestEventEmitter';
 
