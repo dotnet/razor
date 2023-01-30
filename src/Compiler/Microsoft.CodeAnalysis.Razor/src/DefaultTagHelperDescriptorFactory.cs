@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -171,8 +171,7 @@ internal class DefaultTagHelperDescriptorFactory
     {
         var attributeNameAttribute = property
             .GetAttributes()
-            .Where(a => a.AttributeClass.HasFullName(TagHelperTypes.HtmlAttributeNameAttribute))
-            .FirstOrDefault();
+            .FirstOrDefault(a => a.AttributeClass.HasFullName(TagHelperTypes.HtmlAttributeNameAttribute));
 
         bool hasExplicitName;
         string attributeName;
