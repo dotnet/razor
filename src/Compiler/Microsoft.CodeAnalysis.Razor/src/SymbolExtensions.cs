@@ -10,7 +10,7 @@ internal static class SymbolExtensions
     internal static readonly SymbolDisplayFormat FullNameTypeDisplayFormat =
         SymbolDisplayFormat.FullyQualifiedFormat
             .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted)
-            .WithMiscellaneousOptions(SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions & (~SymbolDisplayMiscellaneousOptions.UseSpecialTypes));
+            .RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
     internal static bool HasFullName(this ISymbol symbol, string fullName)
     {
