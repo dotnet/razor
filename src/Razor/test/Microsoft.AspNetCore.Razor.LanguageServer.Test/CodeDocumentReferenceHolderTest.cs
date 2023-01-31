@@ -157,7 +157,7 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
         Assert.False(codeDocumentReference.TryGetTarget(out _));
     }
 
-    private Task<DocumentSnapshot> CreateDocumentSnapshotAsync(CancellationToken cancellationToken)
+    private Task<IDocumentSnapshot> CreateDocumentSnapshotAsync(CancellationToken cancellationToken)
     {
         return Dispatcher.RunOnDispatcherThreadAsync(() =>
         {
@@ -170,7 +170,7 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private async Task<WeakReference<RazorCodeDocument>> ProcessDocumentAndRetrieveOutputAsync(DocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+    private async Task<WeakReference<RazorCodeDocument>> ProcessDocumentAndRetrieveOutputAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
         await Dispatcher.RunOnDispatcherThreadAsync(() =>

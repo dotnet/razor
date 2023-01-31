@@ -159,7 +159,7 @@ internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger, IDisposable
                     break;
                 }
 
-                void TryEnqueue(DocumentSnapshot document)
+                void TryEnqueue(IDocumentSnapshot document)
                 {
                     var filePath = document.FilePath.AssumeNotNull();
 
@@ -176,12 +176,12 @@ internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger, IDisposable
 
     private class ProcessWorkItem : BatchableWorkItem
     {
-        private readonly DocumentSnapshot _latestDocument;
+        private readonly IDocumentSnapshot _latestDocument;
         private readonly IEnumerable<DocumentProcessedListener> _documentProcessedListeners;
         private readonly ProjectSnapshotManagerDispatcher _dispatcher;
 
         public ProcessWorkItem(
-            DocumentSnapshot latestDocument,
+            IDocumentSnapshot latestDocument,
             IReadOnlyList<DocumentProcessedListener> documentProcessedListeners,
             ProjectSnapshotManagerDispatcher dispatcher)
         {

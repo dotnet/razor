@@ -249,7 +249,7 @@ public class BatchingWorkQueueTest : TestBase
 
         public override void ReportError(Exception exception) => _reportedExceptions.Add(exception);
 
-        public override void ReportError(Exception exception, ProjectSnapshot project) => _reportedExceptions.Add(exception);
+        public override void ReportError(Exception exception, IProjectSnapshot project) => _reportedExceptions.Add(exception);
 
         public override void ReportError(Exception exception, Project workspaceProject) => _reportedExceptions.Add(exception);
     }

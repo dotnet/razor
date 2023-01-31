@@ -16,11 +16,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
 internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 {
-    private record struct WorkResult(RazorCodeDocument Output, DocumentSnapshot Document);
+    private record struct WorkResult(RazorCodeDocument Output, IDocumentSnapshot Document);
 
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IEnumerable<DocumentProcessedListener> _listeners;
-    private readonly Dictionary<string, DocumentSnapshot> _work;
+    private readonly Dictionary<string, IDocumentSnapshot> _work;
     private ProjectSnapshotManagerBase? _projectManager;
     private Timer? _timer;
     private bool _solutionIsClosing;
@@ -31,7 +31,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     {
         _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         _listeners = listeners ?? throw new ArgumentNullException(nameof(listeners));
-        _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
+        _work = new Dictionary<string, IDocumentSnapshot>(StringComparer.Ordinal);
     }
 
     // For testing only
@@ -39,7 +39,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
         ProjectSnapshotManagerDispatcher dispatcher)
     {
         _dispatcher = dispatcher;
-        _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
+        _work = new Dictionary<string, IDocumentSnapshot>(StringComparer.Ordinal);
         _listeners = Enumerable.Empty<DocumentProcessedListener>();
     }
 
@@ -131,7 +131,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     }
 
     // Internal for testing
-    internal void Enqueue(DocumentSnapshot document)
+    internal void Enqueue(IDocumentSnapshot document)
     {
         _dispatcher.AssertDispatcherThread();
 
@@ -164,7 +164,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
         {
             OnStartingBackgroundWork();
 
-            KeyValuePair<string, DocumentSnapshot>[] work;
+            KeyValuePair<string, IDocumentSnapshot>[] work;
             List<WorkResult> results = new();
             lock (_work)
             {
@@ -369,8 +369,10 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
             return;
         }
 
-        _ = _dispatcher.RunOnDispatcherThreadAsync(
-            () => _projectManager.ReportError(ex),
-            CancellationToken.None).ConfigureAwait(false);
+        _dispatcher
+            .RunOnDispatcherThreadAsync(
+                () => _projectManager.ReportError(ex),
+                CancellationToken.None)
+            .Forget();
     }
 }

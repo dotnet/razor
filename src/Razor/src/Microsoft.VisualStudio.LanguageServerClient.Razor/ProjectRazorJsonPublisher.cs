@@ -33,7 +33,7 @@ internal class ProjectRazorJsonPublisher : ProjectSnapshotChangeTrigger
     private readonly RazorLogger _logger;
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
-    private readonly Dictionary<string, ProjectSnapshot> _pendingProjectPublishes;
+    private readonly Dictionary<string, IProjectSnapshot> _pendingProjectPublishes;
     private readonly object _pendingProjectPublishesLock;
     private readonly object _publishLock;
 
@@ -75,7 +75,7 @@ internal class ProjectRazorJsonPublisher : ProjectSnapshotChangeTrigger
         }
 
         DeferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
-        _pendingProjectPublishes = new Dictionary<string, ProjectSnapshot>(FilePathComparer.Instance);
+        _pendingProjectPublishes = new Dictionary<string, IProjectSnapshot>(FilePathComparer.Instance);
         _pendingProjectPublishesLock = new();
         _publishLock = new object();
 
@@ -99,7 +99,7 @@ internal class ProjectRazorJsonPublisher : ProjectSnapshotChangeTrigger
     }
 
     // Internal for testing
-    internal void EnqueuePublish(ProjectSnapshot projectSnapshot)
+    internal void EnqueuePublish(IProjectSnapshot projectSnapshot)
     {
         lock (_pendingProjectPublishesLock)
         {
@@ -211,7 +211,7 @@ internal class ProjectRazorJsonPublisher : ProjectSnapshotChangeTrigger
     }
 
     // Internal for testing
-    internal void Publish(ProjectSnapshot projectSnapshot)
+    internal void Publish(IProjectSnapshot projectSnapshot)
     {
         if (projectSnapshot is null)
         {
@@ -245,7 +245,7 @@ internal class ProjectRazorJsonPublisher : ProjectSnapshotChangeTrigger
     }
 
     // Internal for testing
-    internal void RemovePublishingData(ProjectSnapshot projectSnapshot)
+    internal void RemovePublishingData(IProjectSnapshot projectSnapshot)
     {
         lock (_publishLock)
         {
@@ -267,7 +267,7 @@ internal class ProjectRazorJsonPublisher : ProjectSnapshotChangeTrigger
         }
     }
 
-    protected virtual void SerializeToFile(ProjectSnapshot projectSnapshot, string publishFilePath)
+    protected virtual void SerializeToFile(IProjectSnapshot projectSnapshot, string publishFilePath)
     {
         // We need to avoid having an incomplete file at any point, but our
         // project configuration file is large enough that it will be written as multiple operations.
@@ -302,7 +302,7 @@ internal class ProjectRazorJsonPublisher : ProjectSnapshotChangeTrigger
         return File.Exists(file);
     }
 
-    protected virtual bool ShouldSerialize(ProjectSnapshot projectSnapshot, string configurationFilePath)
+    protected virtual bool ShouldSerialize(IProjectSnapshot projectSnapshot, string configurationFilePath)
     {
         if (!FileExists(configurationFilePath))
         {
@@ -342,7 +342,7 @@ internal class ProjectRazorJsonPublisher : ProjectSnapshotChangeTrigger
         return _documentsProcessed;
     }
 
-    private void ImmediatePublish(ProjectSnapshot projectSnapshot)
+    private void ImmediatePublish(IProjectSnapshot projectSnapshot)
     {
         lock (_pendingProjectPublishesLock)
         {
@@ -357,7 +357,7 @@ internal class ProjectRazorJsonPublisher : ProjectSnapshotChangeTrigger
     {
         await Task.Delay(EnqueueDelay).ConfigureAwait(false);
 
-        ProjectSnapshot projectSnapshot;
+        IProjectSnapshot projectSnapshot;
         lock (_pendingProjectPublishesLock)
         {
             if (!_pendingProjectPublishes.TryGetValue(projectFilePath, out projectSnapshot))

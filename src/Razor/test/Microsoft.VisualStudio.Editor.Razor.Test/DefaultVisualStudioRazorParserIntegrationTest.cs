@@ -28,7 +28,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
     private const string TestLinePragmaFileName = @"C:\This\Path\Is\Just\For\Line\Pragmas.cshtml";
     private const string TestProjectPath = @"C:\This\Path\Is\Just\For\Project.csproj";
 
-    private readonly ProjectSnapshot _projectSnapshot;
+    private readonly IProjectSnapshot _projectSnapshot;
     private readonly CodeAnalysis.Workspace _workspace;
 
     public DefaultVisualStudioRazorParserIntegrationTest(ITestOutputHelper testOutput)

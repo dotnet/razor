@@ -32,7 +32,7 @@ internal class DefaultDocumentResolver : DocumentResolver
         _projectResolver = projectResolver;
     }
 
-    public override bool TryResolveDocument(string documentFilePath, [NotNullWhen(true)] out DocumentSnapshot? document)
+    public override bool TryResolveDocument(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
     {
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 

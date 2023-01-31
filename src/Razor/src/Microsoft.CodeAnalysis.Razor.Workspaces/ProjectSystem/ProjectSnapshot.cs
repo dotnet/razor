@@ -1,34 +1,107 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal abstract class ProjectSnapshot
+internal class ProjectSnapshot : IProjectSnapshot
 {
-    public abstract RazorConfiguration? Configuration { get; }
-    public abstract IEnumerable<string> DocumentFilePaths { get; }
-    public abstract string FilePath { get; }
-    public abstract string? RootNamespace { get; }
-    public abstract VersionStamp Version { get; }
-    public abstract LanguageVersion CSharpLanguageVersion { get; }
-    public abstract IReadOnlyList<TagHelperDescriptor> TagHelpers { get; }
-    public abstract ProjectWorkspaceState? ProjectWorkspaceState { get; }
+    private readonly object _lock;
 
-    public abstract RazorProjectEngine GetProjectEngine();
-    public abstract DocumentSnapshot? GetDocument(string filePath);
-    public abstract bool IsImportDocument(DocumentSnapshot document);
+    private readonly Dictionary<string, DocumentSnapshot> _documents;
 
-    /// <summary>
-    /// If the provided document is an import document, gets the other documents in the project
-    /// that include directives specified by the provided document. Otherwise returns an empty
-    /// list.
-    /// </summary>
-    /// <param name="document">The document.</param>
-    /// <returns>A list of related documents.</returns>
-    public abstract ImmutableArray<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document);
+    public ProjectSnapshot(ProjectState state)
+    {
+        State = state ?? throw new ArgumentNullException(nameof(state));
+
+        _lock = new object();
+        _documents = new Dictionary<string, DocumentSnapshot>(FilePathComparer.Instance);
+    }
+
+    public ProjectState State { get; }
+
+    public RazorConfiguration? Configuration => HostProject.Configuration;
+
+    public IEnumerable<string> DocumentFilePaths => State.Documents.Keys;
+
+    public string FilePath => State.HostProject.FilePath;
+
+    public string? RootNamespace => State.HostProject.RootNamespace;
+
+    public LanguageVersion CSharpLanguageVersion => State.CSharpLanguageVersion;
+
+    public HostProject HostProject => State.HostProject;
+
+    public virtual VersionStamp Version => State.Version;
+
+    public IReadOnlyList<TagHelperDescriptor> TagHelpers => State.TagHelpers;
+
+    public ProjectWorkspaceState? ProjectWorkspaceState => State.ProjectWorkspaceState;
+
+    public virtual IDocumentSnapshot? GetDocument(string filePath)
+    {
+        lock (_lock)
+        {
+            if (!_documents.TryGetValue(filePath, out var result) &&
+                State.Documents.TryGetValue(filePath, out var state))
+            {
+                result = new DocumentSnapshot(this, state);
+                _documents.Add(filePath, result);
+            }
+
+            return result;
+        }
+    }
+
+    public bool IsImportDocument(IDocumentSnapshot document)
+    {
+        if (document is null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        return State.ImportsToRelatedDocuments.ContainsKey(document.TargetPath);
+    }
+
+    public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
+    {
+        if (document is null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        var targetPath = document.TargetPath.AssumeNotNull();
+
+        if (!State.ImportsToRelatedDocuments.TryGetValue(targetPath, out var relatedDocuments))
+        {
+            return ImmutableArray<IDocumentSnapshot>.Empty;
+        }
+
+        lock (_lock)
+        {
+            using var _ = ArrayBuilderPool<IDocumentSnapshot>.GetPooledObject(out var builder);
+
+            foreach (var relatedDocumentFilePath in relatedDocuments)
+            {
+                if (GetDocument(relatedDocumentFilePath) is { } relatedDocument)
+                {
+                    builder.Add(relatedDocument);
+                }
+            }
+
+            return builder.ToImmutableArray();
+        }
+    }
+
+    public virtual RazorProjectEngine GetProjectEngine()
+    {
+        return State.ProjectEngine;
+    }
 }

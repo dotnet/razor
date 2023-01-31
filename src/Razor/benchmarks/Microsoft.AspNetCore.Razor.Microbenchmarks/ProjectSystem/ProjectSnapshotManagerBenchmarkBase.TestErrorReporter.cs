@@ -16,7 +16,7 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
         {
         }
 
-        public override void ReportError(Exception exception, ProjectSnapshot? project)
+        public override void ReportError(Exception exception, IProjectSnapshot? project)
         {
         }
 

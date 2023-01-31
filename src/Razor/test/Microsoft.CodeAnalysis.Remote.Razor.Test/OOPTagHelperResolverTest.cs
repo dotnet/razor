@@ -212,17 +212,17 @@ public class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
         {
         }
 
-        public Func<IProjectEngineFactory, ProjectSnapshot, Task<TagHelperResolutionResult>> OnResolveOutOfProcess { get; set; }
+        public Func<IProjectEngineFactory, IProjectSnapshot, Task<TagHelperResolutionResult>> OnResolveOutOfProcess { get; set; }
 
-        public Func<ProjectSnapshot, Task<TagHelperResolutionResult>> OnResolveInProcess { get; set; }
+        public Func<IProjectSnapshot, Task<TagHelperResolutionResult>> OnResolveInProcess { get; set; }
 
-        protected override Task<TagHelperResolutionResult> ResolveTagHelpersOutOfProcessAsync(IProjectEngineFactory factory, Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+        protected override Task<TagHelperResolutionResult> ResolveTagHelpersOutOfProcessAsync(IProjectEngineFactory factory, Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
         {
             Assert.NotNull(OnResolveOutOfProcess);
             return OnResolveOutOfProcess(factory, projectSnapshot);
         }
 
-        protected override Task<TagHelperResolutionResult> ResolveTagHelpersInProcessAsync(Project project, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+        protected override Task<TagHelperResolutionResult> ResolveTagHelpersInProcessAsync(Project project, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
         {
             Assert.NotNull(OnResolveInProcess);
             return OnResolveInProcess(projectSnapshot);

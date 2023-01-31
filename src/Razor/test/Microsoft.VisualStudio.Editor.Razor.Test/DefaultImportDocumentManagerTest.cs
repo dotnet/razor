@@ -41,7 +41,7 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
         var tracker = Mock.Of<VisualStudioDocumentTracker>(
             t => t.FilePath == Path.Combine(_directoryPath, "Views", "Home", "file.cshtml") &&
             t.ProjectPath == _projectPath &&
-            t.ProjectSnapshot == Mock.Of<ProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
+            t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
 
         var fileChangeTrackerFactory = new Mock<FileChangeTrackerFactory>(MockBehavior.Strict);
         var fileChangeTracker1 = new Mock<FileChangeTracker>(MockBehavior.Strict);
@@ -86,12 +86,12 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
         var tracker = Mock.Of<VisualStudioDocumentTracker>(
             t => t.FilePath == Path.Combine(_directoryPath, "file.cshtml") &&
             t.ProjectPath == _projectPath &&
-            t.ProjectSnapshot == Mock.Of<ProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
+            t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
 
         var anotherTracker = Mock.Of<VisualStudioDocumentTracker>(
             t => t.FilePath == Path.Combine(_directoryPath, "anotherFile.cshtml") &&
             t.ProjectPath == _projectPath &&
-            t.ProjectSnapshot == Mock.Of<ProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
+            t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
 
         var callCount = 0;
         var fileChangeTrackerFactory = new Mock<FileChangeTrackerFactory>(MockBehavior.Strict);
@@ -119,7 +119,7 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
         var tracker = Mock.Of<VisualStudioDocumentTracker>(
             t => t.FilePath == Path.Combine(_directoryPath, "file.cshtml") &&
             t.ProjectPath == _projectPath &&
-            t.ProjectSnapshot == Mock.Of<ProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
+            t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
 
         var fileChangeTrackerFactory = new Mock<FileChangeTrackerFactory>(MockBehavior.Strict);
         var fileChangeTracker = new Mock<FileChangeTracker>(MockBehavior.Strict);
@@ -150,12 +150,12 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
         var tracker = Mock.Of<VisualStudioDocumentTracker>(
             t => t.FilePath == Path.Combine(_directoryPath, "file.cshtml") &&
             t.ProjectPath == _projectPath &&
-            t.ProjectSnapshot == Mock.Of<ProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
+            t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
 
         var anotherTracker = Mock.Of<VisualStudioDocumentTracker>(
             t => t.FilePath == Path.Combine(_directoryPath, "anotherFile.cshtml") &&
             t.ProjectPath == _projectPath &&
-            t.ProjectSnapshot == Mock.Of<ProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
+            t.ProjectSnapshot == Mock.Of<IProjectSnapshot>(p => p.GetProjectEngine() == _projectEngine && p.GetDocument(It.IsAny<string>()) == null, MockBehavior.Strict), MockBehavior.Strict);
 
         var fileChangeTrackerFactory = new Mock<FileChangeTrackerFactory>(MockBehavior.Strict);
         var fileChangeTracker = new Mock<FileChangeTracker>(MockBehavior.Strict);

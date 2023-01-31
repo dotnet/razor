@@ -27,7 +27,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     private static readonly TimeSpan s_checkForDocumentClosedDelay = TimeSpan.FromSeconds(5);
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly ClientNotifierServiceBase _languageServer;
-    private readonly Dictionary<string, DocumentSnapshot> _work;
+    private readonly Dictionary<string, IDocumentSnapshot> _work;
     private readonly ILogger<RazorDiagnosticsPublisher> _logger;
     private ProjectSnapshotManager? _projectManager;
 
@@ -54,7 +54,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _languageServer = languageServer;
         PublishedDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
-        _work = new Dictionary<string, DocumentSnapshot>(FilePathComparer.Instance);
+        _work = new Dictionary<string, IDocumentSnapshot>(FilePathComparer.Instance);
         _logger = loggerFactory.CreateLogger<RazorDiagnosticsPublisher>();
     }
 
@@ -74,7 +74,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         _projectManager = projectManager;
     }
 
-    public override void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot document)
+    public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
     {
         if (document is null)
         {
@@ -168,7 +168,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     }
 
     // Internal for testing
-    internal async Task PublishDiagnosticsAsync(DocumentSnapshot document)
+    internal async Task PublishDiagnosticsAsync(IDocumentSnapshot document)
     {
         var result = await document.GetGeneratedOutputAsync();
 
@@ -214,7 +214,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     {
         try
         {
-            DocumentSnapshot[] documents;
+            IDocumentSnapshot[] documents;
             lock (_work)
             {
                 documents = _work.Values.ToArray();

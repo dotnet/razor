@@ -28,7 +28,7 @@ internal class GeneratedDocumentSynchronizer : DocumentProcessedListener
     {
     }
 
-    public override void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot document)
+    public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
     {
         _dispatcher.AssertDispatcherThread();
 

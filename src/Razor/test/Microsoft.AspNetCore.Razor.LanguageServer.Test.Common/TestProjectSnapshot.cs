@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
-internal class TestProjectSnapshot : DefaultProjectSnapshot
+internal class TestProjectSnapshot : ProjectSnapshot
 {
     public static TestProjectSnapshot Create(string filePath, ProjectWorkspaceState? projectWorkspaceState = null)
         => Create(filePath, Array.Empty<string>(), projectWorkspaceState);
@@ -53,27 +53,16 @@ internal class TestProjectSnapshot : DefaultProjectSnapshot
         return testProject;
     }
 
-    private TestProjectSnapshot(ProjectState projectState)
-        : base(projectState)
+    private TestProjectSnapshot(ProjectState state)
+        : base(state)
     {
-        if (projectState is null)
-        {
-            throw new ArgumentNullException(nameof(projectState));
-        }
     }
 
     public override VersionStamp Version => throw new NotImplementedException();
 
-    public override DocumentSnapshot? GetDocument(string filePath)
+    public override IDocumentSnapshot? GetDocument(string filePath)
     {
-        var document = base.GetDocument(filePath);
-
-        if (document is null)
-        {
-            throw new InvalidOperationException("Test was not setup correctly. Could not locate document '" + filePath + "'.");
-        }
-
-        return document;
+        return base.GetDocument(filePath) ?? throw new InvalidOperationException($"Test was not setup correctly. Could not locate document '{filePath}'.");
     }
 
     public override RazorProjectEngine GetProjectEngine()

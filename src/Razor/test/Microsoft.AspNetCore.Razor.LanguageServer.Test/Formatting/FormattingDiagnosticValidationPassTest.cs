@@ -158,7 +158,7 @@ public class Foo { }
         return context;
     }
 
-    private static (RazorCodeDocument, DocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? fileKind = default)
+    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? fileKind = default)
     {
         fileKind ??= FileKinds.Component;
         tagHelpers ??= Array.Empty<TagHelperDescriptor>();
@@ -166,10 +166,10 @@ public class Foo { }
         var projectEngine = RazorProjectEngine.Create(builder => builder.SetRootNamespace("Test"));
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, Array.Empty<RazorSourceDocument>(), tagHelpers);
 
-        var documentSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
+        var documentSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
         documentSnapshot
             .Setup(d => d.GetImports())
-            .Returns(ImmutableArray<DocumentSnapshot>.Empty);
+            .Returns(ImmutableArray<IDocumentSnapshot>.Empty);
         documentSnapshot
             .Setup(d => d.GetGeneratedOutputAsync())
             .ReturnsAsync(codeDocument);

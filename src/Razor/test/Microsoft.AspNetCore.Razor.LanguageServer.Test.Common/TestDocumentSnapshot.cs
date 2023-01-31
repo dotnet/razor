@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
-internal class TestDocumentSnapshot : DefaultDocumentSnapshot
+internal class TestDocumentSnapshot : DocumentSnapshot
 {
     private RazorCodeDocument? _codeDocument;
 
@@ -41,7 +41,7 @@ internal class TestDocumentSnapshot : DefaultDocumentSnapshot
         return testDocument;
     }
 
-    private TestDocumentSnapshot(DefaultProjectSnapshot projectSnapshot, DocumentState documentState)
+    private TestDocumentSnapshot(ProjectSnapshot projectSnapshot, DocumentState documentState)
         : base(projectSnapshot, documentState)
     {
     }
@@ -56,14 +56,16 @@ internal class TestDocumentSnapshot : DefaultDocumentSnapshot
         return Task.FromResult(_codeDocument);
     }
 
-    public override ImmutableArray<DocumentSnapshot> GetImports()
-        => ImmutableArray<DocumentSnapshot>.Empty;
+    public override ImmutableArray<IDocumentSnapshot> GetImports()
+    {
+        return ImmutableArray<IDocumentSnapshot>.Empty;
+    }
 
     public override bool TryGetGeneratedOutput(out RazorCodeDocument result)
     {
         if (_codeDocument is null)
         {
-            throw new InvalidOperationException("You must call " + nameof(With) + " to set the code document for this document snapshot.");
+            throw new InvalidOperationException($"You must call {nameof(With)} to set the code document for this document snapshot.");
         }
 
         result = _codeDocument;

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal class EphemeralProjectSnapshot : ProjectSnapshot
+internal class EphemeralProjectSnapshot : IProjectSnapshot
 {
     private readonly HostWorkspaceServices _services;
     private readonly Lazy<RazorProjectEngine> _projectEngine;
@@ -33,23 +33,23 @@ internal class EphemeralProjectSnapshot : ProjectSnapshot
         _projectEngine = new Lazy<RazorProjectEngine>(CreateProjectEngine);
     }
 
-    public override RazorConfiguration? Configuration => FallbackRazorConfiguration.Latest;
+    public RazorConfiguration? Configuration => FallbackRazorConfiguration.Latest;
 
-    public override IEnumerable<string> DocumentFilePaths => Array.Empty<string>();
+    public IEnumerable<string> DocumentFilePaths => Array.Empty<string>();
 
-    public override string FilePath { get; }
+    public string FilePath { get; }
 
-    public override string? RootNamespace { get; }
+    public string? RootNamespace { get; }
 
-    public override VersionStamp Version => VersionStamp.Default;
+    public VersionStamp Version => VersionStamp.Default;
 
-    public override LanguageVersion CSharpLanguageVersion => LanguageVersion.Default;
+    public LanguageVersion CSharpLanguageVersion => LanguageVersion.Default;
 
-    public override IReadOnlyList<TagHelperDescriptor> TagHelpers => Array.Empty<TagHelperDescriptor>();
+    public IReadOnlyList<TagHelperDescriptor> TagHelpers => Array.Empty<TagHelperDescriptor>();
 
-    public override ProjectWorkspaceState? ProjectWorkspaceState => null;
+    public ProjectWorkspaceState? ProjectWorkspaceState => null;
 
-    public override DocumentSnapshot? GetDocument(string filePath)
+    public IDocumentSnapshot? GetDocument(string filePath)
     {
         if (filePath is null)
         {
@@ -59,7 +59,7 @@ internal class EphemeralProjectSnapshot : ProjectSnapshot
         return null;
     }
 
-    public override bool IsImportDocument(DocumentSnapshot document)
+    public bool IsImportDocument(IDocumentSnapshot document)
     {
         if (document is null)
         {
@@ -69,17 +69,17 @@ internal class EphemeralProjectSnapshot : ProjectSnapshot
         return false;
     }
 
-    public override ImmutableArray<DocumentSnapshot> GetRelatedDocuments(DocumentSnapshot document)
+    public ImmutableArray<IDocumentSnapshot> GetRelatedDocuments(IDocumentSnapshot document)
     {
         if (document is null)
         {
             throw new ArgumentNullException(nameof(document));
         }
 
-        return ImmutableArray<DocumentSnapshot>.Empty;
+        return ImmutableArray<IDocumentSnapshot>.Empty;
     }
 
-    public override RazorProjectEngine GetProjectEngine()
+    public RazorProjectEngine GetProjectEngine()
     {
         return _projectEngine.Value;
     }

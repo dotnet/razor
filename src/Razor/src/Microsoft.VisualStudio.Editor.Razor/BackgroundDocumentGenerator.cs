@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Razor;
 internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 {
     // Internal for testing
-    internal readonly Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)> Work;
+    internal readonly Dictionary<DocumentKey, (IProjectSnapshot project, IDocumentSnapshot document)> Work;
 
     private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly RazorDynamicFileInfoProvider _infoProvider;
@@ -37,7 +37,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
         _infoProvider = infoProvider ?? throw new ArgumentNullException(nameof(infoProvider));
         _suppressedDocuments = new HashSet<string>(FilePathComparer.Instance);
 
-        Work = new Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)>();
+        Work = new Dictionary<DocumentKey, (IProjectSnapshot project, IDocumentSnapshot document)>();
     }
 
     public bool HasPendingNotifications
@@ -120,14 +120,14 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
         _projectManager.Changed += ProjectManager_Changed;
     }
 
-    protected virtual async Task ProcessDocumentAsync(ProjectSnapshot project, DocumentSnapshot document)
+    protected virtual async Task ProcessDocumentAsync(IProjectSnapshot project, IDocumentSnapshot document)
     {
         await document.GetGeneratedOutputAsync().ConfigureAwait(false);
 
         UpdateFileInfo(project, document);
     }
 
-    public void Enqueue(ProjectSnapshot project, DocumentSnapshot document)
+    public void Enqueue(IProjectSnapshot project, IDocumentSnapshot document)
     {
         if (project is null)
         {
@@ -179,7 +179,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 
             OnStartingBackgroundWork();
 
-            KeyValuePair<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)>[] work;
+            KeyValuePair<DocumentKey, (IProjectSnapshot project, IDocumentSnapshot document)>[] work;
             lock (Work)
             {
                 work = Work.ToArray();
@@ -239,13 +239,15 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
             Assumes.NotNull(_projectManager);
 
             // This is something totally unexpected, let's just send it over to the workspace.
-            await _dispatcher.RunOnDispatcherThreadAsync(
-                () => _projectManager.ReportError(ex),
-                CancellationToken.None).ConfigureAwait(false);
+            await _dispatcher
+                .RunOnDispatcherThreadAsync(
+                    () => _projectManager.ReportError(ex),
+                    CancellationToken.None)
+                .ConfigureAwait(false);
         }
     }
 
-    private void ReportError(ProjectSnapshot project, Exception ex)
+    private void ReportError(IProjectSnapshot project, Exception ex)
     {
         OnErrorBeingReported();
 
@@ -256,7 +258,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
             CancellationToken.None).Forget();
     }
 
-    private bool Suppressed(ProjectSnapshot project, DocumentSnapshot document)
+    private bool Suppressed(IProjectSnapshot project, IDocumentSnapshot document)
     {
         Assumes.NotNull(_projectManager);
 
@@ -276,7 +278,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
         }
     }
 
-    private void UpdateFileInfo(ProjectSnapshot project, DocumentSnapshot document)
+    private void UpdateFileInfo(IProjectSnapshot project, IDocumentSnapshot document)
     {
         lock (_suppressedDocuments)
         {

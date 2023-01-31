@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.Razor;
 // the scenes C#.
 internal sealed class DefaultDynamicDocumentContainer : DynamicDocumentContainer
 {
-    private readonly DocumentSnapshot _documentSnapshot;
+    private readonly IDocumentSnapshot _documentSnapshot;
     private RazorDocumentExcerptService? _excerptService;
     private RazorSpanMappingService? _mappingService;
 
-    public DefaultDynamicDocumentContainer(DocumentSnapshot documentSnapshot)
+    public DefaultDynamicDocumentContainer(IDocumentSnapshot documentSnapshot)
     {
         if (documentSnapshot is null)
         {

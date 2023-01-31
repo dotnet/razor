@@ -231,7 +231,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         return source.WithChanges(changes);
     }
 
-    private static (RazorCodeDocument, DocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? fileKind = default, bool allowDiagnostics = false)
+    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? fileKind = default, bool allowDiagnostics = false)
     {
         fileKind ??= FileKinds.Component;
         tagHelpers ??= Array.Empty<TagHelperDescriptor>();
@@ -256,7 +256,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         var importsPath = new Uri("file:///path/to/_Imports.razor").AbsolutePath;
         var importsSourceText = SourceText.From(DefaultImports);
         var importsDocument = importsSourceText.GetRazorSourceDocument(importsPath, importsPath);
-        var importsSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
+        var importsSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
         importsSnapshot
             .Setup(d => d.GetTextAsync())
             .ReturnsAsync(importsSourceText);
@@ -280,7 +280,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             Assert.False(codeDocument.GetCSharpDocument().Diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, codeDocument.GetCSharpDocument().Diagnostics));
         }
 
-        var documentSnapshot = new Mock<DocumentSnapshot>(MockBehavior.Strict);
+        var documentSnapshot = new Mock<IDocumentSnapshot>(MockBehavior.Strict);
         documentSnapshot
             .Setup(d => d.GetGeneratedOutputAsync())
             .ReturnsAsync(codeDocument);

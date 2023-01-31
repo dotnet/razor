@@ -436,7 +436,7 @@ internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigge
         }
     }
 
-    private void EnqueueUpdateOnProjectAndDependencies(ProjectId projectId, Project? project, Solution solution, ProjectSnapshot projectSnapshot)
+    private void EnqueueUpdateOnProjectAndDependencies(ProjectId projectId, Project? project, Solution solution, IProjectSnapshot projectSnapshot)
     {
         EnqueueUpdate(project, projectSnapshot);
 
@@ -453,7 +453,7 @@ internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigge
         }
     }
 
-    private void EnqueueUpdate(Project? project, ProjectSnapshot projectSnapshot)
+    private void EnqueueUpdate(Project? project, IProjectSnapshot projectSnapshot)
     {
         var workItem = new UpdateWorkspaceWorkItem(project, projectSnapshot, _workspaceStateGenerator, _dispatcher);
 
@@ -462,7 +462,7 @@ internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigge
         _workQueue?.Enqueue(projectSnapshot.FilePath, workItem);
     }
 
-    private bool TryGetProjectSnapshot(string? projectFilePath, [NotNullWhen(true)] out ProjectSnapshot? projectSnapshot)
+    private bool TryGetProjectSnapshot(string? projectFilePath, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot)
     {
         if (projectFilePath is null)
         {
@@ -500,13 +500,13 @@ internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigge
     private class UpdateWorkspaceWorkItem : BatchableWorkItem
     {
         private readonly Project? _workspaceProject;
-        private readonly ProjectSnapshot _projectSnapshot;
+        private readonly IProjectSnapshot _projectSnapshot;
         private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
         private readonly ProjectSnapshotManagerDispatcher _dispatcher;
 
         public UpdateWorkspaceWorkItem(
             Project? workspaceProject,
-            ProjectSnapshot projectSnapshot,
+            IProjectSnapshot projectSnapshot,
             ProjectWorkspaceStateGenerator workspaceStateGenerator,
             ProjectSnapshotManagerDispatcher dispatcher)
         {
@@ -518,8 +518,7 @@ internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigge
 
         public override ValueTask ProcessAsync(CancellationToken cancellationToken)
         {
-            var task = _dispatcher
-                .RunOnDispatcherThreadAsync(
+            var task = _dispatcher.RunOnDispatcherThreadAsync(
                 static (arg, ct) =>
                 {
                     var @this = arg;

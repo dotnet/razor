@@ -56,7 +56,7 @@ internal class OOPTagHelperResolver : TagHelperResolver
         _resultCache = new TagHelperResultCache();
     }
 
-    public override async Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
+    public override async Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
     {
         if (workspaceProject is null)
         {
@@ -101,7 +101,7 @@ internal class OOPTagHelperResolver : TagHelperResolver
         }
     }
 
-    protected virtual async Task<TagHelperResolutionResult?> ResolveTagHelpersOutOfProcessAsync(IProjectEngineFactory factory, Project workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+    protected virtual async Task<TagHelperResolutionResult?> ResolveTagHelpersOutOfProcessAsync(IProjectEngineFactory factory, Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
         // We're being overly defensive here because the OOP host can return null for the client/session/operation
         // when it's disconnected (user stops the process).
@@ -184,7 +184,7 @@ internal class OOPTagHelperResolver : TagHelperResolver
         return tagHelpers;
     }
 
-    protected virtual Task<TagHelperResolutionResult> ResolveTagHelpersInProcessAsync(Project project, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+    protected virtual Task<TagHelperResolutionResult> ResolveTagHelpersInProcessAsync(Project project, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
         return _defaultResolver.GetTagHelpersAsync(project, projectSnapshot, cancellationToken);
     }

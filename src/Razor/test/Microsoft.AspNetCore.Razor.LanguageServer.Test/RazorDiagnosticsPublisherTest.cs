@@ -29,8 +29,8 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     };
 
     private readonly ProjectSnapshotManager _projectManager;
-    private readonly DocumentSnapshot _closedDocument;
-    private readonly DocumentSnapshot _openedDocument;
+    private readonly IDocumentSnapshot _closedDocument;
+    private readonly IDocumentSnapshot _openedDocument;
     private readonly RazorCodeDocument _testCodeDocument;
 
     public RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput)
@@ -47,8 +47,14 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         var closedHostDocument = new HostDocument("C:/project/closed_document.cshtml", "C:/project/closed_document.cshtml");
         testProjectManager.DocumentAdded(hostProject, closedHostDocument, TextLoader.From(textAndVersion));
 
-        _openedDocument = testProjectManager.Projects[0].GetDocument(openedHostDocument.FilePath).AssumeNotNull();
-        _closedDocument = testProjectManager.Projects[0].GetDocument(closedHostDocument.FilePath).AssumeNotNull();
+        var openedDocument = testProjectManager.Projects[0].GetDocument(openedHostDocument.FilePath);
+        Assert.NotNull(openedDocument);
+        _openedDocument = openedDocument;
+
+        var closedDocument = testProjectManager.Projects[0].GetDocument(closedHostDocument.FilePath);
+        Assert.NotNull(closedDocument);
+        _closedDocument = closedDocument;
+
         _projectManager = testProjectManager;
         _testCodeDocument = TestRazorCodeDocument.CreateEmpty();
     }

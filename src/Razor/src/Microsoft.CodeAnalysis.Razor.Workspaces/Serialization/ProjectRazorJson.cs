@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
 [JsonConverter(typeof(ProjectRazorJsonJsonConverter))]
 internal sealed class ProjectRazorJson
 {
-    public ProjectRazorJson(string serializedFilePath, ProjectSnapshot project)
+    public ProjectRazorJson(string serializedFilePath, IProjectSnapshot project)
     {
         SerializedFilePath = serializedFilePath;
         FilePath = project.FilePath;

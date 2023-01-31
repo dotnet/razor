@@ -11,7 +11,7 @@ internal abstract class ErrorReporter : IWorkspaceService
 {
     public abstract void ReportError(Exception exception);
 
-    public abstract void ReportError(Exception exception, ProjectSnapshot? project);
+    public abstract void ReportError(Exception exception, IProjectSnapshot? project);
 
     public abstract void ReportError(Exception exception, Project workspaceProject);
 }

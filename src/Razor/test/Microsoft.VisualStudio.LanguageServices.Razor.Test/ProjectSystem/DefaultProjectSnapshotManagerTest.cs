@@ -660,14 +660,14 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
 
         public bool NotifyChangedEvents { get; set; }
 
-        public DefaultProjectSnapshot GetSnapshot(HostProject hostProject)
+        public ProjectSnapshot GetSnapshot(HostProject hostProject)
         {
-            return Projects.Cast<DefaultProjectSnapshot>().FirstOrDefault(s => s.FilePath == hostProject.FilePath);
+            return Projects.Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == hostProject.FilePath);
         }
 
-        public DefaultProjectSnapshot GetSnapshot(Project workspaceProject)
+        public ProjectSnapshot GetSnapshot(Project workspaceProject)
         {
-            return Projects.Cast<DefaultProjectSnapshot>().FirstOrDefault(s => s.FilePath == workspaceProject.FilePath);
+            return Projects.Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == workspaceProject.FilePath);
         }
 
         public void Reset()

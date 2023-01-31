@@ -8,5 +8,5 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal abstract class ProjectWorkspaceStateGenerator : ProjectSnapshotChangeTrigger
 {
-    public abstract void Update(Project? workspaceProject, ProjectSnapshot projectSnapshot, CancellationToken cancellationToken);
+    public abstract void Update(Project? workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken);
 }

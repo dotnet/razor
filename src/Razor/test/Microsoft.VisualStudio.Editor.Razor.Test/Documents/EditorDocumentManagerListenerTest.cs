@@ -58,7 +58,7 @@ public class EditorDocumentManagerListenerTest : ProjectSnapshotManagerDispatche
         var listener = new EditorDocumentManagerListener(
             Dispatcher, JoinableTaskFactory.Context, editorDocumentManger.Object, changedOnDisk, changedInEditor, opened, closed);
 
-        var project = Mock.Of<ProjectSnapshot>(p => p.FilePath == "/Path/to/project.csproj", MockBehavior.Strict);
+        var project = Mock.Of<IProjectSnapshot>(p => p.FilePath == "/Path/to/project.csproj", MockBehavior.Strict);
 
         // Act & Assert
         listener.ProjectManager_Changed(null, new ProjectChangeEventArgs(project, project, "/Path/to/file", ProjectChangeKind.DocumentAdded, solutionIsClosing: false));
@@ -79,7 +79,7 @@ public class EditorDocumentManagerListenerTest : ProjectSnapshotManagerDispatche
         var listener = new EditorDocumentManagerListener(
             Dispatcher, JoinableTaskFactory.Context, editorDocumentManger.Object, onChangedOnDisk: null, onChangedInEditor: null, onOpened: opened, onClosed: null);
 
-        var project = Mock.Of<ProjectSnapshot>(p => p.FilePath == "/Path/to/project.csproj", MockBehavior.Strict);
+        var project = Mock.Of<IProjectSnapshot>(p => p.FilePath == "/Path/to/project.csproj", MockBehavior.Strict);
 
         // Act
         listener.ProjectManager_Changed(null, new ProjectChangeEventArgs(project, project, "/Path/to/file", ProjectChangeKind.DocumentAdded, solutionIsClosing: false));

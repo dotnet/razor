@@ -89,12 +89,12 @@ internal class DocumentState
         }
     }
 
-    public Task<(RazorCodeDocument output, VersionStamp inputVersion)> GetGeneratedOutputAndVersionAsync(DefaultProjectSnapshot project, DefaultDocumentSnapshot document)
+    public Task<(RazorCodeDocument output, VersionStamp inputVersion)> GetGeneratedOutputAndVersionAsync(ProjectSnapshot project, DocumentSnapshot document)
     {
         return ComputedState.GetGeneratedOutputAndVersionAsync(project, document);
     }
 
-    public ImmutableArray<DocumentSnapshot> GetImports(DefaultProjectSnapshot project)
+    public ImmutableArray<IDocumentSnapshot> GetImports(ProjectSnapshot project)
     {
         return GetImportsCore(project);
     }
@@ -194,7 +194,7 @@ internal class DocumentState
             _loaderTask = _loaderTask
         };
 
-        // Optimisically cache the computed state
+        // Optimistically cache the computed state
         state._computedState = new ComputedStateTracker(state, _computedState);
 
         return state;
@@ -210,7 +210,7 @@ internal class DocumentState
             _loaderTask = _loaderTask
         };
 
-        // Optimisically cache the computed state
+        // Optimistically cache the computed state
         state._computedState = new ComputedStateTracker(state, _computedState);
 
         return state;
@@ -240,25 +240,34 @@ internal class DocumentState
         return new DocumentState(Services, HostDocument, null, null, loader);
     }
 
-    private ImmutableArray<DocumentSnapshot> GetImportsCore(DefaultProjectSnapshot project)
+    private ImmutableArray<IDocumentSnapshot> GetImportsCore(ProjectSnapshot project)
     {
         var projectEngine = project.GetProjectEngine();
-        var importFeatures = projectEngine.ProjectFeatures.OfType<IImportProjectFeature>();
         var projectItem = projectEngine.FileSystem.GetItem(HostDocument.FilePath, HostDocument.FileKind);
-        var importItems = importFeatures.SelectMany(f => f.GetImports(projectItem));
-        if (importItems is null)
+
+        using var _1 = ListPool<RazorProjectItem>.GetPooledObject(out var importItems);
+
+        foreach (var feature in projectEngine.ProjectFeatures.OfType<IImportProjectFeature>())
         {
-            return ImmutableArray<DocumentSnapshot>.Empty;
+            if (feature.GetImports(projectItem) is { } featureImports)
+            {
+                importItems.AddRange(featureImports);
+            }
         }
 
-        using var _ = ArrayBuilderPool<DocumentSnapshot>.GetPooledObject(out var imports);
+        if (importItems.Count == 0)
+        {
+            return ImmutableArray<IDocumentSnapshot>.Empty;
+        }
+
+        using var _2 = ArrayBuilderPool<IDocumentSnapshot>.GetPooledObject(out var imports);
 
         foreach (var item in importItems)
         {
             if (item.PhysicalPath is null)
             {
                 // This is a default import.
-                var defaultImport = new DefaultImportDocumentSnapshot(project, item);
+                var defaultImport = new ImportDocumentSnapshot(project, item);
                 imports.Add(defaultImport);
             }
             else if (project.GetDocument(item.PhysicalPath) is { } import)
@@ -312,7 +321,7 @@ internal class DocumentState
             }
         }
 
-        public async Task<(RazorCodeDocument, VersionStamp)> GetGeneratedOutputAndVersionAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
+        public async Task<(RazorCodeDocument, VersionStamp)> GetGeneratedOutputAndVersionAsync(ProjectSnapshot project, IDocumentSnapshot document)
         {
             if (_computedOutput?.TryGetCachedOutput(out var cachedCodeDocument, out var cachedInputVersion) == true)
             {
@@ -325,7 +334,7 @@ internal class DocumentState
             return (codeDocument, inputVersion);
         }
 
-        private Task<(RazorCodeDocument, VersionStamp)> GetMemoizedGeneratedOutputAndVersionAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
+        private Task<(RazorCodeDocument, VersionStamp)> GetMemoizedGeneratedOutputAndVersionAsync(ProjectSnapshot project, IDocumentSnapshot document)
         {
             if (project is null)
             {
@@ -416,7 +425,7 @@ internal class DocumentState
             }
         }
 
-        private async Task<(RazorCodeDocument, VersionStamp)> ComputeGeneratedOutputAndVersionAsync(DefaultProjectSnapshot project, DocumentSnapshot document)
+        private async Task<(RazorCodeDocument, VersionStamp)> ComputeGeneratedOutputAndVersionAsync(ProjectSnapshot project, IDocumentSnapshot document)
         {
             // We only need to produce the generated code if any of our inputs is newer than the
             // previously cached output.
@@ -493,13 +502,13 @@ internal class DocumentState
             return (codeDocument, inputVersion);
         }
 
-        private static async Task<RazorSourceDocument> GetRazorSourceDocumentAsync(DocumentSnapshot document, RazorProjectItem? projectItem)
+        private static async Task<RazorSourceDocument> GetRazorSourceDocumentAsync(IDocumentSnapshot document, RazorProjectItem? projectItem)
         {
             var sourceText = await document.GetTextAsync();
             return sourceText.GetRazorSourceDocument(document.FilePath, projectItem?.RelativePhysicalPath);
         }
 
-        private static async Task<IReadOnlyList<ImportItem>> GetImportsAsync(DocumentSnapshot document)
+        private static async Task<IReadOnlyList<ImportItem>> GetImportsAsync(IDocumentSnapshot document)
         {
             var imports = new List<ImportItem>();
             foreach (var snapshot in document.GetImports())
@@ -515,11 +524,11 @@ internal class DocumentState
         {
             public string? FilePath { get; }
             public VersionStamp Version { get; }
-            public DocumentSnapshot Document { get; }
+            public IDocumentSnapshot Document { get; }
 
             public string? FileKind => Document.FileKind;
 
-            public ImportItem(string? filePath, VersionStamp version, DocumentSnapshot document)
+            public ImportItem(string? filePath, VersionStamp version, IDocumentSnapshot document)
             {
                 FilePath = filePath;
                 Version = version;

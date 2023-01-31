@@ -28,7 +28,7 @@ internal class LanguageServerErrorReporter : ErrorReporter
         _logger.LogError(exception, "Error thrown from LanguageServer");
     }
 
-    public override void ReportError(Exception exception, ProjectSnapshot? project)
+    public override void ReportError(Exception exception, IProjectSnapshot? project)
     {
         _logger.LogError(exception, "Error thrown from project {projectFilePath}", project?.FilePath);
     }

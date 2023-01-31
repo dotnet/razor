@@ -62,7 +62,7 @@ public class DefaultWorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTe
             throw new NotImplementedException();
         }
 
-        public override void ReportError(Exception exception, ProjectSnapshot? project)
+        public override void ReportError(Exception exception, IProjectSnapshot? project)
         {
             throw new NotImplementedException();
         }

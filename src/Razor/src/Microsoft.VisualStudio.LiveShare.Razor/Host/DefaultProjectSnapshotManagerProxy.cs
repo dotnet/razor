@@ -90,7 +90,7 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
     }
 
     // Internal for testing
-    internal async Task<IReadOnlyList<ProjectSnapshot>> GetLatestProjectsAsync()
+    internal async Task<IReadOnlyList<IProjectSnapshot>> GetLatestProjectsAsync()
     {
         if (!_joinableTaskFactory.Context.IsOnMainThread)
         {
@@ -101,7 +101,7 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
     }
 
     // Internal for testing
-    internal async Task<ProjectSnapshotManagerProxyState> CalculateUpdatedStateAsync(IReadOnlyList<ProjectSnapshot> projects)
+    internal async Task<ProjectSnapshotManagerProxyState> CalculateUpdatedStateAsync(IReadOnlyList<IProjectSnapshot> projects)
     {
         using (await _latestStateSemaphore.EnterAsync().ConfigureAwait(false))
         {
@@ -118,7 +118,7 @@ internal class DefaultProjectSnapshotManagerProxy : IProjectSnapshotManagerProxy
     }
 
     [return: NotNullIfNotNull(nameof(project))]
-    private ProjectSnapshotHandleProxy? ConvertToProxy(ProjectSnapshot? project)
+    private ProjectSnapshotHandleProxy? ConvertToProxy(IProjectSnapshot? project)
     {
         if (project is null)
         {

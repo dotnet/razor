@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -20,7 +18,7 @@ internal class DefaultErrorReporter : ErrorReporter
         // Do nothing.
     }
 
-    public override void ReportError(Exception exception, ProjectSnapshot project)
+    public override void ReportError(Exception exception, IProjectSnapshot? project)
     {
         if (exception is null)
         {

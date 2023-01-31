@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 public class DefaultVisualStudioRazorParserTest : ProjectSnapshotManagerDispatcherTestBase
 {
-    private readonly ProjectSnapshot _projectSnapshot;
+    private readonly IProjectSnapshot _projectSnapshot;
     private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
     private readonly Workspace _workspace;
 

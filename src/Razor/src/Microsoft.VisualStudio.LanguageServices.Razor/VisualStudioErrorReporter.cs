@@ -45,7 +45,7 @@ internal class VisualStudioErrorReporter : ErrorReporter
         }
     }
 
-    public override void ReportError(Exception exception, ProjectSnapshot? project)
+    public override void ReportError(Exception exception, IProjectSnapshot? project)
     {
         var activityLog = GetActivityLog();
         if (activityLog is not null)
