@@ -652,7 +652,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
     {
         public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, IEnumerable<ProjectSnapshotChangeTrigger> triggers, Workspace workspace)
-            : base(dispatcher, Mock.Of<ErrorReporter>(MockBehavior.Strict), triggers, workspace)
+            : base(dispatcher, Mock.Of<IErrorReporter>(MockBehavior.Strict), triggers, workspace)
         {
         }
 

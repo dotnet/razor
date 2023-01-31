@@ -67,7 +67,7 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
             .Returns(fileChangeTracker3.Object)
             .Verifiable();
 
-        var manager = new DefaultImportDocumentManager(Dispatcher, new DefaultErrorReporter(), fileChangeTrackerFactory.Object);
+        var manager = new DefaultImportDocumentManager(Dispatcher, ErrorReporter, fileChangeTrackerFactory.Object);
 
         // Act
         manager.OnSubscribed(tracker);
@@ -102,7 +102,7 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
             .Returns(fileChangeTracker.Object)
             .Callback(() => callCount++);
 
-        var manager = new DefaultImportDocumentManager(Dispatcher, new DefaultErrorReporter(), fileChangeTrackerFactory.Object);
+        var manager = new DefaultImportDocumentManager(Dispatcher, ErrorReporter, fileChangeTrackerFactory.Object);
         manager.OnSubscribed(tracker); // Start tracking the import.
 
         // Act
@@ -132,7 +132,7 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
             .Returns(fileChangeTracker.Object)
             .Verifiable();
 
-        var manager = new DefaultImportDocumentManager(Dispatcher, new DefaultErrorReporter(), fileChangeTrackerFactory.Object);
+        var manager = new DefaultImportDocumentManager(Dispatcher, ErrorReporter, fileChangeTrackerFactory.Object);
         manager.OnSubscribed(tracker); // Start tracking the import.
 
         // Act
@@ -167,7 +167,7 @@ public class DefaultImportDocumentManagerTest : ProjectSnapshotManagerDispatcher
             .Setup(f => f.Create(It.IsAny<string>()))
             .Returns(fileChangeTracker.Object);
 
-        var manager = new DefaultImportDocumentManager(Dispatcher, new DefaultErrorReporter(), fileChangeTrackerFactory.Object);
+        var manager = new DefaultImportDocumentManager(Dispatcher, ErrorReporter, fileChangeTrackerFactory.Object);
         manager.OnSubscribed(tracker); // Starts tracking import for the first document.
 
         manager.OnSubscribed(anotherTracker); // Starts tracking import for the second document.

@@ -68,7 +68,7 @@ public class DefaultImportDocumentManagerIntegrationTest : ProjectSnapshotManage
             .Returns(Mock.Of<FileChangeTracker>(MockBehavior.Strict));
 
         var called = false;
-        var manager = new DefaultImportDocumentManager(Dispatcher, new DefaultErrorReporter(), fileChangeTrackerFactory.Object);
+        var manager = new DefaultImportDocumentManager(Dispatcher, ErrorReporter, fileChangeTrackerFactory.Object);
         manager.OnSubscribed(tracker);
         manager.OnSubscribed(anotherTracker);
         manager.Changed += (sender, args) =>

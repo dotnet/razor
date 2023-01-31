@@ -33,7 +33,7 @@ internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger, IDisposable
     public OpenDocumentGenerator(
         IEnumerable<DocumentProcessedListener> documentProcessedListeners,
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ErrorReporter errorReporter)
+        IErrorReporter errorReporter)
     {
         if (documentProcessedListeners is null)
         {

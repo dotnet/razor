@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -61,8 +60,8 @@ internal class DefaultOmniSharpProjectSnapshotManagerAccessor : OmniSharpProject
             {
                 var projectSnapshotManager = new DefaultProjectSnapshotManager(
                     _projectSnapshotManagerDispatcher.InternalDispatcher,
-                    new DefaultErrorReporter(),
-                    Enumerable.Empty<ProjectSnapshotChangeTrigger>(),
+                    ErrorReporter.Instance,
+                    Array.Empty<ProjectSnapshotChangeTrigger>(),
                     _workspace);
 
                 var instance = new DefaultOmniSharpProjectSnapshotManager(projectSnapshotManager, _remoteTextLoaderFactory);

@@ -40,9 +40,9 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
     public async Task DocumentAdded_IgnoresClosedDocument()
     {
         // Arrange
-        var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+        var projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
         var listener = new TestDocumentProcessedListener();
-        var queue = new TestOpenDocumentGenerator(Dispatcher, listener);
+        var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
         await Dispatcher.RunOnDispatcherThreadAsync(() =>
         {
@@ -64,9 +64,9 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
     public async Task DocumentChanged_IgnoresClosedDocument()
     {
         // Arrange
-        var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+        var projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
         var listener = new TestDocumentProcessedListener();
-        var queue = new TestOpenDocumentGenerator(Dispatcher, listener);
+        var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
         await Dispatcher.RunOnDispatcherThreadAsync(() =>
         {
@@ -89,9 +89,9 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
     public async Task DocumentChanged_ProcessesOpenDocument()
     {
         // Arrange
-        var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+        var projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
         var listener = new TestDocumentProcessedListener();
-        var queue = new TestOpenDocumentGenerator(Dispatcher, listener);
+        var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
         await Dispatcher.RunOnDispatcherThreadAsync(() =>
         {
@@ -117,9 +117,9 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
     public async Task ProjectChanged_IgnoresClosedDocument()
     {
         // Arrange
-        var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+        var projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
         var listener = new TestDocumentProcessedListener();
-        var queue = new TestOpenDocumentGenerator(Dispatcher, listener);
+        var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
         await Dispatcher.RunOnDispatcherThreadAsync(() =>
         {
@@ -142,9 +142,9 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
     public async Task ProjectChanged_ProcessesOpenDocument()
     {
         // Arrange
-        var projectManager = TestProjectSnapshotManager.Create(Dispatcher);
+        var projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
         var listener = new TestDocumentProcessedListener();
-        var queue = new TestOpenDocumentGenerator(Dispatcher, listener);
+        var queue = new TestOpenDocumentGenerator(Dispatcher, ErrorReporter, listener);
 
         await Dispatcher.RunOnDispatcherThreadAsync(() =>
         {
@@ -169,9 +169,10 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
     private class TestOpenDocumentGenerator : OpenDocumentGenerator
     {
         public TestOpenDocumentGenerator(
-            ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+            ProjectSnapshotManagerDispatcher dispatcher,
+            IErrorReporter errorReporter,
             params DocumentProcessedListener[] listeners)
-            : base(listeners, projectSnapshotManagerDispatcher, new DefaultErrorReporter())
+            : base(listeners, dispatcher, errorReporter)
         {
         }
     }

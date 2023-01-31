@@ -20,11 +20,11 @@ internal class OOPTagHelperResolver : TagHelperResolver
     private readonly TagHelperResultCache _resultCache;
     private readonly DefaultTagHelperResolver _defaultResolver;
     private readonly ProjectSnapshotProjectEngineFactory _factory;
-    private readonly ErrorReporter _errorReporter;
+    private readonly IErrorReporter _errorReporter;
     private readonly Workspace _workspace;
     private readonly ITelemetryReporter _telemetryReporter;
 
-    public OOPTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, ErrorReporter errorReporter, Workspace workspace, ITelemetryReporter telemetryReporter)
+    public OOPTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, IErrorReporter errorReporter, Workspace workspace, ITelemetryReporter telemetryReporter)
         : base(telemetryReporter)
     {
         if (factory is null)

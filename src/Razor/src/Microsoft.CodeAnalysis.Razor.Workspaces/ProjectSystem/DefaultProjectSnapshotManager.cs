@@ -36,7 +36,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     public DefaultProjectSnapshotManager(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ErrorReporter errorReporter,
+        IErrorReporter errorReporter,
         IEnumerable<ProjectSnapshotChangeTrigger> triggers,
         Workspace workspace)
     {
@@ -126,7 +126,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     public override Workspace Workspace { get; }
 
-    public override ErrorReporter ErrorReporter { get; }
+    public override IErrorReporter ErrorReporter { get; }
 
     public override IProjectSnapshot GetLoadedProject(string filePath)
     {

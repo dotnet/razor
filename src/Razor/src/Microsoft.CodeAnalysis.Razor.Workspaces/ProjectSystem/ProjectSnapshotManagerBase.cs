@@ -13,7 +13,7 @@ internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
 {
     public abstract Workspace Workspace { get; }
 
-    public abstract ErrorReporter ErrorReporter { get; }
+    public abstract IErrorReporter ErrorReporter { get; }
 
     public abstract IReadOnlyCollection<string> OpenDocuments { get; }
 

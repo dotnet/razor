@@ -547,7 +547,7 @@ public class DefaultVisualStudioRazorParserIntegrationTest : ProjectSnapshotMana
             JoinableTaskFactory.Context,
             documentTracker,
             templateEngineFactory,
-            new DefaultErrorReporter(),
+            ErrorReporter,
             new TestCompletionBroker())
         {
             // We block idle work with the below reset events. Therefore, make tests fast and have the idle timer fire as soon as possible.
