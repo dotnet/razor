@@ -147,7 +147,9 @@ internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger, IDisposable
                     {
                         foreach (var relatedDocument in oldProject.GetRelatedDocuments(document))
                         {
-                            if (newProject.GetDocument(relatedDocument.FilePath) is { } newRelatedDocument)
+                            var relatedDocumentFilePath = relatedDocument.FilePath.AssumeNotNull();
+
+                            if (newProject.GetDocument(relatedDocumentFilePath) is { } newRelatedDocument)
                             {
                                 TryEnqueue(newRelatedDocument);
                             }
@@ -159,13 +161,15 @@ internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger, IDisposable
 
                 void TryEnqueue(DocumentSnapshot document)
                 {
-                    if (!ProjectManager.IsDocumentOpen(document.FilePath))
+                    var filePath = document.FilePath.AssumeNotNull();
+
+                    if (!ProjectManager.IsDocumentOpen(filePath))
                     {
                         return;
                     }
 
                     var workItem = new ProcessWorkItem(document, _documentProcessedListeners, _projectSnapshotManagerDispatcher);
-                    _workQueue.Enqueue(document.FilePath, workItem);
+                    _workQueue.Enqueue(filePath, workItem);
                 }
         }
     }

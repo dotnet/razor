@@ -85,7 +85,8 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
 
         lock (_work)
         {
-            _work[document.FilePath] = document;
+            var filePath = document.FilePath.AssumeNotNull();
+            _work[filePath] = document;
             StartWorkTimer();
             StartDocumentClosedCheckTimer();
         }
@@ -175,14 +176,16 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
 
         lock (PublishedDiagnostics)
         {
-            if (PublishedDiagnostics.TryGetValue(document.FilePath, out var previousDiagnostics) &&
+            var filePath = document.FilePath.AssumeNotNull();
+
+            if (PublishedDiagnostics.TryGetValue(filePath, out var previousDiagnostics) &&
                 diagnostics.SequenceEqual(previousDiagnostics))
             {
                 // Diagnostics are the same as last publish
                 return;
             }
 
-            PublishedDiagnostics[document.FilePath] = diagnostics;
+            PublishedDiagnostics[filePath] = diagnostics;
         }
 
         if (!document.TryGetText(out var sourceText))

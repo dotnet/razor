@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Internal;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -22,7 +23,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     // Internal for testing
     internal readonly Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)> Work;
 
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly RazorDynamicFileInfoProvider _infoProvider;
     private readonly HashSet<string> _suppressedDocuments;
     private ProjectSnapshotManagerBase? _projectManager;
@@ -30,20 +31,10 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     private bool _solutionIsClosing;
 
     [ImportingConstructor]
-    public BackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorDynamicFileInfoProvider infoProvider)
+    public BackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher dispatcher, RazorDynamicFileInfoProvider infoProvider)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (infoProvider is null)
-        {
-            throw new ArgumentNullException(nameof(infoProvider));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _infoProvider = infoProvider;
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+        _infoProvider = infoProvider ?? throw new ArgumentNullException(nameof(infoProvider));
         _suppressedDocuments = new HashSet<string>(FilePathComparer.Instance);
 
         Work = new Dictionary<DocumentKey, (ProjectSnapshot project, DocumentSnapshot document)>();
@@ -148,7 +139,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
             throw new ArgumentNullException(nameof(document));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
         lock (Work)
         {
@@ -159,7 +150,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 
             // We only want to store the last 'seen' version of any given document. That way when we pick one to process
             // it's always the best version to use.
-            Work[new DocumentKey(project.FilePath, document.FilePath)] = (project, document);
+            Work[new DocumentKey(project.FilePath, document.FilePath.AssumeNotNull())] = (project, document);
 
             StartWorker();
         }
@@ -174,7 +165,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 
     private void Timer_Tick()
     {
-        _ = TimerTickAsync();
+        TimerTickAsync().Forget();
     }
 
     private async Task TimerTickAsync()
@@ -216,7 +207,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
                 }
                 catch (IOException)
                 {
-                    // Ignore IOException. These can occur when a file was in the middle of being renamed and it dissapears as we're processing it.
+                    // Ignore IOException. These can occur when a file was in the middle of being renamed and it disappears as we're processing it.
                     // This is a common case and does not warrant an activity log entry.
                 }
                 catch (Exception ex)
@@ -248,7 +239,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
             Assumes.NotNull(_projectManager);
 
             // This is something totally unexpected, let's just send it over to the workspace.
-            await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+            await _dispatcher.RunOnDispatcherThreadAsync(
                 () => _projectManager.ReportError(ex),
                 CancellationToken.None).ConfigureAwait(false);
         }
@@ -260,9 +251,9 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 
         Assumes.NotNull(_projectManager);
 
-        _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        _dispatcher.RunOnDispatcherThreadAsync(
             () => _projectManager.ReportError(ex, project),
-            CancellationToken.None);
+            CancellationToken.None).Forget();
     }
 
     private bool Suppressed(ProjectSnapshot project, DocumentSnapshot document)
@@ -271,14 +262,16 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 
         lock (_suppressedDocuments)
         {
-            if (_projectManager.IsDocumentOpen(document.FilePath))
+            var filePath = document.FilePath.AssumeNotNull();
+
+            if (_projectManager.IsDocumentOpen(filePath))
             {
-                _suppressedDocuments.Add(document.FilePath);
-                _infoProvider.SuppressDocument(project.FilePath, document.FilePath);
+                _suppressedDocuments.Add(filePath);
+                _infoProvider.SuppressDocument(project.FilePath, filePath);
                 return true;
             }
 
-            _suppressedDocuments.Remove(document.FilePath);
+            _suppressedDocuments.Remove(filePath);
             return false;
         }
     }
@@ -287,7 +280,9 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     {
         lock (_suppressedDocuments)
         {
-            if (!_suppressedDocuments.Contains(document.FilePath))
+            var filePath = document.FilePath.AssumeNotNull();
+
+            if (!_suppressedDocuments.Contains(filePath))
             {
                 var container = new DefaultDynamicDocumentContainer(document);
                 _infoProvider.UpdateFileInfo(project.FilePath, container);

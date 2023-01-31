@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Newtonsoft.Json;
@@ -24,7 +25,11 @@ internal sealed class ProjectRazorJson
         {
             if (project.GetDocument(documentFilePath) is { } document)
             {
-                var documentHandle = new DocumentSnapshotHandle(document.FilePath, document.TargetPath, document.FileKind);
+                var documentHandle = new DocumentSnapshotHandle(
+                    document.FilePath.AssumeNotNull(),
+                    document.TargetPath.AssumeNotNull(),
+                    document.FileKind.AssumeNotNull());
+
                 documents.Add(documentHandle);
             }
         }

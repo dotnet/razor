@@ -323,7 +323,7 @@ internal class ProjectRazorJsonPublisher : ProjectSnapshotChangeTrigger
                     var fileName = Path.GetFileNameWithoutExtension(documentFilePath);
 
                     if (projectSnapshot.GetDocument(documentFilePath) is { } documentSnapshot &&
-                        documentSnapshot.FileKind.Equals(AspNetCore.Razor.Language.FileKinds.Component, StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(documentSnapshot.FileKind, AspNetCore.Razor.Language.FileKinds.Component, StringComparison.OrdinalIgnoreCase) &&
                         projectSnapshot.TagHelpers.Any(t => t.Name.EndsWith("." + fileName, StringComparison.OrdinalIgnoreCase)))
                     {
                         // Documents have been processed, lets publish

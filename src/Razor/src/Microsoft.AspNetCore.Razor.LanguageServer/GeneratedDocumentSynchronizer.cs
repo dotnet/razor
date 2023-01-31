@@ -38,12 +38,14 @@ internal class GeneratedDocumentSynchronizer : DocumentProcessedListener
             return;
         }
 
+        var filePath = document.FilePath.AssumeNotNull();
+
         var htmlText = codeDocument.GetHtmlSourceText();
 
-        _publisher.PublishHtml(document.FilePath, htmlText, hostDocumentVersion.Value);
+        _publisher.PublishHtml(filePath, htmlText, hostDocumentVersion.Value);
 
         var csharpText = codeDocument.GetCSharpSourceText();
 
-        _publisher.PublishCSharp(document.FilePath, csharpText, hostDocumentVersion.Value);
+        _publisher.PublishCSharp(filePath, csharpText, hostDocumentVersion.Value);
     }
 }

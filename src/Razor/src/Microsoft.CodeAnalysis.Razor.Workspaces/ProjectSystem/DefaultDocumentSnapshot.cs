@@ -12,6 +12,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal class DefaultDocumentSnapshot : DocumentSnapshot
 {
+    public override string FileKind => State.HostDocument.FileKind;
+    public override string FilePath => State.HostDocument.FilePath;
+    public override string TargetPath => State.HostDocument.TargetPath;
+    public override ProjectSnapshot Project => ProjectInternal;
+    public override bool SupportsOutput => true;
+
     public DefaultProjectSnapshot ProjectInternal { get; }
     public DocumentState State { get; }
 
@@ -30,16 +36,6 @@ internal class DefaultDocumentSnapshot : DocumentSnapshot
         ProjectInternal = project;
         State = state;
     }
-
-    public override string FileKind => State.HostDocument.FileKind;
-
-    public override string FilePath => State.HostDocument.FilePath;
-
-    public override string TargetPath => State.HostDocument.TargetPath;
-
-    public override ProjectSnapshot Project => ProjectInternal;
-
-    public override bool SupportsOutput => true;
 
     public override ImmutableArray<DocumentSnapshot> GetImports()
         => State.GetImports(ProjectInternal);

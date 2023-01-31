@@ -31,9 +31,9 @@ internal class DocumentContext
 
     public virtual DocumentSnapshot Snapshot { get; }
 
-    public virtual string FilePath => Snapshot.FilePath;
+    public virtual string FilePath => Snapshot.FilePath.AssumeNotNull();
 
-    public virtual string FileKind => Snapshot.FileKind;
+    public virtual string FileKind => Snapshot.FileKind.AssumeNotNull();
 
     public virtual ProjectSnapshot Project => Snapshot.Project;
 

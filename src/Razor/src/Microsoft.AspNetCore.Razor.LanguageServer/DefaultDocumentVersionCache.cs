@@ -53,10 +53,12 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
 
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-        if (!DocumentLookup.TryGetValue(documentSnapshot.FilePath, out var documentEntries))
+        var filePath = documentSnapshot.FilePath.AssumeNotNull();
+
+        if (!DocumentLookup.TryGetValue(filePath, out var documentEntries))
         {
             documentEntries = new List<DocumentEntry>();
-            DocumentLookup[documentSnapshot.FilePath] = documentEntries;
+            DocumentLookup[filePath] = documentEntries;
         }
 
         if (documentEntries.Count == MaxDocumentTrackingCount)
@@ -81,7 +83,9 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
 
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-        if (!DocumentLookup.TryGetValue(documentSnapshot.FilePath, out var documentEntries))
+        var filePath = documentSnapshot.FilePath.AssumeNotNull();
+
+        if (!DocumentLookup.TryGetValue(filePath, out var documentEntries))
         {
             version = null;
             return false;
@@ -180,7 +184,9 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
     // Internal for testing
     internal void MarkAsLatestVersion(DocumentSnapshot document)
     {
-        if (!TryGetLatestVersionFromPath(document.FilePath, out var latestVersion))
+        var filePath = document.FilePath.AssumeNotNull();
+
+        if (!TryGetLatestVersionFromPath(filePath, out var latestVersion))
         {
             return;
         }

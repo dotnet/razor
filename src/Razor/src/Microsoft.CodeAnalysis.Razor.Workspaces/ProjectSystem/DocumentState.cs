@@ -261,15 +261,8 @@ internal class DocumentState
                 var defaultImport = new DefaultImportDocumentSnapshot(project, item);
                 imports.Add(defaultImport);
             }
-            else
+            else if (project.GetDocument(item.PhysicalPath) is { } import)
             {
-                var import = project.GetDocument(item.PhysicalPath);
-                if (import is null)
-                {
-                    // We are not tracking this document in this project. So do nothing.
-                    continue;
-                }
-
                 imports.Add(import);
             }
         }
@@ -394,19 +387,19 @@ internal class DocumentState
                         CancellationToken.None,
                         TaskContinuationOptions.ExecuteSynchronously,
                         TaskScheduler.Default);
+                }
             }
-        }
 
-        return taskUnsafe;
+            return taskUnsafe;
 
-        static void PropagateToTaskCompletionSource(
-            Task<(RazorCodeDocument, VersionStamp)> targetTask,
-            TaskCompletionSource<(RazorCodeDocument, VersionStamp)> tcs)
-        {
-            if (targetTask.Status == TaskStatus.RanToCompletion)
+            static void PropagateToTaskCompletionSource(
+                Task<(RazorCodeDocument, VersionStamp)> targetTask,
+                TaskCompletionSource<(RazorCodeDocument, VersionStamp)> tcs)
             {
+                if (targetTask.Status == TaskStatus.RanToCompletion)
+                {
 #pragma warning disable VSTHRD103 // Call async methods when in an async method
-                tcs.SetResult(targetTask.Result);
+                    tcs.SetResult(targetTask.Result);
 #pragma warning restore VSTHRD103 // Call async methods when in an async method
                 }
                 else if (targetTask.Status == TaskStatus.Canceled)
@@ -520,20 +513,18 @@ internal class DocumentState
 
         private readonly struct ImportItem
         {
-            public ImportItem(string filePath, VersionStamp version, DocumentSnapshot document)
+            public string? FilePath { get; }
+            public VersionStamp Version { get; }
+            public DocumentSnapshot Document { get; }
+
+            public string? FileKind => Document.FileKind;
+
+            public ImportItem(string? filePath, VersionStamp version, DocumentSnapshot document)
             {
                 FilePath = filePath;
                 Version = version;
                 Document = document;
             }
-
-            public string FilePath { get; }
-
-            public string FileKind => Document.FileKind;
-
-            public VersionStamp Version { get; }
-
-            public DocumentSnapshot Document { get; }
         }
 
         private class ComputedOutput

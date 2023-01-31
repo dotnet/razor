@@ -57,6 +57,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     public void DocumentProcessed_NewWorkQueued_RestartsTimer()
     {
         // Arrange
+        Assert.NotNull(_openedDocument.FilePath);
         var processedOpenDocument = TestDocumentSnapshot.Create(_openedDocument.FilePath);
         var codeDocument = CreateCodeDocument(s_singleDiagnostic);
         processedOpenDocument.With(codeDocument);
@@ -94,6 +95,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     public async Task PublishDiagnosticsAsync_NewDocumentDiagnosticsGetPublished()
     {
         // Arrange
+        Assert.NotNull(_openedDocument.FilePath);
         var processedOpenDocument = TestDocumentSnapshot.Create(_openedDocument.FilePath);
         var codeDocument = CreateCodeDocument(s_singleDiagnostic);
         processedOpenDocument.With(codeDocument);
@@ -131,6 +133,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     public async Task PublishDiagnosticsAsync_NewDiagnosticsGetPublished()
     {
         // Arrange
+        Assert.NotNull(_openedDocument.FilePath);
         var processedOpenDocument = TestDocumentSnapshot.Create(_openedDocument.FilePath);
         var codeDocument = CreateCodeDocument(s_singleDiagnostic);
         processedOpenDocument.With(codeDocument);
@@ -140,7 +143,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
                 "textDocument/publishDiagnostics",
                 It.IsAny<PublishDiagnosticParams>(),
                 It.IsAny<CancellationToken>()))
-            .Callback<string, PublishDiagnosticParams, CancellationToken>((method, @params, cancellationTokne) =>
+            .Callback<string, PublishDiagnosticParams, CancellationToken>((method, @params, cancellationToken) =>
             {
                 Assert.Equal(processedOpenDocument.FilePath.TrimStart('/'), @params.Uri.AbsolutePath);
                 var diagnostic = Assert.Single(@params.Diagnostics);
@@ -169,6 +172,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     {
         // Arrange
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+        Assert.NotNull(_openedDocument.FilePath);
         var processedOpenDocument = TestDocumentSnapshot.Create(_openedDocument.FilePath);
         var codeDocument = CreateCodeDocument(s_singleDiagnostic);
         processedOpenDocument.With(codeDocument);
@@ -193,12 +197,14 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
                 It.IsAny<CancellationToken>()))
             .Callback<string, PublishDiagnosticParams, CancellationToken>((method, @params, cancellationToken) =>
             {
+                Assert.NotNull(_closedDocument.FilePath);
                 Assert.Equal(_closedDocument.FilePath.TrimStart('/'), @params.Uri.AbsolutePath);
                 Assert.Empty(@params.Diagnostics);
             })
             .Returns(Task.CompletedTask);
 
         using var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory);
+        Assert.NotNull(_closedDocument.FilePath);
         publisher.PublishedDiagnostics[_closedDocument.FilePath] = s_singleDiagnostic;
         publisher.Initialize(_projectManager);
 
@@ -215,6 +221,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         // Arrange
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         using var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory);
+        Assert.NotNull(_openedDocument.FilePath);
         publisher.PublishedDiagnostics[_openedDocument.FilePath] = s_singleDiagnostic;
         publisher.Initialize(_projectManager);
 
@@ -228,6 +235,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         // Arrange
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         using var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory);
+        Assert.NotNull(_closedDocument.FilePath);
         publisher.PublishedDiagnostics[_closedDocument.FilePath] = s_emptyDiagnostics;
         publisher.Initialize(_projectManager);
 
@@ -241,6 +249,8 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         // Arrange
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         using var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory);
+        Assert.NotNull(_closedDocument.FilePath);
+        Assert.NotNull(_openedDocument.FilePath);
         publisher.PublishedDiagnostics[_closedDocument.FilePath] = s_emptyDiagnostics;
         publisher.PublishedDiagnostics[_openedDocument.FilePath] = s_emptyDiagnostics;
         publisher.Initialize(_projectManager);
@@ -269,7 +279,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
             ILoggerFactory loggerFactory)
             : base(projectSnapshotManagerDispatcher, languageServer, loggerFactory)
         {
-            // The diagnostics publisher by default will wait 2 seconds until publishing diagnostics. For testing purposes we redcuce
+            // The diagnostics publisher by default will wait 2 seconds until publishing diagnostics. For testing purposes we reduce
             // the amount of time we wait for diagnostic publishing because we have more concrete control of the timer and its lifecycle.
             _publishDelay = TimeSpan.FromMilliseconds(1);
         }

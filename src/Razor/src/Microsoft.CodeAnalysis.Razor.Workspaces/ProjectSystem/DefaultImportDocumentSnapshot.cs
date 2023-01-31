@@ -13,6 +13,14 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal class DefaultImportDocumentSnapshot : DocumentSnapshot
 {
+    // The default import file does not have a kind or paths.
+    public override string? FileKind => null;
+    public override string? FilePath => null;
+    public override string? TargetPath => null;
+
+    public override bool SupportsOutput => false;
+    public override ProjectSnapshot Project => _project;
+
     private readonly ProjectSnapshot _project;
     private readonly RazorProjectItem _importItem;
     private SourceText? _sourceText;
@@ -24,14 +32,6 @@ internal class DefaultImportDocumentSnapshot : DocumentSnapshot
         _importItem = item;
         _version = VersionStamp.Default;
     }
-
-    public override string FileKind => null!;
-    public override string FilePath => null!;
-    public override string TargetPath => null!;
-
-    public override bool SupportsOutput => false;
-
-    public override ProjectSnapshot Project => _project;
 
     public override Task<RazorCodeDocument> GetGeneratedOutputAsync()
         => throw new NotSupportedException();

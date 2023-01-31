@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -28,7 +29,7 @@ internal sealed class DefaultDynamicDocumentContainer : DynamicDocumentContainer
         _documentSnapshot = documentSnapshot;
     }
 
-    public override string FilePath => _documentSnapshot.FilePath;
+    public override string FilePath => _documentSnapshot.FilePath.AssumeNotNull();
 
     public override bool SupportsDiagnostics => false;
 

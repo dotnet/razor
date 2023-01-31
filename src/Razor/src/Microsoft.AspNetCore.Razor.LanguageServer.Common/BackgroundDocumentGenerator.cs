@@ -16,39 +16,31 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
 internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private readonly IEnumerable<DocumentProcessedListener> _documentProcessedListeners;
+    private record struct WorkResult(RazorCodeDocument Output, DocumentSnapshot Document);
+
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
+    private readonly IEnumerable<DocumentProcessedListener> _listeners;
     private readonly Dictionary<string, DocumentSnapshot> _work;
     private ProjectSnapshotManagerBase? _projectManager;
     private Timer? _timer;
     private bool _solutionIsClosing;
 
     public BackgroundDocumentGenerator(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        IEnumerable<DocumentProcessedListener> documentProcessedListeners)
+        ProjectSnapshotManagerDispatcher dispatcher,
+        IEnumerable<DocumentProcessedListener> listeners)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (documentProcessedListeners is null)
-        {
-            throw new ArgumentNullException(nameof(documentProcessedListeners));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _documentProcessedListeners = documentProcessedListeners;
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+        _listeners = listeners ?? throw new ArgumentNullException(nameof(listeners));
         _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
     }
 
     // For testing only
     protected BackgroundDocumentGenerator(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+        ProjectSnapshotManagerDispatcher dispatcher)
     {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _dispatcher = dispatcher;
         _work = new Dictionary<string, DocumentSnapshot>(StringComparer.Ordinal);
-        _documentProcessedListeners = Enumerable.Empty<DocumentProcessedListener>();
+        _listeners = Enumerable.Empty<DocumentProcessedListener>();
     }
 
     public bool HasPendingNotifications
@@ -93,7 +85,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 
         _projectManager.Changed += ProjectSnapshotManager_Changed;
 
-        foreach (var documentProcessedListener in _documentProcessedListeners)
+        foreach (var documentProcessedListener in _listeners)
         {
             documentProcessedListener.Initialize(_projectManager);
         }
@@ -141,13 +133,14 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     // Internal for testing
     internal void Enqueue(DocumentSnapshot document)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
         lock (_work)
         {
             // We only want to store the last 'seen' version of any given document. That way when we pick one to process
             // it's always the best version to use.
-            _work[document.FilePath] = document;
+            var filePath = document.FilePath.AssumeNotNull();
+            _work[filePath] = document;
 
             StartWorker();
         }
@@ -204,7 +197,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 
             if (!_solutionIsClosing)
             {
-                await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+                await _dispatcher.RunOnDispatcherThreadAsync(
                     () => NotifyDocumentsProcessed(results),
                     cancellationToken).ConfigureAwait(false);
             }
@@ -248,7 +241,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     {
         for (var i = 0; i < results.Count; i++)
         {
-            foreach (var documentProcessedTrigger in _documentProcessedListeners)
+            foreach (var documentProcessedTrigger in _listeners)
             {
                 var document = results[i].Document;
                 var codeDocument = results[i].Output;
@@ -269,7 +262,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 
         _solutionIsClosing = false;
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _dispatcher.AssertDispatcherThread();
 
         switch (args.Kind)
         {
@@ -348,7 +341,8 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
                     {
                         foreach (var relatedDocument in oldProject.GetRelatedDocuments(document))
                         {
-                            if (newProject.GetDocument(relatedDocument.FilePath) is { } newRelatedDocument)
+                            var relatedDocumentFilePath = relatedDocument.FilePath.AssumeNotNull();
+                            if (newProject.GetDocument(relatedDocumentFilePath) is { } newRelatedDocument)
                             {
                                 Enqueue(newRelatedDocument);
                             }
@@ -375,10 +369,8 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
             return;
         }
 
-        _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
+        _ = _dispatcher.RunOnDispatcherThreadAsync(
             () => _projectManager.ReportError(ex),
             CancellationToken.None).ConfigureAwait(false);
     }
-
-    private record struct WorkResult(RazorCodeDocument Output, DocumentSnapshot Document);
 }
