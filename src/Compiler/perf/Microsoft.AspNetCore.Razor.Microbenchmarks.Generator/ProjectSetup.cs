@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
@@ -39,6 +39,7 @@ public static class ProjectSetup
 
         var optionsProvider = new TargetPathAnalyzerConfigOptionsProvider(project.AnalyzerOptions.AnalyzerConfigOptionsProvider);
 
+
         // create the generator driver we'll use for the tests
         // the generator we use will be dependent on the build configuration the benchmark is built in
         GeneratorDriver driver = CSharpGeneratorDriver.Create(generators: new[] { new RazorSourceGenerator().AsSourceGenerator() },
@@ -70,7 +71,7 @@ public static class ProjectSetup
 
     public record RazorProject(GeneratorDriver GeneratorDriver, Compilation Compilation, ImmutableArray<AdditionalText> AdditionalTexts, CSharpParseOptions ParseOptions, AnalyzerConfigOptionsProvider OptionsProvider);
 
-    internal sealed class InMemoryAdditionalText : AdditionalText
+    public sealed class InMemoryAdditionalText : AdditionalText
     {
         private readonly SourceText _text;
 
