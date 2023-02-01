@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="1050">
         <source>Advanced</source>
-        <target state="new">Advanced</target>
+        <target state="translated">詳細</target>
         <note>Advanced Page Group. Name must match the pkgdef definition</note>
       </trans-unit>
       <trans-unit id="1060">
         <source>Formatting; Format On Type;</source>
-        <target state="new">Formatting; Format On Type;</target>
+        <target state="translated">書式設定; 入力時に書式設定;</target>
         <note>Delimited list of search terms for the advanced options page</note>
       </trans-unit>
       <trans-unit id="110">
@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Formatting">
         <source>Formatting</source>
-        <target state="new">Formatting</target>
+        <target state="translated">書式設定</target>
         <note />
       </trans-unit>
       <trans-unit id="RazorSyntaxVisualizer">
@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDescription">
         <source>If true, formatting will be enabled while typing</source>
-        <target state="new">If true, formatting will be enabled while typing</target>
+        <target state="translated">true の場合、入力中に書式設定が有効になります</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDisplayName">
         <source>Format On Type</source>
-        <target state="new">Format On Type</target>
+        <target state="translated">入力時に書式設定</target>
         <note />
       </trans-unit>
     </body>
