@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 
 internal sealed class OmniSharpHostDocumentComparer : IEqualityComparer<OmniSharpHostDocument>
 {
-    public static readonly OmniSharpHostDocumentComparer Instance = new();
+    internal static readonly OmniSharpHostDocumentComparer Instance = new();
 
     private OmniSharpHostDocumentComparer()
     {

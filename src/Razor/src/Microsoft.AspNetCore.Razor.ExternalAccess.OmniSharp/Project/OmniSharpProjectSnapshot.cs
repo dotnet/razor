@@ -18,15 +18,15 @@ internal sealed class OmniSharpProjectSnapshot
         InternalProjectSnapshot = projectSnapshot;
     }
 
-    public string FilePath => InternalProjectSnapshot.FilePath;
+    internal string FilePath => InternalProjectSnapshot.FilePath;
 
-    public IEnumerable<string> DocumentFilePaths => InternalProjectSnapshot.DocumentFilePaths;
+    internal IEnumerable<string> DocumentFilePaths => InternalProjectSnapshot.DocumentFilePaths;
 
-    public RazorConfiguration Configuration => InternalProjectSnapshot.Configuration;
+    internal RazorConfiguration Configuration => InternalProjectSnapshot.Configuration;
 
-    public ProjectWorkspaceState ProjectWorkspaceState => InternalProjectSnapshot.ProjectWorkspaceState;
+    internal ProjectWorkspaceState ProjectWorkspaceState => InternalProjectSnapshot.ProjectWorkspaceState;
 
-    public OmniSharpDocumentSnapshot GetDocument(string filePath)
+    internal OmniSharpDocumentSnapshot GetDocument(string filePath)
     {
         var documentSnapshot = InternalProjectSnapshot.GetDocument(filePath);
         if (documentSnapshot is null)
@@ -48,7 +48,7 @@ internal sealed class OmniSharpProjectSnapshot
         return new OmniSharpProjectSnapshot(projectSnapshot);
     }
 
-    public static OmniSharpProjectSnapshot CreateForTest(object projectSnapshot)
+    internal static OmniSharpProjectSnapshot CreateForTest(object projectSnapshot)
     {
         if (projectSnapshot is ProjectSnapshot stronglyTypedSnapshot)
         {

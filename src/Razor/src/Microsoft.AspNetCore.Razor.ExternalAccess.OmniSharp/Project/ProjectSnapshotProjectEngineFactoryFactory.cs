@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
 [Shared]
 [ExportWorkspaceServiceFactory(typeof(ProjectSnapshotProjectEngineFactory))]
-internal class DefaultProjectSnapshotProjectEngineFactoryFactory : IWorkspaceServiceFactory
+internal class ProjectSnapshotProjectEngineFactoryFactory : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {

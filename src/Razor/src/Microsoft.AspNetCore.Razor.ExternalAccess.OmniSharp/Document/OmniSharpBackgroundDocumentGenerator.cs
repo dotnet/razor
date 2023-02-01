@@ -15,7 +15,7 @@ internal class OmniSharpBackgroundDocumentGenerator : AbstractOmniSharpProjectSn
 {
     private readonly BackgroundDocumentGenerator _backgroundDocumentGenerator;
 
-    public OmniSharpBackgroundDocumentGenerator(
+    internal OmniSharpBackgroundDocumentGenerator(
         OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         RemoteTextLoaderFactory remoteTextLoaderFactory,
         IEnumerable<OmniSharpDocumentProcessedListener> documentProcessedListeners)
@@ -39,7 +39,7 @@ internal class OmniSharpBackgroundDocumentGenerator : AbstractOmniSharpProjectSn
         _backgroundDocumentGenerator = new BackgroundDocumentGenerator(projectSnapshotManagerDispatcher.InternalDispatcher, wrappedListeners);
     }
 
-    internal override void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+    internal override void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         _backgroundDocumentGenerator.Initialize(projectManager.InternalProjectSnapshotManager);
     }
@@ -49,7 +49,7 @@ internal class OmniSharpBackgroundDocumentGenerator : AbstractOmniSharpProjectSn
         private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
         private readonly OmniSharpDocumentProcessedListener _innerDocumentProcessedListener;
 
-        public WrappedDocumentProcessedListener(
+        internal WrappedDocumentProcessedListener(
             RemoteTextLoaderFactory remoteTextLoaderFactory,
             OmniSharpDocumentProcessedListener innerDocumentProcessedListener)
         {
@@ -75,7 +75,7 @@ internal class OmniSharpBackgroundDocumentGenerator : AbstractOmniSharpProjectSn
 
         public override void Initialize(ProjectSnapshotManager projectManager)
         {
-            var omniSharpProjectManager = new DefaultOmniSharpProjectSnapshotManager((ProjectSnapshotManagerBase)projectManager, _remoteTextLoaderFactory);
+            var omniSharpProjectManager = new OmniSharpProjectSnapshotManager((ProjectSnapshotManagerBase)projectManager, _remoteTextLoaderFactory);
             _innerDocumentProcessedListener.Initialize(omniSharpProjectManager);
         }
     }

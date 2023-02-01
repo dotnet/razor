@@ -29,7 +29,7 @@ internal class DefaultProjectChangePublisher : AbstractOmniSharpProjectSnapshotM
     private readonly Dictionary<string, string> _publishFilePathMappings;
     private readonly Dictionary<string, OmniSharpProjectSnapshot> _pendingProjectPublishes;
     private readonly object _publishLock;
-    private OmniSharpProjectSnapshotManagerBase _projectManager;
+    private OmniSharpProjectSnapshotManager _projectManager;
 
     [ImportingConstructor]
     public DefaultProjectChangePublisher(ILoggerFactory loggerFactory)
@@ -57,7 +57,7 @@ internal class DefaultProjectChangePublisher : AbstractOmniSharpProjectSnapshotM
     // 250ms between publishes to prevent bursts of changes yet still be responsive to changes.
     internal int EnqueueDelay { get; set; } = 250;
 
-    internal override void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+    internal override void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {

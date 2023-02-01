@@ -35,16 +35,16 @@ internal class OmniSharpProjectChangeEventArgs : EventArgs
 
     internal ProjectChangeEventArgs InternalProjectChangeEventArgs { get; }
 
-    public OmniSharpProjectSnapshot Older { get; }
+    internal OmniSharpProjectSnapshot Older { get; }
 
-    public OmniSharpProjectSnapshot Newer { get; }
+    internal OmniSharpProjectSnapshot Newer { get; }
 
-    public string ProjectFilePath { get; }
+    internal string ProjectFilePath { get; }
 
-    public string DocumentFilePath { get; }
+    internal string DocumentFilePath { get; }
 
-    public OmniSharpProjectChangeKind Kind { get; }
+    internal OmniSharpProjectChangeKind Kind { get; }
 
-    public static OmniSharpProjectChangeEventArgs CreateTestInstance(OmniSharpProjectSnapshot older, OmniSharpProjectSnapshot newer, string documentFilePath, OmniSharpProjectChangeKind kind) =>
+    internal static OmniSharpProjectChangeEventArgs CreateTestInstance(OmniSharpProjectSnapshot older, OmniSharpProjectSnapshot newer, string documentFilePath, OmniSharpProjectChangeKind kind) =>
         new(older, newer, documentFilePath, kind);
 }

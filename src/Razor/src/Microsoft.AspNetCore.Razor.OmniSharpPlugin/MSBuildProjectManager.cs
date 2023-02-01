@@ -37,7 +37,7 @@ internal class MSBuildProjectManager : AbstractOmniSharpProjectSnapshotManagerCh
     private readonly ProjectInstanceEvaluator _projectInstanceEvaluator;
     private readonly IProjectChangePublisher _projectConfigurationPublisher;
     private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
-    private OmniSharpProjectSnapshotManagerBase? _projectManager;
+    private OmniSharpProjectSnapshotManager? _projectManager;
 
     [ImportingConstructor]
     public MSBuildProjectManager(
@@ -79,9 +79,9 @@ internal class MSBuildProjectManager : AbstractOmniSharpProjectSnapshotManagerCh
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
     }
 
-    public OmniSharpProjectSnapshotManagerBase ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} was unexpectedly 'null'. Has {nameof(Initialize)} been called?");
+    public OmniSharpProjectSnapshotManager ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} was unexpectedly 'null'. Has {nameof(Initialize)} been called?");
 
-    internal override void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+    internal override void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {

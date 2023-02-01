@@ -3,10 +3,9 @@
 
 #nullable disable
 
-
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
 internal abstract class AbstractOmniSharpProjectSnapshotManagerChangeTrigger
 {
-    internal abstract void Initialize(OmniSharpProjectSnapshotManagerBase projectManager);
+    internal abstract void Initialize(OmniSharpProjectSnapshotManager projectManager);
 }

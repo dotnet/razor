@@ -68,7 +68,7 @@ internal class TagHelperRefreshTrigger : AbstractOmniSharpProjectSnapshotManager
 
     public int EnqueueDelay { get; set; } = 3 * 1000;
 
-    internal override void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+    internal override void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {

@@ -14,7 +14,7 @@ internal class OmniSharpProjectWorkspaceStateGenerator : AbstractOmniSharpProjec
     {
     }
 
-    public OmniSharpProjectWorkspaceStateGenerator(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+    internal OmniSharpProjectWorkspaceStateGenerator(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
     {
         if (projectSnapshotManagerDispatcher is null)
         {
@@ -26,7 +26,7 @@ internal class OmniSharpProjectWorkspaceStateGenerator : AbstractOmniSharpProjec
 
     internal DefaultProjectWorkspaceStateGenerator InternalWorkspaceStateGenerator { get; }
 
-    internal override void Initialize(OmniSharpProjectSnapshotManagerBase projectManager) => InternalWorkspaceStateGenerator.Initialize(projectManager.InternalProjectSnapshotManager);
+    internal override void Initialize(OmniSharpProjectSnapshotManager projectManager) => InternalWorkspaceStateGenerator.Initialize(projectManager.InternalProjectSnapshotManager);
 
     internal virtual void Update(CodeAnalysis.Project workspaceProject, OmniSharpProjectSnapshot projectSnapshot) => InternalWorkspaceStateGenerator.Update(workspaceProject, projectSnapshot.InternalProjectSnapshot, CancellationToken.None);
 }

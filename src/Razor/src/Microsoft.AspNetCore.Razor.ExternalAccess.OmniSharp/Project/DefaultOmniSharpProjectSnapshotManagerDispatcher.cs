@@ -4,26 +4,34 @@
 #nullable disable
 
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-internal class DefaultOmniSharpProjectSnapshotManagerDispatcher : OmniSharpProjectSnapshotManagerDispatcher
+internal class OmniSharpProjectSnapshotManagerDispatcher
 {
-    public DefaultOmniSharpProjectSnapshotManagerDispatcher()
+    internal OmniSharpProjectSnapshotManagerDispatcher()
     {
-        InternalDispatcher = new OmniSharpProjectSnapshotManagerDispatcher();
+        InternalDispatcher = new InternalOmniSharpProjectSnapshotManagerDispatcher();
     }
 
-    public override TaskScheduler DispatcherScheduler => InternalDispatcher.DispatcherScheduler;
+    internal ProjectSnapshotManagerDispatcher InternalDispatcher { get; private protected set; }
 
-    public override void AssertDispatcherThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertDispatcherThread(caller);
+    internal Task RunOnDispatcherThreadAsync(Action action, CancellationToken cancellationToken)
+        => InternalDispatcher.RunOnDispatcherThreadAsync(action, cancellationToken);
 
-    private class OmniSharpProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcherBase
+    internal Task<TResult> RunOnDispatcherThreadAsync<TResult>(Func<TResult> action, CancellationToken cancellationToken)
+        => InternalDispatcher.RunOnDispatcherThreadAsync(action, cancellationToken);
+    internal TaskScheduler DispatcherScheduler => InternalDispatcher.DispatcherScheduler;
+
+    internal void AssertDispatcherThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertDispatcherThread(caller);
+
+    private class InternalOmniSharpProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcherBase
     {
         private const string ThreadName = "Razor." + nameof(OmniSharpProjectSnapshotManagerDispatcher);
 
-        public OmniSharpProjectSnapshotManagerDispatcher() : base(ThreadName)
+        internal InternalOmniSharpProjectSnapshotManagerDispatcher() : base(ThreadName)
         {
         }
 

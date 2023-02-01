@@ -31,7 +31,7 @@ public class TagHelperRefreshTriggerTest : OmniSharpTestBase
         => Debugger.IsAttached ? TimeSpan.MaxValue : TimeSpan.FromMilliseconds(3000);
 
     private readonly Workspace _workspace;
-    private readonly OmniSharpProjectSnapshotManagerBase _projectManager;
+    private readonly OmniSharpProjectSnapshotManager _projectManager;
     private readonly OmniSharpHostProject _project1;
     private readonly object _project1Instance;
 

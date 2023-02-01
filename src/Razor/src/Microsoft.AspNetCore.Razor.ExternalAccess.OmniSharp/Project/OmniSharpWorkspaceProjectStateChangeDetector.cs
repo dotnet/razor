@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
 internal class OmniSharpWorkspaceProjectStateChangeDetector : AbstractOmniSharpProjectSnapshotManagerChangeTrigger
 {
-    public OmniSharpWorkspaceProjectStateChangeDetector(
+    internal OmniSharpWorkspaceProjectStateChangeDetector(
         OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         OmniSharpProjectWorkspaceStateGenerator workspaceStateGenerator,
         OmniSharpLanguageServerFeatureOptions languageServerFeatureOptions)
@@ -35,7 +35,7 @@ internal class OmniSharpWorkspaceProjectStateChangeDetector : AbstractOmniSharpP
 
     internal WorkspaceProjectStateChangeDetector InternalWorkspaceProjectStateChangeDetector { get; }
 
-    internal override void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+    internal override void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         InternalWorkspaceProjectStateChangeDetector.Initialize(projectManager.InternalProjectSnapshotManager);
     }
@@ -44,7 +44,7 @@ internal class OmniSharpWorkspaceProjectStateChangeDetector : AbstractOmniSharpP
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
-        public ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
+        internal ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectWorkspaceStateGenerator workspaceStateGenerator,
             LanguageServerFeatureOptions languageServerFeatureOptions)

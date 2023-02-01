@@ -26,7 +26,7 @@ internal sealed class OmniSharpDocumentSnapshot
         _projectLock = new object();
     }
 
-    public OmniSharpHostDocument HostDocument
+    internal OmniSharpHostDocument HostDocument
     {
         get
         {
@@ -41,13 +41,13 @@ internal sealed class OmniSharpDocumentSnapshot
         }
     }
 
-    public string FileKind => _documentSnapshot.FileKind;
+    internal string FileKind => _documentSnapshot.FileKind;
 
-    public string FilePath => _documentSnapshot.FilePath;
+    internal string FilePath => _documentSnapshot.FilePath;
 
-    public string TargetPath => _documentSnapshot.TargetPath;
+    internal string TargetPath => _documentSnapshot.TargetPath;
 
-    public OmniSharpProjectSnapshot Project
+    internal OmniSharpProjectSnapshot Project
     {
         get
         {

@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
 [Shared]
 [Export(typeof(OmniSharpProjectSnapshotManagerDispatcher))]
-internal class ExportOmniSharpProjectSnapshotManagerDispatcher : DefaultOmniSharpProjectSnapshotManagerDispatcher
+internal class ExportOmniSharpProjectSnapshotManagerDispatcher : OmniSharpProjectSnapshotManagerDispatcher
 {
 }
 
@@ -32,7 +32,7 @@ internal class ExportRemoteTextLoaderFactory : DefaultRemoteTextLoaderFactory
 
 [Shared]
 [Export(typeof(OmniSharpProjectSnapshotManagerAccessor))]
-internal class ExportDefaultOmniSharpProjectSnapshotManagerAccessor : DefaultOmniSharpProjectSnapshotManagerAccessor
+internal class ExportDefaultOmniSharpProjectSnapshotManagerAccessor : OmniSharpProjectSnapshotManagerAccessor
 {
     [ImportingConstructor]
     public ExportDefaultOmniSharpProjectSnapshotManagerAccessor(

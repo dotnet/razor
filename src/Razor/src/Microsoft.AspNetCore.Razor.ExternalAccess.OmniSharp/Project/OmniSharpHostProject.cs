@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
 internal sealed class OmniSharpHostProject
 {
-    public OmniSharpHostProject(string projectFilePath, RazorConfiguration razorConfiguration, string rootNamespace)
+    internal OmniSharpHostProject(string projectFilePath, RazorConfiguration razorConfiguration, string rootNamespace)
     {
         if (projectFilePath is null)
         {
@@ -25,11 +25,11 @@ internal sealed class OmniSharpHostProject
         InternalHostProject = new HostProject(projectFilePath, razorConfiguration, rootNamespace);
     }
 
-    public string FilePath => InternalHostProject.FilePath;
+    internal string FilePath => InternalHostProject.FilePath;
 
-    public RazorConfiguration Configuration => InternalHostProject.Configuration;
+    internal RazorConfiguration Configuration => InternalHostProject.Configuration;
 
-    public string RootNamespace => InternalHostProject.RootNamespace;
+    internal string RootNamespace => InternalHostProject.RootNamespace;
 
     internal HostProject InternalHostProject { get; }
 }
