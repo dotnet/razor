@@ -28,7 +28,7 @@ public abstract class VisualStudioDocumentTracker
 
     public abstract string ProjectPath { get; }
 
-    internal abstract ProjectSnapshot? ProjectSnapshot { get; }
+    internal abstract IProjectSnapshot? ProjectSnapshot { get; }
 
     public abstract Workspace Workspace { get; }
 

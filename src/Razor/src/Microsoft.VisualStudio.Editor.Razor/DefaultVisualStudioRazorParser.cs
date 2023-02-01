@@ -39,7 +39,7 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
     private readonly VisualStudioDocumentTracker _documentTracker;
     private readonly JoinableTaskContext _joinableTaskContext;
     private readonly ProjectSnapshotProjectEngineFactory _projectEngineFactory;
-    private readonly ErrorReporter _errorReporter;
+    private readonly IErrorReporter _errorReporter;
     private readonly List<CodeDocumentRequest> _codeDocumentRequests;
     private readonly TaskScheduler _uiThreadScheduler;
     private RazorProjectEngine? _projectEngine;
@@ -61,7 +61,7 @@ internal class DefaultVisualStudioRazorParser : VisualStudioRazorParser, IDispos
         JoinableTaskContext joinableTaskContext,
         VisualStudioDocumentTracker documentTracker,
         ProjectSnapshotProjectEngineFactory projectEngineFactory,
-        ErrorReporter errorReporter,
+        IErrorReporter errorReporter,
         VisualStudioCompletionBroker completionBroker)
     {
         if (joinableTaskContext is null)

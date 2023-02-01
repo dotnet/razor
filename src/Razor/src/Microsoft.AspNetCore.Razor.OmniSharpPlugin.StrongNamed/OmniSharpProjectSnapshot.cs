@@ -12,9 +12,9 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
 internal sealed class OmniSharpProjectSnapshot
 {
-    internal readonly ProjectSnapshot InternalProjectSnapshot;
+    internal readonly IProjectSnapshot InternalProjectSnapshot;
 
-    internal OmniSharpProjectSnapshot(ProjectSnapshot projectSnapshot)
+    internal OmniSharpProjectSnapshot(IProjectSnapshot projectSnapshot)
     {
         InternalProjectSnapshot = projectSnapshot;
     }
@@ -39,7 +39,7 @@ internal sealed class OmniSharpProjectSnapshot
         return internalDocumentSnapshot;
     }
 
-    internal static OmniSharpProjectSnapshot Convert(ProjectSnapshot projectSnapshot)
+    internal static OmniSharpProjectSnapshot Convert(IProjectSnapshot projectSnapshot)
     {
         if (projectSnapshot is null)
         {
@@ -51,11 +51,11 @@ internal sealed class OmniSharpProjectSnapshot
 
     public static OmniSharpProjectSnapshot CreateForTest(object projectSnapshot)
     {
-        if (projectSnapshot is ProjectSnapshot stronglyTypedSnapshot)
+        if (projectSnapshot is IProjectSnapshot stronglyTypedSnapshot)
         {
             return new OmniSharpProjectSnapshot(stronglyTypedSnapshot);
         }
 
-        throw new ArgumentException("Snapshot is not of type " + typeof(ProjectSnapshot).FullName, nameof(projectSnapshot));
+        throw new ArgumentException($"Snapshot is not of type {typeof(IProjectSnapshot).FullName}", nameof(projectSnapshot));
     }
 }

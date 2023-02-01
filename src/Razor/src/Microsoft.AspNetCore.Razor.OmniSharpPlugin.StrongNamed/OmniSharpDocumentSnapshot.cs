@@ -10,12 +10,12 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
 internal sealed class OmniSharpDocumentSnapshot
 {
-    private readonly DocumentSnapshot _documentSnapshot;
+    private readonly IDocumentSnapshot _documentSnapshot;
     private readonly object _projectLock;
     private OmniSharpHostDocument _hostDocument;
     private OmniSharpProjectSnapshot _project;
 
-    internal OmniSharpDocumentSnapshot(DocumentSnapshot documentSnapshot)
+    internal OmniSharpDocumentSnapshot(IDocumentSnapshot documentSnapshot)
     {
         if (documentSnapshot is null)
         {
@@ -32,7 +32,7 @@ internal sealed class OmniSharpDocumentSnapshot
         {
             if (_hostDocument is null)
             {
-                var defaultDocumentSnapshot = (DefaultDocumentSnapshot)_documentSnapshot;
+                var defaultDocumentSnapshot = (DocumentSnapshot)_documentSnapshot;
                 var hostDocument = defaultDocumentSnapshot.State.HostDocument;
                 _hostDocument = new OmniSharpHostDocument(hostDocument.FilePath, hostDocument.TargetPath, hostDocument.FileKind);
             }

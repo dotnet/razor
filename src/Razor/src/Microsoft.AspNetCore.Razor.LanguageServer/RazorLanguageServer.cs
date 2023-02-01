@@ -100,7 +100,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             services.AddSingleton<ILogger>(iLogger);
         }
 
-        services.AddSingleton<ErrorReporter, LanguageServerErrorReporter>();
+        services.AddSingleton<IErrorReporter, LanguageServerErrorReporter>();
 
         if (_projectSnapshotManagerDispatcher is null)
         {
