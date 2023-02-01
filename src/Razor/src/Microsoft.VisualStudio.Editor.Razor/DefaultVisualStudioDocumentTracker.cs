@@ -30,7 +30,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
     private readonly List<ITextView> _textViews;
     private readonly Workspace _workspace;
     private bool _isSupportedProject;
-    private ProjectSnapshot? _projectSnapshot;
+    private IProjectSnapshot? _projectSnapshot;
     private int _subscribeCount;
 
     public override event EventHandler<ContextChangeEventArgs>? ContextChanged;
@@ -112,7 +112,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
 
     public override bool IsSupportedProject => _isSupportedProject;
 
-    internal override ProjectSnapshot? ProjectSnapshot => _projectSnapshot;
+    internal override IProjectSnapshot? ProjectSnapshot => _projectSnapshot;
 
     public override ITextBuffer TextBuffer => _textBuffer;
 

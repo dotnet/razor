@@ -140,7 +140,7 @@ internal class CodeActionEndpoint : IVSCodeActionEndpoint
     }
 
     // internal for testing
-    internal async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(CodeActionParams request, DocumentSnapshot documentSnapshot)
+    internal async Task<RazorCodeActionContext?> GenerateRazorCodeActionContextAsync(CodeActionParams request, IDocumentSnapshot documentSnapshot)
     {
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
         if (codeDocument.IsUnsupported())

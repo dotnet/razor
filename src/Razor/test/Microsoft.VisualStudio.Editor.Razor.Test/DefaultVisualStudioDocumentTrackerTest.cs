@@ -445,7 +445,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         _documentTracker.Subscribe();
 
         // Assert
-        Assert.IsType<DefaultProjectSnapshot>(_documentTracker.ProjectSnapshot);
+        Assert.IsType<ProjectSnapshot>(_documentTracker.ProjectSnapshot);
     }
 
     [UIFact]
@@ -463,7 +463,7 @@ public class DefaultVisualStudioDocumentTrackerTest : ProjectSnapshotManagerDisp
         _projectManager.ProjectConfigurationChanged(_updatedHostProject);
 
         // Assert
-        var snapshot = Assert.IsType<DefaultProjectSnapshot>(_documentTracker.ProjectSnapshot);
+        var snapshot = Assert.IsType<ProjectSnapshot>(_documentTracker.ProjectSnapshot);
 
         Assert.Same(_updatedHostProject, snapshot.HostProject);
 

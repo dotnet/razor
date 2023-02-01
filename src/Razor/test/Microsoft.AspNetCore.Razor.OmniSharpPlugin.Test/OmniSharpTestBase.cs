@@ -73,7 +73,7 @@ public abstract class OmniSharpTestBase : LanguageServerTestBase
     private protected OmniSharpProjectSnapshotManagerBase CreateProjectSnapshotManager(bool allowNotifyListeners = false)
     {
         var dispatcher = _dispatcherProperty.GetValue(Dispatcher);
-        var testSnapshotManager = _createProjectSnapshotManagerMethod.Invoke(null, new object[] { dispatcher });
+        var testSnapshotManager = _createProjectSnapshotManagerMethod.Invoke(null, new object[] { dispatcher, ErrorReporter });
         _allowNotifyListenersProperty.SetValue(testSnapshotManager, allowNotifyListeners);
         var remoteTextLoaderFactory = new DefaultRemoteTextLoaderFactory();
         var snapshotManager = (OmniSharpProjectSnapshotManagerBase)_omniSharpProjectSnapshotMangerConstructor.Invoke(new[] { testSnapshotManager, remoteTextLoaderFactory });

@@ -45,7 +45,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
             MockBehavior.Strict);
 
         _projectManager = Mock.Of<ProjectSnapshotManager>(
-            p => p.Projects == new List<ProjectSnapshot>() && p.GetOrCreateProject(It.IsAny<string>()) == null,
+            p => p.Projects == new List<IProjectSnapshot>() && p.GetOrCreateProject(It.IsAny<string>()) == null,
             MockBehavior.Strict);
 
         _workspaceEditorSettings = new DefaultWorkspaceEditorSettings(

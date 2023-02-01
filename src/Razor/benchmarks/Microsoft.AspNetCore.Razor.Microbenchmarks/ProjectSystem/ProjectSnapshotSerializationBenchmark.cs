@@ -28,7 +28,7 @@ public class ProjectSnapshotSerializationBenchmark : ProjectSnapshotManagerBench
     }
 
     public JsonSerializer Serializer { get; set; }
-    private ProjectSnapshot ProjectSnapshot { get; }
+    private IProjectSnapshot ProjectSnapshot { get; }
 
     [Benchmark(Description = "Razor ProjectSnapshot Roundtrip JsonConverter Serialization")]
     public void TagHelper_JsonConvert_Serialization_RoundTrip()
