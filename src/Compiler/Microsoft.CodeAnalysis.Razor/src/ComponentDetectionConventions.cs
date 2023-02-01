@@ -1,7 +1,7 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
+#nullable enable
 
 using System;
 using System.Linq;
@@ -43,6 +43,6 @@ internal static class ComponentDetectionConventions
         return
             symbol.DeclaredAccessibility == Accessibility.Public &&
             !symbol.IsAbstract &&
-            symbol.AllInterfaces.Any(s => SymbolExtensions.HasFullName(s, icomponentSymbolName));
+            symbol.AllInterfaces.Any(s => s.HasFullName(icomponentSymbolName));
     }
 }
