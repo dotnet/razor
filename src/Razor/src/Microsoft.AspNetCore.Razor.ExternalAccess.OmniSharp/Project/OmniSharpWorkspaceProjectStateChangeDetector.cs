@@ -33,7 +33,7 @@ public class OmniSharpWorkspaceProjectStateChangeDetector : AbstractOmniSharpPro
             languageServerFeatureOptions.InternalLanguageServerFeatureOptions);
     }
 
-    internal WorkspaceProjectStateChangeDetector InternalWorkspaceProjectStateChangeDetector { get; }
+    private WorkspaceProjectStateChangeDetector InternalWorkspaceProjectStateChangeDetector { get; }
 
     public override void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {

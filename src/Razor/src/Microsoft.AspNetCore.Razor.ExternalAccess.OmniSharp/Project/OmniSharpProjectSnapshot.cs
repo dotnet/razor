@@ -4,7 +4,6 @@
 #nullable disable
 
 using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
@@ -21,8 +20,6 @@ public sealed class OmniSharpProjectSnapshot
     public string FilePath => InternalProjectSnapshot.FilePath;
 
     public IEnumerable<string> DocumentFilePaths => InternalProjectSnapshot.DocumentFilePaths;
-
-    internal RazorConfiguration Configuration => InternalProjectSnapshot.Configuration;
 
     public ProjectWorkspaceState ProjectWorkspaceState => InternalProjectSnapshot.ProjectWorkspaceState;
 

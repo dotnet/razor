@@ -45,8 +45,6 @@ public sealed class OmniSharpDocumentSnapshot
 
     public string FilePath => _documentSnapshot.FilePath;
 
-    internal string TargetPath => _documentSnapshot.TargetPath;
-
     public OmniSharpProjectSnapshot Project
     {
         get

@@ -148,20 +148,6 @@ public class DefaultProjectChangePublisherTest : OmniSharpTestBase
         Assert.True(serializationSuccessful);
     }
 
-    [Fact]
-    public async Task ProjectRemoved_UnSetPublishFilePath_Noops()
-    {
-        // Arrange
-        var snapshotManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
-        var publisher = new TestProjectChangePublisher(LoggerFactory);
-        publisher.Initialize(snapshotManager);
-        var hostProject = new OmniSharpHostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
-        await RunOnDispatcherThreadAsync(() => snapshotManager.ProjectAdded(hostProject));
-
-        // Act & Assert
-        await RunOnDispatcherThreadAsync(() => snapshotManager.ProjectRemoved(hostProject));
-    }
-
     private class TestProjectChangePublisher : DefaultProjectChangePublisher
     {
         private readonly Action<OmniSharpProjectSnapshot, string> _onSerializeToFile;

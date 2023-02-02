@@ -33,6 +33,7 @@ public class TagHelperRefreshTriggerTest : OmniSharpTestBase
     private readonly Workspace _workspace;
     private readonly OmniSharpProjectSnapshotManager _projectManager;
     private readonly OmniSharpHostProject _project1;
+    private readonly string _project1FilePath;
     private readonly object _project1Instance;
 
     public TagHelperRefreshTriggerTest(ITestOutputHelper testOutput)
@@ -44,7 +45,8 @@ public class TagHelperRefreshTriggerTest : OmniSharpTestBase
         var projectRoot1 = ProjectRootElement.Create("/path/to/project.csproj");
         _project1Instance = new ProjectInstance(projectRoot1);
         _projectManager = CreateProjectSnapshotManager();
-        _project1 = new OmniSharpHostProject(projectRoot1.ProjectFileLocation.File, RazorConfiguration.Default, "TestRootNamespace");
+        _project1FilePath = projectRoot1.ProjectFileLocation.File;
+        _project1 = new OmniSharpHostProject(_project1FilePath, RazorConfiguration.Default, "TestRootNamespace");
 
         var solution = _workspace.CurrentSolution.AddProject(
             ProjectInfo.Create(
@@ -53,7 +55,7 @@ public class TagHelperRefreshTriggerTest : OmniSharpTestBase
                 "Project1",
                 "Project1",
                 LanguageNames.CSharp,
-                filePath: _project1.FilePath));
+                filePath: _project1FilePath));
         _workspace.TryApplyChanges(solution);
     }
 
@@ -79,11 +81,12 @@ public class TagHelperRefreshTriggerTest : OmniSharpTestBase
         var projectManager = CreateProjectSnapshotManager();
         var refreshTrigger = CreateRefreshTrigger();
         refreshTrigger.Initialize(projectManager);
-        var hostProject = new OmniSharpHostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
+        var projectFilePath = "/path/to/project.csproj";
+        var hostProject = new OmniSharpHostProject(projectFilePath, RazorConfiguration.Default, "TestRootNamespace");
         await RunOnDispatcherThreadAsync(() => projectManager.ProjectAdded(hostProject));
 
         // Act
-        var result = await RunOnDispatcherThreadAsync(() => refreshTrigger.IsComponentFile("file.razor", hostProject.FilePath));
+        var result = await RunOnDispatcherThreadAsync(() => refreshTrigger.IsComponentFile("file.razor", projectFilePath));
 
         // Assert
         Assert.False(result);
@@ -96,7 +99,8 @@ public class TagHelperRefreshTriggerTest : OmniSharpTestBase
         var projectManager = CreateProjectSnapshotManager();
         var refreshTrigger = CreateRefreshTrigger();
         refreshTrigger.Initialize(projectManager);
-        var hostProject = new OmniSharpHostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
+        var projectFilePath = "/path/to/project.csproj";
+        var hostProject = new OmniSharpHostProject(projectFilePath, RazorConfiguration.Default, "TestRootNamespace");
         var hostDocument = new OmniSharpHostDocument("file.cshtml", "file.cshtml", FileKinds.Legacy);
         await RunOnDispatcherThreadAsync(() =>
         {
@@ -105,7 +109,7 @@ public class TagHelperRefreshTriggerTest : OmniSharpTestBase
         });
 
         // Act
-        var result = await RunOnDispatcherThreadAsync(() => refreshTrigger.IsComponentFile(hostDocument.FilePath, hostProject.FilePath));
+        var result = await RunOnDispatcherThreadAsync(() => refreshTrigger.IsComponentFile(hostDocument.FilePath, projectFilePath));
 
         // Assert
         Assert.False(result);
@@ -118,7 +122,8 @@ public class TagHelperRefreshTriggerTest : OmniSharpTestBase
         var projectManager = CreateProjectSnapshotManager();
         var refreshTrigger = CreateRefreshTrigger();
         refreshTrigger.Initialize(projectManager);
-        var hostProject = new OmniSharpHostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
+        var projectFilePath = "/path/to/project.csproj";
+        var hostProject = new OmniSharpHostProject(projectFilePath, RazorConfiguration.Default, "TestRootNamespace");
         var hostDocument = new OmniSharpHostDocument("file.cshtml", "file.cshtml", FileKinds.Component);
         await RunOnDispatcherThreadAsync(() =>
         {
@@ -127,7 +132,7 @@ public class TagHelperRefreshTriggerTest : OmniSharpTestBase
         });
 
         // Act
-        var result = await RunOnDispatcherThreadAsync(() => refreshTrigger.IsComponentFile(hostDocument.FilePath, hostProject.FilePath));
+        var result = await RunOnDispatcherThreadAsync(() => refreshTrigger.IsComponentFile(hostDocument.FilePath, projectFilePath));
 
         // Assert
         Assert.True(result);
@@ -266,7 +271,7 @@ public class TagHelperRefreshTriggerTest : OmniSharpTestBase
         var refreshTrigger = CreateRefreshTrigger(workspaceStateGenerator.Object, workspace);
 
         // Act & Assert
-        await RunOnDispatcherThreadAsync(() => refreshTrigger.UpdateAfterDelayAsync(_project1.FilePath));
+        await RunOnDispatcherThreadAsync(() => refreshTrigger.UpdateAfterDelayAsync(_project1FilePath));
     }
 
     [Fact]

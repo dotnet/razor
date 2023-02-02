@@ -15,7 +15,6 @@ public class OmniSharpProjectChangeEventArgs : EventArgs
         args.DocumentFilePath,
         (OmniSharpProjectChangeKind)args.Kind)
     {
-        InternalProjectChangeEventArgs = args;
     }
 
     private OmniSharpProjectChangeEventArgs(OmniSharpProjectSnapshot older, OmniSharpProjectSnapshot newer, string documentFilePath, OmniSharpProjectChangeKind kind)
@@ -29,17 +28,11 @@ public class OmniSharpProjectChangeEventArgs : EventArgs
         Newer = newer;
         DocumentFilePath = documentFilePath;
         Kind = kind;
-
-        ProjectFilePath = older?.FilePath ?? newer.FilePath;
     }
-
-    internal ProjectChangeEventArgs InternalProjectChangeEventArgs { get; }
 
     public OmniSharpProjectSnapshot Older { get; }
 
     public OmniSharpProjectSnapshot Newer { get; }
-
-    internal string ProjectFilePath { get; }
 
     public string DocumentFilePath { get; }
 

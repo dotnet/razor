@@ -5,7 +5,6 @@
 
 using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
@@ -35,11 +34,14 @@ public class OmniSharpProjectSnapshotManager
 
     internal ProjectSnapshotManagerBase InternalProjectSnapshotManager { get; }
 
-    internal Workspace Workspace => InternalProjectSnapshotManager.Workspace;
-
     internal IReadOnlyList<OmniSharpProjectSnapshot> Projects => InternalProjectSnapshotManager.Projects.Select(project => OmniSharpProjectSnapshot.Convert(project)).ToList();
 
     public event EventHandler<OmniSharpProjectChangeEventArgs> Changed;
+
+    internal OmniSharpProjectSnapshot GetLoadedProject(OmniSharpHostProject project)
+    {
+        return GetLoadedProject(project.InternalHostProject.FilePath);
+    }
 
     public OmniSharpProjectSnapshot GetLoadedProject(string filePath)
     {
@@ -54,19 +56,9 @@ public class OmniSharpProjectSnapshotManager
         InternalProjectSnapshotManager.ProjectAdded(hostProject.InternalHostProject);
     }
 
-    internal void ProjectRemoved(OmniSharpHostProject hostProject)
-    {
-        InternalProjectSnapshotManager.ProjectRemoved(hostProject.InternalHostProject);
-    }
-
     public void ProjectConfigurationChanged(OmniSharpHostProject hostProject)
     {
         InternalProjectSnapshotManager.ProjectConfigurationChanged(hostProject.InternalHostProject);
-    }
-
-    internal void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState projectWorkspaceState)
-    {
-        InternalProjectSnapshotManager.ProjectWorkspaceStateChanged(projectFilePath, projectWorkspaceState);
     }
 
     public void DocumentAdded(OmniSharpHostProject hostProject, OmniSharpHostDocument hostDocument)

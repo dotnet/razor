@@ -25,11 +25,5 @@ public sealed class OmniSharpHostProject
         InternalHostProject = new HostProject(projectFilePath, razorConfiguration, rootNamespace);
     }
 
-    internal string FilePath => InternalHostProject.FilePath;
-
-    internal RazorConfiguration Configuration => InternalHostProject.Configuration;
-
-    internal string RootNamespace => InternalHostProject.RootNamespace;
-
     internal HostProject InternalHostProject { get; }
 }

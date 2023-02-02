@@ -60,7 +60,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
             projectManager.ProjectAdded(hostProject);
             var hostDocument = new OmniSharpHostDocument("file.cshtml", "file.cshtml", FileKinds.Legacy);
             projectManager.DocumentAdded(hostProject, hostDocument);
-            return projectManager.GetLoadedProject(hostProject.FilePath);
+            return projectManager.GetLoadedProject(hostProject);
         });
 
         // Act
@@ -73,11 +73,10 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
         // Assert
         await RunOnDispatcherThreadAsync(() =>
         {
-            var refreshedProject = projectManager.GetLoadedProject(hostProject.FilePath);
+            var refreshedProject = projectManager.GetLoadedProject(hostProject);
             var documentFilePath = Assert.Single(refreshedProject.DocumentFilePaths);
             var document = refreshedProject.GetDocument(documentFilePath);
             Assert.Equal("file.cshtml", document.FilePath);
-            Assert.Equal("file.cshtml", document.TargetPath);
             Assert.Equal(FileKinds.Component, document.FileKind);
         });
     }
@@ -100,7 +99,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
             projectManager.ProjectAdded(hostProject);
             var hostDocument = new OmniSharpHostDocument("file.razor", "file.razor", FileKinds.Component);
             projectManager.DocumentAdded(hostProject, hostDocument);
-            return projectManager.GetLoadedProject(hostProject.FilePath);
+            return projectManager.GetLoadedProject(hostProject);
         });
 
         // Act
@@ -113,7 +112,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
         // Assert
         await RunOnDispatcherThreadAsync(() =>
         {
-            var refreshedProject = projectManager.GetLoadedProject(hostProject.FilePath);
+            var refreshedProject = projectManager.GetLoadedProject(hostProject);
             Assert.Empty(refreshedProject.DocumentFilePaths);
         });
     }
@@ -137,7 +136,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
         {
             projectManager.ProjectAdded(hostProject);
             projectManager.DocumentAdded(hostProject, hostDocument);
-            return projectManager.GetLoadedProject(hostProject.FilePath);
+            return projectManager.GetLoadedProject(hostProject);
         });
         projectManager.Changed += (sender, args) => throw new XunitException("Should not have been notified");
 
@@ -168,7 +167,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
         var projectSnapshot = await RunOnDispatcherThreadAsync(() =>
         {
             projectManager.ProjectAdded(hostProject);
-            return projectManager.GetLoadedProject(hostProject.FilePath);
+            return projectManager.GetLoadedProject(hostProject);
         });
 
         // Act
@@ -181,7 +180,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
         // Assert
         await RunOnDispatcherThreadAsync(() =>
         {
-            var refreshedProject = projectManager.GetLoadedProject(hostProject.FilePath);
+            var refreshedProject = projectManager.GetLoadedProject(hostProject);
             var document = refreshedProject.GetDocument("file.razor");
             Assert.Equal(FileKinds.Component, document.FileKind);
         });
@@ -228,7 +227,6 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
         // Assert
         var project = await RunOnDispatcherThreadAsync(() => Assert.Single(projectManager.Projects));
         Assert.Equal(projectInstance.ProjectFileLocation.File, project.FilePath);
-        Assert.Same(_customConfiguration, project.Configuration);
         var document = project.GetDocument(hostDocument.FilePath);
         Assert.NotNull(document);
     }
