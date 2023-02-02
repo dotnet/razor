@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -23,7 +21,7 @@ public class OmniSharpProjectSnapshotManagerDispatcher
 
     public TaskScheduler DispatcherScheduler => InternalDispatcher.DispatcherScheduler;
 
-    public void AssertDispatcherThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertDispatcherThread(caller);
+    public void AssertDispatcherThread([CallerMemberName] string? caller = null) => InternalDispatcher.AssertDispatcherThread(caller);
 
     private class InternalOmniSharpProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcherBase
     {

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Newtonsoft.Json;
@@ -26,14 +24,14 @@ public static class JsonConverterCollectionExtensions
             return typeof(OmniSharpProjectSnapshot).IsAssignableFrom(objectType);
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
             throw new NotImplementedException();
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
-            var snapshot = (OmniSharpProjectSnapshot)value;
+            var snapshot = (OmniSharpProjectSnapshot)value!;
 
             serializer.Serialize(writer, snapshot.InternalProjectSnapshot);
         }

@@ -1,8 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -21,9 +20,9 @@ public sealed class OmniSharpProjectSnapshot
 
     public IEnumerable<string> DocumentFilePaths => InternalProjectSnapshot.DocumentFilePaths;
 
-    public ProjectWorkspaceState ProjectWorkspaceState => InternalProjectSnapshot.ProjectWorkspaceState;
+    public ProjectWorkspaceState? ProjectWorkspaceState => InternalProjectSnapshot.ProjectWorkspaceState;
 
-    public OmniSharpDocumentSnapshot GetDocument(string filePath)
+    public OmniSharpDocumentSnapshot? GetDocument(string filePath)
     {
         var documentSnapshot = InternalProjectSnapshot.GetDocument(filePath);
         if (documentSnapshot is null)
@@ -35,7 +34,7 @@ public sealed class OmniSharpProjectSnapshot
         return internalDocumentSnapshot;
     }
 
-    internal static OmniSharpProjectSnapshot Convert(IProjectSnapshot projectSnapshot)
+    internal static OmniSharpProjectSnapshot? Convert(IProjectSnapshot? projectSnapshot)
     {
         if (projectSnapshot is null)
         {

@@ -195,7 +195,15 @@ internal class MSBuildProjectManager : AbstractOmniSharpProjectSnapshotManagerCh
         foreach (var documentFilePath in projectSnapshot.DocumentFilePaths)
         {
             OmniSharpHostDocument? associatedHostDocument = null;
-            var currentHostDocument = projectSnapshot.GetDocument(documentFilePath).HostDocument;
+
+            var documentSnapshot = projectSnapshot.GetDocument(documentFilePath);
+            if (documentSnapshot is null)
+            {
+                _logger.LogWarning("Missing DocumentSnapshot for {documentFilePath}.", documentFilePath);
+                continue;
+            }
+
+            var currentHostDocument = documentSnapshot.HostDocument;
 
             for (var i = 0; i < configuredHostDocuments.Count; i++)
             {

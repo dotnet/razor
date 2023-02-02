@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -34,9 +32,9 @@ public class OmniSharpProjectSnapshotManager
 
     internal ProjectSnapshotManagerBase InternalProjectSnapshotManager { get; }
 
-    internal IReadOnlyList<OmniSharpProjectSnapshot> Projects => InternalProjectSnapshotManager.Projects.Select(project => OmniSharpProjectSnapshot.Convert(project)).ToList();
+    internal IReadOnlyList<OmniSharpProjectSnapshot> Projects => InternalProjectSnapshotManager.Projects.Select(project => OmniSharpProjectSnapshot.Convert(project)!).ToList();
 
-    public event EventHandler<OmniSharpProjectChangeEventArgs> Changed;
+    public event EventHandler<OmniSharpProjectChangeEventArgs>? Changed;
 
     internal OmniSharpProjectSnapshot GetLoadedProject(OmniSharpHostProject project)
     {
@@ -46,7 +44,8 @@ public class OmniSharpProjectSnapshotManager
     public OmniSharpProjectSnapshot GetLoadedProject(string filePath)
     {
         var projectSnapshot = InternalProjectSnapshotManager.GetLoadedProject(filePath);
-        var converted = OmniSharpProjectSnapshot.Convert(projectSnapshot);
+        // Forgiving null because we should only return null when projectSnapshot is null
+        var converted = OmniSharpProjectSnapshot.Convert(projectSnapshot)!;
 
         return converted;
     }
@@ -78,7 +77,7 @@ public class OmniSharpProjectSnapshotManager
         InternalProjectSnapshotManager.DocumentRemoved(hostProject.InternalHostProject, hostDocument.InternalHostDocument);
     }
 
-    private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
+    private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         var convertedArgs = new OmniSharpProjectChangeEventArgs(args);
         Changed?.Invoke(this, convertedArgs);

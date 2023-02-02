@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
@@ -10,7 +8,9 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 public class OmniSharpProjectWorkspaceStateGenerator : AbstractOmniSharpProjectSnapshotManagerChangeTrigger
 {
     // Internal for testing
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     internal OmniSharpProjectWorkspaceStateGenerator()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     {
     }
 
