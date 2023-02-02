@@ -26,6 +26,8 @@ internal class SourceGeneratorProjectEngine : DefaultRazorProjectEngine
 
 		var codeDocument = CreateCodeDocumentCore(projectItem);
 		ProcessPartial(codeDocument, 0, 2);
+		// record the syntax tree, before the tag helper re-writing occurs
+		codeDocument.SetPreTagHelperSyntaxTree(codeDocument.GetSyntaxTree());
 		return new SourceGeneratorRazorCodeDocument(codeDocument);
 	}
 
