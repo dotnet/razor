@@ -6,26 +6,44 @@
 using Microsoft.AspNetCore.Razor.Language;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 internal class SourceGeneratorProjectEngine : DefaultRazorProjectEngine
 {
-    public SourceGeneratorProjectEngine(DefaultRazorProjectEngine projectEngine)
+	private readonly int discoveryPhaseIndex = -1;
+
+	private readonly int rewritePhaseIndex = -1;
+
+	public SourceGeneratorProjectEngine(DefaultRazorProjectEngine projectEngine)
 		: base(projectEngine.Configuration, projectEngine.Engine, projectEngine.FileSystem, projectEngine.ProjectFeatures)
     {
-    }
-
-    public SourceGeneratorRazorCodeDocument ProcessInitialParse(RazorProjectItem projectItem)
-	{
-		if (projectItem == null)
+		for(int i = 0; i < Engine.Phases.Count; i++)
 		{
-			throw new ArgumentNullException(nameof(projectItem));
+			if (Engine.Phases[i] is DefaultRazorTagHelperContextDiscoveryPhase)
+			{
+				discoveryPhaseIndex = i;
+			}
+			else if (Engine.Phases[i] is DefaultRazorTagHelperRewritePhase)
+			{
+				rewritePhaseIndex = i;
+			}
+			else if (discoveryPhaseIndex >= 0 && rewritePhaseIndex >= 0)
+			{
+				break;
+			}
 		}
+		Debug.Assert(discoveryPhaseIndex >= 0);
+		Debug.Assert(rewritePhaseIndex >= 0);
+	}
 
+	public SourceGeneratorRazorCodeDocument ProcessInitialParse(RazorProjectItem projectItem)
+	{
 		var codeDocument = CreateCodeDocumentCore(projectItem);
-		ProcessPartial(codeDocument, 0, 2);
+		ProcessPartial(codeDocument, 0, discoveryPhaseIndex);
+
 		// record the syntax tree, before the tag helper re-writing occurs
 		codeDocument.SetPreTagHelperSyntaxTree(codeDocument.GetSyntaxTree());
 		return new SourceGeneratorRazorCodeDocument(codeDocument);
@@ -33,24 +51,27 @@ internal class SourceGeneratorProjectEngine : DefaultRazorProjectEngine
 
 	public SourceGeneratorRazorCodeDocument ProcessTagHelpers(SourceGeneratorRazorCodeDocument sgDocument, IReadOnlyList<TagHelperDescriptor> tagHelpers, bool checkForIdempotency)
 	{
-		int startIndex = 2;
+		Debug.Assert(sgDocument.CodeDocument.GetPreTagHelperSyntaxTree() is not null);
+
+		int startIndex = discoveryPhaseIndex;
 		var codeDocument = sgDocument.CodeDocument;
-		var inputTagHelpers = codeDocument.GetTagHelpers();
-		if (checkForIdempotency && inputTagHelpers is not null)
+		var previousTagHelpers = codeDocument.GetTagHelpers();
+		if (checkForIdempotency && previousTagHelpers is not null)
 		{
-			// compare the input tag helpers with the ones the document last used
-			if (Enumerable.SequenceEqual(inputTagHelpers, tagHelpers))
+			// compare the tag helpers with the ones the document last used
+			if (Enumerable.SequenceEqual(tagHelpers, previousTagHelpers))
 			{
 				// tag helpers are the same, nothing to do!
 				return sgDocument;
 			}
 			else
 			{
+				// tag helpers have changed, figure out if we need to re-write
 				var oldContextHelpers = codeDocument.GetTagHelperContext().TagHelpers;
 				
 				// re-run the scope check to figure out which tag helpers this document can see
 				codeDocument.SetTagHelpers(tagHelpers);
-				ProcessPartial(codeDocument, 2, 3);
+				Engine.Phases[discoveryPhaseIndex].Execute(codeDocument);
 
 				// Check if any new tag helpers were added or ones we previous used were removed
 				var newContextHelpers = codeDocument.GetTagHelperContext().TagHelpers;
@@ -58,12 +79,12 @@ internal class SourceGeneratorProjectEngine : DefaultRazorProjectEngine
 				var referencedByRemoved = codeDocument.GetReferencedTagHelpers().Except(newContextHelpers);
 				if (!added.Any() && !referencedByRemoved.Any())
 				{
-					//  Either nothing new, or the one that got removed wasn't used by this document anyway
+					//  Either nothing new, or any that got removed weren't used by this document anyway
 					return sgDocument;
 				}
-				
+
 				// We need to re-write the document, but can skip the scoping as we just performed it
-				startIndex = 3;
+				startIndex = rewritePhaseIndex;
 			}
 		}
 		else
@@ -71,16 +92,16 @@ internal class SourceGeneratorProjectEngine : DefaultRazorProjectEngine
 			codeDocument.SetTagHelpers(tagHelpers);
 		}
 
-		ProcessPartial(codeDocument, startIndex, 4);
+		ProcessPartial(codeDocument, startIndex, rewritePhaseIndex + 1);
 		return new SourceGeneratorRazorCodeDocument(codeDocument);
 	}
 
 	public SourceGeneratorRazorCodeDocument ProcessRemaining(SourceGeneratorRazorCodeDocument sgDocument)
 	{
-		// PROTOTYPE: assert we're at a point that this can process.
-
 		var codeDocument = sgDocument.CodeDocument;
-		ProcessPartial(sgDocument.CodeDocument, 4, Engine.Phases.Count);
+		Debug.Assert(codeDocument.GetReferencedTagHelpers() is not null);
+
+		ProcessPartial(sgDocument.CodeDocument, rewritePhaseIndex, Engine.Phases.Count);
 		return new SourceGeneratorRazorCodeDocument(codeDocument);
 	}
 

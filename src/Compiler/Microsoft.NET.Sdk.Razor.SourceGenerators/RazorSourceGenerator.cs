@@ -71,7 +71,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 {
 
                     var ((sourceItem, importFiles), razorSourceGeneratorOptions) = pair;
-                    RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStart(sourceItem.FilePath);
+                    RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStart(sourceItem.RelativePhysicalPath);
 
                     var projectEngine = GetDeclarationProjectEngine(sourceItem, importFiles, razorSourceGeneratorOptions);
 
@@ -79,9 +79,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     var result = codeGen.GetCSharpDocument().GeneratedCode;
 
-                    RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStop(sourceItem.FilePath);
+                    RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStop(sourceItem.RelativePhysicalPath);
 
-                    return (result, sourceItem.FilePath);
+                    return (result, sourceItem.RelativePhysicalPath);
                 });
 
             var generatedDeclarationSyntaxTrees = generatedDeclarationCode
@@ -219,26 +219,60 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             var generatedOutput = sourceItems
                 .Combine(importFiles.Collect())
-                .Combine(allTagHelpers)
+                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right), (a) => GetHashCode())
                 .Combine(razorSourceGeneratorOptions)
                 .Select(static (pair, _) =>
                 {
-                    var (((sourceItem, imports), allTagHelpers), razorSourceGeneratorOptions) = pair;
+                    var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
+                    
+                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStart(sourceItem.RelativePhysicalPath);
 
-                    RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(sourceItem.FilePath);
+                    var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
 
-                    // Add a generated suffix so tools, such as coverlet, consider the file to be generated
-                    var hintName = GetIdentifierFromPath(sourceItem.RelativePhysicalPath) + ".g.cs";
+                    var document = projectEngine.ProcessInitialParse(sourceItem);
 
-                    var projectEngine = GetGenerationProjectEngine(allTagHelpers, sourceItem, imports, razorSourceGeneratorOptions);
+                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStop(sourceItem.RelativePhysicalPath);
+					return (projectEngine, sourceItem.RelativePhysicalPath, document);
+				})
 
-                    var codeDocument = projectEngine.Process(sourceItem);
-                    var csharpDocument = codeDocument.GetCSharpDocument();
+				// Add the tag helpers in, but ignore if they've changed or not, only reprocessing the actual document changed
+				.Combine(allTagHelpers)
+				.WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left), (item) => item.GetHashCode())
+				.Select((pair, _) =>
+				{
+					var ((projectEngine, filePath, codeDocument), allTagHelpers) = pair;
+                    RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStart(filePath);
 
-                    RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(sourceItem.FilePath);
-                    return (hintName, csharpDocument);
-                })
-                .WithLambdaComparer(static (a, b) =>
+					codeDocument = projectEngine.ProcessTagHelpers(codeDocument, allTagHelpers, checkForIdempotency: false);
+
+					RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStop(filePath);
+					return (projectEngine, filePath, codeDocument);
+				})
+
+				// next we do a second parse, along with the helpers, but check for idempotency. If the tag helpers used on the previous parse match, the compiler can skip re-computing them
+				.Combine(allTagHelpers)
+				.Select((pair, _) => {
+
+					var ((projectEngine, filePath, document), allTagHelpers) = pair;
+					RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStart(filePath);
+
+					document = projectEngine.ProcessTagHelpers(document, allTagHelpers, checkForIdempotency: true);
+					
+                    RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStop(filePath);
+					return (projectEngine, filePath, document);
+				})
+
+				.Select((pair, _) =>
+				{
+					var (projectEngine, filePath, document) = pair;
+					RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(filePath);
+                    document = projectEngine.ProcessRemaining(document);
+					var csharpDocument = document.CodeDocument.GetCSharpDocument();
+
+                    RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(filePath);
+                    return (filePath, csharpDocument);
+				})
+				.WithLambdaComparer(static (a, b) =>
                 {
                     if (a.csharpDocument.Diagnostics.Count > 0 || b.csharpDocument.Diagnostics.Count > 0)
                     {
@@ -251,8 +285,12 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             context.RegisterSourceOutput(generatedOutput, static (context, pair) =>
             {
-                var (hintName, csharpDocument) = pair;
-                RazorSourceGeneratorEventSource.Log.AddSyntaxTrees(hintName);
+                var (filePath, csharpDocument) = pair;
+
+				// Add a generated suffix so tools, such as coverlet, consider the file to be generated
+				var hintName = GetIdentifierFromPath(filePath) + ".g.cs";
+
+				RazorSourceGeneratorEventSource.Log.AddSyntaxTrees(hintName);
                 for (var i = 0; i < csharpDocument.Diagnostics.Count; i++)
                 {
                     var razorDiagnostic = csharpDocument.Diagnostics[i];
