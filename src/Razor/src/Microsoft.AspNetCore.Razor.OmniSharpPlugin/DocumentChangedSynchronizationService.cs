@@ -30,7 +30,7 @@ internal class DocumentChangedSynchronizationService : AbstractOmniSharpProjectS
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
     }
 
-    internal override void Initialize(OmniSharpProjectSnapshotManager projectManager)
+    public override void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {

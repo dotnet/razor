@@ -76,7 +76,7 @@ internal class BackgroundDocumentProcessedPublisher : OmniSharpDocumentProcessed
 
     // A Razor file has been processed, this portion is responsible for the decision of whether we need to create or update
     // the Razor documents background C# representation.
-    internal override void DocumentProcessed(RazorCodeDocument codeDocument, OmniSharpDocumentSnapshot document)
+    public override void DocumentProcessed(RazorCodeDocument codeDocument, OmniSharpDocumentSnapshot document)
     {
         if (document is null)
         {
@@ -133,7 +133,7 @@ internal class BackgroundDocumentProcessedPublisher : OmniSharpDocumentProcessed
         }
     }
 
-    internal override void Initialize(OmniSharpProjectSnapshotManager projectManager)
+    public override void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {

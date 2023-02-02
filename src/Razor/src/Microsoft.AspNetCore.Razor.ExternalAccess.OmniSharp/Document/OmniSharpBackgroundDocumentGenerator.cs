@@ -11,11 +11,11 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 
-internal class OmniSharpBackgroundDocumentGenerator : AbstractOmniSharpProjectSnapshotManagerChangeTrigger
+public class OmniSharpBackgroundDocumentGenerator : AbstractOmniSharpProjectSnapshotManagerChangeTrigger
 {
     private readonly BackgroundDocumentGenerator _backgroundDocumentGenerator;
 
-    internal OmniSharpBackgroundDocumentGenerator(
+    public OmniSharpBackgroundDocumentGenerator(
         OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         RemoteTextLoaderFactory remoteTextLoaderFactory,
         IEnumerable<OmniSharpDocumentProcessedListener> documentProcessedListeners)
@@ -39,7 +39,7 @@ internal class OmniSharpBackgroundDocumentGenerator : AbstractOmniSharpProjectSn
         _backgroundDocumentGenerator = new BackgroundDocumentGenerator(projectSnapshotManagerDispatcher.InternalDispatcher, wrappedListeners);
     }
 
-    internal override void Initialize(OmniSharpProjectSnapshotManager projectManager)
+    public override void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         _backgroundDocumentGenerator.Initialize(projectManager.InternalProjectSnapshotManager);
     }

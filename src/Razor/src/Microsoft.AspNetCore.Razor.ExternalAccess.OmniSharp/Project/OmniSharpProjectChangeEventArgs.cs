@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-internal class OmniSharpProjectChangeEventArgs : EventArgs
+public class OmniSharpProjectChangeEventArgs : EventArgs
 {
     internal OmniSharpProjectChangeEventArgs(ProjectChangeEventArgs args) : this(
         OmniSharpProjectSnapshot.Convert(args.Older),
@@ -35,15 +35,15 @@ internal class OmniSharpProjectChangeEventArgs : EventArgs
 
     internal ProjectChangeEventArgs InternalProjectChangeEventArgs { get; }
 
-    internal OmniSharpProjectSnapshot Older { get; }
+    public OmniSharpProjectSnapshot Older { get; }
 
-    internal OmniSharpProjectSnapshot Newer { get; }
+    public OmniSharpProjectSnapshot Newer { get; }
 
     internal string ProjectFilePath { get; }
 
-    internal string DocumentFilePath { get; }
+    public string DocumentFilePath { get; }
 
-    internal OmniSharpProjectChangeKind Kind { get; }
+    public OmniSharpProjectChangeKind Kind { get; }
 
     internal static OmniSharpProjectChangeEventArgs CreateTestInstance(OmniSharpProjectSnapshot older, OmniSharpProjectSnapshot newer, string documentFilePath, OmniSharpProjectChangeKind kind) =>
         new(older, newer, documentFilePath, kind);

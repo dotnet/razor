@@ -9,23 +9,21 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-internal class OmniSharpProjectSnapshotManagerDispatcher
+public class OmniSharpProjectSnapshotManagerDispatcher
 {
-    internal OmniSharpProjectSnapshotManagerDispatcher()
+    public OmniSharpProjectSnapshotManagerDispatcher()
     {
         InternalDispatcher = new InternalOmniSharpProjectSnapshotManagerDispatcher();
     }
 
     internal ProjectSnapshotManagerDispatcher InternalDispatcher { get; private protected set; }
 
-    internal Task RunOnDispatcherThreadAsync(Action action, CancellationToken cancellationToken)
+    public Task RunOnDispatcherThreadAsync(Action action, CancellationToken cancellationToken)
         => InternalDispatcher.RunOnDispatcherThreadAsync(action, cancellationToken);
 
-    internal Task<TResult> RunOnDispatcherThreadAsync<TResult>(Func<TResult> action, CancellationToken cancellationToken)
-        => InternalDispatcher.RunOnDispatcherThreadAsync(action, cancellationToken);
-    internal TaskScheduler DispatcherScheduler => InternalDispatcher.DispatcherScheduler;
+    public TaskScheduler DispatcherScheduler => InternalDispatcher.DispatcherScheduler;
 
-    internal void AssertDispatcherThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertDispatcherThread(caller);
+    public void AssertDispatcherThread([CallerMemberName] string caller = null) => InternalDispatcher.AssertDispatcherThread(caller);
 
     private class InternalOmniSharpProjectSnapshotManagerDispatcher : ProjectSnapshotManagerDispatcherBase
     {

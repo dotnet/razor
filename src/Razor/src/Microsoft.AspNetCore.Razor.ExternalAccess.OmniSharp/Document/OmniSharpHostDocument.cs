@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 
-internal sealed class OmniSharpHostDocument
+public sealed class OmniSharpHostDocument
 {
-    internal OmniSharpHostDocument(string filePath, string targetPath, string kind)
+    public OmniSharpHostDocument(string filePath, string targetPath, string kind)
     {
         InternalHostDocument = new HostDocument(filePath, targetPath, kind);
 
@@ -24,7 +24,7 @@ internal sealed class OmniSharpHostDocument
         }
     }
 
-    internal string FilePath => InternalHostDocument.FilePath;
+    public string FilePath => InternalHostDocument.FilePath;
 
     internal string TargetPath => InternalHostDocument.TargetPath;
 

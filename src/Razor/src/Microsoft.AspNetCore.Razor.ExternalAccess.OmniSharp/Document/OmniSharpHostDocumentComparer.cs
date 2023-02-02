@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 
-internal sealed class OmniSharpHostDocumentComparer : IEqualityComparer<OmniSharpHostDocument>
+public sealed class OmniSharpHostDocumentComparer : IEqualityComparer<OmniSharpHostDocument>
 {
-    internal static readonly OmniSharpHostDocumentComparer Instance = new();
+    public static readonly OmniSharpHostDocumentComparer Instance = new();
 
     private OmniSharpHostDocumentComparer()
     {

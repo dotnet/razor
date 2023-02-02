@@ -57,7 +57,7 @@ internal class DefaultProjectChangePublisher : AbstractOmniSharpProjectSnapshotM
     // 250ms between publishes to prevent bursts of changes yet still be responsive to changes.
     internal int EnqueueDelay { get; set; } = 250;
 
-    internal override void Initialize(OmniSharpProjectSnapshotManager projectManager)
+    public override void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {

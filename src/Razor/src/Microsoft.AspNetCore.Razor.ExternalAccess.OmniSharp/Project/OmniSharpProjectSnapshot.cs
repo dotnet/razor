@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-internal sealed class OmniSharpProjectSnapshot
+public sealed class OmniSharpProjectSnapshot
 {
     internal readonly ProjectSnapshot InternalProjectSnapshot;
 
@@ -18,15 +18,15 @@ internal sealed class OmniSharpProjectSnapshot
         InternalProjectSnapshot = projectSnapshot;
     }
 
-    internal string FilePath => InternalProjectSnapshot.FilePath;
+    public string FilePath => InternalProjectSnapshot.FilePath;
 
-    internal IEnumerable<string> DocumentFilePaths => InternalProjectSnapshot.DocumentFilePaths;
+    public IEnumerable<string> DocumentFilePaths => InternalProjectSnapshot.DocumentFilePaths;
 
     internal RazorConfiguration Configuration => InternalProjectSnapshot.Configuration;
 
-    internal ProjectWorkspaceState ProjectWorkspaceState => InternalProjectSnapshot.ProjectWorkspaceState;
+    public ProjectWorkspaceState ProjectWorkspaceState => InternalProjectSnapshot.ProjectWorkspaceState;
 
-    internal OmniSharpDocumentSnapshot GetDocument(string filePath)
+    public OmniSharpDocumentSnapshot GetDocument(string filePath)
     {
         var documentSnapshot = InternalProjectSnapshot.GetDocument(filePath);
         if (documentSnapshot is null)
@@ -46,15 +46,5 @@ internal sealed class OmniSharpProjectSnapshot
         }
 
         return new OmniSharpProjectSnapshot(projectSnapshot);
-    }
-
-    internal static OmniSharpProjectSnapshot CreateForTest(object projectSnapshot)
-    {
-        if (projectSnapshot is ProjectSnapshot stronglyTypedSnapshot)
-        {
-            return new OmniSharpProjectSnapshot(stronglyTypedSnapshot);
-        }
-
-        throw new ArgumentException("Snapshot is not of type " + typeof(ProjectSnapshot).FullName, nameof(projectSnapshot));
     }
 }

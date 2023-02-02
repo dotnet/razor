@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-internal sealed class OmniSharpHostProject
+public sealed class OmniSharpHostProject
 {
-    internal OmniSharpHostProject(string projectFilePath, RazorConfiguration razorConfiguration, string rootNamespace)
+    public OmniSharpHostProject(string projectFilePath, RazorConfiguration razorConfiguration, string rootNamespace)
     {
         if (projectFilePath is null)
         {

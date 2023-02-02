@@ -81,7 +81,7 @@ internal class MSBuildProjectManager : AbstractOmniSharpProjectSnapshotManagerCh
 
     public OmniSharpProjectSnapshotManager ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} was unexpectedly 'null'. Has {nameof(Initialize)} been called?");
 
-    internal override void Initialize(OmniSharpProjectSnapshotManager projectManager)
+    public override void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {

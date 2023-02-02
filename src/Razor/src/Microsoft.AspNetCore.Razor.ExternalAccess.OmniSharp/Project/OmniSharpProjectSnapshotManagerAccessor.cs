@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-internal class OmniSharpProjectSnapshotManagerAccessor
+public class OmniSharpProjectSnapshotManagerAccessor
 {
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
     private readonly IEnumerable<AbstractOmniSharpProjectSnapshotManagerChangeTrigger> _projectChangeTriggers;
@@ -18,7 +18,7 @@ internal class OmniSharpProjectSnapshotManagerAccessor
     private readonly Workspace _workspace;
     private OmniSharpProjectSnapshotManager _instance;
 
-    internal OmniSharpProjectSnapshotManagerAccessor(
+    public OmniSharpProjectSnapshotManagerAccessor(
         RemoteTextLoaderFactory remoteTextLoaderFactory,
         IEnumerable<AbstractOmniSharpProjectSnapshotManagerChangeTrigger> projectChangeTriggers,
         OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -50,7 +50,7 @@ internal class OmniSharpProjectSnapshotManagerAccessor
         _workspace = workspace;
     }
 
-    internal OmniSharpProjectSnapshotManager Instance
+    public OmniSharpProjectSnapshotManager Instance
     {
         get
         {

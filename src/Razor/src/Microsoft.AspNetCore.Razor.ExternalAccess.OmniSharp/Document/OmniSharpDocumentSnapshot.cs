@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 
-internal sealed class OmniSharpDocumentSnapshot
+public sealed class OmniSharpDocumentSnapshot
 {
     private readonly DocumentSnapshot _documentSnapshot;
     private readonly object _projectLock;
@@ -26,7 +26,7 @@ internal sealed class OmniSharpDocumentSnapshot
         _projectLock = new object();
     }
 
-    internal OmniSharpHostDocument HostDocument
+    public OmniSharpHostDocument HostDocument
     {
         get
         {
@@ -41,13 +41,13 @@ internal sealed class OmniSharpDocumentSnapshot
         }
     }
 
-    internal string FileKind => _documentSnapshot.FileKind;
+    public string FileKind => _documentSnapshot.FileKind;
 
-    internal string FilePath => _documentSnapshot.FilePath;
+    public string FilePath => _documentSnapshot.FilePath;
 
     internal string TargetPath => _documentSnapshot.TargetPath;
 
-    internal OmniSharpProjectSnapshot Project
+    public OmniSharpProjectSnapshot Project
     {
         get
         {

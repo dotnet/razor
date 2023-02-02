@@ -7,14 +7,14 @@ using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-internal class OmniSharpProjectWorkspaceStateGenerator : AbstractOmniSharpProjectSnapshotManagerChangeTrigger
+public class OmniSharpProjectWorkspaceStateGenerator : AbstractOmniSharpProjectSnapshotManagerChangeTrigger
 {
     // Internal for testing
     internal OmniSharpProjectWorkspaceStateGenerator()
     {
     }
 
-    internal OmniSharpProjectWorkspaceStateGenerator(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
+    public OmniSharpProjectWorkspaceStateGenerator(OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
     {
         if (projectSnapshotManagerDispatcher is null)
         {
@@ -26,7 +26,7 @@ internal class OmniSharpProjectWorkspaceStateGenerator : AbstractOmniSharpProjec
 
     internal DefaultProjectWorkspaceStateGenerator InternalWorkspaceStateGenerator { get; }
 
-    internal override void Initialize(OmniSharpProjectSnapshotManager projectManager) => InternalWorkspaceStateGenerator.Initialize(projectManager.InternalProjectSnapshotManager);
+    public override void Initialize(OmniSharpProjectSnapshotManager projectManager) => InternalWorkspaceStateGenerator.Initialize(projectManager.InternalProjectSnapshotManager);
 
-    internal virtual void Update(CodeAnalysis.Project workspaceProject, OmniSharpProjectSnapshot projectSnapshot) => InternalWorkspaceStateGenerator.Update(workspaceProject, projectSnapshot.InternalProjectSnapshot, CancellationToken.None);
+    public virtual void Update(CodeAnalysis.Project workspaceProject, OmniSharpProjectSnapshot projectSnapshot) => InternalWorkspaceStateGenerator.Update(workspaceProject, projectSnapshot.InternalProjectSnapshot, CancellationToken.None);
 }

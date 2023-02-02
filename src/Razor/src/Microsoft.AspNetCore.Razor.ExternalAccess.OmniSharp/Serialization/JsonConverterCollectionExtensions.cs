@@ -9,9 +9,9 @@ using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Serialization;
 
-internal static class JsonConverterCollectionExtensions
+public static class JsonConverterCollectionExtensions
 {
-    internal static void RegisterOmniSharpRazorConverters(this JsonConverterCollection collection)
+    public static void RegisterOmniSharpRazorConverters(this JsonConverterCollection collection)
     {
         collection.RegisterRazorConverters();
         collection.Add(OmniSharpProjectSnapshotHandleJsonConverter.Instance);

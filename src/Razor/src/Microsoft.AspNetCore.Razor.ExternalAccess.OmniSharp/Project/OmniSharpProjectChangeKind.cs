@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-internal enum OmniSharpProjectChangeKind
+public enum OmniSharpProjectChangeKind
 {
     ProjectAdded = ProjectChangeKind.ProjectAdded,
     ProjectRemoved = ProjectChangeKind.ProjectRemoved,

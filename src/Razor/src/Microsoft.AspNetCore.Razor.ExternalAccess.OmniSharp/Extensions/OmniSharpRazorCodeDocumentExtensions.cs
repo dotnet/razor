@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Extensions;
 
-internal static class OmniSharpRazorCodeDocumentExtensions
+public static class OmniSharpRazorCodeDocumentExtensions
 {
     public static SourceText GetInternalCSharpSourceText(this RazorCodeDocument codeDocument)
     {

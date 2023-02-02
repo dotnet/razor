@@ -5,7 +5,7 @@
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-internal abstract class AbstractOmniSharpProjectSnapshotManagerChangeTrigger
+public abstract class AbstractOmniSharpProjectSnapshotManagerChangeTrigger
 {
-    internal abstract void Initialize(OmniSharpProjectSnapshotManager projectManager);
+    public abstract void Initialize(OmniSharpProjectSnapshotManager projectManager);
 }

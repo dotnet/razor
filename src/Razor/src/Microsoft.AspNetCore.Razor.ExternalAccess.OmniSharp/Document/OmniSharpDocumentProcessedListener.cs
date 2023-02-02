@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 
-internal abstract class OmniSharpDocumentProcessedListener
+public abstract class OmniSharpDocumentProcessedListener
 {
-    internal abstract void Initialize(OmniSharpProjectSnapshotManager projectManager);
+    public abstract void Initialize(OmniSharpProjectSnapshotManager projectManager);
 
-    internal abstract void DocumentProcessed(RazorCodeDocument codeDocument, OmniSharpDocumentSnapshot document);
+    public abstract void DocumentProcessed(RazorCodeDocument codeDocument, OmniSharpDocumentSnapshot document);
 }
