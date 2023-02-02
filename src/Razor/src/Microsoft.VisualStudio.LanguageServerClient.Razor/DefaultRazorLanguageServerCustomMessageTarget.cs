@@ -1168,16 +1168,11 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         var csharpDiagnostics = await csharpTask.ConfigureAwait(false);
         var htmlDiagnostics = await htmlTask.ConfigureAwait(false);
 
-        if (csharpDiagnostics is null && htmlDiagnostics is null)
+        if (csharpDiagnostics is null || htmlDiagnostics is null)
         {
-            // If both downstream servers return null, then we return null to better represent the state of the system
+            // If either is null we don't have a complete view and returning anything will cause us to "lock-in" incomplete info. So we return null and wait for a re-try.
             return null;
         }
-
-        // If an individual downstream server returns null, its important that we don't throw away the diagnostics from the other
-        // as the client won't re-query necessarily
-        csharpDiagnostics ??= Array.Empty<VSInternalDiagnosticReport>();
-        htmlDiagnostics ??= Array.Empty<VSInternalDiagnosticReport>();
 
         return new RazorPullDiagnosticResponse(csharpDiagnostics, htmlDiagnostics);
     }
@@ -1214,7 +1209,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         // servers.
         if (response?.Response is null or [{ Diagnostics: null }, ..])
         {
-            return null;
+            // Important that we send back an empty list here, because null would result it the above method throwing away any other
+            // diagnostics it receives from the other delegated server
+            return Array.Empty<VSInternalDiagnosticReport>();
         }
 
         return response.Response;
