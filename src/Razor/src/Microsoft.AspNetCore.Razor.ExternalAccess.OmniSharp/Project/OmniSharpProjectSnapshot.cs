@@ -10,9 +10,9 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
 public sealed class OmniSharpProjectSnapshot
 {
-    internal readonly ProjectSnapshot InternalProjectSnapshot;
+    internal readonly IProjectSnapshot InternalProjectSnapshot;
 
-    internal OmniSharpProjectSnapshot(ProjectSnapshot projectSnapshot)
+    internal OmniSharpProjectSnapshot(IProjectSnapshot projectSnapshot)
     {
         InternalProjectSnapshot = projectSnapshot;
     }
@@ -35,7 +35,7 @@ public sealed class OmniSharpProjectSnapshot
         return internalDocumentSnapshot;
     }
 
-    internal static OmniSharpProjectSnapshot Convert(ProjectSnapshot projectSnapshot)
+    internal static OmniSharpProjectSnapshot Convert(IProjectSnapshot projectSnapshot)
     {
         if (projectSnapshot is null)
         {

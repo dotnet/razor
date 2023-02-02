@@ -36,7 +36,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     public DefaultProjectSnapshotManager(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ErrorReporter errorReporter,
+        IErrorReporter errorReporter,
         IEnumerable<ProjectSnapshotChangeTrigger> triggers,
         Workspace workspace)
     {
@@ -97,14 +97,14 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     // internal for testing
     internal bool IsSolutionClosing { get; private set; }
 
-    public override IReadOnlyList<ProjectSnapshot> Projects
+    public override IReadOnlyList<IProjectSnapshot> Projects
     {
         get
         {
             _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
             var i = 0;
-            var projects = new ProjectSnapshot[_projects.Count];
+            var projects = new IProjectSnapshot[_projects.Count];
             foreach (var entry in _projects)
             {
                 projects[i++] = entry.Value.GetSnapshot();
@@ -128,7 +128,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     internal override ErrorReporter ErrorReporter { get; }
 
-    public override ProjectSnapshot GetLoadedProject(string filePath)
+    public override IProjectSnapshot GetLoadedProject(string filePath)
     {
         if (filePath is null)
         {
@@ -145,7 +145,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         return null;
     }
 
-    public override ProjectSnapshot GetOrCreateProject(string filePath)
+    public override IProjectSnapshot GetOrCreateProject(string filePath)
     {
         if (filePath is null)
         {
@@ -603,7 +603,11 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         ErrorReporter.ReportError(exception);
     }
 
+<<<<<<< HEAD
     internal override void ReportError(Exception exception, ProjectSnapshot project)
+=======
+    public override void ReportError(Exception exception, IProjectSnapshot project)
+>>>>>>> 4a4c0187f4aeceb347e3eec4cf8e913b4d1d5b9c
     {
         if (exception is null)
         {
@@ -624,7 +628,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         ErrorReporter.ReportError(exception, snapshot);
     }
 
-    private void NotifyListeners(ProjectSnapshot older, ProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind)
+    private void NotifyListeners(IProjectSnapshot older, IProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind)
     {
         NotifyListeners(new ProjectChangeEventArgs(older, newer, documentFilePath, kind, IsSolutionClosing));
     }
@@ -658,7 +662,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     private class Entry
     {
-        private ProjectSnapshot _snapshotUnsafe;
+        private IProjectSnapshot _snapshotUnsafe;
         public readonly ProjectState State;
 
         public Entry(ProjectState state)
@@ -666,9 +670,9 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             State = state;
         }
 
-        public ProjectSnapshot GetSnapshot()
+        public IProjectSnapshot GetSnapshot()
         {
-            return _snapshotUnsafe ??= new DefaultProjectSnapshot(State);
+            return _snapshotUnsafe ??= new ProjectSnapshot(State);
         }
     }
 }

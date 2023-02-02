@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Razor.Editor;
+using Microsoft.Extensions.Internal;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
@@ -13,4 +14,58 @@ public abstract class EditorSettingsManager
     public abstract EditorSettings Current { get; }
 
     public abstract void Update(EditorSettings updateSettings);
+}
+
+public sealed class EditorSettingsChangedEventArgs : EventArgs
+{
+    public EditorSettingsChangedEventArgs(EditorSettings settings)
+    {
+        if (settings is null)
+        {
+            throw new ArgumentNullException(nameof(settings));
+        }
+
+        Settings = settings;
+    }
+
+    public EditorSettings Settings { get; }
+}
+
+public sealed class EditorSettings : IEquatable<EditorSettings>
+{
+    public static readonly EditorSettings Default = new(indentWithTabs: false, indentSize: 4);
+
+    public EditorSettings(bool indentWithTabs, int indentSize)
+    {
+        if (indentSize < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(indentSize));
+        }
+
+        IndentWithTabs = indentWithTabs;
+        IndentSize = indentSize;
+    }
+
+    public bool IndentWithTabs { get; }
+
+    public int IndentSize { get; }
+
+    public bool Equals(EditorSettings? other)
+        => other is not null &&
+           IndentWithTabs == other.IndentWithTabs &&
+           IndentSize == other.IndentSize;
+
+    public override bool Equals(object? other)
+    {
+        return Equals(other as EditorSettings);
+    }
+
+    public override int GetHashCode()
+    {
+        var combiner = HashCodeCombiner.Start();
+        combiner.Add(IndentWithTabs);
+        combiner.Add(IndentSize);
+
+        return combiner.CombinedHash;
+    }
 }

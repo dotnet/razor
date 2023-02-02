@@ -67,7 +67,7 @@ public class OmniSharpBackgroundDocumentGenerator : AbstractOmniSharpProjectSnap
             _innerDocumentProcessedListener = innerDocumentProcessedListener;
         }
 
-        public override void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot document)
+        public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
         {
             var omniSharpDocument = new OmniSharpDocumentSnapshot(document);
             _innerDocumentProcessedListener.DocumentProcessed(codeDocument, omniSharpDocument);
