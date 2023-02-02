@@ -3,11 +3,6 @@
 
 #nullable disable
 
-<<<<<<< HEAD:src/Razor/src/Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp/Project/OmniSharpProjectSnapshotManagerAccessor.cs
-=======
-using System;
-using System.Collections.Generic;
->>>>>>> 4a4c0187f4aeceb347e3eec4cf8e913b4d1d5b9c:src/Razor/src/Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed/DefaultOmniSharpProjectSnapshotManagerAccessor.cs
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;

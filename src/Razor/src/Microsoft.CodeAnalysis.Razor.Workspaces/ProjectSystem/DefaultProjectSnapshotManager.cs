@@ -126,7 +126,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     internal override Workspace Workspace { get; }
 
-    internal override ErrorReporter ErrorReporter { get; }
+    internal override IErrorReporter ErrorReporter { get; }
 
     public override IProjectSnapshot GetLoadedProject(string filePath)
     {
@@ -603,11 +603,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         ErrorReporter.ReportError(exception);
     }
 
-<<<<<<< HEAD
-    internal override void ReportError(Exception exception, ProjectSnapshot project)
-=======
-    public override void ReportError(Exception exception, IProjectSnapshot project)
->>>>>>> 4a4c0187f4aeceb347e3eec4cf8e913b4d1d5b9c
+    internal override void ReportError(Exception exception, IProjectSnapshot project)
     {
         if (exception is null)
         {
