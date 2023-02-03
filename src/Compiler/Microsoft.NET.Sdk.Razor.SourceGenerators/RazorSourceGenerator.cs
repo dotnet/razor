@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
@@ -106,10 +107,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     var compilationWithDeclarations = compilation.AddSyntaxTrees(generatedDeclarationSyntaxTree);
 
-                    // try and find the specific class this component is declaring, falling back to the assembly if for any reason we can't
+                    // try and find the specific root class this component is declaring, falling back to the assembly if for any reason the code is not in the shape we expect
                     ISymbol targetSymbol = compilationWithDeclarations.Assembly;
-                    var classSyntax = generatedDeclarationSyntaxTree.GetRoot(ct).DescendantNodes().SingleOrDefault(n => n.IsKind(CodeAnalysis.CSharp.SyntaxKind.ClassDeclaration));
-                    if (classSyntax is not null)
+                    var root = generatedDeclarationSyntaxTree.GetRoot(ct);
+                    if (root is CompilationUnitSyntax {  Members: [ NamespaceDeclarationSyntax {  Members : [ ClassDeclarationSyntax classSyntax, ..] }, .. ] }) 
                     {
                         targetSymbol = compilationWithDeclarations.GetSemanticModel(generatedDeclarationSyntaxTree).GetDeclaredSymbol(classSyntax, ct) ?? targetSymbol;
                     }
@@ -219,7 +220,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             var generatedOutput = sourceItems
                 .Combine(importFiles.Collect())
-                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right), (a) => GetHashCode())
+                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right), (a) => a.GetHashCode())
                 .Combine(razorSourceGeneratorOptions)
                 .Select(static (pair, _) =>
                 {
