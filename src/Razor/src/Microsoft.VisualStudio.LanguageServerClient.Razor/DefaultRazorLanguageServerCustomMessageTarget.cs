@@ -1212,7 +1212,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         // servers.
         if (response?.Response is null or [{ Diagnostics: null }, ..])
         {
-            return null;
+            // Important that we send back an empty list here, because null would result it the above method throwing away any other
+            // diagnostics it receives from the other delegated server
+            return Array.Empty<VSInternalDiagnosticReport>();
         }
 
         return response.Response;
