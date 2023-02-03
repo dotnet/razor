@@ -203,7 +203,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Select(static (pair, _) =>
                 {
                     var ((tagHelpersFromComponents, tagHelpersFromCompilation), tagHelpersFromReferences) = pair;
-                    var count = tagHelpersFromCompilation.Count + tagHelpersFromReferences.Count+ tagHelpersFromComponents.Length;
+                    var count = tagHelpersFromCompilation.Count + tagHelpersFromReferences.Count + tagHelpersFromComponents.Length;
                     if (count == 0)
                     {
                         return Array.Empty<TagHelperDescriptor>();
@@ -224,7 +224,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Select(static (pair, _) =>
                 {
                     var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
-                    
+
                     RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStart(sourceItem.RelativePhysicalPath);
 
                     var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
@@ -232,47 +232,48 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     var document = projectEngine.ProcessInitialParse(sourceItem);
 
                     RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStop(sourceItem.RelativePhysicalPath);
-					return (projectEngine, sourceItem.RelativePhysicalPath, document);
-				})
+                    return (projectEngine, sourceItem.RelativePhysicalPath, document);
+                })
 
-				// Add the tag helpers in, but ignore if they've changed or not, only reprocessing the actual document changed
-				.Combine(allTagHelpers)
-				.WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left), (item) => item.GetHashCode())
-				.Select((pair, _) =>
-				{
-					var ((projectEngine, filePath, codeDocument), allTagHelpers) = pair;
+                // Add the tag helpers in, but ignore if they've changed or not, only reprocessing the actual document changed
+                .Combine(allTagHelpers)
+                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left), (item) => item.GetHashCode())
+                .Select((pair, _) =>
+                {
+                    var ((projectEngine, filePath, codeDocument), allTagHelpers) = pair;
                     RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStart(filePath);
 
-					codeDocument = projectEngine.ProcessTagHelpers(codeDocument, allTagHelpers, checkForIdempotency: false);
+                    codeDocument = projectEngine.ProcessTagHelpers(codeDocument, allTagHelpers, checkForIdempotency: false);
 
-					RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStop(filePath);
-					return (projectEngine, filePath, codeDocument);
-				})
+                    RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStop(filePath);
+                    return (projectEngine, filePath, codeDocument);
+                })
 
-				// next we do a second parse, along with the helpers, but check for idempotency. If the tag helpers used on the previous parse match, the compiler can skip re-computing them
-				.Combine(allTagHelpers)
-				.Select((pair, _) => {
+                // next we do a second parse, along with the helpers, but check for idempotency. If the tag helpers used on the previous parse match, the compiler can skip re-computing them
+                .Combine(allTagHelpers)
+                .Select((pair, _) =>
+                {
 
-					var ((projectEngine, filePath, document), allTagHelpers) = pair;
-					RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStart(filePath);
+                    var ((projectEngine, filePath, document), allTagHelpers) = pair;
+                    RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStart(filePath);
 
-					document = projectEngine.ProcessTagHelpers(document, allTagHelpers, checkForIdempotency: true);
-					
+                    document = projectEngine.ProcessTagHelpers(document, allTagHelpers, checkForIdempotency: true);
+
                     RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStop(filePath);
-					return (projectEngine, filePath, document);
-				})
+                    return (projectEngine, filePath, document);
+                })
 
-				.Select((pair, _) =>
-				{
-					var (projectEngine, filePath, document) = pair;
-					RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(filePath);
+                .Select((pair, _) =>
+                {
+                    var (projectEngine, filePath, document) = pair;
+                    RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(filePath);
                     document = projectEngine.ProcessRemaining(document);
-					var csharpDocument = document.CodeDocument.GetCSharpDocument();
+                    var csharpDocument = document.CodeDocument.GetCSharpDocument();
 
                     RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(filePath);
                     return (filePath, csharpDocument);
-				})
-				.WithLambdaComparer(static (a, b) =>
+                })
+                .WithLambdaComparer(static (a, b) =>
                 {
                     if (a.csharpDocument.Diagnostics.Count > 0 || b.csharpDocument.Diagnostics.Count > 0)
                     {
@@ -287,10 +288,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             {
                 var (filePath, csharpDocument) = pair;
 
-				// Add a generated suffix so tools, such as coverlet, consider the file to be generated
-				var hintName = GetIdentifierFromPath(filePath) + ".g.cs";
+                // Add a generated suffix so tools, such as coverlet, consider the file to be generated
+                var hintName = GetIdentifierFromPath(filePath) + ".g.cs";
 
-				RazorSourceGeneratorEventSource.Log.AddSyntaxTrees(hintName);
+                RazorSourceGeneratorEventSource.Log.AddSyntaxTrees(hintName);
                 for (var i = 0; i < csharpDocument.Diagnostics.Count; i++)
                 {
                     var razorDiagnostic = csharpDocument.Diagnostics[i];

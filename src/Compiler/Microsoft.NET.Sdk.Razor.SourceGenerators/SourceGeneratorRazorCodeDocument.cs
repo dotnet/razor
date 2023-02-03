@@ -22,10 +22,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 /// </remarks>
 internal class SourceGeneratorRazorCodeDocument
 {
-	public RazorCodeDocument CodeDocument { get; }
+    public RazorCodeDocument CodeDocument { get; }
 
-	public SourceGeneratorRazorCodeDocument(RazorCodeDocument razorCodeDocument)
-	{
-		this.CodeDocument = razorCodeDocument;
-	}
+    public SourceGeneratorRazorCodeDocument(RazorCodeDocument razorCodeDocument)
+    {
+        this.CodeDocument = razorCodeDocument;
+    }
 }
