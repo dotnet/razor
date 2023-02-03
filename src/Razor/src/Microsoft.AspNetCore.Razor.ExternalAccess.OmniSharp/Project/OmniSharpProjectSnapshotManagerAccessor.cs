@@ -11,14 +11,14 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 public class OmniSharpProjectSnapshotManagerAccessor
 {
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
-    private readonly IEnumerable<AbstractOmniSharpProjectSnapshotManagerChangeTrigger> _projectChangeTriggers;
+    private readonly IEnumerable<IOmniSharpProjectSnapshotManagerChangeTrigger> _projectChangeTriggers;
     private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly Workspace _workspace;
     private OmniSharpProjectSnapshotManager? _instance;
 
     public OmniSharpProjectSnapshotManagerAccessor(
         RemoteTextLoaderFactory remoteTextLoaderFactory,
-        IEnumerable<AbstractOmniSharpProjectSnapshotManagerChangeTrigger> projectChangeTriggers,
+        IEnumerable<IOmniSharpProjectSnapshotManagerChangeTrigger> projectChangeTriggers,
         OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         Workspace workspace)
     {

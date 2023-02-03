@@ -45,7 +45,7 @@ public class DefaultProjectChangePublisherTest : OmniSharpTestBase
             EnqueueDelay = 10
         };
         publisher.SetPublishFilePath(projectSnapshot.FilePath, expectedPublishFilePath);
-        var args = OmniSharpProjectChangeEventArgs.CreateTestInstance(projectSnapshot, projectSnapshot, documentFilePath: null, changeKind);
+        var args = new OmniSharpProjectChangeEventArgs(projectSnapshot, projectSnapshot, documentFilePath: null, changeKind);
 
         // Act
         publisher.ProjectManager_Changed(null, args);
@@ -71,7 +71,7 @@ public class DefaultProjectChangePublisherTest : OmniSharpTestBase
         };
         publisher.SetPublishFilePath(projectSnapshot.FilePath, expectedPublishFilePath);
         publisher.EnqueuePublish(projectSnapshot);
-        var args = OmniSharpProjectChangeEventArgs.CreateTestInstance(projectSnapshot, newer: null, documentFilePath: null, OmniSharpProjectChangeKind.ProjectRemoved);
+        var args = new OmniSharpProjectChangeEventArgs(projectSnapshot, newer: null, documentFilePath: null, OmniSharpProjectChangeKind.ProjectRemoved);
 
         // Act
         publisher.ProjectManager_Changed(null, args);

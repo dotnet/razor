@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-public class OmniSharpProjectWorkspaceStateGenerator : AbstractOmniSharpProjectSnapshotManagerChangeTrigger
+public class OmniSharpProjectWorkspaceStateGenerator : IOmniSharpProjectSnapshotManagerChangeTrigger
 {
     // Internal for testing
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -26,7 +26,7 @@ public class OmniSharpProjectWorkspaceStateGenerator : AbstractOmniSharpProjectS
 
     internal DefaultProjectWorkspaceStateGenerator InternalWorkspaceStateGenerator { get; }
 
-    public override void Initialize(OmniSharpProjectSnapshotManager projectManager) => InternalWorkspaceStateGenerator.Initialize(projectManager.InternalProjectSnapshotManager);
+    public void Initialize(OmniSharpProjectSnapshotManager projectManager) => InternalWorkspaceStateGenerator.Initialize(projectManager.InternalProjectSnapshotManager);
 
     public virtual void Update(CodeAnalysis.Project workspaceProject, OmniSharpProjectSnapshot projectSnapshot) => InternalWorkspaceStateGenerator.Update(workspaceProject, projectSnapshot.InternalProjectSnapshot, CancellationToken.None);
 }

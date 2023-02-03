@@ -22,8 +22,8 @@ namespace Microsoft.AspNetCore.Razor.OmnisharpPlugin;
 [Shared]
 [Export(typeof(IMSBuildEventSink))]
 [Export(typeof(IRazorDocumentChangeListener))]
-[Export(typeof(AbstractOmniSharpProjectSnapshotManagerChangeTrigger))]
-internal class MSBuildProjectManager : AbstractOmniSharpProjectSnapshotManagerChangeTrigger, IMSBuildEventSink, IRazorDocumentChangeListener
+[Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
+internal class MSBuildProjectManager : IOmniSharpProjectSnapshotManagerChangeTrigger, IMSBuildEventSink, IRazorDocumentChangeListener
 {
     // Internal for testing
     internal const string IntermediateOutputPathPropertyName = "IntermediateOutputPath";
@@ -35,7 +35,7 @@ internal class MSBuildProjectManager : AbstractOmniSharpProjectSnapshotManagerCh
     private readonly ILogger _logger;
     private readonly IEnumerable<ProjectConfigurationProvider> _projectConfigurationProviders;
     private readonly ProjectInstanceEvaluator _projectInstanceEvaluator;
-    private readonly IProjectChangePublisher _projectConfigurationPublisher;
+    private readonly ProjectChangePublisher _projectConfigurationPublisher;
     private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private OmniSharpProjectSnapshotManager? _projectManager;
 
@@ -43,7 +43,7 @@ internal class MSBuildProjectManager : AbstractOmniSharpProjectSnapshotManagerCh
     public MSBuildProjectManager(
         [ImportMany] IEnumerable<ProjectConfigurationProvider> projectConfigurationProviders,
         ProjectInstanceEvaluator projectInstanceEvaluator,
-        IProjectChangePublisher projectConfigurationPublisher,
+        ProjectChangePublisher projectConfigurationPublisher,
         OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ILoggerFactory loggerFactory)
     {
@@ -81,7 +81,7 @@ internal class MSBuildProjectManager : AbstractOmniSharpProjectSnapshotManagerCh
 
     public OmniSharpProjectSnapshotManager ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} was unexpectedly 'null'. Has {nameof(Initialize)} been called?");
 
-    public override void Initialize(OmniSharpProjectSnapshotManager projectManager)
+    public void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {

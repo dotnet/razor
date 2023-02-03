@@ -21,8 +21,8 @@ namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 [Export(typeof(IMSBuildEventSink))]
 [Export(typeof(IRazorDocumentChangeListener))]
 [Export(typeof(IRazorDocumentOutputChangeListener))]
-[Export(typeof(AbstractOmniSharpProjectSnapshotManagerChangeTrigger))]
-internal class TagHelperRefreshTrigger : AbstractOmniSharpProjectSnapshotManagerChangeTrigger, IMSBuildEventSink, IRazorDocumentOutputChangeListener, IRazorDocumentChangeListener
+[Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
+internal class TagHelperRefreshTrigger : IOmniSharpProjectSnapshotManagerChangeTrigger, IMSBuildEventSink, IRazorDocumentOutputChangeListener, IRazorDocumentChangeListener
 {
     private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly Workspace _omniSharpWorkspace;
@@ -68,7 +68,7 @@ internal class TagHelperRefreshTrigger : AbstractOmniSharpProjectSnapshotManager
 
     public int EnqueueDelay { get; set; } = 3 * 1000;
 
-    public override void Initialize(OmniSharpProjectSnapshotManager projectManager)
+    public void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {

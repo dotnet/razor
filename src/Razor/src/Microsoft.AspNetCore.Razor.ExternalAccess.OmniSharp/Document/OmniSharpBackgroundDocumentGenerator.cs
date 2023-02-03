@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 
-public class OmniSharpBackgroundDocumentGenerator : AbstractOmniSharpProjectSnapshotManagerChangeTrigger
+public class OmniSharpBackgroundDocumentGenerator : IOmniSharpProjectSnapshotManagerChangeTrigger
 {
     private readonly BackgroundDocumentGenerator _backgroundDocumentGenerator;
 
@@ -37,7 +37,7 @@ public class OmniSharpBackgroundDocumentGenerator : AbstractOmniSharpProjectSnap
         _backgroundDocumentGenerator = new BackgroundDocumentGenerator(projectSnapshotManagerDispatcher.InternalDispatcher, wrappedListeners);
     }
 
-    public override void Initialize(OmniSharpProjectSnapshotManager projectManager)
+    public void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         _backgroundDocumentGenerator.Initialize(projectManager.InternalProjectSnapshotManager);
     }

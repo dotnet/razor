@@ -32,11 +32,11 @@ public class OmniSharpProjectSnapshotManager
 
     internal ProjectSnapshotManagerBase InternalProjectSnapshotManager { get; }
 
-    internal IReadOnlyList<OmniSharpProjectSnapshot> Projects => InternalProjectSnapshotManager.Projects.Select(project => OmniSharpProjectSnapshot.Convert(project)!).ToList();
+    public IReadOnlyList<OmniSharpProjectSnapshot> Projects => InternalProjectSnapshotManager.Projects.Select(project => OmniSharpProjectSnapshot.Convert(project)!).ToList();
 
     public event EventHandler<OmniSharpProjectChangeEventArgs>? Changed;
 
-    internal OmniSharpProjectSnapshot GetLoadedProject(OmniSharpHostProject project)
+    public OmniSharpProjectSnapshot GetLoadedProject(OmniSharpHostProject project)
     {
         return GetLoadedProject(project.InternalHostProject.FilePath);
     }

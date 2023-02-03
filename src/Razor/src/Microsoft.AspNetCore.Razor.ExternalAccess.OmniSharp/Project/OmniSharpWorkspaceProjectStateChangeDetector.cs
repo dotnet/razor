@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-public class OmniSharpWorkspaceProjectStateChangeDetector : AbstractOmniSharpProjectSnapshotManagerChangeTrigger
+public class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectSnapshotManagerChangeTrigger
 {
     public OmniSharpWorkspaceProjectStateChangeDetector(
         OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -35,7 +35,7 @@ public class OmniSharpWorkspaceProjectStateChangeDetector : AbstractOmniSharpPro
 
     private WorkspaceProjectStateChangeDetector InternalWorkspaceProjectStateChangeDetector { get; }
 
-    public override void Initialize(OmniSharpProjectSnapshotManager projectManager)
+    public void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         InternalWorkspaceProjectStateChangeDetector.Initialize(projectManager.InternalProjectSnapshotManager);
     }

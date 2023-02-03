@@ -13,8 +13,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
 [Shared]
 [Export(typeof(IRazorDocumentChangeListener))]
-[Export(typeof(AbstractOmniSharpProjectSnapshotManagerChangeTrigger))]
-internal class DocumentChangedSynchronizationService : AbstractOmniSharpProjectSnapshotManagerChangeTrigger, IRazorDocumentChangeListener
+[Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
+internal class DocumentChangedSynchronizationService : IOmniSharpProjectSnapshotManagerChangeTrigger, IRazorDocumentChangeListener
 {
     private readonly OmniSharpProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private OmniSharpProjectSnapshotManager _projectManager;
@@ -30,7 +30,7 @@ internal class DocumentChangedSynchronizationService : AbstractOmniSharpProjectS
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
     }
 
-    public override void Initialize(OmniSharpProjectSnapshotManager projectManager)
+    public void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {

@@ -16,9 +16,9 @@ using Newtonsoft.Json;
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
 [Shared]
-[Export(typeof(IProjectChangePublisher))]
-[Export(typeof(AbstractOmniSharpProjectSnapshotManagerChangeTrigger))]
-internal class DefaultProjectChangePublisher : AbstractOmniSharpProjectSnapshotManagerChangeTrigger, IProjectChangePublisher
+[Export(typeof(ProjectChangePublisher))]
+[Export(typeof(IOmniSharpProjectSnapshotManagerChangeTrigger))]
+internal class DefaultProjectChangePublisher : ProjectChangePublisher, IOmniSharpProjectSnapshotManagerChangeTrigger
 {
     private const string TempFileExt = ".temp";
 
@@ -57,7 +57,7 @@ internal class DefaultProjectChangePublisher : AbstractOmniSharpProjectSnapshotM
     // 250ms between publishes to prevent bursts of changes yet still be responsive to changes.
     internal int EnqueueDelay { get; set; } = 250;
 
-    public override void Initialize(OmniSharpProjectSnapshotManager projectManager)
+    public void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {
@@ -68,7 +68,7 @@ internal class DefaultProjectChangePublisher : AbstractOmniSharpProjectSnapshotM
         _projectManager.Changed += ProjectManager_Changed;
     }
 
-    public void SetPublishFilePath(string projectFilePath, string publishFilePath)
+    public override void SetPublishFilePath(string projectFilePath, string publishFilePath)
     {
         lock (_publishLock)
         {

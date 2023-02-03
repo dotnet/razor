@@ -15,7 +15,7 @@ public class OmniSharpProjectChangeEventArgs : EventArgs
     {
     }
 
-    private OmniSharpProjectChangeEventArgs(OmniSharpProjectSnapshot? older, OmniSharpProjectSnapshot? newer, string? documentFilePath, OmniSharpProjectChangeKind kind)
+    public OmniSharpProjectChangeEventArgs(OmniSharpProjectSnapshot? older, OmniSharpProjectSnapshot? newer, string? documentFilePath, OmniSharpProjectChangeKind kind)
     {
         if (older is null && newer is null)
         {
@@ -35,7 +35,4 @@ public class OmniSharpProjectChangeEventArgs : EventArgs
     public string? DocumentFilePath { get; }
 
     public OmniSharpProjectChangeKind Kind { get; }
-
-    internal static OmniSharpProjectChangeEventArgs CreateTestInstance(OmniSharpProjectSnapshot older, OmniSharpProjectSnapshot newer, string documentFilePath, OmniSharpProjectChangeKind kind) =>
-        new(older, newer, documentFilePath, kind);
 }
