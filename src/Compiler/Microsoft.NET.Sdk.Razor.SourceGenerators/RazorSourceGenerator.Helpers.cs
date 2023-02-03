@@ -106,9 +106,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     options.SupportLocalizedComponentNames = razorSourceGeneratorOptions.SupportLocalizedComponentNames;
                 }));
 
-                b.Features.Add(new StaticCompilationTagHelperFeature());
-                b.Features.Add(new DefaultTagHelperDescriptorProvider());
-
                 CompilerFeatures.Register(b);
                 RazorExtensions.Register(b);
 
