@@ -5,6 +5,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -627,5 +628,14 @@ public class RazorFormattingTest : FormattingTestBase
             """,
             triggerCharacter: '}',
             razorLSPOptions: RazorLSPOptions.Default with { FormatOnType = true });
+    }
+
+    [Fact]
+    public async Task LargeFile()
+    {
+        await RunFormattingTestAsync(
+            input: TestResources.GetResourceText("FormattingTest.razor"),
+            expected: TestResources.GetResourceText("FormattingTest_Expected.razor"),
+            allowDiagnostics: true);
     }
 }
