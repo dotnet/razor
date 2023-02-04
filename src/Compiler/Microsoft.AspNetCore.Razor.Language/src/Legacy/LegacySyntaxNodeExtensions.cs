@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -12,41 +12,57 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal static class LegacySyntaxNodeExtensions
 {
-    private static readonly SyntaxKind[] TransitionSpanKinds = new SyntaxKind[]
+    private static readonly ISet<SyntaxKind> s_transitionSpanKinds = new HashSet<SyntaxKind>
     {
-            SyntaxKind.CSharpTransition,
-            SyntaxKind.MarkupTransition,
+        SyntaxKind.CSharpTransition,
+        SyntaxKind.MarkupTransition,
     };
 
-    private static readonly SyntaxKind[] MetaCodeSpanKinds = new SyntaxKind[]
+    private static readonly ISet<SyntaxKind> s_metaCodeSpanKinds = new HashSet<SyntaxKind>
     {
-            SyntaxKind.RazorMetaCode,
+        SyntaxKind.RazorMetaCode,
     };
 
-    private static readonly SyntaxKind[] CommentSpanKinds = new SyntaxKind[]
+    private static readonly ISet<SyntaxKind> s_commentSpanKinds = new HashSet<SyntaxKind>
     {
-            SyntaxKind.RazorCommentTransition,
-            SyntaxKind.RazorCommentStar,
-            SyntaxKind.RazorCommentLiteral,
+        SyntaxKind.RazorCommentTransition,
+        SyntaxKind.RazorCommentStar,
+        SyntaxKind.RazorCommentLiteral,
     };
 
-    private static readonly SyntaxKind[] CodeSpanKinds = new SyntaxKind[]
+    private static readonly ISet<SyntaxKind> s_codeSpanKinds = new HashSet<SyntaxKind>
     {
-            SyntaxKind.CSharpStatementLiteral,
-            SyntaxKind.CSharpExpressionLiteral,
-            SyntaxKind.CSharpEphemeralTextLiteral,
+        SyntaxKind.CSharpStatementLiteral,
+        SyntaxKind.CSharpExpressionLiteral,
+        SyntaxKind.CSharpEphemeralTextLiteral,
     };
 
-    private static readonly SyntaxKind[] MarkupSpanKinds = new SyntaxKind[]
+    private static readonly ISet<SyntaxKind> s_markupSpanKinds = new HashSet<SyntaxKind>
     {
-            SyntaxKind.MarkupTextLiteral,
-            SyntaxKind.MarkupEphemeralTextLiteral,
+        SyntaxKind.MarkupTextLiteral,
+        SyntaxKind.MarkupEphemeralTextLiteral,
     };
 
-    private static readonly SyntaxKind[] NoneSpanKinds = new SyntaxKind[]
+    private static readonly ISet<SyntaxKind> s_noneSpanKinds = new HashSet<SyntaxKind>
     {
-            SyntaxKind.UnclassifiedTextLiteral,
+        SyntaxKind.UnclassifiedTextLiteral,
     };
+
+    private static readonly ISet<SyntaxKind> s_allSpanKinds = CreateAllSpanKindsSet();
+
+    private static ISet<SyntaxKind> CreateAllSpanKindsSet()
+    {
+        var set = new HashSet<SyntaxKind>();
+
+        set.UnionWith(s_transitionSpanKinds);
+        set.UnionWith(s_metaCodeSpanKinds);
+        set.UnionWith(s_commentSpanKinds);
+        set.UnionWith(s_codeSpanKinds);
+        set.UnionWith(s_markupSpanKinds);
+        set.UnionWith(s_noneSpanKinds);
+
+        return set;
+    }
 
     public static SpanContext GetSpanContext(this SyntaxNode node)
     {
@@ -159,7 +175,7 @@ internal static class LegacySyntaxNodeExtensions
             throw new ArgumentNullException(nameof(node));
         }
 
-        return TransitionSpanKinds.Contains(node.Kind);
+        return s_transitionSpanKinds.Contains(node.Kind);
     }
 
     public static bool IsMetaCodeSpanKind(this SyntaxNode node)
@@ -169,7 +185,7 @@ internal static class LegacySyntaxNodeExtensions
             throw new ArgumentNullException(nameof(node));
         }
 
-        return MetaCodeSpanKinds.Contains(node.Kind);
+        return s_metaCodeSpanKinds.Contains(node.Kind);
     }
 
     public static bool IsCommentSpanKind(this SyntaxNode node)
@@ -179,7 +195,7 @@ internal static class LegacySyntaxNodeExtensions
             throw new ArgumentNullException(nameof(node));
         }
 
-        return CommentSpanKinds.Contains(node.Kind);
+        return s_commentSpanKinds.Contains(node.Kind);
     }
 
     public static bool IsCodeSpanKind(this SyntaxNode node)
@@ -189,7 +205,7 @@ internal static class LegacySyntaxNodeExtensions
             throw new ArgumentNullException(nameof(node));
         }
 
-        return CodeSpanKinds.Contains(node.Kind);
+        return s_codeSpanKinds.Contains(node.Kind);
     }
 
     public static bool IsMarkupSpanKind(this SyntaxNode node)
@@ -199,7 +215,7 @@ internal static class LegacySyntaxNodeExtensions
             throw new ArgumentNullException(nameof(node));
         }
 
-        return MarkupSpanKinds.Contains(node.Kind);
+        return s_markupSpanKinds.Contains(node.Kind);
     }
 
     public static bool IsNoneSpanKind(this SyntaxNode node)
@@ -209,18 +225,11 @@ internal static class LegacySyntaxNodeExtensions
             throw new ArgumentNullException(nameof(node));
         }
 
-        return NoneSpanKinds.Contains(node.Kind);
+        return s_noneSpanKinds.Contains(node.Kind);
     }
 
     public static bool IsSpanKind(this SyntaxNode node)
-    {
-        return IsTransitionSpanKind(node) ||
-            IsMetaCodeSpanKind(node) ||
-            IsCommentSpanKind(node) ||
-            IsCodeSpanKind(node) ||
-            IsMarkupSpanKind(node) ||
-            IsNoneSpanKind(node);
-    }
+        => s_allSpanKinds.Contains(node.Kind);
 
     public static IEnumerable<SyntaxNode> FlattenSpans(this SyntaxNode node)
     {
