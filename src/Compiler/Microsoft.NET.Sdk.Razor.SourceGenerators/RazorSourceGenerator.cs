@@ -110,7 +110,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     // try and find the specific root class this component is declaring, falling back to the assembly if for any reason the code is not in the shape we expect
                     ISymbol targetSymbol = compilationWithDeclarations.Assembly;
                     var root = generatedDeclarationSyntaxTree.GetRoot(ct);
-                    if (root is CompilationUnitSyntax {  Members: [ NamespaceDeclarationSyntax {  Members : [ ClassDeclarationSyntax classSyntax, ..] }, .. ] }) 
+                    if (root is CompilationUnitSyntax { Members: [NamespaceDeclarationSyntax { Members: [ClassDeclarationSyntax classSyntax, ..] }, ..] })
                     {
                         targetSymbol = compilationWithDeclarations.GetSemanticModel(generatedDeclarationSyntaxTree).GetDeclaredSymbol(classSyntax, ct) ?? targetSymbol;
                     }
