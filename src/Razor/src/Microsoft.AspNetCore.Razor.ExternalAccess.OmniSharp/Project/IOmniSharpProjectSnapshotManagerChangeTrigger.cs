@@ -5,5 +5,5 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
 public interface IOmniSharpProjectSnapshotManagerChangeTrigger
 {
-    public abstract void Initialize(OmniSharpProjectSnapshotManager projectManager);
+    void Initialize(OmniSharpProjectSnapshotManager projectManager);
 }
