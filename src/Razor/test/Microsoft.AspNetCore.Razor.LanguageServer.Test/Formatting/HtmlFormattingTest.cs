@@ -749,6 +749,94 @@ public class HtmlFormattingTest : FormattingTestBase
             tagHelpers: GetComponents());
     }
 
+    [Fact(Skip = "Requires fix")]
+    [WorkItem("https://github.com/dotnet/razor/issues/8227")]
+    public async Task FormatNestedComponents3()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @if (true)
+                    {
+                        <Component1 Id="comp1"
+                                Caption="Title" />
+                    <Component1 Id="comp2"
+                                Caption="Title">
+                                <Frag>
+                    <Component1 Id="comp3"
+                                Caption="Title" />
+                                </Frag>
+                                </Component1>
+                    }
+                    """,
+            expected: """
+                    @if (true)
+                    {
+                        <Component1 Id="comp1"
+                                    Caption="Title" />
+                        <Component1 Id="comp2"
+                                    Caption="Title">
+                            <Frag>
+                                <Component1 Id="comp3"
+                                            Caption="Title" />
+                            </Frag>
+                        </Component1>
+                    }
+                    """,
+            tagHelpers: GetComponents());
+    }
+
+    [Fact(Skip = "Requires fix")]
+    [WorkItem("https://github.com/dotnet/razor/issues/8228")]
+    public async Task FormatNestedComponents4()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @{
+                        RenderFragment fragment =
+                          @<Component1 Id="Comp1"
+                                     Caption="Title">
+                        </Component1>;
+                    }
+                    """,
+            expected: """
+                    @{
+                        RenderFragment fragment =
+                        @<Component1 Id="Comp1"
+                                     Caption="Title">
+                        </Component1>;
+                    }
+                    """,
+            tagHelpers: GetComponents());
+    }
+
+    [Fact(Skip = "Requires fix")]
+    [WorkItem("https://github.com/dotnet/razor/issues/8229")]
+    public async Task FormatNestedComponents5()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    <Component1>
+                        @{
+                            RenderFragment fragment =
+                            @<Component1 Id="Comp1"
+                                     Caption="Title">
+                            </Component1>;
+                        }
+                    </Component1>
+                    """,
+            expected: """
+                    <Component1>
+                        @{
+                            RenderFragment fragment =
+                            @<Component1 Id="Comp1"
+                                         Caption="Title">
+                            </Component1>;
+                        }
+                    </Component1>
+                    """,
+            tagHelpers: GetComponents());
+    }
+
     [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/30382")]
     public async Task FormatNestedComponents2_Range()
@@ -1827,6 +1915,18 @@ public class HtmlFormattingTest : FormattingTestBase
                     {
                         [Parameter]
                         public RenderFragment ChildContent { get; set; }
+                    }
+
+                    public class Component1 : ComponentBase
+                    {
+                        [Parameter]
+                        public string Id { get; set; }
+
+                        [Parameter]
+                        public string Caption { get; set; }
+
+                        [Parameter]
+                        public RenderFragment Frag {get;set;}
                     }
                 }
                 """));
