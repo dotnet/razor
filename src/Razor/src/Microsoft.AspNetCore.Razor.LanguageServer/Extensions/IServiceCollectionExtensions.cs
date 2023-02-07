@@ -43,6 +43,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IRegistrationExtension, RazorLanguageServerCapability>();
 
         services.AddSingleton<IOnInitialized>(serverManager);
+        services.AddSingleton<IOnInitialized>(razorLanguageServer);
     }
 
     public static void AddFormattingServices(this IServiceCollection services)

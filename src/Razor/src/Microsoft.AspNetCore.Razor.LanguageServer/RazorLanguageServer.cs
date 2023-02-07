@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
@@ -27,12 +29,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Telemetry;
 using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
+internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>, IOnInitialized
 {
     private readonly JsonRpc _jsonRpc;
     private readonly LanguageServerFeatureOptions? _featureOptions;
@@ -59,6 +62,12 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         _lspOptions = lspOptions ?? RazorLSPOptions.Default;
 
         Initialize();
+    }
+
+    public Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+    {
+        OnInitialized();
+        return Task.CompletedTask;
     }
 
     protected override ILspServices ConstructLspServices()
