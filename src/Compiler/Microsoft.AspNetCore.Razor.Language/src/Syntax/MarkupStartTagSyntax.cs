@@ -9,15 +9,20 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal partial class MarkupStartTagSyntax
 {
+    private SyntaxNode _children;
+
     public bool IsMarkupTransition
+        => ((InternalSyntax.MarkupStartTagSyntax)Green).IsMarkupTransition;
+
+    public SyntaxList<RazorSyntaxNode> Children
     {
         get
         {
-            return ((InternalSyntax.MarkupStartTagSyntax)Green).IsMarkupTransition;
+            var children = _children ?? InterlockedOperations.Initialize(ref _children, GetLegacyChildren());
+
+            return new SyntaxList<RazorSyntaxNode>(children);
         }
     }
-
-    public SyntaxList<RazorSyntaxNode> Children => GetLegacyChildren();
 
     public string GetTagNameWithOptionalBang()
     {
@@ -36,7 +41,7 @@ internal partial class MarkupStartTagSyntax
         return ParserHelpers.VoidElements.Contains(Name.Content);
     }
 
-    private SyntaxList<RazorSyntaxNode> GetLegacyChildren()
+    private SyntaxNode GetLegacyChildren()
     {
         // This method returns the children of this start tag in legacy format.
         // This is needed to generate the same classified spans as the legacy syntax tree.
@@ -62,6 +67,7 @@ internal partial class MarkupStartTagSyntax
         {
             tokens.Add(OpenAngle);
         }
+
         if (Bang != null)
         {
             builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume()).WithSpanContext(acceptsAnyContext));
@@ -71,6 +77,7 @@ internal partial class MarkupStartTagSyntax
             acceptsNoneContext.EditHandler.AcceptedCharacters = AcceptedCharactersInternal.None;
             builder.Add(SyntaxFactory.RazorMetaCode(tokens.Consume()).WithSpanContext(acceptsNoneContext));
         }
+
         if (!Name.IsMissing)
         {
             tokens.Add(Name);
@@ -84,6 +91,7 @@ internal partial class MarkupStartTagSyntax
         {
             tokens.Add(ForwardSlash);
         }
+
         if (!CloseAngle.IsMissing)
         {
             tokens.Add(CloseAngle);
@@ -94,6 +102,6 @@ internal partial class MarkupStartTagSyntax
             builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume()).WithSpanContext(context));
         }
 
-        return new SyntaxList<RazorSyntaxNode>(builder.ToListNode().CreateRed(this, Position));
+        return builder.ToListNode().CreateRed(this, Position);
     }
 }

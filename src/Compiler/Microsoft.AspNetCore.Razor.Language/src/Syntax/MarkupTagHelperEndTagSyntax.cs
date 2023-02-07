@@ -9,24 +9,38 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal partial class MarkupTagHelperEndTagSyntax
 {
-    // Copied directly from MarkupEndTagSyntax Children & GetLegacyChildren.
-    public SyntaxList<RazorSyntaxNode> Children => GetLegacyChildren();
+    private SyntaxNode _children;
 
-    private SyntaxList<RazorSyntaxNode> GetLegacyChildren()
+    // Copied directly from MarkupEndTagSyntax Children & GetLegacyChildren.
+
+    public SyntaxList<RazorSyntaxNode> Children
+    {
+        get
+        {
+            var children = _children ?? InterlockedOperations.Initialize(ref _children, GetLegacyChildren());
+
+            return new SyntaxList<RazorSyntaxNode>(children);
+        }
+    }
+
+    private SyntaxNode GetLegacyChildren()
     {
         // This method returns the children of this end tag in legacy format.
         // This is needed to generate the same classified spans as the legacy syntax tree.
         var builder = new SyntaxListBuilder(3);
         var tokens = SyntaxListBuilder<SyntaxToken>.Create();
         var context = this.GetSpanContext();
+
         if (!OpenAngle.IsMissing)
         {
             tokens.Add(OpenAngle);
         }
+
         if (!ForwardSlash.IsMissing)
         {
             tokens.Add(ForwardSlash);
         }
+
         if (Bang != null)
         {
             // The prefix of an end tag(E.g '|</|!foo>') will have 'Any' accepted characters if a bang exists.
@@ -39,10 +53,12 @@ internal partial class MarkupTagHelperEndTagSyntax
             acceptsNoneContext.EditHandler.AcceptedCharacters = AcceptedCharactersInternal.None;
             builder.Add(SyntaxFactory.RazorMetaCode(tokens.Consume()).WithSpanContext(acceptsNoneContext));
         }
+
         if (!Name.IsMissing)
         {
             tokens.Add(Name);
         }
+
         if (MiscAttributeContent?.Children != null && MiscAttributeContent.Children.Count > 0)
         {
             foreach (var content in MiscAttributeContent.Children)
@@ -50,12 +66,14 @@ internal partial class MarkupTagHelperEndTagSyntax
                 tokens.AddRange(((MarkupTextLiteralSyntax)content).LiteralTokens);
             }
         }
+
         if (!CloseAngle.IsMissing)
         {
             tokens.Add(CloseAngle);
         }
+
         builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume()).WithSpanContext(context));
 
-        return new SyntaxList<RazorSyntaxNode>(builder.ToListNode().CreateRed(this, Position));
+        return builder.ToListNode().CreateRed(this, Position);
     }
 }
