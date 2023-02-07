@@ -12,6 +12,7 @@
     <NoWarn>$(NoWarn);RS2008</NoWarn>
     <Nullable>enable</Nullable>
     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
   </PropertyGroup>
 
   <ItemGroup>
