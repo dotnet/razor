@@ -18,7 +18,7 @@ internal class OmniSharpTelemetryReporter : ITelemetryReporter
     {
     }
 
-    public void ReportFault(Exception exception, string? message, object[] @params)
+    public void ReportFault(Exception exception, string? message, params object?[] @params)
     {
     }
 }

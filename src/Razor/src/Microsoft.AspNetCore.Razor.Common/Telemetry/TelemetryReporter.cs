@@ -17,17 +17,21 @@ namespace Microsoft.AspNetCore.Razor.Telemetry;
 internal class TelemetryReporter : ITelemetryReporter
 {
     private readonly ImmutableArray<TelemetrySession> _telemetrySessions;
+    private readonly IEnumerable<IFaultExceptionHandler> _faultExceptionHandlers;
     private readonly ILogger? _logger;
 
     [ImportingConstructor]
-    public TelemetryReporter([Import(AllowDefault = true)] ILoggerFactory? loggerFactory = null)
-        : this(ImmutableArray.Create(TelemetryService.DefaultSession), loggerFactory)
+    public TelemetryReporter(
+        [Import(AllowDefault = true)] ILoggerFactory? loggerFactory = null,
+        [ImportMany] IEnumerable<IFaultExceptionHandler>? faultExceptionHandlers = null)
+        : this(ImmutableArray.Create(TelemetryService.DefaultSession), loggerFactory, faultExceptionHandlers)
     {
     }
 
-    public TelemetryReporter(ImmutableArray<TelemetrySession> telemetrySessions, ILoggerFactory? loggerFactory)
+    public TelemetryReporter(ImmutableArray<TelemetrySession> telemetrySessions, ILoggerFactory? loggerFactory, IEnumerable<IFaultExceptionHandler>? faultExceptionHandlers)
     {
         _telemetrySessions = telemetrySessions;
+        _faultExceptionHandlers = faultExceptionHandlers ?? Array.Empty<IFaultExceptionHandler>();
         _logger = loggerFactory?.CreateLogger<TelemetryReporter>();
     }
 
@@ -48,7 +52,7 @@ internal class TelemetryReporter : ITelemetryReporter
         Report(telemetryEvent);
     }
 
-    public void ReportFault(Exception exception, string? message, object[] @params)
+    public void ReportFault(Exception exception, string? message, params object?[] @params)
     {
         try
         {
@@ -69,6 +73,20 @@ internal class TelemetryReporter : ITelemetryReporter
                 return;
             }
 
+            var handled = false;
+            foreach (var handler in _faultExceptionHandlers)
+            {
+                if (handler.HandleException(this, exception, message, @params))
+                {
+                    handled = true;
+                }
+            }
+
+            if (handled)
+            {
+                return;
+            }
+
             var currentProcess = Process.GetCurrentProcess();
 
             var faultEvent = new FaultEvent(
@@ -78,6 +96,16 @@ internal class TelemetryReporter : ITelemetryReporter
                 exceptionObject: exception,
                 gatherEventDetails: faultUtility =>
                 {
+                    foreach (var data in @params)
+                    {
+                        if (data is null)
+                        {
+                            continue;
+                        }
+
+                        faultUtility.AddErrorInformation(data.ToString());
+                    }
+
                     // Returning "0" signals that, if sampled, we should send data to Watson.
                     // Any other value will cancel the Watson report. We never want to trigger a process dump manually,
                     // we'll let TargetedNotifications determine if a dump should be collected.
