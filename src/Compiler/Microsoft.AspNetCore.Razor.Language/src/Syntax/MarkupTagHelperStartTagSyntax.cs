@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax;
 
 internal partial class MarkupTagHelperStartTagSyntax
 {
-    private SyntaxNode _children;
+    private SyntaxNode _lazyChildren;
 
     // Copied directly from MarkupStartTagSyntax Children & GetLegacyChildren.
 
@@ -17,7 +17,7 @@ internal partial class MarkupTagHelperStartTagSyntax
     {
         get
         {
-            var children = _children ?? InterlockedOperations.Initialize(ref _children, GetLegacyChildren());
+            var children = _lazyChildren ?? InterlockedOperations.Initialize(ref _lazyChildren, GetLegacyChildren());
 
             return new SyntaxList<RazorSyntaxNode>(children);
         }
