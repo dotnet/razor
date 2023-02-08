@@ -11,7 +11,7 @@ internal class JsonRPCFaultExceptionHandler : IFaultExceptionHandler
 {
     public bool HandleException(ITelemetryReporter reporter, Exception exception, string? message, object?[] @params)
     {
-        if (exception is not RemoteInvocationException  remoteInvocationException)
+        if (exception is not RemoteInvocationException remoteInvocationException)
         {
             return false;
         }
