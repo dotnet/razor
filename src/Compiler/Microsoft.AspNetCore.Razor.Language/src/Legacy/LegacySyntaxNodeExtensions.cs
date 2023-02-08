@@ -327,31 +327,35 @@ internal static partial class LegacySyntaxNodeExtensions
 
         var spanData = s_spanDataTable.GetOrCreateValue(node);
 
-        if (spanData.PreviousComputed)
+        lock (spanData)
         {
-            return spanData.Previous;
-        }
-
-        var parent = node.Parent;
-        while (parent is not null)
-        {
-            foreach (var span in parent.FlattenSpansInReverse())
+            if (spanData.PreviousComputed)
             {
-                if (span.EndPosition <= node.Position && span != node)
-                {
-                    spanData.Previous = span;
-                    goto Done;
-                }
+                return spanData.Previous;
             }
 
-            parent = parent.Parent;
+            var parent = node.Parent;
+            while (parent is not null)
+            {
+                foreach (var span in parent.FlattenSpansInReverse())
+                {
+                    if (span.EndPosition <= node.Position && span != node)
+                    {
+                        spanData.PreviousComputed = true;
+                        spanData.Previous = span;
+
+                        return span;
+                    }
+                }
+
+                parent = parent.Parent;
+            }
+
+            spanData.PreviousComputed = true;
+            spanData.Previous = null;
+
+            return null;
         }
-
-    Done:
-        // Note: if we didn't find a valid span, spanData.Previous will be null.
-        spanData.PreviousComputed = true;
-
-        return spanData.Previous;
     }
 
     public static SyntaxNode? NextSpan(this SyntaxNode node)
@@ -363,30 +367,34 @@ internal static partial class LegacySyntaxNodeExtensions
 
         var spanData = s_spanDataTable.GetOrCreateValue(node);
 
-        if (spanData.NextComputed)
+        lock (spanData)
         {
-            return spanData.Next;
-        }
-
-        var parent = node.Parent;
-        while (parent is not null)
-        {
-            foreach (var span in parent.FlattenSpans())
+            if (spanData.NextComputed)
             {
-                if (span.Position >= node.Position && span != node)
-                {
-                    spanData.Next = span;
-                    goto Done;
-                }
+                return spanData.Next;
             }
 
-            parent = parent.Parent;
+            var parent = node.Parent;
+            while (parent is not null)
+            {
+                foreach (var span in parent.FlattenSpans())
+                {
+                    if (span.Position >= node.Position && span != node)
+                    {
+                        spanData.NextComputed = true;
+                        spanData.Next = span;
+
+                        return span;
+                    }
+                }
+
+                parent = parent.Parent;
+            }
+
+            spanData.NextComputed = true;
+            spanData.Next = null;
+
+            return null;
         }
-
-    Done:
-        // Note: if we didn't find a valid span, spanData.Next will be null.
-        spanData.NextComputed = true;
-
-        return spanData.Next;
     }
 }
