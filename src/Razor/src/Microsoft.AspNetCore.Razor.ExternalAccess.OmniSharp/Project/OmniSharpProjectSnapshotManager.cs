@@ -1,22 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-internal class DefaultOmniSharpProjectSnapshotManager : OmniSharpProjectSnapshotManagerBase
+public class OmniSharpProjectSnapshotManager
 {
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
 
-    public DefaultOmniSharpProjectSnapshotManager(
+    internal OmniSharpProjectSnapshotManager(
         ProjectSnapshotManagerBase projectSnapshotManager,
         RemoteTextLoaderFactory remoteTextLoaderFactory)
     {
@@ -35,60 +30,54 @@ internal class DefaultOmniSharpProjectSnapshotManager : OmniSharpProjectSnapshot
         InternalProjectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
     }
 
-    internal override ProjectSnapshotManagerBase InternalProjectSnapshotManager { get; }
+    internal ProjectSnapshotManagerBase InternalProjectSnapshotManager { get; }
 
-    public override Workspace Workspace => InternalProjectSnapshotManager.Workspace;
+    public IReadOnlyList<OmniSharpProjectSnapshot> Projects => InternalProjectSnapshotManager.Projects.Select(project => OmniSharpProjectSnapshot.Convert(project)!).ToList();
 
-    public override IReadOnlyList<OmniSharpProjectSnapshot> Projects => InternalProjectSnapshotManager.Projects.Select(project => OmniSharpProjectSnapshot.Convert(project)).ToList();
+    public event EventHandler<OmniSharpProjectChangeEventArgs>? Changed;
 
-    public override event EventHandler<OmniSharpProjectChangeEventArgs> Changed;
+    public OmniSharpProjectSnapshot GetLoadedProject(OmniSharpHostProject project)
+    {
+        return GetLoadedProject(project.InternalHostProject.FilePath);
+    }
 
-    public override OmniSharpProjectSnapshot GetLoadedProject(string filePath)
+    public OmniSharpProjectSnapshot GetLoadedProject(string filePath)
     {
         var projectSnapshot = InternalProjectSnapshotManager.GetLoadedProject(filePath);
-        var converted = OmniSharpProjectSnapshot.Convert(projectSnapshot);
+        // Forgiving null because we should only return null when projectSnapshot is null
+        var converted = OmniSharpProjectSnapshot.Convert(projectSnapshot)!;
 
         return converted;
     }
 
-    public override void ProjectAdded(OmniSharpHostProject hostProject)
+    public void ProjectAdded(OmniSharpHostProject hostProject)
     {
         InternalProjectSnapshotManager.ProjectAdded(hostProject.InternalHostProject);
     }
 
-    public override void ProjectRemoved(OmniSharpHostProject hostProject)
-    {
-        InternalProjectSnapshotManager.ProjectRemoved(hostProject.InternalHostProject);
-    }
-
-    public override void ProjectConfigurationChanged(OmniSharpHostProject hostProject)
+    public void ProjectConfigurationChanged(OmniSharpHostProject hostProject)
     {
         InternalProjectSnapshotManager.ProjectConfigurationChanged(hostProject.InternalHostProject);
     }
 
-    public override void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState projectWorkspaceState)
-    {
-        InternalProjectSnapshotManager.ProjectWorkspaceStateChanged(projectFilePath, projectWorkspaceState);
-    }
-
-    public override void DocumentAdded(OmniSharpHostProject hostProject, OmniSharpHostDocument hostDocument)
+    public void DocumentAdded(OmniSharpHostProject hostProject, OmniSharpHostDocument hostDocument)
     {
         var textLoader = _remoteTextLoaderFactory.Create(hostDocument.FilePath);
         InternalProjectSnapshotManager.DocumentAdded(hostProject.InternalHostProject, hostDocument.InternalHostDocument, textLoader);
     }
 
-    public override void DocumentChanged(string projectFilePath, string documentFilePath)
+    public void DocumentChanged(string projectFilePath, string documentFilePath)
     {
         var textLoader = _remoteTextLoaderFactory.Create(documentFilePath);
         InternalProjectSnapshotManager.DocumentChanged(projectFilePath, documentFilePath, textLoader);
     }
 
-    public override void DocumentRemoved(OmniSharpHostProject hostProject, OmniSharpHostDocument hostDocument)
+    public void DocumentRemoved(OmniSharpHostProject hostProject, OmniSharpHostDocument hostDocument)
     {
         InternalProjectSnapshotManager.DocumentRemoved(hostProject.InternalHostProject, hostDocument.InternalHostDocument);
     }
 
-    private void ProjectSnapshotManager_Changed(object sender, ProjectChangeEventArgs args)
+    private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs args)
     {
         var convertedArgs = new OmniSharpProjectChangeEventArgs(args);
         Changed?.Invoke(this, convertedArgs);

@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed\Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp\Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.csproj" />
   </ItemGroup>
 
   <ItemGroup>

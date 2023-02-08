@@ -1,12 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 
 public sealed class OmniSharpHostDocument
 {
@@ -27,9 +24,9 @@ public sealed class OmniSharpHostDocument
 
     public string FilePath => InternalHostDocument.FilePath;
 
-    public string TargetPath => InternalHostDocument.TargetPath;
+    internal string TargetPath => InternalHostDocument.TargetPath;
 
-    public string FileKind => InternalHostDocument.FileKind;
+    internal string FileKind => InternalHostDocument.FileKind;
 
     internal HostDocument InternalHostDocument { get; }
 }

@@ -1,19 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-internal class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectSnapshotManagerChangeTrigger
+public class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectSnapshotManagerChangeTrigger
 {
     public OmniSharpWorkspaceProjectStateChangeDetector(
         OmniSharpProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -36,9 +33,9 @@ internal class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectS
             languageServerFeatureOptions.InternalLanguageServerFeatureOptions);
     }
 
-    internal WorkspaceProjectStateChangeDetector InternalWorkspaceProjectStateChangeDetector { get; }
+    private WorkspaceProjectStateChangeDetector InternalWorkspaceProjectStateChangeDetector { get; }
 
-    public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+    public void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         InternalWorkspaceProjectStateChangeDetector.Initialize(projectManager.InternalProjectSnapshotManager);
     }
@@ -47,7 +44,7 @@ internal class OmniSharpWorkspaceProjectStateChangeDetector : IOmniSharpProjectS
     {
         private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
 
-        public ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
+        internal ProjectSnapshotManagerWorkspaceProjectStateChangeDetector(
             ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
             ProjectWorkspaceStateGenerator workspaceStateGenerator,
             LanguageServerFeatureOptions languageServerFeatureOptions)
