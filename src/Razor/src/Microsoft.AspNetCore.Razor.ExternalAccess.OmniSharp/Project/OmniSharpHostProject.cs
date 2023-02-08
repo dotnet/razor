@@ -1,13 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
 public sealed class OmniSharpHostProject
 {
@@ -25,12 +22,6 @@ public sealed class OmniSharpHostProject
 
         InternalHostProject = new HostProject(projectFilePath, razorConfiguration, rootNamespace);
     }
-
-    public string FilePath => InternalHostProject.FilePath;
-
-    public RazorConfiguration Configuration => InternalHostProject.Configuration;
-
-    public string RootNamespace => InternalHostProject.RootNamespace;
 
     internal HostProject InternalHostProject { get; }
 }

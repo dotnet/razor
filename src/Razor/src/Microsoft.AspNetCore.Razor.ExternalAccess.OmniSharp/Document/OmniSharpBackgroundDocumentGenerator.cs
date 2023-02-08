@@ -1,19 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 
-internal class OmniSharpBackgroundDocumentGenerator : IOmniSharpProjectSnapshotManagerChangeTrigger
+public class OmniSharpBackgroundDocumentGenerator : IOmniSharpProjectSnapshotManagerChangeTrigger
 {
     private readonly BackgroundDocumentGenerator _backgroundDocumentGenerator;
 
@@ -41,7 +37,7 @@ internal class OmniSharpBackgroundDocumentGenerator : IOmniSharpProjectSnapshotM
         _backgroundDocumentGenerator = new BackgroundDocumentGenerator(projectSnapshotManagerDispatcher.InternalDispatcher, wrappedListeners);
     }
 
-    public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+    public void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         _backgroundDocumentGenerator.Initialize(projectManager.InternalProjectSnapshotManager);
     }
@@ -51,7 +47,7 @@ internal class OmniSharpBackgroundDocumentGenerator : IOmniSharpProjectSnapshotM
         private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
         private readonly OmniSharpDocumentProcessedListener _innerDocumentProcessedListener;
 
-        public WrappedDocumentProcessedListener(
+        internal WrappedDocumentProcessedListener(
             RemoteTextLoaderFactory remoteTextLoaderFactory,
             OmniSharpDocumentProcessedListener innerDocumentProcessedListener)
         {
@@ -77,7 +73,7 @@ internal class OmniSharpBackgroundDocumentGenerator : IOmniSharpProjectSnapshotM
 
         public override void Initialize(ProjectSnapshotManager projectManager)
         {
-            var omniSharpProjectManager = new DefaultOmniSharpProjectSnapshotManager((ProjectSnapshotManagerBase)projectManager, _remoteTextLoaderFactory);
+            var omniSharpProjectManager = new OmniSharpProjectSnapshotManager((ProjectSnapshotManagerBase)projectManager, _remoteTextLoaderFactory);
             _innerDocumentProcessedListener.Initialize(omniSharpProjectManager);
         }
     }

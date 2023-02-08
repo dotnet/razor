@@ -1,20 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
 using System.Composition;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
 [Shared]
 [ExportWorkspaceServiceFactory(typeof(ProjectSnapshotProjectEngineFactory))]
-internal class DefaultProjectSnapshotProjectEngineFactoryFactory : IWorkspaceServiceFactory
+internal class ProjectSnapshotProjectEngineFactoryFactory : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {

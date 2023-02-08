@@ -1,16 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Razor.Language;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
-internal sealed class OmniSharpProjectSnapshot
+public sealed class OmniSharpProjectSnapshot
 {
     internal readonly IProjectSnapshot InternalProjectSnapshot;
 
@@ -23,11 +20,9 @@ internal sealed class OmniSharpProjectSnapshot
 
     public IEnumerable<string> DocumentFilePaths => InternalProjectSnapshot.DocumentFilePaths;
 
-    public RazorConfiguration Configuration => InternalProjectSnapshot.Configuration;
+    public ProjectWorkspaceState? ProjectWorkspaceState => InternalProjectSnapshot.ProjectWorkspaceState;
 
-    public ProjectWorkspaceState ProjectWorkspaceState => InternalProjectSnapshot.ProjectWorkspaceState;
-
-    public OmniSharpDocumentSnapshot GetDocument(string filePath)
+    public OmniSharpDocumentSnapshot? GetDocument(string filePath)
     {
         var documentSnapshot = InternalProjectSnapshot.GetDocument(filePath);
         if (documentSnapshot is null)
@@ -39,7 +34,7 @@ internal sealed class OmniSharpProjectSnapshot
         return internalDocumentSnapshot;
     }
 
-    internal static OmniSharpProjectSnapshot Convert(IProjectSnapshot projectSnapshot)
+    internal static OmniSharpProjectSnapshot? Convert(IProjectSnapshot? projectSnapshot)
     {
         if (projectSnapshot is null)
         {
@@ -47,15 +42,5 @@ internal sealed class OmniSharpProjectSnapshot
         }
 
         return new OmniSharpProjectSnapshot(projectSnapshot);
-    }
-
-    public static OmniSharpProjectSnapshot CreateForTest(object projectSnapshot)
-    {
-        if (projectSnapshot is IProjectSnapshot stronglyTypedSnapshot)
-        {
-            return new OmniSharpProjectSnapshot(stronglyTypedSnapshot);
-        }
-
-        throw new ArgumentException($"Snapshot is not of type {typeof(IProjectSnapshot).FullName}", nameof(projectSnapshot));
     }
 }

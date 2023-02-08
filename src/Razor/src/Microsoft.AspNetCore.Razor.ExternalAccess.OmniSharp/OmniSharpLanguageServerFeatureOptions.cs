@@ -4,7 +4,7 @@
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
-namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp;
 
 public class OmniSharpLanguageServerFeatureOptions
 {
