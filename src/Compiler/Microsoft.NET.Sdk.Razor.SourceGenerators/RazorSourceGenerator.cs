@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
@@ -26,9 +27,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             // determine if we should suppress this run and filter out all the additional files if so
             var isGeneratorSuppressed = analyzerConfigOptions.Select(GetSuppressionStatus);
             var additionalTexts = context.AdditionalTextsProvider
-                 .Combine(isGeneratorSuppressed)
-                 .Where(pair => !pair.Right)
-                 .Select((pair, _) => pair.Left);
+                .Combine(isGeneratorSuppressed)
+                .Where(pair => !pair.Right)
+                .Select((pair, _) => pair.Left);
 
             var razorSourceGeneratorOptions = analyzerConfigOptions
                 .Combine(parseOptions)
@@ -205,7 +206,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return allTagHelpers;
                 });
 
-            var generatedOutput = sourceItems
+            var codeDocuments = sourceItems
                 .Combine(importFiles.Collect())
                 .Combine(allTagHelpers)
                 .Combine(razorSourceGeneratorOptions)
@@ -223,9 +224,18 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     var codeDocument = razorSourceGeneratorOptions.DesignTime
                         ? projectEngine.ProcessDesignTime(sourceItem)
                         : projectEngine.Process(sourceItem);
-                    var csharpDocument = codeDocument.GetCSharpDocument();
 
                     RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(sourceItem.FilePath);
+                    return (hintName, codeDocument, designTime: razorSourceGeneratorOptions.DesignTime);
+                });
+
+            var csharpDocuments = codeDocuments
+                .Select(static (tuple, _) =>
+                {
+                    var (hintName, codeDocument, designTime) = tuple;
+
+                    var csharpDocument = codeDocument.GetCSharpDocument();
+
                     return (hintName, csharpDocument);
                 })
                 .WithLambdaComparer(static (a, b) =>
@@ -239,7 +249,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return string.Equals(a.csharpDocument.GeneratedCode, b.csharpDocument.GeneratedCode, StringComparison.Ordinal);
                 }, static a => StringComparer.Ordinal.GetHashCode(a.csharpDocument));
 
-            context.RegisterSourceOutput(generatedOutput, static (context, pair) =>
+            context.RegisterSourceOutput(csharpDocuments, static (context, pair) =>
             {
                 var (hintName, csharpDocument) = pair;
                 RazorSourceGeneratorEventSource.Log.AddSyntaxTrees(hintName);
@@ -251,6 +261,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 }
 
                 context.AddSource(hintName, csharpDocument.GeneratedCode);
+            });
+
+            // Generate host outputs if design-time is enabled.
+            var hostOutput = codeDocuments.Where(static (tuple) => tuple.designTime);
+            context.RegisterHostOutput(hostOutput, static (context, tuple, _) =>
+            {
+                var (hintName, codeDocument, _) = tuple;
+                context.AddOutput(hintName + ".rsg-html", codeDocument.GetHtmlDocument().GeneratedCode);
             });
         }
     }
