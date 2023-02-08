@@ -92,7 +92,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
         var keywordsBuilder = ImmutableHashSet<string>.Empty.ToBuilder();
         var keywordParserMapBuilder = ImmutableDictionary<CSharpKeyword, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax>>.Empty.ToBuilder();
-        var currentKeywordsBuilder = ImmutableHashSet<string>.Empty.ToBuilder();
+        var currentKeywordsBuilder = DefaultKeywords.ToBuilder();
         var directiveParserMapBuilder = ImmutableDictionary.CreateBuilder<string, Action<SyntaxListBuilder<RazorSyntaxNode>, CSharpTransitionSyntax>>(StringComparer.Ordinal);
 
         SetupKeywordParsers();
