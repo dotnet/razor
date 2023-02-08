@@ -24,7 +24,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var compilation = context.CompilationProvider;
 
             // determine if we should suppress this run and filter out all the additional files if so
-            var isGeneratorSuppressed = context.AnalyzerConfigOptionsProvider.Select(GetSuppressionStatus);
+            var isGeneratorSuppressed = analyzerConfigOptions.Select(GetSuppressionStatus);
             var additionalTexts = context.AdditionalTextsProvider
                  .Combine(isGeneratorSuppressed)
                  .Where(pair => !pair.Right)
@@ -68,13 +68,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Combine(razorSourceGeneratorOptions)
                 .Select(static (pair, _) =>
                 {
-
                     var ((sourceItem, importFiles), razorSourceGeneratorOptions) = pair;
                     RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStart(sourceItem.FilePath);
 
                     var projectEngine = GetDeclarationProjectEngine(sourceItem, importFiles, razorSourceGeneratorOptions);
 
-                    var codeGen = projectEngine.Process(sourceItem);
+                    var codeGen = razorSourceGeneratorOptions.DesignTime
+                        ? projectEngine.ProcessDesignTime(sourceItem)
+                        : projectEngine.Process(sourceItem);
 
                     var result = codeGen.GetCSharpDocument().GeneratedCode;
 
@@ -219,7 +220,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     var projectEngine = GetGenerationProjectEngine(allTagHelpers, sourceItem, imports, razorSourceGeneratorOptions);
 
-                    var codeDocument = projectEngine.Process(sourceItem);
+                    var codeDocument = razorSourceGeneratorOptions.DesignTime
+                        ? projectEngine.ProcessDesignTime(sourceItem)
+                        : projectEngine.Process(sourceItem);
                     var csharpDocument = codeDocument.GetCSharpDocument();
 
                     RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(sourceItem.FilePath);

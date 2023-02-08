@@ -39,6 +39,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             globalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace);
             globalOptions.TryGetValue("build_property.SupportLocalizedComponentNames", out var supportLocalizedComponentNames);
             globalOptions.TryGetValue("build_property.GenerateRazorMetadataSourceChecksumAttributes", out var generateMetadataSourceChecksumAttributes);
+            globalOptions.TryGetValue("build_property.RazorDesignTime", out var razorDesignTime);
 
             var razorLanguageVersion = RazorLanguageVersion.Latest;
             Diagnostic? diagnostic = null;
@@ -60,6 +61,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 RootNamespace = rootNamespace ?? "ASP",
                 SupportLocalizedComponentNames = supportLocalizedComponentNames == "true",
                 CSharpLanguageVersion = ((CSharpParseOptions)parseOptions).LanguageVersion,
+                DesignTime = razorDesignTime == "true",
             };
 
             return (razorSourceGenerationOptions, diagnostic);

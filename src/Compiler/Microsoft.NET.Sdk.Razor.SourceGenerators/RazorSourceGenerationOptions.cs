@@ -25,9 +25,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         public LanguageVersion CSharpLanguageVersion { get; set; } = LanguageVersion.CSharp10;
 
         /// <summary>
-        /// Gets a flag that determines if localized component names should be supported.</c>.
+        /// Gets a flag that determines if localized component names should be supported.
         /// </summary>
         public bool SupportLocalizedComponentNames { get; set; } = false;
+
+        /// <summary>
+        /// Determines whether Razor files are compiled in design-time mode.
+        /// </summary>
+        public bool DesignTime { get; set; }
 
         public bool Equals(RazorSourceGenerationOptions other)
         {

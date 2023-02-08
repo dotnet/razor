@@ -50,6 +50,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 b.Features.Add(new DefaultTypeNameFeature());
                 b.Features.Add(new ConfigureRazorCodeGenerationOptions(options =>
                 {
+                    options.SetDesignTime(razorSourceGeneratorOptions.DesignTime);
                     options.SuppressPrimaryMethodBody = true;
                     options.SuppressChecksum = true;
                     options.SupportLocalizedComponentNames = razorSourceGeneratorOptions.SupportLocalizedComponentNames;
@@ -103,6 +104,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                 b.Features.Add(new ConfigureRazorCodeGenerationOptions(options =>
                 {
+                    options.SetDesignTime(razorSourceGeneratorOptions.DesignTime);
                     options.SuppressMetadataSourceChecksumAttributes = !razorSourceGeneratorOptions.GenerateMetadataSourceChecksumAttributes;
                     options.SupportLocalizedComponentNames = razorSourceGeneratorOptions.SupportLocalizedComponentNames;
                 }));
