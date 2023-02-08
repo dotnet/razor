@@ -49,7 +49,7 @@ internal class GenericTypeNameRewriter : TypeNameRewriter
                     //
                     // We add our own diagnostics for missing/invalid type parameters anyway.
                     var replacement = binding == null ? typeof(object).FullName : binding;
-                    return identifier.Update(SyntaxFactory.Identifier(replacement));
+                    return identifier.Update(SyntaxFactory.Identifier(replacement).WithTriviaFrom(identifier.Identifier));
                 }
             }
 

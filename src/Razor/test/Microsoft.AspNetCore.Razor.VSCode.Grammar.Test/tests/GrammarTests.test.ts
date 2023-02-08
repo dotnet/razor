@@ -28,6 +28,7 @@ import { RunPageDirectiveSuite } from './PageDirective';
 import { RunRazorCommentSuite } from './RazorComment';
 import { RunRazorTemplateSuite } from './RazorTemplate';
 import { RunRemoveTagHelperDirectiveSuite } from './RemoveTagHelperDirective';
+import { RunScriptBlockSuite } from './ScriptBlock';
 import { RunSectionDirectiveSuite } from './SectionDirective';
 import { RunStyleBlockSuite } from './StyleBlock';
 import { RunSwitchStatementSuite } from './SwitchStatement';
@@ -83,5 +84,6 @@ describe('Grammar tests', () => {
     RunTryStatementSuite();
 
     // Html stuff
+    RunScriptBlockSuite();
     RunStyleBlockSuite();
 });

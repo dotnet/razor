@@ -20,15 +20,15 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 
 public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmarkBase
 {
-    private DefaultRazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
+    private RazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
 
     private DocumentVersionCache VersionCache { get; set; }
 
-    private DocumentContext DocumentContext { get; set; }
+    private VersionedDocumentContext DocumentContext { get; set; }
 
     private Uri DocumentUri => DocumentContext.Uri;
 
-    private DocumentSnapshot DocumentSnapshot => DocumentContext.Snapshot;
+    private IDocumentSnapshot DocumentSnapshot => DocumentContext.Snapshot;
 
     private Range Range { get; set; }
 
@@ -53,7 +53,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 
         var documentUri = new Uri(filePath);
         var documentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
-        DocumentContext = new DocumentContext(documentUri, documentSnapshot, version: 1);
+        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, version: 1);
 
         var text = await DocumentSnapshot.GetTextAsync().ConfigureAwait(false);
         Range = new Range
@@ -106,7 +106,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
         }
     }
 
-    private async Task UpdateDocumentAsync(int newVersion, DocumentSnapshot documentSnapshot)
+    private async Task UpdateDocumentAsync(int newVersion, IDocumentSnapshot documentSnapshot)
     {
         await ProjectSnapshotManagerDispatcher!.RunOnDispatcherThreadAsync(
             () => VersionCache!.TrackDocumentVersion(documentSnapshot, newVersion), CancellationToken.None).ConfigureAwait(false);
@@ -129,7 +129,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
     private void EnsureServicesInitialized()
     {
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-        RazorSemanticTokenService = (languageServer.GetRequiredService<RazorSemanticTokensInfoService>() as TestRazorSemanticTokensInfoService)!;
+        RazorSemanticTokenService = languageServer.GetRequiredService<RazorSemanticTokensInfoService>();
         VersionCache = languageServer.GetRequiredService<DocumentVersionCache>();
         ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<ProjectSnapshotManagerDispatcher>();
     }

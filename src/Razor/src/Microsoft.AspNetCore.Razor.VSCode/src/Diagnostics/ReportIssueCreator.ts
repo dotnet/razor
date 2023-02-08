@@ -5,8 +5,8 @@
 
 import * as cp from 'child_process';
 import * as os from 'os';
-import { IRazorDocument } from '../IRazorDocument';
-import { IRazorDocumentManager } from '../IRazorDocumentManager';
+import { IRazorDocument } from '../Document/IRazorDocument';
+import { IRazorDocumentManager } from '../Document/IRazorDocumentManager';
 import { razorExtensionId } from '../RazorExtensionId';
 import * as vscode from '../vscodeAdapter';
 import { IReportIssueDataCollectionResult } from './IReportIssueDataCollectionResult';

@@ -5,7 +5,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -13,7 +12,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin;
 
-public class DefaultOmniSharpProjectSnapshotManagerAccessor : OmniSharpProjectSnapshotManagerAccessor
+internal class DefaultOmniSharpProjectSnapshotManagerAccessor : OmniSharpProjectSnapshotManagerAccessor
 {
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
     private readonly IEnumerable<IOmniSharpProjectSnapshotManagerChangeTrigger> _projectChangeTriggers;
@@ -61,8 +60,8 @@ public class DefaultOmniSharpProjectSnapshotManagerAccessor : OmniSharpProjectSn
             {
                 var projectSnapshotManager = new DefaultProjectSnapshotManager(
                     _projectSnapshotManagerDispatcher.InternalDispatcher,
-                    new DefaultErrorReporter(),
-                    Enumerable.Empty<ProjectSnapshotChangeTrigger>(),
+                    ErrorReporter.Instance,
+                    Array.Empty<ProjectSnapshotChangeTrigger>(),
                     _workspace);
 
                 var instance = new DefaultOmniSharpProjectSnapshotManager(projectSnapshotManager, _remoteTextLoaderFactory);

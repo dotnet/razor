@@ -52,7 +52,7 @@ public abstract class OmniSharpTestBase : LanguageServerTestBase
         AddDisposable((IDisposable)Dispatcher.DispatcherScheduler);
     }
 
-    protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath)
+    private protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath)
     {
         var projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Default);
         var projectSnapshot = _createTestProjectSnapshotMethod.Invoke(null, new object[] { projectFilePath, projectWorkspaceState });
@@ -61,7 +61,7 @@ public abstract class OmniSharpTestBase : LanguageServerTestBase
         return omniSharpProjectSnapshot;
     }
 
-    protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath, string[] documentFilePaths)
+    private protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath, string[] documentFilePaths)
     {
         var projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Default);
         var projectSnapshot = _createWithDocumentsTestProjectSnapshotMethod.Invoke(null, new object[] { projectFilePath, documentFilePaths, projectWorkspaceState });
@@ -70,10 +70,10 @@ public abstract class OmniSharpTestBase : LanguageServerTestBase
         return omniSharpProjectSnapshot;
     }
 
-    protected OmniSharpProjectSnapshotManagerBase CreateProjectSnapshotManager(bool allowNotifyListeners = false)
+    private protected OmniSharpProjectSnapshotManagerBase CreateProjectSnapshotManager(bool allowNotifyListeners = false)
     {
         var dispatcher = _dispatcherProperty.GetValue(Dispatcher);
-        var testSnapshotManager = _createProjectSnapshotManagerMethod.Invoke(null, new object[] { dispatcher });
+        var testSnapshotManager = _createProjectSnapshotManagerMethod.Invoke(null, new object[] { dispatcher, ErrorReporter });
         _allowNotifyListenersProperty.SetValue(testSnapshotManager, allowNotifyListeners);
         var remoteTextLoaderFactory = new DefaultRemoteTextLoaderFactory();
         var snapshotManager = (OmniSharpProjectSnapshotManagerBase)_omniSharpProjectSnapshotMangerConstructor.Invoke(new[] { testSnapshotManager, remoteTextLoaderFactory });

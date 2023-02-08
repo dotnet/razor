@@ -26,11 +26,11 @@ public class DocumentSnapshotTextLoaderTest : TestBase
         // Arrange
         var expectedSourceText = SourceText.From("Hello World");
         var result = Task.FromResult(expectedSourceText);
-        var snapshot = Mock.Of<DocumentSnapshot>(doc => doc.GetTextAsync() == result, MockBehavior.Strict);
+        var snapshot = Mock.Of<IDocumentSnapshot>(doc => doc.GetTextAsync() == result, MockBehavior.Strict);
         var textLoader = new DocumentSnapshotTextLoader(snapshot);
 
         // Act
-        var actual = await textLoader.LoadTextAndVersionAsync(default, default, default);
+        var actual = await textLoader.LoadTextAndVersionAsync(default, default);
 
         // Assert
         Assert.Same(expectedSourceText, actual.Text);

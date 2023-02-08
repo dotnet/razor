@@ -9,16 +9,24 @@ import { fileURLToPath } from 'url';
 import * as vscode from 'vscode';
 
 export async function activate(context: vscode.ExtensionContext) {
-    const launchDebugProxy = vscode.commands.registerCommand('blazorwasm-companion.launchDebugProxy', async (folder: vscode.WorkspaceFolder) => {
-        const launchSettings = JSON.parse(readFileSync(join(fileURLToPath(folder.uri.toString()), 'Properties', 'launchSettings.json'), 'utf8'));
-        if (launchSettings?.profiles && launchSettings?.profiles[Object.keys(launchSettings.profiles)[0]]?.inspectUri) {
+    const launchDebugProxy = vscode.commands.registerCommand('blazorwasm-companion.launchDebugProxy', async (folder: vscode.WorkspaceFolder, configuration: vscode.DebugConfiguration) => {
+        try {
+            let folderPath = configuration.cwd ? configuration.cwd : fileURLToPath(folder.uri.toString());
+            folderPath = folderPath.replace('${workspaceFolder}', fileURLToPath(folder.uri.toString()));
+            const launchSettings = JSON.parse(readFileSync(join(folderPath, 'Properties', 'launchSettings.json'), 'utf8'));
+            if (launchSettings?.profiles && launchSettings?.profiles[Object.keys(launchSettings.profiles)[0]]?.inspectUri) {
+                return {
+                    inspectUri: launchSettings.profiles[Object.keys(launchSettings.profiles)[0]].inspectUri,
+                };
+            }
             return {
-                inspectUri: launchSettings.profiles[Object.keys(launchSettings.profiles)[0]].inspectUri,
+                inspectUri: '{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}',
+            };
+        } catch (error: any) {
+            return {
+                inspectUri: '{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}',
             };
         }
-        return {
-            inspectUri: '{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}',
-        };
     });
 
     context.subscriptions.push(launchDebugProxy);

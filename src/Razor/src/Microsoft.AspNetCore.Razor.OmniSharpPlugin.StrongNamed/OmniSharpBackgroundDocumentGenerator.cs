@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
 
-public class OmniSharpBackgroundDocumentGenerator : IOmniSharpProjectSnapshotManagerChangeTrigger
+internal class OmniSharpBackgroundDocumentGenerator : IOmniSharpProjectSnapshotManagerChangeTrigger
 {
     private readonly BackgroundDocumentGenerator _backgroundDocumentGenerator;
 
@@ -69,7 +69,7 @@ public class OmniSharpBackgroundDocumentGenerator : IOmniSharpProjectSnapshotMan
             _innerDocumentProcessedListener = innerDocumentProcessedListener;
         }
 
-        public override void DocumentProcessed(RazorCodeDocument codeDocument, DocumentSnapshot document)
+        public override void DocumentProcessed(RazorCodeDocument codeDocument, IDocumentSnapshot document)
         {
             var omniSharpDocument = new OmniSharpDocumentSnapshot(document);
             _innerDocumentProcessedListener.DocumentProcessed(codeDocument, omniSharpDocument);
