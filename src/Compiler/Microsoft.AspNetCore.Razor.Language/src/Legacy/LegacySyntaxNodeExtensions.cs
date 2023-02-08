@@ -1,17 +1,29 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-internal static class LegacySyntaxNodeExtensions
+internal static partial class LegacySyntaxNodeExtensions
 {
+    private class SpanData
+    {
+        public SyntaxNode Previous;
+        public SyntaxNode Next;
+    }
+
+    /// <summary>
+    ///  Caches previous/next span result for a particular node. A conditional weak table
+    ///  is used to avoid adding fields to all syntax nodes.
+    /// </summary>
+    private static readonly ConditionalWeakTable<SyntaxNode, SpanData> s_spanDataTable = new();
+
     private static readonly ISet<SyntaxKind> s_transitionSpanKinds = new HashSet<SyntaxKind>
     {
         SyntaxKind.CSharpTransition,
@@ -155,7 +167,8 @@ internal static class LegacySyntaxNodeExtensions
         }
 
         SyntaxNode owner = null;
-        for (int i = 0; i < children.Count; i++)
+
+        for (var i = 0; i < children.Count; i++)
         {
             var child = children[i];
             owner = LocateOwner(child, change);
@@ -231,9 +244,51 @@ internal static class LegacySyntaxNodeExtensions
     public static bool IsSpanKind(this SyntaxNode node)
         => s_allSpanKinds.Contains(node.Kind);
 
+    private static IEnumerable<SyntaxNode> FlattenSpansInReverse(this SyntaxNode node)
+    {
+        using var stack = new NodeStack(node.DescendantNodes());
+
+        // Iterate through stack.
+        while (!stack.IsEmpty)
+        {
+            var child = stack.Pop();
+
+            if (child is MarkupStartTagSyntax startTag)
+            {
+                var children = startTag.Children;
+
+                for (var i = children.Count - 1; i >= 0; i--)
+                {
+                    var tagChild = children[i];
+                    if (tagChild.IsSpanKind())
+                    {
+                        yield return tagChild;
+                    }
+                }
+            }
+            else if (child is MarkupEndTagSyntax endTag)
+            {
+                var children = endTag.Children;
+
+                for (var i = children.Count - 1; i >= 0; i--)
+                {
+                    var tagChild = children[i];
+                    if (tagChild.IsSpanKind())
+                    {
+                        yield return tagChild;
+                    }
+                }
+            }
+            else if (child.IsSpanKind())
+            {
+                yield return child;
+            }
+        }
+    }
+
     public static IEnumerable<SyntaxNode> FlattenSpans(this SyntaxNode node)
     {
-        if (node == null)
+        if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
         }
@@ -269,19 +324,28 @@ internal static class LegacySyntaxNodeExtensions
 
     public static SyntaxNode PreviousSpan(this SyntaxNode node)
     {
-        if (node == null)
+        if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
         }
 
-        var parent = node.Parent;
-        while (parent != null)
+        var spanData = s_spanDataTable.GetOrCreateValue(node);
+
+        if (spanData.Previous is { } previousSpan)
         {
-            var flattenedSpans = parent.FlattenSpans();
-            var prevSpan = flattenedSpans.LastOrDefault(n => n.EndPosition <= node.Position && n != node);
-            if (prevSpan != null)
+            return previousSpan;
+        }
+
+        var parent = node.Parent;
+        while (parent is not null)
+        {
+            foreach (var span in parent.FlattenSpansInReverse())
             {
-                return prevSpan;
+                if (span.EndPosition <= node.Position && span != node)
+                {
+                    spanData.Previous = span;
+                    return span;
+                }
             }
 
             parent = parent.Parent;
@@ -292,19 +356,28 @@ internal static class LegacySyntaxNodeExtensions
 
     public static SyntaxNode NextSpan(this SyntaxNode node)
     {
-        if (node == null)
+        if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
         }
 
-        var parent = node.Parent;
-        while (parent != null)
+        var spanData = s_spanDataTable.GetOrCreateValue(node);
+
+        if (spanData.Next is { } nextSpan)
         {
-            var flattenedSpans = parent.FlattenSpans();
-            var nextSpan = flattenedSpans.FirstOrDefault(n => n.Position >= node.EndPosition && n != node);
-            if (nextSpan != null)
+            return nextSpan;
+        }
+
+        var parent = node.Parent;
+        while (parent is not null)
+        {
+            foreach (var span in parent.FlattenSpans())
             {
-                return nextSpan;
+                if (span.Position >= node.Position && span != node)
+                {
+                    spanData.Next = span;
+                    return span;
+                }
             }
 
             parent = parent.Parent;
