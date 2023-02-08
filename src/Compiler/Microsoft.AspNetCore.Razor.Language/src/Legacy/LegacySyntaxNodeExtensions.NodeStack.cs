@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -35,15 +34,11 @@ internal static partial class LegacySyntaxNodeExtensions
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SyntaxNode Pop()
             => _stack[_stackPtr--];
 
         public bool IsEmpty
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _stackPtr < 0;
-        }
+            => _stackPtr < 0;
 
         public void Dispose()
             => Array.Clear(_stack, 0, _stack.Length);
