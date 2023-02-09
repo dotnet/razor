@@ -29,11 +29,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         /// </summary>
         public bool SupportLocalizedComponentNames { get; set; } = false;
 
-        /// <summary>
-        /// Determines whether Razor files are compiled in design-time mode.
-        /// </summary>
-        public bool DesignTime { get; set; }
-
         public bool Equals(RazorSourceGenerationOptions other)
         {
             return

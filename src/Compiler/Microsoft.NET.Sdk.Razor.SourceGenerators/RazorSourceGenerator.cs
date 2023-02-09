@@ -74,9 +74,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     var projectEngine = GetDeclarationProjectEngine(sourceItem, importFiles, razorSourceGeneratorOptions);
 
-                    var codeGen = razorSourceGeneratorOptions.DesignTime
-                        ? projectEngine.ProcessDesignTime(sourceItem)
-                        : projectEngine.Process(sourceItem);
+                    var codeGen = projectEngine.Process(sourceItem);
 
                     var result = codeGen.GetCSharpDocument().GeneratedCode;
 
@@ -206,33 +204,35 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return allTagHelpers;
                 });
 
-            var codeDocuments = sourceItems
+
+            IncrementalValuesProvider<(string hintName, RazorCodeDocument codeDocument)> codeDocuments(bool designTime) => sourceItems
                 .Combine(importFiles.Collect())
                 .Combine(allTagHelpers)
                 .Combine(razorSourceGeneratorOptions)
-                .Select(static (pair, _) =>
+                .Select((pair, _) =>
                 {
                     var (((sourceItem, imports), allTagHelpers), razorSourceGeneratorOptions) = pair;
 
-                    RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(sourceItem.FilePath);
+                    var kind = designTime ? "DesignTime" : "Runtime";
+                    RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(sourceItem.FilePath, kind);
 
                     // Add a generated suffix so tools, such as coverlet, consider the file to be generated
                     var hintName = GetIdentifierFromPath(sourceItem.RelativePhysicalPath) + ".g.cs";
 
                     var projectEngine = GetGenerationProjectEngine(allTagHelpers, sourceItem, imports, razorSourceGeneratorOptions);
 
-                    var codeDocument = razorSourceGeneratorOptions.DesignTime
+                    var codeDocument = designTime
                         ? projectEngine.ProcessDesignTime(sourceItem)
                         : projectEngine.Process(sourceItem);
 
-                    RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(sourceItem.FilePath);
-                    return (hintName, codeDocument, designTime: razorSourceGeneratorOptions.DesignTime);
+                    RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(sourceItem.FilePath, kind);
+                    return (hintName, codeDocument);
                 });
 
-            var csharpDocuments = codeDocuments
+            var csharpDocuments = codeDocuments(designTime: false)
                 .Select(static (tuple, _) =>
                 {
-                    var (hintName, codeDocument, designTime) = tuple;
+                    var (hintName, codeDocument) = tuple;
 
                     var csharpDocument = codeDocument.GetCSharpDocument();
 
@@ -263,11 +263,11 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 context.AddSource(hintName, csharpDocument.GeneratedCode);
             });
 
-            // Generate host outputs if design-time is enabled.
-            var hostOutput = codeDocuments.Where(static (tuple) => tuple.designTime);
+            var hostOutput = codeDocuments(designTime: true);
             context.RegisterHostOutput(hostOutput, static (context, tuple, _) =>
             {
-                var (hintName, codeDocument, _) = tuple;
+                var (hintName, codeDocument) = tuple;
+                context.AddOutput(hintName + ".rsg-cs", codeDocument.GetCSharpDocument().GeneratedCode);
                 context.AddOutput(hintName + ".rsg-html", codeDocument.GetHtmlDocument().GeneratedCode);
             });
         }
