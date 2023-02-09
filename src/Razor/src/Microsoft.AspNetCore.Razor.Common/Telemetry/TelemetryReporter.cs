@@ -78,6 +78,10 @@ internal class TelemetryReporter : ITelemetryReporter
             {
                 if (handler.HandleException(this, exception, message, @params))
                 {
+                    // This behavior means that each handler still gets a chance
+                    // to respond to the exception. There's no real reason for this other
+                    // than best guess. When it was added, there was only one handler but
+                    // it was intended to be easy to add more.
                     handled = true;
                 }
             }
