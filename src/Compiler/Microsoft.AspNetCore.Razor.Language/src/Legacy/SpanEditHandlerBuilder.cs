@@ -82,7 +82,7 @@ internal class SpanEditHandlerBuilder
         {
             if (Factory is not null)
             {
-                return Factory(AcceptedCharacters, Tokenizer!);
+                return Factory(AcceptedCharacters, Tokenizer ?? DefaultTokenizer);
             }
 
             if (AcceptedCharacters == AcceptedCharactersInternal.Any)

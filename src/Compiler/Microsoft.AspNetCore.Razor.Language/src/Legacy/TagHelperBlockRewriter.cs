@@ -833,7 +833,6 @@ internal static class TagHelperBlockRewriter
         private SyntaxNode ConfigureNonStringAttribute(SyntaxNode node)
         {
             var context = node.GetSpanContext();
-            // var builder = context != null ? new SpanContextBuilder(context) : new SpanContextBuilder();
             var builder = new SpanContextBuilder(defaultLanguageTokenizer: null)
             {
                 ChunkGenerator = context?.ChunkGenerator ?? SpanChunkGenerator.Null,
