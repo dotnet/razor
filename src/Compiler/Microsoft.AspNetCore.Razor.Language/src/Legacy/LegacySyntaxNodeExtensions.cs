@@ -242,14 +242,11 @@ internal static partial class LegacySyntaxNodeExtensions
 
     private static IEnumerable<SyntaxNode> FlattenSpansInReverse(this SyntaxNode node)
     {
-        using var stack = new NodeStack(node.DescendantNodes());
+        using var stack = new ChildSyntaxListReversedEnumeratorStack(node);
 
-        // Iterate through stack.
-        while (!stack.IsEmpty)
+        while (stack.TryGetNextNode(out var nextNode))
         {
-            var child = stack.Pop();
-
-            if (child is MarkupStartTagSyntax startTag)
+            if (nextNode is MarkupStartTagSyntax startTag)
             {
                 var children = startTag.Children;
 
@@ -262,7 +259,7 @@ internal static partial class LegacySyntaxNodeExtensions
                     }
                 }
             }
-            else if (child is MarkupEndTagSyntax endTag)
+            else if (nextNode is MarkupEndTagSyntax endTag)
             {
                 var children = endTag.Children;
 
@@ -275,9 +272,9 @@ internal static partial class LegacySyntaxNodeExtensions
                     }
                 }
             }
-            else if (child.IsSpanKind())
+            else if (nextNode.IsSpanKind())
             {
-                yield return child;
+                yield return nextNode;
             }
         }
     }
