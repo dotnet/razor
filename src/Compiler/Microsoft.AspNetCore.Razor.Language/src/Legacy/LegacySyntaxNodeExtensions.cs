@@ -1,8 +1,9 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -24,47 +25,35 @@ internal static partial class LegacySyntaxNodeExtensions
     /// </summary>
     private static readonly ConditionalWeakTable<SyntaxNode, SpanData> s_spanDataTable = new();
 
-    private static readonly ISet<SyntaxKind> s_transitionSpanKinds = new HashSet<SyntaxKind>
-    {
+    private static readonly ImmutableHashSet<SyntaxKind> s_transitionSpanKinds = ImmutableHashSet.Create(
         SyntaxKind.CSharpTransition,
-        SyntaxKind.MarkupTransition,
-    };
+        SyntaxKind.MarkupTransition);
 
-    private static readonly ISet<SyntaxKind> s_metaCodeSpanKinds = new HashSet<SyntaxKind>
-    {
-        SyntaxKind.RazorMetaCode,
-    };
+    private static readonly ImmutableHashSet<SyntaxKind> s_metaCodeSpanKinds = ImmutableHashSet.Create(
+        SyntaxKind.RazorMetaCode);
 
-    private static readonly ISet<SyntaxKind> s_commentSpanKinds = new HashSet<SyntaxKind>
-    {
+    private static readonly ImmutableHashSet<SyntaxKind> s_commentSpanKinds = ImmutableHashSet.Create(
         SyntaxKind.RazorCommentTransition,
         SyntaxKind.RazorCommentStar,
-        SyntaxKind.RazorCommentLiteral,
-    };
+        SyntaxKind.RazorCommentLiteral);
 
-    private static readonly ISet<SyntaxKind> s_codeSpanKinds = new HashSet<SyntaxKind>
-    {
+    private static readonly ImmutableHashSet<SyntaxKind> s_codeSpanKinds = ImmutableHashSet.Create(
         SyntaxKind.CSharpStatementLiteral,
         SyntaxKind.CSharpExpressionLiteral,
-        SyntaxKind.CSharpEphemeralTextLiteral,
-    };
+        SyntaxKind.CSharpEphemeralTextLiteral);
 
-    private static readonly ISet<SyntaxKind> s_markupSpanKinds = new HashSet<SyntaxKind>
-    {
+    private static readonly ImmutableHashSet<SyntaxKind> s_markupSpanKinds = ImmutableHashSet.Create(
         SyntaxKind.MarkupTextLiteral,
-        SyntaxKind.MarkupEphemeralTextLiteral,
-    };
+        SyntaxKind.MarkupEphemeralTextLiteral);
 
-    private static readonly ISet<SyntaxKind> s_noneSpanKinds = new HashSet<SyntaxKind>
+    private static readonly ImmutableHashSet<SyntaxKind> s_noneSpanKinds = ImmutableHashSet.Create(
+        SyntaxKind.UnclassifiedTextLiteral);
+
+    private static readonly ImmutableHashSet<SyntaxKind> s_allSpanKinds = CreateAllSpanKindsSet();
+
+    private static ImmutableHashSet<SyntaxKind> CreateAllSpanKindsSet()
     {
-        SyntaxKind.UnclassifiedTextLiteral,
-    };
-
-    private static readonly ISet<SyntaxKind> s_allSpanKinds = CreateAllSpanKindsSet();
-
-    private static ISet<SyntaxKind> CreateAllSpanKindsSet()
-    {
-        var set = new HashSet<SyntaxKind>();
+        var set = ImmutableHashSet<SyntaxKind>.Empty.ToBuilder();
 
         set.UnionWith(s_transitionSpanKinds);
         set.UnionWith(s_metaCodeSpanKinds);
@@ -73,7 +62,7 @@ internal static partial class LegacySyntaxNodeExtensions
         set.UnionWith(s_markupSpanKinds);
         set.UnionWith(s_noneSpanKinds);
 
-        return set;
+        return set.ToImmutable();
     }
 
     public static SpanContext? GetSpanContext(this SyntaxNode node)
