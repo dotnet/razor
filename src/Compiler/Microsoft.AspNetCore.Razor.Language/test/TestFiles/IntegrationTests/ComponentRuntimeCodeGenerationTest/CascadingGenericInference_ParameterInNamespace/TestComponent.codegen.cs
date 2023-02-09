@@ -50,7 +50,7 @@ namespace __Blazor.MyApp.Components.TestComponent
         {
             __arg0_out = __arg0;
         }
-        public static void CreateChildComponent_1<T>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, MyApp.MyClass<T> __syntheticArg0)
+        public static void CreateChildComponent_1<T>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, global::MyApp.MyClass<T> __syntheticArg0)
         {
         __builder.OpenComponent<global::MyApp.Components.ChildComponent<T>>(seq);
         __builder.CloseComponent();
