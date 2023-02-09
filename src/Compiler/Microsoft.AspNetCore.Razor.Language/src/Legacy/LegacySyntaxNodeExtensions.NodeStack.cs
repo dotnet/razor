@@ -11,15 +11,14 @@ internal static partial class LegacySyntaxNodeExtensions
 {
     private struct NodeStack : IDisposable
     {
-        [ThreadStatic]
-        private static SyntaxNode[]? g_nodeStack;
+        private static readonly ObjectPool<SyntaxNode[]> s_stackPool = new(() => new SyntaxNode[64]);
 
         private readonly SyntaxNode[] _stack;
         private int _stackPtr;
 
         public NodeStack(IEnumerable<SyntaxNode> nodes)
         {
-            _stack = g_nodeStack ??= new SyntaxNode[64];
+            _stack = s_stackPool.Allocate();
             _stackPtr = -1;
 
             foreach (var node in nodes)
@@ -27,7 +26,6 @@ internal static partial class LegacySyntaxNodeExtensions
                 if (++_stackPtr == _stack.Length)
                 {
                     Array.Resize(ref _stack, _stack.Length * 2);
-                    g_nodeStack = _stack;
                 }
 
                 _stack[_stackPtr] = node;
@@ -41,6 +39,13 @@ internal static partial class LegacySyntaxNodeExtensions
             => _stackPtr < 0;
 
         public void Dispose()
-            => Array.Clear(_stack, 0, _stack.Length);
+        {
+            // Return only reasonably-sized stacks to the pool.
+            if (_stack.Length < 256)
+            {
+                Array.Clear(_stack, 0, _stack.Length);
+                s_stackPool.Free(_stack);
+            }
+        }
     }
 }
