@@ -249,7 +249,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return string.Equals(a.csharpDocument.GeneratedCode, b.csharpDocument.GeneratedCode, StringComparison.Ordinal);
                 }, static a => StringComparer.Ordinal.GetHashCode(a.csharpDocument));
 
-            context.RegisterSourceOutput(csharpDocuments, static (context, pair) =>
+            context.RegisterImplementationSourceOutput(csharpDocuments, static (context, pair) =>
             {
                 var (hintName, csharpDocument) = pair;
                 RazorSourceGeneratorEventSource.Log.AddSyntaxTrees(hintName);
