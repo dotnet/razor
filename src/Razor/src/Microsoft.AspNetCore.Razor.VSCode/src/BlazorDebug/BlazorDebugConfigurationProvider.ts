@@ -34,7 +34,7 @@ export class BlazorDebugConfigurationProvider implements vscode.DebugConfigurati
                 const launchSettings = JSON.parse(readFileSync(join(folderPath, 'Properties', 'launchSettings.json'), 'utf8'));
                 if (launchSettings?.profiles && launchSettings?.profiles[Object.keys(launchSettings.profiles)[0]]?.inspectUri) {
                     inspectUri = launchSettings.profiles[Object.keys(launchSettings.profiles)[0]].inspectUri;
-                    url = launchSettings.profiles[Object.keys(launchSettings.profiles)[0]].applicationUrl;
+                    url = launchSettings.profiles[Object.keys(launchSettings.profiles)[0]].applicationUrl.split(';', 1)[0];
                 }
             }
         } catch (error: any) {
