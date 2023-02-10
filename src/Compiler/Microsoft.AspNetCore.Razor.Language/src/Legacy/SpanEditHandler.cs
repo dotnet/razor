@@ -88,9 +88,9 @@ internal class SpanEditHandler
         {
             newTarget = Syntax.InternalSyntax.SyntaxFactory.MarkupEphemeralTextLiteral(builder.ToList()).CreateRed(target.Parent, target.Position);
         }
-        else if (target is CSharpStatementLiteralSyntax)
+        else if (target is CSharpStatementLiteralSyntax literal)
         {
-            newTarget = Syntax.InternalSyntax.SyntaxFactory.CSharpStatementLiteral(builder.ToList()).CreateRed(target.Parent, target.Position);
+            newTarget = Syntax.InternalSyntax.SyntaxFactory.CSharpStatementLiteral(builder.ToList(), literal.ChunkGenerator).CreateRed(target.Parent, target.Position);
         }
         else if (target is CSharpExpressionLiteralSyntax)
         {

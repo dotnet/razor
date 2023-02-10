@@ -5,10 +5,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax
 {
+
+
   internal abstract partial class RazorBlockSyntax : RazorSyntaxNode
   {
     internal RazorBlockSyntax(GreenNode green, SyntaxNode parent, int position)
@@ -3135,6 +3138,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         }
     }
 
+    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.CSharpStatementLiteralSyntax)Green).ChunkGenerator; } }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
@@ -3162,11 +3167,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         visitor.VisitCSharpStatementLiteral(this);
     }
 
-    public CSharpStatementLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens)
+    public CSharpStatementLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-        if (literalTokens != LiteralTokens)
+        if (literalTokens != LiteralTokens || chunkGenerator != ChunkGenerator)
         {
-            var newNode = SyntaxFactory.CSharpStatementLiteral(literalTokens);
+            var newNode = SyntaxFactory.CSharpStatementLiteral(literalTokens, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                newNode = newNode.WithDiagnostics(diagnostics);
@@ -3181,7 +3186,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
     public CSharpStatementLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens)
     {
-        return Update(literalTokens);
+        return Update(literalTokens, ChunkGenerator);
+    }
+
+    public CSharpStatementLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
+    {
+        return Update(LiteralTokens, chunkGenerator);
     }
 
     public CSharpStatementLiteralSyntax AddLiteralTokens(params SyntaxToken[] items)

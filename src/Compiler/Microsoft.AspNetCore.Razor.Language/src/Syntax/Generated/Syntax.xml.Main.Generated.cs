@@ -5,10 +5,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 
 
 namespace Microsoft.AspNetCore.Razor.Language.Syntax
 {
+
   internal partial class SyntaxVisitor<TResult>
   {
     /// <summary>Called when the visitor visits a RazorDocumentSyntax node.</summary>
@@ -725,7 +727,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     public override SyntaxNode VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
     {
       var literalTokens = VisitList(node.LiteralTokens);
-      return node.Update(literalTokens);
+      return node.Update(literalTokens, node.ChunkGenerator);
     }
 
     public override SyntaxNode VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
@@ -806,6 +808,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
   internal static partial class SyntaxFactory
   {
+
     /// <summary>Creates a new RazorDocumentSyntax instance.</summary>
     public static RazorDocumentSyntax RazorDocument(RazorBlockSyntax document)
     {
@@ -1408,15 +1411,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     }
 
     /// <summary>Creates a new CSharpStatementLiteralSyntax instance.</summary>
-    public static CSharpStatementLiteralSyntax CSharpStatementLiteral(SyntaxList<SyntaxToken> literalTokens)
+    public static CSharpStatementLiteralSyntax CSharpStatementLiteral(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-      return (CSharpStatementLiteralSyntax)InternalSyntax.SyntaxFactory.CSharpStatementLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>()).CreateRed();
+      return (CSharpStatementLiteralSyntax)InternalSyntax.SyntaxFactory.CSharpStatementLiteral(literalTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
     }
 
     /// <summary>Creates a new CSharpStatementLiteralSyntax instance.</summary>
-    public static CSharpStatementLiteralSyntax CSharpStatementLiteral()
+    public static CSharpStatementLiteralSyntax CSharpStatementLiteral(ISpanChunkGenerator chunkGenerator)
     {
-      return SyntaxFactory.CSharpStatementLiteral(default(SyntaxList<SyntaxToken>));
+      return SyntaxFactory.CSharpStatementLiteral(default(SyntaxList<SyntaxToken>), chunkGenerator);
     }
 
     /// <summary>Creates a new CSharpExpressionLiteralSyntax instance.</summary>

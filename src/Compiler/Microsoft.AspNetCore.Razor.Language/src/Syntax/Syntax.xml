@@ -3,7 +3,7 @@
 <Tree Root="SyntaxNode">
   <PredefinedNode Name="RazorSyntaxNode" Base="SyntaxNode" />
   <PredefinedNode Name="SyntaxToken" Base="RazorSyntaxNode" />
-  
+
   <!-- Common -->
   <AbstractNode Name="RazorBlockSyntax" Base="RazorSyntaxNode">
     <Field Name="Children" Type="SyntaxList&lt;RazorSyntaxNode&gt;" />
@@ -228,7 +228,7 @@
     <Field Name="Colon" Type="RazorMetaCodeSyntax" Optional="true" />
     <Field Name="ParameterName" Type="MarkupTextLiteralSyntax" Optional="true" />
   </Node>
-  
+
   <!-- CSharp -->
   <AbstractNode Name="CSharpSyntaxNode" Base="RazorSyntaxNode" />
   <Node Name="CSharpCodeBlockSyntax" Base="RazorBlockSyntax">
@@ -244,6 +244,7 @@
   <Node Name="CSharpStatementLiteralSyntax" Base="CSharpSyntaxNode">
     <Kind Name="CSharpStatementLiteral" />
     <Field Name="LiteralTokens" Type="SyntaxList&lt;SyntaxToken&gt;" />
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
   </Node>
   <Node Name="CSharpExpressionLiteralSyntax" Base="CSharpSyntaxNode">
     <Kind Name="CSharpExpressionLiteral" />

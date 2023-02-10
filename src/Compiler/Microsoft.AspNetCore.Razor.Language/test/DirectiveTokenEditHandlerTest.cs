@@ -69,7 +69,7 @@ public class DirectiveTokenEditHandlerTest
         {
             builder.Add((SyntaxToken)token.CreateRed());
         }
-        var node = SyntaxFactory.CSharpStatementLiteral(builder.ToList());
+        var node = SyntaxFactory.CSharpStatementLiteral(builder.ToList(), SpanChunkGenerator.Null);
 
         var context = new SpanContext(SpanChunkGenerator.Null, editHandler);
 
