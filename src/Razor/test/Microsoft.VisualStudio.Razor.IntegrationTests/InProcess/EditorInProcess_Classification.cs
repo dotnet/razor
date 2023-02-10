@@ -92,24 +92,17 @@ internal partial class EditorInProcess
     public async Task VerifyGetClassificationsAsync(IEnumerable<ClassificationSpan> expectedClassifications, CancellationToken cancellationToken)
     {
         var actualClassifications = await GetClassificationsAsync(cancellationToken);
-        var actualArray = actualClassifications.ToArray();
+        var actualSemanticClassifications = actualClassifications.Where(a =>
+            a.ClassificationType.BaseTypes.Any() &&
+            a.ClassificationType is ILayeredClassificationType layeredClassificationType &&
+            layeredClassificationType.Layer == ClassificationLayer.Syntactic);
+        var actualArray = actualSemanticClassifications.ToArray();
         var expectedArray = expectedClassifications.ToArray();
-        var actualOffset = 0;
 
-        for (var i = 0; i < expectedArray.Length; i++)
+        for (var i = 0; i < actualArray.Length; i++)
         {
-            var actualClassification = actualArray[i+actualOffset];
+            var actualClassification = actualArray[i];
             var expectedClassification = expectedArray[i];
-
-            if (actualClassification.ClassificationType.BaseTypes.Count() == 0 &&
-                actualClassification.ClassificationType is ILayeredClassificationType layeredClassificationType &&
-                layeredClassificationType.Layer == ClassificationLayer.Syntactic)
-            {
-                // Don't check purely syntactic classifications, we're gonna try this again.
-                actualOffset++;
-                i--;
-                continue;
-            }
 
             if (actualClassification.ClassificationType.BaseTypes.Count() > 1)
             {
@@ -128,7 +121,7 @@ internal partial class EditorInProcess
             }
         }
 
-        Assert.Equal(expectedArray.Length, actualArray.Length - actualOffset);
+        Assert.Equal(expectedArray.Length, actualArray.Length);
     }
 
     public async Task<IEnumerable<ClassificationSpan>> GetClassificationsAsync(CancellationToken cancellationToken)
