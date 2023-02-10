@@ -30,5 +30,6 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(Tooling_MicrosoftCodeAnalysisNetAnalyzersPackageVersion)" NoWarn="NU1608" />
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="$(Tooling_MicrosoftCodeAnalysisBannedApiAnalyzersPackageVersion)" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(Tooling_RoslynDiagnosticsAnalyzersPackageVersion)" />
+    <PackageVersion Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutablePackageVersion)" />
   </ItemGroup>
 </Project>

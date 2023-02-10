@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -16,30 +17,16 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal class ImplicitExpressionEditHandler : SpanEditHandler
 {
-    private readonly ISet<string> _keywords;
-    private readonly IReadOnlyCollection<string> _readOnlyKeywords;
-
-    public ImplicitExpressionEditHandler(Func<string, IEnumerable<Syntax.InternalSyntax.SyntaxToken>> tokenizer, ISet<string> keywords, bool acceptTrailingDot)
+    public ImplicitExpressionEditHandler(Func<string, IEnumerable<Syntax.InternalSyntax.SyntaxToken>> tokenizer, ImmutableHashSet<string> keywords, bool acceptTrailingDot)
         : base(tokenizer)
     {
-        _keywords = keywords ?? new HashSet<string>();
-
-        // HashSet<T> implements IReadOnlyCollection<T> as of 4.6, but does not for 4.5.1. If the runtime cast
-        // succeeds, avoid creating a new collection.
-        _readOnlyKeywords = (_keywords as IReadOnlyCollection<string>) ?? _keywords.ToArray();
-
+        Keywords = keywords;
         AcceptTrailingDot = acceptTrailingDot;
     }
 
     public bool AcceptTrailingDot { get; }
 
-    public IReadOnlyCollection<string> Keywords
-    {
-        get
-        {
-            return _readOnlyKeywords;
-        }
-    }
+    public ImmutableHashSet<string> Keywords { get; }
 
     public override string ToString()
     {
@@ -621,7 +608,7 @@ internal class ImplicitExpressionEditHandler : SpanEditHandler
     {
         using (var reader = new StringReader(newContent))
         {
-            return _keywords.Contains(reader.ReadWhile(ParserHelpers.IsIdentifierPart));
+            return Keywords.Contains(reader.ReadWhile(ParserHelpers.IsIdentifierPart));
         }
     }
 }
