@@ -49,7 +49,7 @@ internal partial class MarkupTagHelperEndTagSyntax
 
             tokens.Add(Bang);
             var acceptsNoneContext = new SpanContext(context.ChunkGenerator, SpanEditHandler.CreateDefault(AcceptedCharactersInternal.None));
-            builder.Add(SyntaxFactory.RazorMetaCode(tokens.Consume()).WithSpanContext(acceptsNoneContext));
+            builder.Add(SyntaxFactory.RazorMetaCode(tokens.Consume(), ChunkGenerator).WithSpanContext(acceptsNoneContext));
         }
 
         if (!Name.IsMissing)

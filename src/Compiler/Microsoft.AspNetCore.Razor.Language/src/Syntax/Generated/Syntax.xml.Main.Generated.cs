@@ -518,7 +518,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     public override SyntaxNode VisitRazorMetaCode(RazorMetaCodeSyntax node)
     {
       var metaCode = VisitList(node.MetaCode);
-      return node.Update(metaCode);
+      return node.Update(metaCode, node.ChunkGenerator);
     }
 
     public override SyntaxNode VisitGenericBlock(GenericBlockSyntax node)
@@ -865,15 +865,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     }
 
     /// <summary>Creates a new RazorMetaCodeSyntax instance.</summary>
-    public static RazorMetaCodeSyntax RazorMetaCode(SyntaxList<SyntaxToken> metaCode)
+    public static RazorMetaCodeSyntax RazorMetaCode(SyntaxList<SyntaxToken> metaCode, ISpanChunkGenerator chunkGenerator)
     {
-      return (RazorMetaCodeSyntax)InternalSyntax.SyntaxFactory.RazorMetaCode(metaCode.Node.ToGreenList<InternalSyntax.SyntaxToken>()).CreateRed();
+      return (RazorMetaCodeSyntax)InternalSyntax.SyntaxFactory.RazorMetaCode(metaCode.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
     }
 
     /// <summary>Creates a new RazorMetaCodeSyntax instance.</summary>
-    public static RazorMetaCodeSyntax RazorMetaCode()
+    public static RazorMetaCodeSyntax RazorMetaCode(ISpanChunkGenerator chunkGenerator)
     {
-      return SyntaxFactory.RazorMetaCode(default(SyntaxList<SyntaxToken>));
+      return SyntaxFactory.RazorMetaCode(default(SyntaxList<SyntaxToken>), chunkGenerator);
     }
 
     /// <summary>Creates a new GenericBlockSyntax instance.</summary>
@@ -1382,9 +1382,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     }
 
     /// <summary>Creates a new MarkupTagHelperDirectiveAttributeSyntax instance.</summary>
-    public static MarkupTagHelperDirectiveAttributeSyntax MarkupTagHelperDirectiveAttribute(MarkupTextLiteralSyntax name)
+    public static MarkupTagHelperDirectiveAttributeSyntax MarkupTagHelperDirectiveAttribute(RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name)
     {
-      return SyntaxFactory.MarkupTagHelperDirectiveAttribute(default(MarkupTextLiteralSyntax), SyntaxFactory.RazorMetaCode(), name, default(RazorMetaCodeSyntax), default(MarkupTextLiteralSyntax), default(MarkupTextLiteralSyntax), SyntaxFactory.Token(SyntaxKind.Equals), default(MarkupTextLiteralSyntax), SyntaxFactory.MarkupTagHelperAttributeValue(), default(MarkupTextLiteralSyntax));
+      return SyntaxFactory.MarkupTagHelperDirectiveAttribute(default(MarkupTextLiteralSyntax), transition, name, default(RazorMetaCodeSyntax), default(MarkupTextLiteralSyntax), default(MarkupTextLiteralSyntax), SyntaxFactory.Token(SyntaxKind.Equals), default(MarkupTextLiteralSyntax), SyntaxFactory.MarkupTagHelperAttributeValue(), default(MarkupTextLiteralSyntax));
     }
 
     /// <summary>Creates a new MarkupMinimizedTagHelperDirectiveAttributeSyntax instance.</summary>
@@ -1398,9 +1398,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     }
 
     /// <summary>Creates a new MarkupMinimizedTagHelperDirectiveAttributeSyntax instance.</summary>
-    public static MarkupMinimizedTagHelperDirectiveAttributeSyntax MarkupMinimizedTagHelperDirectiveAttribute(MarkupTextLiteralSyntax name)
+    public static MarkupMinimizedTagHelperDirectiveAttributeSyntax MarkupMinimizedTagHelperDirectiveAttribute(RazorMetaCodeSyntax transition, MarkupTextLiteralSyntax name)
     {
-      return SyntaxFactory.MarkupMinimizedTagHelperDirectiveAttribute(default(MarkupTextLiteralSyntax), SyntaxFactory.RazorMetaCode(), name, default(RazorMetaCodeSyntax), default(MarkupTextLiteralSyntax));
+      return SyntaxFactory.MarkupMinimizedTagHelperDirectiveAttribute(default(MarkupTextLiteralSyntax), transition, name, default(RazorMetaCodeSyntax), default(MarkupTextLiteralSyntax));
     }
 
     /// <summary>Creates a new CSharpCodeBlockSyntax instance.</summary>
@@ -1511,9 +1511,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     }
 
     /// <summary>Creates a new CSharpStatementBodySyntax instance.</summary>
-    public static CSharpStatementBodySyntax CSharpStatementBody()
+    public static CSharpStatementBodySyntax CSharpStatementBody(RazorMetaCodeSyntax openBrace, RazorMetaCodeSyntax closeBrace)
     {
-      return SyntaxFactory.CSharpStatementBody(SyntaxFactory.RazorMetaCode(), SyntaxFactory.CSharpCodeBlock(), SyntaxFactory.RazorMetaCode());
+      return SyntaxFactory.CSharpStatementBody(openBrace, SyntaxFactory.CSharpCodeBlock(), closeBrace);
     }
 
     /// <summary>Creates a new CSharpExplicitExpressionSyntax instance.</summary>
@@ -1545,9 +1545,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     }
 
     /// <summary>Creates a new CSharpExplicitExpressionBodySyntax instance.</summary>
-    public static CSharpExplicitExpressionBodySyntax CSharpExplicitExpressionBody()
+    public static CSharpExplicitExpressionBodySyntax CSharpExplicitExpressionBody(RazorMetaCodeSyntax openParen, RazorMetaCodeSyntax closeParen)
     {
-      return SyntaxFactory.CSharpExplicitExpressionBody(SyntaxFactory.RazorMetaCode(), SyntaxFactory.CSharpCodeBlock(), SyntaxFactory.RazorMetaCode());
+      return SyntaxFactory.CSharpExplicitExpressionBody(openParen, SyntaxFactory.CSharpCodeBlock(), closeParen);
     }
 
     /// <summary>Creates a new CSharpImplicitExpressionSyntax instance.</summary>

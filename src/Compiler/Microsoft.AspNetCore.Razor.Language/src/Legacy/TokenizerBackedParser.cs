@@ -605,7 +605,7 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
             return null;
         }
 
-        var metacode = SyntaxFactory.RazorMetaCode(tokens);
+        var metacode = SyntaxFactory.RazorMetaCode(tokens, SpanChunkGenerator.Null);
         SpanContext.ChunkGenerator = SpanChunkGenerator.Null;
         SpanContext.EditHandlerBuilder.AcceptedCharacters = accepted ?? AcceptedCharactersInternal.None;
 
