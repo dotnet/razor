@@ -719,7 +719,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         }
 
         // End tag block
-        var startTag = SyntaxFactory.MarkupStartTag(openAngleToken, bangToken, tagNameToken, attributes, forwardSlashToken, closeAngleToken);
+        var startTag = SyntaxFactory.MarkupStartTag(openAngleToken, bangToken, tagNameToken, attributes, forwardSlashToken, closeAngleToken, SpanContext.ChunkGenerator);
         if (string.Equals(tagName, ScriptTagName, StringComparison.OrdinalIgnoreCase))
         {
             // If the script tag expects javascript content then we should do minimal parsing until we reach
@@ -790,7 +790,8 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 name: tagNameToken,
                 attributes: miscAttributeContentBuilder.ToList(),
                 forwardSlash: forwardSlashToken,
-                closeAngle: closeAngleToken);
+                closeAngle: closeAngleToken,
+                SpanContext.ChunkGenerator);
 
             return GetNodeWithSpanContext(startTextTag).AsMarkupTransition();
         }
@@ -900,7 +901,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         }
 
         // End tag block
-        var endTag = SyntaxFactory.MarkupEndTag(openAngleToken, forwardSlashToken, bangToken, tagNameToken, miscAttributeContent, closeAngleToken);
+        var endTag = SyntaxFactory.MarkupEndTag(openAngleToken, forwardSlashToken, bangToken, tagNameToken, miscAttributeContent, closeAngleToken, SpanContext.ChunkGenerator);
         return GetNodeWithSpanContext(endTag);
     }
 
@@ -947,7 +948,8 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             bang: null,
             name: tagNameToken,
             miscAttributeContent: miscAttributeContent,
-            closeAngle: closeAngleToken);
+            closeAngle: closeAngleToken,
+            SpanContext.ChunkGenerator);
         return GetNodeWithSpanContext(endTextTag).AsMarkupTransition();
     }
 
@@ -1408,7 +1410,8 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 bang: null,
                 name: tagNameToken,
                 miscAttributeContent: miscContent,
-                closeAngle: closeAngleToken);
+                closeAngle: closeAngleToken,
+                SpanContext.ChunkGenerator);
             endTag = GetNodeWithSpanContext(endTag);
         }
 

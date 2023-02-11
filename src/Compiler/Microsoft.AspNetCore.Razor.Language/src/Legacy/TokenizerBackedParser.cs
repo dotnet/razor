@@ -584,7 +584,7 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
             return null;
         }
 
-        return GetNodeWithSpanContext(SyntaxFactory.MarkupTextLiteral(tokens));
+        return GetNodeWithSpanContext(SyntaxFactory.MarkupTextLiteral(tokens, SpanContext.ChunkGenerator));
     }
 
     protected MarkupEphemeralTextLiteralSyntax OutputAsMarkupEphemeralLiteral()

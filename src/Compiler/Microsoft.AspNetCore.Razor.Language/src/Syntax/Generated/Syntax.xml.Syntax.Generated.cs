@@ -614,6 +614,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         }
     }
 
+    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.MarkupTextLiteralSyntax)Green).ChunkGenerator; } }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
@@ -641,11 +643,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         visitor.VisitMarkupTextLiteral(this);
     }
 
-    public MarkupTextLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens)
+    public MarkupTextLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-        if (literalTokens != LiteralTokens)
+        if (literalTokens != LiteralTokens || chunkGenerator != ChunkGenerator)
         {
-            var newNode = SyntaxFactory.MarkupTextLiteral(literalTokens);
+            var newNode = SyntaxFactory.MarkupTextLiteral(literalTokens, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                newNode = newNode.WithDiagnostics(diagnostics);
@@ -660,7 +662,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
     public MarkupTextLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens)
     {
-        return Update(literalTokens);
+        return Update(literalTokens, ChunkGenerator);
+    }
+
+    public MarkupTextLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
+    {
+        return Update(LiteralTokens, chunkGenerator);
     }
 
     public MarkupTextLiteralSyntax AddLiteralTokens(params SyntaxToken[] items)
@@ -897,12 +904,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         return Update(NamePrefix, name);
     }
 
-    public MarkupMinimizedAttributeBlockSyntax AddNamePrefixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _namePrefix = this.NamePrefix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithNamePrefix(_namePrefix.WithLiteralTokens(_namePrefix.LiteralTokens.AddRange(items)));
-    }
-
     public MarkupMinimizedAttributeBlockSyntax AddNameLiteralTokens(params SyntaxToken[] items)
     {
         return this.WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
@@ -1071,33 +1072,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         return Update(NamePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, Value, valueSuffix);
     }
 
-    public MarkupAttributeBlockSyntax AddNamePrefixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _namePrefix = this.NamePrefix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithNamePrefix(_namePrefix.WithLiteralTokens(_namePrefix.LiteralTokens.AddRange(items)));
-    }
-
     public MarkupAttributeBlockSyntax AddNameLiteralTokens(params SyntaxToken[] items)
     {
         return this.WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
-    }
-
-    public MarkupAttributeBlockSyntax AddNameSuffixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _nameSuffix = this.NameSuffix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithNameSuffix(_nameSuffix.WithLiteralTokens(_nameSuffix.LiteralTokens.AddRange(items)));
-    }
-
-    public MarkupAttributeBlockSyntax AddValuePrefixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _valuePrefix = this.ValuePrefix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithValuePrefix(_valuePrefix.WithLiteralTokens(_valuePrefix.LiteralTokens.AddRange(items)));
-    }
-
-    public MarkupAttributeBlockSyntax AddValueSuffixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _valueSuffix = this.ValueSuffix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithValueSuffix(_valueSuffix.WithLiteralTokens(_valueSuffix.LiteralTokens.AddRange(items)));
     }
   }
 
@@ -1254,18 +1231,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         return Update(Prefix, value);
     }
-
-    public MarkupLiteralAttributeValueSyntax AddPrefixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _prefix = this.Prefix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithPrefix(_prefix.WithLiteralTokens(_prefix.LiteralTokens.AddRange(items)));
-    }
-
-    public MarkupLiteralAttributeValueSyntax AddValueLiteralTokens(params SyntaxToken[] items)
-    {
-        var _value = this.Value ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithValue(_value.WithLiteralTokens(_value.LiteralTokens.AddRange(items)));
-    }
   }
 
   internal sealed partial class MarkupDynamicAttributeValueSyntax : MarkupSyntaxNode
@@ -1348,12 +1313,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     public MarkupDynamicAttributeValueSyntax WithValue(RazorBlockSyntax value)
     {
         return Update(Prefix, value);
-    }
-
-    public MarkupDynamicAttributeValueSyntax AddPrefixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _prefix = this.Prefix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithPrefix(_prefix.WithLiteralTokens(_prefix.LiteralTokens.AddRange(items)));
     }
   }
 
@@ -1455,12 +1414,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         return Update(StartTag, Body, endTag);
     }
 
-    public MarkupElementSyntax AddStartTagAttributes(params RazorSyntaxNode[] items)
-    {
-        var _startTag = this.StartTag ?? SyntaxFactory.MarkupStartTag();
-        return this.WithStartTag(_startTag.WithAttributes(_startTag.Attributes.AddRange(items)));
-    }
-
     public MarkupElementSyntax AddBody(params RazorSyntaxNode[] items)
     {
         return WithBody(this.Body.AddRange(items));
@@ -1529,6 +1482,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         }
     }
 
+    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.MarkupStartTagSyntax)Green).ChunkGenerator; } }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
@@ -1566,11 +1521,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         visitor.VisitMarkupStartTag(this);
     }
 
-    public MarkupStartTagSyntax Update(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle)
+    public MarkupStartTagSyntax Update(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
-        if (openAngle != OpenAngle || bang != Bang || name != Name || attributes != Attributes || forwardSlash != ForwardSlash || closeAngle != CloseAngle)
+        if (openAngle != OpenAngle || bang != Bang || name != Name || attributes != Attributes || forwardSlash != ForwardSlash || closeAngle != CloseAngle || chunkGenerator != ChunkGenerator)
         {
-            var newNode = SyntaxFactory.MarkupStartTag(openAngle, bang, name, attributes, forwardSlash, closeAngle);
+            var newNode = SyntaxFactory.MarkupStartTag(openAngle, bang, name, attributes, forwardSlash, closeAngle, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                newNode = newNode.WithDiagnostics(diagnostics);
@@ -1585,32 +1540,37 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
     public MarkupStartTagSyntax WithOpenAngle(SyntaxToken openAngle)
     {
-        return Update(openAngle, Bang, Name, Attributes, ForwardSlash, CloseAngle);
+        return Update(openAngle, Bang, Name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
     }
 
     public MarkupStartTagSyntax WithBang(SyntaxToken bang)
     {
-        return Update(OpenAngle, bang, Name, Attributes, ForwardSlash, CloseAngle);
+        return Update(OpenAngle, bang, Name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
     }
 
     public MarkupStartTagSyntax WithName(SyntaxToken name)
     {
-        return Update(OpenAngle, Bang, name, Attributes, ForwardSlash, CloseAngle);
+        return Update(OpenAngle, Bang, name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
     }
 
     public MarkupStartTagSyntax WithAttributes(SyntaxList<RazorSyntaxNode> attributes)
     {
-        return Update(OpenAngle, Bang, Name, attributes, ForwardSlash, CloseAngle);
+        return Update(OpenAngle, Bang, Name, attributes, ForwardSlash, CloseAngle, ChunkGenerator);
     }
 
     public MarkupStartTagSyntax WithForwardSlash(SyntaxToken forwardSlash)
     {
-        return Update(OpenAngle, Bang, Name, Attributes, forwardSlash, CloseAngle);
+        return Update(OpenAngle, Bang, Name, Attributes, forwardSlash, CloseAngle, ChunkGenerator);
     }
 
     public MarkupStartTagSyntax WithCloseAngle(SyntaxToken closeAngle)
     {
-        return Update(OpenAngle, Bang, Name, Attributes, ForwardSlash, closeAngle);
+        return Update(OpenAngle, Bang, Name, Attributes, ForwardSlash, closeAngle, ChunkGenerator);
+    }
+
+    public MarkupStartTagSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
+    {
+        return Update(OpenAngle, Bang, Name, Attributes, ForwardSlash, CloseAngle, chunkGenerator);
     }
 
     public MarkupStartTagSyntax AddAttributes(params RazorSyntaxNode[] items)
@@ -1681,6 +1641,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         }
     }
 
+    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.MarkupEndTagSyntax)Green).ChunkGenerator; } }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
@@ -1718,11 +1680,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         visitor.VisitMarkupEndTag(this);
     }
 
-    public MarkupEndTagSyntax Update(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle)
+    public MarkupEndTagSyntax Update(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
-        if (openAngle != OpenAngle || forwardSlash != ForwardSlash || bang != Bang || name != Name || miscAttributeContent != MiscAttributeContent || closeAngle != CloseAngle)
+        if (openAngle != OpenAngle || forwardSlash != ForwardSlash || bang != Bang || name != Name || miscAttributeContent != MiscAttributeContent || closeAngle != CloseAngle || chunkGenerator != ChunkGenerator)
         {
-            var newNode = SyntaxFactory.MarkupEndTag(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle);
+            var newNode = SyntaxFactory.MarkupEndTag(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                newNode = newNode.WithDiagnostics(diagnostics);
@@ -1737,32 +1699,37 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
     public MarkupEndTagSyntax WithOpenAngle(SyntaxToken openAngle)
     {
-        return Update(openAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle);
+        return Update(openAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
     }
 
     public MarkupEndTagSyntax WithForwardSlash(SyntaxToken forwardSlash)
     {
-        return Update(OpenAngle, forwardSlash, Bang, Name, MiscAttributeContent, CloseAngle);
+        return Update(OpenAngle, forwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
     }
 
     public MarkupEndTagSyntax WithBang(SyntaxToken bang)
     {
-        return Update(OpenAngle, ForwardSlash, bang, Name, MiscAttributeContent, CloseAngle);
+        return Update(OpenAngle, ForwardSlash, bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
     }
 
     public MarkupEndTagSyntax WithName(SyntaxToken name)
     {
-        return Update(OpenAngle, ForwardSlash, Bang, name, MiscAttributeContent, CloseAngle);
+        return Update(OpenAngle, ForwardSlash, Bang, name, MiscAttributeContent, CloseAngle, ChunkGenerator);
     }
 
     public MarkupEndTagSyntax WithMiscAttributeContent(MarkupMiscAttributeContentSyntax miscAttributeContent)
     {
-        return Update(OpenAngle, ForwardSlash, Bang, Name, miscAttributeContent, CloseAngle);
+        return Update(OpenAngle, ForwardSlash, Bang, Name, miscAttributeContent, CloseAngle, ChunkGenerator);
     }
 
     public MarkupEndTagSyntax WithCloseAngle(SyntaxToken closeAngle)
     {
-        return Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, closeAngle);
+        return Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, closeAngle, ChunkGenerator);
+    }
+
+    public MarkupEndTagSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
+    {
+        return Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, chunkGenerator);
     }
 
     public MarkupEndTagSyntax AddMiscAttributeContentChildren(params RazorSyntaxNode[] items)
@@ -1943,6 +1910,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         }
     }
 
+    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.MarkupTagHelperStartTagSyntax)Green).ChunkGenerator; } }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
@@ -1980,11 +1949,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         visitor.VisitMarkupTagHelperStartTag(this);
     }
 
-    public MarkupTagHelperStartTagSyntax Update(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle)
+    public MarkupTagHelperStartTagSyntax Update(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
-        if (openAngle != OpenAngle || bang != Bang || name != Name || attributes != Attributes || forwardSlash != ForwardSlash || closeAngle != CloseAngle)
+        if (openAngle != OpenAngle || bang != Bang || name != Name || attributes != Attributes || forwardSlash != ForwardSlash || closeAngle != CloseAngle || chunkGenerator != ChunkGenerator)
         {
-            var newNode = SyntaxFactory.MarkupTagHelperStartTag(openAngle, bang, name, attributes, forwardSlash, closeAngle);
+            var newNode = SyntaxFactory.MarkupTagHelperStartTag(openAngle, bang, name, attributes, forwardSlash, closeAngle, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                newNode = newNode.WithDiagnostics(diagnostics);
@@ -1999,32 +1968,37 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
     public MarkupTagHelperStartTagSyntax WithOpenAngle(SyntaxToken openAngle)
     {
-        return Update(openAngle, Bang, Name, Attributes, ForwardSlash, CloseAngle);
+        return Update(openAngle, Bang, Name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
     }
 
     public MarkupTagHelperStartTagSyntax WithBang(SyntaxToken bang)
     {
-        return Update(OpenAngle, bang, Name, Attributes, ForwardSlash, CloseAngle);
+        return Update(OpenAngle, bang, Name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
     }
 
     public MarkupTagHelperStartTagSyntax WithName(SyntaxToken name)
     {
-        return Update(OpenAngle, Bang, name, Attributes, ForwardSlash, CloseAngle);
+        return Update(OpenAngle, Bang, name, Attributes, ForwardSlash, CloseAngle, ChunkGenerator);
     }
 
     public MarkupTagHelperStartTagSyntax WithAttributes(SyntaxList<RazorSyntaxNode> attributes)
     {
-        return Update(OpenAngle, Bang, Name, attributes, ForwardSlash, CloseAngle);
+        return Update(OpenAngle, Bang, Name, attributes, ForwardSlash, CloseAngle, ChunkGenerator);
     }
 
     public MarkupTagHelperStartTagSyntax WithForwardSlash(SyntaxToken forwardSlash)
     {
-        return Update(OpenAngle, Bang, Name, Attributes, forwardSlash, CloseAngle);
+        return Update(OpenAngle, Bang, Name, Attributes, forwardSlash, CloseAngle, ChunkGenerator);
     }
 
     public MarkupTagHelperStartTagSyntax WithCloseAngle(SyntaxToken closeAngle)
     {
-        return Update(OpenAngle, Bang, Name, Attributes, ForwardSlash, closeAngle);
+        return Update(OpenAngle, Bang, Name, Attributes, ForwardSlash, closeAngle, ChunkGenerator);
+    }
+
+    public MarkupTagHelperStartTagSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
+    {
+        return Update(OpenAngle, Bang, Name, Attributes, ForwardSlash, CloseAngle, chunkGenerator);
     }
 
     public MarkupTagHelperStartTagSyntax AddAttributes(params RazorSyntaxNode[] items)
@@ -2095,6 +2069,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         }
     }
 
+    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.MarkupTagHelperEndTagSyntax)Green).ChunkGenerator; } }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
@@ -2132,11 +2108,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         visitor.VisitMarkupTagHelperEndTag(this);
     }
 
-    public MarkupTagHelperEndTagSyntax Update(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle)
+    public MarkupTagHelperEndTagSyntax Update(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
-        if (openAngle != OpenAngle || forwardSlash != ForwardSlash || bang != Bang || name != Name || miscAttributeContent != MiscAttributeContent || closeAngle != CloseAngle)
+        if (openAngle != OpenAngle || forwardSlash != ForwardSlash || bang != Bang || name != Name || miscAttributeContent != MiscAttributeContent || closeAngle != CloseAngle || chunkGenerator != ChunkGenerator)
         {
-            var newNode = SyntaxFactory.MarkupTagHelperEndTag(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle);
+            var newNode = SyntaxFactory.MarkupTagHelperEndTag(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                newNode = newNode.WithDiagnostics(diagnostics);
@@ -2151,32 +2127,37 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
     public MarkupTagHelperEndTagSyntax WithOpenAngle(SyntaxToken openAngle)
     {
-        return Update(openAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle);
+        return Update(openAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
     }
 
     public MarkupTagHelperEndTagSyntax WithForwardSlash(SyntaxToken forwardSlash)
     {
-        return Update(OpenAngle, forwardSlash, Bang, Name, MiscAttributeContent, CloseAngle);
+        return Update(OpenAngle, forwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
     }
 
     public MarkupTagHelperEndTagSyntax WithBang(SyntaxToken bang)
     {
-        return Update(OpenAngle, ForwardSlash, bang, Name, MiscAttributeContent, CloseAngle);
+        return Update(OpenAngle, ForwardSlash, bang, Name, MiscAttributeContent, CloseAngle, ChunkGenerator);
     }
 
     public MarkupTagHelperEndTagSyntax WithName(SyntaxToken name)
     {
-        return Update(OpenAngle, ForwardSlash, Bang, name, MiscAttributeContent, CloseAngle);
+        return Update(OpenAngle, ForwardSlash, Bang, name, MiscAttributeContent, CloseAngle, ChunkGenerator);
     }
 
     public MarkupTagHelperEndTagSyntax WithMiscAttributeContent(MarkupMiscAttributeContentSyntax miscAttributeContent)
     {
-        return Update(OpenAngle, ForwardSlash, Bang, Name, miscAttributeContent, CloseAngle);
+        return Update(OpenAngle, ForwardSlash, Bang, Name, miscAttributeContent, CloseAngle, ChunkGenerator);
     }
 
     public MarkupTagHelperEndTagSyntax WithCloseAngle(SyntaxToken closeAngle)
     {
-        return Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, closeAngle);
+        return Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, closeAngle, ChunkGenerator);
+    }
+
+    public MarkupTagHelperEndTagSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
+    {
+        return Update(OpenAngle, ForwardSlash, Bang, Name, MiscAttributeContent, CloseAngle, chunkGenerator);
     }
 
     public MarkupTagHelperEndTagSyntax AddMiscAttributeContentChildren(params RazorSyntaxNode[] items)
@@ -2348,38 +2329,14 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         return Update(NamePrefix, Name, NameSuffix, EqualsToken, ValuePrefix, Value, valueSuffix);
     }
 
-    public MarkupTagHelperAttributeSyntax AddNamePrefixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _namePrefix = this.NamePrefix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithNamePrefix(_namePrefix.WithLiteralTokens(_namePrefix.LiteralTokens.AddRange(items)));
-    }
-
     public MarkupTagHelperAttributeSyntax AddNameLiteralTokens(params SyntaxToken[] items)
     {
         return this.WithName(this.Name.WithLiteralTokens(this.Name.LiteralTokens.AddRange(items)));
     }
 
-    public MarkupTagHelperAttributeSyntax AddNameSuffixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _nameSuffix = this.NameSuffix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithNameSuffix(_nameSuffix.WithLiteralTokens(_nameSuffix.LiteralTokens.AddRange(items)));
-    }
-
-    public MarkupTagHelperAttributeSyntax AddValuePrefixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _valuePrefix = this.ValuePrefix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithValuePrefix(_valuePrefix.WithLiteralTokens(_valuePrefix.LiteralTokens.AddRange(items)));
-    }
-
     public MarkupTagHelperAttributeSyntax AddValueChildren(params RazorSyntaxNode[] items)
     {
         return this.WithValue(this.Value.WithChildren(this.Value.Children.AddRange(items)));
-    }
-
-    public MarkupTagHelperAttributeSyntax AddValueSuffixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _valueSuffix = this.ValueSuffix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithValueSuffix(_valueSuffix.WithLiteralTokens(_valueSuffix.LiteralTokens.AddRange(items)));
     }
   }
 
@@ -2463,12 +2420,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     public MarkupMinimizedTagHelperAttributeSyntax WithName(MarkupTextLiteralSyntax name)
     {
         return Update(NamePrefix, name);
-    }
-
-    public MarkupMinimizedTagHelperAttributeSyntax AddNamePrefixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _namePrefix = this.NamePrefix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithNamePrefix(_namePrefix.WithLiteralTokens(_namePrefix.LiteralTokens.AddRange(items)));
     }
 
     public MarkupMinimizedTagHelperAttributeSyntax AddNameLiteralTokens(params SyntaxToken[] items)
@@ -2761,12 +2712,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         return Update(NamePrefix, Transition, Name, Colon, ParameterName, NameSuffix, EqualsToken, ValuePrefix, Value, valueSuffix);
     }
 
-    public MarkupTagHelperDirectiveAttributeSyntax AddNamePrefixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _namePrefix = this.NamePrefix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithNamePrefix(_namePrefix.WithLiteralTokens(_namePrefix.LiteralTokens.AddRange(items)));
-    }
-
     public MarkupTagHelperDirectiveAttributeSyntax AddTransitionMetaCode(params SyntaxToken[] items)
     {
         return this.WithTransition(this.Transition.WithMetaCode(this.Transition.MetaCode.AddRange(items)));
@@ -2783,33 +2728,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         return this.WithColon(_colon.WithMetaCode(_colon.MetaCode.AddRange(items)));
     }
 
-    public MarkupTagHelperDirectiveAttributeSyntax AddParameterNameLiteralTokens(params SyntaxToken[] items)
-    {
-        var _parameterName = this.ParameterName ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithParameterName(_parameterName.WithLiteralTokens(_parameterName.LiteralTokens.AddRange(items)));
-    }
-
-    public MarkupTagHelperDirectiveAttributeSyntax AddNameSuffixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _nameSuffix = this.NameSuffix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithNameSuffix(_nameSuffix.WithLiteralTokens(_nameSuffix.LiteralTokens.AddRange(items)));
-    }
-
-    public MarkupTagHelperDirectiveAttributeSyntax AddValuePrefixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _valuePrefix = this.ValuePrefix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithValuePrefix(_valuePrefix.WithLiteralTokens(_valuePrefix.LiteralTokens.AddRange(items)));
-    }
-
     public MarkupTagHelperDirectiveAttributeSyntax AddValueChildren(params RazorSyntaxNode[] items)
     {
         return this.WithValue(this.Value.WithChildren(this.Value.Children.AddRange(items)));
-    }
-
-    public MarkupTagHelperDirectiveAttributeSyntax AddValueSuffixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _valueSuffix = this.ValueSuffix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithValueSuffix(_valueSuffix.WithLiteralTokens(_valueSuffix.LiteralTokens.AddRange(items)));
     }
   }
 
@@ -2943,12 +2864,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         return Update(NamePrefix, Transition, Name, Colon, parameterName);
     }
 
-    public MarkupMinimizedTagHelperDirectiveAttributeSyntax AddNamePrefixLiteralTokens(params SyntaxToken[] items)
-    {
-        var _namePrefix = this.NamePrefix ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithNamePrefix(_namePrefix.WithLiteralTokens(_namePrefix.LiteralTokens.AddRange(items)));
-    }
-
     public MarkupMinimizedTagHelperDirectiveAttributeSyntax AddTransitionMetaCode(params SyntaxToken[] items)
     {
         return this.WithTransition(this.Transition.WithMetaCode(this.Transition.MetaCode.AddRange(items)));
@@ -2963,12 +2878,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     {
         var _colon = this.Colon ?? SyntaxFactory.RazorMetaCode();
         return this.WithColon(_colon.WithMetaCode(_colon.MetaCode.AddRange(items)));
-    }
-
-    public MarkupMinimizedTagHelperDirectiveAttributeSyntax AddParameterNameLiteralTokens(params SyntaxToken[] items)
-    {
-        var _parameterName = this.ParameterName ?? SyntaxFactory.MarkupTextLiteral();
-        return this.WithParameterName(_parameterName.WithLiteralTokens(_parameterName.LiteralTokens.AddRange(items)));
     }
   }
 
