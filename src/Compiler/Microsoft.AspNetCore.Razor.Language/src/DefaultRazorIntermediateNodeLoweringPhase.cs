@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -1071,12 +1071,14 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 var builder = SyntaxListBuilder<SyntaxToken>.Create();
                 var expressionLiteralArray = children.Cast<CSharpExpressionLiteralSyntax>();
                 SpanContext context = null;
+                ISpanChunkGenerator generator = null;
                 foreach (var literal in expressionLiteralArray)
                 {
+                    generator = literal.ChunkGenerator;
                     context = literal.GetSpanContext();
                     builder.AddRange(literal.LiteralTokens);
                 }
-                var rewritten = SyntaxFactory.CSharpExpressionLiteral(builder.ToList()).Green.CreateRed(node.Parent, position);
+                var rewritten = SyntaxFactory.CSharpExpressionLiteral(builder.ToList(), generator).Green.CreateRed(node.Parent, position);
                 rewritten = context != null ? rewritten.WithSpanContext(context) : rewritten;
                 Visit(rewritten);
             }
@@ -2057,13 +2059,15 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 var builder = SyntaxListBuilder<SyntaxToken>.Create();
                 var expressionLiteralArray = children.Cast<CSharpExpressionLiteralSyntax>();
+                ISpanChunkGenerator generator = null;
                 SpanContext context = null;
                 foreach (var literal in expressionLiteralArray)
                 {
+                    generator = literal.ChunkGenerator;
                     context = literal.GetSpanContext();
                     builder.AddRange(literal.LiteralTokens);
                 }
-                var rewritten = SyntaxFactory.CSharpExpressionLiteral(builder.ToList()).Green.CreateRed(node.Parent, position);
+                var rewritten = SyntaxFactory.CSharpExpressionLiteral(builder.ToList(), generator).Green.CreateRed(node.Parent, position);
                 rewritten = context != null ? rewritten.WithSpanContext(context) : rewritten;
                 Visit(rewritten);
             }

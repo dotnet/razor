@@ -2539,7 +2539,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             return null;
         }
 
-        return GetNodeWithSpanContext(SyntaxFactory.CSharpExpressionLiteral(tokens));
+        return GetNodeWithSpanContext(SyntaxFactory.CSharpExpressionLiteral(tokens, SpanContext.ChunkGenerator));
     }
 
     private CSharpEphemeralTextLiteralSyntax OutputTokensAsEphemeralLiteral()
