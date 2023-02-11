@@ -3121,6 +3121,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         }
     }
 
+    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.CSharpExpressionLiteralSyntax)Green).ChunkGenerator; } }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
@@ -3148,11 +3150,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         visitor.VisitCSharpExpressionLiteral(this);
     }
 
-    public CSharpExpressionLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens)
+    public CSharpExpressionLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-        if (literalTokens != LiteralTokens)
+        if (literalTokens != LiteralTokens || chunkGenerator != ChunkGenerator)
         {
-            var newNode = SyntaxFactory.CSharpExpressionLiteral(literalTokens);
+            var newNode = SyntaxFactory.CSharpExpressionLiteral(literalTokens, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                newNode = newNode.WithDiagnostics(diagnostics);
@@ -3167,7 +3169,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
     public CSharpExpressionLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens)
     {
-        return Update(literalTokens);
+        return Update(literalTokens, ChunkGenerator);
+    }
+
+    public CSharpExpressionLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
+    {
+        return Update(LiteralTokens, chunkGenerator);
     }
 
     public CSharpExpressionLiteralSyntax AddLiteralTokens(params SyntaxToken[] items)

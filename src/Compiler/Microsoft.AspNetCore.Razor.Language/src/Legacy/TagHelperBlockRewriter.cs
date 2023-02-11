@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -545,7 +545,7 @@ internal static class TagHelperBlockRewriter
             if (_tryParseResult.IsBoundNonStringAttribute && CanBeCollapsed(node))
             {
                 var tokens = node.GetTokens();
-                var expression = SyntaxFactory.CSharpExpressionLiteral(tokens);
+                var expression = SyntaxFactory.CSharpExpressionLiteral(tokens, chunkGenerator: null);
                 var rewrittenExpression = (CSharpExpressionLiteralSyntax)VisitCSharpExpressionLiteral(expression);
                 var newChildren = SyntaxListBuilder<RazorSyntaxNode>.Create();
                 newChildren.Add(rewrittenExpression);
@@ -578,7 +578,7 @@ internal static class TagHelperBlockRewriter
                 var context = node.GetSpanContext();
                 var newContext = new SpanContext(MarkupChunkGenerator.Instance, context.EditHandler);
 
-                var expression = SyntaxFactory.CSharpExpressionLiteral(new SyntaxList<SyntaxToken>(node.Transition)).WithSpanContext(newContext);
+                var expression = SyntaxFactory.CSharpExpressionLiteral(new SyntaxList<SyntaxToken>(node.Transition), MarkupChunkGenerator.Instance).WithSpanContext(newContext);
 
                 return base.VisitCSharpExpressionLiteral(expression);
             }
@@ -598,7 +598,7 @@ internal static class TagHelperBlockRewriter
                 var context = node.GetSpanContext();
                 var newContext = new SpanContext(MarkupChunkGenerator.Instance, context?.EditHandler ?? SpanEditHandler.CreateDefault((content) => Enumerable.Empty<Syntax.InternalSyntax.SyntaxToken>(), AcceptedCharactersInternal.Any));
 
-                var expression = SyntaxFactory.CSharpExpressionLiteral(new SyntaxList<SyntaxToken>(node.Transition.Transition)).WithSpanContext(newContext);
+                var expression = SyntaxFactory.CSharpExpressionLiteral(new SyntaxList<SyntaxToken>(node.Transition.Transition), MarkupChunkGenerator.Instance).WithSpanContext(newContext);
                 expression = (CSharpExpressionLiteralSyntax)VisitCSharpExpressionLiteral(expression);
                 builder.Add(expression);
 
@@ -626,7 +626,7 @@ internal static class TagHelperBlockRewriter
                 var context = node.GetSpanContext();
                 var newContext = new SpanContext(MarkupChunkGenerator.Instance, context?.EditHandler ?? SpanEditHandler.CreateDefault((content) => Enumerable.Empty<Syntax.InternalSyntax.SyntaxToken>(), AcceptedCharactersInternal.Any));
 
-                var expression = SyntaxFactory.CSharpExpressionLiteral(new SyntaxList<SyntaxToken>(node.Transition.Transition)).WithSpanContext(newContext);
+                var expression = SyntaxFactory.CSharpExpressionLiteral(new SyntaxList<SyntaxToken>(node.Transition.Transition), MarkupChunkGenerator.Instance).WithSpanContext(newContext);
                 expression = (CSharpExpressionLiteralSyntax)VisitCSharpExpressionLiteral(expression);
                 builder.Add(expression);
 
@@ -673,7 +673,7 @@ internal static class TagHelperBlockRewriter
                 var context = node.GetSpanContext();
                 var newContext = new SpanContext(MarkupChunkGenerator.Instance, context.EditHandler);
 
-                var expression = SyntaxFactory.CSharpExpressionLiteral(new SyntaxList<SyntaxToken>(node.MetaCode)).WithSpanContext(newContext);
+                var expression = SyntaxFactory.CSharpExpressionLiteral(new SyntaxList<SyntaxToken>(node.MetaCode), MarkupChunkGenerator.Instance).WithSpanContext(newContext);
 
                 return VisitCSharpExpressionLiteral(expression);
             }
@@ -733,7 +733,7 @@ internal static class TagHelperBlockRewriter
             {
                 _rewriteAsMarkup = true;
                 // Since this is a bound non-string attribute, we want to convert LiteralAttributeValue to just be a CSharp Expression literal.
-                var expression = SyntaxFactory.CSharpExpressionLiteral(builder.ToList());
+                var expression = SyntaxFactory.CSharpExpressionLiteral(builder.ToList(), chunkGenerator: null);
                 return VisitCSharpExpressionLiteral(expression);
             }
             else
@@ -784,7 +784,7 @@ internal static class TagHelperBlockRewriter
             _rewriteAsMarkup = true;
             node = (MarkupTextLiteralSyntax)ConfigureNonStringAttribute(node);
             var tokens = new SyntaxList<SyntaxToken>(node.LiteralTokens);
-            var value = SyntaxFactory.CSharpExpressionLiteral(tokens);
+            var value = SyntaxFactory.CSharpExpressionLiteral(tokens, node.ChunkGenerator);
             return value.WithSpanContext(node.GetSpanContext());
         }
 

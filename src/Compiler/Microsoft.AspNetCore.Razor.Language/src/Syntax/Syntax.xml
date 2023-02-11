@@ -255,6 +255,7 @@
   <Node Name="CSharpExpressionLiteralSyntax" Base="CSharpSyntaxNode">
     <Kind Name="CSharpExpressionLiteral" />
     <Field Name="LiteralTokens" Type="SyntaxList&lt;SyntaxToken&gt;" />
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
   </Node>
   <Node Name="CSharpEphemeralTextLiteralSyntax" Base="CSharpSyntaxNode">
     <Kind Name="CSharpEphemeralTextLiteral" />

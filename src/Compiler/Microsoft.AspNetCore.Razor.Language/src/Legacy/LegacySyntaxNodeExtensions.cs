@@ -74,6 +74,7 @@ internal static partial class LegacySyntaxNodeExtensions
             MarkupTagHelperEndTagSyntax end => end.ChunkGenerator,
             MarkupTextLiteralSyntax text => text.ChunkGenerator,
             CSharpStatementLiteralSyntax csharp => csharp.ChunkGenerator,
+            CSharpExpressionLiteralSyntax csharp => csharp.ChunkGenerator,
             RazorMetaCodeSyntax meta => meta.ChunkGenerator,
             _ => null,
         };
