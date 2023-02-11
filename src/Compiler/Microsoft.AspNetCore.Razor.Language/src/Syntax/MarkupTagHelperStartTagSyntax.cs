@@ -50,7 +50,7 @@ internal partial class MarkupTagHelperStartTagSyntax
 
         if (Bang != null)
         {
-            builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume()).WithSpanContext(acceptsAnyContext));
+            builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume(), ChunkGenerator).WithSpanContext(acceptsAnyContext));
 
             tokens.Add(Bang);
             var acceptsNoneContext = new SpanContext(context.ChunkGenerator, SpanEditHandler.CreateDefault(AcceptedCharactersInternal.None));
@@ -62,7 +62,7 @@ internal partial class MarkupTagHelperStartTagSyntax
             tokens.Add(Name);
         }
 
-        builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume()).WithSpanContext(containsAttributesContent ? acceptsAnyContext : context));
+        builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume(), ChunkGenerator).WithSpanContext(containsAttributesContent ? acceptsAnyContext : context));
 
         builder.AddRange(Attributes);
 
@@ -78,7 +78,7 @@ internal partial class MarkupTagHelperStartTagSyntax
 
         if (tokens.Count > 0)
         {
-            builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume()).WithSpanContext(context));
+            builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume(), ChunkGenerator).WithSpanContext(context));
         }
 
         return builder.ToListNode().CreateRed(this, Position);

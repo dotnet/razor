@@ -623,8 +623,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
   internal sealed partial class MarkupTextLiteralSyntax : MarkupSyntaxNode
   {
     private readonly GreenNode _literalTokens;
+    private readonly ISpanChunkGenerator _chunkGenerator;
 
-    internal MarkupTextLiteralSyntax(SyntaxKind kind, GreenNode literalTokens, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+    internal MarkupTextLiteralSyntax(SyntaxKind kind, GreenNode literalTokens, ISpanChunkGenerator chunkGenerator, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         SlotCount = 1;
@@ -633,10 +634,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             AdjustFlagsAndWidth(literalTokens);
             _literalTokens = literalTokens;
         }
+        _chunkGenerator = chunkGenerator;
     }
 
 
-    internal MarkupTextLiteralSyntax(SyntaxKind kind, GreenNode literalTokens)
+    internal MarkupTextLiteralSyntax(SyntaxKind kind, GreenNode literalTokens, ISpanChunkGenerator chunkGenerator)
         : base(kind)
     {
         SlotCount = 1;
@@ -645,9 +647,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             AdjustFlagsAndWidth(literalTokens);
             _literalTokens = literalTokens;
         }
+        _chunkGenerator = chunkGenerator;
     }
 
     public SyntaxList<SyntaxToken> LiteralTokens { get { return new SyntaxList<SyntaxToken>(_literalTokens); } }
+    public ISpanChunkGenerator ChunkGenerator { get { return _chunkGenerator; } }
 
     internal override GreenNode GetSlot(int index)
     {
@@ -673,11 +677,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         visitor.VisitMarkupTextLiteral(this);
     }
 
-    public MarkupTextLiteralSyntax Update(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens)
+    public MarkupTextLiteralSyntax Update(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
         if (literalTokens != LiteralTokens)
         {
-            var newNode = SyntaxFactory.MarkupTextLiteral(literalTokens);
+            var newNode = SyntaxFactory.MarkupTextLiteral(literalTokens, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -692,12 +696,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupTextLiteralSyntax(Kind, _literalTokens, diagnostics, GetAnnotations());
+         return new MarkupTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupTextLiteralSyntax(Kind, _literalTokens, GetDiagnostics(), annotations);
+         return new MarkupTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, GetDiagnostics(), annotations);
     }
   }
 
@@ -1476,8 +1480,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
     private readonly GreenNode _attributes;
     private readonly SyntaxToken _forwardSlash;
     private readonly SyntaxToken _closeAngle;
+    private readonly ISpanChunkGenerator _chunkGenerator;
 
-    internal MarkupStartTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, GreenNode attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+    internal MarkupStartTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, GreenNode attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         SlotCount = 6;
@@ -1502,10 +1507,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         }
         AdjustFlagsAndWidth(closeAngle);
         _closeAngle = closeAngle;
+        _chunkGenerator = chunkGenerator;
     }
 
 
-    internal MarkupStartTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, GreenNode attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle)
+    internal MarkupStartTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, GreenNode attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
         : base(kind)
     {
         SlotCount = 6;
@@ -1530,6 +1536,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         }
         AdjustFlagsAndWidth(closeAngle);
         _closeAngle = closeAngle;
+        _chunkGenerator = chunkGenerator;
     }
 
     public SyntaxToken OpenAngle { get { return _openAngle; } }
@@ -1538,6 +1545,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
     public SyntaxList<RazorSyntaxNode> Attributes { get { return new SyntaxList<RazorSyntaxNode>(_attributes); } }
     public SyntaxToken ForwardSlash { get { return _forwardSlash; } }
     public SyntaxToken CloseAngle { get { return _closeAngle; } }
+    public ISpanChunkGenerator ChunkGenerator { get { return _chunkGenerator; } }
 
     internal override GreenNode GetSlot(int index)
     {
@@ -1568,11 +1576,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         visitor.VisitMarkupStartTag(this);
     }
 
-    public MarkupStartTagSyntax Update(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle)
+    public MarkupStartTagSyntax Update(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
         if (openAngle != OpenAngle || bang != Bang || name != Name || attributes != Attributes || forwardSlash != ForwardSlash || closeAngle != CloseAngle)
         {
-            var newNode = SyntaxFactory.MarkupStartTag(openAngle, bang, name, attributes, forwardSlash, closeAngle);
+            var newNode = SyntaxFactory.MarkupStartTag(openAngle, bang, name, attributes, forwardSlash, closeAngle, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -1587,12 +1595,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, diagnostics, GetAnnotations());
+         return new MarkupStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, GetDiagnostics(), annotations);
+         return new MarkupStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, GetDiagnostics(), annotations);
     }
   }
 
@@ -1604,8 +1612,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
     private readonly SyntaxToken _name;
     private readonly MarkupMiscAttributeContentSyntax _miscAttributeContent;
     private readonly SyntaxToken _closeAngle;
+    private readonly ISpanChunkGenerator _chunkGenerator;
 
-    internal MarkupEndTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+    internal MarkupEndTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         SlotCount = 6;
@@ -1627,10 +1636,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         }
         AdjustFlagsAndWidth(closeAngle);
         _closeAngle = closeAngle;
+        _chunkGenerator = chunkGenerator;
     }
 
 
-    internal MarkupEndTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle)
+    internal MarkupEndTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
         : base(kind)
     {
         SlotCount = 6;
@@ -1652,6 +1662,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         }
         AdjustFlagsAndWidth(closeAngle);
         _closeAngle = closeAngle;
+        _chunkGenerator = chunkGenerator;
     }
 
     public SyntaxToken OpenAngle { get { return _openAngle; } }
@@ -1660,6 +1671,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
     public SyntaxToken Name { get { return _name; } }
     public MarkupMiscAttributeContentSyntax MiscAttributeContent { get { return _miscAttributeContent; } }
     public SyntaxToken CloseAngle { get { return _closeAngle; } }
+    public ISpanChunkGenerator ChunkGenerator { get { return _chunkGenerator; } }
 
     internal override GreenNode GetSlot(int index)
     {
@@ -1690,11 +1702,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         visitor.VisitMarkupEndTag(this);
     }
 
-    public MarkupEndTagSyntax Update(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle)
+    public MarkupEndTagSyntax Update(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
         if (openAngle != OpenAngle || forwardSlash != ForwardSlash || bang != Bang || name != Name || miscAttributeContent != MiscAttributeContent || closeAngle != CloseAngle)
         {
-            var newNode = SyntaxFactory.MarkupEndTag(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle);
+            var newNode = SyntaxFactory.MarkupEndTag(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -1709,12 +1721,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, diagnostics, GetAnnotations());
+         return new MarkupEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, GetDiagnostics(), annotations);
+         return new MarkupEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, GetDiagnostics(), annotations);
     }
   }
 
@@ -1827,8 +1839,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
     private readonly GreenNode _attributes;
     private readonly SyntaxToken _forwardSlash;
     private readonly SyntaxToken _closeAngle;
+    private readonly ISpanChunkGenerator _chunkGenerator;
 
-    internal MarkupTagHelperStartTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, GreenNode attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+    internal MarkupTagHelperStartTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, GreenNode attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         SlotCount = 6;
@@ -1853,10 +1866,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         }
         AdjustFlagsAndWidth(closeAngle);
         _closeAngle = closeAngle;
+        _chunkGenerator = chunkGenerator;
     }
 
 
-    internal MarkupTagHelperStartTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, GreenNode attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle)
+    internal MarkupTagHelperStartTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, GreenNode attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
         : base(kind)
     {
         SlotCount = 6;
@@ -1881,6 +1895,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         }
         AdjustFlagsAndWidth(closeAngle);
         _closeAngle = closeAngle;
+        _chunkGenerator = chunkGenerator;
     }
 
     public SyntaxToken OpenAngle { get { return _openAngle; } }
@@ -1889,6 +1904,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
     public SyntaxList<RazorSyntaxNode> Attributes { get { return new SyntaxList<RazorSyntaxNode>(_attributes); } }
     public SyntaxToken ForwardSlash { get { return _forwardSlash; } }
     public SyntaxToken CloseAngle { get { return _closeAngle; } }
+    public ISpanChunkGenerator ChunkGenerator { get { return _chunkGenerator; } }
 
     internal override GreenNode GetSlot(int index)
     {
@@ -1919,11 +1935,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         visitor.VisitMarkupTagHelperStartTag(this);
     }
 
-    public MarkupTagHelperStartTagSyntax Update(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle)
+    public MarkupTagHelperStartTagSyntax Update(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
         if (openAngle != OpenAngle || bang != Bang || name != Name || attributes != Attributes || forwardSlash != ForwardSlash || closeAngle != CloseAngle)
         {
-            var newNode = SyntaxFactory.MarkupTagHelperStartTag(openAngle, bang, name, attributes, forwardSlash, closeAngle);
+            var newNode = SyntaxFactory.MarkupTagHelperStartTag(openAngle, bang, name, attributes, forwardSlash, closeAngle, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -1938,12 +1954,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupTagHelperStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, diagnostics, GetAnnotations());
+         return new MarkupTagHelperStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupTagHelperStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, GetDiagnostics(), annotations);
+         return new MarkupTagHelperStartTagSyntax(Kind, _openAngle, _bang, _name, _attributes, _forwardSlash, _closeAngle, _chunkGenerator, GetDiagnostics(), annotations);
     }
   }
 
@@ -1955,8 +1971,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
     private readonly SyntaxToken _name;
     private readonly MarkupMiscAttributeContentSyntax _miscAttributeContent;
     private readonly SyntaxToken _closeAngle;
+    private readonly ISpanChunkGenerator _chunkGenerator;
 
-    internal MarkupTagHelperEndTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+    internal MarkupTagHelperEndTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         SlotCount = 6;
@@ -1978,10 +1995,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         }
         AdjustFlagsAndWidth(closeAngle);
         _closeAngle = closeAngle;
+        _chunkGenerator = chunkGenerator;
     }
 
 
-    internal MarkupTagHelperEndTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle)
+    internal MarkupTagHelperEndTagSyntax(SyntaxKind kind, SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
         : base(kind)
     {
         SlotCount = 6;
@@ -2003,6 +2021,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         }
         AdjustFlagsAndWidth(closeAngle);
         _closeAngle = closeAngle;
+        _chunkGenerator = chunkGenerator;
     }
 
     public SyntaxToken OpenAngle { get { return _openAngle; } }
@@ -2011,6 +2030,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
     public SyntaxToken Name { get { return _name; } }
     public MarkupMiscAttributeContentSyntax MiscAttributeContent { get { return _miscAttributeContent; } }
     public SyntaxToken CloseAngle { get { return _closeAngle; } }
+    public ISpanChunkGenerator ChunkGenerator { get { return _chunkGenerator; } }
 
     internal override GreenNode GetSlot(int index)
     {
@@ -2041,11 +2061,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         visitor.VisitMarkupTagHelperEndTag(this);
     }
 
-    public MarkupTagHelperEndTagSyntax Update(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle)
+    public MarkupTagHelperEndTagSyntax Update(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
         if (openAngle != OpenAngle || forwardSlash != ForwardSlash || bang != Bang || name != Name || miscAttributeContent != MiscAttributeContent || closeAngle != CloseAngle)
         {
-            var newNode = SyntaxFactory.MarkupTagHelperEndTag(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle);
+            var newNode = SyntaxFactory.MarkupTagHelperEndTag(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -2060,12 +2080,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupTagHelperEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, diagnostics, GetAnnotations());
+         return new MarkupTagHelperEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupTagHelperEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, GetDiagnostics(), annotations);
+         return new MarkupTagHelperEndTagSyntax(Kind, _openAngle, _forwardSlash, _bang, _name, _miscAttributeContent, _closeAngle, _chunkGenerator, GetDiagnostics(), annotations);
     }
   }
 
@@ -4313,7 +4333,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
     public override GreenNode VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
     {
       var literalTokens = VisitList(node.LiteralTokens);
-      return node.Update(literalTokens);
+      return node.Update(literalTokens, node.ChunkGenerator);
     }
 
     public override GreenNode VisitMarkupEphemeralTextLiteral(MarkupEphemeralTextLiteralSyntax node)
@@ -4383,7 +4403,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
       var attributes = VisitList(node.Attributes);
       var forwardSlash = (SyntaxToken)Visit(node.ForwardSlash);
       var closeAngle = (SyntaxToken)Visit(node.CloseAngle);
-      return node.Update(openAngle, bang, name, attributes, forwardSlash, closeAngle);
+      return node.Update(openAngle, bang, name, attributes, forwardSlash, closeAngle, node.ChunkGenerator);
     }
 
     public override GreenNode VisitMarkupEndTag(MarkupEndTagSyntax node)
@@ -4394,7 +4414,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
       var name = (SyntaxToken)Visit(node.Name);
       var miscAttributeContent = (MarkupMiscAttributeContentSyntax)Visit(node.MiscAttributeContent);
       var closeAngle = (SyntaxToken)Visit(node.CloseAngle);
-      return node.Update(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle);
+      return node.Update(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, node.ChunkGenerator);
     }
 
     public override GreenNode VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
@@ -4413,7 +4433,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
       var attributes = VisitList(node.Attributes);
       var forwardSlash = (SyntaxToken)Visit(node.ForwardSlash);
       var closeAngle = (SyntaxToken)Visit(node.CloseAngle);
-      return node.Update(openAngle, bang, name, attributes, forwardSlash, closeAngle);
+      return node.Update(openAngle, bang, name, attributes, forwardSlash, closeAngle, node.ChunkGenerator);
     }
 
     public override GreenNode VisitMarkupTagHelperEndTag(MarkupTagHelperEndTagSyntax node)
@@ -4424,7 +4444,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
       var name = (SyntaxToken)Visit(node.Name);
       var miscAttributeContent = (MarkupMiscAttributeContentSyntax)Visit(node.MiscAttributeContent);
       var closeAngle = (SyntaxToken)Visit(node.CloseAngle);
-      return node.Update(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle);
+      return node.Update(openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, node.ChunkGenerator);
     }
 
     public override GreenNode VisitMarkupTagHelperAttribute(MarkupTagHelperAttributeSyntax node)
@@ -4674,10 +4694,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
       return result;
     }
 
-    public static MarkupTextLiteralSyntax MarkupTextLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens)
+    public static MarkupTextLiteralSyntax MarkupTextLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
 
-      var result = new MarkupTextLiteralSyntax(SyntaxKind.MarkupTextLiteral, literalTokens.Node);
+      var result = new MarkupTextLiteralSyntax(SyntaxKind.MarkupTextLiteral, literalTokens.Node, chunkGenerator);
 
       return result;
     }
@@ -4759,7 +4779,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
       return result;
     }
 
-    public static MarkupStartTagSyntax MarkupStartTag(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle)
+    public static MarkupStartTagSyntax MarkupStartTag(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
       if (openAngle == null)
         throw new ArgumentNullException(nameof(openAngle));
@@ -4811,10 +4831,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
           throw new ArgumentException("closeAngle");
       }
 
-      return new MarkupStartTagSyntax(SyntaxKind.MarkupStartTag, openAngle, bang, name, attributes.Node, forwardSlash, closeAngle);
+      return new MarkupStartTagSyntax(SyntaxKind.MarkupStartTag, openAngle, bang, name, attributes.Node, forwardSlash, closeAngle, chunkGenerator);
     }
 
-    public static MarkupEndTagSyntax MarkupEndTag(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle)
+    public static MarkupEndTagSyntax MarkupEndTag(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
       if (openAngle == null)
         throw new ArgumentNullException(nameof(openAngle));
@@ -4864,7 +4884,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
           throw new ArgumentException("closeAngle");
       }
 
-      return new MarkupEndTagSyntax(SyntaxKind.MarkupEndTag, openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle);
+      return new MarkupEndTagSyntax(SyntaxKind.MarkupEndTag, openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
     }
 
     public static MarkupTagHelperElementSyntax MarkupTagHelperElement(MarkupTagHelperStartTagSyntax startTag, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> body, MarkupTagHelperEndTagSyntax endTag)
@@ -4877,7 +4897,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
       return result;
     }
 
-    public static MarkupTagHelperStartTagSyntax MarkupTagHelperStartTag(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle)
+    public static MarkupTagHelperStartTagSyntax MarkupTagHelperStartTag(SyntaxToken openAngle, SyntaxToken bang, SyntaxToken name, Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<RazorSyntaxNode> attributes, SyntaxToken forwardSlash, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
       if (openAngle == null)
         throw new ArgumentNullException(nameof(openAngle));
@@ -4929,10 +4949,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
           throw new ArgumentException("closeAngle");
       }
 
-      return new MarkupTagHelperStartTagSyntax(SyntaxKind.MarkupTagHelperStartTag, openAngle, bang, name, attributes.Node, forwardSlash, closeAngle);
+      return new MarkupTagHelperStartTagSyntax(SyntaxKind.MarkupTagHelperStartTag, openAngle, bang, name, attributes.Node, forwardSlash, closeAngle, chunkGenerator);
     }
 
-    public static MarkupTagHelperEndTagSyntax MarkupTagHelperEndTag(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle)
+    public static MarkupTagHelperEndTagSyntax MarkupTagHelperEndTag(SyntaxToken openAngle, SyntaxToken forwardSlash, SyntaxToken bang, SyntaxToken name, MarkupMiscAttributeContentSyntax miscAttributeContent, SyntaxToken closeAngle, ISpanChunkGenerator chunkGenerator)
     {
       if (openAngle == null)
         throw new ArgumentNullException(nameof(openAngle));
@@ -4982,7 +5002,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
           throw new ArgumentException("closeAngle");
       }
 
-      return new MarkupTagHelperEndTagSyntax(SyntaxKind.MarkupTagHelperEndTag, openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle);
+      return new MarkupTagHelperEndTagSyntax(SyntaxKind.MarkupTagHelperEndTag, openAngle, forwardSlash, bang, name, miscAttributeContent, closeAngle, chunkGenerator);
     }
 
     public static MarkupTagHelperAttributeSyntax MarkupTagHelperAttribute(MarkupTextLiteralSyntax namePrefix, MarkupTextLiteralSyntax name, MarkupTextLiteralSyntax nameSuffix, SyntaxToken equalsToken, MarkupTextLiteralSyntax valuePrefix, MarkupTagHelperAttributeValueSyntax value, MarkupTextLiteralSyntax valueSuffix)

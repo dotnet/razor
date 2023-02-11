@@ -179,7 +179,7 @@ internal static class TagHelperBlockRewriter
         }
 
         var tagHelperStartTag = SyntaxFactory.MarkupTagHelperStartTag(
-            startTag.OpenAngle, startTag.Bang, startTag.Name, attributes, startTag.ForwardSlash, startTag.CloseAngle);
+            startTag.OpenAngle, startTag.Bang, startTag.Name, attributes, startTag.ForwardSlash, startTag.CloseAngle, startTag.ChunkGenerator);
 
         return tagHelperStartTag.WithSpanContext(startTag.GetSpanContext());
     }
@@ -262,7 +262,7 @@ internal static class TagHelperBlockRewriter
             var builder = SyntaxListBuilder<RazorSyntaxNode>.Create();
 
             // Add a marker for attribute value when there are no quotes like, <p class= >
-            builder.Add(SyntaxFactory.MarkupTextLiteral(new SyntaxList<SyntaxToken>()));
+            builder.Add(SyntaxFactory.MarkupTextLiteral(new SyntaxList<SyntaxToken>(), chunkGenerator: null));
 
             attributeValue = SyntaxFactory.GenericBlock(builder.ToList());
         }
@@ -320,7 +320,7 @@ internal static class TagHelperBlockRewriter
         {
             attributeName = attributeName.Substring(1);
             var attributeNameToken = SyntaxFactory.Token(SyntaxKind.Text, attributeName);
-            attributeNameSyntax = SyntaxFactory.MarkupTextLiteral().AddLiteralTokens(attributeNameToken);
+            attributeNameSyntax = SyntaxFactory.MarkupTextLiteral(chunkGenerator: null).AddLiteralTokens(attributeNameToken);
 
             var transitionToken = SyntaxFactory.Token(SyntaxKind.Transition, "@");
             transition = SyntaxFactory.RazorMetaCode(new SyntaxList<SyntaxToken>(transitionToken));
@@ -331,13 +331,13 @@ internal static class TagHelperBlockRewriter
             var segments = attributeName.Split(new[] { ':' }, 2);
 
             var attributeNameToken = SyntaxFactory.Token(SyntaxKind.Text, segments[0]);
-            attributeNameSyntax = SyntaxFactory.MarkupTextLiteral().AddLiteralTokens(attributeNameToken);
+            attributeNameSyntax = SyntaxFactory.MarkupTextLiteral(chunkGenerator: null).AddLiteralTokens(attributeNameToken);
 
             var colonToken = SyntaxFactory.Token(SyntaxKind.Colon, ":");
             colon = SyntaxFactory.RazorMetaCode(new SyntaxList<SyntaxToken>(colonToken));
 
             var parameterNameToken = SyntaxFactory.Token(SyntaxKind.Text, segments[1]);
-            parameterName = SyntaxFactory.MarkupTextLiteral().AddLiteralTokens(parameterNameToken);
+            parameterName = SyntaxFactory.MarkupTextLiteral(chunkGenerator: null).AddLiteralTokens(parameterNameToken);
         }
 
         var rewritten = SyntaxFactory.MarkupTagHelperDirectiveAttribute(
@@ -381,7 +381,7 @@ internal static class TagHelperBlockRewriter
         {
             attributeName = attributeName.Substring(1);
             var attributeNameToken = SyntaxFactory.Token(SyntaxKind.Text, attributeName);
-            attributeNameSyntax = SyntaxFactory.MarkupTextLiteral().AddLiteralTokens(attributeNameToken);
+            attributeNameSyntax = SyntaxFactory.MarkupTextLiteral(chunkGenerator: null).AddLiteralTokens(attributeNameToken);
 
             var transitionToken = SyntaxFactory.Token(SyntaxKind.Transition, "@");
             transition = SyntaxFactory.RazorMetaCode(new SyntaxList<SyntaxToken>(transitionToken));
@@ -392,13 +392,13 @@ internal static class TagHelperBlockRewriter
             var segments = attributeName.Split(new[] { ':' }, 2);
 
             var attributeNameToken = SyntaxFactory.Token(SyntaxKind.Text, segments[0]);
-            attributeNameSyntax = SyntaxFactory.MarkupTextLiteral().AddLiteralTokens(attributeNameToken);
+            attributeNameSyntax = SyntaxFactory.MarkupTextLiteral(chunkGenerator: null).AddLiteralTokens(attributeNameToken);
 
             var colonToken = SyntaxFactory.Token(SyntaxKind.Colon, ":");
             colon = SyntaxFactory.RazorMetaCode(new SyntaxList<SyntaxToken>(colonToken));
 
             var parameterNameToken = SyntaxFactory.Token(SyntaxKind.Text, segments[1]);
-            parameterName = SyntaxFactory.MarkupTextLiteral().AddLiteralTokens(parameterNameToken);
+            parameterName = SyntaxFactory.MarkupTextLiteral(chunkGenerator: null).AddLiteralTokens(parameterNameToken);
         }
 
         var rewritten = SyntaxFactory.MarkupMinimizedTagHelperDirectiveAttribute(
@@ -738,7 +738,7 @@ internal static class TagHelperBlockRewriter
             }
             else
             {
-                var literal = SyntaxFactory.MarkupTextLiteral(builder.ToList());
+                var literal = SyntaxFactory.MarkupTextLiteral(builder.ToList(), node.Value?.ChunkGenerator ?? SpanChunkGenerator.Null);
                 var context = node.Value?.GetSpanContext();
                 literal = context != null ? literal.WithSpanContext(context) : literal;
 

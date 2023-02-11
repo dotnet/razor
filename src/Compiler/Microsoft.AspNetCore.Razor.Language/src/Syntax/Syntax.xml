@@ -56,6 +56,7 @@
   <Node Name="MarkupTextLiteralSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupTextLiteral" />
     <Field Name="LiteralTokens" Type="SyntaxList&lt;SyntaxToken&gt;" />
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
   </Node>
   <Node Name="MarkupEphemeralTextLiteralSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupEphemeralTextLiteral" />
@@ -120,6 +121,7 @@
     <Field Name="CloseAngle" Type="SyntaxToken">
       <Kind Name="CloseAngle" />
     </Field>
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
   </Node>
   <Node Name="MarkupEndTagSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupEndTag" />
@@ -139,6 +141,7 @@
     <Field Name="CloseAngle" Type="SyntaxToken">
       <Kind Name="CloseAngle" />
     </Field>
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
   </Node>
   <Node Name="MarkupTagHelperElementSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupTagHelperElement" />
@@ -164,6 +167,7 @@
     <Field Name="CloseAngle" Type="SyntaxToken">
       <Kind Name="CloseAngle" />
     </Field>
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
   </Node>
   <Node Name="MarkupTagHelperEndTagSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupTagHelperEndTag" />
@@ -183,6 +187,7 @@
     <Field Name="CloseAngle" Type="SyntaxToken">
       <Kind Name="CloseAngle" />
     </Field>
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
   </Node>
   <Node Name="MarkupTagHelperAttributeSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupTagHelperAttribute" />
