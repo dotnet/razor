@@ -76,9 +76,9 @@ internal class SpanEditHandler
         }
 
         SyntaxNode newTarget = null;
-        if (target is RazorMetaCodeSyntax)
+        if (target is RazorMetaCodeSyntax metaCode)
         {
-            newTarget = Syntax.InternalSyntax.SyntaxFactory.RazorMetaCode(builder.ToList()).CreateRed(target.Parent, target.Position);
+            newTarget = Syntax.InternalSyntax.SyntaxFactory.RazorMetaCode(builder.ToList(), metaCode.ChunkGenerator).CreateRed(target.Parent, target.Position);
         }
         else if (target is MarkupTextLiteralSyntax markupLiteral)
         {

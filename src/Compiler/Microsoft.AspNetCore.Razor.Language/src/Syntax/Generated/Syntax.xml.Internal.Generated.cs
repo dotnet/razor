@@ -206,8 +206,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
   internal sealed partial class RazorMetaCodeSyntax : RazorSyntaxNode
   {
     private readonly GreenNode _metaCode;
+    private readonly ISpanChunkGenerator _chunkGenerator;
 
-    internal RazorMetaCodeSyntax(SyntaxKind kind, GreenNode metaCode, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+    internal RazorMetaCodeSyntax(SyntaxKind kind, GreenNode metaCode, ISpanChunkGenerator chunkGenerator, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         SlotCount = 1;
@@ -216,10 +217,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             AdjustFlagsAndWidth(metaCode);
             _metaCode = metaCode;
         }
+        _chunkGenerator = chunkGenerator;
     }
 
 
-    internal RazorMetaCodeSyntax(SyntaxKind kind, GreenNode metaCode)
+    internal RazorMetaCodeSyntax(SyntaxKind kind, GreenNode metaCode, ISpanChunkGenerator chunkGenerator)
         : base(kind)
     {
         SlotCount = 1;
@@ -228,9 +230,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             AdjustFlagsAndWidth(metaCode);
             _metaCode = metaCode;
         }
+        _chunkGenerator = chunkGenerator;
     }
 
     public SyntaxList<SyntaxToken> MetaCode { get { return new SyntaxList<SyntaxToken>(_metaCode); } }
+    public ISpanChunkGenerator ChunkGenerator { get { return _chunkGenerator; } }
 
     internal override GreenNode GetSlot(int index)
     {
@@ -256,11 +260,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         visitor.VisitRazorMetaCode(this);
     }
 
-    public RazorMetaCodeSyntax Update(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> metaCode)
+    public RazorMetaCodeSyntax Update(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> metaCode, ISpanChunkGenerator chunkGenerator)
     {
         if (metaCode != MetaCode)
         {
-            var newNode = SyntaxFactory.RazorMetaCode(metaCode);
+            var newNode = SyntaxFactory.RazorMetaCode(metaCode, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -275,12 +279,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new RazorMetaCodeSyntax(Kind, _metaCode, diagnostics, GetAnnotations());
+         return new RazorMetaCodeSyntax(Kind, _metaCode, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new RazorMetaCodeSyntax(Kind, _metaCode, GetDiagnostics(), annotations);
+         return new RazorMetaCodeSyntax(Kind, _metaCode, _chunkGenerator, GetDiagnostics(), annotations);
     }
   }
 
@@ -4303,7 +4307,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
     public override GreenNode VisitRazorMetaCode(RazorMetaCodeSyntax node)
     {
       var metaCode = VisitList(node.MetaCode);
-      return node.Update(metaCode);
+      return node.Update(metaCode, node.ChunkGenerator);
     }
 
     public override GreenNode VisitGenericBlock(GenericBlockSyntax node)
@@ -4654,10 +4658,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
       return new RazorCommentBlockSyntax(SyntaxKind.RazorComment, startCommentTransition, startCommentStar, comment, endCommentStar, endCommentTransition);
     }
 
-    public static RazorMetaCodeSyntax RazorMetaCode(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> metaCode)
+    public static RazorMetaCodeSyntax RazorMetaCode(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> metaCode, ISpanChunkGenerator chunkGenerator)
     {
 
-      var result = new RazorMetaCodeSyntax(SyntaxKind.RazorMetaCode, metaCode.Node);
+      var result = new RazorMetaCodeSyntax(SyntaxKind.RazorMetaCode, metaCode.Node, chunkGenerator);
 
       return result;
     }

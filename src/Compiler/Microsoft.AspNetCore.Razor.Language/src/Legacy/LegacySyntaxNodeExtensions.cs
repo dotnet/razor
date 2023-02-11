@@ -67,15 +67,16 @@ internal static partial class LegacySyntaxNodeExtensions
 
     internal static ISpanChunkGenerator? GetChunkGenerator(this SyntaxNode node)
      => node switch
-     {
-         MarkupStartTagSyntax start => start.ChunkGenerator,
-         MarkupEndTagSyntax end => end.ChunkGenerator,
-         MarkupTagHelperStartTagSyntax start => start.ChunkGenerator,
-         MarkupTagHelperEndTagSyntax end => end.ChunkGenerator,
-         MarkupTextLiteralSyntax text => text.ChunkGenerator,
-         CSharpStatementLiteralSyntax csharp => csharp.ChunkGenerator,
-         _ => null,
-     };
+        {
+            MarkupStartTagSyntax start => start.ChunkGenerator,
+            MarkupEndTagSyntax end => end.ChunkGenerator,
+            MarkupTagHelperStartTagSyntax start => start.ChunkGenerator,
+            MarkupTagHelperEndTagSyntax end => end.ChunkGenerator,
+            MarkupTextLiteralSyntax text => text.ChunkGenerator,
+            CSharpStatementLiteralSyntax csharp => csharp.ChunkGenerator,
+            RazorMetaCodeSyntax meta => meta.ChunkGenerator,
+            _ => null,
+        };
 
     public static SpanContext? GetSpanContext(this SyntaxNode node)
         => node.GetAnnotationValue(SyntaxConstants.SpanContextKind) as SpanContext;

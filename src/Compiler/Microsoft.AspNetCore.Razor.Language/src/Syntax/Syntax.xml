@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 
 <Tree Root="SyntaxNode">
   <PredefinedNode Name="RazorSyntaxNode" Base="SyntaxNode" />
@@ -33,6 +33,7 @@
   <Node Name="RazorMetaCodeSyntax" Base="RazorSyntaxNode">
     <Kind Name="RazorMetaCode" />
     <Field Name="MetaCode" Type="SyntaxList&lt;SyntaxToken&gt;" />
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" IsOptional="true" />
   </Node>
   <Node Name="GenericBlockSyntax" Base="RazorBlockSyntax">
     <Kind Name="GenericBlock" />
