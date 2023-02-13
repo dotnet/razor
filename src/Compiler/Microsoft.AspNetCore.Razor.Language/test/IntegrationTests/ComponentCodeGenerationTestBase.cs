@@ -6097,6 +6097,38 @@ namespace Test
     }
 
     [Fact]
+    public void CascadingGenericInference_Tuple()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                [CascadingTypeParameter(nameof(T))]
+                public class ParentComponent<T> : ComponentBase
+                {
+                    [Parameter] public (T, T) Parameter { get; set; }
+                }
+
+                public class ChildComponent<T> : ComponentBase { }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <ParentComponent Parameter="(1, 2)">
+                <ChildComponent />
+            </ParentComponent>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void ChildComponent_GenericWeaklyTypedAttribute()
     {
         // Arrange
