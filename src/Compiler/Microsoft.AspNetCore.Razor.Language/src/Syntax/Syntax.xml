@@ -246,6 +246,7 @@
     <Field Name="Transition" Type="SyntaxToken">
       <Kind Name="Transition" />
     </Field>
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
   </Node>
   <Node Name="CSharpStatementLiteralSyntax" Base="CSharpSyntaxNode">
     <Kind Name="CSharpStatementLiteral" />
