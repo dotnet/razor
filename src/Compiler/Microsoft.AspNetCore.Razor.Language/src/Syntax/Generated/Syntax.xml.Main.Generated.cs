@@ -721,7 +721,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     public override SyntaxNode VisitCSharpTransition(CSharpTransitionSyntax node)
     {
       var transition = (SyntaxToken)VisitToken(node.Transition);
-      return node.Update(transition);
+      return node.Update(transition, node.ChunkGenerator);
     }
 
     public override SyntaxNode VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
@@ -1416,7 +1416,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     }
 
     /// <summary>Creates a new CSharpTransitionSyntax instance.</summary>
-    public static CSharpTransitionSyntax CSharpTransition(SyntaxToken transition)
+    public static CSharpTransitionSyntax CSharpTransition(SyntaxToken transition, ISpanChunkGenerator chunkGenerator)
     {
       switch (transition.Kind)
       {
@@ -1425,13 +1425,13 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         default:
           throw new ArgumentException("transition");
       }
-      return (CSharpTransitionSyntax)InternalSyntax.SyntaxFactory.CSharpTransition((Syntax.InternalSyntax.SyntaxToken)transition.Green).CreateRed();
+      return (CSharpTransitionSyntax)InternalSyntax.SyntaxFactory.CSharpTransition((Syntax.InternalSyntax.SyntaxToken)transition.Green, chunkGenerator).CreateRed();
     }
 
     /// <summary>Creates a new CSharpTransitionSyntax instance.</summary>
-    public static CSharpTransitionSyntax CSharpTransition()
+    public static CSharpTransitionSyntax CSharpTransition(ISpanChunkGenerator chunkGenerator)
     {
-      return SyntaxFactory.CSharpTransition(SyntaxFactory.Token(SyntaxKind.Transition));
+      return SyntaxFactory.CSharpTransition(SyntaxFactory.Token(SyntaxKind.Transition), chunkGenerator);
     }
 
     /// <summary>Creates a new CSharpStatementLiteralSyntax instance.</summary>
@@ -1492,12 +1492,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
       return (CSharpStatementSyntax)InternalSyntax.SyntaxFactory.CSharpStatement(transition == null ? null : (InternalSyntax.CSharpTransitionSyntax)transition.Green, body == null ? null : (InternalSyntax.CSharpSyntaxNode)body.Green).CreateRed();
     }
 
-    /// <summary>Creates a new CSharpStatementSyntax instance.</summary>
-    public static CSharpStatementSyntax CSharpStatement(CSharpSyntaxNode body)
-    {
-      return SyntaxFactory.CSharpStatement(SyntaxFactory.CSharpTransition(), body);
-    }
-
     /// <summary>Creates a new CSharpStatementBodySyntax instance.</summary>
     public static CSharpStatementBodySyntax CSharpStatementBody(RazorMetaCodeSyntax openBrace, CSharpCodeBlockSyntax cSharpCode, RazorMetaCodeSyntax closeBrace)
     {
@@ -1524,12 +1518,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
       if (body == null)
         throw new ArgumentNullException(nameof(body));
       return (CSharpExplicitExpressionSyntax)InternalSyntax.SyntaxFactory.CSharpExplicitExpression(transition == null ? null : (InternalSyntax.CSharpTransitionSyntax)transition.Green, body == null ? null : (InternalSyntax.CSharpSyntaxNode)body.Green).CreateRed();
-    }
-
-    /// <summary>Creates a new CSharpExplicitExpressionSyntax instance.</summary>
-    public static CSharpExplicitExpressionSyntax CSharpExplicitExpression(CSharpSyntaxNode body)
-    {
-      return SyntaxFactory.CSharpExplicitExpression(SyntaxFactory.CSharpTransition(), body);
     }
 
     /// <summary>Creates a new CSharpExplicitExpressionBodySyntax instance.</summary>
@@ -1560,12 +1548,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
       return (CSharpImplicitExpressionSyntax)InternalSyntax.SyntaxFactory.CSharpImplicitExpression(transition == null ? null : (InternalSyntax.CSharpTransitionSyntax)transition.Green, body == null ? null : (InternalSyntax.CSharpSyntaxNode)body.Green).CreateRed();
     }
 
-    /// <summary>Creates a new CSharpImplicitExpressionSyntax instance.</summary>
-    public static CSharpImplicitExpressionSyntax CSharpImplicitExpression(CSharpSyntaxNode body)
-    {
-      return SyntaxFactory.CSharpImplicitExpression(SyntaxFactory.CSharpTransition(), body);
-    }
-
     /// <summary>Creates a new CSharpImplicitExpressionBodySyntax instance.</summary>
     public static CSharpImplicitExpressionBodySyntax CSharpImplicitExpressionBody(CSharpCodeBlockSyntax cSharpCode)
     {
@@ -1588,12 +1570,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
       if (body == null)
         throw new ArgumentNullException(nameof(body));
       return (RazorDirectiveSyntax)InternalSyntax.SyntaxFactory.RazorDirective(transition == null ? null : (InternalSyntax.CSharpTransitionSyntax)transition.Green, body == null ? null : (InternalSyntax.CSharpSyntaxNode)body.Green).CreateRed();
-    }
-
-    /// <summary>Creates a new RazorDirectiveSyntax instance.</summary>
-    public static RazorDirectiveSyntax RazorDirective(CSharpSyntaxNode body)
-    {
-      return SyntaxFactory.RazorDirective(SyntaxFactory.CSharpTransition(), body);
     }
 
     /// <summary>Creates a new RazorDirectiveBodySyntax instance.</summary>

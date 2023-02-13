@@ -2794,25 +2794,29 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
   internal sealed partial class CSharpTransitionSyntax : CSharpSyntaxNode
   {
     private readonly SyntaxToken _transition;
+    private readonly ISpanChunkGenerator _chunkGenerator;
 
-    internal CSharpTransitionSyntax(SyntaxKind kind, SyntaxToken transition, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+    internal CSharpTransitionSyntax(SyntaxKind kind, SyntaxToken transition, ISpanChunkGenerator chunkGenerator, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         SlotCount = 1;
         AdjustFlagsAndWidth(transition);
         _transition = transition;
+        _chunkGenerator = chunkGenerator;
     }
 
 
-    internal CSharpTransitionSyntax(SyntaxKind kind, SyntaxToken transition)
+    internal CSharpTransitionSyntax(SyntaxKind kind, SyntaxToken transition, ISpanChunkGenerator chunkGenerator)
         : base(kind)
     {
         SlotCount = 1;
         AdjustFlagsAndWidth(transition);
         _transition = transition;
+        _chunkGenerator = chunkGenerator;
     }
 
     public SyntaxToken Transition { get { return _transition; } }
+    public ISpanChunkGenerator ChunkGenerator { get { return _chunkGenerator; } }
 
     internal override GreenNode GetSlot(int index)
     {
@@ -2838,11 +2842,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         visitor.VisitCSharpTransition(this);
     }
 
-    public CSharpTransitionSyntax Update(SyntaxToken transition)
+    public CSharpTransitionSyntax Update(SyntaxToken transition, ISpanChunkGenerator chunkGenerator)
     {
         if (transition != Transition)
         {
-            var newNode = SyntaxFactory.CSharpTransition(transition);
+            var newNode = SyntaxFactory.CSharpTransition(transition, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -2857,12 +2861,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new CSharpTransitionSyntax(Kind, _transition, diagnostics, GetAnnotations());
+         return new CSharpTransitionSyntax(Kind, _transition, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new CSharpTransitionSyntax(Kind, _transition, GetDiagnostics(), annotations);
+         return new CSharpTransitionSyntax(Kind, _transition, _chunkGenerator, GetDiagnostics(), annotations);
     }
   }
 
@@ -4514,7 +4518,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
     public override GreenNode VisitCSharpTransition(CSharpTransitionSyntax node)
     {
       var transition = (SyntaxToken)Visit(node.Transition);
-      return node.Update(transition);
+      return node.Update(transition, node.ChunkGenerator);
     }
 
     public override GreenNode VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
@@ -5089,7 +5093,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
       return result;
     }
 
-    public static CSharpTransitionSyntax CSharpTransition(SyntaxToken transition)
+    public static CSharpTransitionSyntax CSharpTransition(SyntaxToken transition, ISpanChunkGenerator chunkGenerator)
     {
       if (transition == null)
         throw new ArgumentNullException(nameof(transition));
@@ -5101,7 +5105,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
           throw new ArgumentException("transition");
       }
 
-      var result = new CSharpTransitionSyntax(SyntaxKind.CSharpTransition, transition);
+      var result = new CSharpTransitionSyntax(SyntaxKind.CSharpTransition, transition, chunkGenerator);
 
       return result;
     }
