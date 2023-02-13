@@ -595,7 +595,7 @@ internal abstract class TokenizerBackedParser<TTokenizer> : ParserBase
             return null;
         }
 
-        return GetNodeWithSpanContext(SyntaxFactory.MarkupEphemeralTextLiteral(tokens));
+        return GetNodeWithSpanContext(SyntaxFactory.MarkupEphemeralTextLiteral(tokens, SpanContext.ChunkGenerator));
     }
 
     protected RazorMetaCodeSyntax OutputAsMetaCode(SyntaxList<SyntaxToken> tokens, AcceptedCharactersInternal? accepted = null)

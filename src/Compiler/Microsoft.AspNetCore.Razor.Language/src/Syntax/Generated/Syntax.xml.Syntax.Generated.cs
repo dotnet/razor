@@ -700,6 +700,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         }
     }
 
+    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.MarkupEphemeralTextLiteralSyntax)Green).ChunkGenerator; } }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
@@ -727,11 +729,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         visitor.VisitMarkupEphemeralTextLiteral(this);
     }
 
-    public MarkupEphemeralTextLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens)
+    public MarkupEphemeralTextLiteralSyntax Update(SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
-        if (literalTokens != LiteralTokens)
+        if (literalTokens != LiteralTokens || chunkGenerator != ChunkGenerator)
         {
-            var newNode = SyntaxFactory.MarkupEphemeralTextLiteral(literalTokens);
+            var newNode = SyntaxFactory.MarkupEphemeralTextLiteral(literalTokens, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                newNode = newNode.WithDiagnostics(diagnostics);
@@ -746,7 +748,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
     public MarkupEphemeralTextLiteralSyntax WithLiteralTokens(SyntaxList<SyntaxToken> literalTokens)
     {
-        return Update(literalTokens);
+        return Update(literalTokens, ChunkGenerator);
+    }
+
+    public MarkupEphemeralTextLiteralSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
+    {
+        return Update(LiteralTokens, chunkGenerator);
     }
 
     public MarkupEphemeralTextLiteralSyntax AddLiteralTokens(params SyntaxToken[] items)

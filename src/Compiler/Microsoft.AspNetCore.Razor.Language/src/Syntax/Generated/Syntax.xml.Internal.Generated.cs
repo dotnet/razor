@@ -712,8 +712,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
   internal sealed partial class MarkupEphemeralTextLiteralSyntax : MarkupSyntaxNode
   {
     private readonly GreenNode _literalTokens;
+    private readonly ISpanChunkGenerator _chunkGenerator;
 
-    internal MarkupEphemeralTextLiteralSyntax(SyntaxKind kind, GreenNode literalTokens, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+    internal MarkupEphemeralTextLiteralSyntax(SyntaxKind kind, GreenNode literalTokens, ISpanChunkGenerator chunkGenerator, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         SlotCount = 1;
@@ -722,10 +723,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             AdjustFlagsAndWidth(literalTokens);
             _literalTokens = literalTokens;
         }
+        _chunkGenerator = chunkGenerator;
     }
 
 
-    internal MarkupEphemeralTextLiteralSyntax(SyntaxKind kind, GreenNode literalTokens)
+    internal MarkupEphemeralTextLiteralSyntax(SyntaxKind kind, GreenNode literalTokens, ISpanChunkGenerator chunkGenerator)
         : base(kind)
     {
         SlotCount = 1;
@@ -734,9 +736,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             AdjustFlagsAndWidth(literalTokens);
             _literalTokens = literalTokens;
         }
+        _chunkGenerator = chunkGenerator;
     }
 
     public SyntaxList<SyntaxToken> LiteralTokens { get { return new SyntaxList<SyntaxToken>(_literalTokens); } }
+    public ISpanChunkGenerator ChunkGenerator { get { return _chunkGenerator; } }
 
     internal override GreenNode GetSlot(int index)
     {
@@ -762,11 +766,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         visitor.VisitMarkupEphemeralTextLiteral(this);
     }
 
-    public MarkupEphemeralTextLiteralSyntax Update(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens)
+    public MarkupEphemeralTextLiteralSyntax Update(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
         if (literalTokens != LiteralTokens)
         {
-            var newNode = SyntaxFactory.MarkupEphemeralTextLiteral(literalTokens);
+            var newNode = SyntaxFactory.MarkupEphemeralTextLiteral(literalTokens, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -781,12 +785,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupEphemeralTextLiteralSyntax(Kind, _literalTokens, diagnostics, GetAnnotations());
+         return new MarkupEphemeralTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupEphemeralTextLiteralSyntax(Kind, _literalTokens, GetDiagnostics(), annotations);
+         return new MarkupEphemeralTextLiteralSyntax(Kind, _literalTokens, _chunkGenerator, GetDiagnostics(), annotations);
     }
   }
 
@@ -4351,7 +4355,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
     public override GreenNode VisitMarkupEphemeralTextLiteral(MarkupEphemeralTextLiteralSyntax node)
     {
       var literalTokens = VisitList(node.LiteralTokens);
-      return node.Update(literalTokens);
+      return node.Update(literalTokens, node.ChunkGenerator);
     }
 
     public override GreenNode VisitMarkupCommentBlock(MarkupCommentBlockSyntax node)
@@ -4714,10 +4718,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
       return result;
     }
 
-    public static MarkupEphemeralTextLiteralSyntax MarkupEphemeralTextLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens)
+    public static MarkupEphemeralTextLiteralSyntax MarkupEphemeralTextLiteral(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> literalTokens, ISpanChunkGenerator chunkGenerator)
     {
 
-      var result = new MarkupEphemeralTextLiteralSyntax(SyntaxKind.MarkupEphemeralTextLiteral, literalTokens.Node);
+      var result = new MarkupEphemeralTextLiteralSyntax(SyntaxKind.MarkupEphemeralTextLiteral, literalTokens.Node, chunkGenerator);
 
       return result;
     }

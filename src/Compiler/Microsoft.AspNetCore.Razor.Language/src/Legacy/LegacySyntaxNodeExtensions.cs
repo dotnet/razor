@@ -70,6 +70,7 @@ internal static partial class LegacySyntaxNodeExtensions
         {
             MarkupStartTagSyntax start => start.ChunkGenerator,
             MarkupEndTagSyntax end => end.ChunkGenerator,
+            MarkupEphemeralTextLiteralSyntax ephemeral => ephemeral.ChunkGenerator,
             MarkupTagHelperStartTagSyntax start => start.ChunkGenerator,
             MarkupTagHelperEndTagSyntax end => end.ChunkGenerator,
             MarkupTextLiteralSyntax text => text.ChunkGenerator,
