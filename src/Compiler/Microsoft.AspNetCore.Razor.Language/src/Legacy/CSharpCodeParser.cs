@@ -238,7 +238,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
                 SpanContext.ChunkGenerator = SpanChunkGenerator.Null;
                 SpanContext.EditHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.None;
-                var transition = GetNodeWithSpanContext(SyntaxFactory.CSharpTransition(transitionToken));
+                var transition = GetNodeWithSpanContext(SyntaxFactory.CSharpTransition(transitionToken, SpanContext.ChunkGenerator));
 
                 if (At(SyntaxKind.LeftBrace))
                 {
@@ -2434,7 +2434,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         var directiveBody = SyntaxFactory.RazorDirectiveBody(keyword, cSharpCode: null);
 
         // transition could be null if we're already inside a code block.
-        transition = transition ?? SyntaxFactory.CSharpTransition(SyntaxFactory.MissingToken(SyntaxKind.Transition));
+        transition = transition ?? SyntaxFactory.CSharpTransition(SyntaxFactory.MissingToken(SyntaxKind.Transition), chunkGenerator: null);
         var directive = SyntaxFactory.RazorDirective(transition, directiveBody);
         builder.Add(directive);
     }

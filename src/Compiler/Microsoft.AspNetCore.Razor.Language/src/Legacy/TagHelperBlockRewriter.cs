@@ -606,7 +606,7 @@ internal static class TagHelperBlockRewriter
                 builder.AddRange(rewrittenBody.Children);
 
                 // Since the original transition is part of the body, we need something to take it's place.
-                var transition = SyntaxFactory.CSharpTransition(SyntaxFactory.MissingToken(SyntaxKind.Transition));
+                var transition = SyntaxFactory.CSharpTransition(SyntaxFactory.MissingToken(SyntaxKind.Transition), chunkGenerator: null);
 
                 var rewrittenCodeBlock = SyntaxFactory.CSharpCodeBlock(builder.ToList());
                 return SyntaxFactory.CSharpImplicitExpression(transition, SyntaxFactory.CSharpImplicitExpressionBody(rewrittenCodeBlock));
@@ -631,7 +631,7 @@ internal static class TagHelperBlockRewriter
                 builder.Add(expression);
 
                 // Since the original transition is part of the body, we need something to take it's place.
-                transition = SyntaxFactory.CSharpTransition(SyntaxFactory.MissingToken(SyntaxKind.Transition));
+                transition = SyntaxFactory.CSharpTransition(SyntaxFactory.MissingToken(SyntaxKind.Transition), chunkGenerator: null);
 
                 var body = (CSharpExplicitExpressionBodySyntax)node.Body;
                 var rewrittenOpenParen = (RazorSyntaxNode)VisitRazorMetaCode(body.OpenParen);
