@@ -2550,7 +2550,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             return null;
         }
 
-        return GetNodeWithSpanContext(SyntaxFactory.CSharpEphemeralTextLiteral(tokens));
+        return GetNodeWithSpanContext(SyntaxFactory.CSharpEphemeralTextLiteral(tokens, SpanContext.ChunkGenerator));
     }
 
     private UnclassifiedTextLiteralSyntax OutputTokensAsUnclassifiedLiteral()

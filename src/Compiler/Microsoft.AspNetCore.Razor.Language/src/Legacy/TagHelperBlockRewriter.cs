@@ -800,7 +800,7 @@ internal static class TagHelperBlockRewriter
             _rewriteAsMarkup = true;
             node = (MarkupEphemeralTextLiteralSyntax)ConfigureNonStringAttribute(node);
             var tokens = new SyntaxList<SyntaxToken>(node.LiteralTokens);
-            var value = SyntaxFactory.CSharpEphemeralTextLiteral(tokens);
+            var value = SyntaxFactory.CSharpEphemeralTextLiteral(tokens, node.ChunkGenerator);
             return value.WithSpanContext(node.GetSpanContext());
         }
 
