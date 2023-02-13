@@ -11,6 +11,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 // because of this we need to wait until everything is initialized to make some client requests.
 // This class takes a TCS which will complete when everything is initialized
 // ensuring that no requests are sent before the client is ready.
+
+
+
 internal abstract class ClientNotifierServiceBase : IOnInitialized
 {
     public abstract Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken);
