@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-internal class SpanEditHandlerBuilder
+internal sealed class SpanEditHandlerBuilder
 {
     private static readonly Func<string, IEnumerable<SyntaxToken>> DefaultTokenizer = static content => Enumerable.Empty<SyntaxToken>();
     private static readonly SpanEditHandler DefaultEditHandler = SpanEditHandler.CreateDefault(AcceptedCharactersInternal.Any);

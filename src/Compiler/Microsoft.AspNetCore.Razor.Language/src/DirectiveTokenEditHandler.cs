@@ -15,7 +15,7 @@ internal class DirectiveTokenEditHandler : SpanEditHandler
     public static void SetupBuilder(SpanEditHandlerBuilder builder, AcceptedCharactersInternal acceptedCharacters, Func<string, IEnumerable<Syntax.InternalSyntax.SyntaxToken>> tokenizer)
     {
         builder.AcceptedCharacters = acceptedCharacters;
-        builder.Factory = (acceptedCharacters, tokenizer) => new DirectiveTokenEditHandler
+        builder.Factory = static (acceptedCharacters, tokenizer) => new DirectiveTokenEditHandler
         {
             AcceptedCharacters = acceptedCharacters,
             Tokenizer = tokenizer,
