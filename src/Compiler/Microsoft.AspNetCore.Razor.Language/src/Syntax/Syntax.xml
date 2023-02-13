@@ -262,6 +262,7 @@
   <Node Name="CSharpEphemeralTextLiteralSyntax" Base="CSharpSyntaxNode">
     <Kind Name="CSharpEphemeralTextLiteral" />
     <Field Name="LiteralTokens" Type="SyntaxList&lt;SyntaxToken&gt;" />
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
   </Node>
   <Node Name="CSharpTemplateBlockSyntax" Base="RazorBlockSyntax">
     <Kind Name="CSharpTemplateBlock" />
