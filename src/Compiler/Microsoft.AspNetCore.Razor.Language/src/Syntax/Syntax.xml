@@ -62,6 +62,7 @@
   <Node Name="MarkupEphemeralTextLiteralSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupEphemeralTextLiteral" />
     <Field Name="LiteralTokens" Type="SyntaxList&lt;SyntaxToken&gt;" />
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
   </Node>
   <Node Name="MarkupCommentBlockSyntax" Base="RazorBlockSyntax">
     <Kind Name="MarkupCommentBlock" />
