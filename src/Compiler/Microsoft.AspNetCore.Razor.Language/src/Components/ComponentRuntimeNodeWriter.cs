@@ -716,9 +716,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             return html.FindDescendantNodes<IntermediateToken>().Where(t => t.IsHtml).ToArray();
         }
 
-        bool NeedsTypeCheck(ComponentAttributeIntermediateNode n)
+        static bool NeedsTypeCheck(ComponentAttributeIntermediateNode n)
         {
-            return node.BoundAttribute != null && !node.BoundAttribute.IsWeaklyTyped();
+            return n.BoundAttribute != null && !n.BoundAttribute.IsWeaklyTyped();
         }
     }
 
