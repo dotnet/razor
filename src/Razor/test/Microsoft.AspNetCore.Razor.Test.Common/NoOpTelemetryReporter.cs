@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Razor.Test.Common;
 
+
 public class NoOpTelemetryReporter : ITelemetryReporter
 {
     public static readonly NoOpTelemetryReporter Instance = new();
