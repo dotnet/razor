@@ -11,7 +11,7 @@ variables:
   value: true
 - name: Codeql.Enabled
   value: true
-- ${{ if ne(variables['System.TeamProject'], 'public') }}:
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
   - group: DotNetBuilds storage account read tokens
   - name: _InternalRuntimeDownloadArgs
     value: /p:DotNetRuntimeSourceFeed=https://dotnetbuilds.blob.core.windows.net/internal
@@ -34,9 +34,6 @@ variables:
     value: '[Auto Insertion]'
   - name: Insertion.TitleSuffix
     value: ''
-- ${{ if eq(variables['System.TeamProject'], 'public') }}:
-  - name: _InternalRuntimeDownloadArgs
-    value: ''
 
 trigger:
   batch: true
@@ -57,7 +54,7 @@ stages:
 - stage: build
   displayName: Build
   jobs:
-  - ${{ if and(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
+  - ${{ if eq('PullRequest', 'PullRequest')) }}:
     - template: /eng/common/templates/job/onelocbuild.yml
       parameters:
         LclSource: lclFilesfromPackage
@@ -114,7 +111,7 @@ stages:
       helixRepo: dotnet/razor
       helixType: build.product/
       # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
-      ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+      ${{ if eq('PullRequest', 'PullRequest')) }}:
         enableMicrobuild: true
         enablePublishBuildAssets: true
         enablePublishUsingPipelines: true
@@ -124,27 +121,15 @@ stages:
         timeoutInMinutes: 120
         pool:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
-            name: NetCore-Public
-            demands: ImageOverride -equals windows.vs2022preview.scout.amd64.open
-          ${{ if ne(variables['System.TeamProject'], 'public') }}:
             name: NetCore1ESPool-Internal
             #Switch to scout queue to get test pass
             demands: ImageOverride -equals windows.vs2022preview.scout.amd64
         strategy:
           matrix:
             ${{ if eq(variables['System.TeamProject'], 'public') }}:
-              debug:
-                _BuildConfig: Debug
-                _PublishArgs: ''
-              release:
-                _BuildConfig: Release
-                _PublishArgs: ''
-            ${{ if ne(variables['System.TeamProject'], 'public') }}:
               release:
                 _BuildConfig: Release
                 ${{ if in(variables['Build.Reason'], 'PullRequest') }}:
-                  _PublishArgs: ''
-                ${{ if notin(variables['Build.Reason'], 'PullRequest') }}:
                   _PublishArgs: /p:DotNetPublishUsingPipelines=true
 
         variables:
@@ -153,14 +138,14 @@ stages:
         - __VSNeverShowWhatsNew: 1
 
         # Variables for internal Official builds
-        - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+        - ${{ if eq('PullRequest', 'PullRequest')) }}:
           - _SignType: real
           - _BuildArgs: /p:DotNetSignType=$(_SignType) /p:TeamName=$(_TeamName)
               /p:OfficialBuildId=$(Build.BuildNumber)
               /p:ManifestBuildBranch=$(Build.SourceBranchName)
               /p:ManifestBuildNumber=$(Build.BuildNumber)
               /p:VisualStudioDropName=Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)
-              /p:GenerateSbom=true
+              /p:GenerateSbom=false
 
         steps:
         - task: NodeTool@0
@@ -179,19 +164,13 @@ stages:
             command: custom
             arguments: 'locals all -clear'
 
-        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+        - ${{ if nq(variables['System.TeamProject'], 'public') }}:
           - template: /eng/restore-internal-tools.yml
 
         - powershell: ./eng/scripts/InstallProcDump.ps1
           displayName: Install ProcDump
 
-        - powershell: ./eng/scripts/StartDumpCollectionForHangingBuilds.ps1
-            $(ProcDumpPath)procdump.exe artifacts/log/$(_BuildConfig)
-            (Get-Date).AddMinutes(60)
-            devenv, xunit.console, xunit.console.x86
-          displayName: Start background dump collection
-
-        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - task: PowerShell@2
             displayName: Setup Private Feeds Credentials
             inputs:
