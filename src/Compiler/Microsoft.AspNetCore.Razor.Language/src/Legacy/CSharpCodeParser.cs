@@ -2561,7 +2561,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             return null;
         }
 
-        return GetNodeWithSpanContext(SyntaxFactory.UnclassifiedTextLiteral(tokens));
+        return GetNodeWithSpanContext(SyntaxFactory.UnclassifiedTextLiteral(tokens, SpanContext.ChunkGenerator));
     }
 
     private void OtherParserBlock(in SyntaxListBuilder<RazorSyntaxNode> builder)

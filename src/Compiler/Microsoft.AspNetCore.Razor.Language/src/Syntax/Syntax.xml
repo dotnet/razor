@@ -42,6 +42,7 @@
   <Node Name="UnclassifiedTextLiteralSyntax" Base="RazorSyntaxNode">
     <Kind Name="UnclassifiedTextLiteral" />
     <Field Name="LiteralTokens" Type="SyntaxList&lt;SyntaxToken&gt;" />
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" IsOptional="true" />
   </Node>
 
   <!-- Markup -->

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -100,9 +100,9 @@ internal class SpanEditHandler
         {
             newTarget = Syntax.InternalSyntax.SyntaxFactory.CSharpEphemeralTextLiteral(builder.ToList(), cSharpEphemeral.ChunkGenerator).CreateRed(target.Parent, target.Position);
         }
-        else if (target is UnclassifiedTextLiteralSyntax)
+        else if (target is UnclassifiedTextLiteralSyntax unclassified)
         {
-            newTarget = Syntax.InternalSyntax.SyntaxFactory.UnclassifiedTextLiteral(builder.ToList()).CreateRed(target.Parent, target.Position);
+            newTarget = Syntax.InternalSyntax.SyntaxFactory.UnclassifiedTextLiteral(builder.ToList(), unclassified.ChunkGenerator).CreateRed(target.Parent, target.Position);
         }
         else
         {
