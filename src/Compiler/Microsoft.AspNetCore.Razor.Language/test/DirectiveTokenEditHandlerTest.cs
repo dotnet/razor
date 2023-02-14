@@ -71,9 +71,7 @@ public class DirectiveTokenEditHandlerTest
         }
         var node = SyntaxFactory.CSharpStatementLiteral(builder.ToList(), SpanChunkGenerator.Null);
 
-        var context = new SpanContext(SpanChunkGenerator.Null, editHandler);
-
-        return node.WithSpanContext(context);
+        return node.WithEditHandler(editHandler);
     }
 
     private class TestDirectiveTokenEditHandler : DirectiveTokenEditHandler

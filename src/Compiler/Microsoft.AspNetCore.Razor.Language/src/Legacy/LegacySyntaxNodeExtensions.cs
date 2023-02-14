@@ -84,21 +84,18 @@ internal static partial class LegacySyntaxNodeExtensions
             _ => null,
         };
 
-    public static SpanContext? GetSpanContext(this SyntaxNode node)
-        => node.GetAnnotationValue(SyntaxConstants.SpanContextKind) as SpanContext;
+    public static SpanEditHandler? GetEditHandler(this SyntaxNode node) => node.GetAnnotationValue(SyntaxConstants.EditHandlerKind) as SpanEditHandler;
 
-    public static TNode WithSpanContext<TNode>(this TNode node, SpanContext? spanContext)
-        where TNode : SyntaxNode
+    public static TNode WithEditHandler<TNode>(this TNode node, SpanEditHandler? editHandler) where TNode : SyntaxNode
     {
         if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
         }
 
-        var newAnnotation = new SyntaxAnnotation(SyntaxConstants.SpanContextKind, spanContext);
+        var newAnnotation = new SyntaxAnnotation(SyntaxConstants.EditHandlerKind, editHandler);
 
         List<SyntaxAnnotation>? newAnnotations = null;
-
         if (node.ContainsAnnotations)
         {
             foreach (var annotation in node.GetAnnotations())
@@ -145,7 +142,7 @@ internal static partial class LegacySyntaxNodeExtensions
 
         if (node.IsSpanKind())
         {
-            var editHandler = node.GetSpanContext()?.EditHandler ?? SpanEditHandler.CreateDefault(AcceptedCharactersInternal.Any);
+            var editHandler = node.GetEditHandler() ?? SpanEditHandler.CreateDefault(AcceptedCharactersInternal.Any);
             return editHandler.OwnsChange(node, change) ? node : null;
         }
 

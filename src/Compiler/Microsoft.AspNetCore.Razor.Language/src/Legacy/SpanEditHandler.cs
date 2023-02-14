@@ -109,8 +109,8 @@ internal class SpanEditHandler
             Debug.Fail($"The type {target?.GetType().Name} is not a supported span node.");
         }
 
-        var context = target.GetSpanContext();
-        newTarget = context != null ? newTarget?.WithSpanContext(context) : newTarget;
+        var editHandler = target.GetEditHandler();
+        newTarget = editHandler != null ? newTarget?.WithEditHandler(editHandler) : newTarget;
 
         return newTarget;
     }

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -1070,16 +1070,16 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             {
                 var builder = SyntaxListBuilder<SyntaxToken>.Create();
                 var expressionLiteralArray = children.Cast<CSharpExpressionLiteralSyntax>();
-                SpanContext context = null;
+                SpanEditHandler editHandler = null;
                 ISpanChunkGenerator generator = null;
                 foreach (var literal in expressionLiteralArray)
                 {
                     generator = literal.ChunkGenerator;
-                    context = literal.GetSpanContext();
+                    editHandler = literal.GetEditHandler();
                     builder.AddRange(literal.LiteralTokens);
                 }
                 var rewritten = SyntaxFactory.CSharpExpressionLiteral(builder.ToList(), generator).Green.CreateRed(node.Parent, position);
-                rewritten = context != null ? rewritten.WithSpanContext(context) : rewritten;
+                rewritten = editHandler != null ? rewritten.WithEditHandler(editHandler) : rewritten;
                 Visit(rewritten);
             }
             else
@@ -1093,10 +1093,10 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var valueTokens = MergeLiterals(node.Prefix?.LiteralTokens, node.Value?.LiteralTokens);
             var rewritten = node.Prefix?.Update(valueTokens, node.Prefix.ChunkGenerator) ?? node.Value?.Update(valueTokens, node.Value.ChunkGenerator);
             rewritten = (MarkupTextLiteralSyntax)rewritten?.Green.CreateRed(node, node.Position);
-            var originalContext = rewritten.GetSpanContext();
-            if (originalContext != null)
+            var originalEditHandler = rewritten.GetEditHandler();
+            if (originalEditHandler != null)
             {
-                rewritten = rewritten.Update(rewritten.LiteralTokens, MarkupChunkGenerator.Instance).WithSpanContext(new SpanContext(MarkupChunkGenerator.Instance, originalContext.EditHandler));
+                rewritten = rewritten.Update(rewritten.LiteralTokens, MarkupChunkGenerator.Instance).WithEditHandler(originalEditHandler);
             }
 
             return rewritten;
@@ -1395,7 +1395,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 return;
             }
 
-            var context = node.GetSpanContext();
+            var context = node.GetEditHandler();
             if (node.ChunkGenerator == SpanChunkGenerator.Null)
             {
                 return;
@@ -2060,15 +2060,15 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 var builder = SyntaxListBuilder<SyntaxToken>.Create();
                 var expressionLiteralArray = children.Cast<CSharpExpressionLiteralSyntax>();
                 ISpanChunkGenerator generator = null;
-                SpanContext context = null;
+                SpanEditHandler editHandler = null;
                 foreach (var literal in expressionLiteralArray)
                 {
                     generator = literal.ChunkGenerator;
-                    context = literal.GetSpanContext();
+                    editHandler = literal.GetEditHandler();
                     builder.AddRange(literal.LiteralTokens);
                 }
                 var rewritten = SyntaxFactory.CSharpExpressionLiteral(builder.ToList(), generator).Green.CreateRed(node.Parent, position);
-                rewritten = context != null ? rewritten.WithSpanContext(context) : rewritten;
+                rewritten = editHandler != null ? rewritten.WithEditHandler(editHandler) : rewritten;
                 Visit(rewritten);
             }
             else
@@ -2082,10 +2082,10 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var valueTokens = MergeLiterals(node.Prefix?.LiteralTokens, node.Value?.LiteralTokens);
             var rewritten = node.Prefix?.Update(valueTokens, node.Prefix.ChunkGenerator) ?? node.Value?.Update(valueTokens, node.Value.ChunkGenerator);
             rewritten = (MarkupTextLiteralSyntax)rewritten?.Green.CreateRed(node, node.Position);
-            var originalContext = rewritten.GetSpanContext();
-            if (originalContext != null)
+            var originalEditHandler = rewritten.GetEditHandler();
+            if (originalEditHandler != null)
             {
-                rewritten = rewritten.Update(rewritten.LiteralTokens, MarkupChunkGenerator.Instance).WithSpanContext(new SpanContext(MarkupChunkGenerator.Instance, originalContext.EditHandler));
+                rewritten = rewritten.Update(rewritten.LiteralTokens, MarkupChunkGenerator.Instance).WithEditHandler(originalEditHandler);
             }
 
             return rewritten;
