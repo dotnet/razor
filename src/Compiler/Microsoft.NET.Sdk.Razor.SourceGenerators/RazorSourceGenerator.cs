@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -87,10 +87,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             var generatedDeclarationSyntaxTrees = generatedDeclarationCode
                 .Combine(parseOptions)
-                .Select(static (pair, _) =>
+                .Select(static (pair, ct) =>
                 {
                     var ((generatedDeclarationCode, filePath), parseOptions) = pair;
-                    return CSharpSyntaxTree.ParseText(generatedDeclarationCode, (CSharpParseOptions)parseOptions, filePath);
+                    return CSharpSyntaxTree.ParseText(generatedDeclarationCode, (CSharpParseOptions)parseOptions, filePath, cancellationToken: ct);
                 });
 
             var tagHelpersFromComponents = generatedDeclarationSyntaxTrees
@@ -112,13 +112,15 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     var root = generatedDeclarationSyntaxTree.GetRoot(ct);
                     if (root is CompilationUnitSyntax { Members: [NamespaceDeclarationSyntax { Members: [ClassDeclarationSyntax classSyntax, ..] }, ..] })
                     {
-                        targetSymbol = compilationWithDeclarations.GetSemanticModel(generatedDeclarationSyntaxTree).GetDeclaredSymbol(classSyntax, ct) ?? targetSymbol;
+                        var declaredClass = compilationWithDeclarations.GetSemanticModel(generatedDeclarationSyntaxTree).GetDeclaredSymbol(classSyntax, ct);
+                        Debug.Assert(declaredClass is null || declaredClass is { AllInterfaces: [{ Name: "IComponent" }, ..] });
+                        targetSymbol = declaredClass ?? targetSymbol;
                     }
 
                     tagHelperFeature.Compilation = compilationWithDeclarations;
                     tagHelperFeature.TargetSymbol = targetSymbol;
 
-                    var result = (IList<TagHelperDescriptor>)tagHelperFeature.GetDescriptors();
+                    var result = tagHelperFeature.GetDescriptors();
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromComponentStop(generatedDeclarationSyntaxTree.FilePath);
                     return result;
                 });
@@ -137,7 +139,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     tagHelperFeature.Compilation = compilation;
                     tagHelperFeature.TargetSymbol = compilation.Assembly;
 
-                    var result = (IList<TagHelperDescriptor>)tagHelperFeature.GetDescriptors();
+                    var result = tagHelperFeature.GetDescriptors();
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStop();
                     return result;
                 });
@@ -183,7 +185,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     var tagHelperFeature = new StaticCompilationTagHelperFeature();
                     var discoveryProjectEngine = GetDiscoveryProjectEngine(compilation.References.ToImmutableArray(), tagHelperFeature);
 
-                    List<TagHelperDescriptor> descriptors = new();
+                    var descriptors = ImmutableArray.CreateBuilder<TagHelperDescriptor>();
                     tagHelperFeature.Compilation = compilation;
                     foreach (var reference in compilation.References)
                     {
@@ -195,7 +197,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     }
 
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromReferencesStop();
-                    return (ICollection<TagHelperDescriptor>)descriptors;
+                    return descriptors.ToImmutable();
                 });
 
             var allTagHelpers = tagHelpersFromComponents.Collect()
@@ -204,18 +206,18 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Select(static (pair, _) =>
                 {
                     var ((tagHelpersFromComponents, tagHelpersFromCompilation), tagHelpersFromReferences) = pair;
-                    var count = tagHelpersFromCompilation.Count + tagHelpersFromReferences.Count + tagHelpersFromComponents.Length;
+                    var count = tagHelpersFromCompilation.Length + tagHelpersFromReferences.Length + tagHelpersFromComponents.Length;
                     if (count == 0)
                     {
-                        return Array.Empty<TagHelperDescriptor>();
+                        return ImmutableArray<TagHelperDescriptor>.Empty;
                     }
 
-                    var allTagHelpers = new TagHelperDescriptor[count];
-                    tagHelpersFromCompilation.CopyTo(allTagHelpers, 0);
-                    tagHelpersFromReferences.CopyTo(allTagHelpers, tagHelpersFromCompilation.Count);
-                    tagHelpersFromComponents.CopyTo(allTagHelpers, tagHelpersFromCompilation.Count + tagHelpersFromReferences.Count);
+                    var allTagHelpers = ImmutableArray.CreateBuilder<TagHelperDescriptor>(count);
+                    allTagHelpers.AddRange(tagHelpersFromCompilation);
+                    allTagHelpers.AddRange(tagHelpersFromReferences);
+                    allTagHelpers.AddRange(tagHelpersFromComponents);
 
-                    return allTagHelpers;
+                    return allTagHelpers.ToImmutable();
                 });
 
             var generatedOutput = sourceItems

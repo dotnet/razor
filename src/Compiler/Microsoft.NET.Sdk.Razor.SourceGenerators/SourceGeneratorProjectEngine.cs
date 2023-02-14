@@ -106,6 +106,7 @@ internal class SourceGeneratorProjectEngine : DefaultRazorProjectEngine
 
     private void ProcessPartial(RazorCodeDocument codeDocument, int startIndex, int endIndex)
     {
+        Debug.Assert(startIndex >= 0 && startIndex <= endIndex && endIndex <= Engine.Phases.Count);
         for (var i = startIndex; i < endIndex; i++)
         {
             Engine.Phases[i].Execute(codeDocument);

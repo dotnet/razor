@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
@@ -11,18 +12,16 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
     internal sealed class StaticCompilationTagHelperFeature : RazorEngineFeatureBase, ITagHelperFeature
     {
-        private static readonly List<TagHelperDescriptor> EmptyList = new();
-        
         private ITagHelperDescriptorProvider[]? _providers;
 
-        public List<TagHelperDescriptor> GetDescriptors()
+        public ImmutableArray<TagHelperDescriptor> GetDescriptors()
         {
             if (Compilation is null)
             {
-                return EmptyList;
+                return ImmutableArray<TagHelperDescriptor>.Empty;
             }
 
-            var results = new List<TagHelperDescriptor>();
+            var results = ImmutableArray.CreateBuilder<TagHelperDescriptor>();
             var context = TagHelperDescriptorProviderContext.Create(results);
             context.SetCompilation(Compilation);
             if (TargetSymbol is not null)
@@ -35,7 +34,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 _providers[i].Execute(context);
             }
 
-            return results;
+            return results.ToImmutable();
         }
 
         IReadOnlyList<TagHelperDescriptor> ITagHelperFeature.GetDescriptors() => GetDescriptors();
