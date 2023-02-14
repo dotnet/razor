@@ -8,6 +8,8 @@ using System.Reflection;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
+
+
 internal static class TestResources
 {
     private readonly static Dictionary<(string Name, string? Folder), string> s_textMap = new();
