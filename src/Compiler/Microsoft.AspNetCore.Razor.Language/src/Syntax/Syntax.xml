@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 
 <Tree Root="SyntaxNode">
   <PredefinedNode Name="RazorSyntaxNode" Base="SyntaxNode" />
@@ -54,6 +54,7 @@
   <Node Name="MarkupTransitionSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupTransition" />
     <Field Name="TransitionTokens" Type="SyntaxList&lt;SyntaxToken&gt;" />
+    <Field Name="ChunkGenerator" Type="ISpanChunkGenerator" Optional="true" />
   </Node>
   <Node Name="MarkupTextLiteralSyntax" Base="MarkupSyntaxNode">
     <Kind Name="MarkupTextLiteral" />

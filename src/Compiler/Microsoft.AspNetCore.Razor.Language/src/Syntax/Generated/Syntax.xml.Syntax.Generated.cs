@@ -556,6 +556,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         }
     }
 
+    public ISpanChunkGenerator ChunkGenerator { get { return ((InternalSyntax.MarkupTransitionSyntax)Green).ChunkGenerator; } }
+
     internal override SyntaxNode GetNodeSlot(int index)
     {
         switch (index)
@@ -583,11 +585,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
         visitor.VisitMarkupTransition(this);
     }
 
-    public MarkupTransitionSyntax Update(SyntaxList<SyntaxToken> transitionTokens)
+    public MarkupTransitionSyntax Update(SyntaxList<SyntaxToken> transitionTokens, ISpanChunkGenerator chunkGenerator)
     {
-        if (transitionTokens != TransitionTokens)
+        if (transitionTokens != TransitionTokens || chunkGenerator != ChunkGenerator)
         {
-            var newNode = SyntaxFactory.MarkupTransition(transitionTokens);
+            var newNode = SyntaxFactory.MarkupTransition(transitionTokens, chunkGenerator);
             var diagnostics = GetDiagnostics();
             if (diagnostics != null && diagnostics.Length > 0)
                newNode = newNode.WithDiagnostics(diagnostics);
@@ -602,7 +604,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
 
     public MarkupTransitionSyntax WithTransitionTokens(SyntaxList<SyntaxToken> transitionTokens)
     {
-        return Update(transitionTokens);
+        return Update(transitionTokens, ChunkGenerator);
+    }
+
+    public MarkupTransitionSyntax WithChunkGenerator(ISpanChunkGenerator chunkGenerator)
+    {
+        return Update(TransitionTokens, chunkGenerator);
     }
 
     public MarkupTransitionSyntax AddTransitionTokens(params SyntaxToken[] items)

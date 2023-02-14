@@ -542,7 +542,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     public override SyntaxNode VisitMarkupTransition(MarkupTransitionSyntax node)
     {
       var transitionTokens = VisitList(node.TransitionTokens);
-      return node.Update(transitionTokens);
+      return node.Update(transitionTokens, node.ChunkGenerator);
     }
 
     public override SyntaxNode VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
@@ -913,15 +913,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax
     }
 
     /// <summary>Creates a new MarkupTransitionSyntax instance.</summary>
-    public static MarkupTransitionSyntax MarkupTransition(SyntaxList<SyntaxToken> transitionTokens)
+    public static MarkupTransitionSyntax MarkupTransition(SyntaxList<SyntaxToken> transitionTokens, ISpanChunkGenerator chunkGenerator)
     {
-      return (MarkupTransitionSyntax)InternalSyntax.SyntaxFactory.MarkupTransition(transitionTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>()).CreateRed();
+      return (MarkupTransitionSyntax)InternalSyntax.SyntaxFactory.MarkupTransition(transitionTokens.Node.ToGreenList<InternalSyntax.SyntaxToken>(), chunkGenerator).CreateRed();
     }
 
     /// <summary>Creates a new MarkupTransitionSyntax instance.</summary>
-    public static MarkupTransitionSyntax MarkupTransition()
+    public static MarkupTransitionSyntax MarkupTransition(ISpanChunkGenerator chunkGenerator)
     {
-      return SyntaxFactory.MarkupTransition(default(SyntaxList<SyntaxToken>));
+      return SyntaxFactory.MarkupTransition(default(SyntaxList<SyntaxToken>), chunkGenerator);
     }
 
     /// <summary>Creates a new MarkupTextLiteralSyntax instance.</summary>

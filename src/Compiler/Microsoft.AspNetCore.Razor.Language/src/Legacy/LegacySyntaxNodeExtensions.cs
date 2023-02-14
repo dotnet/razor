@@ -74,6 +74,7 @@ internal static partial class LegacySyntaxNodeExtensions
             MarkupTagHelperStartTagSyntax start => start.ChunkGenerator,
             MarkupTagHelperEndTagSyntax end => end.ChunkGenerator,
             MarkupTextLiteralSyntax text => text.ChunkGenerator,
+            MarkupTransitionSyntax transition => transition.ChunkGenerator,
             CSharpStatementLiteralSyntax csharp => csharp.ChunkGenerator,
             CSharpExpressionLiteralSyntax csharp => csharp.ChunkGenerator,
             CSharpEphemeralTextLiteralSyntax csharp => csharp.ChunkGenerator,
