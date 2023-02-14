@@ -550,8 +550,9 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
   internal sealed partial class MarkupTransitionSyntax : MarkupSyntaxNode
   {
     private readonly GreenNode _transitionTokens;
+    private readonly ISpanChunkGenerator _chunkGenerator;
 
-    internal MarkupTransitionSyntax(SyntaxKind kind, GreenNode transitionTokens, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
+    internal MarkupTransitionSyntax(SyntaxKind kind, GreenNode transitionTokens, ISpanChunkGenerator chunkGenerator, RazorDiagnostic[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         SlotCount = 1;
@@ -560,10 +561,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             AdjustFlagsAndWidth(transitionTokens);
             _transitionTokens = transitionTokens;
         }
+        _chunkGenerator = chunkGenerator;
     }
 
 
-    internal MarkupTransitionSyntax(SyntaxKind kind, GreenNode transitionTokens)
+    internal MarkupTransitionSyntax(SyntaxKind kind, GreenNode transitionTokens, ISpanChunkGenerator chunkGenerator)
         : base(kind)
     {
         SlotCount = 1;
@@ -572,9 +574,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
             AdjustFlagsAndWidth(transitionTokens);
             _transitionTokens = transitionTokens;
         }
+        _chunkGenerator = chunkGenerator;
     }
 
     public SyntaxList<SyntaxToken> TransitionTokens { get { return new SyntaxList<SyntaxToken>(_transitionTokens); } }
+    public ISpanChunkGenerator ChunkGenerator { get { return _chunkGenerator; } }
 
     internal override GreenNode GetSlot(int index)
     {
@@ -600,11 +604,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
         visitor.VisitMarkupTransition(this);
     }
 
-    public MarkupTransitionSyntax Update(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> transitionTokens)
+    public MarkupTransitionSyntax Update(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> transitionTokens, ISpanChunkGenerator chunkGenerator)
     {
         if (transitionTokens != TransitionTokens)
         {
-            var newNode = SyntaxFactory.MarkupTransition(transitionTokens);
+            var newNode = SyntaxFactory.MarkupTransition(transitionTokens, chunkGenerator);
             var diags = GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -619,12 +623,12 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(RazorDiagnostic[] diagnostics)
     {
-         return new MarkupTransitionSyntax(Kind, _transitionTokens, diagnostics, GetAnnotations());
+         return new MarkupTransitionSyntax(Kind, _transitionTokens, _chunkGenerator, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new MarkupTransitionSyntax(Kind, _transitionTokens, GetDiagnostics(), annotations);
+         return new MarkupTransitionSyntax(Kind, _transitionTokens, _chunkGenerator, GetDiagnostics(), annotations);
     }
   }
 
@@ -4351,7 +4355,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
     public override GreenNode VisitMarkupTransition(MarkupTransitionSyntax node)
     {
       var transitionTokens = VisitList(node.TransitionTokens);
-      return node.Update(transitionTokens);
+      return node.Update(transitionTokens, node.ChunkGenerator);
     }
 
     public override GreenNode VisitMarkupTextLiteral(MarkupTextLiteralSyntax node)
@@ -4710,10 +4714,10 @@ namespace Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax
       return result;
     }
 
-    public static MarkupTransitionSyntax MarkupTransition(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> transitionTokens)
+    public static MarkupTransitionSyntax MarkupTransition(Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax.SyntaxList<SyntaxToken> transitionTokens, ISpanChunkGenerator chunkGenerator)
     {
 
-      var result = new MarkupTransitionSyntax(SyntaxKind.MarkupTransition, transitionTokens.Node);
+      var result = new MarkupTransitionSyntax(SyntaxKind.MarkupTransition, transitionTokens.Node, chunkGenerator);
 
       return result;
     }

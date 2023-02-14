@@ -386,7 +386,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         AcceptAndMoveNext();
         SpanContext.EditHandlerBuilder.AcceptedCharacters = AcceptedCharactersInternal.None;
         SpanContext.ChunkGenerator = SpanChunkGenerator.Null;
-        var transition = GetNodeWithSpanContext(SyntaxFactory.MarkupTransition(Output()));
+        var transition = GetNodeWithSpanContext(SyntaxFactory.MarkupTransition(Output(), SpanContext.ChunkGenerator));
         builder.Add(transition);
 
         // "@:" => Explicit Single Line Block
