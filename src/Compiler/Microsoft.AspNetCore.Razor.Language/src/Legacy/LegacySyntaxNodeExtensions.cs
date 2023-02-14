@@ -79,6 +79,7 @@ internal static partial class LegacySyntaxNodeExtensions
             CSharpEphemeralTextLiteralSyntax csharp => csharp.ChunkGenerator,
             CSharpTransitionSyntax transition => transition.ChunkGenerator,
             RazorMetaCodeSyntax meta => meta.ChunkGenerator,
+            UnclassifiedTextLiteralSyntax unclassified => unclassified.ChunkGenerator,
             _ => null,
         };
 
