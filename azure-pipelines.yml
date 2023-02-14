@@ -192,6 +192,10 @@ stages:
             $(_PublishArgs)
             $(_InternalRuntimeDownloadArgs)
             /p:IncludeRoslynDeps=true
+          env:
+            SYS_ACC: "$(System.AccessToken)"
+            SYS_ACC2: $(System.AccessToken)
+            Token: $(dn-bot-dnceng-artifact-feeds-rw)
           name: Build
           displayName: Build and Deploy
           condition: succeeded()
@@ -330,7 +334,7 @@ stages:
           displayName: Install Node 10.x
           inputs:
             versionSpec: 10.x
-        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - task: Bash@3
             displayName: Setup Private Feeds Credentials
             inputs:
@@ -338,7 +342,9 @@ stages:
               arguments: $(Build.SourcesDirectory)/NuGet.config $Token
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
-        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+              SYS_ACC: "$(System.AccessToken)"
+              SYS_ACC2: $(System.AccessToken)
+        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - script: eng/common/cibuild.sh
               --restore
               --build
