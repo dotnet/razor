@@ -749,7 +749,7 @@ public class HtmlFormattingTest : FormattingTestBase
             tagHelpers: GetComponents());
     }
 
-    [Fact(Skip = "Requires fix")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/8227")]
     public async Task FormatNestedComponents3()
     {
@@ -767,6 +767,19 @@ public class HtmlFormattingTest : FormattingTestBase
                                 </Frag>
                                 </Component1>
                     }
+
+                    @if (true)
+                    {
+                        <a_really_long_tag_name Id="comp1"
+                                Caption="Title" />
+                    <a_really_long_tag_name Id="comp2"
+                                Caption="Title">
+                                <a_really_long_tag_name>
+                    <a_really_long_tag_name Id="comp3"
+                                Caption="Title" />
+                                </a_really_long_tag_name>
+                                </a_really_long_tag_name>
+                    }
                     """,
             expected: """
                     @if (true)
@@ -780,6 +793,19 @@ public class HtmlFormattingTest : FormattingTestBase
                                             Caption="Title" />
                             </Frag>
                         </Component1>
+                    }
+
+                    @if (true)
+                    {
+                        <a_really_long_tag_name Id="comp1"
+                                                Caption="Title" />
+                        <a_really_long_tag_name Id="comp2"
+                                                Caption="Title">
+                            <a_really_long_tag_name>
+                                <a_really_long_tag_name Id="comp3"
+                                                        Caption="Title" />
+                            </a_really_long_tag_name>
+                        </a_really_long_tag_name>
                     }
                     """,
             tagHelpers: GetComponents());
