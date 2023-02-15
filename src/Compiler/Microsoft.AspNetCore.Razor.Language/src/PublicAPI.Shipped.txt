@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 ~abstract Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder.Diagnostics.get -> Microsoft.AspNetCore.Razor.Language.RazorDiagnosticCollection
 ~abstract Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder.DisplayName.get -> string
 ~abstract Microsoft.AspNetCore.Razor.Language.AllowedChildTagDescriptorBuilder.DisplayName.set -> void
@@ -559,17 +559,17 @@
 ~Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.Name.set -> void
 ~Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.Value.get -> string
 ~Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.Value.set -> void
-~Microsoft.AspNetCore.Razor.Language.SourceChange.Equals(Microsoft.AspNetCore.Razor.Language.SourceChange other) -> bool
-~Microsoft.AspNetCore.Razor.Language.SourceChange.NewText.get -> string
-~Microsoft.AspNetCore.Razor.Language.SourceChange.SourceChange(int absoluteIndex, int length, string newText) -> void
-~Microsoft.AspNetCore.Razor.Language.SourceChange.SourceChange(Microsoft.AspNetCore.Razor.Language.SourceSpan span, string newText) -> void
-~Microsoft.AspNetCore.Razor.Language.SourceLocation.FilePath.get -> string
-~Microsoft.AspNetCore.Razor.Language.SourceLocation.FilePath.set -> void
-~Microsoft.AspNetCore.Razor.Language.SourceLocation.SourceLocation(string filePath, int absoluteIndex, int lineIndex, int characterIndex) -> void
-~Microsoft.AspNetCore.Razor.Language.SourceMapping.Equals(Microsoft.AspNetCore.Razor.Language.SourceMapping other) -> bool
-~Microsoft.AspNetCore.Razor.Language.SourceSpan.FilePath.get -> string
-~Microsoft.AspNetCore.Razor.Language.SourceSpan.SourceSpan(string filePath, int absoluteIndex, int lineIndex, int characterIndex, int length) -> void
-~Microsoft.AspNetCore.Razor.Language.SourceSpan.SourceSpan(string filePath, int absoluteIndex, int lineIndex, int characterIndex, int length, int lineCount, int endCharacterIndex) -> void
+Microsoft.AspNetCore.Razor.Language.SourceChange.Equals(Microsoft.AspNetCore.Razor.Language.SourceChange? other) -> bool
+Microsoft.AspNetCore.Razor.Language.SourceChange.NewText.get -> string!
+Microsoft.AspNetCore.Razor.Language.SourceChange.SourceChange(int absoluteIndex, int length, string! newText) -> void
+Microsoft.AspNetCore.Razor.Language.SourceChange.SourceChange(Microsoft.AspNetCore.Razor.Language.SourceSpan span, string! newText) -> void
+Microsoft.AspNetCore.Razor.Language.SourceLocation.FilePath.get -> string?
+Microsoft.AspNetCore.Razor.Language.SourceLocation.FilePath.set -> void
+Microsoft.AspNetCore.Razor.Language.SourceLocation.SourceLocation(string? filePath, int absoluteIndex, int lineIndex, int characterIndex) -> void
+Microsoft.AspNetCore.Razor.Language.SourceMapping.Equals(Microsoft.AspNetCore.Razor.Language.SourceMapping? other) -> bool
+Microsoft.AspNetCore.Razor.Language.SourceSpan.FilePath.get -> string?
+Microsoft.AspNetCore.Razor.Language.SourceSpan.SourceSpan(string? filePath, int absoluteIndex, int lineIndex, int characterIndex, int length) -> void
+Microsoft.AspNetCore.Razor.Language.SourceSpan.SourceSpan(string? filePath, int absoluteIndex, int lineIndex, int characterIndex, int length, int lineCount, int endCharacterIndex) -> void
 ~Microsoft.AspNetCore.Razor.Language.TagHelperBinding.Attributes.get -> System.Collections.Generic.IReadOnlyList<System.Collections.Generic.KeyValuePair<string, string>>
 ~Microsoft.AspNetCore.Razor.Language.TagHelperBinding.Descriptors.get -> System.Collections.Generic.IEnumerable<Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor>
 ~Microsoft.AspNetCore.Razor.Language.TagHelperBinding.GetBoundRules(Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor descriptor) -> System.Collections.Generic.IReadOnlyList<Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor>
@@ -778,14 +778,14 @@
 ~override Microsoft.AspNetCore.Razor.Language.RazorLanguageVersion.ToString() -> string
 ~override Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.Equals(object obj) -> bool
 ~override Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor.ToString() -> string
-~override Microsoft.AspNetCore.Razor.Language.SourceChange.Equals(object obj) -> bool
-~override Microsoft.AspNetCore.Razor.Language.SourceChange.ToString() -> string
-~override Microsoft.AspNetCore.Razor.Language.SourceLocation.Equals(object obj) -> bool
-~override Microsoft.AspNetCore.Razor.Language.SourceLocation.ToString() -> string
-~override Microsoft.AspNetCore.Razor.Language.SourceMapping.Equals(object obj) -> bool
-~override Microsoft.AspNetCore.Razor.Language.SourceMapping.ToString() -> string
-~override Microsoft.AspNetCore.Razor.Language.SourceSpan.Equals(object obj) -> bool
-~override Microsoft.AspNetCore.Razor.Language.SourceSpan.ToString() -> string
+override Microsoft.AspNetCore.Razor.Language.SourceChange.Equals(object? obj) -> bool
+override Microsoft.AspNetCore.Razor.Language.SourceChange.ToString() -> string!
+override Microsoft.AspNetCore.Razor.Language.SourceLocation.Equals(object? obj) -> bool
+override Microsoft.AspNetCore.Razor.Language.SourceLocation.ToString() -> string!
+override Microsoft.AspNetCore.Razor.Language.SourceMapping.Equals(object? obj) -> bool
+override Microsoft.AspNetCore.Razor.Language.SourceMapping.ToString() -> string!
+override Microsoft.AspNetCore.Razor.Language.SourceSpan.Equals(object? obj) -> bool
+override Microsoft.AspNetCore.Razor.Language.SourceSpan.ToString() -> string!
 ~override Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.Equals(object obj) -> bool
 ~override Microsoft.AspNetCore.Razor.Language.TagHelperDescriptor.ToString() -> string
 ~override Microsoft.AspNetCore.Razor.Language.TagMatchingRuleDescriptor.Equals(object obj) -> bool

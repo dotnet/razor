@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Globalization;
 using Microsoft.Extensions.Internal;
@@ -21,13 +19,13 @@ public sealed class SourceMapping : IEquatable<SourceMapping>
 
     public SourceSpan GeneratedSpan { get; }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj) 
     {
         var other = obj as SourceMapping;
         return Equals(other);
     }
 
-    public bool Equals(SourceMapping other)
+    public bool Equals(SourceMapping? other)
     {
         if (ReferenceEquals(other, null))
         {

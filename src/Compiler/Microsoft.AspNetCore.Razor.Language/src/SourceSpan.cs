@@ -1,15 +1,13 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Globalization;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public struct SourceSpan : IEquatable<SourceSpan>
+public readonly struct SourceSpan : IEquatable<SourceSpan>
 {
     public static readonly SourceSpan Undefined = new SourceSpan(SourceLocation.Undefined, 0);
 
@@ -23,12 +21,12 @@ public struct SourceSpan : IEquatable<SourceSpan>
     {
     }
 
-    public SourceSpan(string filePath, int absoluteIndex, int lineIndex, int characterIndex, int length)
+    public SourceSpan(string? filePath, int absoluteIndex, int lineIndex, int characterIndex, int length)
         : this(filePath: filePath, absoluteIndex: absoluteIndex, lineIndex: lineIndex, characterIndex: characterIndex, length: length, lineCount: 0, endCharacterIndex: 0)
     {
     }
 
-    public SourceSpan(string filePath, int absoluteIndex, int lineIndex, int characterIndex, int length, int lineCount, int endCharacterIndex)
+    public SourceSpan(string? filePath, int absoluteIndex, int lineIndex, int characterIndex, int length, int lineCount, int endCharacterIndex)
     {
         AbsoluteIndex = absoluteIndex;
         LineIndex = lineIndex;
@@ -56,7 +54,7 @@ public struct SourceSpan : IEquatable<SourceSpan>
 
     public int EndCharacterIndex { get; }
 
-    public string FilePath { get; }
+    public string? FilePath { get; }
 
     public bool Equals(SourceSpan other)
     {
@@ -68,7 +66,7 @@ public struct SourceSpan : IEquatable<SourceSpan>
             Length == other.Length;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is SourceSpan span && Equals(span);
     }
