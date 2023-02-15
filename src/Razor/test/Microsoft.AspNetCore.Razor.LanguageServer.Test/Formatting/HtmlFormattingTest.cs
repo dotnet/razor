@@ -835,7 +835,7 @@ public class HtmlFormattingTest : FormattingTestBase
             tagHelpers: GetComponents());
     }
 
-    [Fact(Skip = "Requires fix")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/8229")]
     public async Task FormatNestedComponents5()
     {
