@@ -348,7 +348,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         var tagHelperFilePath = Path.Combine(current!.FullName, testFileName);
         var buffer = File.ReadAllBytes(tagHelperFilePath);
         var serializer = new JsonSerializer();
-        serializer.Converters.Add(new TagHelperDescriptorJsonConverter());
+        serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
 
         using var stream = new MemoryStream(buffer);
         using var streamReader = new StreamReader(stream);
