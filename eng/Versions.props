@@ -78,7 +78,7 @@
     <MicrosoftVisualStudioShellPackagesVersion>17.5.0-preview-2-33117-317</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftVisualStudioPackagesVersion>17.5.274-preview</MicrosoftVisualStudioPackagesVersion>
     <RoslynPackageVersion>4.6.0-2.23113.3</RoslynPackageVersion>
-    <VisualStudioLanguageServerProtocolVersion>17.5.20-preview</VisualStudioLanguageServerProtocolVersion>
+    <VisualStudioLanguageServerProtocolVersion>17.6.4-preview</VisualStudioLanguageServerProtocolVersion>
     <MicrosoftNetCompilersToolsetVersion>4.4.0</MicrosoftNetCompilersToolsetVersion>
     <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>$(RoslynPackageVersion)</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
     <!-- dotnet/runtime packages -->
