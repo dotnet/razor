@@ -5,7 +5,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -15,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.CodeActions.CSharp;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
 public class CSharpDiagnosticsEndToEndTest : SingleServerDelegatingEndpointTestBase
 {
