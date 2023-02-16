@@ -92,11 +92,7 @@ internal partial class EditorInProcess
     public async Task VerifyGetClassificationsAsync(IEnumerable<ClassificationSpan> expectedClassifications, CancellationToken cancellationToken)
     {
         var actualClassifications = await GetClassificationsAsync(cancellationToken);
-        var actualSemanticClassifications = actualClassifications.Where(a =>
-            a.ClassificationType.BaseTypes.Any() &&
-            a.ClassificationType is ILayeredClassificationType layeredClassificationType &&
-            layeredClassificationType.Layer == ClassificationLayer.Syntactic);
-        var actualArray = actualSemanticClassifications.ToArray();
+        var actualArray = actualClassifications.ToArray();
         var expectedArray = expectedClassifications.ToArray();
 
         for (var i = 0; i < actualArray.Length; i++)
