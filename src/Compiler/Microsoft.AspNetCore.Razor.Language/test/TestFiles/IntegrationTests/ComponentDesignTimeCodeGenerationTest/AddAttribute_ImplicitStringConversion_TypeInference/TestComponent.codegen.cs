@@ -126,7 +126,7 @@ namespace __Blazor.Test.TestComponent
         {
         __builder.OpenComponent<global::Test.MyComponent<T>>(seq);
         __builder.AddAttribute(__seq0, "MyParameter", (object)__arg0);
-        __builder.AddAttribute(__seq1, "BoolParameter", (object)__arg1);
+        __builder.AddAttribute(__seq1, "BoolParameter", __arg1);
         __builder.AddAttribute(__seq2, "StringParameter", (object)__arg2);
         __builder.AddAttribute(__seq3, "DelegateParameter", (object)__arg3);
         __builder.AddAttribute(__seq4, "ObjectParameter", (object)__arg4);
