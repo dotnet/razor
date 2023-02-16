@@ -31,7 +31,7 @@ namespace Test
 #line hidden
 #nullable disable
             __builder.OpenComponent<global::Test.MyComponent>(1);
-            __builder.AddAttribute(2, "Person", 
+            __builder.AddAttribute(2, "Person", (object)(
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                       template
@@ -39,7 +39,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            );
+            ));
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

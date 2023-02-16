@@ -501,7 +501,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         {
             case ComponentAttributeIntermediateNode attribute:
                 // Don't type check generics, since we can't actually write the type name.
-                // The type checking with happen anyway since we defined a method and we're generating
+                // The type checking will happen anyway since we defined a method and we're generating
                 // a call to it.
                 WriteComponentAttributeInnards(context, attribute, canTypeCheck: false);
                 break;
@@ -555,7 +555,17 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         context.CodeWriter.WriteStringLiteral(node.AttributeName);
         context.CodeWriter.Write(", ");
 
+        if (addAttributeMethod == ComponentsApi.RenderTreeBuilder.AddAttribute)
+        {
+            context.CodeWriter.Write("(object)(");
+        }
+
         WriteComponentAttributeInnards(context, node, canTypeCheck: true);
+
+        if (addAttributeMethod == ComponentsApi.RenderTreeBuilder.AddAttribute)
+        {
+            context.CodeWriter.Write(")");
+        }
 
         context.CodeWriter.Write(");");
         context.CodeWriter.WriteLine();

@@ -14,8 +14,8 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.MyComponent>(0);
-            __builder.AddAttribute(1, "Foo", "test");
-            __builder.AddAttribute(2, "foo", "test");
+            __builder.AddAttribute(1, "Foo", (object)("test"));
+            __builder.AddAttribute(2, "foo", (object)("test"));
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

@@ -24,7 +24,7 @@ namespace Test
             (__builder2) => {
                 __builder2.OpenElement(0, "div");
                 __builder2.OpenComponent<global::Test.MyComponent>(1);
-                __builder2.AddAttribute(2, "Name", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
+                __builder2.AddAttribute(2, "Name", (object)(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>(
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                                                                      person.Name
@@ -32,7 +32,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-                ));
+                )));
                 __builder2.CloseComponent();
                 __builder2.CloseElement();
             }

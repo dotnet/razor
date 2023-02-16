@@ -24,7 +24,7 @@ __builder.AddContent(1, TestBool);
             __builder.CloseElement();
             __builder.AddMarkupContent(2, "\r\n\r\n");
             __builder.OpenComponent<global::Test.TestComponent>(3);
-            __builder.AddAttribute(4, "TestBool", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Boolean>(
+            __builder.AddAttribute(4, "TestBool", (object)(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Boolean>(
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
                          true
@@ -32,7 +32,7 @@ __builder.AddContent(1, TestBool);
 #line default
 #line hidden
 #nullable disable
-            ));
+            )));
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

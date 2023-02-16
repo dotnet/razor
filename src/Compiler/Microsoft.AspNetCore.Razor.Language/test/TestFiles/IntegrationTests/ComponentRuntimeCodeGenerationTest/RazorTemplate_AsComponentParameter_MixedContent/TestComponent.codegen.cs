@@ -48,7 +48,7 @@ __builder2.AddContent(4, context.Item.ToLower());
 #line hidden
 #nullable disable
             __builder.OpenComponent<global::Test.MyComponent>(5);
-            __builder.AddAttribute(6, "Template", (global::Microsoft.AspNetCore.Components.RenderFragment<Test.Context>)(
+            __builder.AddAttribute(6, "Template", (object)((global::Microsoft.AspNetCore.Components.RenderFragment<Test.Context>)(
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                         template
@@ -56,7 +56,7 @@ __builder2.AddContent(4, context.Item.ToLower());
 #line default
 #line hidden
 #nullable disable
-            ));
+            )));
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

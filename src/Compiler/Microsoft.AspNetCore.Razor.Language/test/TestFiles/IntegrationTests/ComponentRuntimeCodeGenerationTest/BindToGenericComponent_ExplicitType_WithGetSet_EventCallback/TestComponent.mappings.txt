@@ -4,7 +4,7 @@
 
     public EventCallback<CustomValue> UpdateValue { get; set; }
 |
-Generated Location: (1551:31,7 [140] )
+Generated Location: (1571:31,7 [140] )
 |
     public CustomValue ParentValue { get; set; } = new CustomValue();
 

@@ -14,7 +14,7 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.Grid<DateTime>>(0);
-            __builder.AddAttribute(1, "Items", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Collections.Generic.IEnumerable<DateTime>>(
+            __builder.AddAttribute(1, "Items", (object)(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Collections.Generic.IEnumerable<DateTime>>(
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                                 Array.Empty<DateTime>()
@@ -22,7 +22,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ));
+            )));
             __builder.AddAttribute(2, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
                 __builder2.OpenComponent<global::Test.Column<System.TimeZoneInfo>>(3);
                 __builder2.CloseComponent();

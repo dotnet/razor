@@ -14,7 +14,7 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.Grid<WeatherForecast>>(0);
-            __builder.AddAttribute(1, "Items", 
+            __builder.AddAttribute(1, "Items", (object)(
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                                        Array.Empty<WeatherForecast>()
@@ -22,7 +22,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            );
+            ));
             __builder.AddAttribute(2, "ColumnsTemplate", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
                 global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_0(__builder2, 3, default(WeatherForecast), 4, "Date", 5, "Date", 6, "d", 7, "10rem");
             }
