@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
@@ -113,10 +114,31 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
                 RazorLanguageServerCustomMessageTargets.RazorReferencesEndpointName => await HandleReferencesAsync(@params),
                 RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint => await HandleProvideCodeActionsAsync(@params),
                 RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint => await HandleResolveCodeActionsAsync(@params),
+                RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName => await HandlePullDiagnosticsAsync(@params),
                 _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
             };
 
             return (TResponse)result;
+        }
+
+        private async Task<RazorPullDiagnosticResponse> HandlePullDiagnosticsAsync<TParams>(TParams @params)
+        {
+            Assert.IsType<DelegatedDiagnosticParams>(@params);
+
+            var delegatedRequest = new VSInternalDocumentDiagnosticsParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = _csharpDocumentUri,
+                },
+            };
+
+            var result = await _csharpServer.ExecuteRequestAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]>(
+                VSInternalMethods.DocumentPullDiagnosticName,
+                delegatedRequest,
+                _cancellationToken);
+
+            return new RazorPullDiagnosticResponse(result, Array.Empty<VSInternalDiagnosticReport>());
         }
 
         private async Task<VSInternalCodeAction> HandleResolveCodeActionsAsync<TParams>(TParams @params)
