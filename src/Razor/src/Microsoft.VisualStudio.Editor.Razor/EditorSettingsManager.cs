@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.CodeAnalysis.Razor.Editor;
-using Microsoft.Extensions.Internal;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
@@ -14,19 +13,4 @@ public abstract class EditorSettingsManager
     public abstract EditorSettings Current { get; }
 
     public abstract void Update(EditorSettings updateSettings);
-}
-
-public sealed class EditorSettingsChangedEventArgs : EventArgs
-{
-    public EditorSettingsChangedEventArgs(EditorSettings settings)
-    {
-        if (settings is null)
-        {
-            throw new ArgumentNullException(nameof(settings));
-        }
-
-        Settings = settings;
-    }
-
-    public EditorSettings Settings { get; }
 }
