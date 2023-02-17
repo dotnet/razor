@@ -32,8 +32,7 @@ internal partial class MarkupTagHelperStartTagSyntax
 
         // We want to know if this tag contains non-whitespace attribute content to set the appropriate AcceptedCharacters.
         // The prefix of a start tag(E.g '|<foo| attr>') will have 'Any' accepted characters if non-whitespace attribute content exists.
-        var acceptsAnyContext = new SpanContext(context.ChunkGenerator, SpanEditHandler.CreateDefault());
-        acceptsAnyContext.EditHandler.AcceptedCharacters = AcceptedCharactersInternal.Any;
+        var acceptsAnyContext = new SpanContext(context.ChunkGenerator, SpanEditHandler.CreateDefault(AcceptedCharactersInternal.Any));
         var containsAttributesContent = false;
         foreach (var attribute in Attributes)
         {
@@ -54,8 +53,7 @@ internal partial class MarkupTagHelperStartTagSyntax
             builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume()).WithSpanContext(acceptsAnyContext));
 
             tokens.Add(Bang);
-            var acceptsNoneContext = new SpanContext(context.ChunkGenerator, SpanEditHandler.CreateDefault());
-            acceptsNoneContext.EditHandler.AcceptedCharacters = AcceptedCharactersInternal.None;
+            var acceptsNoneContext = new SpanContext(context.ChunkGenerator, SpanEditHandler.CreateDefault(AcceptedCharactersInternal.None));
             builder.Add(SyntaxFactory.RazorMetaCode(tokens.Consume()).WithSpanContext(acceptsNoneContext));
         }
 
