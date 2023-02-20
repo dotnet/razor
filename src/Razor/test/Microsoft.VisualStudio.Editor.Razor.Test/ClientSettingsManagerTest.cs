@@ -147,7 +147,9 @@ public class ClientSettingsManagerTest : ProjectSnapshotManagerDispatcherTestBas
             _settings = settings;
         }
 
+#pragma warning disable CS0067 // The event 'ClientSettingsManagerTest.AdvancedSettingsStorage.Changed' is never used
         public event EventHandler<ClientAdvancedSettingsChangedEventArgs> Changed;
+#pragma warning restore CS0067 // The event 'ClientSettingsManagerTest.AdvancedSettingsStorage.Changed' is never used
 
         public ClientAdvancedSettings GetAdvancedSettings()
         {
