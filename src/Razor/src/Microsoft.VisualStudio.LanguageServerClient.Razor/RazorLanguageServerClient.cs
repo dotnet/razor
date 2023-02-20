@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
@@ -43,7 +44,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
     private readonly LSPRequestInvoker _requestInvoker;
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
     private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
-    private readonly ILogger _outputWindowLogger;
+    private readonly ILogger? _outputWindowLogger;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly VisualStudioHostServicesProvider? _vsHostWorkspaceServicesProvider;
     private RazorLanguageServerWrapper? _server;
@@ -66,7 +67,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         LSPRequestInvoker requestInvoker,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory,
-        OutputWindowLogger outputWindowLogger,
+        [Import(AllowDefault = true)] IOutputWindowLogger? outputWindowLogger,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ILanguageClientBroker languageClientBroker,
@@ -177,7 +178,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
 
         var logHubLogger = _loggerProvider.CreateLogger("Razor");
-        var loggers = new ILogger[] { logHubLogger, _outputWindowLogger };
+        var loggers = _outputWindowLogger == null ? new ILogger[] { logHubLogger } : new ILogger[] { logHubLogger, _outputWindowLogger };
         var razorLogger = new LoggerAdapter(loggers, _telemetryReporter);
         _server = RazorLanguageServerWrapper.Create(serverStream, serverStream, razorLogger, _projectSnapshotManagerDispatcher, ConfigureLanguageServer, _languageServerFeatureOptions);
         // This must not happen on an RPC endpoint due to UIThread concerns, so ActivateAsync was chosen.
