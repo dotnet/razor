@@ -44,7 +44,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
     private readonly LSPRequestInvoker _requestInvoker;
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
     private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
-    private readonly ILogger? _outputWindowLogger;
+    private readonly IOutputWindowLogger? _outputWindowLogger;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly VisualStudioHostServicesProvider? _vsHostWorkspaceServicesProvider;
     private RazorLanguageServerWrapper? _server;

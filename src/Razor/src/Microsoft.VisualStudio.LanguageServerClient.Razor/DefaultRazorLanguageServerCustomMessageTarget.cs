@@ -50,7 +50,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
     private readonly IClientSettingsManager _editorSettingsManager;
     private readonly LSPDocumentSynchronizer _documentSynchronizer;
-    private readonly ILogger? _logger;
+    private readonly IOutputWindowLogger? _outputWindowLogger;
 
     [ImportingConstructor]
     public DefaultRazorLanguageServerCustomMessageTarget(
@@ -60,7 +60,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         FormattingOptionsProvider formattingOptionsProvider,
         IClientSettingsManager editorSettingsManager,
         LSPDocumentSynchronizer documentSynchronizer,
-        [Import(AllowDefault = true)] IOutputWindowLogger? logger)
+        [Import(AllowDefault = true)] IOutputWindowLogger? outputWindowLogger)
     {
         if (documentManager is null)
         {
@@ -104,7 +104,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         _formattingOptionsProvider = formattingOptionsProvider;
         _editorSettingsManager = editorSettingsManager;
         _documentSynchronizer = documentSynchronizer;
-        _logger = logger;
+        _outputWindowLogger = outputWindowLogger;
     }
 
     // Testing constructor
@@ -1160,7 +1160,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         }
         catch (Exception e)
         {
-            _logger?.LogError(e, "Exception thrown in PullDiagnostic delegation");
+            _outputWindowLogger?.LogError(e, "Exception thrown in PullDiagnostic delegation");
             // Return null if any of the tasks getting diagnostics results in an error
             return null;
         }
