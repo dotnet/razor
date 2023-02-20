@@ -94,7 +94,7 @@ public class RazorLSPOptionsMonitorTest : TestBase
     }
 
     [Fact]
-    public async Task InitializedOptionsAreCurrent()
+    public void InitializedOptionsAreCurrent()
     {
         // Arrange
         var expectedOptions = new RazorLSPOptions(Trace.Messages, EnableFormatting: false, AutoClosingTags: true, InsertSpaces: true, TabSize: 4, FormatOnType: true);
