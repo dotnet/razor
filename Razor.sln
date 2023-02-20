@@ -118,7 +118,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.NET.Sdk.Razor.Sou
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{3AE210D1-C435-4693-BF79-2EF13ED554B9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.LanguageSupport", "src\Shared\Microsoft.AspNetCore.Razor.LanguageSupport\Microsoft.AspNetCore.Razor.LanguageSupport.csproj", "{BEF172F0-D1C2-4043-BF45-8E520FF79321}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.Utilities.Shared", "src\Shared\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj", "{BEF172F0-D1C2-4043-BF45-8E520FF79321}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microsoft.AspNetCore.Mvc.Razor.Extensions", "Microsoft.AspNetCore.Mvc.Razor.Extensions", "{DE461FC6-663E-4362-9B33-C5A88C7B4DB8}"
 EndProject

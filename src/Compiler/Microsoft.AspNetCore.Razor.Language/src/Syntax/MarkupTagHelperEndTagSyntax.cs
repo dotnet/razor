@@ -44,13 +44,11 @@ internal partial class MarkupTagHelperEndTagSyntax
         if (Bang != null)
         {
             // The prefix of an end tag(E.g '|</|!foo>') will have 'Any' accepted characters if a bang exists.
-            var acceptsAnyContext = new SpanContext(context.ChunkGenerator, SpanEditHandler.CreateDefault());
-            acceptsAnyContext.EditHandler.AcceptedCharacters = AcceptedCharactersInternal.Any;
+            var acceptsAnyContext = new SpanContext(context.ChunkGenerator, SpanEditHandler.CreateDefault(AcceptedCharactersInternal.Any));
             builder.Add(SyntaxFactory.MarkupTextLiteral(tokens.Consume()).WithSpanContext(acceptsAnyContext));
 
             tokens.Add(Bang);
-            var acceptsNoneContext = new SpanContext(context.ChunkGenerator, SpanEditHandler.CreateDefault());
-            acceptsNoneContext.EditHandler.AcceptedCharacters = AcceptedCharactersInternal.None;
+            var acceptsNoneContext = new SpanContext(context.ChunkGenerator, SpanEditHandler.CreateDefault(AcceptedCharactersInternal.None));
             builder.Add(SyntaxFactory.RazorMetaCode(tokens.Consume()).WithSpanContext(acceptsNoneContext));
         }
 
