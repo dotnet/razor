@@ -1408,6 +1408,38 @@ namespace Test
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
+
+    [Fact] // https://github.com/dotnet/aspnetcore/issues/18042
+    public void AddAttribute_ImplicitStringConversion_BindUnknown_Assignment()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+            
+            public class MyClass
+            {
+                public static implicit operator string(MyClass c) => throw null!;
+            }
+
+            public class MyComponent : ComponentBase
+            {
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent @bind-Value="c1 = c2" />
+
+            @code {
+                private MyClass c1 = new();
+                private MyClass c2 = new();
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
     #endregion
 
     #region Bind
