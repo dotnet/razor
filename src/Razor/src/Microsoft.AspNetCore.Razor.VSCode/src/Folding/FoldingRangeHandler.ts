@@ -5,32 +5,51 @@
 
 import * as vscode from 'vscode';
 import { RequestType } from 'vscode-languageclient';
+import { RazorDocumentManager } from '../Document/RazorDocumentManager';
 import { RazorLanguageServerClient } from '../RazorLanguageServerClient';
+import { RazorLogger } from '../RazorLogger';
 import { SerializableFoldingRangeParams } from './SerializableFoldingRangeParams';
 import { SerializableFoldingRangeResponse } from './SerializableFoldingRangeResponse';
 
 export class FoldingRangeHandler {
     private static readonly provideFoldingRange = 'razor/foldingRange';
     private foldingRangeRequestType: RequestType<SerializableFoldingRangeParams, SerializableFoldingRangeResponse, any> = new RequestType(FoldingRangeHandler.provideFoldingRange);
+    private emptyFoldingRangeReponse: SerializableFoldingRangeResponse = new SerializableFoldingRangeResponse(new Array<vscode.FoldingRange>(), new Array<vscode.FoldingRange>());
 
-    constructor(private readonly serverClient: RazorLanguageServerClient) { }
+    constructor(
+        private readonly serverClient: RazorLanguageServerClient,
+        private readonly documentManager: RazorDocumentManager,
+        private readonly logger: RazorLogger) { }
 
     public register() {
         // tslint:disable-next-line: no-floating-promises
         this.serverClient.onRequestWithParams<SerializableFoldingRangeParams, SerializableFoldingRangeResponse, any>(
             this.foldingRangeRequestType,
-            async (request: SerializableFoldingRangeParams, token: vscode.CancellationToken) => this.provideFoldingRanges(request, token));
+            async (request, token) => this.provideFoldingRanges(request, token));
     }
 
     private async provideFoldingRanges(
         foldingRangeParams: SerializableFoldingRangeParams,
         cancellationToken: vscode.CancellationToken) {
-        // This is currently a no-op because we don't have a way to get folding ranges from C#/HTML.
-        // Other functions accomplish this with `vscode.execute<Blank>Provider`, but that doesn't exist yet for folding ranges.
-        // VSCode issue: https://github.com/microsoft/vscode/issues/36638
-        // Razor tracking issue: https://github.com/dotnet/razor-tooling/issues/6811
-        const emptyFoldingRange: vscode.FoldingRange[] = [];
-        const response = new SerializableFoldingRangeResponse(emptyFoldingRange, emptyFoldingRange);
-        return response;
+        try {
+            const razorDocumentUri = vscode.Uri.parse(foldingRangeParams.textDocument.uri, true);
+            const razorDocument = await this.documentManager.getDocument(razorDocumentUri);
+            if (razorDocument === undefined) {
+                return this.emptyFoldingRangeReponse;
+            }
+
+            const virtualCSharpUri = razorDocument.csharpDocument.uri;
+            const virtualHtmlUri = razorDocument.htmlDocument.uri;
+
+            const csharpFoldingRanges = await vscode.commands.executeCommand<vscode.FoldingRange[]>('vscode.executeFoldingRangeProvider', virtualCSharpUri);
+            const htmlFoldingRanges = await vscode.commands.executeCommand<vscode.FoldingRange[]>('vscode.executeFoldingRangeProvider', virtualHtmlUri);
+
+            const response = new SerializableFoldingRangeResponse(csharpFoldingRanges, htmlFoldingRanges);
+            return response;
+        } catch (error) {
+            this.logger.logWarning(`${FoldingRangeHandler.provideFoldingRange} failed with ${error}`);
+        }
+
+        return this.emptyFoldingRangeReponse;
     }
 }
