@@ -38,6 +38,8 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
     private readonly LanguageServerFeatureOptions? _featureOptions;
     private readonly ProjectSnapshotManagerDispatcher? _projectSnapshotManagerDispatcher;
     private readonly Action<IServiceCollection>? _configureServer;
+    private readonly RazorLSPOptions _lspOptions;
+
     // Cached for testing
     private IHandlerProvider? _handlerProvider;
 
@@ -46,13 +48,15 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         ILspLogger logger,
         ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher,
         LanguageServerFeatureOptions? featureOptions,
-        Action<IServiceCollection>? configureServer)
+        Action<IServiceCollection>? configureServer,
+        RazorLSPOptions? lspOptions)
         : base(jsonRpc, logger)
     {
         _jsonRpc = jsonRpc;
         _featureOptions = featureOptions;
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _configureServer = configureServer;
+        _lspOptions = lspOptions ?? RazorLSPOptions.Default;
 
         Initialize();
     }
@@ -124,7 +128,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         services.AddCompletionServices(featureOptions);
         services.AddFormattingServices();
         services.AddCodeActionsServices();
-        services.AddOptionsServices();
+        services.AddOptionsServices(_lspOptions);
         services.AddHoverServices();
         services.AddTextDocumentServices();
 

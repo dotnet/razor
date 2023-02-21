@@ -48,6 +48,7 @@ internal class ClientSettingsManager : EditorSettingsManager, IClientSettingsMan
 
         if (_advancedSettingsStorage is not null)
         {
+            Update(_advancedSettingsStorage.GetAdvancedSettings());
             _advancedSettingsStorage.Changed += AdvancedSettingsChanged;
         }
     }

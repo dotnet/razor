@@ -31,4 +31,7 @@ public record RazorLSPOptions(
             Trace.Verbose => LogLevel.Trace,
             _ => LogLevel.None,
         };
+
+    internal RazorLSPOptions With(ClientSettings clientSettings)
+        => new(Trace, EnableFormatting, AutoClosingTags, clientSettings);
 }
