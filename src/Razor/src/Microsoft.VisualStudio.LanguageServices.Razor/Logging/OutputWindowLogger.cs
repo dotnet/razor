@@ -5,15 +5,16 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
+namespace Microsoft.VisualStudio.LanguageServices.Razor.Logging;
 
 [Shared]
-[Export(typeof(OutputWindowLogger))]
-internal class OutputWindowLogger : ILogger
+[Export(typeof(IOutputWindowLogger))]
+internal class OutputWindowLogger : IOutputWindowLogger
 {
     private const LogLevel MinimumLogLevel = LogLevel.Warning;
     private readonly OutputPane _outputPane;
