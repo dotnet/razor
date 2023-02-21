@@ -125,7 +125,7 @@ public class ClientSettingsManagerTest : ProjectSnapshotManagerDispatcherTestBas
 
         var manager = new ClientSettingsManager(_editorSettingsChangeTriggers, new AdvancedSettingsStorage(expectedSettings));
 
-        Assert.Same(expectedSettings, manager.GetClientSettings());
+        Assert.Same(expectedSettings, manager.GetClientSettings().AdvancedSettings);
     }
 
     private class TestChangeTrigger : ClientSettingsChangedTrigger
