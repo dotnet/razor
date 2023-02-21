@@ -93,6 +93,27 @@ internal static partial class LegacySyntaxNodeExtensions
             throw new ArgumentNullException(nameof(node));
         }
 
+        if (editHandler is null)
+        {
+            if (node.ContainsAnnotations)
+            {
+                List<SyntaxAnnotation>? filteredAnnotations = null;
+                foreach (var annotation in node.GetAnnotations())
+                {
+                    if (annotation.Kind != SyntaxConstants.EditHandlerKind)
+                    {
+                        (filteredAnnotations ??= new List<SyntaxAnnotation>()).Add(annotation);
+                    }
+                }
+
+                return node.WithAnnotations(filteredAnnotations?.ToArray() ?? Array.Empty<SyntaxAnnotation>());
+            }
+            else
+            {
+                return node;
+            }
+        }
+
         var newAnnotation = new SyntaxAnnotation(SyntaxConstants.EditHandlerKind, editHandler);
 
         List<SyntaxAnnotation>? newAnnotations = null;
