@@ -21,6 +21,25 @@ Sometimes it may be necessary to make changes in [`dotnet/roslyn`](https://githu
 7. Open `eng/Versions.props` and update `RoslynPackageVersion` to the version noted in step 5.
 8. To get the end-to-end local debugging working, running `./Build.cmd -deploy` script from roslyn repository. this will copy over the right binaries from roslyn to the shared local roslyn/razor hive.
 
+## Troubleshooting
+
+Use the steps below to do a clean build if the dlls/binaries need to get cleaned out:
+
+- Shut down all instances of VS.
+- Run the following scripts to kill processes running in a bad state:
+```
+> TASKKILL /IM devenv.exe /F
+> TASKKILL /IM dotnet.exe /F
+> TASKKILL /IM MSBuild.exe /F
+```
+- Delete your hives completely
+- Delete your artifacts folder
+- Launch VS with the Razor solution
+- Make sure `Microsoft.VisualStudio.RazorExtension` is set as the start up project.
+- Build and Rebuild Solution from the menu.
+- Check to make sure the hive is there
+- F5 the razor solution.
+
 ## Notes
 
 - If you're familiar with _Visual Studio Hives_ the `dotnet/roslyn` project uses the `RoslynDev` root suffix .
