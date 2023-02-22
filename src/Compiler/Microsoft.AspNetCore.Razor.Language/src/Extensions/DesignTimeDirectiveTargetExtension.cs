@@ -54,10 +54,7 @@ internal class DesignTimeDirectiveTargetExtension : IDesignTimeDirectiveTargetEx
         }
 
         // Wrap the directive token in a lambda to isolate variable names.
-        context.CodeWriter
-            .Write("((")
-            .Write(typeof(Action).FullName)
-            .Write(")(");
+        context.CodeWriter.Write("((global::System.Action)(");
         using (context.CodeWriter.BuildLambda())
         {
             var originalIndent = context.CodeWriter.CurrentIndent;
