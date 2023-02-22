@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { RequestType } from 'vscode-languageclient';
+import { FoldingRange, FoldingRangeKind, RequestType } from 'vscode-languageclient';
 import { RazorDocumentManager } from '../Document/RazorDocumentManager';
 import { RazorLanguageServerClient } from '../RazorLanguageServerClient';
 import { RazorLogger } from '../RazorLogger';
@@ -14,7 +14,7 @@ import { SerializableFoldingRangeResponse } from './SerializableFoldingRangeResp
 export class FoldingRangeHandler {
     private static readonly provideFoldingRange = 'razor/foldingRange';
     private foldingRangeRequestType: RequestType<SerializableFoldingRangeParams, SerializableFoldingRangeResponse, any> = new RequestType(FoldingRangeHandler.provideFoldingRange);
-    private emptyFoldingRangeReponse: SerializableFoldingRangeResponse = new SerializableFoldingRangeResponse(new Array<vscode.FoldingRange>(), new Array<vscode.FoldingRange>());
+    private emptyFoldingRangeReponse: SerializableFoldingRangeResponse = new SerializableFoldingRangeResponse(new Array<FoldingRange>(), new Array<FoldingRange>());
 
     constructor(
         private readonly serverClient: RazorLanguageServerClient,
@@ -44,12 +44,42 @@ export class FoldingRangeHandler {
             const csharpFoldingRanges = await vscode.commands.executeCommand<vscode.FoldingRange[]>('vscode.executeFoldingRangeProvider', virtualCSharpUri);
             const htmlFoldingRanges = await vscode.commands.executeCommand<vscode.FoldingRange[]>('vscode.executeFoldingRangeProvider', virtualHtmlUri);
 
-            const response = new SerializableFoldingRangeResponse(csharpFoldingRanges, htmlFoldingRanges);
+            const response = new SerializableFoldingRangeResponse(this.convertFoldingRanges(htmlFoldingRanges), this.convertFoldingRanges(csharpFoldingRanges));
             return response;
         } catch (error) {
             this.logger.logWarning(`${FoldingRangeHandler.provideFoldingRange} failed with ${error}`);
         }
 
         return this.emptyFoldingRangeReponse;
+    }
+
+    private convertFoldingRanges(foldingRanges: vscode.FoldingRange[]) {
+        const convertedFoldingRanges = new Array<FoldingRange>();
+        foldingRanges.forEach(foldingRange => {
+            const convertedFoldingRange: FoldingRange = {
+                startLine: foldingRange.start,
+                startCharacter: 0,
+                endLine: foldingRange.end,
+                endCharacter: 0,
+                kind: foldingRange.kind === undefined ? undefined : this.convertFoldingRangeKind(foldingRange.kind),
+            };
+
+            convertedFoldingRanges.push(convertedFoldingRange);
+        });
+
+        return convertedFoldingRanges;
+    }
+
+    private convertFoldingRangeKind(kind: vscode.FoldingRangeKind) {
+        if (kind === vscode.FoldingRangeKind.Comment) {
+            return FoldingRangeKind.Comment;
+        } else if (kind === vscode.FoldingRangeKind.Imports) {
+            return FoldingRangeKind.Imports;
+        } else if (kind === vscode.FoldingRangeKind.Region) {
+            return FoldingRangeKind.Region;
+        } else {
+            this.logger.logWarning(`Unexpected FoldingRangeKind ${kind}`);
+            return undefined;
+        }
     }
 }
