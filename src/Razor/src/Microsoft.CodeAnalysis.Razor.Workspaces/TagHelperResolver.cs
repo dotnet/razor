@@ -52,7 +52,7 @@ internal abstract class TagHelperResolver : IWorkspaceService
         var compilation = await workspaceProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
         if (CompilationTagHelperFeature.IsValidCompilation(compilation))
         {
-            context.SetCompilation(compilation);
+            context.SetTypeProvider(new WellKnownTypeProvider(compilation));
         }
 
         var timingDictionary = new Dictionary<string, long>();

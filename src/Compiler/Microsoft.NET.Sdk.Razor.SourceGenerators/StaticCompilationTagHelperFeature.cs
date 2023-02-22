@@ -17,14 +17,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
         public List<TagHelperDescriptor> GetDescriptors()
         {
-            if (Compilation is null)
+            if (TypeProvider is null)
             {
                 return EmptyList;
             }
 
             var results = new List<TagHelperDescriptor>();
             var context = TagHelperDescriptorProviderContext.Create(results);
-            context.SetCompilation(Compilation);
+            context.SetTypeProvider(TypeProvider);
             if (TargetSymbol is not null)
             {
                 context.Items.SetTargetSymbol(TargetSymbol);
@@ -40,7 +40,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
         IReadOnlyList<TagHelperDescriptor> ITagHelperFeature.GetDescriptors() => GetDescriptors();
 
-        public Compilation? Compilation { get; set; }
+        public WellKnownTypeProvider? TypeProvider { get; set; }
 
         public ISymbol? TargetSymbol { get; set; }
 

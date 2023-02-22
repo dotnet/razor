@@ -17,7 +17,7 @@ public class SplatTagHelperDescriptorProviderTest : TagHelperDescriptorProviderT
     {
         // Arrange
         var context = TagHelperDescriptorProviderContext.Create();
-        context.SetCompilation(BaseCompilation);
+        context.SetTypeProvider(BaseTypeProvider);
 
         var provider = new SplatTagHelperDescriptorProvider();
 

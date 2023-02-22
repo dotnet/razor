@@ -50,7 +50,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = TagHelperDescriptorProviderContext.Create();
-        context.SetCompilation(compilation);
+        context.SetTypeProvider(new WellKnownTypeProvider(compilation));
 
         // We run after component discovery and depend on the results.
         var componentProvider = new ComponentTagHelperDescriptorProvider();
@@ -203,7 +203,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = TagHelperDescriptorProviderContext.Create();
-        context.SetCompilation(compilation);
+        context.SetTypeProvider(new WellKnownTypeProvider(compilation));
 
         // We run after component discovery and depend on the results.
         var componentProvider = new ComponentTagHelperDescriptorProvider();
@@ -354,7 +354,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = TagHelperDescriptorProviderContext.Create();
-        context.SetCompilation(compilation);
+        context.SetTypeProvider(new WellKnownTypeProvider(compilation));
 
         // We run after component discovery and depend on the results.
         var componentProvider = new ComponentTagHelperDescriptorProvider();
@@ -390,7 +390,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = TagHelperDescriptorProviderContext.Create();
-        context.SetCompilation(compilation);
+        context.SetTypeProvider(new WellKnownTypeProvider(compilation));
 
         var provider = new BindTagHelperDescriptorProvider();
 
@@ -651,7 +651,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = TagHelperDescriptorProviderContext.Create();
-        context.SetCompilation(compilation);
+        context.SetTypeProvider(new WellKnownTypeProvider(compilation));
 
         var provider = new BindTagHelperDescriptorProvider();
 
@@ -736,7 +736,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = TagHelperDescriptorProviderContext.Create();
-        context.SetCompilation(compilation);
+        context.SetTypeProvider(new WellKnownTypeProvider(compilation));
 
         var provider = new BindTagHelperDescriptorProvider();
 
@@ -812,7 +812,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = TagHelperDescriptorProviderContext.Create();
-        context.SetCompilation(compilation);
+        context.SetTypeProvider(new WellKnownTypeProvider(compilation));
 
         var provider = new BindTagHelperDescriptorProvider();
 
@@ -909,7 +909,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = TagHelperDescriptorProviderContext.Create();
-        context.SetCompilation(compilation);
+        context.SetTypeProvider(new WellKnownTypeProvider(compilation));
 
         var provider = new BindTagHelperDescriptorProvider();
 
@@ -1008,7 +1008,7 @@ namespace Test
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = TagHelperDescriptorProviderContext.Create();
-        context.SetCompilation(compilation);
+        context.SetTypeProvider(new WellKnownTypeProvider(compilation));
 
         var provider = new BindTagHelperDescriptorProvider();
 
@@ -1033,11 +1033,11 @@ namespace Test
     public void Execute_BindFallback_CreatesDescriptor()
     {
         // Arrange
-        var compilation = BaseCompilation;
+        var (compilation, typeProvider) = (BaseCompilation, BaseTypeProvider);
         Assert.Empty(compilation.GetDiagnostics());
 
         var context = TagHelperDescriptorProviderContext.Create();
-        context.SetCompilation(compilation);
+        context.SetTypeProvider(typeProvider);
 
         var provider = new BindTagHelperDescriptorProvider();
 

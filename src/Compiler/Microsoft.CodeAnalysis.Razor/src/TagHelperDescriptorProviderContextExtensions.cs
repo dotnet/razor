@@ -20,13 +20,24 @@ public static class TagHelperDescriptorProviderContextExtensions
         return (Compilation)context.Items[typeof(Compilation)];
     }
 
-    public static void SetCompilation(this TagHelperDescriptorProviderContext context, Compilation compilation)
+    public static WellKnownTypeProvider GetTypeProvider(this TagHelperDescriptorProviderContext context)
     {
         if (context == null)
         {
             throw new ArgumentNullException(nameof(context));
         }
 
-        context.Items[typeof(Compilation)] = compilation;
+        return (WellKnownTypeProvider)context.Items[typeof(WellKnownTypeProvider)];
+    }
+
+    public static void SetTypeProvider(this TagHelperDescriptorProviderContext context, WellKnownTypeProvider typeProvider)
+    {
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        context.Items[typeof(Compilation)] = typeProvider.Compilation;
+        context.Items[typeof(WellKnownTypeProvider)] = typeProvider;
     }
 }

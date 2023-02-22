@@ -18,10 +18,13 @@ public abstract class TagHelperDescriptorProviderTestBase
     static TagHelperDescriptorProviderTestBase()
     {
         BaseCompilation = TestCompilation.Create(typeof(ComponentTagHelperDescriptorProviderTest).Assembly);
+        BaseTypeProvider = new WellKnownTypeProvider(BaseCompilation);
         CSharpParseOptions = new CSharpParseOptions(LanguageVersion.CSharp7_3);
     }
 
     protected static Compilation BaseCompilation { get; }
+
+    protected static WellKnownTypeProvider BaseTypeProvider { get; }
 
     protected static CSharpParseOptions CSharpParseOptions { get; }
 

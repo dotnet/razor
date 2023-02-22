@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
@@ -22,6 +23,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var analyzerConfigOptions = context.AnalyzerConfigOptionsProvider;
             var parseOptions = context.ParseOptionsProvider;
             var compilation = context.CompilationProvider;
+            var typeProvider = compilation.Select(static (compilation, cancellationToken) => new WellKnownTypeProvider(compilation));
 
             // determine if we should suppress this run and filter out all the additional files if so
             var isGeneratorSuppressed = context.AnalyzerConfigOptionsProvider.Select(GetSuppressionStatus);
@@ -105,7 +107,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     var compilationWithDeclarations = compilation.AddSyntaxTrees(generatedDeclarationSyntaxTrees);
 
-                    tagHelperFeature.Compilation = compilationWithDeclarations;
+                    tagHelperFeature.TypeProvider = new WellKnownTypeProvider(compilationWithDeclarations);
                     tagHelperFeature.TargetSymbol = compilationWithDeclarations.Assembly;
 
                     var result = (IList<TagHelperDescriptor>)tagHelperFeature.GetDescriptors();
@@ -130,13 +132,15 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return true;
                 }, getHashCode: static a => a.Count);
 
-            var tagHelpersFromReferences = compilation
+            var tagHelpersFromReferences = typeProvider
                 .Combine(razorSourceGeneratorOptions)
                 .Combine(hasRazorFiles)
                 .WithLambdaComparer(static (a, b) =>
                 {
-                    var ((compilationA, razorSourceGeneratorOptionsA), hasRazorFilesA) = a;
-                    var ((compilationB, razorSourceGeneratorOptionsB), hasRazorFilesB) = b;
+                    var ((typeProviderA, razorSourceGeneratorOptionsA), hasRazorFilesA) = a;
+                    var ((typeProviderB, razorSourceGeneratorOptionsB), hasRazorFilesB) = b;
+                    var compilationA = typeProviderA.Compilation;
+                    var compilationB = typeProviderB.Compilation;
 
                     if (!compilationA.References.SequenceEqual(compilationB.References))
                     {
@@ -153,14 +157,15 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 static item =>
                 {
                     // we'll use the number of references as a hashcode.
-                    var ((compilationA, razorSourceGeneratorOptionsA), hasRazorFilesA) = item;
-                    return compilationA.References.GetHashCode();
+                    var ((typeProviderA, razorSourceGeneratorOptionsA), hasRazorFilesA) = item;
+                    return typeProviderA.Compilation.References.GetHashCode();
                 })
                 .Select(static (pair, _) =>
                 {
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromReferencesStart();
 
-                    var ((compilation, razorSourceGeneratorOptions), hasRazorFiles) = pair;
+                    var ((typeProvider, razorSourceGeneratorOptions), hasRazorFiles) = pair;
+                    var compilation = typeProvider.Compilation;
                     if (!hasRazorFiles)
                     {
                         // If there's no razor code in this app, don't do anything.
@@ -172,7 +177,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     var discoveryProjectEngine = GetDiscoveryProjectEngine(compilation.References.ToImmutableArray(), tagHelperFeature);
 
                     List<TagHelperDescriptor> descriptors = new();
-                    tagHelperFeature.Compilation = compilation;
+                    tagHelperFeature.TypeProvider = typeProvider;
                     foreach (var reference in compilation.References)
                     {
                         if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
