@@ -8224,6 +8224,8 @@ namespace New.Test
             """);
 
         // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
 
