@@ -14,16 +14,16 @@ internal static class ComponentsApi
     public static class ComponentBase
     {
         public const string Namespace = "Microsoft.AspNetCore.Components";
-        public const string FullTypeName = Namespace + ".ComponentBase";
-        public const string MetadataName = FullTypeName;
+        public const string MetadataName = WellKnownTypeNames.MicrosoftAspNetCoreComponentsComponentBase;
+        public const string FullTypeName = MetadataName;
 
         public const string BuildRenderTree = nameof(BuildRenderTree);
     }
 
     public static class ParameterAttribute
     {
-        public const string FullTypeName = "Microsoft.AspNetCore.Components.ParameterAttribute";
-        public const string MetadataName = FullTypeName;
+        public const string MetadataName = WellKnownTypeNames.MicrosoftAspNetCoreComponentsParameterAttribute;
+        public const string FullTypeName = MetadataName;
     }
 
     public static class LayoutAttribute
@@ -50,15 +50,15 @@ internal static class ComponentsApi
     public static class RenderFragment
     {
         public const string Namespace = "Microsoft.AspNetCore.Components";
-        public const string FullTypeName = Namespace + ".RenderFragment";
-        public const string MetadataName = FullTypeName;
+        public const string MetadataName = WellKnownTypeNames.MicrosoftAspNetCoreComponentsRenderFragment;
+        public const string FullTypeName = MetadataName;
     }
 
     public static class RenderFragmentOfT
     {
         public const string Namespace = "Microsoft.AspNetCore.Components";
         public const string FullTypeName = Namespace + ".RenderFragment<>";
-        public const string MetadataName = Namespace + ".RenderFragment`1";
+        public const string MetadataName = WellKnownTypeNames.MicrosoftAspNetCoreComponentsRenderFragment1;
         public const string DisplayName = Namespace + ".RenderFragment<TValue>";
     }
 
@@ -138,15 +138,15 @@ internal static class ComponentsApi
 
     public static class EventCallback
     {
-        public const string FullTypeName = "Microsoft.AspNetCore.Components.EventCallback";
-        public const string MetadataName = FullTypeName;
+        public const string MetadataName = WellKnownTypeNames.MicrosoftAspNetCoreComponentsEventCallback;
+        public const string FullTypeName = MetadataName;
 
         public const string FactoryAccessor = FullTypeName + ".Factory";
     }
 
     public static class EventCallbackOfT
     {
-        public const string MetadataName = "Microsoft.AspNetCore.Components.EventCallback`1";
+        public const string MetadataName = WellKnownTypeNames.MicrosoftAspNetCoreComponentsEventCallback1;
         public const string DisplayName = "Microsoft.AspNetCore.Components.EventCallback<TValue>";
     }
 
@@ -164,6 +164,6 @@ internal static class ComponentsApi
 
     public static class CascadingTypeParameterAttribute
     {
-        public const string MetadataName = "Microsoft.AspNetCore.Components.CascadingTypeParameterAttribute";
+        public const string MetadataName = WellKnownTypeNames.MicrosoftAspNetCoreComponentsCascadingTypeParameterAttribute;
     }
 }

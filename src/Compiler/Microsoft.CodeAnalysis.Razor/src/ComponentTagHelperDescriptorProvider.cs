@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -31,15 +32,14 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         }
 
         var typeProvider = context.GetTypeProvider();
-        if (typeProvider == null
-            || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreComponentsIComponent, out var icomponentSymbol))
+        if (typeProvider == null || !ComponentSymbols.TryCreate(typeProvider, out var symbols))
         {
             // No compilation, nothing to do.
             return;
         }
 
         var types = new List<INamedTypeSymbol>();
-        var visitor = new ComponentTypeVisitor(types, icomponentSymbol);
+        var visitor = new ComponentTypeVisitor(types, symbols.IComponent);
 
         var targetSymbol = context.Items.GetTargetSymbol();
         if (targetSymbol is not null)
@@ -66,9 +66,9 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             // Components have very simple matching rules.
             // 1. The type name (short) matches the tag name.
             // 2. The fully qualified name matches the tag name.
-            var shortNameMatchingDescriptor = CreateShortNameMatchingDescriptor(type);
+            var shortNameMatchingDescriptor = CreateShortNameMatchingDescriptor(symbols, type);
             context.Results.Add(shortNameMatchingDescriptor);
-            var fullyQualifiedNameMatchingDescriptor = CreateFullyQualifiedNameMatchingDescriptor(type);
+            var fullyQualifiedNameMatchingDescriptor = CreateFullyQualifiedNameMatchingDescriptor(symbols, type);
             context.Results.Add(fullyQualifiedNameMatchingDescriptor);
 
             foreach (var childContent in shortNameMatchingDescriptor.GetChildContentProperties())
@@ -80,9 +80,9 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         }
     }
 
-    private TagHelperDescriptor CreateShortNameMatchingDescriptor(INamedTypeSymbol type)
+    private TagHelperDescriptor CreateShortNameMatchingDescriptor(ComponentSymbols symbols, INamedTypeSymbol type)
     {
-        var builder = CreateDescriptorBuilder(type);
+        var builder = CreateDescriptorBuilder(symbols, type);
         builder.TagMatchingRule(r =>
         {
             r.TagName = type.Name;
@@ -91,9 +91,9 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         return builder.Build();
     }
 
-    private TagHelperDescriptor CreateFullyQualifiedNameMatchingDescriptor(INamedTypeSymbol type)
+    private TagHelperDescriptor CreateFullyQualifiedNameMatchingDescriptor(ComponentSymbols symbols, INamedTypeSymbol type)
     {
-        var builder = CreateDescriptorBuilder(type);
+        var builder = CreateDescriptorBuilder(symbols, type);
         var containingNamespace = type.ContainingNamespace.ToDisplayString();
         var fullName = $"{containingNamespace}.{type.Name}";
         builder.TagMatchingRule(r =>
@@ -105,7 +105,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         return builder.Build();
     }
 
-    private TagHelperDescriptorBuilder CreateDescriptorBuilder(INamedTypeSymbol type)
+    private TagHelperDescriptorBuilder CreateDescriptorBuilder(ComponentSymbols symbols, INamedTypeSymbol type)
     {
         var typeName = type.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat);
         var assemblyName = type.ContainingAssembly.Identity.Name;
@@ -124,11 +124,20 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         {
             builder.Metadata[ComponentMetadata.Component.GenericTypedKey] = bool.TrueString;
 
-            var cascadeGenericTypeAttributes = type
-                .GetAttributes()
-                .Where(a => a.AttributeClass.HasFullName(ComponentsApi.CascadingTypeParameterAttribute.MetadataName))
-                .Select(attribute => attribute.ConstructorArguments.FirstOrDefault().Value as string)
-                .ToList();
+            List<string> cascadeGenericTypeAttributes;
+            if (symbols.CascadingTypeParameterAttribute is { } cascadingTypeParameterAttribute)
+            {
+                cascadeGenericTypeAttributes = type
+                    .GetAttributes()
+                    .Where(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, cascadingTypeParameterAttribute))
+                    .Select(attribute => attribute.ConstructorArguments.FirstOrDefault().Value as string)
+                    .ToList();
+            }
+            else
+            {
+                cascadeGenericTypeAttributes = new List<string>();
+            }
+
 
             for (var i = 0; i < type.TypeArguments.Length; i++)
             {
@@ -147,14 +156,14 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             builder.Documentation = xml;
         }
 
-        foreach (var property in GetProperties(type))
+        foreach (var property in GetProperties(symbols, type))
         {
             if (property.kind == PropertyKind.Ignored)
             {
                 continue;
             }
 
-            CreateProperty(builder, property.property, property.kind);
+            CreateProperty(symbols, builder, property.property, property.kind);
         }
 
         if (builder.BoundAttributes.Any(a => a.IsParameterizedChildContentProperty()) &&
@@ -169,14 +178,14 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         return builder;
     }
 
-    private void CreateProperty(TagHelperDescriptorBuilder builder, IPropertySymbol property, PropertyKind kind)
+    private void CreateProperty(ComponentSymbols symbols, TagHelperDescriptorBuilder builder, IPropertySymbol property, PropertyKind kind)
     {
         builder.BindAttribute(pb =>
         {
             pb.Name = property.Name;
             pb.TypeName = property.Type.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat);
             pb.SetPropertyName(property.Name);
-            pb.IsEditorRequired = property.GetAttributes().Any(a => a.AttributeClass.HasFullName("Microsoft.AspNetCore.Components.EditorRequiredAttribute"));
+            pb.IsEditorRequired = property.GetAttributes().Any(static (a, symbols) => SymbolEqualityComparer.Default.Equals(a.AttributeClass, symbols.EditorRequiredAttribute), symbols);
             pb.SetGloballyQualifiedTypeName(property.Type.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
             if (kind == PropertyKind.Enum)
             {
@@ -447,12 +456,12 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
     // - have the [Parameter] attribute
     // - have a setter, even if private
     // - are not indexers
-    private IEnumerable<(IPropertySymbol property, PropertyKind kind)> GetProperties(INamedTypeSymbol type)
+    private IEnumerable<(IPropertySymbol property, PropertyKind kind)> GetProperties(ComponentSymbols symbols, INamedTypeSymbol type)
     {
         var properties = new Dictionary<string, (IPropertySymbol, PropertyKind)>(StringComparer.Ordinal);
         do
         {
-            if (type.HasFullName(ComponentsApi.ComponentBase.MetadataName))
+            if (SymbolEqualityComparer.Default.Equals(type, symbols.ComponentBase))
             {
                 // The ComponentBase base class doesn't have any [Parameter].
                 // Bail out now to avoid walking through its many members, plus the members
@@ -505,7 +514,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
                     kind = PropertyKind.Ignored;
                 }
 
-                if (!property.GetAttributes().Any(a => a.AttributeClass.HasFullName(ComponentsApi.ParameterAttribute.MetadataName)))
+                if (!property.GetAttributes().Any(static (a, symbols) => SymbolEqualityComparer.Default.Equals(a.AttributeClass, symbols.ParameterAttribute), symbols))
                 {
                     if (property.IsOverride)
                     {
@@ -523,7 +532,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
                     kind = PropertyKind.Enum;
                 }
 
-                if (kind == PropertyKind.Default && property.Type.HasFullName(ComponentsApi.RenderFragment.MetadataName))
+                if (kind == PropertyKind.Default && SymbolEqualityComparer.Default.Equals(property.Type, symbols.RenderFragment))
                 {
                     kind = PropertyKind.ChildContent;
                 }
@@ -531,12 +540,12 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
                 if (kind == PropertyKind.Default &&
                     property.Type is INamedTypeSymbol namedType &&
                     namedType.IsGenericType &&
-                    namedType.ConstructedFrom.HasFullName(ComponentsApi.RenderFragmentOfT.DisplayName))
+                    SymbolEqualityComparer.Default.Equals(namedType.ConstructedFrom, symbols.RenderFragmentOfT))
                 {
                     kind = PropertyKind.ChildContent;
                 }
 
-                if (kind == PropertyKind.Default && property.Type.HasFullName(ComponentsApi.EventCallback.MetadataName))
+                if (kind == PropertyKind.Default && SymbolEqualityComparer.Default.Equals(property.Type, symbols.EventCallback))
                 {
                     kind = PropertyKind.EventCallback;
                 }
@@ -544,7 +553,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
                 if (kind == PropertyKind.Default &&
                     property.Type is INamedTypeSymbol namedType2 &&
                     namedType2.IsGenericType &&
-                    namedType2.ConstructedFrom.HasFullName(ComponentsApi.EventCallbackOfT.DisplayName))
+                    SymbolEqualityComparer.Default.Equals(namedType2.ConstructedFrom, symbols.EventCallbackOfT))
                 {
                     kind = PropertyKind.EventCallback;
                 }
@@ -573,6 +582,127 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         Delegate,
         EventCallback,
     }
+
+#nullable restore
+    private class ComponentSymbols
+    {
+        private readonly WellKnownTypeProvider _typeProvider;
+        private INamedTypeSymbol? _editorRequiredAttribute;
+
+        private ComponentSymbols(
+            WellKnownTypeProvider typeProvider,
+            INamedTypeSymbol componentBase,
+            INamedTypeSymbol icomponent,
+            INamedTypeSymbol parameterAttribute,
+            INamedTypeSymbol renderFragment,
+            INamedTypeSymbol renderFragment1,
+            INamedTypeSymbol eventCallback,
+            INamedTypeSymbol eventCallback1,
+            INamedTypeSymbol? cascadingTypeParameterAttribute)
+        {
+            _typeProvider = typeProvider;
+            ComponentBase = componentBase;
+            IComponent = icomponent;
+            ParameterAttribute = parameterAttribute;
+            RenderFragment = renderFragment;
+            RenderFragmentOfT = renderFragment1;
+            EventCallback = eventCallback;
+            EventCallbackOfT = eventCallback1;
+            CascadingTypeParameterAttribute = cascadingTypeParameterAttribute;
+        }
+
+        public static bool TryCreate(WellKnownTypeProvider typeProvider, [NotNullWhen(true)] out ComponentSymbols? symbols)
+        {
+            // We find a bunch of important and fundamental types here that are needed to discover
+            // components. If one of these isn't defined then we just bail, because the results will
+            // be unpredictable.
+            symbols = null;
+
+            if (!typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreComponentsComponentBase, out var componentBase))
+            {
+                // No definition for ComponentBase, nothing to do.
+                return false;
+            }
+
+            if (!typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreComponentsIComponent, out var icomponent))
+            {
+                // No definition for IComponent, nothing to do.
+                return false;
+            }
+
+            if (!typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreComponentsParameterAttribute, out var parameterAttribute))
+            {
+                // No definition for [Parameter], nothing to do.
+                return false;
+            }
+
+            if (!typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreComponentsRenderFragment, out var renderFragment))
+            {
+                // No definition for RenderFragment, nothing to do.
+                return false;
+            }
+
+            if (!typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreComponentsRenderFragment1, out var renderFragment1))
+            {
+                // No definition for RenderFragment<T>, nothing to do.
+                return false;
+            }
+
+            if (!typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreComponentsEventCallback, out var eventCallback))
+            {
+                // No definition for EventCallback, nothing to do.
+                return false;
+            }
+
+            if (!typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreComponentsEventCallback1, out var eventCallback1))
+            {
+                // No definition for EventCallback<T>, nothing to do.
+                return false;
+            }
+
+            if (!typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreComponentsCascadingTypeParameterAttribute, out var cascadingTypeParameterAttribute))
+            {
+                // No definition for [CascadingTypeParameter]. For back-compat, just don't activate this feature.
+            }
+
+            symbols = new ComponentSymbols(
+                typeProvider,
+                componentBase: componentBase,
+                icomponent: icomponent,
+                parameterAttribute: parameterAttribute,
+                renderFragment: renderFragment,
+                renderFragment1: renderFragment1,
+                eventCallback: eventCallback,
+                eventCallback1: eventCallback1,
+                cascadingTypeParameterAttribute: cascadingTypeParameterAttribute);
+            return true;
+        }
+
+        public INamedTypeSymbol ComponentBase { get; }
+
+        public INamedTypeSymbol IComponent { get; }
+
+        public INamedTypeSymbol ParameterAttribute { get; }
+
+        public INamedTypeSymbol RenderFragment { get; }
+
+        public INamedTypeSymbol RenderFragmentOfT { get; }
+
+        public INamedTypeSymbol EventCallback { get; }
+
+        public INamedTypeSymbol EventCallbackOfT { get; }
+
+        public INamedTypeSymbol? CascadingTypeParameterAttribute { get; }
+
+        public INamedTypeSymbol? EditorRequiredAttribute
+        {
+            get
+            {
+                return _editorRequiredAttribute ??= _typeProvider.GetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreComponentsEditorRequiredAttribute);
+            }
+        }
+    }
+#nullable disable
 
     private class ComponentTypeVisitor : SymbolVisitor
     {
