@@ -30,15 +30,16 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             throw new ArgumentNullException(nameof(context));
         }
 
-        var compilation = context.GetCompilation();
-        if (compilation == null)
+        var typeProvider = context.GetTypeProvider();
+        if (typeProvider == null
+            || !typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreComponentsIComponent, out var icomponentSymbol))
         {
             // No compilation, nothing to do.
             return;
         }
 
         var types = new List<INamedTypeSymbol>();
-        var visitor = new ComponentTypeVisitor(types);
+        var visitor = new ComponentTypeVisitor(types, icomponentSymbol);
 
         var targetSymbol = context.Items.GetTargetSymbol();
         if (targetSymbol is not null)
@@ -47,6 +48,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         }
         else
         {
+            var compilation = typeProvider.Compilation;
             visitor.Visit(compilation.Assembly.GlobalNamespace);
             foreach (var reference in compilation.References)
             {
@@ -575,15 +577,17 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
     private class ComponentTypeVisitor : SymbolVisitor
     {
         private readonly List<INamedTypeSymbol> _results;
+        private readonly INamedTypeSymbol _icomponentSymbol;
 
-        public ComponentTypeVisitor(List<INamedTypeSymbol> results)
+        public ComponentTypeVisitor(List<INamedTypeSymbol> results, INamedTypeSymbol icomponentSymbol)
         {
             _results = results;
+            _icomponentSymbol = icomponentSymbol;
         }
 
         public override void VisitNamedType(INamedTypeSymbol symbol)
         {
-            if (ComponentDetectionConventions.IsComponent(symbol, ComponentsApi.IComponent.MetadataName))
+            if (ComponentDetectionConventions.IsComponent(symbol, _icomponentSymbol))
             {
                 _results.Add(symbol);
             }

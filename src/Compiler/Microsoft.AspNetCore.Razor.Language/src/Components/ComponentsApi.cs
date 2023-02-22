@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
 // Constants for method names used in code-generation
@@ -40,9 +38,8 @@ internal static class ComponentsApi
 
     public static class IComponent
     {
-        public const string FullTypeName = "Microsoft.AspNetCore.Components.IComponent";
-
-        public const string MetadataName = FullTypeName;
+        public const string MetadataName = WellKnownTypeNames.MicrosoftAspNetCoreComponentsIComponent;
+        public const string FullTypeName = MetadataName;
     }
 
     public static class IDictionary
