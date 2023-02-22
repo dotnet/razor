@@ -8215,6 +8215,18 @@ namespace New.Test
         CompileToAssembly(generated);
     }
 
+    [Fact] // https://github.com/dotnet/razor/issues/7091
+    public void Component_NamespaceDirective_ContainsSystem()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @namespace X.System.Y
+            """);
+
+        // Assert
+        CompileToAssembly(generated);
+    }
+
     [Fact]
     public void Component_PreserveWhitespaceDirective_InImports()
     {
