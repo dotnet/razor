@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -34,5 +35,32 @@ internal static class ImmutableArrayExtensions
         }
 
         return false;
+    }
+
+    public static T First<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+    {
+        foreach (var item in array)
+        {
+            if (predicate(item, arg))
+            {
+                return item;
+            }
+        }
+
+        // Throw the same exception that System.Linq would
+        return ImmutableArray<T>.Empty.First(static t => false);
+    }
+
+    public static T? FirstOrDefault<T, TArg>(this ImmutableArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+    {
+        foreach (var item in array)
+        {
+            if (predicate(item, arg))
+            {
+                return item;
+            }
+        }
+
+        return default;
     }
 }

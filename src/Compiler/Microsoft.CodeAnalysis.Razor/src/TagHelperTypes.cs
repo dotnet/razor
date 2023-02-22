@@ -3,25 +3,27 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Language;
+
 namespace Microsoft.CodeAnalysis.Razor;
 
 internal static class TagHelperTypes
 {
-    public const string ITagHelper = "Microsoft.AspNetCore.Razor.TagHelpers.ITagHelper";
+    public const string ITagHelper = WellKnownTypeNames.MicrosoftAspNetCoreRazorTagHelpersITagHelper;
 
-    public const string IComponent = "Microsoft.AspNetCore.Components.IComponent";
+    public const string IComponent = WellKnownTypeNames.MicrosoftAspNetCoreComponentsIComponent;
 
-    public const string IDictionary = "System.Collections.Generic.IDictionary<TKey, TValue>";
+    public const string IDictionary = WellKnownTypeNames.SystemCollectionsGenericIDictionary2;
 
-    public const string HtmlAttributeNameAttribute = "Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeNameAttribute";
+    public const string HtmlAttributeNameAttribute = WellKnownTypeNames.MicrosoftAspNetCoreRazorTagHelpersHtmlAttributeNameAttribute;
 
-    public const string HtmlAttributeNotBoundAttribute = "Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeNotBoundAttribute";
+    public const string HtmlAttributeNotBoundAttribute = WellKnownTypeNames.MicrosoftAspNetCoreRazorTagHelpersHtmlAttributeNotBoundAttribute;
 
-    public const string HtmlTargetElementAttribute = "Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute";
+    public const string HtmlTargetElementAttribute = WellKnownTypeNames.MicrosoftAspNetCoreRazorTagHelpersHtmlTargetElementAttribute;
 
-    public const string OutputElementHintAttribute = "Microsoft.AspNetCore.Razor.TagHelpers.OutputElementHintAttribute";
+    public const string OutputElementHintAttribute = WellKnownTypeNames.MicrosoftAspNetCoreRazorTagHelpersOutputElementHintAttribute;
 
-    public const string RestrictChildrenAttribute = "Microsoft.AspNetCore.Razor.TagHelpers.RestrictChildrenAttribute";
+    public const string RestrictChildrenAttribute = WellKnownTypeNames.MicrosoftAspNetCoreRazorTagHelpersRestrictChildrenAttribute;
 
     public static class HtmlAttributeName
     {

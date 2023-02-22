@@ -12,11 +12,6 @@ internal static class SymbolExtensions
             .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted)
             .RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-    internal static bool HasFullName(this ISymbol symbol, string fullName)
-    {
-        return symbol.ToDisplayString(FullNameTypeDisplayFormat).Equals(fullName, StringComparison.Ordinal);
-    }
-
     internal static SymbolVisibility GetResultantVisibility(this ISymbol symbol)
     {
         // Start by assuming it's visible.

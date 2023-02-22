@@ -20,15 +20,15 @@ public sealed class DefaultTagHelperDescriptorProvider : RazorEngineFeatureBase,
             throw new ArgumentNullException(nameof(context));
         }
 
-        var compilation = context.GetCompilation();
-        if (compilation == null)
+        var typeProvider = context.GetTypeProvider();
+        if (typeProvider == null)
         {
             // No compilation, nothing to do.
             return;
         }
 
-        var iTagHelper = compilation.GetTypeByMetadataName(TagHelperTypes.ITagHelper);
-        if (iTagHelper == null || iTagHelper.TypeKind == TypeKind.Error)
+        if (!typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreRazorTagHelpersITagHelper, out var iTagHelper)
+            || iTagHelper.TypeKind == TypeKind.Error)
         {
             // Could not find attributes we care about in the compilation. Nothing to do.
             return;
@@ -44,6 +44,7 @@ public sealed class DefaultTagHelperDescriptorProvider : RazorEngineFeatureBase,
         }
         else
         {
+            var compilation = typeProvider.Compilation;
             visitor.Visit(compilation.Assembly.GlobalNamespace);
             foreach (var reference in compilation.References)
             {
@@ -58,7 +59,7 @@ public sealed class DefaultTagHelperDescriptorProvider : RazorEngineFeatureBase,
         }
 
 
-        var factory = new DefaultTagHelperDescriptorFactory(compilation, context.IncludeDocumentation, context.ExcludeHidden);
+        var factory = new DefaultTagHelperDescriptorFactory(typeProvider, context.IncludeDocumentation, context.ExcludeHidden);
         for (var i = 0; i < types.Count; i++)
         {
             var descriptor = factory.CreateDescriptor(types[i]);
