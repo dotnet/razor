@@ -83,9 +83,14 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         var usingReferences = new List<UsingReference>(visitor.Usings);
         for (var j = importedUsings.Count - 1; j >= 0; j--)
         {
-            if (!usingReferences.Contains(importedUsings[j]))
+            var importedUsing = importedUsings[j];
+            if (!usingReferences.Contains(importedUsing) &&
+                // If the using is from the default import, avoid adding it
+                // if a user using exists which is the same except for the `global::` prefix.
+                (!TryRemoveGlobalPrefixFromDefaultUsing(in importedUsing, out var trimmedUsing) ||
+                !usingReferences.Contains(trimmedUsing)))
             {
-                usingReferences.Insert(0, importedUsings[j]);
+                usingReferences.Insert(0, importedUsing);
             }
         }
 
@@ -125,6 +130,21 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         }
 
         codeDocument.SetDocumentIntermediateNode(document);
+
+        static bool TryRemoveGlobalPrefixFromDefaultUsing(in UsingReference usingReference, out UsingReference trimmed)
+        {
+            const string globalPrefix = "global::";
+            if (usingReference.Source is { FilePath: null } && // the default import has null file path
+                usingReference.Namespace.StartsWith(globalPrefix, StringComparison.Ordinal))
+            {
+                trimmed = new UsingReference(
+                    usingReference.Namespace.Substring(globalPrefix.Length),
+                    usingReference.Source);
+                return true;
+            }
+            trimmed = usingReference;
+            return false;
+        }
     }
 
     private IReadOnlyList<UsingReference> ImportDirectives(
