@@ -93,6 +93,12 @@ using Microsoft.VisualStudio.Shell;
     OldVersionUpperBound = "4.6.0.0",
     NewVersion = "4.6.0.0")]
 [assembly: ProvideBindingRedirection(
+    AssemblyName = "Microsoft.CommonLanguageServerProtocol.Framework",
+    GenerateCodeBase = true,
+    OldVersionLowerBound = "0.4.0.0",
+    OldVersionUpperBound = "4.6.0.0",
+    NewVersion = "4.6.0.0")]
+[assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.VisualStudio.Threading",
     GenerateCodeBase = true,
     OldVersionLowerBound = "17.4.0.0",
