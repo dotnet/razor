@@ -209,7 +209,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         TrackDocumentVersion(textDocumentPath, version);
     }
 
-    public override void AddProject(string filePath, string? rootNamespace = null)
+    public override void AddProject(string filePath, string? rootNamespace)
     {
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
