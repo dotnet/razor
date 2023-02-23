@@ -11,11 +11,11 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public class DefaultEditorSettingsManagerTest : ProjectSnapshotManagerDispatcherTestBase
+public class ClientSettingsManagerTest : ProjectSnapshotManagerDispatcherTestBase
 {
     private readonly IEnumerable<ClientSettingsChangedTrigger> _editorSettingsChangeTriggers;
 
-    public DefaultEditorSettingsManagerTest(ITestOutputHelper testOutput)
+    public ClientSettingsManagerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _editorSettingsChangeTriggers = Array.Empty<ClientSettingsChangedTrigger>();
@@ -114,6 +114,20 @@ public class DefaultEditorSettingsManagerTest : ProjectSnapshotManagerDispatcher
         Assert.Same(originalSettings, manager.GetClientSettings());
     }
 
+    [Fact]
+    public void InitialSettingsStored()
+    {
+        var defaultSettings = ClientAdvancedSettings.Default;
+        var expectedSettings = defaultSettings with
+        {
+            FormatOnType = !defaultSettings.FormatOnType
+        };
+
+        var manager = new ClientSettingsManager(_editorSettingsChangeTriggers, new AdvancedSettingsStorage(expectedSettings));
+
+        Assert.Same(expectedSettings, manager.GetClientSettings().AdvancedSettings);
+    }
+
     private class TestChangeTrigger : ClientSettingsChangedTrigger
     {
         public bool Initialized { get; private set; }
@@ -121,6 +135,25 @@ public class DefaultEditorSettingsManagerTest : ProjectSnapshotManagerDispatcher
         public override void Initialize(IClientSettingsManager clientSettingsManager)
         {
             Initialized = true;
+        }
+    }
+
+    private class AdvancedSettingsStorage : IAdvancedSettingsStorage
+    {
+        private readonly ClientAdvancedSettings _settings;
+
+        public AdvancedSettingsStorage(ClientAdvancedSettings settings)
+        {
+            _settings = settings;
+        }
+
+#pragma warning disable CS0067 // The event 'ClientSettingsManagerTest.AdvancedSettingsStorage.Changed' is never used
+        public event EventHandler<ClientAdvancedSettingsChangedEventArgs> Changed;
+#pragma warning restore CS0067 // The event 'ClientSettingsManagerTest.AdvancedSettingsStorage.Changed' is never used
+
+        public ClientAdvancedSettings GetAdvancedSettings()
+        {
+            return _settings;
         }
     }
 }

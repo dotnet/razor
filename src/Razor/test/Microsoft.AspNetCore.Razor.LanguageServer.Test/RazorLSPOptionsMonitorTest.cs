@@ -33,7 +33,7 @@ public class RazorLSPOptionsMonitorTest : TestBase
         var configService = Mock.Of<IConfigurationSyncService>(
             f => f.GetLatestOptionsAsync(DisposalToken) == Task.FromResult(expectedOptions),
             MockBehavior.Strict);
-        var optionsMonitor = new RazorLSPOptionsMonitor(configService, _cache);
+        var optionsMonitor = new RazorLSPOptionsMonitor(configService, _cache, RazorLSPOptions.Default);
         var called = false;
 
         // Act & Assert
@@ -55,7 +55,7 @@ public class RazorLSPOptionsMonitorTest : TestBase
         var configService = Mock.Of<IConfigurationSyncService>(
             f => f.GetLatestOptionsAsync(DisposalToken) == Task.FromResult(expectedOptions),
             MockBehavior.Strict);
-        var optionsMonitor = new RazorLSPOptionsMonitor(configService, _cache);
+        var optionsMonitor = new RazorLSPOptionsMonitor(configService, _cache, RazorLSPOptions.Default);
         var called = false;
         var onChangeToken = optionsMonitor.OnChange(options => called = true);
 
@@ -82,7 +82,7 @@ public class RazorLSPOptionsMonitorTest : TestBase
         Mock.Get(configService)
             .Setup(s => s.GetLatestOptionsAsync(DisposalToken))
             .ReturnsAsync(value: null);
-        var optionsMonitor = new RazorLSPOptionsMonitor(configService, _cache);
+        var optionsMonitor = new RazorLSPOptionsMonitor(configService, _cache, RazorLSPOptions.Default);
         var called = false;
         var onChangeToken = optionsMonitor.OnChange(options => called = true);
 
@@ -91,5 +91,19 @@ public class RazorLSPOptionsMonitorTest : TestBase
 
         // Assert
         Assert.False(called, "Registered callback called even when GetLatestOptionsAsync() returns null.");
+    }
+
+    [Fact]
+    public void InitializedOptionsAreCurrent()
+    {
+        // Arrange
+        var expectedOptions = new RazorLSPOptions(Trace.Messages, EnableFormatting: false, AutoClosingTags: true, InsertSpaces: true, TabSize: 4, FormatOnType: true);
+        var configService = Mock.Of<IConfigurationSyncService>(
+            f => f.GetLatestOptionsAsync(DisposalToken) == Task.FromResult(expectedOptions),
+            MockBehavior.Strict);
+        var optionsMonitor = new RazorLSPOptionsMonitor(configService, _cache, expectedOptions);
+
+        // Act & Assert
+        Assert.Same(expectedOptions, optionsMonitor.CurrentValue);
     }
 }

@@ -126,7 +126,7 @@ internal static partial class LegacySyntaxNodeExtensions
 
         if (node.IsSpanKind())
         {
-            var editHandler = node.GetSpanContext()?.EditHandler ?? SpanEditHandler.CreateDefault();
+            var editHandler = node.GetSpanContext()?.EditHandler ?? SpanEditHandler.CreateDefault(AcceptedCharactersInternal.Any);
             return editHandler.OwnsChange(node, change) ? node : null;
         }
 

@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
@@ -49,7 +50,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
     private readonly IClientSettingsManager _editorSettingsManager;
     private readonly LSPDocumentSynchronizer _documentSynchronizer;
-    private readonly ILogger _logger;
+    private readonly IOutputWindowLogger? _outputWindowLogger;
 
     [ImportingConstructor]
     public DefaultRazorLanguageServerCustomMessageTarget(
@@ -59,7 +60,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         FormattingOptionsProvider formattingOptionsProvider,
         IClientSettingsManager editorSettingsManager,
         LSPDocumentSynchronizer documentSynchronizer,
-        OutputWindowLogger logger)
+        [Import(AllowDefault = true)] IOutputWindowLogger? outputWindowLogger)
     {
         if (documentManager is null)
         {
@@ -91,11 +92,6 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             throw new ArgumentNullException(nameof(documentSynchronizer));
         }
 
-        if (logger is null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
-
         _documentManager = (TrackingLSPDocumentManager)documentManager;
 
         if (_documentManager is null)
@@ -108,7 +104,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         _formattingOptionsProvider = formattingOptionsProvider;
         _editorSettingsManager = editorSettingsManager;
         _documentSynchronizer = documentSynchronizer;
-        _logger = logger;
+        _outputWindowLogger = outputWindowLogger;
     }
 
     // Testing constructor
@@ -1164,7 +1160,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Exception thrown in PullDiagnostic delegation");
+            _outputWindowLogger?.LogError(e, "Exception thrown in PullDiagnostic delegation");
             // Return null if any of the tasks getting diagnostics results in an error
             return null;
         }
