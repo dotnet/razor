@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
         private global::TestNamespace.InputTagHelper2 __TestNamespace_InputTagHelper2;
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 #nullable restore
 #line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers_Prefixed.cshtml"
 global::System.Object __typeHelper = "THS";
@@ -25,7 +25,7 @@ global::System.Object __typeHelper = "THS";
 #nullable disable
         }
         ))();
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 #nullable restore
 #line 2 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/BasicTagHelpers_Prefixed.cshtml"
 global::System.Object __typeHelper = "*, TestAssembly";
@@ -38,7 +38,7 @@ global::System.Object __typeHelper = "*, TestAssembly";
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         public async System.Threading.Tasks.Task ExecuteAsync()

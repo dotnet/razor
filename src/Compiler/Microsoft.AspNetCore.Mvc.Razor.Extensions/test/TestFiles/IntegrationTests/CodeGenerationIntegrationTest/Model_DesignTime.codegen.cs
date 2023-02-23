@@ -19,7 +19,7 @@ namespace AspNetCore
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 #nullable restore
 #line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Model.cshtml"
 System.Collections.IEnumerable __typeHelper = default!;
@@ -32,7 +32,7 @@ System.Collections.IEnumerable __typeHelper = default!;
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
