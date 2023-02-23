@@ -24,7 +24,7 @@ __builder.AddContent(1, TestDynamic);
             __builder.CloseElement();
             __builder.AddMarkupContent(2, "\r\n\r\n");
             __builder.OpenComponent<global::Test.TestComponent>(3);
-            __builder.AddAttribute(4, "TestDynamic", (object)(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<dynamic>(
+            __builder.AddComponentParameter(4, "TestDynamic", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<dynamic>(
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
                             4
@@ -32,7 +32,7 @@ __builder.AddContent(1, TestDynamic);
 #line default
 #line hidden
 #nullable disable
-            )));
+            ));
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

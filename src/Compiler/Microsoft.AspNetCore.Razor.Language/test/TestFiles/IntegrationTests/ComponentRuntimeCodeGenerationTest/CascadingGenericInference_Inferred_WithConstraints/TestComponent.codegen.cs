@@ -14,7 +14,7 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.Grid<WeatherForecast>>(0);
-            __builder.AddAttribute(1, "Items", (object)(
+            __builder.AddComponentParameter(1, "Items", 
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                                        Array.Empty<WeatherForecast>()
@@ -22,7 +22,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ));
+            );
             __builder.AddAttribute(2, "ColumnsTemplate", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
                 global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_0(__builder2, 3, default(WeatherForecast), 4, "Date", 5, "Date", 6, "d", 7, "10rem");
             }
@@ -41,10 +41,10 @@ namespace __Blazor.Test.TestComponent
             where TItem : class
         {
         __builder.OpenComponent<global::Test.Column<TItem>>(seq);
-        __builder.AddAttribute(__seq0, "Title", (object)__arg0);
-        __builder.AddAttribute(__seq1, "FieldName", (object)__arg1);
-        __builder.AddAttribute(__seq2, "Format", (object)__arg2);
-        __builder.AddAttribute(__seq3, "Width", (object)__arg3);
+        __builder.AddComponentParameter(__seq0, "Title", __arg0);
+        __builder.AddComponentParameter(__seq1, "FieldName", __arg1);
+        __builder.AddComponentParameter(__seq2, "Format", __arg2);
+        __builder.AddComponentParameter(__seq3, "Width", __arg3);
         __builder.CloseComponent();
         }
     }
