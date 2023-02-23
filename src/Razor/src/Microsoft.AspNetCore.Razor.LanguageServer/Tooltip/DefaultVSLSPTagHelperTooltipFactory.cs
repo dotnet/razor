@@ -422,6 +422,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
         var classifiedElementContainer = new List<ContainerElement>();
         foreach (var classification in descriptionClassifications)
         {
+            // Adds blank lines between multiple classified elements
             if (isFirstElement)
             {
                 isFirstElement = false;
