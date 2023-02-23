@@ -1335,8 +1335,10 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
     [InlineData("", "", true)]
     [InlineData("Foo", "Project", true)]
     [InlineData("Project.Foo", "Project", true)]
+    [InlineData("Project.Foo", "global::Project", true)]
     [InlineData("Project.Bar.Foo", "Project.Bar", true)]
     [InlineData("Project.Foo", "Project.Bar", false)]
+    [InlineData("Project.Foo", "global::Project.Bar", false)]
     [InlineData("Project.Bar.Foo", "Project", false)]
     [InlineData("Bar.Foo", "Project", false)]
     public void IsTypeInNamespace_WorksAsExpected(string typeName, string @namespace, bool expected)
