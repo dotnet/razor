@@ -355,8 +355,8 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             // Writes something like:
             //
             // _builder.OpenComponent<MyComponent>(0);
-            // _builder.AddAttribute(1, "Foo", ...);
-            // _builder.AddAttribute(2, "ChildContent", ...);
+            // _builder.AddComponentParameter(1, "Foo", ...);
+            // _builder.AddComponentParameter(2, "ChildContent", ...);
             // _builder.SetKey(someValue);
             // _builder.AddElementCapture(3, (__value) => _field = __value);
             // _builder.CloseComponent();
@@ -543,9 +543,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
-        var addAttributeMethod = node.Annotations[ComponentMetadata.Common.AddAttributeMethodName] as string ?? ComponentsApi.RenderTreeBuilder.AddAttribute;
+        var addAttributeMethod = node.Annotations[ComponentMetadata.Common.AddAttributeMethodName] as string ?? ComponentsApi.RenderTreeBuilder.AddComponentParameter;
 
-        // _builder.AddAttribute(1, "Foo", 42);
+        // _builder.AddComponentParameter(1, "Foo", 42);
         context.CodeWriter.Write(_scopeStack.BuilderVarName);
         context.CodeWriter.Write(".");
         context.CodeWriter.Write(addAttributeMethod);
@@ -555,19 +555,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         context.CodeWriter.WriteStringLiteral(node.AttributeName);
         context.CodeWriter.Write(", ");
 
-        var castToObject = addAttributeMethod == ComponentsApi.RenderTreeBuilder.AddAttribute &&
-            node.TypeName != "global::System.Boolean";
-        if (castToObject)
-        {
-            context.CodeWriter.Write("(object)(");
-        }
-
         WriteComponentAttributeInnards(context, node, canTypeCheck: true);
-
-        if (castToObject)
-        {
-            context.CodeWriter.Write(")");
-        }
 
         context.CodeWriter.Write(");");
         context.CodeWriter.WriteLine();
@@ -754,9 +742,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
         // Writes something like:
         //
-        // _builder.AddAttribute(1, "ChildContent", (RenderFragment)((__builder73) => { ... }));
+        // _builder.AddComponentParameter(1, "ChildContent", (RenderFragment)((__builder73) => { ... }));
         // OR
-        // _builder.AddAttribute(1, "ChildContent", (RenderFragment<Person>)((person) => (__builder73) => { ... }));
+        // _builder.AddComponentParameter(1, "ChildContent", (RenderFragment<Person>)((person) => (__builder73) => { ... }));
         BeginWriteAttribute(context, node.AttributeName);
         context.CodeWriter.WriteParameterSeparator();
         context.CodeWriter.Write("(");
