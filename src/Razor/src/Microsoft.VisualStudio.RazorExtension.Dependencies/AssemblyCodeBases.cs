@@ -86,20 +86,9 @@ using Microsoft.VisualStudio.Shell;
     OldVersionLowerBound = "4.4.0.0",
     OldVersionUpperBound = "4.6.0.0",
     NewVersion = "4.6.0.0")]
-[assembly: ProvideBindingRedirection(
-    AssemblyName = "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
-    GenerateCodeBase = true,
-    OldVersionLowerBound = "4.4.0.0",
-    OldVersionUpperBound = "4.6.0.0",
-    NewVersion = "4.6.0.0")]
+
 [assembly: ProvideBindingRedirection(
     AssemblyName = "Microsoft.CodeAnalysis.Workspaces",
-    GenerateCodeBase = true,
-    OldVersionLowerBound = "4.4.0.0",
-    OldVersionUpperBound = "4.6.0.0",
-    NewVersion = "4.6.0.0")]
-[assembly: ProvideBindingRedirection(
-    AssemblyName = "Microsoft.CommonLanguageServerProtocol.Framework",
     GenerateCodeBase = true,
     OldVersionLowerBound = "4.4.0.0",
     OldVersionUpperBound = "4.6.0.0",
