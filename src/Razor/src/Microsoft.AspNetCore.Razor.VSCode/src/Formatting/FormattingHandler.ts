@@ -51,15 +51,15 @@ export class FormattingHandler {
             }
 
             const htmlDocText = razorDocument.htmlDocument.getContent();
-            const lineCount = this.countLines(htmlDocText);
+            const zeroBasedLineCount = this.countLines(htmlDocText);
             const serializableTextEdits = Array<SerializableTextEdit>();
             for (let textEdit of textEdits) {
                 // The below workaround is needed due to a bug on the HTML side where
                 // they'll sometimes send us an end position that exceeds the length
                 // of the document. Tracked by https://github.com/microsoft/vscode/issues/175298.
-                if (textEdit.range.end.line > lineCount) {
+                if (textEdit.range.end.line > zeroBasedLineCount) {
                     const lastLineLength = this.getLastLineLength(htmlDocText);
-                    const updatedEndPosition = new vscode.Position(lineCount, lastLineLength);
+                    const updatedEndPosition = new vscode.Position(zeroBasedLineCount, lastLineLength);
                     const updatedRange = new vscode.Range(textEdit.range.start, updatedEndPosition);
                     textEdit = new vscode.TextEdit(updatedRange, textEdit.newText);
                 }
