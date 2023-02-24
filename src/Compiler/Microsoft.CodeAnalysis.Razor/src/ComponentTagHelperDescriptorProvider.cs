@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
@@ -32,7 +33,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         }
 
         var typeProvider = context.GetTypeProvider();
-        if (typeProvider == null || !ComponentSymbols.TryCreate(typeProvider, out var symbols))
+        if (!ComponentSymbols.TryCreate(typeProvider, out var symbols))
         {
             // No compilation, nothing to do.
             return;
@@ -611,12 +612,16 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             CascadingTypeParameterAttribute = cascadingTypeParameterAttribute;
         }
 
-        public static bool TryCreate(WellKnownTypeProvider typeProvider, [NotNullWhen(true)] out ComponentSymbols? symbols)
+        public static bool TryCreate([NotNullWhen(true)] WellKnownTypeProvider? typeProvider, [NotNullWhen(true)] out ComponentSymbols? symbols)
         {
             // We find a bunch of important and fundamental types here that are needed to discover
             // components. If one of these isn't defined then we just bail, because the results will
             // be unpredictable.
             symbols = null;
+            if (typeProvider is null)
+            {
+                return false;
+            }
 
             if (!typeProvider.TryGetOrCreateTypeByMetadataName(WellKnownTypeNames.MicrosoftAspNetCoreComponentsComponentBase, out var componentBase))
             {

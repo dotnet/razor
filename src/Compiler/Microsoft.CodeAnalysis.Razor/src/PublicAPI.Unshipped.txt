@@ -1,2 +1,1 @@
 ﻿#nullable enable
-*REMOVED*~static Microsoft.CodeAnalysis.Razor.TagHelperDescriptorProviderContextExtensions.SetCompilation(this Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorProviderContext context, Microsoft.CodeAnalysis.Compilation compilation) -> void

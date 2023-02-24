@@ -20,6 +20,17 @@ public static class TagHelperDescriptorProviderContextExtensions
         return (Compilation)context.Items[typeof(Compilation)];
     }
 
+    [Obsolete($"Use {nameof(SetTypeProvider)} instead.")]
+    public static void SetCompilation(this TagHelperDescriptorProviderContext context, Compilation compilation)
+    {
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+
+        context.SetTypeProvider(new WellKnownTypeProvider(compilation));
+    }
+
     public static WellKnownTypeProvider GetTypeProvider(this TagHelperDescriptorProviderContext context)
     {
         if (context == null)
