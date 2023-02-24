@@ -60,6 +60,11 @@ export class RazorLanguageServiceClient {
         }
     }
 
+    public async onTypeFormatting() {
+        await this.ensureStarted;
+
+    }
+
     private async ensureStarted() {
         // If the server is already started this will instantly return.
         await this.serverClient.start();
