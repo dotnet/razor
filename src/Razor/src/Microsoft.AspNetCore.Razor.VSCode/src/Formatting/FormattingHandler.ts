@@ -90,7 +90,7 @@ export class FormattingHandler {
     private getLastLineLength(text: string) {
         let currentLineLength = 0;
         for (let i = 0; i < text.length; i++) {
-            // Take into account different line ending types ('\r\n' vs. '\r')
+            // Take into account different line ending types ('\r\n' vs. '\n')
             if (i + 1 < text.length && text[i] === '\r' && text[i + 1] === '\n') {
                 currentLineLength = 0;
                 i++;
