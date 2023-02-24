@@ -25,7 +25,7 @@ namespace Test
             ));
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                     myComponent = default(global::Test.TestComponent);
+                     myComponent = default(global::Test.TestComponent)!;
 
 #line default
 #line hidden
