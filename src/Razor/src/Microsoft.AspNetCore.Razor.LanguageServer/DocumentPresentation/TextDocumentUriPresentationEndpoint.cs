@@ -88,7 +88,14 @@ internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresent
         if (!fileName.EndsWith(".razor", FilePathComparison.Instance))
         {
             _logger.LogInformation("Last file in the drop was not a single razor file URI.");
-            return null;
+            razorFileUri = request.Uris
+                .Where(x => Path.GetFileName(x.GetAbsoluteOrUNCPath()).EndsWith(".razor", FilePathComparison.Instance))
+                .LastOrDefault();
+
+            if (razorFileUri == null)
+            {
+                return null;
+            }
         }
 
         if (request.Uris.Any(uri => !Path.GetFileName(uri.GetAbsoluteOrUNCPath()).StartsWith(fileName, FilePathComparison.Instance)))
