@@ -9,7 +9,7 @@ $vsDir = $vsInfo.installationPath.TrimEnd("\")
 
 $vsRegEdit = Join-Path (Join-Path (Join-Path $vsDir 'Common7') 'IDE') 'VSRegEdit.exe'
 
-$hive = "RoslynDev"
+$hive = "RazorDev"
 &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword 0
 
 Write-Host "-- VS Info --"

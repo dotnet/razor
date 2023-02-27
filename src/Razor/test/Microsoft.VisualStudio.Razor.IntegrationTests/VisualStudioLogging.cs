@@ -127,7 +127,7 @@ internal static class VisualStudioLogging
 
     internal static string GetHiveDirectory()
     {
-        // There could be multiple copies of visual studio installed, each with their own RoslynDev hive
+        // There could be multiple copies of visual studio installed, each with their own RazorDev hive
         // so to make sure we find the one for the instance of VS we are actually running, we need to find
         // the installation ID for this install. This is stored in an ini file, next to devenv.exe, and the
         // ID itself is pre-pended to the hive name in the file system.
@@ -150,9 +150,9 @@ internal static class VisualStudioLogging
 
         // Just in case the enterprise grade ini file parsing above didn't work, or VS changes how they
         // store things, the following is written to work even if installationId is an empty string. In
-        // that case it will fall back to the previous behavior of expecting a single RoslynDev hive to
+        // that case it will fall back to the previous behavior of expecting a single RazorDev hive to
         // exist, or fail.
-        var directories = Directory.GetDirectories(vsLocalDir, $"17*{installationId}RoslynDev", SearchOption.TopDirectoryOnly);
+        var directories = Directory.GetDirectories(vsLocalDir, $"17*{installationId}RazorDev", SearchOption.TopDirectoryOnly);
         var hiveDirectories = directories.Where(d => !d.Contains("$")).ToList();
 
         Assert.True(hiveDirectories.Count == 1, $"Could not find the hive path for InstallationID '{installationId}'. Found instead:{Environment.NewLine}{string.Join(Environment.NewLine, hiveDirectories)}");

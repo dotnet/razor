@@ -8,7 +8,7 @@
 
     <TargetFramework>$(DefaultNetFxTargetFramework)</TargetFramework>
 
-    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+    <VSSDKTargetPlatformRegRootSuffix>RazorDev</VSSDKTargetPlatformRegRootSuffix>
   </PropertyGroup>
   <ItemGroup>
     <!-- References the main RazorExtension vsix to ensure all the actual code is deployed to the hive. -->

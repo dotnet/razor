@@ -19,9 +19,9 @@ $success=$false
 for($i=0; $i -le 3; $i++)
 {
   & $devenvExePath /rootsuffix $rootSuffix /updateConfiguration
-  if(Test-Path -Path $env:LocalAppData\Microsoft\VisualStudio\17.0*RoslynDev)
+  if(Test-Path -Path $env:LocalAppData\Microsoft\VisualStudio\17.0*RazorDev)
   {
-    Write-Host "The hive 'RoslynDev' exists"
+    Write-Host "The hive 'RazorDev' exists"
     $success=$true
     break
   }
