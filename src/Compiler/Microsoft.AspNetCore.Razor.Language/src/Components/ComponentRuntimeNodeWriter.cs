@@ -24,6 +24,10 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
     private readonly ScopeStack _scopeStack = new ScopeStack();
     private int _sourceSequence;
 
+    public ComponentRuntimeNodeWriter(RazorLanguageVersion version) : base(version)
+    {
+    }
+
     public override void WriteCSharpCode(CodeRenderingContext context, CSharpCodeIntermediateNode node)
     {
         if (context == null)
@@ -543,7 +547,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
-        var addAttributeMethod = node.Annotations[ComponentMetadata.Common.AddAttributeMethodName] as string ?? ComponentsApi.RenderTreeBuilder.AddComponentParameter;
+        var addAttributeMethod = node.Annotations[ComponentMetadata.Common.AddAttributeMethodName] as string ?? AddComponentParameterMethodName;
 
         // _builder.AddComponentParameter(1, "Foo", 42);
         context.CodeWriter.Write(_scopeStack.BuilderVarName);
@@ -555,7 +559,19 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         context.CodeWriter.WriteStringLiteral(node.AttributeName);
         context.CodeWriter.Write(", ");
 
+        var castToObject = addAttributeMethod == ComponentsApi.RenderTreeBuilder.AddAttribute &&
+            node.TypeName != "global::System.Boolean";
+        if (castToObject)
+        {
+            context.CodeWriter.Write("(object)(");
+        }
+
         WriteComponentAttributeInnards(context, node, canTypeCheck: true);
+
+        if (castToObject)
+        {
+            context.CodeWriter.Write(")");
+        }
 
         context.CodeWriter.Write(");");
         context.CodeWriter.WriteLine();

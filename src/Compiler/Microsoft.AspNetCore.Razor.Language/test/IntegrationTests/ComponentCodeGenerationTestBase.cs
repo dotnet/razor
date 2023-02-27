@@ -1227,6 +1227,8 @@ namespace Test
     [Fact] // https://github.com/dotnet/aspnetcore/issues/18042
     public void AddAttribute_ImplicitStringConversion_TypeInference()
     {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
         AdditionalSyntaxTrees.Add(Parse("""
             using Microsoft.AspNetCore.Components;
 
@@ -1276,6 +1278,8 @@ namespace Test
     [Fact] // https://github.com/dotnet/aspnetcore/issues/18042
     public void AddAttribute_ImplicitStringConversion_Bind()
     {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
         AdditionalSyntaxTrees.Add(Parse("""
             using Microsoft.AspNetCore.Components;
 
@@ -1328,6 +1332,8 @@ namespace Test
     [Fact] // https://github.com/dotnet/aspnetcore/issues/18042
     public void AddAttribute_ImplicitStringConversion_CustomEvent()
     {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
         AdditionalSyntaxTrees.Add(Parse("""
             using Microsoft.AspNetCore.Components;
 
@@ -1381,6 +1387,8 @@ namespace Test
     [Fact] // https://github.com/dotnet/aspnetcore/issues/18042
     public void AddAttribute_ImplicitStringConversion_BindUnknown()
     {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
         AdditionalSyntaxTrees.Add(Parse("""
             using Microsoft.AspNetCore.Components;
 
@@ -1412,6 +1420,8 @@ namespace Test
     [Fact] // https://github.com/dotnet/aspnetcore/issues/18042
     public void AddAttribute_ImplicitStringConversion_BindUnknown_Assignment()
     {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
         AdditionalSyntaxTrees.Add(Parse("""
             using Microsoft.AspNetCore.Components;
 
@@ -1440,6 +1450,7 @@ namespace Test
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
+
     #endregion
 
     #region Bind

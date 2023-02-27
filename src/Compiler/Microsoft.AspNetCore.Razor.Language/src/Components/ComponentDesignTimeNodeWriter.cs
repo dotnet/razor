@@ -20,6 +20,10 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
     private const string DesignTimeVariable = "__o";
 
+    public ComponentDesignTimeNodeWriter(RazorLanguageVersion version) : base(version)
+    {
+    }
+
     public override void WriteMarkupBlock(CodeRenderingContext context, MarkupBlockIntermediateNode node)
     {
         if (context == null)
