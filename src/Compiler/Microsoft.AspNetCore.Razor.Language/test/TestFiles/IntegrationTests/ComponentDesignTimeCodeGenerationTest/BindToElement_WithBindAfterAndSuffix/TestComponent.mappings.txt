@@ -12,7 +12,7 @@ Source Location: (85:2,7 [131] x:\dir\subdir\Test\TestComponent.cshtml)
         return Task.CompletedTask;
     }
 |
-Generated Location: (1590:36,7 [131] )
+Generated Location: (1591:36,7 [131] )
 |
     public string ParentValue { get; set; } = "hi";
 
