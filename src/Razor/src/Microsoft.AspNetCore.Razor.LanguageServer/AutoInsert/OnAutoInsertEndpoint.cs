@@ -87,7 +87,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
         if (applicableProviders.Count == 0)
         {
             // There's currently a bug in the LSP platform where other language clients OnAutoInsert trigger characters influence every language clients trigger characters.
-            // To combat this we need to pre-emptively return so we don't try having our providers handle characters that they can't.
+            // To combat this we need to preemptively return so we don't try having our providers handle characters that they can't.
             return null;
         }
 
