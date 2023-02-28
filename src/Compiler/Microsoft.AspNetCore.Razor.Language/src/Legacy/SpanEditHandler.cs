@@ -58,7 +58,7 @@ internal class SpanEditHandler
         var end = target.EndPosition;
         var changeOldEnd = change.Span.AbsoluteIndex + change.Span.Length;
         return change.Span.AbsoluteIndex >= target.Position &&
-               (changeOldEnd < end || (changeOldEnd == end && AcceptedCharacters != AcceptedCharactersInternal.None));
+               (changeOldEnd < end || (changeOldEnd == end));
     }
 
     protected virtual PartialParseResultInternal CanAcceptChange(SyntaxNode target, SourceChange change)
