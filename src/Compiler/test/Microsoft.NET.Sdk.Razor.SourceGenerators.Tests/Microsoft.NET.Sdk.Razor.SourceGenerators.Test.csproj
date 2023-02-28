@@ -18,6 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Resources\**\*.cs" />
+    <EmbeddedResource Include="Resources\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="FluentAssertions" />
     <PackageReference Include="Microsoft.Build.Framework" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" />
@@ -26,6 +31,7 @@
     <PackageReference Include="xunit.assert" />
     <PackageReference Include="xunit.extensibility.execution" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit" />
   </ItemGroup>
 
   <ItemGroup>
