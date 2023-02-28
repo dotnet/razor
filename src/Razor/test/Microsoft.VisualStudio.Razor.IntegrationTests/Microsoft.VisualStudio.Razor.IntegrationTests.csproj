@@ -15,11 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\RazorDeployment\RazorDeployment.csproj" Private="False" Condition="'$(BuildDependencyVsix)' == 'true'">
-      <PrivateAssets>All</PrivateAssets>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
-    </ProjectReference>
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.RazorExtension.Dependencies\Microsoft.VisualStudio.RazorExtension.Dependencies.csproj" Private="false" ReferenceOutputAssembly="false" CopyVsix="true" />
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.csproj" Private="false" ReferenceOutputAssembly="false" CopyVsix="true" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.csproj" />
     <ProjectReference Include="..\Microsoft.VisualStudio.Editor.Razor.Test.Common\Microsoft.VisualStudio.Editor.Razor.Test.Common.csproj" />
   </ItemGroup>
@@ -39,4 +36,35 @@
   <ItemGroup>
     <EmbeddedResource Include="**\TestFiles\**\*" />
   </ItemGroup>
+
+  <ItemGroup>
+    <!-- Microsoft.VisualStudio.RazorExtension.vsix cannot be installed without elevation due to a bug in the experimental extension installation logic. -->
+    <!--<AssemblyAttribute Include="Xunit.Harness.RequireExtensionAttribute">
+      <_Parameter1>Microsoft.VisualStudio.RazorExtension.vsix</_Parameter1>
+    </AssemblyAttribute>-->
+    <AssemblyAttribute Include="Xunit.Harness.RequireExtensionAttribute">
+      <_Parameter1>Microsoft.VisualStudio.RazorExtension.Dependencies.vsix</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <Target Name="PrepareVsixProjectReferences"
+          BeforeTargets="ResolveProjectReferences"
+          DependsOnTargets="PrepareProjectReferences">
+    <MSBuild
+      Projects="@(_MSBuildProjectReferenceExistent)"
+      Targets="VSIXContainerProjectOutputGroup"
+      BuildInParallel="$(BuildInParallel)"
+      Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration); %(_MSBuildProjectReferenceExistent.SetPlatform); %(_MSBuildProjectReferenceExistent.SetTargetFramework); CreateVsixContainer=true"
+      Condition="'%(_MSBuildProjectReferenceExistent.CopyVsix)' == 'true'"
+      ContinueOnError="!$(BuildingProject)"
+      RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)">
+
+      <Output TaskParameter="TargetOutputs" ItemName="_ProjectReferenceVsixOutputs" />
+    </MSBuild>
+
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Include="@(_ProjectReferenceVsixOutputs)" />
+    </ItemGroup>
+  </Target>
+
 </Project>

@@ -8,7 +8,7 @@
     <!-- This is needed to mark this extension as cloud compliant. -->
     <AllowClientRole>true</AllowClientRole>
   </Metadata>
-  <Installation AllUsers="true" Experimental="true">
+  <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,)">
       <ProductArchitecture>amd64</ProductArchitecture>
     </InstallationTarget>
