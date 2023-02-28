@@ -26,13 +26,13 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
     private static readonly HashSet<string> s_cSharpAllowedTriggerCharacters = new(StringComparer.Ordinal) { "'", "/", "\n" };
 
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly IReadOnlyList<RazorOnAutoInsertProvider> _onAutoInsertProviders;
+    private readonly IReadOnlyList<IOnAutoInsertProvider> _onAutoInsertProviders;
 
     public OnAutoInsertEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         RazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
-        IEnumerable<RazorOnAutoInsertProvider> onAutoInsertProvider,
+        IEnumerable<IOnAutoInsertProvider> onAutoInsertProvider,
         ILoggerFactory loggerFactory)
         : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<OnAutoInsertEndpoint>())
     {
@@ -74,7 +74,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
 
         var character = request.Character;
 
-        var applicableProviders = new List<RazorOnAutoInsertProvider>();
+        var applicableProviders = new List<IOnAutoInsertProvider>();
         for (var i = 0; i < _onAutoInsertProviders.Count; i++)
         {
             var formatOnTypeProvider = _onAutoInsertProviders[i];

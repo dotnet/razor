@@ -2,9 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
@@ -37,7 +36,7 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var uri = new Uri(razorFilePath);
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory);
+        var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true);
         var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider }, LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
@@ -70,11 +69,11 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var uri = new Uri(razorFilePath);
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: false, LoggerFactory)
+        var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: false)
         {
             ResolvedTextEdit = new TextEdit()
         };
-        var insertProvider2 = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory)
+        var insertProvider2 = new TestOnAutoInsertProvider(">", canResolve: true)
         {
             ResolvedTextEdit = new TextEdit()
         };
@@ -113,11 +112,11 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var uri = new Uri(razorFilePath);
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory)
+        var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: true)
         {
             ResolvedTextEdit = new TextEdit()
         };
-        var insertProvider2 = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory)
+        var insertProvider2 = new TestOnAutoInsertProvider(">", canResolve: true)
         {
             ResolvedTextEdit = new TextEdit()
         };
@@ -155,8 +154,8 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var uri = new Uri(razorFilePath);
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory);
-        var insertProvider2 = new TestOnAutoInsertProvider("<", canResolve: true, LoggerFactory);
+        var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: true);
+        var insertProvider2 = new TestOnAutoInsertProvider("<", canResolve: true);
         var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider1, insertProvider2 }, LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
@@ -189,7 +188,7 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var razorFilePath = "file://path/test.razor";
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
-        var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory);
+        var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true);
         var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider }, LoggerFactory);
         var uri = new Uri("file://path/test.razor");
         var @params = new VSInternalDocumentOnAutoInsertParams()
@@ -224,7 +223,7 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var uri = new Uri(razorFilePath);
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true, LoggerFactory);
+        var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true);
         var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider }, LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
@@ -257,7 +256,7 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var uri = new Uri(razorFilePath);
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var insertProvider = new TestOnAutoInsertProvider(">", canResolve: false, LoggerFactory);
+        var insertProvider = new TestOnAutoInsertProvider(">", canResolve: false);
         var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider }, LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
@@ -410,7 +409,7 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var razorFilePath = "file://path/test.razor";
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
-        var insertProvider = new TestOnAutoInsertProvider("!!!", canResolve: false, LoggerFactory);
+        var insertProvider = new TestOnAutoInsertProvider("!!!", canResolve: false);
         var providers = new[] { insertProvider };
         var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, providers, LoggerFactory);
 
@@ -443,12 +442,11 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         Assert.Equal(expected, newText);
     }
 
-    private class TestOnAutoInsertProvider : RazorOnAutoInsertProvider
+    private class TestOnAutoInsertProvider : IOnAutoInsertProvider
     {
         private readonly bool _canResolve;
 
-        public TestOnAutoInsertProvider(string triggerCharacter, bool canResolve, ILoggerFactory loggerFactory)
-            : base(loggerFactory)
+        public TestOnAutoInsertProvider(string triggerCharacter, bool canResolve)
         {
             TriggerCharacter = triggerCharacter;
             _canResolve = canResolve;
@@ -458,12 +456,10 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
 
         public TextEdit? ResolvedTextEdit { get; set; }
 
-        public override string TriggerCharacter { get; }
+        public string TriggerCharacter { get; }
 
         // Disabling because [NotNullWhen] is available in two Assemblies and causes warnings
-#pragma warning disable CS8765 // Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).
-        public override bool TryResolveInsertion(Position position, FormattingContext context, out TextEdit? edit, out InsertTextFormat format)
-#pragma warning restore CS8765 // Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes).
+        public bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
         {
             Called = true;
             edit = ResolvedTextEdit!;

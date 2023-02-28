@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
-internal class AutoClosingTagOnAutoInsertProvider : RazorOnAutoInsertProvider
+internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 {
     // From http://dev.w3.org/html5/spec/Overview.html#elements-0
     private static readonly IReadOnlyList<string> s_voidElements = new[]
@@ -42,21 +42,27 @@ internal class AutoClosingTagOnAutoInsertProvider : RazorOnAutoInsertProvider
     };
 
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
+    private readonly ILogger<IOnAutoInsertProvider> _logger;
 
     public AutoClosingTagOnAutoInsertProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor, ILoggerFactory loggerFactory)
-        : base(loggerFactory)
     {
         if (optionsMonitor is null)
         {
             throw new ArgumentNullException(nameof(optionsMonitor));
         }
 
+        if (loggerFactory is null)
+        {
+            throw new ArgumentNullException(nameof(loggerFactory));
+        }
+
         _optionsMonitor = optionsMonitor;
+        _logger = loggerFactory.CreateLogger<IOnAutoInsertProvider>();
     }
 
-    public override string TriggerCharacter => ">";
+    public string TriggerCharacter => ">";
 
-    public override bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
+    public bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
     {
         if (position is null)
         {
@@ -75,7 +81,7 @@ internal class AutoClosingTagOnAutoInsertProvider : RazorOnAutoInsertProvider
             return false;
         }
 
-        if (!position.TryGetAbsoluteIndex(context.SourceText, Logger, out var afterCloseAngleIndex))
+        if (!position.TryGetAbsoluteIndex(context.SourceText, _logger, out var afterCloseAngleIndex))
         {
             format = default;
             edit = default;
