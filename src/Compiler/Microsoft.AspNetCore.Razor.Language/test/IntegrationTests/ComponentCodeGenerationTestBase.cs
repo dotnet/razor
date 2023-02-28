@@ -4424,6 +4424,30 @@ namespace AnotherTest
         Assert.Collection(generated.Diagnostics, d => { Assert.Equal("RZ1038", d.Id); });
     }
 
+    [Fact] // https://github.com/dotnet/razor/issues/7169
+    public void InheritsDirective_NullableReferenceType()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            namespace Test;
+
+            public class BaseComponent<T> : Microsoft.AspNetCore.Components.ComponentBase { }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @inherits BaseComponent<string?>
+
+            <h1>My component</h1>
+            """,
+            nullableEnable: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     #endregion
 
     #region EventCallback
