@@ -1452,7 +1452,10 @@ namespace AspNetCoreGeneratedDocument
 #line hidden
 #nullable disable
         WriteLiteral(""        "");
-        __tagHelperExecutionContext = __tagHelperScopeManager.Begin(""email"", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, ""1ab81cc1745859ce8adebe81695571658979cf302909"", async() => {
+        __tagHelperExecutionContext = __tagHelperScopeManager.Begin(""email"", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, ""1ab81cc1745859ce8adebe81695571658979cf302909"", 
+        #pragma warning disable 1998
+        async() => {
+            #pragma warning restore 1998
             WriteLiteral(""first tag helper"");
         }
         );
@@ -1466,9 +1469,15 @@ namespace AspNetCoreGeneratedDocument
         Write(__tagHelperExecutionContext.Output);
         __tagHelperExecutionContext = __tagHelperScopeManager.End();
         WriteLiteral(""\r\n        "");
-        __tagHelperExecutionContext = __tagHelperScopeManager.Begin(""email"", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, ""1ab81cc1745859ce8adebe81695571658979cf303717"", async() => {
+        __tagHelperExecutionContext = __tagHelperScopeManager.Begin(""email"", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, ""1ab81cc1745859ce8adebe81695571658979cf303807"", 
+        #pragma warning disable 1998
+        async() => {
+            #pragma warning restore 1998
             WriteLiteral(""\r\n            second tag helper\r\n            "");
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin(""email"", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, ""1ab81cc1745859ce8adebe81695571658979cf304013"", async() => {
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin(""email"", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, ""1ab81cc1745859ce8adebe81695571658979cf304193"", 
+            #pragma warning disable 1998
+            async() => {
+                #pragma warning restore 1998
                 WriteLiteral(""nested tag helper"");
             }
             );
