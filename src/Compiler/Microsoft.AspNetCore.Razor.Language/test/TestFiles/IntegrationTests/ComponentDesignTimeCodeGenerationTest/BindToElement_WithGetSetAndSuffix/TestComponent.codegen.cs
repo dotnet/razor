@@ -29,7 +29,7 @@ namespace Test
 #line hidden
 #nullable disable
             );
-            __o = global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, callback: ValueChanged, value: ParentValue), ParentValue);
+            __o = global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredBindSetter(callback: ValueChanged, value: ParentValue), ParentValue);
         }
         #pragma warning restore 1998
 #nullable restore
