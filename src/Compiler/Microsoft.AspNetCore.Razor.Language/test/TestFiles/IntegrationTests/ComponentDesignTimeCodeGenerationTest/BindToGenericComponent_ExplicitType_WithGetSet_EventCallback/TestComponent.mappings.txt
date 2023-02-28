@@ -1,11 +1,11 @@
 ﻿Source Location: (21:0,21 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |CustomValue|
-Generated Location: (916:25,21 [11] )
+Generated Location: (909:25,21 [11] )
 |CustomValue|
 
 Source Location: (51:0,51 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |ParentValue|
-Generated Location: (1231:34,51 [11] )
+Generated Location: (1224:34,51 [11] )
 |ParentValue|
 
 Source Location: (105:1,7 [138] x:\dir\subdir\Test\TestComponent.cshtml)

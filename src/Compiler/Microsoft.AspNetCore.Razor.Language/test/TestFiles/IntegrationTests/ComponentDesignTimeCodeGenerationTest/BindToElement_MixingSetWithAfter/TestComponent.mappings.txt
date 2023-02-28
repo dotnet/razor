@@ -1,6 +1,6 @@
 ﻿Source Location: (17:0,17 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |ParentValue|
-Generated Location: (971:25,17 [11] )
+Generated Location: (964:25,17 [11] )
 |ParentValue|
 
 Source Location: (91:1,7 [159] x:\dir\subdir\Test\TestComponent.cshtml)
