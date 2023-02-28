@@ -13,12 +13,14 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
-internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<OnAutoInsertParamsBridge, VSInternalDocumentOnAutoInsertResponseItem?>, IVSOnAutoInsertEndpoint
+[LanguageServerEndpoint(VSInternalMethods.OnAutoInsertName)]
+internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>, IRegistrationExtension
 {
     private static readonly HashSet<string> s_htmlAllowedTriggerCharacters = new(StringComparer.Ordinal) { "=", };
     private static readonly HashSet<string> s_cSharpAllowedTriggerCharacters = new(StringComparer.Ordinal) { "'", "/", "\n" };
@@ -59,7 +61,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<OnAutoInse
         return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
     }
 
-    protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> TryHandleAsync(OnAutoInsertParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> TryHandleAsync(VSInternalDocumentOnAutoInsertParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
@@ -112,7 +114,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<OnAutoInse
         return null;
     }
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(OnAutoInsertParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(VSInternalDocumentOnAutoInsertParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
         if (projection.LanguageKind == RazorLanguageKind.Html &&
@@ -138,7 +140,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<OnAutoInse
 
     protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleDelegatedResponseAsync(
         VSInternalDocumentOnAutoInsertResponseItem? delegatedResponse,
-        OnAutoInsertParamsBridge originalRequest,
+        VSInternalDocumentOnAutoInsertParams originalRequest,
         RazorRequestContext requestContext,
         Projection projection,
         CancellationToken cancellationToken)
