@@ -9,22 +9,11 @@ Param(
     [Parameter(
         Mandatory=$false,
         HelpMessage="If specified, choose the Visual Studio version from a list before laucnhing. By default the newest and last installed Visual Studio instance will be launched.")]
-    [Switch]$chooseVS,
-
-    [Parameter(
-        Mandatory=$false,
-        HelpMessage="If specified, Roslyn dependencies will be included in the Razor extension when deployed.")]
-    [Switch]$includeRoslynDeps
+    [Switch]$chooseVS
 )
 
 if ($solutionFile -eq "") {
     $solutionFile = "Razor.sln"
-}
-
-if ($includeRoslynDeps) {
-    # Setting this environment variable ensures that the MSBuild will see it when
-    # building from inside Visual Studio.
-    $env:IncludeRoslynDeps = $true
 }
 
 $dotnetPath = Join-Path (Get-Location) ".dotnet"

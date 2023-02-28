@@ -212,7 +212,6 @@ stages:
             $(_BuildArgs)
             $(_PublishArgs)
             $(_InternalRuntimeDownloadArgs)
-            /p:IncludeRoslynDeps=true
           name: Build
           displayName: Build and Deploy
           condition: succeeded()

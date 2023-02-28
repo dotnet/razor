@@ -24,7 +24,6 @@
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <DefineConstants Condition="'$(IncludeRoslynDeps)' == 'true'">$(DefineConstants);INCLUDE_ROSLYN_DEPS</DefineConstants>
 
     <!-- This extension will be deployed on demand by the integration test harness -->
     <DeployExtension>false</DeployExtension>
@@ -59,7 +58,7 @@
   </ItemGroup>
 
   <!-- Reference the Roslyn dependencies so that Preview builds work -->
-  <ItemGroup Condition="'$(IncludeRoslynDeps)' == 'true'">
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="$(MicrosoftCodeAnalysisCSharpFeaturesPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures" Version="$(RoslynPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" Version="$(RoslynPackageVersion)" />
@@ -70,7 +69,7 @@
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices.Implementation.Symbols" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(IncludeRoslynDeps)' == 'true'">
+  <ItemGroup>
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.CSharp.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.CSharp.Features.dll" />
