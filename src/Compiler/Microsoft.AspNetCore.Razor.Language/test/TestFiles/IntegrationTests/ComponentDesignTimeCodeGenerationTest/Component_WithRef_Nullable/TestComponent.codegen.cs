@@ -20,20 +20,19 @@ namespace Test
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-            __o = "";
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                   myInstance = default(global::Test.MyComponent)!;
+                     myComponent = default(global::Test.TestComponent)!;
 
 #line default
 #line hidden
 #nullable disable
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-__o = typeof(global::Test.MyComponent);
+__o = typeof(global::Test.TestComponent);
 
 #line default
 #line hidden
@@ -41,10 +40,10 @@ __o = typeof(global::Test.MyComponent);
         }
         #pragma warning restore 1998
 #nullable restore
-#line 5 "x:\dir\subdir\Test\TestComponent.cshtml"
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
        
-    private Test.MyComponent myInstance;
-    public void Foo() { System.GC.KeepAlive(myInstance); }
+    private TestComponent myComponent = null!;
+    public void Use() { System.GC.KeepAlive(myComponent); }
 
 #line default
 #line hidden

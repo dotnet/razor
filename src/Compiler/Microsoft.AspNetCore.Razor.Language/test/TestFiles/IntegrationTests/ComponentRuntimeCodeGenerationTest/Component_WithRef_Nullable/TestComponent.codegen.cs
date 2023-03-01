@@ -10,30 +10,28 @@ namespace Test
     using Microsoft.AspNetCore.Components;
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
-        #pragma warning disable 219
-        private void __RazorDirectiveTokenHelpers__() {
-        }
-        #pragma warning restore 219
-        #pragma warning disable 0414
-        private static object __o = null;
-        #pragma warning restore 0414
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
+            __builder.OpenComponent<global::Test.TestComponent>(0);
+            __builder.AddComponentReferenceCapture(1, (__value) => {
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                     myElem = default(Microsoft.AspNetCore.Components.ElementReference)!;
+                     myComponent = (Test.TestComponent)__value;
 
 #line default
 #line hidden
 #nullable disable
+            }
+            );
+            __builder.CloseComponent();
         }
         #pragma warning restore 1998
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
        
-    private Microsoft.AspNetCore.Components.ElementReference myElem;
-    public void Foo() { System.GC.KeepAlive(myElem); }
+    private TestComponent myComponent = null!;
+    public void Use() { System.GC.KeepAlive(myComponent); }
 
 #line default
 #line hidden
