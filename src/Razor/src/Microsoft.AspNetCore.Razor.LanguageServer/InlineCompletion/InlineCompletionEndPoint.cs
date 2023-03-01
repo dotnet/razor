@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
@@ -17,7 +18,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -29,7 +29,6 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
         "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
-    private readonly DocumentContextFactory _documentContextFactory;
     private readonly RazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly AdhocWorkspaceFactory _adhocWorkspaceFactory;
@@ -38,16 +37,10 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 
     [ImportingConstructor]
     public InlineCompletionEndpoint(
-        DocumentContextFactory documentContextFactory,
         RazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         AdhocWorkspaceFactory adhocWorkspaceFactory)
     {
-        if (documentContextFactory is null)
-        {
-            throw new ArgumentNullException(nameof(documentContextFactory));
-        }
-
         if (documentMappingService is null)
         {
             throw new ArgumentNullException(nameof(documentMappingService));
@@ -63,7 +56,6 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
             throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
         }
 
-        _documentContextFactory = documentContextFactory;
         _documentMappingService = documentMappingService;
         _languageServer = languageServer;
         _adhocWorkspaceFactory = adhocWorkspaceFactory;
@@ -95,7 +87,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 
         requestContext.Logger.LogInformation("Starting request for {textDocumentUri} at {position}.", request.TextDocument.Uri, request.Position);
 
-        var documentContext = await _documentContextFactory.TryCreateAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
+        var documentContext = requestContext.DocumentContext;
         if (documentContext is null)
         {
             return null;
@@ -115,7 +107,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 
         // Map to the location in the C# document.
         if (languageKind != RazorLanguageKind.CSharp ||
-            !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument, hostDocumentIndex, out var projectedPosition, out _))
+            !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument.GetCSharpDocument(), hostDocumentIndex, out var projectedPosition, out _))
         {
             requestContext.Logger.LogInformation("Unsupported location for {textDocumentUri}.", request.TextDocument.Uri);
             return null;
@@ -147,7 +139,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
             var containsSnippet = item.TextFormat == InsertTextFormat.Snippet;
             var range = item.Range ?? new Range { Start = projectedPosition, End = projectedPosition };
 
-            if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument, range, out var rangeInRazorDoc))
+            if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), range, out var rangeInRazorDoc))
             {
                 requestContext.Logger.LogWarning("Could not remap projected range {range} to razor document", range);
                 continue;

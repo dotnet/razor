@@ -29,11 +29,11 @@ internal abstract class ProjectEngineFactory : IProjectEngineFactory
         var extension = new AssemblyExtension(configuration.ConfigurationName, Assembly.Load(assemblyName));
         var initializer = extension.CreateInitializer();
 
-        return RazorProjectEngine.Create(configuration, fileSystem, b =>
+        return RazorProjectEngine.Create(configuration, fileSystem, builder =>
         {
-            CompilerFeatures.Register(b);
-            initializer.Initialize(b);
-            configure?.Invoke(b);
+			      CompilerFeatures.Register(builder);
+			      initializer.Initialize(builder);
+            configure?.Invoke(builder);
         });
     }
 }

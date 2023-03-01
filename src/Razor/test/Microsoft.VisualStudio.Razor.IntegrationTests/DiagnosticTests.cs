@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -176,7 +175,7 @@ public class DiagnosticTests : AbstractRazorEditorTest
 ", ControlledHangMitigatingCancellationToken);
 
         // Act
-        var errors = await TestServices.ErrorList.WaitForErrorsAsync("Error.cshtml", expectedCount: 1, ControlledHangMitigatingCancellationToken);
+        var errors = await TestServices.ErrorList.WaitForErrorsAsync("Error.cshtml", expectedCount: 2, ControlledHangMitigatingCancellationToken);
 
         // Assert
         Assert.Collection(errors,
