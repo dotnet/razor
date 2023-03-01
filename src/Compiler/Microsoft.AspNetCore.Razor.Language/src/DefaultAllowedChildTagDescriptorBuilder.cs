@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal class DefaultAllowedChildTagDescriptorBuilder : AllowedChildTagDescriptorBuilder
+internal class DefaultAllowedChildTagDescriptorBuilder : AllowedChildTagDescriptorBuilder, IBuilder<AllowedChildTagDescriptor>
 {
     private readonly DefaultTagHelperDescriptorBuilder _parent;
     private RazorDiagnosticCollection _diagnostics;

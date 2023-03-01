@@ -7,11 +7,21 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder
+internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder, IBuilder<TagHelperDescriptor>
 {
+    private static readonly ObjectPool<HashSet<AllowedChildTagDescriptor>> s_allowedChildTagSetPool
+        = HashSetPool<AllowedChildTagDescriptor>.Create(AllowedChildTagDescriptorComparer.Default);
+
+    private static readonly ObjectPool<HashSet<BoundAttributeDescriptor>> s_boundAttributeSetPool
+        = HashSetPool<BoundAttributeDescriptor>.Create(BoundAttributeDescriptorComparer.Default);
+
+    private static readonly ObjectPool<HashSet<TagMatchingRuleDescriptor>> s_tagMatchingRuleSetPool
+        = HashSetPool<TagMatchingRuleDescriptor>.Create(TagMatchingRuleDescriptorComparer.Default);
+
     // Required values
     private readonly Dictionary<string, string> _metadata;
 
@@ -132,41 +142,17 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder
             diagnostics.UnionWith(existingDiagnostics);
         }
 
-        var allowedChildTags = Array.Empty<AllowedChildTagDescriptor>();
-        if (_allowedChildTags != null)
-        {
-            var allowedChildTagsSet = new HashSet<AllowedChildTagDescriptor>(AllowedChildTagDescriptorComparer.Default);
-            for (var i = 0; i < _allowedChildTags.Count; i++)
-            {
-                allowedChildTagsSet.Add(_allowedChildTags[i].Build());
-            }
+        var allowedChildTags = _allowedChildTags is { } allowedChildTagBuilders
+            ? allowedChildTagBuilders.BuildAll(s_allowedChildTagSetPool)
+            : Array.Empty<AllowedChildTagDescriptor>();
 
-            allowedChildTags = allowedChildTagsSet.ToArray();
-        }
+        var tagMatchingRules = _tagMatchingRuleBuilders is { } tagMatchingRuleBuilders
+            ? tagMatchingRuleBuilders.BuildAll(s_tagMatchingRuleSetPool)
+            : Array.Empty<TagMatchingRuleDescriptor>();
 
-        var tagMatchingRules = Array.Empty<TagMatchingRuleDescriptor>();
-        if (_tagMatchingRuleBuilders != null)
-        {
-            var tagMatchingRuleSet = new HashSet<TagMatchingRuleDescriptor>(TagMatchingRuleDescriptorComparer.Default);
-            for (var i = 0; i < _tagMatchingRuleBuilders.Count; i++)
-            {
-                tagMatchingRuleSet.Add(_tagMatchingRuleBuilders[i].Build());
-            }
-
-            tagMatchingRules = tagMatchingRuleSet.ToArray();
-        }
-
-        var attributes = Array.Empty<BoundAttributeDescriptor>();
-        if (_attributeBuilders != null)
-        {
-            var attributeSet = new HashSet<BoundAttributeDescriptor>(BoundAttributeDescriptorComparer.Default);
-            for (var i = 0; i < _attributeBuilders.Count; i++)
-            {
-                attributeSet.Add(_attributeBuilders[i].Build());
-            }
-
-            attributes = attributeSet.ToArray();
-        }
+        var attributes = _attributeBuilders is { } attributeBuilders
+            ? attributeBuilders.BuildAll(s_boundAttributeSetPool)
+            : Array.Empty<BoundAttributeDescriptor>();
 
         var descriptor = new DefaultTagHelperDescriptor(
             Kind,

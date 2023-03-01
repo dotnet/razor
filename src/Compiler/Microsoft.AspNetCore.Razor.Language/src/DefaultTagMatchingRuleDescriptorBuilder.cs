@@ -5,12 +5,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRuleDescriptorBuilder
+internal class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRuleDescriptorBuilder, IBuilder<TagMatchingRuleDescriptor>
 {
+    private static readonly ObjectPool<HashSet<RequiredAttributeDescriptor>> s_requiredAttributeSetPool
+        = HashSetPool<RequiredAttributeDescriptor>.Create(RequiredAttributeDescriptorComparer.Default);
+
     private readonly DefaultTagHelperDescriptorBuilder _parent;
     private List<DefaultRequiredAttributeDescriptorBuilder> _requiredAttributeBuilders;
     private RazorDiagnosticCollection _diagnostics;
@@ -65,17 +70,9 @@ internal class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRuleDescript
             diagnostics.UnionWith(existingDiagnostics);
         }
 
-        var requiredAttributes = Array.Empty<RequiredAttributeDescriptor>();
-        if (_requiredAttributeBuilders != null)
-        {
-            var requiredAttributeSet = new HashSet<RequiredAttributeDescriptor>(RequiredAttributeDescriptorComparer.Default);
-            for (var i = 0; i < _requiredAttributeBuilders.Count; i++)
-            {
-                requiredAttributeSet.Add(_requiredAttributeBuilders[i].Build());
-            }
-
-            requiredAttributes = requiredAttributeSet.ToArray();
-        }
+        var requiredAttributes = _requiredAttributeBuilders is { } requiredAttributeBuilders
+            ? requiredAttributeBuilders.BuildAll(s_requiredAttributeSetPool)
+            : Array.Empty<RequiredAttributeDescriptor>();
 
         var rule = new DefaultTagMatchingRuleDescriptor(
             TagName,
@@ -132,11 +129,9 @@ internal class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRuleDescript
         }
     }
 
+    [MemberNotNull(nameof(_requiredAttributeBuilders))]
     private void EnsureRequiredAttributeBuilders()
     {
-        if (_requiredAttributeBuilders == null)
-        {
-            _requiredAttributeBuilders = new List<DefaultRequiredAttributeDescriptorBuilder>();
-        }
+        _requiredAttributeBuilders ??= new List<DefaultRequiredAttributeDescriptorBuilder>();
     }
 }

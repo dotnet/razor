@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDescriptorBuilder
+internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDescriptorBuilder, IBuilder<RequiredAttributeDescriptor>
 {
     private readonly DefaultTagMatchingRuleDescriptorBuilder _parent;
     private RazorDiagnosticCollection _diagnostics;

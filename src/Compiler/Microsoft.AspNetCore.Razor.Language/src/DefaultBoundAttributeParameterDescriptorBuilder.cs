@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal class DefaultBoundAttributeParameterDescriptorBuilder : BoundAttributeParameterDescriptorBuilder
+internal class DefaultBoundAttributeParameterDescriptorBuilder : BoundAttributeParameterDescriptorBuilder, IBuilder<BoundAttributeParameterDescriptor>
 {
     private readonly DefaultBoundAttributeDescriptorBuilder _parent;
     private readonly string _kind;

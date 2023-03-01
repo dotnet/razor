@@ -5,12 +5,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptorBuilder
+internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptorBuilder, IBuilder<BoundAttributeDescriptor>
 {
+    private static readonly ObjectPool<HashSet<BoundAttributeParameterDescriptor>> s_boundAttributeParameterSetPool
+        = HashSetPool<BoundAttributeParameterDescriptor>.Create(BoundAttributeParameterDescriptorComparer.Default);
+
     private static readonly IReadOnlyDictionary<string, string> PrimitiveDisplayTypeNameLookups = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         [typeof(byte).FullName] = "byte",
@@ -92,18 +97,9 @@ internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptor
             diagnostics.UnionWith(existingDiagnostics);
         }
 
-        var parameters = Array.Empty<BoundAttributeParameterDescriptor>();
-        if (_attributeParameterBuilders != null)
-        {
-            // Attribute parameters are case-sensitive.
-            var parameterSet = new HashSet<BoundAttributeParameterDescriptor>(BoundAttributeParameterDescriptorComparer.Default);
-            for (var i = 0; i < _attributeParameterBuilders.Count; i++)
-            {
-                parameterSet.Add(_attributeParameterBuilders[i].Build());
-            }
-
-            parameters = parameterSet.ToArray();
-        }
+        var parameters = _attributeParameterBuilders is { } attributeParameterBuilders
+            ? attributeParameterBuilders.BuildAll(s_boundAttributeParameterSetPool)
+            : Array.Empty<BoundAttributeParameterDescriptor>();
 
         var descriptor = new DefaultBoundAttributeDescriptor(
             _kind,
@@ -267,11 +263,9 @@ internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptor
         }
     }
 
+    [MemberNotNull(nameof(_attributeParameterBuilders))]
     private void EnsureAttributeParameterBuilders()
     {
-        if (_attributeParameterBuilders == null)
-        {
-            _attributeParameterBuilders = new List<DefaultBoundAttributeParameterDescriptorBuilder>();
-        }
+        _attributeParameterBuilders ??= new List<DefaultBoundAttributeParameterDescriptorBuilder>();
     }
 }
