@@ -22,8 +22,8 @@ export class CodeActionsHandler {
         private readonly serverClient: RazorLanguageServerClient,
         private readonly logger: RazorLogger) { }
 
-    public async register() {
-        await this.serverClient.onRequestWithParams<SerializableDelegatedCodeActionParams, RazorCodeAction[], any>(
+    public register() {
+        return this.serverClient.onRequestWithParams<SerializableDelegatedCodeActionParams, RazorCodeAction[], any>(
             this.codeActionRequestType,
             async (request, token) => this.provideCodeActions(request, token));
     }
