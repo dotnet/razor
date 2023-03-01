@@ -14,7 +14,9 @@ using Microsoft.AspNetCore.Components;
 #line default
 #line hidden
 #nullable disable
+    #nullable restore
     public partial class TestComponent<TItem> : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {

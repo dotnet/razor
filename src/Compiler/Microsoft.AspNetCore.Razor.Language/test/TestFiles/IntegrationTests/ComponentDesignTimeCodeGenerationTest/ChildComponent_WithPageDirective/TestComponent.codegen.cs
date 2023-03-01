@@ -10,7 +10,9 @@ namespace Test
     using Microsoft.AspNetCore.Components;
     [global::Microsoft.AspNetCore.Components.RouteAttribute("/MyPage")]
     [global::Microsoft.AspNetCore.Components.RouteAttribute("/AnotherRoute/{id}")]
+    #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {

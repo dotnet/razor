@@ -14,10 +14,12 @@ using Microsoft.AspNetCore.Components;
 #line default
 #line hidden
 #nullable disable
+    #nullable restore
     public partial class TestComponent<TItem1, TItem2, TItem3> : global::Microsoft.AspNetCore.Components.ComponentBase
     where TItem1 : Image
     where TItem2 : ITag
     where TItem3 : Image, new()
+    #nullable disable
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {

@@ -17,7 +17,9 @@ using Test2;
 #nullable disable
     [global::Microsoft.AspNetCore.Components.RouteAttribute("/MyPage")]
     [global::Microsoft.AspNetCore.Components.RouteAttribute("/AnotherRoute/{id}")]
+    #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)

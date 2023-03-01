@@ -21,7 +21,9 @@ using System.Collections.Generic;
 #line default
 #line hidden
 #nullable disable
+    #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
