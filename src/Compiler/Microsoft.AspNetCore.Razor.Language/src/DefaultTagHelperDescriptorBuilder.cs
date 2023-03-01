@@ -5,7 +5,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -48,18 +49,7 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder
 
     public override IDictionary<string, string> Metadata => _metadata;
 
-    public override RazorDiagnosticCollection Diagnostics
-    {
-        get
-        {
-            if (_diagnostics == null)
-            {
-                _diagnostics = new RazorDiagnosticCollection();
-            }
-
-            return _diagnostics;
-        }
-    }
+    public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
     public override IReadOnlyList<AllowedChildTagDescriptorBuilder> AllowedChildTags
     {
@@ -135,10 +125,11 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder
 
     public override TagHelperDescriptor Build()
     {
-        var diagnostics = new HashSet<RazorDiagnostic>();
-        if (_diagnostics != null)
+        using var _ = HashSetPool<RazorDiagnostic>.GetPooledObject(out var diagnostics);
+
+        if (_diagnostics is { } existingDiagnostics)
         {
-            diagnostics.UnionWith(_diagnostics);
+            diagnostics.UnionWith(existingDiagnostics);
         }
 
         var allowedChildTags = Array.Empty<AllowedChildTagDescriptor>();
@@ -215,27 +206,21 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder
         return this.GetTypeName() ?? Name;
     }
 
+    [MemberNotNull(nameof(_allowedChildTags))]
     private void EnsureAllowedChildTags()
     {
-        if (_allowedChildTags == null)
-        {
-            _allowedChildTags = new List<DefaultAllowedChildTagDescriptorBuilder>();
-        }
+        _allowedChildTags ??= new List<DefaultAllowedChildTagDescriptorBuilder>();
     }
 
+    [MemberNotNull(nameof(_attributeBuilders))]
     private void EnsureAttributeBuilders()
     {
-        if (_attributeBuilders == null)
-        {
-            _attributeBuilders = new List<DefaultBoundAttributeDescriptorBuilder>();
-        }
+        _attributeBuilders ??= new List<DefaultBoundAttributeDescriptorBuilder>();
     }
 
+    [MemberNotNull(nameof(_tagMatchingRuleBuilders))]
     private void EnsureTagMatchingRuleBuilders()
     {
-        if (_tagMatchingRuleBuilders == null)
-        {
-            _tagMatchingRuleBuilders = new List<DefaultTagMatchingRuleDescriptorBuilder>();
-        }
+        _tagMatchingRuleBuilders ??= new List<DefaultTagMatchingRuleDescriptorBuilder>();
     }
 }

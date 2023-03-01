@@ -3,9 +3,8 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -23,45 +22,34 @@ internal class DefaultAllowedChildTagDescriptorBuilder : AllowedChildTagDescript
 
     public override string DisplayName { get; set; }
 
-    public override RazorDiagnosticCollection Diagnostics
-    {
-        get
-        {
-            if (_diagnostics == null)
-            {
-                _diagnostics = new RazorDiagnosticCollection();
-            }
-
-            return _diagnostics;
-        }
-    }
+    public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
     public AllowedChildTagDescriptor Build()
     {
-        var diagnostics = Validate();
-        if (_diagnostics != null)
+        using var _ = HashSetPool<RazorDiagnostic>.GetPooledObject(out var diagnostics);
+
+        Validate(diagnostics);
+
+        if (_diagnostics is { } existingDiagnostics)
         {
-            diagnostics ??= new();
-            diagnostics.UnionWith(_diagnostics);
+            diagnostics.UnionWith(existingDiagnostics);
         }
 
         var displayName = DisplayName ?? Name;
         var descriptor = new DefaultAllowedChildTagDescriptor(
             Name,
             displayName,
-            diagnostics?.ToArray() ?? Array.Empty<RazorDiagnostic>());
+            diagnostics.ToArray());
 
         return descriptor;
     }
 
-    private HashSet<RazorDiagnostic> Validate()
+    private void Validate(HashSet<RazorDiagnostic> diagnostics)
     {
-        HashSet<RazorDiagnostic> diagnostics = null;
         if (string.IsNullOrWhiteSpace(Name))
         {
             var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidRestrictedChildNullOrWhitespace(_parent.GetDisplayName());
 
-            diagnostics ??= new();
             diagnostics.Add(diagnostic);
         }
         else if (Name != TagHelperMatchingConventions.ElementCatchAllName)
@@ -71,12 +59,10 @@ internal class DefaultAllowedChildTagDescriptorBuilder : AllowedChildTagDescript
                 if (char.IsWhiteSpace(character) || HtmlConventions.IsInvalidNonWhitespaceHtmlCharacters(character))
                 {
                     var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidRestrictedChild(_parent.GetDisplayName(), Name, character);
-                    diagnostics ??= new();
+
                     diagnostics.Add(diagnostic);
                 }
             }
         }
-
-        return diagnostics;
     }
 }

@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -28,18 +28,7 @@ internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDesc
 
     public override RequiredAttributeDescriptor.ValueComparisonMode ValueComparisonMode { get; set; }
 
-    public override RazorDiagnosticCollection Diagnostics
-    {
-        get
-        {
-            if (_diagnostics == null)
-            {
-                _diagnostics = new RazorDiagnosticCollection();
-            }
-
-            return _diagnostics;
-        }
-    }
+    public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
     public override IDictionary<string, string> Metadata => _metadata;
 
@@ -47,11 +36,13 @@ internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDesc
 
     public RequiredAttributeDescriptor Build()
     {
-        var diagnostics = Validate();
-        if (_diagnostics != null)
+        using var _ = HashSetPool<RazorDiagnostic>.GetPooledObject(out var diagnostics);
+
+        Validate(diagnostics);
+
+        if (_diagnostics is { } existingDiagnostics)
         {
-            diagnostics ??= new();
-            diagnostics.UnionWith(_diagnostics);
+            diagnostics.UnionWith(existingDiagnostics);
         }
 
         var displayName = GetDisplayName();
@@ -62,7 +53,7 @@ internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDesc
             Value,
             ValueComparisonMode,
             displayName,
-            diagnostics?.ToArray() ?? Array.Empty<RazorDiagnostic>(),
+            diagnostics.ToArray(),
             new Dictionary<string, string>(Metadata));
 
         return rule;
@@ -73,15 +64,12 @@ internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDesc
         return NameComparisonMode == RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch ? string.Concat(Name, "...") : Name;
     }
 
-    private HashSet<RazorDiagnostic> Validate()
+    private void Validate(HashSet<RazorDiagnostic> diagnostics)
     {
-        HashSet<RazorDiagnostic> diagnostics = null;
-
         if (string.IsNullOrWhiteSpace(Name))
         {
             var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidTargetedAttributeNameNullOrWhitespace();
 
-            diagnostics ??= new();
             diagnostics.Add(diagnostic);
         }
         else
@@ -96,7 +84,6 @@ internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDesc
             {
                 var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidRequiredDirectiveAttributeName(GetDisplayName(), Name);
 
-                diagnostics ??= new();
                 diagnostics.Add(diagnostic);
             }
 
@@ -107,12 +94,9 @@ internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDesc
                 {
                     var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidTargetedAttributeName(Name, character);
 
-                    diagnostics ??= new();
                     diagnostics.Add(diagnostic);
                 }
             }
         }
-
-        return diagnostics;
     }
 }

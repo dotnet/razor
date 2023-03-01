@@ -5,7 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -28,18 +28,7 @@ internal class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRuleDescript
 
     internal bool CaseSensitive => _parent.CaseSensitive;
 
-    public override RazorDiagnosticCollection Diagnostics
-    {
-        get
-        {
-            if (_diagnostics == null)
-            {
-                _diagnostics = new RazorDiagnosticCollection();
-            }
-
-            return _diagnostics;
-        }
-    }
+    public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
     public override IReadOnlyList<RequiredAttributeDescriptorBuilder> Attributes
     {
@@ -67,11 +56,13 @@ internal class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRuleDescript
 
     public TagMatchingRuleDescriptor Build()
     {
-        var diagnostics = Validate();
-        if (_diagnostics != null)
+        using var _ = HashSetPool<RazorDiagnostic>.GetPooledObject(out var diagnostics);
+
+        Validate(diagnostics);
+
+        if (_diagnostics is { } existingDiagnostics)
         {
-            diagnostics ??= new();
-            diagnostics.UnionWith(_diagnostics);
+            diagnostics.UnionWith(existingDiagnostics);
         }
 
         var requiredAttributes = Array.Empty<RequiredAttributeDescriptor>();
@@ -92,20 +83,17 @@ internal class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRuleDescript
             TagStructure,
             CaseSensitive,
             requiredAttributes,
-            diagnostics?.ToArray() ?? Array.Empty<RazorDiagnostic>());
+            diagnostics.ToArray());
 
         return rule;
     }
 
-    private HashSet<RazorDiagnostic> Validate()
+    private void Validate(HashSet<RazorDiagnostic> diagnostics)
     {
-        HashSet<RazorDiagnostic> diagnostics = null;
-
         if (string.IsNullOrWhiteSpace(TagName))
         {
             var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidTargetedTagNameNullOrWhitespace();
 
-            diagnostics ??= new();
             diagnostics.Add(diagnostic);
         }
         else if (TagName != TagHelperMatchingConventions.ElementCatchAllName)
@@ -116,7 +104,6 @@ internal class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRuleDescript
                 {
                     var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidTargetedTagName(TagName, character);
 
-                    diagnostics ??= new();
                     diagnostics.Add(diagnostic);
                 }
             }
@@ -128,7 +115,6 @@ internal class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRuleDescript
             {
                 var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidTargetedParentTagNameNullOrWhitespace();
 
-                diagnostics ??= new();
                 diagnostics.Add(diagnostic);
             }
             else
@@ -139,14 +125,11 @@ internal class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRuleDescript
                     {
                         var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidTargetedParentTagName(ParentTag, character);
 
-                        diagnostics ??= new();
                         diagnostics.Add(diagnostic);
                     }
                 }
             }
         }
-
-        return diagnostics;
     }
 
     private void EnsureRequiredAttributeBuilders()
