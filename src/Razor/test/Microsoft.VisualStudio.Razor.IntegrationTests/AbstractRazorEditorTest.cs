@@ -53,7 +53,7 @@ public abstract class AbstractRazorEditorTest : AbstractEditorTest
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
 
         // Close the file we opened, just in case, so the test can start with a clean slate
-        await TestServices.Editor.CloseDocumentWindowAsync(ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, saveFile: false, ControlledHangMitigatingCancellationToken);
     }
 
     private static void EnsureLSPEditorEnabled()
