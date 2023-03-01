@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -1018,6 +1018,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         AssertHtmlDocumentMatchesBaseline(codeDocument.GetHtmlDocument());
         AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument());
         AssertSourceMappingsMatchBaseline(codeDocument);
+        AssertHtmlSourceMappingsMatchBaseline(codeDocument);
         AssertLinePragmas(codeDocument, designTime: true);
     }
 
@@ -1091,6 +1092,8 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         // Assert
         AssertDocumentNodeMatchesBaseline(codeDocument.GetDocumentIntermediateNode());
         AssertCSharpDocumentMatchesBaseline(codeDocument.GetCSharpDocument());
+        AssertHtmlDocumentMatchesBaseline(codeDocument.GetHtmlDocument());
+        AssertHtmlSourceMappingsMatchBaseline(codeDocument);
         AssertSourceMappingsMatchBaseline(codeDocument);
     }
 
