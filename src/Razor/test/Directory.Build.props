@@ -7,6 +7,6 @@
     <StandardTestTfms>$(DeveloperBuildTestTfms)</StandardTestTfms>
     <StandardTestTfms Condition=" '$(DeveloperBuild)' != 'true' ">$(StandardTestTfms)</StandardTestTfms>
     <StandardTestTfms Condition=" '$(DeveloperBuild)' != 'true' AND '$(OS)' == 'Windows_NT' ">net472;$(StandardTestTfms)</StandardTestTfms>
-    <RollForward>LatestMajor</RollForward>
+    <RollForward Condition="'$(IsTestProject)' == 'true'">LatestMajor</RollForward>
   </PropertyGroup>
 </Project>

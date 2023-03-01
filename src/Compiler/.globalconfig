@@ -4,8 +4,6 @@
 # https://github.com/dotnet/aspnetcore/pull/30111#issuecomment-777817003
 dotnet_diagnostic.CA1309.severity = suggestion
 
-dotnet_diagnostic.CA1305.severity = none
-
 # CA3076: Insecure XSLT Script Execution
 # Disabled due to crashing: https://github.com/dotnet/roslyn-analyzers/issues/4750
 # Delete the following line when we have a working version.
