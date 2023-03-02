@@ -6,9 +6,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,12 +20,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.DependencyModel.Resolution;
+using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
-    public class RazorSourceGeneratorTests
+    public partial class RazorSourceGeneratorTests
     {
         private static readonly Project _baseProject = CreateBaseProject();
 
@@ -2772,11 +2774,14 @@ namespace MyApp
 
     internal static class Extensions
     {
+        // UTF-8 with BOM
+        private static readonly Encoding _baselineEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+
         public static GeneratorRunResult VerifyPageOutput(this GeneratorRunResult result, params string[] expectedOutput)
         {
             if (expectedOutput.Length == 1 && string.IsNullOrWhiteSpace(expectedOutput[0]))
             {
-                GenerateExpectedOutput(result);
+                Assert.True(false, GenerateExpectedOutput(result));
             }
             else
             {
@@ -2791,7 +2796,42 @@ namespace MyApp
             return result;
         }
 
-        private static void GenerateExpectedOutput(GeneratorRunResult result)
+        public static GeneratorRunResult VerifyOutputsMatchBaseline(this GeneratorRunResult result,
+           [CallerFilePath] string testPath = null!, [CallerMemberName] string testName = null!)
+        {
+            var baselineDirectory = Path.Join(Path.GetDirectoryName(testPath)!, "TestFiles", testName);
+            Directory.CreateDirectory(baselineDirectory);
+            var touchedFiles = new HashSet<string>();
+
+            foreach (var source in result.GeneratedSources)
+            {
+                var baselinePath = Path.Join(baselineDirectory, source.HintName);
+                GenerateOutputBaseline(baselinePath, in source);
+                var baselineText = File.ReadAllText(baselinePath);
+                AssertEx.EqualOrDiff(TrimChecksum(baselineText), TrimChecksum(source.SourceText.ToString()));
+                Assert.True(touchedFiles.Add(baselinePath));
+            }
+
+            foreach (var file in Directory.EnumerateFiles(baselineDirectory))
+            {
+                if (!touchedFiles.Contains(file))
+                {
+                    File.Delete(file);
+                }
+            }
+
+            return result;
+        }
+
+        [Conditional("GENERATE_BASELINES")]
+        private static void GenerateOutputBaseline(string baselinePath, in GeneratedSourceResult source)
+        {
+            var sourceText = source.SourceText.ToString();
+            sourceText = sourceText.Replace("\r", "").Replace("\n", "\r\n");
+            File.WriteAllText(baselinePath, sourceText, _baselineEncoding);
+        }
+
+        private static string GenerateExpectedOutput(GeneratorRunResult result)
         {
             StringBuilder sb = new StringBuilder("Generated Output:").AppendLine().AppendLine();
             for (int i = 0; i < result.GeneratedSources.Length; i++)
@@ -2802,7 +2842,7 @@ namespace MyApp
                 }
                 sb.Append("@\"").Append(result.GeneratedSources[i].SourceText.ToString().Replace("\"", "\"\"")).Append('"');
             }
-            Assert.True(false, sb.ToString());
+            return sb.ToString();
         }
 
         public static GeneratorRunResult VerifyOutputsMatch(this GeneratorRunResult actual, GeneratorRunResult expected, params (int index, string replacement)[] diffs)

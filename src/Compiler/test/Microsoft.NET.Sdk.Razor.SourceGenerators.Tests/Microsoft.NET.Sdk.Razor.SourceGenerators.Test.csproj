@@ -14,7 +14,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="**\*.cs" Exclude="$(GlobalExclude)" />
+    <Compile Include="**\*.cs" Exclude="$(GlobalExclude);TestFiles\**\*" />
+    <!-- Show test files in solution explorer -->
+    <None Include="**\TestFiles\**\*" />
   </ItemGroup>
 
   <ItemGroup>
