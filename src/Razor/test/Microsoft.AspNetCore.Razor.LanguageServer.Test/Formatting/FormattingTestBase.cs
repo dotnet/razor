@@ -88,7 +88,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         };
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument, documentSnapshot, LoggerFactory);
-        var documentContext = new DocumentContext(uri, documentSnapshot, version: 1);
+        var documentContext = new VersionedDocumentContext(uri, documentSnapshot, version: 1);
 
         // Act
         var edits = await formattingService.FormatAsync(documentContext, range, options, DisposalToken);
@@ -134,7 +134,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             TabSize = tabSize,
             InsertSpaces = insertSpaces,
         };
-        var documentContext = new DocumentContext(uri, documentSnapshot, version: 1);
+        var documentContext = new VersionedDocumentContext(uri, documentSnapshot, version: 1);
 
         // Act
         var edits = await formattingService.FormatOnTypeAsync(documentContext, languageKind, Array.Empty<TextEdit>(), options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
@@ -191,7 +191,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             throw new NotImplementedException("Code action formatting is not yet supported for HTML in Razor.");
         }
 
-        if (!mappingService.TryMapToProjectedDocumentPosition(codeDocument, positionAfterTrigger, out _, out var _))
+        if (!mappingService.TryMapToProjectedDocumentPosition(codeDocument.GetCSharpDocument(), positionAfterTrigger, out _, out var _))
         {
             throw new InvalidOperationException("Could not map from Razor document to generated document");
         }
@@ -202,7 +202,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             TabSize = tabSize,
             InsertSpaces = insertSpaces,
         };
-        var documentContext = new DocumentContext(uri, documentSnapshot, version: 1);
+        var documentContext = new VersionedDocumentContext(uri, documentSnapshot, version: 1);
 
         // Act
         var edits = await formattingService.FormatCodeActionAsync(documentContext, languageKind, codeActionEdits, options, DisposalToken);

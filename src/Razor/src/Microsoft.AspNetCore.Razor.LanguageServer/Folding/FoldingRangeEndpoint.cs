@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -110,7 +111,7 @@ internal class FoldingRangeEndpoint : IVSFoldingRangeEndpoint
             var range = GetRange(foldingRange);
 
             if (_documentMappingService.TryMapFromProjectedDocumentRange(
-                codeDocument,
+                codeDocument.GetCSharpDocument(),
                 range,
                 out var mappedRange))
             {

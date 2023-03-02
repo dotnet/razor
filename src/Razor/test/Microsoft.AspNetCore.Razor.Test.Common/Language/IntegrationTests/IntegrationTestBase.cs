@@ -181,7 +181,7 @@ public abstract class IntegrationTestBase
         }
 
         var suffixIndex = FileName.LastIndexOf("_", StringComparison.Ordinal);
-        var normalizedFileName = suffixIndex == -1 ? FileName : FileName.Substring(0, suffixIndex);
+        var normalizedFileName = suffixIndex == -1 ? FileName : FileName[..suffixIndex];
         var sourceFileName = Path.ChangeExtension(normalizedFileName, FileExtension);
         var testFile = TestFile.Create(sourceFileName, GetType().GetTypeInfo().Assembly);
         if (!testFile.Exists())
@@ -383,7 +383,7 @@ public abstract class IntegrationTestBase
         if (GenerateBaselines)
         {
             var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
-            File.WriteAllText(baselineFullPath, htmlDocument.GeneratedHtml);
+            File.WriteAllText(baselineFullPath, htmlDocument.GeneratedCode);
             return;
         }
 
@@ -396,7 +396,7 @@ public abstract class IntegrationTestBase
         var baseline = htmlFile.ReadAllText();
 
         // Normalize newlines to match those in the baseline.
-        var actual = htmlDocument.GeneratedHtml.Replace("\r", "").Replace("\n", "\r\n");
+        var actual = htmlDocument.GeneratedCode.Replace("\r", "").Replace("\n", "\r\n");
         Assert.Equal(baseline, actual);
     }
 
