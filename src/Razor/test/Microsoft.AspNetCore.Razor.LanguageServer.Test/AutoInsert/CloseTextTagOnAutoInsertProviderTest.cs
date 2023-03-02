@@ -43,7 +43,7 @@ expected: @"
 ");
     }
 
-    internal override IOnAutoInsertProvider CreateProvider()
+    internal override RazorOnAutoInsertProvider CreateProvider()
     {
         var optionsMonitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
         optionsMonitor.SetupGet(o => o.CurrentValue).Returns(RazorLSPOptions.Default);
