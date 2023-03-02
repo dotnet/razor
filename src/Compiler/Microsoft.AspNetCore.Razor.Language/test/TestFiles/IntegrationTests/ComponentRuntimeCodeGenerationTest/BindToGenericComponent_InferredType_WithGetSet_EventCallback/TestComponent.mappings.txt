@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 ﻿Source Location: (84:1,7 [138] x:\dir\subdir\Test\TestComponent.cshtml)
+||||||| 23245e6bf
+﻿Source Location: (84:1,7 [140] x:\dir\subdir\Test\TestComponent.cshtml)
+=======
+Source Location: (84:1,7 [138] x:\dir\subdir\Test\TestComponent.cshtml)
+>>>>>>> origin/release/dev17.6
 |
     public CustomValue ParentValue { get; set; } = new CustomValue();
     public EventCallback<CustomValue> UpdateValue { get; set; }

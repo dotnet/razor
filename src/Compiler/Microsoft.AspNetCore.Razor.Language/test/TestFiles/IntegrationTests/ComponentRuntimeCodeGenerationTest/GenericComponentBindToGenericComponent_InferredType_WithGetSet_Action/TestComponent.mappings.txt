@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿Source Location: (103:2,7 [128] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     public TParam ParentValue { get; set; } = default;
@@ -11,3 +12,19 @@ Generated Location: (1156:28,7 [128] )
     public void UpdateValue(TParam value) { ParentValue = value; }
 |
 
+||||||| 23245e6bf
+=======
+Source Location: (103:2,7 [128] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    public TParam ParentValue { get; set; } = default;
+
+    public void UpdateValue(TParam value) { ParentValue = value; }
+|
+Generated Location: (1156:28,7 [128] )
+|
+    public TParam ParentValue { get; set; } = default;
+
+    public void UpdateValue(TParam value) { ParentValue = value; }
+|
+
+>>>>>>> origin/release/dev17.6

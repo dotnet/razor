@@ -8,7 +8,13 @@ Source Location: (86:1,7 [102] x:\dir\subdir\Test\TestComponent.cshtml)
     public int ParentValue { get; set; } = 42;
     public EventCallback UpdateValue { get; set; }
 |
+<<<<<<< HEAD
 Generated Location: (2252:47,7 [102] )
+||||||| 23245e6bf
+Generated Location: (2258:47,7 [104] )
+=======
+Generated Location: (2259:47,7 [102] )
+>>>>>>> origin/release/dev17.6
 |
     public int ParentValue { get; set; } = 42;
     public EventCallback UpdateValue { get; set; }

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿Source Location: (30:0,30 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |ParentValue|
 Generated Location: (1036:25,30 [11] )
@@ -16,3 +17,24 @@ Generated Location: (1631:43,7 [175] )
     public Task UpdateValue(CustomValue value) { ParentValue = value; return Task.CompletedTask; }
 |
 
+||||||| 23245e6bf
+=======
+Source Location: (30:0,30 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|ParentValue|
+Generated Location: (1043:25,30 [11] )
+|ParentValue|
+
+Source Location: (84:1,7 [175] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    public CustomValue ParentValue { get; set; } = new CustomValue();
+
+    public Task UpdateValue(CustomValue value) { ParentValue = value; return Task.CompletedTask; }
+|
+Generated Location: (1638:43,7 [175] )
+|
+    public CustomValue ParentValue { get; set; } = new CustomValue();
+
+    public Task UpdateValue(CustomValue value) { ParentValue = value; return Task.CompletedTask; }
+|
+
+>>>>>>> origin/release/dev17.6
