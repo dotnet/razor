@@ -234,10 +234,12 @@ stages:
             -configuration $(_BuildConfig)
             -prepareMachine
             -test
-            -integrationTest
+            # https://github.com/dotnet/razor/issues/8378
+            # -integrationTest
             /p:BuildProjectReferences=false
           name: Run_Tests
-          displayName: Run Unit and Integration tests
+          # displayName: Run Unit and Integration tests
+          displayName: Run Unit tests
           condition: succeeded()
 
         - task: PublishBuildArtifacts@1
