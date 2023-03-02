@@ -1,97 +1,148 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
-internal static class LegacySyntaxNodeExtensions
+internal static partial class LegacySyntaxNodeExtensions
 {
-    private static readonly SyntaxKind[] TransitionSpanKinds = new SyntaxKind[]
+    private class SpanData
     {
-            SyntaxKind.CSharpTransition,
-            SyntaxKind.MarkupTransition,
-    };
-
-    private static readonly SyntaxKind[] MetaCodeSpanKinds = new SyntaxKind[]
-    {
-            SyntaxKind.RazorMetaCode,
-    };
-
-    private static readonly SyntaxKind[] CommentSpanKinds = new SyntaxKind[]
-    {
-            SyntaxKind.RazorCommentTransition,
-            SyntaxKind.RazorCommentStar,
-            SyntaxKind.RazorCommentLiteral,
-    };
-
-    private static readonly SyntaxKind[] CodeSpanKinds = new SyntaxKind[]
-    {
-            SyntaxKind.CSharpStatementLiteral,
-            SyntaxKind.CSharpExpressionLiteral,
-            SyntaxKind.CSharpEphemeralTextLiteral,
-    };
-
-    private static readonly SyntaxKind[] MarkupSpanKinds = new SyntaxKind[]
-    {
-            SyntaxKind.MarkupTextLiteral,
-            SyntaxKind.MarkupEphemeralTextLiteral,
-    };
-
-    private static readonly SyntaxKind[] NoneSpanKinds = new SyntaxKind[]
-    {
-            SyntaxKind.UnclassifiedTextLiteral,
-    };
-
-    public static SpanContext GetSpanContext(this SyntaxNode node)
-    {
-        var context = node.GetAnnotationValue(SyntaxConstants.SpanContextKind);
-
-        return context is SpanContext ? (SpanContext)context : null;
+        public SyntaxNode? Previous;
+        public bool PreviousComputed;
+        public SyntaxNode? Next;
+        public bool NextComputed;
     }
 
-    public static TNode WithSpanContext<TNode>(this TNode node, SpanContext spanContext) where TNode : SyntaxNode
+    /// <summary>
+    ///  Caches previous/next span result for a particular node. A conditional weak table
+    ///  is used to avoid adding fields to all syntax nodes.
+    /// </summary>
+    private static readonly ConditionalWeakTable<SyntaxNode, SpanData> s_spanDataTable = new();
+
+    private static readonly ImmutableHashSet<SyntaxKind> s_transitionSpanKinds = ImmutableHashSet.Create(
+        SyntaxKind.CSharpTransition,
+        SyntaxKind.MarkupTransition);
+
+    private static readonly ImmutableHashSet<SyntaxKind> s_metaCodeSpanKinds = ImmutableHashSet.Create(
+        SyntaxKind.RazorMetaCode);
+
+    private static readonly ImmutableHashSet<SyntaxKind> s_commentSpanKinds = ImmutableHashSet.Create(
+        SyntaxKind.RazorCommentTransition,
+        SyntaxKind.RazorCommentStar,
+        SyntaxKind.RazorCommentLiteral);
+
+    private static readonly ImmutableHashSet<SyntaxKind> s_codeSpanKinds = ImmutableHashSet.Create(
+        SyntaxKind.CSharpStatementLiteral,
+        SyntaxKind.CSharpExpressionLiteral,
+        SyntaxKind.CSharpEphemeralTextLiteral);
+
+    private static readonly ImmutableHashSet<SyntaxKind> s_markupSpanKinds = ImmutableHashSet.Create(
+        SyntaxKind.MarkupTextLiteral,
+        SyntaxKind.MarkupEphemeralTextLiteral);
+
+    private static readonly ImmutableHashSet<SyntaxKind> s_noneSpanKinds = ImmutableHashSet.Create(
+        SyntaxKind.UnclassifiedTextLiteral);
+
+    private static readonly ImmutableHashSet<SyntaxKind> s_allSpanKinds = CreateAllSpanKindsSet();
+
+    private static ImmutableHashSet<SyntaxKind> CreateAllSpanKindsSet()
     {
-        if (node == null)
+        var set = ImmutableHashSet<SyntaxKind>.Empty.ToBuilder();
+
+        set.UnionWith(s_transitionSpanKinds);
+        set.UnionWith(s_metaCodeSpanKinds);
+        set.UnionWith(s_commentSpanKinds);
+        set.UnionWith(s_codeSpanKinds);
+        set.UnionWith(s_markupSpanKinds);
+        set.UnionWith(s_noneSpanKinds);
+
+        return set.ToImmutable();
+    }
+
+    internal static ISpanChunkGenerator? GetChunkGenerator(this SyntaxNode node)
+     => node switch
+        {
+            MarkupStartTagSyntax start => start.ChunkGenerator,
+            MarkupEndTagSyntax end => end.ChunkGenerator,
+            MarkupEphemeralTextLiteralSyntax ephemeral => ephemeral.ChunkGenerator,
+            MarkupTagHelperStartTagSyntax start => start.ChunkGenerator,
+            MarkupTagHelperEndTagSyntax end => end.ChunkGenerator,
+            MarkupTextLiteralSyntax text => text.ChunkGenerator,
+            MarkupTransitionSyntax transition => transition.ChunkGenerator,
+            CSharpStatementLiteralSyntax csharp => csharp.ChunkGenerator,
+            CSharpExpressionLiteralSyntax csharp => csharp.ChunkGenerator,
+            CSharpEphemeralTextLiteralSyntax csharp => csharp.ChunkGenerator,
+            CSharpTransitionSyntax transition => transition.ChunkGenerator,
+            RazorMetaCodeSyntax meta => meta.ChunkGenerator,
+            UnclassifiedTextLiteralSyntax unclassified => unclassified.ChunkGenerator,
+            _ => null,
+        };
+
+    public static SpanEditHandler? GetEditHandler(this SyntaxNode node) => node.GetAnnotationValue(SyntaxConstants.EditHandlerKind) as SpanEditHandler;
+
+    public static TNode WithEditHandler<TNode>(this TNode node, SpanEditHandler? editHandler) where TNode : SyntaxNode
+    {
+        if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
         }
 
-        var newAnnotation = new SyntaxAnnotation(SyntaxConstants.SpanContextKind, spanContext);
+        if (editHandler is null)
+        {
+            if (node.ContainsAnnotations)
+            {
+                List<SyntaxAnnotation>? filteredAnnotations = null;
+                foreach (var annotation in node.GetAnnotations())
+                {
+                    if (annotation.Kind != SyntaxConstants.EditHandlerKind)
+                    {
+                        (filteredAnnotations ??= new List<SyntaxAnnotation>()).Add(annotation);
+                    }
+                }
 
-        List<SyntaxAnnotation> newAnnotations = null;
+                return node.WithAnnotations(filteredAnnotations?.ToArray() ?? Array.Empty<SyntaxAnnotation>());
+            }
+            else
+            {
+                return node;
+            }
+        }
+
+        var newAnnotation = new SyntaxAnnotation(SyntaxConstants.EditHandlerKind, editHandler);
+
+        List<SyntaxAnnotation>? newAnnotations = null;
         if (node.ContainsAnnotations)
         {
-            var existingNodeAnnotations = node.GetAnnotations();
-            for (int i = 0; i < existingNodeAnnotations.Length; i++)
+            foreach (var annotation in node.GetAnnotations())
             {
-                var annotation = existingNodeAnnotations[i];
                 if (annotation.Kind != newAnnotation.Kind)
                 {
-                    if (newAnnotations == null)
+                    newAnnotations ??= new List<SyntaxAnnotation>
                     {
-                        newAnnotations = new List<SyntaxAnnotation>();
-                        newAnnotations.Add(newAnnotation);
-                    }
+                        newAnnotation
+                    };
 
                     newAnnotations.Add(annotation);
                 }
             }
         }
 
-        var newAnnotationsArray = newAnnotations == null ? new[] { newAnnotation } : newAnnotations.ToArray();
+        var newAnnotationsArray = newAnnotations is null
+            ? new[] { newAnnotation }
+            : newAnnotations.ToArray();
 
         return node.WithAnnotations(newAnnotationsArray);
     }
 
-    public static SyntaxNode LocateOwner(this SyntaxNode node, SourceChange change)
+    public static SyntaxNode? LocateOwner(this SyntaxNode node, SourceChange change)
     {
-        if (node == null)
+        if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
         }
@@ -110,121 +161,153 @@ internal static class LegacySyntaxNodeExtensions
             return null;
         }
 
-        if (IsSpanKind(node))
+        if (node.IsSpanKind())
         {
-            var editHandler = node.GetSpanContext()?.EditHandler ?? SpanEditHandler.CreateDefault();
+            var editHandler = node.GetEditHandler() ?? SpanEditHandler.CreateDefault(AcceptedCharactersInternal.Any);
             return editHandler.OwnsChange(node, change) ? node : null;
         }
 
-        IReadOnlyList<SyntaxNode> children;
-        if (node is MarkupStartTagSyntax startTag)
+        return node switch
         {
-            children = startTag.Children;
-        }
-        else if (node is MarkupEndTagSyntax endTag)
-        {
-            children = endTag.Children;
-        }
-        else if (node is MarkupTagHelperStartTagSyntax startTagHelper)
-        {
-            children = startTagHelper.Children;
-        }
-        else if (node is MarkupTagHelperEndTagSyntax endTagHelper)
-        {
-            children = endTagHelper.Children;
-        }
-        else
-        {
-            children = node.ChildNodes();
-        }
+            MarkupStartTagSyntax startTag => LocateOwnerForSyntaxList(startTag.Children, change),
+            MarkupEndTagSyntax endTag => LocateOwnerForSyntaxList(endTag.Children, change),
+            MarkupTagHelperStartTagSyntax startTagHelper => LocateOwnerForSyntaxList(startTagHelper.Children, change),
+            MarkupTagHelperEndTagSyntax endTagHelper => LocateOwnerForSyntaxList(endTagHelper.Children, change),
+            _ => LocateOwnerForChildSyntaxList(node.ChildNodes(), change)
+        };
 
-        SyntaxNode owner = null;
-        for (int i = 0; i < children.Count; i++)
+        static SyntaxNode? LocateOwnerForSyntaxList(in SyntaxList<RazorSyntaxNode> list, SourceChange change)
         {
-            var child = children[i];
-            owner = LocateOwner(child, change);
-            if (owner != null)
+            foreach (var child in list)
             {
-                break;
+                if (child.LocateOwner(change) is { } owner)
+                {
+                    return owner;
+                }
             }
+
+            return null;
         }
 
-        return owner;
+        static SyntaxNode? LocateOwnerForChildSyntaxList(in ChildSyntaxList list, SourceChange change)
+        {
+            foreach (var child in list)
+            {
+                if (child.LocateOwner(change) is { } owner)
+                {
+                    return owner;
+                }
+            }
+
+            return null;
+        }
     }
 
     public static bool IsTransitionSpanKind(this SyntaxNode node)
     {
-        if (node == null)
+        if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
         }
 
-        return TransitionSpanKinds.Contains(node.Kind);
+        return s_transitionSpanKinds.Contains(node.Kind);
     }
 
     public static bool IsMetaCodeSpanKind(this SyntaxNode node)
     {
-        if (node == null)
+        if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
         }
 
-        return MetaCodeSpanKinds.Contains(node.Kind);
+        return s_metaCodeSpanKinds.Contains(node.Kind);
     }
 
     public static bool IsCommentSpanKind(this SyntaxNode node)
     {
-        if (node == null)
+        if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
         }
 
-        return CommentSpanKinds.Contains(node.Kind);
+        return s_commentSpanKinds.Contains(node.Kind);
     }
 
     public static bool IsCodeSpanKind(this SyntaxNode node)
     {
-        if (node == null)
+        if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
         }
 
-        return CodeSpanKinds.Contains(node.Kind);
+        return s_codeSpanKinds.Contains(node.Kind);
     }
 
     public static bool IsMarkupSpanKind(this SyntaxNode node)
     {
-        if (node == null)
+        if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
         }
 
-        return MarkupSpanKinds.Contains(node.Kind);
+        return s_markupSpanKinds.Contains(node.Kind);
     }
 
     public static bool IsNoneSpanKind(this SyntaxNode node)
     {
-        if (node == null)
+        if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
         }
 
-        return NoneSpanKinds.Contains(node.Kind);
+        return s_noneSpanKinds.Contains(node.Kind);
     }
 
     public static bool IsSpanKind(this SyntaxNode node)
+        => s_allSpanKinds.Contains(node.Kind);
+
+    private static IEnumerable<SyntaxNode> FlattenSpansInReverse(this SyntaxNode node)
     {
-        return IsTransitionSpanKind(node) ||
-            IsMetaCodeSpanKind(node) ||
-            IsCommentSpanKind(node) ||
-            IsCodeSpanKind(node) ||
-            IsMarkupSpanKind(node) ||
-            IsNoneSpanKind(node);
+        using var stack = new ChildSyntaxListReversedEnumeratorStack(node);
+
+        while (stack.TryGetNextNode(out var nextNode))
+        {
+            if (nextNode is MarkupStartTagSyntax startTag)
+            {
+                var children = startTag.Children;
+
+                for (var i = children.Count - 1; i >= 0; i--)
+                {
+                    var tagChild = children[i];
+                    if (tagChild.IsSpanKind())
+                    {
+                        yield return tagChild;
+                    }
+                }
+            }
+            else if (nextNode is MarkupEndTagSyntax endTag)
+            {
+                var children = endTag.Children;
+
+                for (var i = children.Count - 1; i >= 0; i--)
+                {
+                    var tagChild = children[i];
+                    if (tagChild.IsSpanKind())
+                    {
+                        yield return tagChild;
+                    }
+                }
+            }
+            else if (nextNode.IsSpanKind())
+            {
+                yield return nextNode;
+            }
+        }
     }
 
     public static IEnumerable<SyntaxNode> FlattenSpans(this SyntaxNode node)
     {
-        if (node == null)
+        if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
         }
@@ -258,49 +341,83 @@ internal static class LegacySyntaxNodeExtensions
         }
     }
 
-    public static SyntaxNode PreviousSpan(this SyntaxNode node)
+    public static SyntaxNode? PreviousSpan(this SyntaxNode node)
     {
-        if (node == null)
+        if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
         }
 
-        var parent = node.Parent;
-        while (parent != null)
+        var spanData = s_spanDataTable.GetOrCreateValue(node);
+
+        lock (spanData)
         {
-            var flattenedSpans = parent.FlattenSpans();
-            var prevSpan = flattenedSpans.LastOrDefault(n => n.EndPosition <= node.Position && n != node);
-            if (prevSpan != null)
+            if (spanData.PreviousComputed)
             {
-                return prevSpan;
+                return spanData.Previous;
             }
 
-            parent = parent.Parent;
-        }
+            var parent = node.Parent;
+            while (parent is not null)
+            {
+                foreach (var span in parent.FlattenSpansInReverse())
+                {
+                    if (span.EndPosition <= node.Position && span != node)
+                    {
+                        spanData.PreviousComputed = true;
+                        spanData.Previous = span;
 
-        return null;
+                        return span;
+                    }
+                }
+
+                parent = parent.Parent;
+            }
+
+            spanData.PreviousComputed = true;
+            spanData.Previous = null;
+
+            return null;
+        }
     }
 
-    public static SyntaxNode NextSpan(this SyntaxNode node)
+    public static SyntaxNode? NextSpan(this SyntaxNode node)
     {
-        if (node == null)
+        if (node is null)
         {
             throw new ArgumentNullException(nameof(node));
         }
 
-        var parent = node.Parent;
-        while (parent != null)
+        var spanData = s_spanDataTable.GetOrCreateValue(node);
+
+        lock (spanData)
         {
-            var flattenedSpans = parent.FlattenSpans();
-            var nextSpan = flattenedSpans.FirstOrDefault(n => n.Position >= node.EndPosition && n != node);
-            if (nextSpan != null)
+            if (spanData.NextComputed)
             {
-                return nextSpan;
+                return spanData.Next;
             }
 
-            parent = parent.Parent;
-        }
+            var parent = node.Parent;
+            while (parent is not null)
+            {
+                foreach (var span in parent.FlattenSpans())
+                {
+                    if (span.Position >= node.Position && span != node)
+                    {
+                        spanData.NextComputed = true;
+                        spanData.Next = span;
 
-        return null;
+                        return span;
+                    }
+                }
+
+                parent = parent.Parent;
+            }
+
+            spanData.NextComputed = true;
+            spanData.Next = null;
+
+            return null;
+        }
     }
 }

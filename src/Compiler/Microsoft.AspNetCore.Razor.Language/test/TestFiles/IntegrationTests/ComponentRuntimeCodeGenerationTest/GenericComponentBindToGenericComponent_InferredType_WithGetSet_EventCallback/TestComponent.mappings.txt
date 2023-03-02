@@ -1,4 +1,4 @@
-Source Location: (103:2,7 [118] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (103:2,7 [118] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     public TParam ParentValue { get; set; } = default;
     public EventCallback<TParam> UpdateValue { get; set; }

@@ -7628,6 +7628,58 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [Fact] // https://github.com/dotnet/razor/issues/8170
+    public void Component_WithRef_Nullable()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            <TestComponent @ref="myComponent" />
+
+            @code {
+                private TestComponent myComponent = null!;
+                public void Use() { System.GC.KeepAlive(myComponent); }
+            }
+            """,
+            nullableEnable: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact] // https://github.com/dotnet/razor/issues/8170
+    public void Component_WithRef_Nullable_Generic()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class MyComponent<T> : ComponentBase
+            {
+                [Parameter] public T MyParameter { get; set; } = default!;
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent @ref="myComponent" MyParameter="1" />
+
+            @code {
+                private MyComponent<int> myComponent = null!;
+                public void Use() { System.GC.KeepAlive(myComponent); }
+            }
+            """,
+            nullableEnable: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [Fact]
     public void Component_WithRef_WithChildContent()
     {

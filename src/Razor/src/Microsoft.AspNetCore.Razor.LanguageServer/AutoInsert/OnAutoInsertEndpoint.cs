@@ -13,24 +13,26 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
-internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<OnAutoInsertParamsBridge, VSInternalDocumentOnAutoInsertResponseItem?>, IVSOnAutoInsertEndpoint
+[LanguageServerEndpoint(VSInternalMethods.OnAutoInsertName)]
+internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>, IRegistrationExtension
 {
     private static readonly HashSet<string> s_htmlAllowedTriggerCharacters = new(StringComparer.Ordinal) { "=", };
     private static readonly HashSet<string> s_cSharpAllowedTriggerCharacters = new(StringComparer.Ordinal) { "'", "/", "\n" };
 
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly IReadOnlyList<RazorOnAutoInsertProvider> _onAutoInsertProviders;
+    private readonly IReadOnlyList<IOnAutoInsertProvider> _onAutoInsertProviders;
 
     public OnAutoInsertEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         RazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
-        IEnumerable<RazorOnAutoInsertProvider> onAutoInsertProvider,
+        IEnumerable<IOnAutoInsertProvider> onAutoInsertProvider,
         ILoggerFactory loggerFactory)
         : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<OnAutoInsertEndpoint>())
     {
@@ -59,7 +61,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<OnAutoInse
         return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
     }
 
-    protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> TryHandleAsync(OnAutoInsertParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> TryHandleAsync(VSInternalDocumentOnAutoInsertParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
@@ -72,7 +74,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<OnAutoInse
 
         var character = request.Character;
 
-        var applicableProviders = new List<RazorOnAutoInsertProvider>();
+        var applicableProviders = new List<IOnAutoInsertProvider>();
         for (var i = 0; i < _onAutoInsertProviders.Count; i++)
         {
             var formatOnTypeProvider = _onAutoInsertProviders[i];
@@ -85,7 +87,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<OnAutoInse
         if (applicableProviders.Count == 0)
         {
             // There's currently a bug in the LSP platform where other language clients OnAutoInsert trigger characters influence every language clients trigger characters.
-            // To combat this we need to pre-emptively return so we don't try having our providers handle characters that they can't.
+            // To combat this we need to preemptively return so we don't try having our providers handle characters that they can't.
             return null;
         }
 
@@ -112,7 +114,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<OnAutoInse
         return null;
     }
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(OnAutoInsertParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(VSInternalDocumentOnAutoInsertParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
         if (projection.LanguageKind == RazorLanguageKind.Html &&
@@ -138,7 +140,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<OnAutoInse
 
     protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleDelegatedResponseAsync(
         VSInternalDocumentOnAutoInsertResponseItem? delegatedResponse,
-        OnAutoInsertParamsBridge originalRequest,
+        VSInternalDocumentOnAutoInsertParams originalRequest,
         RazorRequestContext requestContext,
         Projection projection,
         CancellationToken cancellationToken)

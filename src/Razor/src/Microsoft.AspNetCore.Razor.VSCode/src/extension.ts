@@ -23,6 +23,7 @@ import { RazorDocumentHighlightProvider } from './DocumentHighlight/RazorDocumen
 import { reportTelemetryForDocuments } from './DocumentTelemetryListener';
 import { FoldingRangeHandler } from './Folding/FoldingRangeHandler';
 import { FormattingHandler } from './Formatting/FormattingHandler';
+import { RazorFormatOnTypeProvider } from './Formatting/RazorFormatOnTypeProvider';
 import { RazorFormattingFeature } from './Formatting/RazorFormattingFeature';
 import { HostEventStream } from './HostEventStream';
 import { RazorHoverProvider } from './Hover/RazorHoverProvider';
@@ -89,7 +90,10 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 documentManager,
                 languageServerClient,
                 logger);
-            const foldingRangeHandler = new FoldingRangeHandler(languageServerClient);
+            const foldingRangeHandler = new FoldingRangeHandler(
+                languageServerClient,
+                documentManager,
+                logger);
             const formattingHandler = new FormattingHandler(
                 documentManager,
                 languageServerClient,
@@ -141,6 +145,7 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 documentManager,
                 languageServiceClient,
                 logger);
+            const onTypeFormattingEditProvider = new RazorFormatOnTypeProvider();
 
             localRegistrations.push(
                 languageConfiguration.register(),
@@ -174,6 +179,13 @@ export async function activate(vscodeType: typeof vscodeapi, context: ExtensionC
                 vscodeType.languages.registerDocumentHighlightProvider(
                     RazorLanguage.id,
                     documentHighlightProvider),
+                // Our OnTypeFormatter doesn't do anything at the moment, but it's needed so
+                // VS Code doesn't throw an exception when it tries to send us an
+                // OnTypeFormatting request.
+                vscodeType.languages.registerOnTypeFormattingEditProvider(
+                    RazorLanguage.documentSelector,
+                    onTypeFormattingEditProvider,
+                    ''),
                 documentManager.register(),
                 csharpFeature.register(),
                 htmlFeature.register(),
