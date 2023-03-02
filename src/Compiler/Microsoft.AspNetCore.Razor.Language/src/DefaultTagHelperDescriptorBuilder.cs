@@ -1,10 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
@@ -23,12 +22,12 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder, I
         = HashSetPool<TagMatchingRuleDescriptor>.Create(TagMatchingRuleDescriptorComparer.Default);
 
     // Required values
-    private readonly Dictionary<string, string> _metadata;
+    private readonly ImmutableDictionary<string, string>.Builder _metadata;
 
-    private List<DefaultAllowedChildTagDescriptorBuilder> _allowedChildTags;
-    private List<DefaultBoundAttributeDescriptorBuilder> _attributeBuilders;
-    private List<DefaultTagMatchingRuleDescriptorBuilder> _tagMatchingRuleBuilders;
-    private RazorDiagnosticCollection _diagnostics;
+    private List<DefaultAllowedChildTagDescriptorBuilder>? _allowedChildTags;
+    private List<DefaultBoundAttributeDescriptorBuilder>? _attributeBuilders;
+    private List<DefaultTagMatchingRuleDescriptorBuilder>? _tagMatchingRuleBuilders;
+    private RazorDiagnosticCollection? _diagnostics;
 
     public DefaultTagHelperDescriptorBuilder(string kind, string name, string assemblyName)
     {
@@ -36,7 +35,7 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder, I
         Name = name;
         AssemblyName = assemblyName;
 
-        _metadata = new Dictionary<string, string>(StringComparer.Ordinal);
+        _metadata = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.Ordinal);
 
         // Tells code generation that these tag helpers are compatible with ITagHelper.
         // For now that's all we support.
@@ -49,13 +48,13 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder, I
 
     public override string Kind { get; }
 
-    public override string DisplayName { get; set; }
+    public override string? DisplayName { get; set; }
 
-    public override string TagOutputHint { get; set; }
+    public override string? TagOutputHint { get; set; }
 
     public override bool CaseSensitive { get; set; }
 
-    public override string Documentation { get; set; }
+    public override string? Documentation { get; set; }
 
     public override IDictionary<string, string> Metadata => _metadata;
 
@@ -165,7 +164,7 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder, I
             tagMatchingRules,
             attributes,
             allowedChildTags,
-            new Dictionary<string, string>(_metadata),
+            _metadata.ToImmutable(),
             diagnostics.ToArray());
 
         return descriptor;
@@ -182,15 +181,7 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder, I
         _diagnostics?.Clear();
     }
 
-    public string GetDisplayName()
-    {
-        if (DisplayName != null)
-        {
-            return DisplayName;
-        }
-
-        return this.GetTypeName() ?? Name;
-    }
+    public string GetDisplayName() => DisplayName ?? this.GetTypeName() ?? Name;
 
     [MemberNotNull(nameof(_allowedChildTags))]
     private void EnsureAllowedChildTags()

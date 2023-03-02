@@ -1,10 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -12,19 +11,20 @@ namespace Microsoft.AspNetCore.Razor.Language;
 internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDescriptorBuilder, IBuilder<RequiredAttributeDescriptor>
 {
     private readonly DefaultTagMatchingRuleDescriptorBuilder _parent;
-    private RazorDiagnosticCollection _diagnostics;
-    private readonly Dictionary<string, string> _metadata = new Dictionary<string, string>();
+    private RazorDiagnosticCollection? _diagnostics;
+    private readonly ImmutableDictionary<string, string>.Builder _metadata;
 
     public DefaultRequiredAttributeDescriptorBuilder(DefaultTagMatchingRuleDescriptorBuilder parent)
     {
         _parent = parent;
+        _metadata = ImmutableDictionary.CreateBuilder<string, string>();
     }
 
-    public override string Name { get; set; }
+    public override string? Name { get; set; }
 
     public override RequiredAttributeDescriptor.NameComparisonMode NameComparisonMode { get; set; }
 
-    public override string Value { get; set; }
+    public override string? Value { get; set; }
 
     public override RequiredAttributeDescriptor.ValueComparisonMode ValueComparisonMode { get; set; }
 
@@ -46,6 +46,7 @@ internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDesc
         }
 
         var displayName = GetDisplayName();
+
         var rule = new DefaultRequiredAttributeDescriptor(
             Name,
             NameComparisonMode,
@@ -54,14 +55,14 @@ internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDesc
             ValueComparisonMode,
             displayName,
             diagnostics.ToArray(),
-            new Dictionary<string, string>(Metadata));
+            _metadata.ToImmutable());
 
         return rule;
     }
 
     private string GetDisplayName()
     {
-        return NameComparisonMode == RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch ? string.Concat(Name, "...") : Name;
+        return (NameComparisonMode == RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch ? string.Concat(Name, "...") : Name) ?? string.Empty;
     }
 
     private void Validate(HashSet<RazorDiagnostic> diagnostics)

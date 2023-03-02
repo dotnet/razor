@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -17,17 +15,17 @@ internal class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRuleDescript
         = HashSetPool<RequiredAttributeDescriptor>.Create(RequiredAttributeDescriptorComparer.Default);
 
     private readonly DefaultTagHelperDescriptorBuilder _parent;
-    private List<DefaultRequiredAttributeDescriptorBuilder> _requiredAttributeBuilders;
-    private RazorDiagnosticCollection _diagnostics;
+    private List<DefaultRequiredAttributeDescriptorBuilder>? _requiredAttributeBuilders;
+    private RazorDiagnosticCollection? _diagnostics;
 
     internal DefaultTagMatchingRuleDescriptorBuilder(DefaultTagHelperDescriptorBuilder parent)
     {
         _parent = parent;
     }
 
-    public override string TagName { get; set; }
+    public override string? TagName { get; set; }
 
-    public override string ParentTag { get; set; }
+    public override string? ParentTag { get; set; }
 
     public override TagStructure TagStructure { get; set; }
 
@@ -95,7 +93,7 @@ internal class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRuleDescript
         }
         else if (TagName != TagHelperMatchingConventions.ElementCatchAllName)
         {
-            foreach (var character in TagName)
+            foreach (var character in TagName!)
             {
                 if (char.IsWhiteSpace(character) || HtmlConventions.IsInvalidNonWhitespaceHtmlCharacters(character))
                 {

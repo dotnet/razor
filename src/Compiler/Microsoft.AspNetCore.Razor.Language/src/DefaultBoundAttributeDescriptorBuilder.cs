@@ -1,10 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
@@ -16,55 +15,55 @@ internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptor
     private static readonly ObjectPool<HashSet<BoundAttributeParameterDescriptor>> s_boundAttributeParameterSetPool
         = HashSetPool<BoundAttributeParameterDescriptor>.Create(BoundAttributeParameterDescriptorComparer.Default);
 
-    private static readonly IReadOnlyDictionary<string, string> PrimitiveDisplayTypeNameLookups = new Dictionary<string, string>(StringComparer.Ordinal)
+    private static readonly ImmutableDictionary<string, string> s_primitiveDisplayTypeNameLookups = new[]
     {
-        [typeof(byte).FullName] = "byte",
-        [typeof(sbyte).FullName] = "sbyte",
-        [typeof(int).FullName] = "int",
-        [typeof(uint).FullName] = "uint",
-        [typeof(short).FullName] = "short",
-        [typeof(ushort).FullName] = "ushort",
-        [typeof(long).FullName] = "long",
-        [typeof(ulong).FullName] = "ulong",
-        [typeof(float).FullName] = "float",
-        [typeof(double).FullName] = "double",
-        [typeof(char).FullName] = "char",
-        [typeof(bool).FullName] = "bool",
-        [typeof(object).FullName] = "object",
-        [typeof(string).FullName] = "string",
-        [typeof(decimal).FullName] = "decimal",
-    };
+        (typeof(byte).FullName, "byte"),
+        (typeof(sbyte).FullName, "sbyte"),
+        (typeof(int).FullName, "int"),
+        (typeof(uint).FullName, "uint"),
+        (typeof(short).FullName, "short"),
+        (typeof(ushort).FullName, "ushort"),
+        (typeof(long).FullName, "long"),
+        (typeof(ulong).FullName, "ulong"),
+        (typeof(float).FullName, "float"),
+        (typeof(double).FullName, "double"),
+        (typeof(char).FullName, "char"),
+        (typeof(bool).FullName, "bool"),
+        (typeof(object).FullName, "object"),
+        (typeof(string).FullName, "string"),
+        (typeof(decimal).FullName, "decimal")
+    }.ToImmutableDictionary(StringComparer.Ordinal);
 
     private readonly DefaultTagHelperDescriptorBuilder _parent;
     private readonly string _kind;
-    private readonly Dictionary<string, string> _metadata;
-    private List<DefaultBoundAttributeParameterDescriptorBuilder> _attributeParameterBuilders;
+    private readonly ImmutableDictionary<string, string>.Builder _metadata;
+    private List<DefaultBoundAttributeParameterDescriptorBuilder>? _attributeParameterBuilders;
 
-    private RazorDiagnosticCollection _diagnostics;
+    private RazorDiagnosticCollection? _diagnostics;
 
     public DefaultBoundAttributeDescriptorBuilder(DefaultTagHelperDescriptorBuilder parent, string kind)
     {
         _parent = parent;
         _kind = kind;
 
-        _metadata = new Dictionary<string, string>();
+        _metadata = ImmutableDictionary.CreateBuilder<string, string>();
     }
 
-    public override string Name { get; set; }
+    public override string? Name { get; set; }
 
-    public override string TypeName { get; set; }
+    public override string? TypeName { get; set; }
 
     public override bool IsEnum { get; set; }
 
     public override bool IsDictionary { get; set; }
 
-    public override string IndexerAttributeNamePrefix { get; set; }
+    public override string? IndexerAttributeNamePrefix { get; set; }
 
-    public override string IndexerValueTypeName { get; set; }
+    public override string? IndexerValueTypeName { get; set; }
 
-    public override string Documentation { get; set; }
+    public override string? Documentation { get; set; }
 
-    public override string DisplayName { get; set; }
+    public override string? DisplayName { get; set; }
 
     public override IDictionary<string, string> Metadata => _metadata;
 
@@ -113,7 +112,7 @@ internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptor
             GetDisplayName(),
             CaseSensitive,
             parameters,
-            new Dictionary<string, string>(Metadata),
+            _metadata.ToImmutable(),
             diagnostics.ToArray())
         {
             IsEditorRequired = IsEditorRequired,
@@ -137,7 +136,7 @@ internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptor
             parentTypeName != null)
         {
             // This looks like a normal c# property, so lets compute a display name based on that.
-            if (!PrimitiveDisplayTypeNameLookups.TryGetValue(TypeName, out var simpleTypeName))
+            if (!s_primitiveDisplayTypeNameLookups.TryGetValue(TypeName, out var simpleTypeName))
             {
                 simpleTypeName = TypeName;
             }
@@ -145,7 +144,7 @@ internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptor
             return $"{simpleTypeName} {parentTypeName}.{propertyName}";
         }
 
-        return Name;
+        return Name ?? string.Empty;
     }
 
     private void Validate(HashSet<RazorDiagnostic> diagnostics)
@@ -168,7 +167,7 @@ internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptor
         }
         else
         {
-            if (Name.StartsWith(DataDashPrefix, StringComparison.OrdinalIgnoreCase))
+            if (Name!.StartsWith(DataDashPrefix, StringComparison.OrdinalIgnoreCase))
             {
                 var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidBoundAttributeNameStartsWith(
                     _parent.GetDisplayName(),

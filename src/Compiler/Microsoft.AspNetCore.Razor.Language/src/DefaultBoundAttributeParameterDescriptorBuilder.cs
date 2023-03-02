@@ -1,9 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -12,27 +11,27 @@ internal class DefaultBoundAttributeParameterDescriptorBuilder : BoundAttributeP
 {
     private readonly DefaultBoundAttributeDescriptorBuilder _parent;
     private readonly string _kind;
-    private readonly Dictionary<string, string> _metadata;
+    private readonly ImmutableDictionary<string, string>.Builder _metadata;
 
-    private RazorDiagnosticCollection _diagnostics;
+    private RazorDiagnosticCollection? _diagnostics;
 
     public DefaultBoundAttributeParameterDescriptorBuilder(DefaultBoundAttributeDescriptorBuilder parent, string kind)
     {
         _parent = parent;
         _kind = kind;
 
-        _metadata = new Dictionary<string, string>();
+        _metadata = ImmutableDictionary.CreateBuilder<string, string>();
     }
 
-    public override string Name { get; set; }
+    public override string? Name { get; set; }
 
-    public override string TypeName { get; set; }
+    public override string? TypeName { get; set; }
 
     public override bool IsEnum { get; set; }
 
-    public override string Documentation { get; set; }
+    public override string? Documentation { get; set; }
 
-    public override string DisplayName { get; set; }
+    public override string? DisplayName { get; set; }
 
     public override IDictionary<string, string> Metadata => _metadata;
 
@@ -59,21 +58,14 @@ internal class DefaultBoundAttributeParameterDescriptorBuilder : BoundAttributeP
             Documentation,
             GetDisplayName(),
             CaseSensitive,
-            new Dictionary<string, string>(Metadata),
+            _metadata.ToImmutable(),
             diagnostics.ToArray());
 
         return descriptor;
     }
 
     private string GetDisplayName()
-    {
-        if (DisplayName != null)
-        {
-            return DisplayName;
-        }
-
-        return $":{Name}";
-    }
+        => DisplayName ?? $":{Name}";
 
     private void Validate(HashSet<RazorDiagnostic> diagnostics)
     {
@@ -85,7 +77,7 @@ internal class DefaultBoundAttributeParameterDescriptorBuilder : BoundAttributeP
         }
         else
         {
-            foreach (var character in Name)
+            foreach (var character in Name!)
             {
                 if (char.IsWhiteSpace(character) || HtmlConventions.IsInvalidNonWhitespaceHtmlCharacters(character))
                 {

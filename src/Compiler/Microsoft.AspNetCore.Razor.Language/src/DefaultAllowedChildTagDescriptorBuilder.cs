@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -11,16 +9,16 @@ namespace Microsoft.AspNetCore.Razor.Language;
 internal class DefaultAllowedChildTagDescriptorBuilder : AllowedChildTagDescriptorBuilder, IBuilder<AllowedChildTagDescriptor>
 {
     private readonly DefaultTagHelperDescriptorBuilder _parent;
-    private RazorDiagnosticCollection _diagnostics;
+    private RazorDiagnosticCollection? _diagnostics;
 
     public DefaultAllowedChildTagDescriptorBuilder(DefaultTagHelperDescriptorBuilder parent)
     {
         _parent = parent;
     }
 
-    public override string Name { get; set; }
+    public override string? Name { get; set; }
 
-    public override string DisplayName { get; set; }
+    public override string? DisplayName { get; set; }
 
     public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
@@ -36,6 +34,7 @@ internal class DefaultAllowedChildTagDescriptorBuilder : AllowedChildTagDescript
         }
 
         var displayName = DisplayName ?? Name;
+
         var descriptor = new DefaultAllowedChildTagDescriptor(
             Name,
             displayName,
@@ -54,7 +53,7 @@ internal class DefaultAllowedChildTagDescriptorBuilder : AllowedChildTagDescript
         }
         else if (Name != TagHelperMatchingConventions.ElementCatchAllName)
         {
-            foreach (var character in Name)
+            foreach (var character in Name!)
             {
                 if (char.IsWhiteSpace(character) || HtmlConventions.IsInvalidNonWhitespaceHtmlCharacters(character))
                 {
