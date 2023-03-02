@@ -12,13 +12,7 @@ Source Location: (88:2,7 [144] x:\dir\subdir\Test\TestComponent.cshtml)
         return Task.CompletedTask;
     }
 |
-<<<<<<< HEAD
 Generated Location: (1433:36,7 [144] )
-||||||| 23245e6bf
-Generated Location: (1449:36,7 [144] )
-=======
-Generated Location: (1440:36,7 [144] )
->>>>>>> origin/release/dev17.6
 |
     public string ParentValue { get; set; } = "hi";
 

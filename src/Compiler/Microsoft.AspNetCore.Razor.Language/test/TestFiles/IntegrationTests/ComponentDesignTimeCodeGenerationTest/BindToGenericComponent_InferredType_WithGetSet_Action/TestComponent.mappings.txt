@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ﻿Source Location: (30:0,30 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |ParentValue|
 Generated Location: (1036:25,30 [11] )
@@ -17,24 +16,3 @@ Generated Location: (1631:43,7 [147] )
     public void UpdateValue(CustomValue value) => ParentValue = value;
 |
 
-||||||| 23245e6bf
-=======
-Source Location: (30:0,30 [11] x:\dir\subdir\Test\TestComponent.cshtml)
-|ParentValue|
-Generated Location: (1043:25,30 [11] )
-|ParentValue|
-
-Source Location: (84:1,7 [147] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    public CustomValue ParentValue { get; set; } = new CustomValue();
-
-    public void UpdateValue(CustomValue value) => ParentValue = value;
-|
-Generated Location: (1638:43,7 [147] )
-|
-    public CustomValue ParentValue { get; set; } = new CustomValue();
-
-    public void UpdateValue(CustomValue value) => ParentValue = value;
-|
-
->>>>>>> origin/release/dev17.6

@@ -1,10 +1,4 @@
-<<<<<<< HEAD
 ﻿Source Location: (119:2,7 [118] x:\dir\subdir\Test\TestComponent.cshtml)
-||||||| 23245e6bf
-﻿Source Location: (119:2,7 [120] x:\dir\subdir\Test\TestComponent.cshtml)
-=======
-Source Location: (119:2,7 [118] x:\dir\subdir\Test\TestComponent.cshtml)
->>>>>>> origin/release/dev17.6
 |
     public TParam ParentValue { get; set; } = default;
     public EventCallback<TParam> UpdateValue { get; set; }

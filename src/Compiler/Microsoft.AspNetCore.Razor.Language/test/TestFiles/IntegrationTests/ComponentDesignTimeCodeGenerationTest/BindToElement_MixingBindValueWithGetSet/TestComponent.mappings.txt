@@ -14,13 +14,7 @@ Source Location: (86:1,7 [124] x:\dir\subdir\Test\TestComponent.cshtml)
 
     public void UpdateValue(string value) => ParentValue = value;
 |
-<<<<<<< HEAD
 Generated Location: (1592:43,7 [124] )
-||||||| 23245e6bf
-Generated Location: (1608:43,7 [124] )
-=======
-Generated Location: (1599:43,7 [124] )
->>>>>>> origin/release/dev17.6
 |
     public string ParentValue { get; set; } = "hi";
 
