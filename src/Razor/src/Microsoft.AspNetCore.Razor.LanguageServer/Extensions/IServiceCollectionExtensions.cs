@@ -178,7 +178,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IOptionsMonitor<RazorLSPOptions>, RazorLSPOptionsMonitor>(s => s.GetRequiredService<RazorLSPOptionsMonitor>());
     }
 
-    public static void AddDocumentManagmentServices(this IServiceCollection services)
+    public static void AddDocumentManagementServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)
     {
         services.AddSingleton<GeneratedDocumentPublisher, DefaultGeneratedDocumentPublisher>();
         services.AddSingleton<ProjectSnapshotChangeTrigger>((services) => services.GetRequiredService<GeneratedDocumentPublisher>());
@@ -206,7 +206,12 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IFileChangeDetector, RazorFileChangeDetector>();
 
         // Document processed listeners
-        services.AddSingleton<DocumentProcessedListener, RazorDiagnosticsPublisher>();
+        if (!featureOptions.SingleServerSupport)
+        {
+            // If single server is on, then we don't want to publish diagnostics, so best to just not hook up to any
+            // events etc.
+            services.AddSingleton<DocumentProcessedListener, RazorDiagnosticsPublisher>();
+        }
         services.AddSingleton<DocumentProcessedListener, GeneratedDocumentSynchronizer>();
         services.AddSingleton<DocumentProcessedListener, CodeDocumentReferenceHolder>();
 
