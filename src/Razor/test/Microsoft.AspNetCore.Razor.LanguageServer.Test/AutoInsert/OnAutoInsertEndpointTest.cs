@@ -36,8 +36,9 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var uri = new Uri(razorFilePath);
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
+        var optionsMonitor = GetOptionsMonitor();
         var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider }, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider }, optionsMonitor, LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -69,6 +70,7 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var uri = new Uri(razorFilePath);
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
+        var optionsMonitor = GetOptionsMonitor();
         var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: false)
         {
             ResolvedTextEdit = new TextEdit()
@@ -77,7 +79,7 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         {
             ResolvedTextEdit = new TextEdit()
         };
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider1, insertProvider2 }, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider1, insertProvider2 }, optionsMonitor, LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -112,6 +114,7 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var uri = new Uri(razorFilePath);
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
+        var optionsMonitor = GetOptionsMonitor();
         var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: true)
         {
             ResolvedTextEdit = new TextEdit()
@@ -120,7 +123,7 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         {
             ResolvedTextEdit = new TextEdit()
         };
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider1, insertProvider2 }, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider1, insertProvider2 }, optionsMonitor, LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -154,9 +157,10 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var uri = new Uri(razorFilePath);
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
+        var optionsMonitor = GetOptionsMonitor();
         var insertProvider1 = new TestOnAutoInsertProvider(">", canResolve: true);
         var insertProvider2 = new TestOnAutoInsertProvider("<", canResolve: true);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider1, insertProvider2 }, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider1, insertProvider2 }, optionsMonitor, LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -188,8 +192,9 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var razorFilePath = "file://path/test.razor";
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
+        var optionsMonitor = GetOptionsMonitor();
         var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider }, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider }, optionsMonitor, LoggerFactory);
         var uri = new Uri("file://path/test.razor");
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
@@ -223,8 +228,9 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var uri = new Uri(razorFilePath);
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
+        var optionsMonitor = GetOptionsMonitor();
         var insertProvider = new TestOnAutoInsertProvider(">", canResolve: true);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider }, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider }, optionsMonitor, LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -256,8 +262,9 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var uri = new Uri(razorFilePath);
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
         var documentContext = CreateDocumentContext(uri, codeDocument);
+        var optionsMonitor = GetOptionsMonitor();
         var insertProvider = new TestOnAutoInsertProvider(">", canResolve: false);
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider }, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider }, optionsMonitor, LoggerFactory);
         var @params = new VSInternalDocumentOnAutoInsertParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, },
@@ -278,6 +285,71 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         Assert.Null(result);
         Assert.True(insertProvider.Called);
         Assert.Equal(0, LanguageServer.RequestCount);
+    }
+
+    [Fact]
+    public async Task Handle_OnTypeFormattingOff_CSharp_ReturnsNull()
+    {
+        // Arrange
+        var codeDocument = CreateCodeDocument();
+        var razorFilePath = "file://path/test.razor";
+        var uri = new Uri(razorFilePath);
+        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var documentContext = CreateDocumentContext(uri, codeDocument);
+        var optionsMonitor = GetOptionsMonitor(formatOnType: false);
+        var insertProvider = new TestOnAutoInsertProvider(">", canResolve: false);
+        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider }, optionsMonitor, LoggerFactory);
+        var @params = new VSInternalDocumentOnAutoInsertParams()
+        {
+            TextDocument = new TextDocumentIdentifier { Uri = uri, },
+            Position = new Position(1, 3),
+            Character = "/",
+            Options = new FormattingOptions
+            {
+                TabSize = 4,
+                InsertSpaces = true
+            },
+        };
+        var requestContext = CreateRazorRequestContext(documentContext);
+
+        // Act
+        var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
+
+        // Assert
+        Assert.Null(result);
+        Assert.Equal(0, LanguageServer.RequestCount);
+    }
+
+    [Fact]
+    public async Task Handle_OnTypeFormattingOff_Html_CallsLanguageServer()
+    {
+        // Arrange
+        var codeDocument = CreateCodeDocument();
+        var razorFilePath = "file://path/test.razor";
+        var uri = new Uri(razorFilePath);
+        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var documentContext = CreateDocumentContext(uri, codeDocument);
+        var optionsMonitor = GetOptionsMonitor(formatOnType: false);
+        var insertProvider = new TestOnAutoInsertProvider("<", canResolve: false);
+        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, new[] { insertProvider }, optionsMonitor, LoggerFactory);
+        var @params = new VSInternalDocumentOnAutoInsertParams()
+        {
+            TextDocument = new TextDocumentIdentifier { Uri = uri, },
+            Position = new Position(0, 0),
+            Character = "=",
+            Options = new FormattingOptions
+            {
+                TabSize = 4,
+                InsertSpaces = true
+            },
+        };
+        var requestContext = await CreateOnAutoInsertRequestContextAsync(documentContext);
+
+        // Act
+        var result = await endpoint.HandleRequestAsync(@params, requestContext, DisposalToken);
+
+        // Assert
+        Assert.Equal(1, LanguageServer.RequestCount);
     }
 
     [Fact]
@@ -409,9 +481,10 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
         var razorFilePath = "file://path/test.razor";
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
+        var optionsMonitor = GetOptionsMonitor();
         var insertProvider = new TestOnAutoInsertProvider("!!!", canResolve: false);
         var providers = new[] { insertProvider };
-        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, providers, LoggerFactory);
+        var endpoint = new OnAutoInsertEndpoint(LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, providers, optionsMonitor, LoggerFactory);
 
         codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
         var @params = new VSInternalDocumentOnAutoInsertParams()
@@ -470,6 +543,9 @@ public class OnAutoInsertEndpointTest : SingleServerDelegatingEndpointTestBase
 
     private static RazorCodeDocument CreateCodeDocument()
     {
-        return CreateCodeDocument("");
+        return CreateCodeDocument("""
+
+            @{ }
+            """);
     }
 }
