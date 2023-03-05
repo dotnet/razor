@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Text;
@@ -27,6 +28,7 @@ internal static class RazorDiagnosticConverter
         {
             Message = razorDiagnostic.GetMessage(CultureInfo.InvariantCulture),
             Code = razorDiagnostic.Id,
+            Source = "Razor",
             Severity = ConvertSeverity(razorDiagnostic.Severity),
             // This is annotated as not null, but we have tests that validate the behaviour when
             // we pass in null here
@@ -34,6 +36,19 @@ internal static class RazorDiagnosticConverter
         };
 
         return diagnostic;
+    }
+
+    internal static Diagnostic[] Convert(IReadOnlyList<RazorDiagnostic> diagnostics, SourceText sourceText)
+    {
+        var convertedDiagnostics = new Diagnostic[diagnostics.Count];
+
+        var i = 0;
+        foreach (var diagnostic in diagnostics)
+        {
+            convertedDiagnostics[i++] = Convert(diagnostic, sourceText);
+        }
+
+        return convertedDiagnostics;
     }
 
     // Internal for testing

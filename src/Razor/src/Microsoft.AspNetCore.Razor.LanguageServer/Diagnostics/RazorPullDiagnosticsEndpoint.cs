@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -14,8 +15,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
-internal class RazorPullDiagnosticsEndpoint
-    : IRazorPullDiagnosticsEndpoint
+internal class RazorPullDiagnosticsEndpoint : IRazorPullDiagnosticsEndpoint
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ClientNotifierServiceBase _languageServer;
@@ -60,6 +60,21 @@ internal class RazorPullDiagnosticsEndpoint
 
         var documentContext = context.GetRequiredDocumentContext();
 
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var csharpDocument = codeDocument.GetCSharpDocument();
+        var diagnostics = csharpDocument.Diagnostics;
+        var convertedDiagnostics = RazorDiagnosticConverter.Convert(diagnostics, sourceText);
+
+        var razorDiagnostics = new VSInternalDiagnosticReport[]
+        {
+            new VSInternalDiagnosticReport
+            {
+                Diagnostics = convertedDiagnostics,
+                ResultId = Guid.NewGuid().ToString()
+            }
+        };
+
         var delegatedParams = new DelegatedDiagnosticParams(documentContext.Identifier);
 
         var delegatedResponse = await _languageServer.SendRequestAsync<DelegatedDiagnosticParams, RazorPullDiagnosticResponse?>(
@@ -67,29 +82,29 @@ internal class RazorPullDiagnosticsEndpoint
             delegatedParams,
             cancellationToken).ConfigureAwait(false);
 
-        if (delegatedResponse is null)
+        if (delegatedResponse is not null)
         {
-            return default;
-        }
-
-        foreach (var report in delegatedResponse.CSharpDiagnostics)
-        {
-            if (report.Diagnostics is not null)
+            foreach (var report in delegatedResponse.CSharpDiagnostics)
             {
-                var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, report.Diagnostics, documentContext, cancellationToken);
-                report.Diagnostics = mappedDiagnostics;
+                if (report.Diagnostics is not null)
+                {
+                    var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, report.Diagnostics, documentContext, cancellationToken);
+                    report.Diagnostics = mappedDiagnostics;
+                }
             }
-        }
 
-        foreach (var report in delegatedResponse.HtmlDiagnostics)
-        {
-            if (report.Diagnostics is not null)
+            foreach (var report in delegatedResponse.HtmlDiagnostics)
             {
-                var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, report.Diagnostics, documentContext, cancellationToken);
-                report.Diagnostics = mappedDiagnostics;
+                if (report.Diagnostics is not null)
+                {
+                    var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, report.Diagnostics, documentContext, cancellationToken);
+                    report.Diagnostics = mappedDiagnostics;
+                }
             }
+
+            razorDiagnostics = razorDiagnostics.Concat(delegatedResponse.CSharpDiagnostics).Concat(delegatedResponse.HtmlDiagnostics).ToArray();
         }
 
-        return delegatedResponse.CSharpDiagnostics.Concat(delegatedResponse.HtmlDiagnostics);
+        return razorDiagnostics;
     }
 }
