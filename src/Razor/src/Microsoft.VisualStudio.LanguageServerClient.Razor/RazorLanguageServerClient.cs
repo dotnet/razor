@@ -102,11 +102,6 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             throw new ArgumentNullException(nameof(logHubLoggerProviderFactory));
         }
 
-        if (outputWindowLogger is null)
-        {
-            throw new ArgumentNullException(nameof(outputWindowLogger));
-        }
-
         if (projectSnapshotManagerDispatcher is null)
         {
             throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
