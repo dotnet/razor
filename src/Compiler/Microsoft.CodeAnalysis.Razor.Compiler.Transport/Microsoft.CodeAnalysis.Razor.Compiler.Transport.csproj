@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.Build.NoTargets/2.0.1">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>Transport package for Microsoft.CodeAnalysis.Razor.Compiler assemblies. For internal use only.</Description>
+    <IsShipping>false</IsShipping>
+    <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <IsPackable Condition="'$(OS)' == 'Windows_NT'">true</IsPackable>
+    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+  </ItemGroup>
+
+  <Target Name="PackLayout" BeforeTargets="$(GenerateNuspecDependsOn)">
+    <ItemGroup>
+      <Content Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\netstandard2.0\*.*" Exclude="$(ArtifactsBinDir)**\*.pdb" PackagePath="lib\$(TargetFramework)" />
+    </ItemGroup>
+  </Target>
+
+</Project>
