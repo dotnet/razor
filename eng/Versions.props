@@ -25,8 +25,8 @@
     <StabilizePackageVersion Condition="'$(StabilizePackageVersion)' == ''">false</StabilizePackageVersion>
     <DotNetFinalVersionKind Condition="'$(StabilizePackageVersion)' == 'true'">release</DotNetFinalVersionKind>
     <DefaultNetFxTargetFramework>net472</DefaultNetFxTargetFramework>
-    <DefaultNetCoreTargetFramework>net8.0;net7.0</DefaultNetCoreTargetFramework>
-    <DefaultNetCoreWindowsTargetFramework>net8.0-windows;net7.0-windows</DefaultNetCoreWindowsTargetFramework>
+    <DefaultNetCoreTargetFrameworks>net8.0;net7.0</DefaultNetCoreTargetFrameworks>
+    <DefaultNetCoreWindowsTargetFrameworks>net8.0-windows;net7.0-windows</DefaultNetCoreWindowsTargetFrameworks>
   </PropertyGroup>
   <!--
     Versioning for tooling releases.
