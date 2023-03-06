@@ -59,33 +59,34 @@ internal class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRuleDescript
 
     public TagMatchingRuleDescriptor Build()
     {
-        using var _ = HashSetPool<RazorDiagnostic>.GetPooledObject(out var diagnostics);
-
-        Validate(diagnostics);
-
-        if (_diagnostics is { } existingDiagnostics)
+        var diagnostics = new PooledHashSet<RazorDiagnostic>();
+        try
         {
-            diagnostics.UnionWith(existingDiagnostics);
+            Validate(ref diagnostics);
+
+            diagnostics.UnionWith(_diagnostics);
+
+            var requiredAttributes = _requiredAttributeBuilders.BuildAllOrEmpty(s_requiredAttributeSetPool);
+
+            var rule = new DefaultTagMatchingRuleDescriptor(
+                TagName,
+                ParentTag,
+                TagStructure,
+                CaseSensitive,
+                requiredAttributes,
+                diagnostics.ToArray());
+
+            return rule;
         }
-
-        var requiredAttributes = _requiredAttributeBuilders is { } requiredAttributeBuilders
-            ? requiredAttributeBuilders.BuildAll(s_requiredAttributeSetPool)
-            : Array.Empty<RequiredAttributeDescriptor>();
-
-        var rule = new DefaultTagMatchingRuleDescriptor(
-            TagName,
-            ParentTag,
-            TagStructure,
-            CaseSensitive,
-            requiredAttributes,
-            diagnostics.ToArray());
-
-        return rule;
+        finally
+        {
+            diagnostics.ClearAndFree();
+        }
     }
 
-    private void Validate(HashSet<RazorDiagnostic> diagnostics)
+    private void Validate(ref PooledHashSet<RazorDiagnostic> diagnostics)
     {
-        if (string.IsNullOrWhiteSpace(TagName))
+        if (TagName.IsNullOrWhiteSpace())
         {
             var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidTargetedTagNameNullOrWhitespace();
 
@@ -93,7 +94,7 @@ internal class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRuleDescript
         }
         else if (TagName != TagHelperMatchingConventions.ElementCatchAllName)
         {
-            foreach (var character in TagName!)
+            foreach (var character in TagName)
             {
                 if (char.IsWhiteSpace(character) || HtmlConventions.IsInvalidNonWhitespaceHtmlCharacters(character))
                 {
@@ -106,7 +107,7 @@ internal class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRuleDescript
 
         if (ParentTag != null)
         {
-            if (string.IsNullOrWhiteSpace(ParentTag))
+            if (ParentTag.IsNullOrWhiteSpace())
             {
                 var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidTargetedParentTagNameNullOrWhitespace();
 

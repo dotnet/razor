@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
+using System;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -24,28 +24,31 @@ internal class DefaultAllowedChildTagDescriptorBuilder : AllowedChildTagDescript
 
     public AllowedChildTagDescriptor Build()
     {
-        using var _ = HashSetPool<RazorDiagnostic>.GetPooledObject(out var diagnostics);
-
-        Validate(diagnostics);
-
-        if (_diagnostics is { } existingDiagnostics)
+        var diagnostics = new PooledHashSet<RazorDiagnostic>();
+        try
         {
-            diagnostics.UnionWith(existingDiagnostics);
+            Validate(ref diagnostics);
+
+            diagnostics.UnionWith(_diagnostics);
+
+            var displayName = DisplayName ?? Name;
+
+            var descriptor = new DefaultAllowedChildTagDescriptor(
+                Name,
+                displayName,
+                diagnostics.ToArray());
+
+            return descriptor;
         }
-
-        var displayName = DisplayName ?? Name;
-
-        var descriptor = new DefaultAllowedChildTagDescriptor(
-            Name,
-            displayName,
-            diagnostics.ToArray());
-
-        return descriptor;
+        finally
+        {
+            diagnostics.ClearAndFree();
+        }
     }
 
-    private void Validate(HashSet<RazorDiagnostic> diagnostics)
+    private void Validate(ref PooledHashSet<RazorDiagnostic> diagnostics)
     {
-        if (string.IsNullOrWhiteSpace(Name))
+        if (Name.IsNullOrWhiteSpace())
         {
             var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidRestrictedChildNullOrWhitespace(_parent.GetDisplayName());
 
@@ -53,7 +56,7 @@ internal class DefaultAllowedChildTagDescriptorBuilder : AllowedChildTagDescript
         }
         else if (Name != TagHelperMatchingConventions.ElementCatchAllName)
         {
-            foreach (var character in Name!)
+            foreach (var character in Name)
             {
                 if (char.IsWhiteSpace(character) || HtmlConventions.IsInvalidNonWhitespaceHtmlCharacters(character))
                 {

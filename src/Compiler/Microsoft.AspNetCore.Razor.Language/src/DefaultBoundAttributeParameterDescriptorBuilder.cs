@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -41,35 +42,38 @@ internal class DefaultBoundAttributeParameterDescriptorBuilder : BoundAttributeP
 
     public BoundAttributeParameterDescriptor Build()
     {
-        using var _ = HashSetPool<RazorDiagnostic>.GetPooledObject(out var diagnostics);
-
-        Validate(diagnostics);
-
-        if (_diagnostics is { } existingDiagnostics)
+        var diagnostics = new PooledHashSet<RazorDiagnostic>();
+        try
         {
-            diagnostics.UnionWith(existingDiagnostics);
+            Validate(ref diagnostics);
+
+            diagnostics.UnionWith(_diagnostics);
+
+            var descriptor = new DefaultBoundAttributeParameterDescriptor(
+                _kind,
+                Name,
+                TypeName,
+                IsEnum,
+                Documentation,
+                GetDisplayName(),
+                CaseSensitive,
+                _metadata.ToImmutable(),
+                diagnostics.ToArray());
+
+            return descriptor;
         }
-
-        var descriptor = new DefaultBoundAttributeParameterDescriptor(
-            _kind,
-            Name,
-            TypeName,
-            IsEnum,
-            Documentation,
-            GetDisplayName(),
-            CaseSensitive,
-            _metadata.ToImmutable(),
-            diagnostics.ToArray());
-
-        return descriptor;
+        finally
+        {
+            diagnostics.ClearAndFree();
+        }
     }
 
     private string GetDisplayName()
         => DisplayName ?? $":{Name}";
 
-    private void Validate(HashSet<RazorDiagnostic> diagnostics)
+    private void Validate(ref PooledHashSet<RazorDiagnostic> diagnostics)
     {
-        if (string.IsNullOrWhiteSpace(Name))
+        if (Name.IsNullOrWhiteSpace())
         {
             var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidBoundAttributeParameterNullOrWhitespace(_parent.Name);
 
@@ -77,7 +81,7 @@ internal class DefaultBoundAttributeParameterDescriptorBuilder : BoundAttributeP
         }
         else
         {
-            foreach (var character in Name!)
+            foreach (var character in Name)
             {
                 if (char.IsWhiteSpace(character) || HtmlConventions.IsInvalidNonWhitespaceHtmlCharacters(character))
                 {

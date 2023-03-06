@@ -15,24 +15,26 @@ internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptor
     private static readonly ObjectPool<HashSet<BoundAttributeParameterDescriptor>> s_boundAttributeParameterSetPool
         = HashSetPool<BoundAttributeParameterDescriptor>.Create(BoundAttributeParameterDescriptorComparer.Default);
 
-    private static readonly ImmutableDictionary<string, string> s_primitiveDisplayTypeNameLookups = new[]
+    // PERF: A Dictionary<string, string> is used intentionally here for faster lookup over ImmutableDictionary<string, string>.
+    // This should never be mutated.
+    private static readonly Dictionary<string, string> s_primitiveDisplayTypeNameLookups = new(StringComparer.Ordinal)
     {
-        (typeof(byte).FullName, "byte"),
-        (typeof(sbyte).FullName, "sbyte"),
-        (typeof(int).FullName, "int"),
-        (typeof(uint).FullName, "uint"),
-        (typeof(short).FullName, "short"),
-        (typeof(ushort).FullName, "ushort"),
-        (typeof(long).FullName, "long"),
-        (typeof(ulong).FullName, "ulong"),
-        (typeof(float).FullName, "float"),
-        (typeof(double).FullName, "double"),
-        (typeof(char).FullName, "char"),
-        (typeof(bool).FullName, "bool"),
-        (typeof(object).FullName, "object"),
-        (typeof(string).FullName, "string"),
-        (typeof(decimal).FullName, "decimal")
-    }.ToImmutableDictionary(StringComparer.Ordinal);
+        { typeof(byte).FullName, "byte" },
+        { typeof(sbyte).FullName, "sbyte" },
+        { typeof(int).FullName, "int" },
+        { typeof(uint).FullName, "uint" },
+        { typeof(short).FullName, "short" },
+        { typeof(ushort).FullName, "ushort" },
+        { typeof(long).FullName, "long" },
+        { typeof(ulong).FullName, "ulong" },
+        { typeof(float).FullName, "float" },
+        { typeof(double).FullName, "double" },
+        { typeof(char).FullName, "char" },
+        { typeof(bool).FullName, "bool" },
+        { typeof(object).FullName, "object" },
+        { typeof(string).FullName, "string" },
+        { typeof(decimal).FullName, "decimal" }
+    };
 
     private readonly DefaultTagHelperDescriptorBuilder _parent;
     private readonly string _kind;
@@ -87,38 +89,39 @@ internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptor
 
     public BoundAttributeDescriptor Build()
     {
-        using var _ = HashSetPool<RazorDiagnostic>.GetPooledObject(out var diagnostics);
-
-        Validate(diagnostics);
-
-        if (_diagnostics is { } existingDiagnostics)
+        var diagnostics = new PooledHashSet<RazorDiagnostic>();
+        try
         {
-            diagnostics.UnionWith(existingDiagnostics);
+            Validate(ref diagnostics);
+
+            diagnostics.UnionWith(_diagnostics);
+
+            var parameters = _attributeParameterBuilders.BuildAllOrEmpty(s_boundAttributeParameterSetPool);
+
+            var descriptor = new DefaultBoundAttributeDescriptor(
+                _kind,
+                Name,
+                TypeName,
+                IsEnum,
+                IsDictionary,
+                IndexerAttributeNamePrefix,
+                IndexerValueTypeName,
+                Documentation,
+                GetDisplayName(),
+                CaseSensitive,
+                parameters,
+                _metadata.ToImmutable(),
+                diagnostics.ToArray())
+            {
+                IsEditorRequired = IsEditorRequired,
+            };
+
+            return descriptor;
         }
-
-        var parameters = _attributeParameterBuilders is { } attributeParameterBuilders
-            ? attributeParameterBuilders.BuildAll(s_boundAttributeParameterSetPool)
-            : Array.Empty<BoundAttributeParameterDescriptor>();
-
-        var descriptor = new DefaultBoundAttributeDescriptor(
-            _kind,
-            Name,
-            TypeName,
-            IsEnum,
-            IsDictionary,
-            IndexerAttributeNamePrefix,
-            IndexerValueTypeName,
-            Documentation,
-            GetDisplayName(),
-            CaseSensitive,
-            parameters,
-            _metadata.ToImmutable(),
-            diagnostics.ToArray())
+        finally
         {
-            IsEditorRequired = IsEditorRequired,
-        };
-
-        return descriptor;
+            diagnostics.ClearAndFree();
+        }
     }
 
     private string GetDisplayName()
@@ -147,14 +150,14 @@ internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptor
         return Name ?? string.Empty;
     }
 
-    private void Validate(HashSet<RazorDiagnostic> diagnostics)
+    private void Validate(ref PooledHashSet<RazorDiagnostic> diagnostics)
     {
         // data-* attributes are explicitly not implemented by user agents and are not intended for use on
         // the server; therefore it's invalid for TagHelpers to bind to them.
         const string DataDashPrefix = "data-";
         var isDirectiveAttribute = this.IsDirectiveAttribute();
 
-        if (string.IsNullOrWhiteSpace(Name))
+        if (Name.IsNullOrWhiteSpace())
         {
             if (IndexerAttributeNamePrefix == null)
             {
@@ -167,7 +170,7 @@ internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptor
         }
         else
         {
-            if (Name!.StartsWith(DataDashPrefix, StringComparison.OrdinalIgnoreCase))
+            if (Name.StartsWith(DataDashPrefix, StringComparison.OrdinalIgnoreCase))
             {
                 var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidBoundAttributeNameStartsWith(
                     _parent.GetDisplayName(),

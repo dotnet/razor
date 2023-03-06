@@ -36,28 +36,31 @@ internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDesc
 
     public RequiredAttributeDescriptor Build()
     {
-        using var _ = HashSetPool<RazorDiagnostic>.GetPooledObject(out var diagnostics);
-
-        Validate(diagnostics);
-
-        if (_diagnostics is { } existingDiagnostics)
+        var diagnostics = new PooledHashSet<RazorDiagnostic>();
+        try
         {
-            diagnostics.UnionWith(existingDiagnostics);
+            Validate(ref diagnostics);
+
+            diagnostics.UnionWith(_diagnostics);
+
+            var displayName = GetDisplayName();
+
+            var descriptor = new DefaultRequiredAttributeDescriptor(
+                Name,
+                NameComparisonMode,
+                CaseSensitive,
+                Value,
+                ValueComparisonMode,
+                displayName,
+                diagnostics.ToArray(),
+                _metadata.ToImmutable());
+
+            return descriptor;
         }
-
-        var displayName = GetDisplayName();
-
-        var rule = new DefaultRequiredAttributeDescriptor(
-            Name,
-            NameComparisonMode,
-            CaseSensitive,
-            Value,
-            ValueComparisonMode,
-            displayName,
-            diagnostics.ToArray(),
-            _metadata.ToImmutable());
-
-        return rule;
+        finally
+        {
+            diagnostics.ClearAndFree();
+        }
     }
 
     private string GetDisplayName()
@@ -65,9 +68,9 @@ internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDesc
         return (NameComparisonMode == RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch ? string.Concat(Name, "...") : Name) ?? string.Empty;
     }
 
-    private void Validate(HashSet<RazorDiagnostic> diagnostics)
+    private void Validate(ref PooledHashSet<RazorDiagnostic> diagnostics)
     {
-        if (string.IsNullOrWhiteSpace(Name))
+        if (Name.IsNullOrWhiteSpace())
         {
             var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidTargetedAttributeNameNullOrWhitespace();
 

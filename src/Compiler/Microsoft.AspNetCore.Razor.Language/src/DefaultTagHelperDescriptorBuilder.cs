@@ -134,24 +134,13 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder, I
 
     public override TagHelperDescriptor Build()
     {
-        using var _ = HashSetPool<RazorDiagnostic>.GetPooledObject(out var diagnostics);
+        using var diagnostics = new PooledHashSet<RazorDiagnostic>();
 
-        if (_diagnostics is { } existingDiagnostics)
-        {
-            diagnostics.UnionWith(existingDiagnostics);
-        }
+        diagnostics.UnionWith(_diagnostics);
 
-        var allowedChildTags = _allowedChildTags is { } allowedChildTagBuilders
-            ? allowedChildTagBuilders.BuildAll(s_allowedChildTagSetPool)
-            : Array.Empty<AllowedChildTagDescriptor>();
-
-        var tagMatchingRules = _tagMatchingRuleBuilders is { } tagMatchingRuleBuilders
-            ? tagMatchingRuleBuilders.BuildAll(s_tagMatchingRuleSetPool)
-            : Array.Empty<TagMatchingRuleDescriptor>();
-
-        var attributes = _attributeBuilders is { } attributeBuilders
-            ? attributeBuilders.BuildAll(s_boundAttributeSetPool)
-            : Array.Empty<BoundAttributeDescriptor>();
+        var allowedChildTags = _allowedChildTags.BuildAllOrEmpty(s_allowedChildTagSetPool);
+        var tagMatchingRules = _tagMatchingRuleBuilders.BuildAllOrEmpty(s_tagMatchingRuleSetPool);
+        var attributes = _attributeBuilders.BuildAllOrEmpty(s_boundAttributeSetPool);
 
         var descriptor = new DefaultTagHelperDescriptor(
             Kind,
