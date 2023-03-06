@@ -15,7 +15,7 @@
   </PropertyGroup>
   <!-- Versioning for assemblies/packages -->
   <PropertyGroup>
-    <MajorVersion>7</MajorVersion>
+    <MajorVersion>8</MajorVersion>
     <MinorVersion>0</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>preview</PreReleaseVersionLabel>
@@ -25,8 +25,8 @@
     <StabilizePackageVersion Condition="'$(StabilizePackageVersion)' == ''">false</StabilizePackageVersion>
     <DotNetFinalVersionKind Condition="'$(StabilizePackageVersion)' == 'true'">release</DotNetFinalVersionKind>
     <DefaultNetFxTargetFramework>net472</DefaultNetFxTargetFramework>
-    <DefaultNetCoreTargetFramework>net7.0</DefaultNetCoreTargetFramework>
-    <DefaultNetCoreWindowsTargetFramework>net7.0-windows</DefaultNetCoreWindowsTargetFramework>
+    <DefaultNetCoreTargetFramework>net7.0;net8.0</DefaultNetCoreTargetFramework>
+    <DefaultNetCoreWindowsTargetFramework>net7.0-windows;net8.0-windows</DefaultNetCoreWindowsTargetFramework>
   </PropertyGroup>
   <!--
     Versioning for tooling releases.
