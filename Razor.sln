@@ -182,6 +182,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp", "src\Razor\src\Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp\Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.csproj", "{3E2B6DF5-524F-4909-8A66-7F8C6383620A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Razor.Compiler", "src\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj", "{6A404EC4-DCF2-4F7F-AAE2-8CA31FD8C52E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -766,6 +768,14 @@ Global
 		{3E2B6DF5-524F-4909-8A66-7F8C6383620A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3E2B6DF5-524F-4909-8A66-7F8C6383620A}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
 		{3E2B6DF5-524F-4909-8A66-7F8C6383620A}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
+		{6A404EC4-DCF2-4F7F-AAE2-8CA31FD8C52E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A404EC4-DCF2-4F7F-AAE2-8CA31FD8C52E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A404EC4-DCF2-4F7F-AAE2-8CA31FD8C52E}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A404EC4-DCF2-4F7F-AAE2-8CA31FD8C52E}.DebugNoVSIX|Any CPU.Build.0 = Debug|Any CPU
+		{6A404EC4-DCF2-4F7F-AAE2-8CA31FD8C52E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A404EC4-DCF2-4F7F-AAE2-8CA31FD8C52E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A404EC4-DCF2-4F7F-AAE2-8CA31FD8C52E}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
+		{6A404EC4-DCF2-4F7F-AAE2-8CA31FD8C52E}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -850,6 +860,7 @@ Global
 		{A9F9B5E5-C5C2-4860-BE56-038C70ADBAC9} = {FB7C870E-A173-4F75-BE63-4EF39C79A759}
 		{7400A168-2552-49C7-93E3-D4DAA90C216F} = {C2C98051-0F39-47F2-80B6-E72B29159F2C}
 		{3E2B6DF5-524F-4909-8A66-7F8C6383620A} = {3C0D6505-79B3-49D0-B4C3-176F0F1836ED}
+		{6A404EC4-DCF2-4F7F-AAE2-8CA31FD8C52E} = {5B60F564-4AD7-4B70-A887-7D91496799A2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0035341D-175A-4D05-95E6-F1C2785A1E26}
