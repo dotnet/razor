@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(DefaultNetCoreTargetFramework)</TargetFrameworks>
+    <!-- Target framework used for publishing. -->
+    <TargetFramework>net8.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains a Razor language server.</Description>
     <EnableApiCheck>false</EnableApiCheck>
