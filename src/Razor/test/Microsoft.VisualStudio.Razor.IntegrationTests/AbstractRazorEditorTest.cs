@@ -52,10 +52,8 @@ public abstract class AbstractRazorEditorTest : AbstractEditorTest
         await TestServices.Editor.PlaceCaretAsync("</PageTitle>", charsOffset: 1, ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
 
-#pragma warning disable CS0618
         // Close the file we opened, just in case, so the test can start with a clean slate
-        await TestServices.Editor.CloseDocumentWindowAsync(ControlledHangMitigatingCancellationToken);
-#pragma warning restore CS0618
+        await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, saveFile: false, ControlledHangMitigatingCancellationToken);
     }
 
     private static void EnsureLSPEditorEnabled()
