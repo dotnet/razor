@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -2280,7 +2281,7 @@ namespace AspNetCoreGeneratedDocument
             Assert.Equal(2, result.GeneratedSources.Length);
         }
 
-        [Fact] // https://github.com/dotnet/razor/issues/8281
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/8281")]
         public async Task SourceGenerator_CshtmlFiles_ViewComponentTagHelper()
         {
             // Arrange
@@ -2507,7 +2508,7 @@ namespace MyApp.Pages
                 .VerifyOutputsMatch(result);
         }
 
-        [Fact] // https://github.com/dotnet/razor/issues/7914
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/7914")]
         public async Task SourceGenerator_UppercaseRazor_GeneratesComponent()
         {
             var project = CreateTestProject(new()
@@ -2547,7 +2548,7 @@ namespace MyApp
             Assert.Single(result.GeneratedSources);
         }
 
-        [Theory] // https://github.com/dotnet/razor/issues/7236
+        [Theory, WorkItem("https://github.com/dotnet/razor/issues/7236")]
         [InlineData("")]
         [InlineData(" ")]
         [InlineData("\n")]

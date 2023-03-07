@@ -7,6 +7,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
@@ -533,7 +534,7 @@ public struct MyStruct
         CompileToAssembly(generated);
     }
 
-    [Fact] // https://github.com/dotnet/razor/issues/7628
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7628")]
     public void ComponentWithTypeParameterValueTuple_ExplicitGenericArguments()
     {
         // Act
@@ -7176,7 +7177,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Theory] // https://github.com/dotnet/razor/issues/7074
+    [Theory, WorkItem("https://github.com/dotnet/razor/issues/7074")]
     [InlineData("struct", null, "1")]
     [InlineData("class", null, "string.Empty")]
     [InlineData("notnull", null, "1")]
@@ -7628,7 +7629,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Fact] // https://github.com/dotnet/razor/issues/8170
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8170")]
     public void Component_WithRef_Nullable()
     {
         // Act
@@ -7648,7 +7649,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Fact] // https://github.com/dotnet/razor/issues/8170
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8170")]
     public void Component_WithRef_Nullable_Generic()
     {
         // Arrange
@@ -9054,7 +9055,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Fact] // https://github.com/dotnet/blazor/issues/597
+    [Fact, WorkItem("https://github.com/dotnet/blazor/issues/597")]
     public void Regression_597()
     {
         // Arrange
@@ -9120,7 +9121,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Fact] // https://github.com/dotnet/blazor/issues/772
+    [Fact, WorkItem("https://github.com/dotnet/blazor/issues/772")]
     public void Regression_772()
     {
         // Arrange
@@ -9158,7 +9159,7 @@ Welcome to your new app.
             d => Assert.Equal("RZ1035", d.Id));
     }
 
-    [Fact] // https://github.com/dotnet/blazor/issues/773
+    [Fact, WorkItem("https://github.com/dotnet/blazor/issues/773")]
     public void Regression_773()
     {
         // Arrange
