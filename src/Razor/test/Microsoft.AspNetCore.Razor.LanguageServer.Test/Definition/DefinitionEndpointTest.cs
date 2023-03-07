@@ -7,11 +7,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
@@ -20,9 +16,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 
-public class RazorDefinitionEndpointTest : TagHelperServiceTestBase
+public class DefinitionEndpointTest : TagHelperServiceTestBase
 {
-    public RazorDefinitionEndpointTest(ITestOutputHelper testOutput)
+    public DefinitionEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
     }
@@ -203,7 +199,7 @@ public class RazorDefinitionEndpointTest : TagHelperServiceTestBase
         SetupDocument(out _, out var documentSnapshot, content, isRazorFile);
         var documentContext = CreateDocumentContext(new Uri(@"C:\file.razor"), documentSnapshot);
 
-        var descriptor = await RazorDefinitionEndpoint.GetOriginTagHelperBindingAsync(documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), DisposalToken);
+        var descriptor = await DefinitionEndpoint.GetOriginTagHelperBindingAsync(documentContext, position, LoggerFactory.CreateLogger("RazorDefinitionEndpoint"), DisposalToken);
 
         if (tagHelperDescriptorName is null)
         {

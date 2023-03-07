@@ -11,11 +11,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
@@ -26,18 +23,19 @@ using SyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 
-internal class RazorDefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParamsBridge, DefinitionResult?>, IDefinitionEndpoint
+[LanguageServerEndpoint(Methods.TextDocumentDefinitionName)]
+internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, DefinitionResult?>, IRegistrationExtension
 {
     private readonly RazorComponentSearchEngine _componentSearchEngine;
     private readonly RazorDocumentMappingService _documentMappingService;
 
-    public RazorDefinitionEndpoint(
+    public DefinitionEndpoint(
         RazorComponentSearchEngine componentSearchEngine,
         RazorDocumentMappingService documentMappingService,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         ClientNotifierServiceBase languageServer,
         ILoggerFactory loggerFactory)
-        : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RazorDefinitionEndpoint>())
+        : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<DefinitionEndpoint>())
     {
         _componentSearchEngine = componentSearchEngine ?? throw new ArgumentNullException(nameof(componentSearchEngine));
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
@@ -55,7 +53,7 @@ internal class RazorDefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDoc
         return new RegistrationExtensionResult(ServerCapability, option);
     }
 
-    protected async override Task<DefinitionResult?> TryHandleAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected async override Task<DefinitionResult?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
         requestContext.Logger.LogInformation("Starting go-to-def endpoint request.");
         var documentContext = requestContext.GetRequiredDocumentContext();
@@ -102,7 +100,7 @@ internal class RazorDefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDoc
         };
     }
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
@@ -111,7 +109,7 @@ internal class RazorDefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDoc
                 projection.LanguageKind));
     }
 
-    protected async override Task<DefinitionResult?> HandleDelegatedResponseAsync(DefinitionResult? response, TextDocumentPositionParamsBridge originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected async override Task<DefinitionResult?> HandleDelegatedResponseAsync(DefinitionResult? response, TextDocumentPositionParams originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
         if (response is null)
         {

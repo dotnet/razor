@@ -9,24 +9,26 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
-internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParamsBridge, VSInternalHover?>, IVSHoverEndpoint
+[LanguageServerEndpoint(Methods.TextDocumentHoverName)]
+internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, VSInternalHover?>, IRegistrationExtension
 {
-    private readonly RazorHoverInfoService _hoverInfoService;
+    private readonly IHoverInfoService _hoverInfoService;
     private readonly RazorDocumentMappingService _documentMappingService;
     private VSInternalClientCapabilities? _clientCapabilities;
 
-    public RazorHoverEndpoint(
-        RazorHoverInfoService hoverInfoService,
+    public HoverEndpoint(
+        IHoverInfoService hoverInfoService,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         RazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         ILoggerFactory loggerFactory)
-        : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RazorHoverEndpoint>())
+        : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<HoverEndpoint>())
     {
         _hoverInfoService = hoverInfoService ?? throw new ArgumentNullException(nameof(hoverInfoService));
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
@@ -49,7 +51,7 @@ internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocument
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
@@ -58,7 +60,7 @@ internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocument
                 projection.LanguageKind));
     }
 
-    protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
         // HTML can still sometimes be handled by razor. For example hovering over
@@ -79,7 +81,7 @@ internal class RazorHoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocument
         return _hoverInfoService.GetHoverInfo(codeDocument, location, _clientCapabilities!);
     }
 
-    protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParamsBridge originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParams originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
         if (response?.Range is null)
         {
