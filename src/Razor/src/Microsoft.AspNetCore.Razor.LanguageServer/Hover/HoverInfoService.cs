@@ -19,7 +19,7 @@ using VisualStudioMarkupKind = Microsoft.VisualStudio.LanguageServer.Protocol.Ma
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
-internal class DefaultRazorHoverInfoService : RazorHoverInfoService
+internal sealed class HoverInfoService : IHoverInfoService
 {
     private readonly TagHelperFactsService _tagHelperFactsService;
     private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
@@ -27,7 +27,7 @@ internal class DefaultRazorHoverInfoService : RazorHoverInfoService
     private readonly HtmlFactsService _htmlFactsService;
 
     [ImportingConstructor]
-    public DefaultRazorHoverInfoService(
+    public HoverInfoService(
         TagHelperFactsService tagHelperFactsService,
         LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
         VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
@@ -59,7 +59,7 @@ internal class DefaultRazorHoverInfoService : RazorHoverInfoService
         _htmlFactsService = htmlFactsService;
     }
 
-    public override VSInternalHover? GetHoverInfo(RazorCodeDocument codeDocument, SourceLocation location, VSInternalClientCapabilities clientCapabilities)
+    public VSInternalHover? GetHoverInfo(RazorCodeDocument codeDocument, SourceLocation location, VSInternalClientCapabilities clientCapabilities)
     {
         if (codeDocument is null)
         {
