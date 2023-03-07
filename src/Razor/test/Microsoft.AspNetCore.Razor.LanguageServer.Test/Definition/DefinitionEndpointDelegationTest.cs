@@ -6,7 +6,6 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -23,9 +22,9 @@ using DefinitionResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 
-public class RazorDefinitionEndpointDelegationTest : SingleServerDelegatingEndpointTestBase
+public class DefinitionEndpointDelegationTest : SingleServerDelegatingEndpointTestBase
 {
-    public RazorDefinitionEndpointDelegationTest(ITestOutputHelper testOutput)
+    public DefinitionEndpointDelegationTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
     }
@@ -132,10 +131,10 @@ public class RazorDefinitionEndpointDelegationTest : SingleServerDelegatingEndpo
         var documentContext = await DocumentContextFactory.TryCreateForOpenDocumentAsync(razorUri, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
-        var endpoint = new RazorDefinitionEndpoint(searchEngine, DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, LoggerFactory);
+        var endpoint = new DefinitionEndpoint(searchEngine, DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, LoggerFactory);
 
         codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
-        var request = new TextDocumentPositionParamsBridge
+        var request = new TextDocumentPositionParams
         {
             TextDocument = new TextDocumentIdentifier
             {
