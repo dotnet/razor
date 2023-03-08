@@ -7,7 +7,7 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 #nullable restore
 #line 7 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
 global::System.Object Section2 = null!;
@@ -17,7 +17,7 @@ global::System.Object Section2 = null!;
 #nullable disable
         }
         ))();
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 #nullable restore
 #line 11 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
 global::System.Object Section1 = null!;
@@ -27,7 +27,7 @@ global::System.Object Section1 = null!;
 #nullable disable
         }
         ))();
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 #nullable restore
 #line 15 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
 global::System.Object NestedDelegates = null!;
@@ -40,7 +40,7 @@ global::System.Object NestedDelegates = null!;
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         public async System.Threading.Tasks.Task ExecuteAsync()

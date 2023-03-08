@@ -235,7 +235,7 @@ stages:
             -prepareMachine
             -test
             -integrationTest
-            /p:BuildProjectReferences=false
+            /p:BuildDependencyVsix=true
           name: Run_Tests
           displayName: Run Unit and Integration tests
           condition: succeeded()

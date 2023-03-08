@@ -38,6 +38,8 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
     private readonly LanguageServerFeatureOptions? _featureOptions;
     private readonly ProjectSnapshotManagerDispatcher? _projectSnapshotManagerDispatcher;
     private readonly Action<IServiceCollection>? _configureServer;
+    private readonly RazorLSPOptions _lspOptions;
+
     // Cached for testing
     private IHandlerProvider? _handlerProvider;
 
@@ -46,13 +48,15 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         ILspLogger logger,
         ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher,
         LanguageServerFeatureOptions? featureOptions,
-        Action<IServiceCollection>? configureServer)
+        Action<IServiceCollection>? configureServer,
+        RazorLSPOptions? lspOptions)
         : base(jsonRpc, logger)
     {
         _jsonRpc = jsonRpc;
         _featureOptions = featureOptions;
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _configureServer = configureServer;
+        _lspOptions = lspOptions ?? RazorLSPOptions.Default;
 
         Initialize();
     }
@@ -124,13 +128,13 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         services.AddCompletionServices(featureOptions);
         services.AddFormattingServices();
         services.AddCodeActionsServices();
-        services.AddOptionsServices();
+        services.AddOptionsServices(_lspOptions);
         services.AddHoverServices();
         services.AddTextDocumentServices();
 
         // Auto insert
-        services.AddSingleton<RazorOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
-        services.AddSingleton<RazorOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
+        services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
+        services.AddSingleton<IOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
 
         // Folding Range Providers
         services.AddSingleton<RazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
@@ -172,7 +176,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             services.AddRegisteringHandler<OnAutoInsertEndpoint>();
             services.AddHandler<MonitorProjectConfigurationFilePathEndpoint>();
             services.AddRegisteringHandler<RenameEndpoint>();
-            services.AddRegisteringHandler<RazorDefinitionEndpoint>();
+            services.AddRegisteringHandler<DefinitionEndpoint>();
             services.AddRegisteringHandler<LinkedEditingRangeEndpoint>();
             services.AddHandler<WrapWithTagEndpoint>();
             services.AddHandler<RazorBreakpointSpanEndpoint>();

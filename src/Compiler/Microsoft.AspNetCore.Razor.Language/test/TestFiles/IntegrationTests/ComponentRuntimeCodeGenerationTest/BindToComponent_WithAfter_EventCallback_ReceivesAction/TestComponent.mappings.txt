@@ -2,7 +2,11 @@
 |
     public int ParentValue { get; set; } = 42;
 |
+<<<<<<< HEAD
 Generated Location: (1843:31,7 [50] )
+=======
+Generated Location: (1826:31,7 [50] )
+>>>>>>> main
 |
     public int ParentValue { get; set; } = 42;
 |
