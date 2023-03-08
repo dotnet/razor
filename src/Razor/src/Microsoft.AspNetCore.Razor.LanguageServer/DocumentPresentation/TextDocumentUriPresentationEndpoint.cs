@@ -81,7 +81,7 @@ internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresent
         }
 
         var razorFileUri = request.Uris.Where(
-            x => Path.GetFileName(x.GetAbsoluteOrUNCPath()).EndsWith(".razor", FilePathComparison.Instance)).LastOrDefault();
+            x => Path.GetFileName(x.GetAbsoluteOrUNCPath()).EndsWith(".razor", FilePathComparison.Instance)).FirstOrDefault();
 
         // We only want to handle requests for a single .razor file, but when there are files nested under a .razor
         // file (for example, Goo.razor.css, Goo.razor.cs etc.) then we'll get all of those files as well, when the user
@@ -92,14 +92,14 @@ internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresent
             return null;
         }
 
-        var fileName = Path.GetFileName(razorFileUri!.GetAbsoluteOrUNCPath());
+        var fileName = Path.GetFileName(razorFileUri.GetAbsoluteOrUNCPath());
         if (request.Uris.Any(uri => !Path.GetFileName(uri.GetAbsoluteOrUNCPath()).StartsWith(fileName, FilePathComparison.Instance)))
         {
             _logger.LogInformation("One or more URIs were not a child file of the main .razor file.");
             return null;
         }
 
-        var componentTagText = await TryGetComponentTagAsync(razorFileUri!, cancellationToken).ConfigureAwait(false);
+        var componentTagText = await TryGetComponentTagAsync(razorFileUri, cancellationToken).ConfigureAwait(false);
         if (componentTagText is null)
         {
             return null;
