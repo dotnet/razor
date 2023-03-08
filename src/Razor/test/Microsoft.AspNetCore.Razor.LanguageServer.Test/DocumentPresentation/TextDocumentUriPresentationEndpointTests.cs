@@ -394,7 +394,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
     }
 
     [Fact]
-    public async Task Handle_ComponentWithNestedFiles_Success()
+    public async Task Handle_ComponentWithNestedFiles_ReturnsResult()
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.Create(@"<FetchData\>");
