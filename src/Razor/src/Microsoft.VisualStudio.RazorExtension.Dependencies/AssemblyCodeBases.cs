@@ -116,5 +116,6 @@ using Microsoft.VisualStudio.Shell;
     OldVersionLowerBound = "4.4.0.0",
     OldVersionUpperBound = "4.6.0.0",
     NewVersion = "4.6.0.0")]
+
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.CodeAnalysis.Workspaces.dll")]
 #endif
