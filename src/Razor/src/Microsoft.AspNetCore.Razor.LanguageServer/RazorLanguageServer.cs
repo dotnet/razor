@@ -133,8 +133,8 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         services.AddTextDocumentServices();
 
         // Auto insert
-        services.AddSingleton<RazorOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
-        services.AddSingleton<RazorOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
+        services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
+        services.AddSingleton<IOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
 
         // Folding Range Providers
         services.AddSingleton<RazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
@@ -176,7 +176,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             services.AddRegisteringHandler<OnAutoInsertEndpoint>();
             services.AddHandler<MonitorProjectConfigurationFilePathEndpoint>();
             services.AddRegisteringHandler<RenameEndpoint>();
-            services.AddRegisteringHandler<RazorDefinitionEndpoint>();
+            services.AddRegisteringHandler<DefinitionEndpoint>();
             services.AddRegisteringHandler<LinkedEditingRangeEndpoint>();
             services.AddHandler<WrapWithTagEndpoint>();
             services.AddHandler<RazorBreakpointSpanEndpoint>();

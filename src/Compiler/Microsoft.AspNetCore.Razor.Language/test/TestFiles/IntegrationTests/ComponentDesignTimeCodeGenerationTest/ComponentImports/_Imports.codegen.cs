@@ -27,7 +27,7 @@ using System.Reflection;
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 #nullable restore
 #line 4 "x:\dir\subdir\Test\_Imports.razor"
 MainLayout __typeHelper = default!;
@@ -40,7 +40,7 @@ MainLayout __typeHelper = default!;
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         protected void Execute()
