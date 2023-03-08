@@ -9,79 +9,82 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 public partial class RazorSourceGeneratorTests
 {
-    [Fact]
-    public async Task CustomTagHelper()
+    public class TagHelpers
     {
-        // Arrange
-        var project = CreateTestProject(new()
+        [Fact]
+        public async Task CustomTagHelper()
         {
-            ["Views/Home/Index.cshtml"] = """
-                @addTagHelper *, TestProject
+            // Arrange
+            var project = CreateTestProject(new()
+            {
+                ["Views/Home/Index.cshtml"] = """
+                    @addTagHelper *, TestProject
 
-                <email>
-                    custom tag helper
-                    <email>nested tag helper</email>
-                </email>
-                """
-        }, new()
-        {
-            ["EmailTagHelper.cs"] = """
-                using Microsoft.AspNetCore.Razor.TagHelpers;
+                    <email>
+                        custom tag helper
+                        <email>nested tag helper</email>
+                    </email>
+                    """
+            }, new()
+            {
+                ["EmailTagHelper.cs"] = """
+                    using Microsoft.AspNetCore.Razor.TagHelpers;
 
-                public class EmailTagHelper : TagHelper
-                {
-                    public override void Process(TagHelperContext context, TagHelperOutput output)
+                    public class EmailTagHelper : TagHelper
                     {
-                        output.TagName = "a";
+                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        {
+                            output.TagName = "a";
+                        }
                     }
-                }
-                """
-        });
-        var compilation = await project.GetCompilationAsync();
-        var driver = await GetDriverAsync(project);
+                    """
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project);
 
-        // Act
-        var result = RunGenerator(compilation!, ref driver);
+            // Act
+            var result = RunGenerator(compilation!, ref driver);
 
-        // Assert
-        Assert.Contains("EmailTagHelper", result.GeneratedSources.Single().SourceText.ToString());
-        result.VerifyOutputsMatchBaseline();
-    }
+            // Assert
+            Assert.Contains("EmailTagHelper", result.GeneratedSources.Single().SourceText.ToString());
+            result.VerifyOutputsMatchBaseline();
+        }
 
-    [Fact]
-    public async Task ViewComponent()
-    {
-        // Arrange
-        var project = CreateTestProject(new()
+        [Fact]
+        public async Task ViewComponent()
         {
-            ["Views/Home/Index.cshtml"] = """
-                @addTagHelper *, TestProject
-                @{
-                    var num = 42;
-                }
+            // Arrange
+            var project = CreateTestProject(new()
+            {
+                ["Views/Home/Index.cshtml"] = """
+                    @addTagHelper *, TestProject
+                    @{
+                        var num = 42;
+                    }
 
-                <vc:test text="Razor" number="@num" flag />
-                """,
-        }, new()
-        {
-            ["TestViewComponent.cs"] = """
-                public class TestViewComponent
-                {
-                    public string Invoke(string text, int number, bool flag)
+                    <vc:test text="Razor" number="@num" flag />
+                    """,
+            }, new()
+            {
+                ["TestViewComponent.cs"] = """
+                    public class TestViewComponent
                     {
-                        return text;
+                        public string Invoke(string text, int number, bool flag)
+                        {
+                            return text;
+                        }
                     }
-                }
-                """,
-        });
-        var compilation = await project.GetCompilationAsync();
-        var driver = await GetDriverAsync(project);
+                    """,
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project);
 
-        // Act
-        var result = RunGenerator(compilation!, ref driver);
+            // Act
+            var result = RunGenerator(compilation!, ref driver);
 
-        // Assert
-        Assert.Contains("HtmlTargetElementAttribute(\"vc:test\")", result.GeneratedSources.Single().SourceText.ToString());
-        result.VerifyOutputsMatchBaseline();
+            // Assert
+            Assert.Contains("HtmlTargetElementAttribute(\"vc:test\")", result.GeneratedSources.Single().SourceText.ToString());
+            result.VerifyOutputsMatchBaseline();
+        }
     }
 }
