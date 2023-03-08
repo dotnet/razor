@@ -4,11 +4,7 @@
 
     public Task UpdateValue() => Task.CompletedTask;
 |
-<<<<<<< HEAD
-Generated Location: (1845:31,7 [106] )
-=======
-Generated Location: (1828:31,7 [106] )
->>>>>>> main
+Generated Location: (1846:31,7 [106] )
 |
     public int ParentValue { get; set; } = 42;
 

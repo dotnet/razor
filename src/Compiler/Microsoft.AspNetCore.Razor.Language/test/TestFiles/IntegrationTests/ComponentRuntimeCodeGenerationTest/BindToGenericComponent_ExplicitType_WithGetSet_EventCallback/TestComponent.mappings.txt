@@ -3,11 +3,7 @@
     public CustomValue ParentValue { get; set; } = new CustomValue();
     public EventCallback<CustomValue> UpdateValue { get; set; }
 |
-<<<<<<< HEAD
-Generated Location: (1569:31,7 [140] )
-=======
-Generated Location: (1551:31,7 [138] )
->>>>>>> main
+Generated Location: (1569:31,7 [138] )
 |
     public CustomValue ParentValue { get; set; } = new CustomValue();
     public EventCallback<CustomValue> UpdateValue { get; set; }
