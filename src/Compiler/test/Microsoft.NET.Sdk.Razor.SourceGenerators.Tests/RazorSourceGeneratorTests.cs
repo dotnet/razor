@@ -2430,10 +2430,9 @@ namespace AspNetCoreGeneratedDocument
             Assert.Single(result.GeneratedSources);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/36227")]
         public async Task SourceGenerator_DoesNotUpdateSources_WhenSourceGeneratorIsSuppressed()
         {
-            // Regression test for https://github.com/dotnet/aspnetcore/issues/36227
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.razor"] = "<h1>Hello world</h1>",
