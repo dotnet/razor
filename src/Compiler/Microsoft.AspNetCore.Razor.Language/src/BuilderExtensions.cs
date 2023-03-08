@@ -13,14 +13,30 @@ internal static class BuilderExtensions
     public static T[] BuildAll<T, TBuilder>(this List<TBuilder> builders, ObjectPool<HashSet<T>> pool)
         where TBuilder : IBuilder<T>
     {
-        using var set = new PooledHashSet<T>(pool);
+        if (builders.Count == 0)
+        {
+            return Array.Empty<T>();
+        }
+
+        if (builders.Count == 1)
+        {
+            return new[] { builders[0].Build() };
+        }
+
+        using var _1 = ListPool<T>.GetPooledObject(out var result);
+        using var _2 = pool.GetPooledObject(out var set);
 
         foreach (var builder in builders)
         {
-            set.Add(builder.Build());
+            var item = builder.Build();
+
+            if (set.Add(item))
+            {
+                result.Add(item);
+            }
         }
 
-        return set.ToArray();
+        return result.ToArray();
     }
 
     public static T[] BuildAllOrEmpty<T, TBuilder>(this List<TBuilder>? builders, ObjectPool<HashSet<T>> pool)
