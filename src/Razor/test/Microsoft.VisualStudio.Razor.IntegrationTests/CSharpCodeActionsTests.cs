@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class CSharpCodeActionsTests : AbstractRazorEditorTest
 {
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8409")]
     public async Task CSharpCodeActionsTests_MakeExpressionBodiedMethod()
     {
         // Open the file

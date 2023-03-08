@@ -176,7 +176,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             services.AddRegisteringHandler<OnAutoInsertEndpoint>();
             services.AddHandler<MonitorProjectConfigurationFilePathEndpoint>();
             services.AddRegisteringHandler<RenameEndpoint>();
-            services.AddRegisteringHandler<RazorDefinitionEndpoint>();
+            services.AddRegisteringHandler<DefinitionEndpoint>();
             services.AddRegisteringHandler<LinkedEditingRangeEndpoint>();
             services.AddHandler<WrapWithTagEndpoint>();
             services.AddHandler<RazorBreakpointSpanEndpoint>();
