@@ -271,7 +271,7 @@ internal static class Extensions
     public static GeneratorRunResult VerifyOutputsMatchBaseline(this GeneratorRunResult result,
         [CallerFilePath] string testPath = null!, [CallerMemberName] string testName = null!)
     {
-        var baselineDirectory = Path.Join(
+        var baselineDirectory = Path.Combine(
             _testProjectRoot,
             "TestFiles",
             Path.GetFileNameWithoutExtension(testPath)!,
@@ -281,7 +281,7 @@ internal static class Extensions
 
         foreach (var source in result.GeneratedSources)
         {
-            var baselinePath = Path.Join(baselineDirectory, source.HintName);
+            var baselinePath = Path.Combine(baselineDirectory, source.HintName);
             GenerateOutputBaseline(baselinePath, in source);
             var baselineText = File.ReadAllText(baselinePath);
             AssertEx.EqualOrDiff(TrimChecksum(baselineText), TrimChecksum(source.SourceText.ToString()));
