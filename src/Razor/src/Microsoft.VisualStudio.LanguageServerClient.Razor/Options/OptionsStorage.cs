@@ -10,11 +10,11 @@ using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
 
-namespace Microsoft.VisualStudio.RazorExtension.Options;
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Options;
 
+[Shared]
 [Export(typeof(OptionsStorage))]
 [Export(typeof(IAdvancedSettingsStorage))]
-[Shared]
 internal class OptionsStorage : IAdvancedSettingsStorage
 {
     private readonly WritableSettingsStore _writableSettingsStore;
