@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable enable
-
 using System;
 using System.IO;
 using System.Linq;
@@ -749,7 +747,7 @@ __builder.AddContent(3, count);
         #pragma warning restore 1998
 #nullable restore
 #line 7 ""Pages/Counter.razor""
- 
+
     private int count;
 
     public void Click() => count++;
@@ -927,7 +925,7 @@ __builder.AddContent(3, count);
         #pragma warning restore 1998
 #nullable restore
 #line 7 ""Pages/Counter.razor""
- 
+
     private int count;
 
     public void Click() => count++;
