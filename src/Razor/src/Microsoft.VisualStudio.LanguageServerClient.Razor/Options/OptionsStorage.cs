@@ -2,7 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -19,16 +22,18 @@ internal class OptionsStorage : IAdvancedSettingsStorage
 {
     private readonly WritableSettingsStore _writableSettingsStore;
     private readonly ILanguageServiceBroker2 _languageServiceBroker;
+    private readonly ITelemetryReporter _telemetryReporter;
     private const string Collection = "Razor";
 
     [ImportingConstructor]
-    public OptionsStorage(SVsServiceProvider vsServiceProvider, ILanguageServiceBroker2 languageServiceBroker)
+    public OptionsStorage(SVsServiceProvider vsServiceProvider, ILanguageServiceBroker2 languageServiceBroker, ITelemetryReporter telemetryReporter)
     {
         var shellSettingsManager = new ShellSettingsManager(vsServiceProvider);
         _writableSettingsStore = shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
 
         _writableSettingsStore.CreateCollection(Collection);
         _languageServiceBroker = languageServiceBroker;
+        _telemetryReporter = telemetryReporter;
     }
 
     public event EventHandler<ClientAdvancedSettingsChangedEventArgs>? Changed;
@@ -47,6 +52,11 @@ internal class OptionsStorage : IAdvancedSettingsStorage
     public void SetBool(string name, bool value)
     {
         _writableSettingsStore.SetBoolean(Collection, name, value);
+        _telemetryReporter.ReportEvent("OptionChanged", Telemetry.TelemetrySeverity.Normal, new Dictionary<string, bool>()
+        {
+            { name, value }
+        }.ToImmutableDictionary());
+
         NotifyChange();
     }
 
