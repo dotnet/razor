@@ -1451,6 +1451,44 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [Fact] // https://github.com/dotnet/aspnetcore/issues/18042
+    public void AddAttribute_ImplicitBooleanConversion()
+    {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+            
+            public class MyClass<T>
+            {
+                public static implicit operator bool(MyClass<T> c) => throw null!;
+            }
+
+            public class MyComponent<T> : ComponentBase
+            {
+                [Parameter]
+                public MyClass<T> MyParameter { get; set; }
+            
+                [Parameter]
+                public bool BoolParameter { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent MyParameter="c" BoolParameter="c" />
+
+            @code {
+                private MyClass<string> c = new();
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     #endregion
 
     #region Bind
