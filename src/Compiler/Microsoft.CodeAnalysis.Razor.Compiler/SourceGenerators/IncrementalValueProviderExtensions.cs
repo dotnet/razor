@@ -10,13 +10,13 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
     internal static class IncrementalValuesProviderExtensions
     {
-        internal static IncrementalValueProvider<T> WithLambdaComparer<T>(this IncrementalValueProvider<T> source, Func<T, T, bool> equal, Func<T, int> getHashCode)
+        internal static IncrementalValueProvider<T> WithLambdaComparer<T>(this IncrementalValueProvider<T> source, Func<T?, T?, bool> equal, Func<T, int> getHashCode)
         {
             var comparer = new LambdaComparer<T>(equal, getHashCode);
             return source.WithComparer(comparer);
         }
 
-        internal static IncrementalValuesProvider<T> WithLambdaComparer<T>(this IncrementalValuesProvider<T> source, Func<T, T, bool> equal, Func<T, int> getHashCode)
+        internal static IncrementalValuesProvider<T> WithLambdaComparer<T>(this IncrementalValuesProvider<T> source, Func<T?, T?, bool> equal, Func<T, int> getHashCode)
         {
             var comparer = new LambdaComparer<T>(equal, getHashCode);
             return source.WithComparer(comparer);
@@ -53,16 +53,16 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
     internal sealed class LambdaComparer<T> : IEqualityComparer<T>
     {
-        private readonly Func<T, T, bool> _equal;
+        private readonly Func<T?, T?, bool> _equal;
         private readonly Func<T, int> _getHashCode;
 
-        public LambdaComparer(Func<T, T, bool> equal, Func<T, int> getHashCode)
+        public LambdaComparer(Func<T?, T?, bool> equal, Func<T, int> getHashCode)
         {
             _equal = equal;
             _getHashCode = getHashCode;
         }
 
-        public bool Equals(T x, T y) => _equal(x, y);
+        public bool Equals(T? x, T? y) => _equal(x, y);
 
         public int GetHashCode(T obj) => _getHashCode(obj);
     }

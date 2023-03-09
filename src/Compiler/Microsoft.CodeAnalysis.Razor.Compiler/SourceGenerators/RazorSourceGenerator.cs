@@ -114,7 +114,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 })
                 .WithLambdaComparer(static (a, b) =>
                 {
-                    if (a.Count != b.Count)
+                    if (a!.Count != b!.Count)
                     {
                         return false;
                     }

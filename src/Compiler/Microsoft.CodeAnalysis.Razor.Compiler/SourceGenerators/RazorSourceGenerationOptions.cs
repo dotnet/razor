@@ -29,9 +29,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         /// </summary>
         public bool SupportLocalizedComponentNames { get; set; } = false;
 
-        public bool Equals(RazorSourceGenerationOptions other)
+        public bool Equals(RazorSourceGenerationOptions? other)
         {
             return
+                other is not null &&
                 RootNamespace == other.RootNamespace &&
                 Configuration.Equals(other.Configuration) &&
                 GenerateMetadataSourceChecksumAttributes == other.GenerateMetadataSourceChecksumAttributes &&
@@ -39,7 +40,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 SupportLocalizedComponentNames == other.SupportLocalizedComponentNames;
         }
 
-        public override bool Equals(object obj) => obj is RazorSourceGenerationOptions other && Equals(other);
+        public override bool Equals(object? obj) => obj is RazorSourceGenerationOptions other && Equals(other);
 
         public override int GetHashCode() => Configuration.GetHashCode();
     }
