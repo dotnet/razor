@@ -174,9 +174,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp", "src\Razor\src\Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp\Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.csproj", "{3E2B6DF5-524F-4909-8A66-7F8C6383620A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Razor.Compiler", "src\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj", "{6A404EC4-DCF2-4F7F-AAE2-8CA31FD8C52E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Razor.Compiler", "src\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj", "{6A404EC4-DCF2-4F7F-AAE2-8CA31FD8C52E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Razor.Compiler.Transport", "src\Compiler\Microsoft.CodeAnalysis.Razor.Compiler.Transport\Microsoft.CodeAnalysis.Razor.Compiler.Transport.csproj", "{0BFF66CE-303F-42E4-9412-A7395CAA9D65}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Razor.Compiler.Transport", "src\Compiler\Microsoft.CodeAnalysis.Razor.Compiler.Transport\Microsoft.CodeAnalysis.Razor.Compiler.Transport.csproj", "{0BFF66CE-303F-42E4-9412-A7395CAA9D65}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Razor.Compiler.Tests", "src\Compiler\test\Microsoft.CodeAnalysis.Razor.Compiler.Tests\Microsoft.CodeAnalysis.Razor.Compiler.Tests.csproj", "{D30199A0-E3C5-4F38-9249-1B76A89A3583}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -746,6 +748,14 @@ Global
 		{0BFF66CE-303F-42E4-9412-A7395CAA9D65}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0BFF66CE-303F-42E4-9412-A7395CAA9D65}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
 		{0BFF66CE-303F-42E4-9412-A7395CAA9D65}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
+		{D30199A0-E3C5-4F38-9249-1B76A89A3583}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D30199A0-E3C5-4F38-9249-1B76A89A3583}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D30199A0-E3C5-4F38-9249-1B76A89A3583}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
+		{D30199A0-E3C5-4F38-9249-1B76A89A3583}.DebugNoVSIX|Any CPU.Build.0 = Debug|Any CPU
+		{D30199A0-E3C5-4F38-9249-1B76A89A3583}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D30199A0-E3C5-4F38-9249-1B76A89A3583}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D30199A0-E3C5-4F38-9249-1B76A89A3583}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
+		{D30199A0-E3C5-4F38-9249-1B76A89A3583}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -828,6 +838,7 @@ Global
 		{3E2B6DF5-524F-4909-8A66-7F8C6383620A} = {3C0D6505-79B3-49D0-B4C3-176F0F1836ED}
 		{6A404EC4-DCF2-4F7F-AAE2-8CA31FD8C52E} = {5B60F564-4AD7-4B70-A887-7D91496799A2}
 		{0BFF66CE-303F-42E4-9412-A7395CAA9D65} = {5B60F564-4AD7-4B70-A887-7D91496799A2}
+		{D30199A0-E3C5-4F38-9249-1B76A89A3583} = {A5E2E4FA-6087-4C16-BB7A-89E23AA0F4E3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0035341D-175A-4D05-95E6-F1C2785A1E26}

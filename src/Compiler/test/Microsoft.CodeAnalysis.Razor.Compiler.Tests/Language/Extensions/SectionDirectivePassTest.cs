@@ -75,7 +75,7 @@ public class SectionDirectivePassTest
 
         var section = method.Children[1] as SectionIntermediateNode;
         Assert.Equal("Header", section.SectionName);
-        Children(section, c => Html(" <p>Hello World</p> ", c));
+        Children(section, c => IntermediateNodeAssert.Html(" <p>Hello World</p> ", c));
     }
 
     private static RazorProjectEngine CreateProjectEngine()

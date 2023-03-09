@@ -76,7 +76,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
 
         // Assert
         Children(documentNode,
-            n => Html("Hello, World!", n));
+            n => IntermediateNodeAssert.Html("Hello, World!", n));
     }
 
     [Fact]
@@ -95,13 +95,13 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
 
         // Assert
         Children(documentNode,
-            n => Html(
+            n => IntermediateNodeAssert.Html(
 @"
 <html>
     <body>
         <span data-val=""", n),
             n => CSharpExpression("Hello", n),
-            n => Html(@""" />
+            n => IntermediateNodeAssert.Html(@""" />
     </body>
 </html>", n));
     }
@@ -122,7 +122,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
 
         // Assert
         Children(documentNode,
-            n => Html(
+            n => IntermediateNodeAssert.Html(
 @"
 <html>
     <body>
@@ -138,7 +138,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
                         value => CSharpExpressionAttributeValue(string.Empty, "Hello", value),
                         value => LiteralAttributeValue(" ",  "World", value)
                 }),
-            n => Html(@" />
+            n => IntermediateNodeAssert.Html(@" />
     </body>
 </html>", n));
     }
@@ -288,7 +288,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
                 "section",
                 n,
                 c1 => DirectiveToken(DirectiveTokenKind.Member, "test", c1),
-                c1 => Html(Environment.NewLine, c1),
+                c1 => IntermediateNodeAssert.Html(Environment.NewLine, c1),
                 c1 => TagHelper(
                     "span",
                     TagMode.StartTagAndEndTag,
@@ -301,7 +301,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
                         c2,
                         v => CSharpExpressionAttributeValue(string.Empty, "Hello", v),
                         v => LiteralAttributeValue(" ", "World", v))),
-                c1 => Html(Environment.NewLine, c1)));
+                c1 => IntermediateNodeAssert.Html(Environment.NewLine, c1)));
     }
 
     [Fact]
@@ -346,7 +346,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
                     "FooProp",
                     AttributeStructure.SingleQuotes,
                     c,
-                    v => Html("foo", v))));
+                    v => IntermediateNodeAssert.Html("foo", v))));
     }
 
     [Fact]
@@ -372,7 +372,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
             n => Using("System.Globalization", n),
             n => Using("System.Text", n),
             n => Using("System.Threading.Tasks", n),
-            n => Html("<p>Hi!</p>", n));
+            n => IntermediateNodeAssert.Html("<p>Hi!</p>", n));
     }
 
     [Fact]
@@ -428,7 +428,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
         Children(
             documentNode,
             n => Directive("test", n, c => DirectiveToken(DirectiveTokenKind.Member, "value2", c)),
-            n => Html("<p>Hi!</p>", n));
+            n => IntermediateNodeAssert.Html("<p>Hi!</p>", n));
     }
 
     [Fact]
@@ -452,7 +452,7 @@ public class DefaultRazorIntermediateNodeLoweringPhaseIntegrationTest
         // Assert
         Children(
             documentNode,
-            n => Html("<p>Hi!</p>", n));
+            n => IntermediateNodeAssert.Html("<p>Hi!</p>", n));
     }
 
     private DocumentIntermediateNode Lower(
