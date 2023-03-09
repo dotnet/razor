@@ -185,7 +185,7 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
                     context.CodeWriter.Write($"\"{attribute.AttributeName}\"");
                     context.CodeWriter.Write(", ");
 
-                    if (!IsAddComponentParameterAvailable && parameter.TypeName != "global::System.Boolean")
+                    if (!IsAddComponentParameterAvailable)
                     {
                         context.CodeWriter.Write("(object)");
                     }
@@ -211,7 +211,7 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
                     context.CodeWriter.Write($"\"{childContent.AttributeName}\"");
                     context.CodeWriter.Write(", ");
 
-                    if (!IsAddComponentParameterAvailable && parameter.TypeName != "global::System.Boolean")
+                    if (!IsAddComponentParameterAvailable)
                     {
                         context.CodeWriter.Write("(object)");
                     }

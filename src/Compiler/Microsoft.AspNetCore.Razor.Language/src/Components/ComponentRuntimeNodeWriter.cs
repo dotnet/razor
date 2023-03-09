@@ -559,16 +559,14 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         context.CodeWriter.WriteStringLiteral(node.AttributeName);
         context.CodeWriter.Write(", ");
 
-        var castToObject = addAttributeMethod == ComponentsApi.RenderTreeBuilder.AddAttribute &&
-            node.TypeName != "global::System.Boolean";
-        if (castToObject)
+        if (addAttributeMethod == ComponentsApi.RenderTreeBuilder.AddAttribute)
         {
             context.CodeWriter.Write("(object)(");
         }
 
         WriteComponentAttributeInnards(context, node, canTypeCheck: true);
 
-        if (castToObject)
+        if (addAttributeMethod == ComponentsApi.RenderTreeBuilder.AddAttribute)
         {
             context.CodeWriter.Write(")");
         }

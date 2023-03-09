@@ -76,7 +76,7 @@ namespace __Blazor.Test.TestComponent
         __builder.OpenComponent<global::Test.MyComponent<T>>(seq);
         __builder.AddAttribute(__seq0, "MyParameter", (object)__arg0);
         __builder.AddAttribute(__seq1, "MyEvent", (object)__arg1);
-        __builder.AddAttribute(__seq2, "BoolParameter", __arg2);
+        __builder.AddAttribute(__seq2, "BoolParameter", (object)__arg2);
         __builder.AddAttribute(__seq3, "StringParameter", (object)__arg3);
         __builder.AddAttribute(__seq4, "DelegateParameter", (object)__arg4);
         __builder.AddAttribute(__seq5, "ObjectParameter", (object)__arg5);
