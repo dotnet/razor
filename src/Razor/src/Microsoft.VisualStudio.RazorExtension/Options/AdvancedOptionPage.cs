@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Options;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.RazorExtension.Options;
@@ -12,7 +13,7 @@ namespace Microsoft.VisualStudio.RazorExtension.Options;
 [ComVisible(true)]
 internal class AdvancedOptionPage : DialogPage
 {
-    private Lazy<OptionsStorage> _optionsStorage;
+    private readonly Lazy<OptionsStorage> _optionsStorage;
 
     public AdvancedOptionPage()
     {
