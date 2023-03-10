@@ -24,6 +24,9 @@ using Xunit;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 
+// RazorSourceGenerator tests cannot run in parallel if they use RazorEventListener
+// because that listens to events across all source generator instances.
+[Collection(nameof(RazorSourceGenerator))]
 public abstract class RazorSourceGeneratorTestsBase
 {
     protected static async ValueTask<GeneratorDriver> GetDriverAsync(Project project)
