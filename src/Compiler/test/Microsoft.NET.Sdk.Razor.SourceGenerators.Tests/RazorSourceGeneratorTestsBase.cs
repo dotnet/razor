@@ -25,8 +25,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 public abstract class RazorSourceGeneratorTestsBase
 {
-    private static readonly Project _baseProject = CreateBaseProject();
-
     protected static async ValueTask<GeneratorDriver> GetDriverAsync(Project project)
     {
         var (driver, _) = await GetDriverWithAdditionalTextAsync(project);
@@ -89,7 +87,7 @@ public abstract class RazorSourceGeneratorTestsBase
         Dictionary<string, string> additonalSources,
         Dictionary<string, string>? sources = null)
     {
-        var project = _baseProject;
+        var project = CreateBaseProject();
 
         if (sources is not null)
         {
