@@ -247,7 +247,11 @@ internal static class Extensions
     public static GeneratorRunResult VerifyOutputsMatchBaseline(this GeneratorRunResult result,
         [CallerFilePath] string testPath = null!, [CallerMemberName] string testName = null!)
     {
-        var baselineDirectory = Path.Join(Path.GetDirectoryName(testPath)!, "TestFiles", testName);
+        var baselineDirectory = Path.Join(
+            Path.GetDirectoryName(testPath)!,
+            "TestFiles",
+            Path.GetFileNameWithoutExtension(testPath)!,
+            testName);
         Directory.CreateDirectory(baselineDirectory);
         var touchedFiles = new HashSet<string>();
 
