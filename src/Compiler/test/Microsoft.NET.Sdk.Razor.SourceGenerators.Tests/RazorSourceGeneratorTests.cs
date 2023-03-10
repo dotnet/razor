@@ -25,7 +25,7 @@ using Xunit;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
-    public partial class RazorSourceGeneratorTests
+    public sealed class RazorSourceGeneratorTests : RazorSourceGeneratorTestsBase
     {
         [Fact]
         public async Task SourceGenerator_RazorFiles_Works()

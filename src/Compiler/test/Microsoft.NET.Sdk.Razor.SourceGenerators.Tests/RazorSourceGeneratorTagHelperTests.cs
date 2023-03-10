@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 
-public partial class RazorSourceGeneratorTagHelperTests
+public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTestsBase
 {
     [Fact]
     public async Task CustomTagHelper()
