@@ -13,6 +13,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -220,6 +221,8 @@ public abstract class RazorSourceGeneratorTestsBase
 
 internal static class Extensions
 {
+    private static readonly string _testProjectRoot = TestProject.GetProjectDirectory("Microsoft.NET.Sdk.Razor.SourceGenerators.Tests", testDirectoryFirst: true);
+
     // UTF-8 with BOM
     private static readonly Encoding _baselineEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
@@ -246,7 +249,7 @@ internal static class Extensions
         [CallerFilePath] string testPath = null!, [CallerMemberName] string testName = null!)
     {
         var baselineDirectory = Path.Join(
-            Path.GetDirectoryName(testPath)!,
+            _testProjectRoot,
             "TestFiles",
             Path.GetFileNameWithoutExtension(testPath)!,
             testName);
