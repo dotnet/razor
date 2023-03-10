@@ -29,19 +29,19 @@ public abstract class RazorSourceGeneratorTestsBase
 {
     private static readonly Project _baseProject = CreateBaseProject();
 
-    private static async ValueTask<GeneratorDriver> GetDriverAsync(Project project)
+    protected static async ValueTask<GeneratorDriver> GetDriverAsync(Project project)
     {
         var (driver, _) = await GetDriverWithAdditionalTextAsync(project);
         return driver;
     }
 
-    private static async ValueTask<(GeneratorDriver, ImmutableArray<AdditionalText>)> GetDriverWithAdditionalTextAsync(Project project, Action<TestAnalyzerConfigOptionsProvider>? configureGlobalOptions = null)
+    protected static async ValueTask<(GeneratorDriver, ImmutableArray<AdditionalText>)> GetDriverWithAdditionalTextAsync(Project project, Action<TestAnalyzerConfigOptionsProvider>? configureGlobalOptions = null)
     {
         var result = await GetDriverWithAdditionalTextAndProviderAsync(project, configureGlobalOptions);
         return (result.Item1, result.Item2);
     }
 
-    private static async ValueTask<(GeneratorDriver, ImmutableArray<AdditionalText>, TestAnalyzerConfigOptionsProvider)> GetDriverWithAdditionalTextAndProviderAsync(Project project, Action<TestAnalyzerConfigOptionsProvider>? configureGlobalOptions = null)
+    protected static async ValueTask<(GeneratorDriver, ImmutableArray<AdditionalText>, TestAnalyzerConfigOptionsProvider)> GetDriverWithAdditionalTextAndProviderAsync(Project project, Action<TestAnalyzerConfigOptionsProvider>? configureGlobalOptions = null)
     {
         var razorSourceGenerator = new RazorSourceGenerator().AsSourceGenerator();
         var driver = (GeneratorDriver)CSharpGeneratorDriver.Create(new[] { razorSourceGenerator }, parseOptions: (CSharpParseOptions)project.ParseOptions!, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, true));
@@ -76,7 +76,7 @@ public abstract class RazorSourceGeneratorTestsBase
         return (driver, additionalTexts, optionsProvider);
     }
 
-    private static GeneratorRunResult RunGenerator(Compilation compilation, ref GeneratorDriver driver, params Action<Diagnostic>[] expectedDiagnostics)
+    protected static GeneratorRunResult RunGenerator(Compilation compilation, ref GeneratorDriver driver, params Action<Diagnostic>[] expectedDiagnostics)
     {
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out _);
 
@@ -87,7 +87,7 @@ public abstract class RazorSourceGeneratorTestsBase
         return result.Results.Single();
     }
 
-    private static Project CreateTestProject(
+    protected static Project CreateTestProject(
         Dictionary<string, string> additonalSources,
         Dictionary<string, string>? sources = null)
     {
@@ -171,7 +171,7 @@ public abstract class RazorSourceGeneratorTestsBase
         return project;
     }
 
-    private class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
+    protected class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
     {
         public override AnalyzerConfigOptions GlobalOptions => TestGlobalOptions;
 
@@ -207,7 +207,7 @@ public abstract class RazorSourceGeneratorTestsBase
         }
     }
 
-    private class TestAnalyzerConfigOptions : AnalyzerConfigOptions
+    protected class TestAnalyzerConfigOptions : AnalyzerConfigOptions
     {
         public Dictionary<string, string> Options { get; } = new();
 
