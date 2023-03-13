@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>$(DefaultNetCoreTargetFramework)</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);$(DefaultNetFxTargetFramework)</TargetFrameworks>
-    <DefaultItemExcludes>$(DefaultItemExcludes);TestFiles\**\*</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);**\TestFiles\**\*</DefaultItemExcludes>
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
     <IsTestProject>true</IsTestProject>
     <PreserveCompilationContext>true</PreserveCompilationContext>
@@ -22,8 +22,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="TestFiles\**\*" />
+    <EmbeddedResource Include="**\TestFiles\**\*" />
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <!-- Some Microsoft.AspNetCore.Mvc.Razor.Extensions tests need MvcShim DLL. -->
+  <Target Name="CopyDepsFromShims_Build" AfterTargets="Build">
+    <ItemGroup>
+      <MvcShim Condition="$(TargetFramework) != ''" Include="$(ArtifactsBinDir)\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler.deps.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(MvcShim)" DestinationFolder="$(OutputPath)" />
+  </Target>
+  <Target Name="CopyDepsFromShims_Publish" AfterTargets="Publish">
+    <ItemGroup>
+      <MvcShim Condition="$(TargetFramework) != ''" Include="$(ArtifactsBinDir)\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler.deps.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(MvcShim)" DestinationFolder="$(PublishDir)" Condition="Exists($(PublishDir))" />
+  </Target>
 
 </Project>
