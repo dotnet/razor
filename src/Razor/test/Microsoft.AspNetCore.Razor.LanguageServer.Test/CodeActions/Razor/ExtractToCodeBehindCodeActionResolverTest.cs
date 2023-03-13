@@ -126,8 +126,8 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             Uri = documentPath,
             RemoveStart = contents.IndexOf("@code", StringComparison.Ordinal),
             ExtractStart = contents.IndexOf("{", StringComparison.Ordinal),
-            ExtractEnd = contents.IndexOf("}", StringComparison.Ordinal),
-            RemoveEnd = contents.IndexOf("}", StringComparison.Ordinal),
+            ExtractEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
+            RemoveEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
             Namespace = @namespace,
         };
         var data = JObject.FromObject(actionParams);
@@ -175,8 +175,8 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             Uri = documentPath,
             RemoveStart = contents.IndexOf("@functions", StringComparison.Ordinal),
             ExtractStart = contents.IndexOf("{", StringComparison.Ordinal),
-            ExtractEnd = contents.IndexOf("}", StringComparison.Ordinal),
-            RemoveEnd = contents.IndexOf("}", StringComparison.Ordinal),
+            ExtractEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
+            RemoveEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
             Namespace = @namespace,
         };
         var data = JObject.FromObject(actionParams);
@@ -224,8 +224,8 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
             Uri = documentPath,
             RemoveStart = contents.IndexOf("@code", StringComparison.Ordinal),
             ExtractStart = contents.IndexOf("{", StringComparison.Ordinal),
-            ExtractEnd = contents.IndexOf("}", StringComparison.Ordinal),
-            RemoveEnd = contents.IndexOf("}", StringComparison.Ordinal),
+            ExtractEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
+            RemoveEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
             Namespace = @namespace,
         };
         var data = JObject.FromObject(actionParams);
@@ -256,6 +256,57 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         Assert.Contains("using System.Diagnostics", editCodeBehindEdit.NewText, StringComparison.Ordinal);
         Assert.Contains("public partial class Test", editCodeBehindEdit.NewText, StringComparison.Ordinal);
         Assert.Contains("private var x = 1", editCodeBehindEdit.NewText, StringComparison.Ordinal);
+        Assert.Contains("namespace test.Pages", editCodeBehindEdit.NewText, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Handle_ExtractCodeBlockWithDirectives()
+    {
+        // Arrange
+        var documentPath = new Uri("c:/Test.razor");
+        var contents = $"@page \"/test\"{Environment.NewLine}@code {{ {Environment.NewLine} #region TestRegion {Environment.NewLine} private var x = 1; {Environment.NewLine} #endregion {Environment.NewLine}}}";
+        var codeDocument = CreateCodeDocument(contents);
+        Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
+
+        var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
+        var actionParams = new ExtractToCodeBehindCodeActionParams
+        {
+            Uri = documentPath,
+            RemoveStart = contents.IndexOf("@code", StringComparison.Ordinal),
+            ExtractStart = contents.IndexOf("{", StringComparison.Ordinal),
+            ExtractEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
+            RemoveEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
+            Namespace = @namespace,
+        };
+        var data = JObject.FromObject(actionParams);
+
+        // Act
+        var workspaceEdit = await resolver.ResolveAsync(data, default);
+
+        // Assert
+        Assert.NotNull(workspaceEdit);
+        Assert.NotNull(workspaceEdit!.DocumentChanges);
+        Assert.Equal(3, workspaceEdit.DocumentChanges!.Value.Count());
+
+        var documentChanges = workspaceEdit.DocumentChanges!.Value.ToArray();
+        var createFileChange = documentChanges[0];
+        Assert.True(createFileChange.TryGetSecond(out var _));
+
+        var editCodeDocumentChange = documentChanges[1];
+        Assert.True(editCodeDocumentChange.TryGetFirst(out var textDocumentEdit1));
+        var editCodeDocumentEdit = textDocumentEdit1!.Edits.First();
+        Assert.True(editCodeDocumentEdit.Range.Start.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeStart));
+        Assert.Equal(actionParams.RemoveStart, removeStart);
+        Assert.True(editCodeDocumentEdit.Range.End.TryGetAbsoluteIndex(codeDocument.GetSourceText(), Logger, out var removeEnd));
+        Assert.Equal(actionParams.RemoveEnd, removeEnd);
+
+        var editCodeBehindChange = documentChanges[2];
+        Assert.True(editCodeBehindChange.TryGetFirst(out var textDocumentEdit2));
+        var editCodeBehindEdit = textDocumentEdit2!.Edits.First();
+        Assert.Contains("public partial class Test", editCodeBehindEdit.NewText, StringComparison.Ordinal);
+        Assert.Contains("#region TestRegion", editCodeBehindEdit.NewText, StringComparison.Ordinal);
+        Assert.Contains("private var x = 1", editCodeBehindEdit.NewText, StringComparison.Ordinal);
+        Assert.Contains("#endregion", editCodeBehindEdit.NewText, StringComparison.Ordinal);
         Assert.Contains("namespace test.Pages", editCodeBehindEdit.NewText, StringComparison.Ordinal);
     }
 
