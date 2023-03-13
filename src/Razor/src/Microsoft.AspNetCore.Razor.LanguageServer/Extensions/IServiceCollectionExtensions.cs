@@ -108,9 +108,9 @@ internal static class IServiceCollectionExtensions
 
     public static void AddHoverServices(this IServiceCollection services)
     {
-        services.AddRegisteringHandler<RazorHoverEndpoint>();
+        services.AddRegisteringHandler<HoverEndpoint>();
 
-        services.AddSingleton<RazorHoverInfoService, DefaultRazorHoverInfoService>();
+        services.AddSingleton<IHoverInfoService, HoverInfoService>();
     }
 
     public static void AddSemanticTokensServices(this IServiceCollection services)

@@ -28,7 +28,6 @@ target the broadest set of frameworks.
 
 - Target Framework: `net7.0;netstandard2.0;net472`
 - Projects:
-  - Microsoft.AspNetCore.Razor.Common
   - Microsoft.CodeAnalysis.Razor.Workspaces
 
 ### Razor Language Server
