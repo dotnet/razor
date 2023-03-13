@@ -747,7 +747,7 @@ __builder.AddContent(3, count);
         #pragma warning restore 1998
 #nullable restore
 #line 7 ""Pages/Counter.razor""
-
+ 
     private int count;
 
     public void Click() => count++;
@@ -925,7 +925,7 @@ __builder.AddContent(3, count);
         #pragma warning restore 1998
 #nullable restore
 #line 7 ""Pages/Counter.razor""
-
+ 
     private int count;
 
     public void Click() => count++;
@@ -1010,7 +1010,7 @@ __builder.AddContent(3, count);
 
             var result = RunGenerator(compilation!, ref driver,
                 // Pages/Index.razor(2,7): error CS0246: The type or namespace name 'SurveyPromptRootNamspace' could not be found (are you missing a using directive or an assembly reference?)
-                d => Assert.Equal(("SourceFile(Microsoft.NET.Sdk.Razor.SourceGenerators\\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\\Pages_Index_razor.g.cs[433..457))", "CS0246"), (d.Location.ToString(), d.Id)));
+                d => Assert.Equal(("SourceFile(Microsoft.CodeAnalysis.Razor.Compiler\\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\\Pages_Index_razor.g.cs[433..457))", "CS0246"), (d.Location.ToString(), d.Id)));
 
             result.VerifyPageOutput(
 @"#pragma checksum ""Pages/Index.razor"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""4745828f8a0ab77b58022ed5d1095a0242f2a7ee""

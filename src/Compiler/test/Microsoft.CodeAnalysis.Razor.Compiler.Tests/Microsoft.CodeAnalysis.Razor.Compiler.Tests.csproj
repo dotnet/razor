@@ -3,9 +3,10 @@
   <PropertyGroup>
     <TargetFrameworks>$(DefaultNetCoreTargetFramework)</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);$(DefaultNetFxTargetFramework)</TargetFrameworks>
-    <DefaultItemExcludes>$(DefaultItemExcludes);**\TestFiles\**\*</DefaultItemExcludes>
+    <DefaultItemExcludes>$(DefaultItemExcludes);TestFiles\**\*</DefaultItemExcludes>
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
     <IsTestProject>true</IsTestProject>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,8 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Show test files in solution explorer -->
-    <None Include="**\TestFiles\**\*" />
+    <EmbeddedResource Include="TestFiles\**\*" />
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

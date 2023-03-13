@@ -106,7 +106,8 @@ namespace TestAssembly
 
         var context = TagHelperDescriptorProviderContext.Create();
         context.SetCompilation(compilation);
-        context.Items.SetTargetSymbol((IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(compilation.References.First(r => r.Display.Contains("Microsoft.CodeAnalysis.Razor.Test.dll"))));
+        var assemblyName = _assembly.GetName().Name + ".dll";
+        context.Items.SetTargetSymbol((IAssemblySymbol)compilation.GetAssemblyOrModuleSymbol(compilation.References.First(r => r.Display.Contains(assemblyName))));
 
         // Act
         descriptorProvider.Execute(context);
