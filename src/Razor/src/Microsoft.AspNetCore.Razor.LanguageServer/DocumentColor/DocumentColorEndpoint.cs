@@ -6,22 +6,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 
-internal class DocumentColorEndpoint : IDocumentColorEndpoint
+[LanguageServerEndpoint(Methods.TextDocumentDocumentColorName)]
+internal sealed class DocumentColorEndpoint : IRazorRequestHandler<DocumentColorParams, ColorInformation[]>, IRegistrationExtension
 {
     private readonly ClientNotifierServiceBase _languageServer;
 
     public DocumentColorEndpoint(ClientNotifierServiceBase languageServer)
     {
-        if (languageServer is null)
-        {
-            throw new ArgumentNullException(nameof(languageServer));
-        }
-
-        _languageServer = languageServer;
+        _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
     }
 
     public bool MutatesSolutionState => false;
@@ -35,9 +32,7 @@ internal class DocumentColorEndpoint : IDocumentColorEndpoint
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentColorParams request)
-    {
-        return request.TextDocument;
-    }
+        => request.TextDocument;
 
     public async Task<ColorInformation[]> HandleRequestAsync(DocumentColorParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {

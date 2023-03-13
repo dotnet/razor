@@ -7,6 +7,7 @@
     <IsShippingPackage>false</IsShippingPackage>
     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
     <RootNamespace>Microsoft.AspNetCore.Razor</RootNamespace>
+    <IsPackable Condition="'$(OS)' != 'Windows_NT'">false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
