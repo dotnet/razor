@@ -67,15 +67,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         codeDocument.SetUnsupported();
 
         var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
-        var data = JObject.FromObject(new ExtractToCodeBehindCodeActionParams()
-        {
-            Uri = new Uri("c:/Test.razor"),
-            RemoveStart = 14,
-            ExtractStart = 20,
-            ExtractEnd = 41,
-            RemoveEnd = 41,
-            Namespace = "Test"
-        });
+        var data = JObject.FromObject(CreateExtractToCodeBehindCodeActionParams(new Uri("c:/Test.razor"), contents, "@code", "Test"));
 
         // Act
         var workspaceEdit = await resolver.ResolveAsync(data, default);
@@ -94,15 +86,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         codeDocument.SetFileKind(FileKinds.Legacy);
 
         var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
-        var data = JObject.FromObject(new ExtractToCodeBehindCodeActionParams()
-        {
-            Uri = new Uri("c:/Test.razor"),
-            RemoveStart = 14,
-            ExtractStart = 20,
-            ExtractEnd = 41,
-            RemoveEnd = 41,
-            Namespace = "Test"
-        });
+        var data = JObject.FromObject(CreateExtractToCodeBehindCodeActionParams(new Uri("c:/Test.razor"), contents, "@code", "Test"));
 
         // Act
         var workspaceEdit = await resolver.ResolveAsync(data, default);
@@ -121,15 +105,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
         var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
-        var actionParams = new ExtractToCodeBehindCodeActionParams
-        {
-            Uri = documentPath,
-            RemoveStart = contents.IndexOf("@code", StringComparison.Ordinal),
-            ExtractStart = contents.IndexOf("{", StringComparison.Ordinal),
-            ExtractEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
-            RemoveEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
-            Namespace = @namespace,
-        };
+        var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
         var data = JObject.FromObject(actionParams);
 
         // Act
@@ -170,15 +146,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
         var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
-        var actionParams = new ExtractToCodeBehindCodeActionParams
-        {
-            Uri = documentPath,
-            RemoveStart = contents.IndexOf("@functions", StringComparison.Ordinal),
-            ExtractStart = contents.IndexOf("{", StringComparison.Ordinal),
-            ExtractEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
-            RemoveEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
-            Namespace = @namespace,
-        };
+        var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@functions", @namespace);
         var data = JObject.FromObject(actionParams);
 
         // Act
@@ -219,15 +187,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
         var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
-        var actionParams = new ExtractToCodeBehindCodeActionParams
-        {
-            Uri = documentPath,
-            RemoveStart = contents.IndexOf("@code", StringComparison.Ordinal),
-            ExtractStart = contents.IndexOf("{", StringComparison.Ordinal),
-            ExtractEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
-            RemoveEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
-            Namespace = @namespace,
-        };
+        var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
         var data = JObject.FromObject(actionParams);
 
         // Act
@@ -269,15 +229,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         Assert.True(codeDocument.TryComputeNamespace(fallbackToRootNamespace: true, out var @namespace));
 
         var resolver = new ExtractToCodeBehindCodeActionResolver(CreateDocumentContextFactory(documentPath, codeDocument), TestLanguageServerFeatureOptions.Instance);
-        var actionParams = new ExtractToCodeBehindCodeActionParams
-        {
-            Uri = documentPath,
-            RemoveStart = contents.IndexOf("@code", StringComparison.Ordinal),
-            ExtractStart = contents.IndexOf("{", StringComparison.Ordinal),
-            ExtractEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
-            RemoveEnd = contents.IndexOf("}", StringComparison.Ordinal) + 1,
-            Namespace = @namespace,
-        };
+        var actionParams = CreateExtractToCodeBehindCodeActionParams(documentPath, contents, "@code", @namespace);
         var data = JObject.FromObject(actionParams);
 
         // Act
@@ -319,5 +271,20 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         codeDocument.SetFileKind(FileKinds.Component);
 
         return codeDocument;
+    }
+
+    private static ExtractToCodeBehindCodeActionParams CreateExtractToCodeBehindCodeActionParams(Uri uri, string contents, string removeStart, string @namespace)
+    {
+        // + 1 to ensure we do not cut off the '}'.
+        var endIndex = contents.IndexOf("}", StringComparison.Ordinal) + 1;
+        return new ExtractToCodeBehindCodeActionParams
+        {
+            Uri = uri,
+            RemoveStart = contents.IndexOf(removeStart, StringComparison.Ordinal),
+            ExtractStart = contents.IndexOf("{", StringComparison.Ordinal),
+            ExtractEnd = endIndex,
+            RemoveEnd = endIndex,
+            Namespace = @namespace
+        };
     }
 }
