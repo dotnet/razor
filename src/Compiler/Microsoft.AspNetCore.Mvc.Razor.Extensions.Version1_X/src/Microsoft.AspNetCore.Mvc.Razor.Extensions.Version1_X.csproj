@@ -14,14 +14,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\Microsoft.AspNetCore.Razor.Language\src\CodeGeneration\CodeWriterExtensions.cs">
+    <Compile Include="..\..\Microsoft.CodeAnalysis.Razor.Compiler\Language\CodeGeneration\CodeWriterExtensions.cs">
       <Link>Shared\CodeWriterExtensions.cs</Link>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.AspNetCore.Razor.Language\src\Microsoft.AspNetCore.Razor.Language.csproj" />
-    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.csproj" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
   </ItemGroup>
 
 </Project>
