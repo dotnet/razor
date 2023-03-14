@@ -114,7 +114,7 @@ public class TagHelperResolutionResultSerializationTest : TestBase
                 builder.AllowChildTag("allowed-child-one");
                 builder.AddMetadata("foo", "bar");
                 builder.AddDiagnostic(RazorDiagnostic.Create(
-                    RazorDiagnosticFactory.TagHelper_InvalidTargetedTagNameNullOrWhitespace,
+                    AspNetCore.Razor.Language.RazorDiagnosticFactory.TagHelper_InvalidTargetedTagNameNullOrWhitespace,
                     new SourceSpan("Test.razor", 5, 17, 18, 22)));
             });
         var serializerSettings = new JsonSerializerSettings()
