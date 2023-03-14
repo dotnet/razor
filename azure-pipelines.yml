@@ -180,6 +180,8 @@ stages:
             command: custom
             arguments: 'locals all -clear'
 
+        - template: /eng/common/templates/steps/azure-public-roslyn-auth.yml
+
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - template: /eng/restore-internal-tools.yml
 
@@ -334,6 +336,9 @@ stages:
           displayName: Install Node 10.x
           inputs:
             versionSpec: 10.x
+
+        - template: /eng/common/templates/steps/azure-public-roslyn-auth.yml
+
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - task: Bash@3
             displayName: Setup Private Feeds Credentials
@@ -413,6 +418,9 @@ stages:
               arguments: $(Build.SourcesDirectory)/NuGet.config $Token
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
+
+        - template: /eng/common/templates/steps/azure-public-roslyn-auth.yml
+
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - script: eng/common/cibuild.sh
               --restore
