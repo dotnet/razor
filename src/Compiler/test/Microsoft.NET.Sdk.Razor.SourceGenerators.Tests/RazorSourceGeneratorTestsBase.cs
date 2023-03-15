@@ -88,7 +88,7 @@ public abstract class RazorSourceGeneratorTestsBase
     }
 
     protected static Project CreateTestProject(
-        Dictionary<string, string> additonalSources,
+        Dictionary<string, string> additionalSources,
         Dictionary<string, string>? sources = null)
     {
         var project = CreateBaseProject();
@@ -101,7 +101,7 @@ public abstract class RazorSourceGeneratorTestsBase
             }
         }
 
-        foreach (var (name, source) in additonalSources)
+        foreach (var (name, source) in additionalSources)
         {
             project = project.AddAdditionalDocument(name, source).Project;
         }
@@ -136,7 +136,7 @@ public abstract class RazorSourceGeneratorTestsBase
                     return true;
                 }
 
-            return false;
+                return false;
             });
         }
     }
