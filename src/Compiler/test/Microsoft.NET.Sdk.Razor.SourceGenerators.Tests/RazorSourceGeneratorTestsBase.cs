@@ -109,7 +109,7 @@ public abstract class RazorSourceGeneratorTestsBase
         return project;
     }
 
-    private class AppLocalResolver : ICompilationAssemblyResolver
+    private sealed class AppLocalResolver : ICompilationAssemblyResolver
     {
         public bool TryResolveAssemblyPaths(CompilationLibrary library, List<string>? assemblies)
         {
@@ -171,7 +171,7 @@ public abstract class RazorSourceGeneratorTestsBase
         return project;
     }
 
-    protected class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
+    protected sealed class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
     {
         public override AnalyzerConfigOptions GlobalOptions => TestGlobalOptions;
 
@@ -207,7 +207,7 @@ public abstract class RazorSourceGeneratorTestsBase
         }
     }
 
-    protected class TestAnalyzerConfigOptions : AnalyzerConfigOptions
+    protected sealed class TestAnalyzerConfigOptions : AnalyzerConfigOptions
     {
         public Dictionary<string, string> Options { get; } = new();
 
