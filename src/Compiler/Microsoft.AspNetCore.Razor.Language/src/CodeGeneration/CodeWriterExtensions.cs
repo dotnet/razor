@@ -116,7 +116,21 @@ internal static class CodeWriterExtensions
         return writer.Write("new ").Write(typeName).Write("(");
     }
 
-    public static CodeWriter WriteStringLiteral(this CodeWriter writer, string literal)
+    public static CodeWriter WriteStringLiteral(this CodeWriter writer, string literal, bool utf8 = false)
+    {
+        if (literal.Length >= 256 && literal.Length <= 1500 && literal.IndexOf('\0') == -1)
+        {
+            WriteVerbatimStringLiteral(writer, literal, utf8);
+        }
+        else
+        {
+            WriteCStyleStringLiteral(writer, literal, utf8);
+        }
+
+        return writer;
+    }
+
+    public static CodeWriter WriteUtf8StringLiteral(this CodeWriter writer, string literal)
     {
         if (literal.Length >= 256 && literal.Length <= 1500 && literal.IndexOf('\0') == -1)
         {
@@ -511,7 +525,7 @@ internal static class CodeWriterExtensions
         return new LinePragmaWriter(writer, span.Value, context, characterOffset, useEnhancedLinePragma: true);
     }
 
-    private static void WriteVerbatimStringLiteral(CodeWriter writer, string literal)
+    private static void WriteVerbatimStringLiteral(CodeWriter writer, string literal, bool utf8 = false)
     {
         writer.Write("@\"");
 
@@ -539,10 +553,15 @@ internal static class CodeWriterExtensions
 
         writer.Write("\"");
 
+        if (utf8)
+        {
+            writer.Write("u8");
+        }
+
         writer.CurrentIndent = indent;
     }
 
-    private static void WriteCStyleStringLiteral(CodeWriter writer, string literal)
+    private static void WriteCStyleStringLiteral(CodeWriter writer, string literal, bool utf8 = false)
     {
         // From CSharpCodeGenerator.QuoteSnippetStringCStyle in CodeDOM
         writer.Write("\"");
@@ -596,6 +615,11 @@ internal static class CodeWriterExtensions
         writer.Write(literal, start, literal.Length - start);
 
         writer.Write("\"");
+
+        if (utf8)
+        {
+            writer.Write("u8");
+        }
     }
 
     public struct CSharpCodeWritingScope : IDisposable

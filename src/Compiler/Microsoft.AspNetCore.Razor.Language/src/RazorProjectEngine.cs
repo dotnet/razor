@@ -114,6 +114,11 @@ public abstract class RazorProjectEngine
         AddDefaultPhases(builder.Phases);
         AddDefaultFeatures(builder.Features);
 
+        if (configuration.LanguageVersion.CompareTo(RazorLanguageVersion.Version_8_0) >= 0)
+        {
+            Utf8HtmlLiteralsDirective.Register(builder);
+        }
+
         if (configuration.LanguageVersion.CompareTo(RazorLanguageVersion.Version_5_0) >= 0)
         {
             builder.Features.Add(new ViewCssScopePass());

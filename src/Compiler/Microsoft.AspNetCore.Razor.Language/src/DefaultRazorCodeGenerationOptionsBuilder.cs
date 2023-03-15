@@ -47,6 +47,8 @@ internal class DefaultRazorCodeGenerationOptionsBuilder : RazorCodeGenerationOpt
 
     public override bool UseEnhancedLinePragma { get; set; }
 
+    public override bool WriteHtmlUtf8StringLiterals { get; set; }
+
     public override RazorCodeGenerationOptions Build()
     {
         return new DefaultRazorCodeGenerationOptions(
@@ -60,7 +62,8 @@ internal class DefaultRazorCodeGenerationOptionsBuilder : RazorCodeGenerationOpt
             SuppressNullabilityEnforcement,
             OmitMinimizedComponentAttributeValues,
             SupportLocalizedComponentNames,
-            UseEnhancedLinePragma)
+            UseEnhancedLinePragma,
+            WriteHtmlUtf8StringLiterals)
         {
             SuppressMetadataSourceChecksumAttributes = SuppressMetadataSourceChecksumAttributes,
         };

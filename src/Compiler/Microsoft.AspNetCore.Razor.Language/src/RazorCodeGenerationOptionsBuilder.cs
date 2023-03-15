@@ -85,6 +85,11 @@ public abstract class RazorCodeGenerationOptionsBuilder
     /// </summary>
     public virtual bool UseEnhancedLinePragma { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value that determines if HTML literals should be written as C# UTF8 string literals.
+    /// </summary>
+    public virtual bool WriteHtmlUtf8StringLiterals { get; set; }
+
     public abstract RazorCodeGenerationOptions Build();
 
     public virtual void SetDesignTime(bool designTime)

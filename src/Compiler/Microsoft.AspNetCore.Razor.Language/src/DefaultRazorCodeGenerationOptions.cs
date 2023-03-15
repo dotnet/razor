@@ -18,7 +18,8 @@ internal class DefaultRazorCodeGenerationOptions : RazorCodeGenerationOptions
         bool suppressNullabilityEnforcement,
         bool omitMinimizedComponentAttributeValues,
         bool supportLocalizedComponentNames,
-        bool useEnhancedLinePragma)
+        bool useEnhancedLinePragma,
+        bool writeHtmlUtf8StringLiterals)
     {
         IndentWithTabs = indentWithTabs;
         IndentSize = indentSize;
@@ -31,6 +32,7 @@ internal class DefaultRazorCodeGenerationOptions : RazorCodeGenerationOptions
         OmitMinimizedComponentAttributeValues = omitMinimizedComponentAttributeValues;
         SupportLocalizedComponentNames = supportLocalizedComponentNames;
         UseEnhancedLinePragma = useEnhancedLinePragma;
+        WriteHtmlUtf8StringLiterals = writeHtmlUtf8StringLiterals;
     }
 
     public override bool DesignTime { get; }
@@ -48,4 +50,6 @@ internal class DefaultRazorCodeGenerationOptions : RazorCodeGenerationOptions
     public override bool OmitMinimizedComponentAttributeValues { get; }
 
     public override bool UseEnhancedLinePragma { get; }
+
+    public override bool WriteHtmlUtf8StringLiterals { get; set; }
 }

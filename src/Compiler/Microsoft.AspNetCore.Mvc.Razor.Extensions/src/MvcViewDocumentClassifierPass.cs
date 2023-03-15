@@ -72,6 +72,7 @@ public class MvcViewDocumentClassifierPass : DocumentClassifierPassBase
         method.MethodName = "ExecuteAsync";
         method.Modifiers.Clear();
         method.Modifiers.Add("public");
+        // TODO: Enable opting out of 'async' being added here: https://github.com/dotnet/razor/issues/8344
         method.Modifiers.Add("async");
         method.Modifiers.Add("override");
         method.ReturnType = $"global::{typeof(System.Threading.Tasks.Task).FullName}";

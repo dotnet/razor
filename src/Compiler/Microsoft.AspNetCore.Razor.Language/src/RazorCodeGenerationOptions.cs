@@ -22,7 +22,8 @@ public abstract class RazorCodeGenerationOptions
             suppressNullabilityEnforcement: false,
             omitMinimizedComponentAttributeValues: false,
             supportLocalizedComponentNames: false,
-            useEnhancedLinePragma: true);
+            useEnhancedLinePragma: true,
+            writeHtmlUtf8StringLiterals: false);
     }
 
     public static RazorCodeGenerationOptions CreateDesignTimeDefault()
@@ -38,7 +39,8 @@ public abstract class RazorCodeGenerationOptions
             suppressNullabilityEnforcement: false,
             omitMinimizedComponentAttributeValues: false,
             supportLocalizedComponentNames: false,
-            useEnhancedLinePragma: true);
+            useEnhancedLinePragma: true,
+            writeHtmlUtf8StringLiterals: false);
     }
 
     public static RazorCodeGenerationOptions Create(Action<RazorCodeGenerationOptionsBuilder> configure)
@@ -146,4 +148,9 @@ public abstract class RazorCodeGenerationOptions
     /// Gets a value that determines if enhanced line pragmas are to be utilized.
     /// </summary>
     public virtual bool UseEnhancedLinePragma { get; }
+
+    /// <summary>
+    /// Gets a value that determines if HTML literals should be written as C# UTF8 string literals.
+    /// </summary>
+    public virtual bool WriteHtmlUtf8StringLiterals { get; set; }
 }

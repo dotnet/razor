@@ -577,4 +577,13 @@
   <data name="RazorDiagnosticDescriptor_DefaultError" xml:space="preserve">
     <value>Encountered diagnostic '{0}'.</value>
   </data>
+  <data name="Utf8HtmlLiterals_Description" xml:space="preserve">
+    <value>Opt-in to HTML literals being emitted as C# UTF8 string literals for this page.</value>
+  </data>
+  <data name="Utf8HtmlLiterals_TypeToken_Description" xml:space="preserve">
+    <value>Whether the current page has opted in to emitting HTML literals as C# UTF8 string literals.</value>
+  </data>
+  <data name="Utf8HtmlLiterals_TypeToken_Name" xml:space="preserve">
+    <value>Utf8HtmlLiterals</value>
+  </data>
 </root>

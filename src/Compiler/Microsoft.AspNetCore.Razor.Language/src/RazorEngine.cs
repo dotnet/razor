@@ -100,6 +100,7 @@ public abstract class RazorEngine
             method.ReturnType = $"global::{typeof(Task).FullName}";
 
             method.Modifiers.Add("public");
+            // TODO: Enable opting out of 'async' being added here: https://github.com/dotnet/razor/issues/8344
             method.Modifiers.Add("async");
             method.Modifiers.Add("override");
         });

@@ -391,7 +391,7 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
         {
             context.CodeWriter
                 .WriteStartMethodInvocation(WriteHtmlContentMethod)
-                .WriteStringLiteral(content)
+                .WriteStringLiteral(content, context.Options.WriteHtmlUtf8StringLiterals)
                 .WriteEndMethodInvocation();
         }
     }
