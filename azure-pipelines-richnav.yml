@@ -50,6 +50,8 @@ stages:
             command: custom
             arguments: 'locals all -clear'
 
+        - template: /azure-public-roslyn-auth.yml
+
         - task: PowerShell@2
           displayName: Build
           condition: succeeded()
