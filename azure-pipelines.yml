@@ -101,6 +101,10 @@ stages:
                 arguments: -ConfigFile $(Build.SourcesDirectory)/NuGet.config -Password $Env:Token
               env:
                 Token: $(dn-bot-dnceng-artifact-feeds-rw)
+
+          # Required to make sure NuGet authorizes and can populate the cache (in case of new dependencies not in the upstream). Add before restoring
+          - template: /azure-public-roslyn-auth.yml
+
           - powershell: ./restore.cmd -msbuildEngine dotnet -ci $(_InternalRuntimeDownloadArgs); ./eng/scripts/CodeCheck.ps1 -ci
             displayName: Run eng/scripts/CodeCheck.ps1
 
