@@ -111,18 +111,25 @@ public abstract class RazorSourceGeneratorTestsBase
 
     private sealed class AppLocalResolver : ICompilationAssemblyResolver
     {
+        private readonly string _baseDirectory;
+
+        public AppLocalResolver(string baseDirectory)
+        {
+            _baseDirectory = baseDirectory;
+        }
+
         public bool TryResolveAssemblyPaths(CompilationLibrary library, List<string>? assemblies)
         {
             foreach (var assembly in library.Assemblies)
             {
-                var dll = Path.Combine(Directory.GetCurrentDirectory(), "refs", Path.GetFileName(assembly));
+                var dll = Path.Combine(_baseDirectory, "refs", Path.GetFileName(assembly));
                 if (File.Exists(dll))
                 {
                     assemblies!.Add(dll);
                     return true;
                 }
 
-                dll = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(assembly));
+                dll = Path.Combine(_baseDirectory, Path.GetFileName(assembly));
                 if (File.Exists(dll))
                 {
                     assemblies!.Add(dll);
@@ -148,10 +155,9 @@ public abstract class RazorSourceGeneratorTestsBase
 
         project = project.WithParseOptions(((CSharpParseOptions)project.ParseOptions!).WithLanguageVersion(LanguageVersion.Preview));
 
-
         foreach (var defaultCompileLibrary in DependencyContext.Load(typeof(RazorSourceGeneratorTests).Assembly)!.CompileLibraries)
         {
-            foreach (var resolveReferencePath in defaultCompileLibrary.ResolveReferencePaths(new AppLocalResolver()))
+            foreach (var resolveReferencePath in defaultCompileLibrary.ResolveReferencePaths(new AppLocalResolver(Directory.GetCurrentDirectory())))
             {
                 project = project.AddMetadataReference(MetadataReference.CreateFromFile(resolveReferencePath));
             }
