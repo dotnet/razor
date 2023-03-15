@@ -472,6 +472,34 @@ WriteLiteral(""👧‍👧"");
     }
 
     [Fact]
+    public void WriteHtmlContentUtf8_RendersContentCorrectly()
+    {
+        // Arrange
+        var codeWriter = new CodeWriter();
+        var writer = new RuntimeNodeWriter();
+        var context = TestCodeRenderingContext.CreateRuntime();
+        context.Options.WriteHtmlUtf8StringLiterals = true;
+
+        var node = new HtmlContentIntermediateNode();
+        node.Children.Add(new IntermediateToken()
+        {
+            Content = "SomeContent",
+            Kind = TokenKind.Html,
+        });
+
+        // Act
+        writer.WriteHtmlContent(context, node);
+
+        // Assert
+        var csharp = context.CodeWriter.GenerateCode();
+        Assert.Equal(
+@"WriteLiteral(""SomeContent""u8);
+",
+            csharp,
+            ignoreLineEndingDifferences: true);
+    }
+
+    [Fact]
     public void WriteHtmlContent_LargeStringLiteral_UsesMultipleWrites()
     {
         // Arrange
