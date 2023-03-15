@@ -15,7 +15,7 @@
   </PropertyGroup>
   <!-- Versioning for assemblies/packages -->
   <PropertyGroup>
-    <MajorVersion>8</MajorVersion>
+    <MajorVersion>7</MajorVersion>
     <MinorVersion>0</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>preview</PreReleaseVersionLabel>
