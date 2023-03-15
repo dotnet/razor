@@ -4,8 +4,10 @@
 #nullable enable
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -88,8 +90,8 @@ public abstract class RazorSourceGeneratorTestsBase
     }
 
     protected static Project CreateTestProject(
-        Dictionary<string, string> additionalSources,
-        Dictionary<string, string>? sources = null)
+        OrderedStringDictionary additionalSources,
+        OrderedStringDictionary? sources = null)
     {
         var project = CreateBaseProject();
 
@@ -107,6 +109,18 @@ public abstract class RazorSourceGeneratorTestsBase
         }
 
         return project;
+    }
+
+    protected sealed class OrderedStringDictionary
+    {
+        private readonly List<KeyValuePair<string, string>> _inner = new();
+
+        public string this[string key]
+        {
+            set => _inner.Add(new(key, value));
+        }
+
+        public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => _inner.GetEnumerator();
     }
 
     private sealed class AppLocalResolver : ICompilationAssemblyResolver
