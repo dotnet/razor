@@ -120,7 +120,7 @@ public abstract class RazorSourceGeneratorTestsBase
 
         public bool TryResolveAssemblyPaths(CompilationLibrary library, List<string>? assemblies)
         {
-            foreach (var assembly in library.Assemblies)
+            return library.Assemblies.All(assembly =>
             {
                 var dll = Path.Combine(_baseDirectory, "refs", Path.GetFileName(assembly));
                 if (File.Exists(dll))
@@ -135,9 +135,9 @@ public abstract class RazorSourceGeneratorTestsBase
                     assemblies!.Add(dll);
                     return true;
                 }
-            }
 
             return false;
+            });
         }
     }
 
