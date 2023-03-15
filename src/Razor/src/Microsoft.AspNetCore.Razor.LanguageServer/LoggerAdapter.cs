@@ -32,7 +32,7 @@ public class LoggerAdapter : IRazorLogger
             var disposable = logger.BeginScope(state);
             if (disposable != null)
             {
-                compositeDisposable.AddDisposable(disposable!);
+                compositeDisposable.AddDisposable(disposable);
             }
         }
 
