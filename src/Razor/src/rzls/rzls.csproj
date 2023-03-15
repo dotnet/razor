@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>$(DefaultNetCoreTargetFrameworks)</TargetFrameworks>
+    <PublishTargetFramework>net7.0</PublishTargetFramework>
     <OutputType>Exe</OutputType>
     <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains a Razor language server.</Description>
     <EnableApiCheck>false</EnableApiCheck>
@@ -27,7 +28,7 @@
       <TargetPluginOutputPath>$(PublishDir)\OmniSharpPlugin</TargetPluginOutputPath>
     </PropertyGroup>
 
-    <MSBuild Projects="..\Microsoft.AspNetCore.Razor.OmniSharpPlugin\Microsoft.AspNetCore.Razor.OmniSharpPlugin.csproj" Properties="PublishDir=$(TargetPluginOutputPath);RuntimeIdentifier=" Targets="Publish" />
+    <MSBuild Projects="..\Microsoft.AspNetCore.Razor.OmniSharpPlugin\Microsoft.AspNetCore.Razor.OmniSharpPlugin.csproj" Properties="PublishDir=$(TargetPluginOutputPath);RuntimeIdentifier=" RemoveProperties="TargetFramework" Targets="Publish" />
   </Target>
 
   <!--
@@ -58,11 +59,11 @@
 
       <!-- Transform RuntimeIdentifierForPublish items to project items to pass to MSBuild task -->
       <ProjectToPublish Include="@(RuntimeIdentifierForPublish->'$(MSBuildProjectFullPath)')">
-        <AdditionalProperties>RuntimeIdentifier=%(RuntimeIdentifierForPublish.Identity);PublishDir=$(RidsPublishDir)%(RuntimeIdentifierForPublish.Identity)\</AdditionalProperties>
+        <AdditionalProperties>RuntimeIdentifier=%(RuntimeIdentifierForPublish.Identity);PublishDir=$(RidsPublishDir)%(RuntimeIdentifierForPublish.Identity)\;TargetFramework=$(PublishTargetFramework)</AdditionalProperties>
       </ProjectToPublish>
 
       <ProjectToPublish_PlatformAgnostic Include="$(MSBuildProjectFullPath)">
-        <AdditionalProperties>PublishDir=$(RidsPublishDir)\PlatformAgnostic\;UseAppHost=false</AdditionalProperties>
+        <AdditionalProperties>PublishDir=$(RidsPublishDir)\PlatformAgnostic\;UseAppHost=false;TargetFramework=$(PublishTargetFramework)</AdditionalProperties>
       </ProjectToPublish_PlatformAgnostic>
     </ItemGroup>
 
