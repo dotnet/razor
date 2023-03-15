@@ -157,7 +157,7 @@ public abstract class RazorSourceGeneratorTestsBase
 
         foreach (var defaultCompileLibrary in DependencyContext.Load(typeof(RazorSourceGeneratorTests).Assembly)!.CompileLibraries)
         {
-            foreach (var resolveReferencePath in defaultCompileLibrary.ResolveReferencePaths(new AppLocalResolver(Directory.GetCurrentDirectory())))
+            foreach (var resolveReferencePath in defaultCompileLibrary.ResolveReferencePaths(new AppLocalResolver(AppContext.BaseDirectory)))
             {
                 project = project.AddMetadataReference(MetadataReference.CreateFromFile(resolveReferencePath));
             }
