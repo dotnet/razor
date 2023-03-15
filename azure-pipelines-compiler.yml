@@ -95,6 +95,9 @@ stages:
 - stage: build
   displayName: Build
   jobs:
+  # Required to make sure NuGet authorizes and can populate the cache (in case of new dependencies not in the upstream). Add before building
+  - template: /azure-public-roslyn-auth.yml
+
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
       enablePublishBuildArtifacts: true

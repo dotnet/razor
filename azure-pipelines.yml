@@ -104,7 +104,6 @@ stages:
           - powershell: ./restore.cmd -msbuildEngine dotnet -ci $(_InternalRuntimeDownloadArgs); ./eng/scripts/CodeCheck.ps1 -ci
             displayName: Run eng/scripts/CodeCheck.ps1
 
-
   # Three jobs for each of the three OSes we want to run on
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
@@ -180,6 +179,7 @@ stages:
             command: custom
             arguments: 'locals all -clear'
 
+        # Required to make sure NuGet authorizes and can populate the cache (in case of new dependencies not in the upstream). Add before building
         - template: /azure-public-roslyn-auth.yml
 
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
@@ -337,6 +337,7 @@ stages:
           inputs:
             versionSpec: 10.x
 
+        # Required to make sure NuGet authorizes and can populate the cache (in case of new dependencies not in the upstream). Add before building
         - template: /azure-public-roslyn-auth.yml
 
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
@@ -419,6 +420,7 @@ stages:
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
 
+        # Required to make sure NuGet authorizes and can populate the cache (in case of new dependencies not in the upstream). Add before building
         - template: /azure-public-roslyn-auth.yml
 
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
