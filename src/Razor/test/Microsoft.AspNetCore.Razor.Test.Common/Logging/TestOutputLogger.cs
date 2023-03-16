@@ -29,7 +29,7 @@ public partial class TestOutputLogger : ILogger
         LogLevel = logLevel;
     }
 
-    public IDisposable BeginScope<TState>(TState state)
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
         => NoOpDisposable.Instance;
 
     public bool IsEnabled(LogLevel logLevel)
