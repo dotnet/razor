@@ -4,23 +4,33 @@
 #nullable enable
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.DependencyModel.Resolution;
+using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -80,13 +90,77 @@ public abstract class RazorSourceGeneratorTestsBase
 
     protected static GeneratorRunResult RunGenerator(Compilation compilation, ref GeneratorDriver driver, params Action<Diagnostic>[] expectedDiagnostics)
     {
-        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out _);
+        return RunGenerator(compilation, ref driver, out _, expectedDiagnostics);
+    }
 
-        var actualDiagnostics = compilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
+    protected static GeneratorRunResult RunGenerator(Compilation compilation, ref GeneratorDriver driver, out Compilation outputCompilation, params Action<Diagnostic>[] expectedDiagnostics)
+    {
+        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out _);
+
+        var actualDiagnostics = outputCompilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
         Assert.Collection(actualDiagnostics, expectedDiagnostics);
 
         var result = driver.GetRunResult();
         return result.Results.Single();
+    }
+
+    protected static async Task<string> RenderRazorPageAsync(Compilation compilation, string name)
+    {
+        // Load the compiled DLL.
+        Assembly assembly;
+        using (var peStream = new MemoryStream())
+        {
+            var emitResult = compilation.Emit(peStream);
+            Assert.True(emitResult.Success, string.Join(Environment.NewLine, emitResult.Diagnostics));
+            assembly = Assembly.Load(peStream.ToArray());
+        }
+
+        // Find the generated Razor Page.
+        const string generatedNamespace = "AspNetCoreGeneratedDocument";
+        var pageType = assembly.GetType($"{generatedNamespace}.{name}");
+        if (pageType is null)
+        {
+            var availableTypes = string.Join(Environment.NewLine, assembly.GetTypes()
+                .Where(t => t.Namespace == generatedNamespace && !t.Name.StartsWith('<'))
+                .Select(t => t.Name));
+            Assert.Fail($"Razor page '{name}' not found, available types: [{availableTypes}]");
+        }
+
+        var page = (RazorPage)Activator.CreateInstance(pageType)!;
+
+        // Create ViewContext.
+        var writer = new StringWriter();
+        var httpContext = new DefaultHttpContext();
+        var services = new ServiceCollection();
+        services.AddRazorPages();
+        httpContext.RequestServices = services.BuildServiceProvider();
+        var actionContext = new ActionContext(
+            httpContext,
+            new AspNetCore.Routing.RouteData(),
+            new ActionDescriptor());
+        var viewMock = new Mock<IView>();
+        var viewContext = new ViewContext(
+            actionContext,
+            viewMock.Object,
+            new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()),
+            Mock.Of<ITempDataDictionary>(),
+            writer,
+            new HtmlHelperOptions());
+
+        page.ViewContext = viewContext;
+        page.HtmlEncoder = HtmlEncoder.Default;
+
+        // Render the page.
+        await page.ExecuteAsync();
+
+        return writer.ToString();
+    }
+
+    protected static async Task VerifyRazorPageMatchesBaselineAsync(Compilation compilation, string name,
+        [CallerFilePath] string testPath = null!, [CallerMemberName] string testName = null!)
+    {
+        var html = await RenderRazorPageAsync(compilation, name);
+        Extensions.VerifyTextMatchesBaseline(html, "html", testPath: testPath, testName: testName);
     }
 
     protected static Project CreateTestProject(
@@ -189,7 +263,7 @@ public abstract class RazorSourceGeneratorTestsBase
         {
             if (!excludeReference(assembly) &&
                 !project.MetadataReferences.Any(c => string.Equals(Path.GetFileNameWithoutExtension(c.Display), Path.GetFileNameWithoutExtension(assembly), StringComparison.OrdinalIgnoreCase)))
-                {
+            {
                 project = project.AddMetadataReference(MetadataReference.CreateFromFile(assembly));
             }
         }
@@ -294,9 +368,10 @@ internal static class Extensions
         foreach (var source in result.GeneratedSources)
         {
             var baselinePath = Path.Join(baselineDirectory, source.HintName);
-            GenerateOutputBaseline(baselinePath, in source);
+            var sourceText = source.SourceText.ToString();
+            GenerateOutputBaseline(baselinePath, sourceText);
             var baselineText = File.ReadAllText(baselinePath);
-            AssertEx.EqualOrDiff(TrimChecksum(baselineText), TrimChecksum(source.SourceText.ToString()));
+            AssertEx.EqualOrDiff(TrimChecksum(baselineText), TrimChecksum(sourceText));
             Assert.True(touchedFiles.Add(baselinePath));
         }
 
@@ -311,12 +386,30 @@ internal static class Extensions
         return result;
     }
 
-    [Conditional("GENERATE_BASELINES")]
-    private static void GenerateOutputBaseline(string baselinePath, in GeneratedSourceResult source)
+    public static void VerifyTextMatchesBaseline(string actualText, string extension,
+        [CallerFilePath] string testPath = null!, [CallerMemberName] string testName = null!)
     {
-        var sourceText = source.SourceText.ToString();
-        sourceText = sourceText.Replace("\r", "").Replace("\n", "\r\n");
-        File.WriteAllText(baselinePath, sourceText, _baselineEncoding);
+        // Create output directory.
+        var baselineDirectory = Path.Join(
+            _testProjectRoot,
+            "TestFiles",
+            Path.GetFileNameWithoutExtension(testPath)!);
+        Directory.CreateDirectory(baselineDirectory);
+
+        // Generate baseline if enabled.
+        var baselinePath = Path.Join(baselineDirectory, $"{testName}.{extension}");
+        GenerateOutputBaseline(baselinePath, actualText);
+
+        // Verify actual against baseline.
+        var baselineText = File.ReadAllText(baselinePath);
+        AssertEx.EqualOrDiff(baselineText, actualText);
+    }
+
+    [Conditional("GENERATE_BASELINES")]
+    private static void GenerateOutputBaseline(string baselinePath, string text)
+    {
+        text = text.Replace("\r", "").Replace("\n", "\r\n");
+        File.WriteAllText(baselinePath, text, _baselineEncoding);
     }
 
     private static string GenerateExpectedOutput(GeneratorRunResult result)
