@@ -67,6 +67,6 @@
     </ItemGroup>
 
     <MSBuild Projects="@(ProjectToPublish)" Targets="Publish;_IncludeOmniSharpPlugin" BuildInParallel="false" />
-    <MSBuild Projects="@(ProjectToPublish_PlatformAgnostic)" Targets="Publish;_IncludeOmniSharpPlugin" BuildInParallel="false" Condition="'$(OS)' == 'Windows_NT'" />
+    <MSBuild Projects="@(ProjectToPublish_PlatformAgnostic)" Targets="Publish;_IncludeOmniSharpPlugin" BuildInParallel="false" />
   </Target>
 </Project>

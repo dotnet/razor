@@ -7,8 +7,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[17.6P2]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[17.6P3]"
     },
     "release/dev17.5": {
       "nugetKind": [
@@ -26,7 +26,7 @@
       ],
       "vsBranch": "rel/d17.6",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[17.6P1]"
+      "insertionTitlePrefix": "[17.6P2]"
     }
   }
 }

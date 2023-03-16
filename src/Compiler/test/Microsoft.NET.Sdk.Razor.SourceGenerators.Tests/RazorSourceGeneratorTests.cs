@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
@@ -2271,7 +2272,7 @@ namespace AspNetCoreGeneratedDocument
             Assert.Equal(2, result.GeneratedSources.Length);
         }
 
-        [Fact] // https://github.com/dotnet/razor/issues/8281
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/8281")]
         public async Task SourceGenerator_CshtmlFiles_ViewComponentTagHelper()
         {
             // Arrange
@@ -2420,10 +2421,9 @@ namespace AspNetCoreGeneratedDocument
             Assert.Single(result.GeneratedSources);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/36227")]
         public async Task SourceGenerator_DoesNotUpdateSources_WhenSourceGeneratorIsSuppressed()
         {
-            // Regression test for https://github.com/dotnet/aspnetcore/issues/36227
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.razor"] = "<h1>Hello world</h1>",
@@ -2498,7 +2498,7 @@ namespace MyApp.Pages
                 .VerifyOutputsMatch(result);
         }
 
-        [Fact] // https://github.com/dotnet/razor/issues/7914
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/7914")]
         public async Task SourceGenerator_UppercaseRazor_GeneratesComponent()
         {
             var project = CreateTestProject(new()
@@ -2538,7 +2538,7 @@ namespace MyApp
             Assert.Single(result.GeneratedSources);
         }
 
-        [Theory] // https://github.com/dotnet/razor/issues/7236
+        [Theory, WorkItem("https://github.com/dotnet/razor/issues/7236")]
         [InlineData("")]
         [InlineData(" ")]
         [InlineData("\n")]

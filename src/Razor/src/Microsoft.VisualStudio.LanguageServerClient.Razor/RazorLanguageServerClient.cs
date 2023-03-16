@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -100,11 +101,6 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         if (logHubLoggerProviderFactory is null)
         {
             throw new ArgumentNullException(nameof(logHubLoggerProviderFactory));
-        }
-
-        if (outputWindowLogger is null)
-        {
-            throw new ArgumentNullException(nameof(outputWindowLogger));
         }
 
         if (projectSnapshotManagerDispatcher is null)
@@ -264,7 +260,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         serviceCollection.AddLogging(logging =>
         {
             logging.AddFilter<LogHubLoggerProvider>(level => true);
-            logging.AddProvider(_loggerProvider);
+            logging.AddProvider(_loggerProvider.AssumeNotNull());
         });
 
         if (_vsHostWorkspaceServicesProvider is not null)
