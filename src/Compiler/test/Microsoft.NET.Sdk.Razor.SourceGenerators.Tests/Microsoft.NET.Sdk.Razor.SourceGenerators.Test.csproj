@@ -36,4 +36,10 @@
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.Compiler.csproj" />
   </ItemGroup>
 
+  <Target Name="RemoveAspNetCoreAnalyzers" AfterTargets="ResolveTargetingPackAssets">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)" Condition="'%(Analyzer.FrameworkReferenceName)' == 'Microsoft.AspNetCore.App'" />
+    </ItemGroup>
+  </Target>
+
 </Project>
