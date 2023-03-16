@@ -173,6 +173,11 @@ public abstract class RazorSourceGeneratorTestsBase
         {
             foreach (var resolveReferencePath in defaultCompileLibrary.ResolveReferencePaths(new AppLocalResolver(AppContext.BaseDirectory)))
             {
+                if (excludeReference(resolveReferencePath))
+                {
+                    continue;
+                }
+
                 project = project.AddMetadataReference(MetadataReference.CreateFromFile(resolveReferencePath));
             }
         }
@@ -182,13 +187,20 @@ public abstract class RazorSourceGeneratorTestsBase
         // every dll file that's present in the test's build output as a metadatareference.
         foreach (var assembly in Directory.EnumerateFiles(AppContext.BaseDirectory, "*.dll"))
         {
-            if (!project.MetadataReferences.Any(c => string.Equals(Path.GetFileNameWithoutExtension(c.Display), Path.GetFileNameWithoutExtension(assembly), StringComparison.OrdinalIgnoreCase)))
-            {
+            if (!excludeReference(assembly) &&
+                !project.MetadataReferences.Any(c => string.Equals(Path.GetFileNameWithoutExtension(c.Display), Path.GetFileNameWithoutExtension(assembly), StringComparison.OrdinalIgnoreCase)))
+                {
                 project = project.AddMetadataReference(MetadataReference.CreateFromFile(assembly));
             }
         }
 
         return project;
+
+        // In this project, we don't need shims, we reference the full ASP.NET Core SDK.
+        static bool excludeReference(string path)
+        {
+            return path.Contains("Shim.");
+        }
     }
 
     protected sealed class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
