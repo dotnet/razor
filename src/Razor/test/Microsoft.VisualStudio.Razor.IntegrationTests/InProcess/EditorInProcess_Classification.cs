@@ -103,7 +103,6 @@ internal partial class EditorInProcess
             if (actualClassification.ClassificationType.BaseTypes.Count() > 1)
             {
                 Assert.Equal(expectedClassification, actualClassification, ClassificationTypeComparer.Instance);
-
             }
             else if (!expectedClassification.Span.Span.Equals(actualClassification.Span.Span)
                 || !string.Equals(expectedClassification.ClassificationType.Classification, actualClassification.ClassificationType.Classification))

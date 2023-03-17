@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -78,6 +79,12 @@ internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormatti
         if (!_optionsMonitor.CurrentValue.EnableFormatting)
         {
             requestContext.Logger.LogInformation("Formatting option disabled.");
+            return null;
+        }
+
+        if (!_optionsMonitor.CurrentValue.FormatOnType)
+        {
+            requestContext.Logger.LogInformation("Formatting on type disabled.");
             return null;
         }
 

@@ -28,7 +28,7 @@ public class GeneratedDocumentTextLoaderTest : WorkspaceTestBase
     public async Task LoadAsync_SpecifiesEncoding()
     {
         // Arrange
-        var project = new DefaultProjectSnapshot(
+        var project = new ProjectSnapshot(
             ProjectState.Create(Workspace.Services, _hostProject)
             .WithAddedHostDocument(_hostDocument, () => Task.FromResult(TextAndVersion.Create(SourceText.From(""), VersionStamp.Create()))));
 
@@ -37,7 +37,7 @@ public class GeneratedDocumentTextLoaderTest : WorkspaceTestBase
         var loader = new GeneratedDocumentTextLoader(document, "file.cshtml");
 
         // Act
-        var textAndVersion = await loader.LoadTextAndVersionAsync(default, default, default);
+        var textAndVersion = await loader.LoadTextAndVersionAsync(default, default);
 
         // Assert
         Assert.True(textAndVersion.Text.CanBeEmbedded);

@@ -8,7 +8,8 @@ using System.Collections.Generic;
 using System.Composition;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed.Serialization;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Serialization;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
@@ -28,7 +29,7 @@ internal class DefaultProjectChangePublisher : ProjectChangePublisher, IOmniShar
     private readonly Dictionary<string, string> _publishFilePathMappings;
     private readonly Dictionary<string, OmniSharpProjectSnapshot> _pendingProjectPublishes;
     private readonly object _publishLock;
-    private OmniSharpProjectSnapshotManagerBase _projectManager;
+    private OmniSharpProjectSnapshotManager _projectManager;
 
     [ImportingConstructor]
     public DefaultProjectChangePublisher(ILoggerFactory loggerFactory)
@@ -44,6 +45,7 @@ internal class DefaultProjectChangePublisher : ProjectChangePublisher, IOmniShar
         {
             Formatting = Formatting.Indented,
         };
+
         _serializer.Converters.RegisterOmniSharpRazorConverters();
         _publishFilePathMappings = new Dictionary<string, string>(FilePathComparer.Instance);
         DeferredPublishTasks = new Dictionary<string, Task>(FilePathComparer.Instance);
@@ -55,7 +57,7 @@ internal class DefaultProjectChangePublisher : ProjectChangePublisher, IOmniShar
     // 250ms between publishes to prevent bursts of changes yet still be responsive to changes.
     internal int EnqueueDelay { get; set; } = 250;
 
-    public void Initialize(OmniSharpProjectSnapshotManagerBase projectManager)
+    public void Initialize(OmniSharpProjectSnapshotManager projectManager)
     {
         if (projectManager is null)
         {
@@ -167,8 +169,8 @@ internal class DefaultProjectChangePublisher : ProjectChangePublisher, IOmniShar
                 RemovePublishingData(args.Older);
                 break;
 
-            // We don't care about ProjectAdded scenarios because a newly added project does not have a workspace state associated with it meaning
-            // it isn't interesting for us to serialize quite yet.
+                // We don't care about ProjectAdded scenarios because a newly added project does not have a workspace state associated with it meaning
+                // it isn't interesting for us to serialize quite yet.
         }
     }
 

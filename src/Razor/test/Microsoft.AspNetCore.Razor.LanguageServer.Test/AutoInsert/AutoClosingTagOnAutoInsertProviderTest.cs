@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
@@ -941,7 +941,7 @@ expected: @"
     [Fact]
     public void OnTypeCloseAngle_AutoInsertDisabled_Noops()
     {
-        Options = new RazorLSPOptions(Trace.Off, enableFormatting: true, autoClosingTags: false, insertSpaces: true, tabSize: 4);
+        Options = new RazorLSPOptions(Trace.Off, EnableFormatting: true, AutoClosingTags: false, InsertSpaces: true, TabSize: 4, FormatOnType: true);
         RunAutoInsertTest(
 input: @"
     <div>$$
@@ -951,7 +951,7 @@ expected: @"
 ");
     }
 
-    internal override RazorOnAutoInsertProvider CreateProvider()
+    internal override IOnAutoInsertProvider CreateProvider()
     {
         var optionsMonitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
         optionsMonitor.SetupGet(o => o.CurrentValue).Returns(Options);

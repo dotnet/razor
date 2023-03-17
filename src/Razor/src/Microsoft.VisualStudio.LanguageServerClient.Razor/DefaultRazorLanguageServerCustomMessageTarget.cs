@@ -12,18 +12,23 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -43,8 +48,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     private readonly JoinableTaskFactory _joinableTaskFactory;
     private readonly LSPRequestInvoker _requestInvoker;
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
-    private readonly EditorSettingsManager _editorSettingsManager;
+    private readonly IClientSettingsManager _editorSettingsManager;
     private readonly LSPDocumentSynchronizer _documentSynchronizer;
+    private readonly IOutputWindowLogger? _outputWindowLogger;
 
     [ImportingConstructor]
     public DefaultRazorLanguageServerCustomMessageTarget(
@@ -52,8 +58,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         JoinableTaskContext joinableTaskContext,
         LSPRequestInvoker requestInvoker,
         FormattingOptionsProvider formattingOptionsProvider,
-        EditorSettingsManager editorSettingsManager,
-        LSPDocumentSynchronizer documentSynchronizer)
+        IClientSettingsManager editorSettingsManager,
+        LSPDocumentSynchronizer documentSynchronizer,
+        [Import(AllowDefault = true)] IOutputWindowLogger? outputWindowLogger)
     {
         if (documentManager is null)
         {
@@ -97,6 +104,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         _formattingOptionsProvider = formattingOptionsProvider;
         _editorSettingsManager = editorSettingsManager;
         _documentSynchronizer = documentSynchronizer;
+        _outputWindowLogger = outputWindowLogger;
     }
 
     // Testing constructor
@@ -335,7 +343,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         codeActionParams.CodeActionParams.TextDocument.Uri = virtualDocumentSnapshot.Uri;
 
         var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
-        var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
+        var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSCodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
             textBuffer,
             Methods.TextDocumentCodeActionName,
             SupportsCodeActionResolve,
@@ -483,6 +491,10 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var (synchronized, htmlDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
             documentColorParams.HostDocumentVersion, documentColorParams.TextDocument.Uri, cancellationToken);
+        if (!synchronized)
+        {
+            return new List<ColorInformation>();
+        }
 
         documentColorParams.TextDocument.Uri = htmlDoc.Uri;
         var htmlTextBuffer = htmlDoc.Snapshot.TextBuffer;
@@ -503,6 +515,40 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         }
 
         return colorInformation;
+    }
+
+    public override async Task<IReadOnlyList<ColorPresentation>> ProvideHtmlColorPresentationAsync(DelegatedColorPresentationParams colorPresentationParams, CancellationToken cancellationToken)
+    {
+        if (colorPresentationParams is null)
+        {
+            throw new ArgumentNullException(nameof(colorPresentationParams));
+        }
+
+        var (synchronized, htmlDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+            colorPresentationParams.RequiredHostDocumentVersion, colorPresentationParams.TextDocument.Uri, cancellationToken);
+        if (!synchronized)
+        {
+            return new List<ColorPresentation>();
+        }
+
+        colorPresentationParams.TextDocument.Uri = htmlDoc.Uri;
+        var htmlTextBuffer = htmlDoc.Snapshot.TextBuffer;
+        var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<ColorPresentationParams, ColorPresentation[]>(
+            htmlTextBuffer,
+            ColorPresentationEndpoint.ColorPresentationMethodName,
+            colorPresentationParams,
+            cancellationToken).ConfigureAwait(false);
+
+        var colorPresentation = new List<ColorPresentation>();
+        await foreach (var response in requests)
+        {
+            if (response.Response is not null)
+            {
+                colorPresentation.AddRange(response.Response);
+            }
+        }
+
+        return colorPresentation;
     }
 
     private static bool SupportsCodeActionResolve(JToken token)
@@ -543,9 +589,12 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         {
             // Right now in VS we only care about editor settings, but we should update this logic later if
             // we want to support Razor and HTML settings as well.
-            var setting = item.Section == "vs.editor.razor"
-                ? _editorSettingsManager.Current
-                : new object();
+            var setting = item.Section switch
+            {
+                "vs.editor.razor" => _editorSettingsManager.GetClientSettings(),
+                _ => new object()
+            };
+
             result.Add(setting);
         }
 
@@ -721,6 +770,13 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         {
             // Return null if any of the tasks getting folding ranges
             // results in an error
+            return null;
+        }
+
+        // Since VS FoldingRanges doesn't poll once it has a non-null result returning a partial result can lock us
+        // into an incomplete view until we edit the document. Better to wait for the other server to be ready.
+        if (htmlRanges is null || csharpRanges is null)
+        {
             return null;
         }
 
@@ -1102,14 +1158,21 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         {
             await Task.WhenAll(htmlTask, csharpTask).ConfigureAwait(false);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            _outputWindowLogger?.LogError(e, "Exception thrown in PullDiagnostic delegation");
             // Return null if any of the tasks getting diagnostics results in an error
             return null;
         }
 
-        var csharpDiagnostics = await csharpTask.ConfigureAwait(false) ?? Array.Empty<VSInternalDiagnosticReport>();
-        var htmlDiagnostics = await htmlTask.ConfigureAwait(false) ?? Array.Empty<VSInternalDiagnosticReport>();
+        var csharpDiagnostics = await csharpTask.ConfigureAwait(false);
+        var htmlDiagnostics = await htmlTask.ConfigureAwait(false);
+
+        if (csharpDiagnostics is null || htmlDiagnostics is null)
+        {
+            // If either is null we don't have a complete view and returning anything will cause us to "lock-in" incomplete info. So we return null and wait for a re-try.
+            return null;
+        }
 
         return new RazorPullDiagnosticResponse(csharpDiagnostics, htmlDiagnostics);
     }
@@ -1146,7 +1209,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         // servers.
         if (response?.Response is null or [{ Diagnostics: null }, ..])
         {
-            return null;
+            // Important that we send back an empty list here, because null would result it the above method throwing away any other
+            // diagnostics it receives from the other delegated server
+            return Array.Empty<VSInternalDiagnosticReport>();
         }
 
         return response.Response;

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <!--
     We don't follow Arcade conventions for project naming.
@@ -21,11 +21,12 @@
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <StrongNameKeyId>MicrosoftAspNetCore</StrongNameKeyId>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors Condition="'$(CI)' == 'true'">true</TreatWarningsAsErrors>
     <GenerateResxSource>true</GenerateResxSource>
     <GenerateResxSourceEmitFormatMethods>true</GenerateResxSourceEmitFormatMethods>
     <ExcludeFromSourceBuild Condition="'$(IsUnitTestProject)' == 'true'">true</ExcludeFromSourceBuild>
     <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
+    <EnableWindowsTargeting Condition="'$(DotNetBuildFromSource)' != 'true'">true</EnableWindowsTargeting>
 
     <SharedSourceRoot>$(MSBuildThisFileDirectory)src\Shared\</SharedSourceRoot>
 

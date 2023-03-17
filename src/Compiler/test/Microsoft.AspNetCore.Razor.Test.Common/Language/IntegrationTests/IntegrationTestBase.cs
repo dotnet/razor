@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Sdk;
 
@@ -24,6 +26,9 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 public abstract class IntegrationTestBase
 {
     private static readonly AsyncLocal<string> _fileName = new AsyncLocal<string>();
+
+    // UTF-8 with BOM
+    private static readonly Encoding _baselineEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
     private static readonly CSharpCompilation DefaultBaseCompilation;
 
@@ -97,7 +102,7 @@ public abstract class IntegrationTestBase
     protected virtual string LineEnding { get; } = "\r\n";
 
 #if GENERATE_BASELINES
-        protected bool GenerateBaselines { get; } = true;
+    protected bool GenerateBaselines { get; } = true;
 #else
     protected bool GenerateBaselines { get; } = false;
 #endif
@@ -313,8 +318,8 @@ public abstract class IntegrationTestBase
 
             configure?.Invoke(b);
 
-                // Allow the test to do custom things with tag helpers, but do the default thing most of the time.
-                if (!b.Features.OfType<ITagHelperFeature>().Any())
+            // Allow the test to do custom things with tag helpers, but do the default thing most of the time.
+            if (!b.Features.OfType<ITagHelperFeature>().Any())
             {
                 b.Features.Add(new CompilationTagHelperFeature());
                 b.Features.Add(new DefaultMetadataReferenceFeature()
@@ -326,8 +331,8 @@ public abstract class IntegrationTestBase
             b.Features.Add(new DefaultTypeNameFeature());
             b.SetCSharpLanguageVersion(CSharpParseOptions.LanguageVersion);
 
-                // Decorate each import feature so we can normalize line endings.
-                foreach (var feature in b.Features.OfType<IImportProjectFeature>().ToArray())
+            // Decorate each import feature so we can normalize line endings.
+            foreach (var feature in b.Features.OfType<IImportProjectFeature>().ToArray())
             {
                 b.Features.Remove(feature);
                 b.Features.Add(new NormalizedDefaultImportFeature(feature, LineEnding));
@@ -348,7 +353,7 @@ public abstract class IntegrationTestBase
         if (GenerateBaselines)
         {
             var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
-            File.WriteAllText(baselineFullPath, IntermediateNodeSerializer.Serialize(document));
+            File.WriteAllText(baselineFullPath, IntermediateNodeSerializer.Serialize(document), _baselineEncoding);
             return;
         }
 
@@ -375,7 +380,7 @@ public abstract class IntegrationTestBase
         if (GenerateBaselines)
         {
             var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
-            File.WriteAllText(baselineFullPath, htmlDocument.GeneratedHtml);
+            File.WriteAllText(baselineFullPath, htmlDocument.GeneratedCode, _baselineEncoding);
             return;
         }
 
@@ -388,7 +393,7 @@ public abstract class IntegrationTestBase
         var baseline = htmlFile.ReadAllText();
 
         // Normalize newlines to match those in the baseline.
-        var actual = htmlDocument.GeneratedHtml.Replace("\r", "").Replace("\n", "\r\n");
+        var actual = htmlDocument.GeneratedCode.Replace("\r", "").Replace("\n", "\r\n");
         Assert.Equal(baseline, actual);
     }
 
@@ -406,13 +411,13 @@ public abstract class IntegrationTestBase
         if (GenerateBaselines)
         {
             var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
-            File.WriteAllText(baselineFullPath, cSharpDocument.GeneratedCode);
+            File.WriteAllText(baselineFullPath, cSharpDocument.GeneratedCode, _baselineEncoding);
 
             var baselineDiagnosticsFullPath = Path.Combine(TestProjectRoot, baselineDiagnosticsFileName);
             var lines = cSharpDocument.Diagnostics.Select(RazorDiagnosticSerializer.Serialize).ToArray();
             if (lines.Any())
             {
-                File.WriteAllLines(baselineDiagnosticsFullPath, lines);
+                File.WriteAllLines(baselineDiagnosticsFullPath, lines, _baselineEncoding);
             }
             else if (File.Exists(baselineDiagnosticsFullPath))
             {
@@ -462,7 +467,7 @@ public abstract class IntegrationTestBase
         if (GenerateBaselines)
         {
             var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
-            File.WriteAllText(baselineFullPath, serializedMappings);
+            File.WriteAllText(baselineFullPath, serializedMappings, _baselineEncoding);
             return;
         }
 
@@ -544,6 +549,61 @@ public abstract class IntegrationTestBase
         }
     }
 
+    protected void AssertHtmlSourceMappingsMatchBaseline(RazorCodeDocument codeDocument)
+    {
+        if (FileName == null)
+        {
+            var message = $"{nameof(AssertHtmlSourceMappingsMatchBaseline)} should only be called from an integration test ({nameof(FileName)} is null).";
+            throw new InvalidOperationException(message);
+        }
+
+        var htmlDocument = codeDocument.GetHtmlDocument();
+        Assert.NotNull(htmlDocument);
+
+        var baselineFileName = Path.ChangeExtension(FileName, ".html.mappings.txt");
+        var serializedMappings = SourceMappingsSerializer.Serialize(htmlDocument, codeDocument.Source);
+
+        if (GenerateBaselines)
+        {
+            var baselineFullPath = Path.Combine(TestProjectRoot, baselineFileName);
+            File.WriteAllText(baselineFullPath, serializedMappings, _baselineEncoding);
+            return;
+        }
+
+        var testFile = TestFile.Create(baselineFileName, GetType().GetTypeInfo().Assembly);
+        if (!testFile.Exists())
+        {
+            throw new XunitException($"The resource {baselineFileName} was not found.");
+        }
+
+        var baseline = testFile.ReadAllText();
+
+        AssertEx.AssertEqualToleratingWhitespaceDifferences(baseline, serializedMappings);
+
+        var charBuffer = new char[codeDocument.Source.Length];
+        codeDocument.Source.CopyTo(0, charBuffer, 0, codeDocument.Source.Length);
+        var sourceContent = new string(charBuffer);
+
+        var problems = new List<string>();
+        foreach (var mapping in htmlDocument.SourceMappings)
+        {
+            var actualSpan = htmlDocument.GeneratedCode.Substring(mapping.GeneratedSpan.AbsoluteIndex, mapping.GeneratedSpan.Length);
+            var expectedSpan = sourceContent.Substring(mapping.OriginalSpan.AbsoluteIndex, mapping.OriginalSpan.Length);
+
+            if (expectedSpan != actualSpan)
+            {
+                problems.Add(
+                    $"Found the span {mapping.OriginalSpan} in the output mappings but it contains " +
+                    $"'{EscapeWhitespace(actualSpan)}' instead of '{EscapeWhitespace(expectedSpan)}'.");
+            }
+        }
+
+        if (problems.Count > 0)
+        {
+            throw new XunitException(string.Join(Environment.NewLine, problems));
+        }
+    }
+
     protected void AssertLinePragmas(RazorCodeDocument codeDocument, bool designTime)
     {
         if (FileName == null)
@@ -614,8 +674,7 @@ public abstract class IntegrationTestBase
 
         public override Syntax.SyntaxNode VisitCSharpStatementLiteral(CSharpStatementLiteralSyntax node)
         {
-            var context = node.GetSpanContext();
-            if (context != null && context.ChunkGenerator != SpanChunkGenerator.Null)
+            if (node.ChunkGenerator != null && node.ChunkGenerator != SpanChunkGenerator.Null)
             {
                 CodeSpans.Add(node);
             }
@@ -624,8 +683,7 @@ public abstract class IntegrationTestBase
 
         public override Syntax.SyntaxNode VisitCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
         {
-            var context = node.GetSpanContext();
-            if (context != null && context.ChunkGenerator != SpanChunkGenerator.Null)
+            if (node.ChunkGenerator != null && node.ChunkGenerator != SpanChunkGenerator.Null)
             {
                 CodeSpans.Add(node);
             }

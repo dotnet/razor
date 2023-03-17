@@ -294,7 +294,7 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
         if (nullableType)
         {
             // Classify the '?' symbol separately from the rest of the type since it's considered punctuation.
-            typeName = typeName.Substring(0, typeName.Length - 1);
+            typeName = typeName[..^1];
         }
 
         // Case 1: Type can be aliased as a C# built-in type (e.g. Boolean -> bool, Int32 -> int, etc.).
@@ -418,9 +418,20 @@ internal class DefaultVSLSPTagHelperTooltipFactory : VSLSPTagHelperTooltipFactor
 
     private static ContainerElement CombineClassifiedTextRuns(IReadOnlyList<DescriptionClassification> descriptionClassifications, ImageElement glyph)
     {
+        var isFirstElement = true;
         var classifiedElementContainer = new List<ContainerElement>();
         foreach (var classification in descriptionClassifications)
         {
+            // Adds blank lines between multiple classified elements
+            if (isFirstElement)
+            {
+                isFirstElement = false;
+            }
+            else
+            {
+                classifiedElementContainer.Add(new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement()));
+            }
+
             classifiedElementContainer.Add(new ContainerElement(ContainerElementStyle.Wrapped, glyph, new ClassifiedTextElement(classification.Type)));
 
             if (classification.Documentation.Count > 0)

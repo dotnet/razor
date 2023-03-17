@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -526,6 +526,28 @@ public struct MyStruct
         @context.I1.MyClassId - @context.I2.MyStructId
     </Template>
 </TestComponent>");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact] // https://github.com/dotnet/razor/issues/7628
+    public void ComponentWithTypeParameterValueTuple_ExplicitGenericArguments()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam TDomain where TDomain : struct
+            @typeparam TValue where TValue : struct
+
+            <TestComponent Data="null" TDomain="decimal" TValue="decimal" />
+
+            @code {
+                [Parameter]
+                public List<(TDomain Domain, TValue Value)> Data { get; set; }
+            }
+            """);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -7599,6 +7621,58 @@ namespace Test
     public void Foo() { System.GC.KeepAlive(myInstance); }
 }
 ");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact] // https://github.com/dotnet/razor/issues/8170
+    public void Component_WithRef_Nullable()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            <TestComponent @ref="myComponent" />
+
+            @code {
+                private TestComponent myComponent = null!;
+                public void Use() { System.GC.KeepAlive(myComponent); }
+            }
+            """,
+            nullableEnable: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact] // https://github.com/dotnet/razor/issues/8170
+    public void Component_WithRef_Nullable_Generic()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class MyComponent<T> : ComponentBase
+            {
+                [Parameter] public T MyParameter { get; set; } = default!;
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent @ref="myComponent" MyParameter="1" />
+
+            @code {
+                private MyComponent<int> myComponent = null!;
+                public void Use() { System.GC.KeepAlive(myComponent); }
+            }
+            """,
+            nullableEnable: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);

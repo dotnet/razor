@@ -141,7 +141,7 @@ internal class TagHelperCompletionProvider : RazorCompletionItemProvider
         var (ancestorTagName, ancestorIsTagHelper) = _tagHelperFactsService.GetNearestAncestorTagInfo(ancestors);
         var attributeCompletionContext = new AttributeCompletionContext(
             filteredContext,
-            existingCompletions: Enumerable.Empty<string>(),
+            existingCompletions: Array.Empty<string>(),
             containingTagName,
             selectedAttributeName,
             attributes,
@@ -164,7 +164,7 @@ internal class TagHelperCompletionProvider : RazorCompletionItemProvider
             var indexerCompletion = filterText.EndsWith("...", StringComparison.Ordinal);
             if (indexerCompletion)
             {
-                filterText = filterText.Substring(0, filterText.Length - 3);
+                filterText = filterText[..^3];
             }
 
             var attributeContext = ResolveAttributeContext(completion.Value, indexerCompletion, options.SnippetsSupported);

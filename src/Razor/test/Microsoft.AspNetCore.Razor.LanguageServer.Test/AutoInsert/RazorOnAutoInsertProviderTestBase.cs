@@ -28,7 +28,7 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
     {
     }
 
-    internal abstract RazorOnAutoInsertProvider CreateProvider();
+    internal abstract IOnAutoInsertProvider CreateProvider();
 
     protected void RunAutoInsertTest(string input, string expected, int tabSize = 4, bool insertSpaces = true, string fileKind = default, IReadOnlyList<TagHelperDescriptor> tagHelpers = default)
     {
@@ -49,7 +49,7 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
         };
 
         var provider = CreateProvider();
-        var context = FormattingContext.Create(uri, Mock.Of<DocumentSnapshot>(MockBehavior.Strict), codeDocument, options, TestAdhocWorkspaceFactory.Instance);
+        var context = FormattingContext.Create(uri, Mock.Of<IDocumentSnapshot>(MockBehavior.Strict), codeDocument, options, TestAdhocWorkspaceFactory.Instance);
 
         // Act
         if (!provider.TryResolveInsertion(position, context, out var edit, out _))

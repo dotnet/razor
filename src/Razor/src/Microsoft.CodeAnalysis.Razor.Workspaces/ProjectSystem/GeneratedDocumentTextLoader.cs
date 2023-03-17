@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal class GeneratedDocumentTextLoader : TextLoader
 {
-    private readonly DocumentSnapshot _document;
+    private readonly IDocumentSnapshot _document;
     private readonly string _filePath;
     private readonly VersionStamp _version;
 
-    public GeneratedDocumentTextLoader(DocumentSnapshot document, string filePath)
+    public GeneratedDocumentTextLoader(IDocumentSnapshot document, string filePath)
     {
         if (document is null)
         {
@@ -30,7 +30,7 @@ internal class GeneratedDocumentTextLoader : TextLoader
         _version = VersionStamp.Create();
     }
 
-    public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+    public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
     {
         var output = await _document.GetGeneratedOutputAsync().ConfigureAwait(false);
 

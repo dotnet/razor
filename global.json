@@ -1,6 +1,6 @@
 {
   "tools": {
-    "dotnet": "7.0.100-rc.1.22431.12",
+    "dotnet": "7.0.101",
     "runtimes": {
       "dotnet": [
         "2.1.30",
@@ -16,8 +16,8 @@
     }
   },
   "sdk": {
-    "version": "7.0.100-rc.1.22431.12",
-    "allowPrerelease": true,
+    "version": "7.0.101",
+    "allowPrerelease": false,
     "rollForward": "latestPatch"
   },
   "msbuild-sdks": {

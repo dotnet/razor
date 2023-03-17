@@ -10,8 +10,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Extensions;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using OmniSharp;
@@ -286,7 +288,7 @@ internal class BackgroundDocumentProcessedPublisher : OmniSharpDocumentProcessed
             _document = document;
         }
 
-        public async override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        public async override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
         {
             var sourceText = await _document.GetTextAsync(cancellationToken);
             var textVersion = await _document.GetTextVersionAsync(cancellationToken);

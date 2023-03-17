@@ -8,6 +8,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal sealed class ProjectSnapshotHandle
 {
+    public ProjectSnapshotHandle(IProjectSnapshot snapshot)
+        : this(snapshot.FilePath, snapshot.Configuration, snapshot.RootNamespace)
+    {
+    }
+
     public ProjectSnapshotHandle(
         string filePath,
         RazorConfiguration? configuration,

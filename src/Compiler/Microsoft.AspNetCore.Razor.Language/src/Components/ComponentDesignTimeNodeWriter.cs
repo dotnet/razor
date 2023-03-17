@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -1119,6 +1119,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             var captureTypeName = node.IsComponentCapture
                 ? TypeNameHelper.GetGloballyQualifiedNameIfNeeded(node.ComponentCaptureTypeName)
                 : ComponentsApi.ElementReference.FullTypeName;
+            var nullSuppression = !context.Options.SuppressNullabilityEnforcement ? "!" : string.Empty;
             WriteCSharpCode(context, new CSharpCodeIntermediateNode
             {
                 Source = node.Source,
@@ -1128,7 +1129,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                         new IntermediateToken
                         {
                             Kind = TokenKind.CSharp,
-                            Content = $" = default({captureTypeName});"
+                            Content = $" = default({captureTypeName}){nullSuppression};"
                         }
                     }
             });

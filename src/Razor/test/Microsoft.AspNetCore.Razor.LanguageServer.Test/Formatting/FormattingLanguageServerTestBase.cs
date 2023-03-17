@@ -37,25 +37,18 @@ public abstract class FormattingLanguageServerTestBase : LanguageServerTestBase
         var codeDocument = RazorCodeDocument.Create(sourceDocument);
         var syntaxTree = RazorSyntaxTree.Parse(sourceDocument, RazorParserOptions.CreateDefault());
         var razorCSharpDocument = RazorCSharpDocument.Create(
-            content, RazorCodeGenerationOptions.CreateDefault(), Array.Empty<RazorDiagnostic>(), sourceMappings, Array.Empty<LinePragma>());
+            codeDocument, content, RazorCodeGenerationOptions.CreateDefault(), Array.Empty<RazorDiagnostic>(), sourceMappings, Array.Empty<LinePragma>());
         codeDocument.SetSyntaxTree(syntaxTree);
         codeDocument.SetCSharpDocument(razorCSharpDocument);
 
         return codeDocument;
     }
 
-    internal static IOptionsMonitor<RazorLSPOptions> GetOptionsMonitor(bool enableFormatting)
-    {
-        var monitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
-        monitor.SetupGet(m => m.CurrentValue).Returns(new RazorLSPOptions(default, enableFormatting, true, insertSpaces: true, tabSize: 4));
-        return monitor.Object;
-    }
-
     internal class DummyRazorFormattingService : RazorFormattingService
     {
         public bool Called { get; private set; }
 
-        public override Task<TextEdit[]> FormatAsync(DocumentContext documentContext, Range? range, FormattingOptions options, CancellationToken cancellationToken)
+        public override Task<TextEdit[]> FormatAsync(VersionedDocumentContext documentContext, Range? range, FormattingOptions options, CancellationToken cancellationToken)
         {
             Called = true;
             return Task.FromResult(Array.Empty<TextEdit>());

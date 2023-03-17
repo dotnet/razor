@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -28,7 +29,7 @@ public abstract class OmniSharpTestBase : LanguageServerTestBase
     private readonly ConstructorInfo _omniSharpProjectSnapshotMangerConstructor;
     private readonly ConstructorInfo _omniSharpSnapshotConstructor;
 
-    protected OmniSharpProjectSnapshotManagerDispatcher Dispatcher { get; }
+    internal OmniSharpProjectSnapshotManagerDispatcher Dispatcher { get; }
 
     protected OmniSharpTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -37,22 +38,22 @@ public abstract class OmniSharpTestBase : LanguageServerTestBase
         var testProjectSnapshotType = commonTestAssembly.GetType("Microsoft.AspNetCore.Razor.Test.Common.TestProjectSnapshot");
 
         var testProjectSnapshotManagerType = commonTestAssembly.GetType("Microsoft.AspNetCore.Razor.Test.Common.TestProjectSnapshotManager");
-        var strongNamedAssembly = Assembly.Load("Microsoft.AspNetCore.Razor.OmniSharpPlugin.StrongNamed");
-        var defaultSnapshotManagerType = strongNamedAssembly.GetType("Microsoft.AspNetCore.Razor.OmniSharpPlugin.DefaultOmniSharpProjectSnapshotManager");
+        var strongNamedAssembly = Assembly.Load("Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp");
+        var defaultSnapshotManagerType = strongNamedAssembly.GetType("Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project.OmniSharpProjectSnapshotManager");
 
         _createTestProjectSnapshotMethod = testProjectSnapshotType.GetMethod("Create", new[] { typeof(string), typeof(ProjectWorkspaceState) });
         _createWithDocumentsTestProjectSnapshotMethod = testProjectSnapshotType.GetMethod("Create", new[] { typeof(string), typeof(string[]), typeof(ProjectWorkspaceState) });
         _createProjectSnapshotManagerMethod = testProjectSnapshotManagerType.GetMethod("Create");
         _allowNotifyListenersProperty = testProjectSnapshotManagerType.GetProperty("AllowNotifyListeners");
         _dispatcherProperty = typeof(OmniSharpProjectSnapshotManagerDispatcher).GetProperty("InternalDispatcher", BindingFlags.NonPublic | BindingFlags.Instance);
-        _omniSharpProjectSnapshotMangerConstructor = defaultSnapshotManagerType.GetConstructors().Single();
+        _omniSharpProjectSnapshotMangerConstructor = defaultSnapshotManagerType.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single();
         _omniSharpSnapshotConstructor = typeof(OmniSharpProjectSnapshot).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single();
 
-        Dispatcher = new DefaultOmniSharpProjectSnapshotManagerDispatcher();
+        Dispatcher = new OmniSharpProjectSnapshotManagerDispatcher();
         AddDisposable((IDisposable)Dispatcher.DispatcherScheduler);
     }
 
-    protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath)
+    private protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath)
     {
         var projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Default);
         var projectSnapshot = _createTestProjectSnapshotMethod.Invoke(null, new object[] { projectFilePath, projectWorkspaceState });
@@ -61,7 +62,7 @@ public abstract class OmniSharpTestBase : LanguageServerTestBase
         return omniSharpProjectSnapshot;
     }
 
-    protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath, string[] documentFilePaths)
+    private protected OmniSharpProjectSnapshot CreateProjectSnapshot(string projectFilePath, string[] documentFilePaths)
     {
         var projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, CodeAnalysis.CSharp.LanguageVersion.Default);
         var projectSnapshot = _createWithDocumentsTestProjectSnapshotMethod.Invoke(null, new object[] { projectFilePath, documentFilePaths, projectWorkspaceState });
@@ -70,13 +71,13 @@ public abstract class OmniSharpTestBase : LanguageServerTestBase
         return omniSharpProjectSnapshot;
     }
 
-    protected OmniSharpProjectSnapshotManagerBase CreateProjectSnapshotManager(bool allowNotifyListeners = false)
+    private protected OmniSharpProjectSnapshotManager CreateProjectSnapshotManager(bool allowNotifyListeners = false)
     {
         var dispatcher = _dispatcherProperty.GetValue(Dispatcher);
-        var testSnapshotManager = _createProjectSnapshotManagerMethod.Invoke(null, new object[] { dispatcher });
+        var testSnapshotManager = _createProjectSnapshotManagerMethod.Invoke(null, new object[] { dispatcher, ErrorReporter });
         _allowNotifyListenersProperty.SetValue(testSnapshotManager, allowNotifyListeners);
         var remoteTextLoaderFactory = new DefaultRemoteTextLoaderFactory();
-        var snapshotManager = (OmniSharpProjectSnapshotManagerBase)_omniSharpProjectSnapshotMangerConstructor.Invoke(new[] { testSnapshotManager, remoteTextLoaderFactory });
+        var snapshotManager = (OmniSharpProjectSnapshotManager)_omniSharpProjectSnapshotMangerConstructor.Invoke(new[] { testSnapshotManager, remoteTextLoaderFactory });
 
         return snapshotManager;
     }

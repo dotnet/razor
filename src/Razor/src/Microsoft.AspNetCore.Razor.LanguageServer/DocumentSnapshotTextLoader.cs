@@ -11,9 +11,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class DocumentSnapshotTextLoader : TextLoader
 {
-    private readonly DocumentSnapshot _documentSnapshot;
+    private readonly IDocumentSnapshot _documentSnapshot;
 
-    public DocumentSnapshotTextLoader(DocumentSnapshot documentSnapshot)
+    public DocumentSnapshotTextLoader(IDocumentSnapshot documentSnapshot)
     {
         if (documentSnapshot is null)
         {
@@ -23,7 +23,7 @@ internal class DocumentSnapshotTextLoader : TextLoader
         _documentSnapshot = documentSnapshot;
     }
 
-    public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace? workspace, DocumentId? documentId, CancellationToken cancellationToken)
+    public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
     {
         var sourceText = await _documentSnapshot.GetTextAsync();
         var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default);

@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -101,6 +102,7 @@ internal static class IServiceCollectionExtensions
     {
         services.AddHandler<RazorTranslateDiagnosticsEndpoint>();
         services.AddRegisteringHandler<RazorPullDiagnosticsEndpoint>();
+        services.AddHandler<WorkspacePullDiagnosticsEndpoint>();
         services.AddSingleton<RazorTranslateDiagnosticsService>();
     }
 
@@ -118,7 +120,9 @@ internal static class IServiceCollectionExtensions
 
         services.AddSingleton<WorkspaceSemanticTokensRefreshPublisher, DefaultWorkspaceSemanticTokensRefreshPublisher>();
         services.AddSingleton<ProjectSnapshotChangeTrigger, DefaultWorkspaceSemanticTokensRefreshTrigger>();
-        services.AddSingleton<RazorSemanticTokensInfoService, DefaultRazorSemanticTokensInfoService>();
+
+        // Ensure that we don't add the default service if something else has added one.
+        services.TryAddSingleton<RazorSemanticTokensInfoService, DefaultRazorSemanticTokensInfoService>();
     }
 
     public static void AddCodeActionsServices(this IServiceCollection services)
@@ -160,11 +164,18 @@ internal static class IServiceCollectionExtensions
         services.AddHandler<RazorLanguageQueryEndpoint>();
     }
 
-    public static void AddOptionsServices(this IServiceCollection services)
+    public static void AddOptionsServices(this IServiceCollection services, RazorLSPOptions currentOptions)
     {
-        services.AddSingleton<RazorConfigurationService, DefaultRazorConfigurationService>();
-        services.AddSingleton<RazorLSPOptionsMonitor>();
-        services.AddSingleton<IOptionsMonitor<RazorLSPOptions>, RazorLSPOptionsMonitor>();
+        services.AddSingleton<IConfigurationSyncService, DefaultRazorConfigurationService>();
+        services.AddSingleton(s =>
+        {
+            return new RazorLSPOptionsMonitor(
+                s.GetRequiredService<IConfigurationSyncService>(),
+                s.GetRequiredService<IOptionsMonitorCache<RazorLSPOptions>>(),
+                currentOptions);
+        });
+
+        services.AddSingleton<IOptionsMonitor<RazorLSPOptions>, RazorLSPOptionsMonitor>(s => s.GetRequiredService<RazorLSPOptionsMonitor>());
     }
 
     public static void AddDocumentManagmentServices(this IServiceCollection services)

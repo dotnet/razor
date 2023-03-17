@@ -24,6 +24,7 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
     internal ImmutableArray<HostDocument> Documents { get; }
     internal ImmutableArray<TextLoader> TextLoaders { get; }
     internal TagHelperResolver TagHelperResolver { get; }
+    protected string RepoRoot { get; }
 
     protected ProjectSnapshotManagerBenchmarkBase()
     {
@@ -33,8 +34,8 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
             current = current.Parent;
         }
 
-        var root = current ?? throw new InvalidOperationException("Could not find Razor.sln");
-        var projectRoot = Path.Combine(root.FullName, "src", "Razor", "test", "testapps", "LargeProject");
+        RepoRoot = current?.FullName ?? throw new InvalidOperationException("Could not find Razor.sln");
+        var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "LargeProject");
 
         HostProject = new HostProject(Path.Combine(projectRoot, "LargeProject.csproj"), FallbackRazorConfiguration.MVC_2_1, rootNamespace: null);
 
@@ -62,8 +63,19 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
 
         Documents = documents.ToImmutable();
 
-        var tagHelpers = Path.Combine(root.FullName, "src", "Razor", "benchmarks", "Microsoft.AspNetCore.Razor.Microbenchmarks", "taghelpers.json");
-        TagHelperResolver = new StaticTagHelperResolver(ReadTagHelpers(tagHelpers), NoOpTelemetryReporter.Instance);
+        TagHelperResolver = new StaticTagHelperResolver(GetTagHelperDescriptors(), NoOpTelemetryReporter.Instance);
+    }
+
+    internal IReadOnlyList<TagHelperDescriptor> GetTagHelperDescriptors()
+    {
+        var tagHelperBuffer = Resources.GetResourceBytes("taghelpers.json");
+
+        var serializer = new JsonSerializer();
+        serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
+        using var stream = new MemoryStream(tagHelperBuffer);
+        using var reader = new JsonTextReader(new StreamReader(stream));
+
+        return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader) ?? Array.Empty<TagHelperDescriptor>();
     }
 
     internal DefaultProjectSnapshotManager CreateProjectSnapshotManager()
@@ -83,15 +95,5 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
 #pragma warning disable CA2000 // Dispose objects before losing scope
             new AdhocWorkspace(services));
 #pragma warning restore CA2000 // Dispose objects before losing scope
-    }
-
-    private static IReadOnlyList<TagHelperDescriptor> ReadTagHelpers(string filePath)
-    {
-        var serializer = new JsonSerializer();
-        serializer.Converters.Add(RazorDiagnosticJsonConverter.Instance);
-        serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
-
-        using var reader = new JsonTextReader(File.OpenText(filePath));
-        return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader) ?? Array.Empty<TagHelperDescriptor>();
     }
 }

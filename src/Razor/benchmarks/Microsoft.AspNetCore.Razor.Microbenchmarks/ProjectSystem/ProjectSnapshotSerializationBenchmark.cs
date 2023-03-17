@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
+namespace Microsoft.AspNetCore.Razor.Microbenchmarks.ProjectSystem;
 
 public class ProjectSnapshotSerializationBenchmark : ProjectSnapshotManagerBenchmarkBase
 {
@@ -28,7 +28,7 @@ public class ProjectSnapshotSerializationBenchmark : ProjectSnapshotManagerBench
     }
 
     public JsonSerializer Serializer { get; set; }
-    private ProjectSnapshot ProjectSnapshot { get; }
+    private IProjectSnapshot ProjectSnapshot { get; }
 
     [Benchmark(Description = "Razor ProjectSnapshot Roundtrip JsonConverter Serialization")]
     public void TagHelper_JsonConvert_Serialization_RoundTrip()
@@ -37,7 +37,7 @@ public class ProjectSnapshotSerializationBenchmark : ProjectSnapshotManagerBench
         using (originalStream = new MemoryStream())
         using (var writer = new StreamWriter(originalStream, Encoding.UTF8, bufferSize: 4096))
         {
-            Serializer.Serialize(writer, ProjectSnapshot);
+            Serializer.Serialize(writer, new ProjectSnapshotHandle(ProjectSnapshot));
         }
 
         ProjectSnapshotHandle deserializedResult;
