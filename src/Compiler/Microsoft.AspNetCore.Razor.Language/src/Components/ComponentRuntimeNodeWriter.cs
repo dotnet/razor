@@ -330,6 +330,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         {
             using (context.CodeWriter.BuildLinePragma(node.Source.Value, context))
             {
+                context.AddSourceMappingFor(node);
                 context.CodeWriter.WriteUsing(node.Content);
             }
         }
@@ -1114,6 +1115,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             using (context.CodeWriter.BuildLinePragma(token.Source, context))
             {
                 context.CodeWriter.WritePadding(0, token.Source.Value, context);
+                context.AddSourceMappingFor(token);
                 context.CodeWriter.Write(token.Content);
             }
             return;

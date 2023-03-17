@@ -36,6 +36,7 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
         {
             using (context.CodeWriter.BuildLinePragma(node.Source.Value, context))
             {
+                context.AddSourceMappingFor(node);
                 context.CodeWriter.WriteUsing(node.Content);
             }
         }
@@ -73,6 +74,7 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
         {
             if (node.Children[i] is IntermediateToken token && token.IsCSharp)
             {
+                context.AddSourceMappingFor(token);
                 context.CodeWriter.Write(token.Content);
             }
             else
@@ -116,6 +118,7 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
         {
             if (node.Children[i] is IntermediateToken token && token.IsCSharp)
             {
+                context.AddSourceMappingFor(token);
                 context.CodeWriter.Write(token.Content);
             }
             else
@@ -232,6 +235,7 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
             {
                 if (node.Children[i] is IntermediateToken token && token.IsCSharp)
                 {
+                    context.AddSourceMappingFor(token);
                     context.CodeWriter.Write(token.Content);
                 }
                 else
@@ -295,6 +299,7 @@ public class RuntimeNodeWriter : IntermediateNodeWriter
                         continue;
                     }
 
+                    context.AddSourceMappingFor(token);
                     context.CodeWriter.Write(token.Content);
 
                     if (linePragmaScope != null)
