@@ -714,14 +714,15 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         using (context.CodeWriter.BuildLinePragma(attributeSourceSpan, context))
         {
             context.CodeWriter.WritePadding(0, attributeSourceSpan, context);
-            context.AddSourceMappingFor(attributeSourceSpan);
             // Escape the property name in case it's a C# keyword
             // When https://github.com/dotnet/razor/issues/8445 is implemented,
             // replace with a check against SyntaxFacts.IsKeywordKind || SyntaxFacts.IsConditionalKeywordKind
-            var propertyName = CSharpLanguageCharacteristics.GetKeywordKind(node.PropertyName) != null
-                ? "@" + node.PropertyName
-                : node.PropertyName;
-            context.CodeWriter.WriteLine(propertyName);
+            if (CSharpLanguageCharacteristics.GetKeywordKind(node.PropertyName) != null)
+            {
+                context.CodeWriter.Write("@");
+            }
+            context.AddSourceMappingFor(attributeSourceSpan);
+            context.CodeWriter.WriteLine(node.PropertyName);
         }
 
         context.CodeWriter.Write(";");
