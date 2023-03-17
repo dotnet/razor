@@ -237,7 +237,7 @@ stages:
             -test
             # We need to disable integration tests until integration machines update to 17.5 P2:
             # https://github.com/dotnet/razor/issues/8457
-            -integrationTest
+            # -integrationTest
             /p:BuildDependencyVsix=true
           name: Run_Tests
           displayName: Run Unit and Integration tests
