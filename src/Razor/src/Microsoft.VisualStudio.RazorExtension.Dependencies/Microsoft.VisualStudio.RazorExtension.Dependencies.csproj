@@ -63,6 +63,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Wpf" Version="$(RoslynPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" Version="$(MicrosoftCodeAnalysisExternalAccessRazorPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" Version="$(MicrosoftCodeAnalysisExternalAccessRazorPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Remote.Workspaces" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices.CSharp.Symbols" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices.Implementation.Symbols" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
