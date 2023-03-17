@@ -64,9 +64,11 @@
     <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" Version="$(MicrosoftCodeAnalysisExternalAccessRazorPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" Version="$(MicrosoftCodeAnalysisExternalAccessRazorPackageVersion)" />
     <PackageReference Include="Microsoft.CodeAnalysis.Remote.Workspaces" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.LanguageServer.Protocol" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices.CSharp.Symbols" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices.Implementation.Symbols" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServices.Xaml.Symbols" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeRoslynDeps)' == 'true'">
@@ -86,6 +88,7 @@
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServices.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServices.CSharp.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServices.Implementation.dll" />
+    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServices.Xaml.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.VisualBasic.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.VisualBasic.Features.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" />
