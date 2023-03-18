@@ -238,7 +238,6 @@ stages:
             -prepareMachine
             -test
             /p:BuildDependencyVsix=true
-            /p:IncludeRoslynDeps=true
           name: Run_Tests
           displayName: Run Unit and Integration tests
           condition: succeeded()
