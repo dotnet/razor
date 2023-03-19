@@ -62,7 +62,7 @@ internal class CSharpFormatter
             return Array.Empty<TextEdit>();
         }
 
-        var edits = await FormatOnServerAsync(context, projectedRange, cancellationToken);
+        var edits = await GetFormattingEditsAsync(context, projectedRange, cancellationToken);
         var mappedEdits = MapEditsToHostDocument(context.CodeDocument, edits);
         return mappedEdits;
     }
@@ -97,10 +97,7 @@ internal class CSharpFormatter
         return actualEdits;
     }
 
-    private static async Task<TextEdit[]> FormatOnServerAsync(
-        FormattingContext context,
-        Range projectedRange,
-        CancellationToken cancellationToken)
+    private static async Task<TextEdit[]> GetFormattingEditsAsync(FormattingContext context, Range projectedRange, CancellationToken cancellationToken)
     {
         var csharpSourceText = context.CodeDocument.GetCSharpSourceText();
         var spanToFormat = projectedRange.AsTextSpan(csharpSourceText);
