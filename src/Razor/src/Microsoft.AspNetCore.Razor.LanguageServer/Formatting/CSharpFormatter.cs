@@ -45,11 +45,7 @@ internal class CSharpFormatter
         _server = languageServer;
     }
 
-    public async Task<TextEdit[]> FormatAsync(
-        FormattingContext context,
-        Range rangeToFormat,
-        CancellationToken cancellationToken,
-        bool formatOnClient = false)
+    public async Task<TextEdit[]> FormatAsync(FormattingContext context, Range rangeToFormat, CancellationToken cancellationToken)
     {
         if (context is null)
         {
@@ -66,9 +62,7 @@ internal class CSharpFormatter
             return Array.Empty<TextEdit>();
         }
 
-        var edits = formatOnClient
-            ? await FormatOnClientAsync(context, projectedRange, cancellationToken)
-            : await FormatOnServerAsync(context, projectedRange, cancellationToken);
+        var edits = await FormatOnServerAsync(context, projectedRange, cancellationToken);
         var mappedEdits = MapEditsToHostDocument(context.CodeDocument, edits);
         return mappedEdits;
     }
@@ -101,27 +95,6 @@ internal class CSharpFormatter
         var actualEdits = _documentMappingService.GetProjectedDocumentEdits(codeDocument.GetCSharpDocument(), csharpEdits);
 
         return actualEdits;
-    }
-
-    private async Task<TextEdit[]> FormatOnClientAsync(
-        FormattingContext context,
-        Range projectedRange,
-        CancellationToken cancellationToken)
-    {
-        var @params = new RazorDocumentRangeFormattingParams()
-        {
-            Kind = RazorLanguageKind.CSharp,
-            ProjectedRange = projectedRange,
-            HostDocumentFilePath = context.Uri.GetAbsoluteOrUNCPath(),
-            Options = context.Options
-        };
-
-        var result = await _server.SendRequestAsync<RazorDocumentRangeFormattingParams, RazorDocumentFormattingResponse>(
-            RazorLanguageServerCustomMessageTargets.RazorRangeFormattingEndpoint,
-            @params,
-            cancellationToken);
-
-        return result?.Edits ?? Array.Empty<TextEdit>();
     }
 
     private static async Task<TextEdit[]> FormatOnServerAsync(
