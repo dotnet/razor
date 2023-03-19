@@ -112,7 +112,7 @@ internal class CSharpFormatter
         {
             Kind = RazorLanguageKind.CSharp,
             ProjectedRange = projectedRange,
-            HostDocumentFilePath = FilePathNormalizer.Normalize(context.Uri.GetAbsoluteOrUNCPath()),
+            HostDocumentFilePath = context.Uri.GetAbsoluteOrUNCPath(),
             Options = context.Options
         };
 
