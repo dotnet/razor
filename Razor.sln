@@ -162,8 +162,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal", "src\Compiler\tools\Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal\Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal.csproj", "{907EDA43-B4D9-40DA-BA07-8E00DD89FA33}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.SourceGenerator.Tooling.Internal", "src\Compiler\tools\Microsoft.AspNetCore.Razor.SourceGenerator.Tooling.Internal\Microsoft.AspNetCore.Razor.SourceGenerator.Tooling.Internal.csproj", "{B1895C2D-044B-4960-9CEF-7DCF068C110A}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Razor.Tooling.Internal", "src\Compiler\tools\Microsoft.CodeAnalysis.Razor.Tooling.Internal\Microsoft.CodeAnalysis.Razor.Tooling.Internal.csproj", "{97DE8703-467C-49A7-BCE4-42FF1FEC8AC2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RazorSyntaxGenerator", "src\Compiler\tools\RazorSyntaxGenerator\RazorSyntaxGenerator.csproj", "{A9F9B5E5-C5C2-4860-BE56-038C70ADBAC9}"
@@ -686,14 +684,6 @@ Global
 		{907EDA43-B4D9-40DA-BA07-8E00DD89FA33}.Release|Any CPU.Build.0 = Release|Any CPU
 		{907EDA43-B4D9-40DA-BA07-8E00DD89FA33}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
 		{907EDA43-B4D9-40DA-BA07-8E00DD89FA33}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
-		{B1895C2D-044B-4960-9CEF-7DCF068C110A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B1895C2D-044B-4960-9CEF-7DCF068C110A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B1895C2D-044B-4960-9CEF-7DCF068C110A}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
-		{B1895C2D-044B-4960-9CEF-7DCF068C110A}.DebugNoVSIX|Any CPU.Build.0 = Debug|Any CPU
-		{B1895C2D-044B-4960-9CEF-7DCF068C110A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B1895C2D-044B-4960-9CEF-7DCF068C110A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B1895C2D-044B-4960-9CEF-7DCF068C110A}.ReleaseNoVSIX|Any CPU.ActiveCfg = Release|Any CPU
-		{B1895C2D-044B-4960-9CEF-7DCF068C110A}.ReleaseNoVSIX|Any CPU.Build.0 = Release|Any CPU
 		{97DE8703-467C-49A7-BCE4-42FF1FEC8AC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{97DE8703-467C-49A7-BCE4-42FF1FEC8AC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97DE8703-467C-49A7-BCE4-42FF1FEC8AC2}.DebugNoVSIX|Any CPU.ActiveCfg = Debug|Any CPU
@@ -801,7 +791,6 @@ Global
 		{A0867F6B-3DBB-4743-B241-F59878BFA15D} = {A5E2E4FA-6087-4C16-BB7A-89E23AA0F4E3}
 		{B040B919-D8E3-4656-BD85-88A541AA893D} = {A5E2E4FA-6087-4C16-BB7A-89E23AA0F4E3}
 		{907EDA43-B4D9-40DA-BA07-8E00DD89FA33} = {FB7C870E-A173-4F75-BE63-4EF39C79A759}
-		{B1895C2D-044B-4960-9CEF-7DCF068C110A} = {FB7C870E-A173-4F75-BE63-4EF39C79A759}
 		{97DE8703-467C-49A7-BCE4-42FF1FEC8AC2} = {FB7C870E-A173-4F75-BE63-4EF39C79A759}
 		{A9F9B5E5-C5C2-4860-BE56-038C70ADBAC9} = {FB7C870E-A173-4F75-BE63-4EF39C79A759}
 		{7400A168-2552-49C7-93E3-D4DAA90C216F} = {C2C98051-0F39-47F2-80B6-E72B29159F2C}
