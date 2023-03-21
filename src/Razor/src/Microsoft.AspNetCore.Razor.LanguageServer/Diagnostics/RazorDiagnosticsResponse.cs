@@ -3,7 +3,7 @@
 
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
 // Note: This type should be kept in sync with the one in VisualStudio.LanguageServerClient assembly.
 internal class RazorDiagnosticsResponse

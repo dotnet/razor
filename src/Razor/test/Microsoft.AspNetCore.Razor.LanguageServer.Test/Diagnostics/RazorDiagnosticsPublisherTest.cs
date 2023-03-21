@@ -17,7 +17,7 @@ using Xunit;
 using Xunit.Abstractions;
 using RazorDiagnosticFactory = Microsoft.AspNetCore.Razor.Language.RazorDiagnosticFactory;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
 public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
 {
