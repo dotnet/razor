@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 using Microsoft.CodeAnalysis.CSharp;
@@ -90,4 +91,10 @@ internal class EphemeralProjectSnapshot : IProjectSnapshot
         var factory = _services.GetRequiredService<ProjectSnapshotProjectEngineFactory>();
         return factory.Create(this);
     }
+
+    public Task<RazorCodeDocument> GetCodeDocumentAsync(IDocumentSnapshot documentSnapshot)
+    {
+        throw new NotImplementedException();
+    }
+
 }

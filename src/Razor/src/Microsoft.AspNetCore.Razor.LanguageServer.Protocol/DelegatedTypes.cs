@@ -50,3 +50,6 @@ internal record DelegatedCompletionItemResolveParams(
     VersionedTextDocumentIdentifier HostDocument,
     VSInternalCompletionItem CompletionItem,
     RazorLanguageKind OriginatingKind);
+
+internal record DelegatedGetHostOutputParams(
+    VersionedTextDocumentIdentifier HostDocument);

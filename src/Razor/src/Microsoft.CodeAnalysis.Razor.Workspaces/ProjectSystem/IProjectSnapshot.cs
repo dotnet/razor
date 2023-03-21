@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 using Microsoft.CodeAnalysis.CSharp;
@@ -23,6 +25,8 @@ internal interface IProjectSnapshot
     RazorProjectEngine GetProjectEngine();
     IDocumentSnapshot? GetDocument(string filePath);
     bool IsImportDocument(IDocumentSnapshot document);
+    Task<RazorCodeDocument> GetCodeDocumentAsync(IDocumentSnapshot documentSnapshot);
+
 
     /// <summary>
     /// If the provided document is an import document, gets the other documents in the project

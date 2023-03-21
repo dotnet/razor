@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Newtonsoft.Json.Linq;
@@ -133,4 +134,7 @@ internal abstract class RazorLanguageServerCustomMessageTarget
 
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorReferencesEndpointName, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<VSInternalReferenceItem[]?> ReferencesAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
+
+    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorHostOutputsEndpointName, UseSingleObjectParameterDeserialization = true)]
+    public abstract Task<GetHostOutputResponse?> HostOutputsAsync(GetHostOutputRequest request, CancellationToken cancellationToken);
 }

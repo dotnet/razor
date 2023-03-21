@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>ASP.NET Core design time hosting infrastructure for the Razor view engine.</Description>
@@ -19,6 +19,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.AspNetCore.Razor.Language\src\Microsoft.AspNetCore.Razor.Language.csproj" />
     <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.csproj" />
+
+    <Reference Include="C:\projects\roslyn\artifacts\bin\Microsoft.CodeAnalysis\Debug\netstandard2.0\Microsoft.CodeAnalysis.dll" />
+    <Reference Include="C:\projects\roslyn\artifacts\bin\Microsoft.CodeAnalysis.CSharp\Debug\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll" />
   </ItemGroup>
 
 </Project>

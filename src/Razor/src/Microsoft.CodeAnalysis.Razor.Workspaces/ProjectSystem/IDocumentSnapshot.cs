@@ -26,4 +26,5 @@ internal interface IDocumentSnapshot
     bool TryGetText([NotNullWhen(true)] out SourceText? result);
     bool TryGetTextVersion(out VersionStamp result);
     bool TryGetGeneratedOutput([NotNullWhen(true)] out RazorCodeDocument? result);
+    RazorCodeDocument GetCodeDocument(string? filePath);
 }

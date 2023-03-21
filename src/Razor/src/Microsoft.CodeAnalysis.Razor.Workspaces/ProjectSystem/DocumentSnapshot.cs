@@ -38,6 +38,11 @@ internal class DocumentSnapshot : IDocumentSnapshot
 
     public virtual async Task<RazorCodeDocument> GetGeneratedOutputAsync()
     {
+        //PROTOTYPE:
+        //State.
+        var output2 = await Project.GetCodeDocumentAsync(this).ConfigureAwait(false);
+
+
         var (output, _) = await State.GetGeneratedOutputAndVersionAsync(ProjectInternal, this).ConfigureAwait(false);
         return output;
     }
@@ -60,5 +65,10 @@ internal class DocumentSnapshot : IDocumentSnapshot
 
         result = null;
         return false;
+    }
+
+    public RazorCodeDocument GetCodeDocument(string? filePath)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -68,6 +69,7 @@ internal class ProjectState
         ImportsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
         Version = VersionStamp.Create();
         DocumentCollectionVersion = Version;
+        GeneratorSnapshot = Services.GetService<IRazorGeneratorSnapshotFactory>()?.GetSnapshot(hostProject.FilePath);
 
         _lock = new object();
     }
@@ -166,6 +168,8 @@ internal class ProjectState
     public IReadOnlyList<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState?.TagHelpers ?? s_emptyTagHelpers;
 
     public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState?.CSharpLanguageVersion ?? LanguageVersion.Default;
+
+    public GeneratorSnapshot GeneratorSnapshot { get; }
 
     /// <summary>
     /// Gets the version of this project, INCLUDING content changes. The <see cref="Version"/> is

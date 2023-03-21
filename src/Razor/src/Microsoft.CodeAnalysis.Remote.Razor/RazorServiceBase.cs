@@ -91,5 +91,10 @@ internal abstract class RazorServiceBase : IDisposable
 
         public RazorProjectEngine GetProjectEngine()
             => throw new NotImplementedException();
+
+        public Task<RazorCodeDocument> GetCodeDocumentAsync(IDocumentSnapshot documentSnapshot)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

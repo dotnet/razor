@@ -24,8 +24,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         /// </summary>
         private static bool GetSuppressionStatus(AnalyzerConfigOptionsProvider optionsProvider, CancellationToken _)
         {
-            return optionsProvider.GlobalOptions.TryGetValue("build_property.SuppressRazorSourceGenerator", out var suppressRazorSourceGenerator)
-                && suppressRazorSourceGenerator == "true";
+            return false;
+
+            //return optionsProvider.GlobalOptions.TryGetValue("build_property.SuppressRazorSourceGenerator", out var suppressRazorSourceGenerator)
+            //    && suppressRazorSourceGenerator == "true";
         }
 
         private static (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions((AnalyzerConfigOptionsProvider, ParseOptions) pair, CancellationToken ct)

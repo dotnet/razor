@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
@@ -22,6 +23,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
@@ -1147,6 +1149,36 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
     public override Task<VSInternalReferenceItem[]?> ReferencesAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
         => DelegateTextDocumentPositionRequestAsync<VSInternalReferenceItem[]>(request, Methods.TextDocumentReferencesName, cancellationToken);
+
+    public override async Task<GetHostOutputResponse?> HostOutputsAsync(GetHostOutputRequest request, CancellationToken cancellationToken)
+    {
+        //try
+        //{
+
+        if (_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
+        {
+            //var delegatedRequest = new GetHostOutputRequest()
+            //{
+            //    TextDocument = new TextDocumentIdentifier
+            //    {
+            //        Uri = documentSnapshot.Uri,
+            //    },
+            //};
+
+            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<GetHostOutputRequest, GetHostOutputResponse>(RazorGetHostOutputHandler.MethodName, RazorLSPConstants.RazorCSharpLanguageServerName, request, cancellationToken);
+            return null;
+        }
+
+        return null;
+
+        //}
+        //catch (Exception)
+        //{
+        //    int a = 4;
+        //}
+        ////return result.Result; 
+        //return n
+    }
 
     public override async Task<RazorPullDiagnosticResponse?> DiagnosticsAsync(DelegatedDiagnosticParams request, CancellationToken cancellationToken)
     {

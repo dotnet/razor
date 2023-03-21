@@ -24,6 +24,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
+
+
+    <Reference Include="C:\projects\roslyn\artifacts\bin\Microsoft.CodeAnalysis\Debug\netstandard2.0\Microsoft.CodeAnalysis.dll" />
+    <Reference Include="C:\projects\roslyn\artifacts\bin\Microsoft.CodeAnalysis.CSharp\Debug\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll" />
+    <Reference Include="C:\projects\roslyn\artifacts\bin\Microsoft.CodeAnalysis.ExternalAccess.Razor\Debug\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.Razor.dll" />
+    <Reference Include="C:\projects\roslyn\artifacts\bin\Microsoft.CodeAnalysis.Workspaces\Debug\netstandard2.0\Microsoft.CodeAnalysis.Workspaces.dll" />
+    <Reference Include="C:\projects\roslyn\artifacts\bin\Microsoft.CodeAnalysis.LanguageServer.Protocol\Debug\netstandard2.0\Microsoft.CodeAnalysis.LanguageServer.Protocol.dll" />
+    <Reference Include="C:\Users\Chris\.nuget\packages\microsoft.visualstudio.languageserver.protocol\17.5.20-preview\lib\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
+
+    <Reference Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.ComponentModel.Composition.dll" Condition="'$(TargetFramework)' == 'net472'" />
   </ItemGroup>
 
   <ItemGroup Label="String Resources">

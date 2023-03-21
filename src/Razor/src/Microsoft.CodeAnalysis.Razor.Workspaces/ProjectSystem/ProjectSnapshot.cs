@@ -4,11 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -24,6 +27,8 @@ internal class ProjectSnapshot : IProjectSnapshot
 
         _lock = new object();
         _documents = new Dictionary<string, DocumentSnapshot>(FilePathComparer.Instance);
+
+        //Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Project snapshot created");
     }
 
     public ProjectState State { get; }
@@ -104,5 +109,52 @@ internal class ProjectSnapshot : IProjectSnapshot
     public virtual RazorProjectEngine GetProjectEngine()
     {
         return State.ProjectEngine;
+    }
+
+    private GeneratorDriverRunResult? _runResult;
+
+    public async Task<RazorCodeDocument> GetCodeDocumentAsync(IDocumentSnapshot documentSnapshot)
+    {
+        //Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("GetCodeDocumentAsync: "+filePath);
+
+
+        // get all the generated documents from the project? That might be async though right?
+
+        // PROTOTYPE: how do we handle getting the snapshot and not doing it multiple times?
+        //            probably need the TCS pattern thingy again
+
+        var snapshotService = State.Services.GetService<IGeneratorSnapshotProvider>();
+        Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message(this.State.Services.Workspace.CurrentSolution.Id.Id + HostProject.FilePath + ":Snaphost sevice is null: "+(snapshotService is null));
+
+        if (snapshotService is not null)
+        {
+            await snapshotService.GetGenerateDocumentsAsync(documentSnapshot);
+        }
+
+        //if (_runResult is null)
+        //{
+        //    var project = State.Services.Workspace.CurrentSolution.Projects.SingleOrDefault(p => FilePathComparer.Instance.Equals(p.FilePath, HostProject.FilePath.Replace('/', '\\')));
+        //    if (project is not null)
+        //    {
+        //        _runResult = await project.GetGeneratorRunResultAsync().ConfigureAwait(false);
+        //        if (_runResult is not null)
+        //        {
+        //            Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message(this.State.Services.Workspace.CurrentSolution.Id.Id + HostProject.FilePath + ": Got Run result!");
+        //        }
+        //        else
+        //        {
+        //            Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message(this.State.Services.Workspace.CurrentSolution.Id.Id + HostProject.FilePath + ": Run result was null");
+        //        }
+        //    }
+        //    else
+        //    {
+        //        Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message(this.State.Services.Workspace.CurrentSolution.Id.Id + HostProject.FilePath + ": Project was null");
+        //    }
+        //}
+
+        // TODO: extract from the run-result the actual file
+
+        // PROTOTYPE: how do we handle the case where we couldn't get the result?
+        return null!;
     }
 }

@@ -61,6 +61,9 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(workspace));
         }
 
+        Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Created dispatcher for workspace: "+workspace.CurrentSolution.Id.Id);
+
+
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _triggers = triggers.OrderByDescending(trigger => trigger.InitializePriority).ToArray();
         Workspace = workspace;
@@ -486,6 +489,12 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         {
             return;
         }
+
+        Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("NewProject:" + hostProject.FilePath);
+
+        // lets see if we can find it in the roslyn workspace
+        var roslynProject = Workspace.CurrentSolution.Projects.SingleOrDefault(p => p.FilePath == hostProject.FilePath);
+
 
         var state = ProjectState.Create(Workspace.Services, hostProject);
         var entry = new Entry(state);

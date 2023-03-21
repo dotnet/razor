@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -51,6 +52,8 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
     private RazorLanguageServerWrapper? _server;
     private LogHubLoggerProvider? _loggerProvider;
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly IRazorGeneratorSnapshotFactory _razorGeneratorSnapshotFactory;
+    //private readonly GeneratorSnapshotFactory _snapshotFactory;
 
     private const string RazorLSPLogLevel = "RAZOR_TRACE";
 
@@ -75,8 +78,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         ILanguageServiceBroker2 languageServiceBroker,
         ITelemetryReporter telemetryReporter,
         IClientSettingsManager clientSettingsManager,
+        IRazorGeneratorSnapshotFactory razorGeneratorSnapshotFactory,
         [Import(AllowDefault = true)] VisualStudioHostServicesProvider? vsHostWorkspaceServicesProvider)
     {
+        Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Razor language server created");
+
         if (customTarget is null)
         {
             throw new ArgumentNullException(nameof(customTarget));
@@ -145,6 +151,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _telemetryReporter = telemetryReporter;
         _clientSettingsManager = clientSettingsManager;
+        _razorGeneratorSnapshotFactory = razorGeneratorSnapshotFactory;
+       // _snapshotFactory = new GeneratorSnapshotFactory(workspace);
+        Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Snapshot factory is not null: " + (_razorGeneratorSnapshotFactory is not null));
+
+
     }
 
     public string Name => RazorLSPConstants.RazorLanguageServerName;
@@ -268,6 +279,14 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             var wrapper = new HostServicesProviderWrapper(_vsHostWorkspaceServicesProvider);
             serviceCollection.AddSingleton<HostServicesProvider>(wrapper);
         }
+
+        if (_razorGeneratorSnapshotFactory is not null)
+        {
+            serviceCollection.AddSingleton<IRazorGeneratorSnapshotFactory>(_razorGeneratorSnapshotFactory);
+            Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Snapshot manager added to service collection");
+        }
+
+        //serviceCollection.AddSingleton<GeneratorSnapshotFactory>(_snapshotFactory);
     }
 
     private Trace GetVerbosity()

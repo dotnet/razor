@@ -498,6 +498,16 @@ internal class DocumentState
             var projectItem = document.FilePath is null ? null : projectEngine.FileSystem.GetItem(document.FilePath, document.FileKind);
             var documentSource = await GetRazorSourceDocumentAsync(document, projectItem).ConfigureAwait(false);
 
+            // PROTOTYPE: it's at this point that we want to reach into the 'generator snapshot' and grab the generated documents
+
+            //           actually, is that true? Surely we'd create the snapshot with the data already generated? No, maybe not. Hmm. Argh, not sure. 
+            // lets see what it looks like we if were to ask the project for the data here.
+
+            var codeDoc2 = project.GetCodeDocumentAsync(document);
+
+
+
+
             var codeDocument = projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources, project.TagHelpers);
             return (codeDocument, inputVersion);
         }

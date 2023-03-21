@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains the Razor design-time infrastructure.</Description>
@@ -10,6 +10,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.AspNetCore.Razor.Language\src\Microsoft.AspNetCore.Razor.Language.csproj" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <!--<PackageReference Include="Microsoft.CodeAnalysis.CSharp" />-->
+
+    <Reference Include="C:\projects\roslyn\artifacts\bin\Microsoft.CodeAnalysis\Debug\netstandard2.0\Microsoft.CodeAnalysis.dll" />
+    <Reference Include="C:\projects\roslyn\artifacts\bin\Microsoft.CodeAnalysis.CSharp\Debug\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll" />
+
   </ItemGroup>
 </Project>
