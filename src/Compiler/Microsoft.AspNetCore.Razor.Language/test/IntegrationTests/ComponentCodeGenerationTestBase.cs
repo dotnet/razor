@@ -324,6 +324,37 @@ namespace Test
     }
 
     [Fact]
+    public void Component_WithEscapedParameterName()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class MyComponent : ComponentBase
+                {
+                    [Parameter]
+                    public int @class { get; set; }
+                    [Parameter]
+                    public int Prop2 { get; set; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent class="1" Prop2="2">
+            </MyComponent>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void ComponentWithTypeParameters_WithSemicolon()
     {
         // Arrange
