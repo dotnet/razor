@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -93,7 +92,7 @@ internal static class ComparerUtilities
         }
     }
 
-    public static bool Equals<TKey, TValue>(IReadOnlyDictionary<TKey, TValue>? first, IReadOnlyDictionary<TKey, TValue>? second, IEqualityComparer<TKey>? keyComparer, IEqualityComparer<TValue>? valueComparer)
+    public static bool Equals<TKey, TValue>(IReadOnlyDictionary<TKey, TValue>? first, IReadOnlyDictionary<TKey, TValue>? second, IEqualityComparer<TValue>? valueComparer)
         where TKey : notnull
     {
         if (first == second)
@@ -115,61 +114,49 @@ internal static class ComparerUtilities
             return false;
         }
 
-        keyComparer ??= EqualityComparer<TKey>.Default;
         valueComparer ??= EqualityComparer<TValue>.Default;
 
         switch ((first, second))
         {
             case (Dictionary<TKey, TValue> firstDictionary, Dictionary<TKey, TValue> secondDictionary):
                 {
-                    // 🐇 Avoid enumerator allocations for Dictionary<TKey, TValue>
-                    using var firstEnumerator = firstDictionary.GetEnumerator();
-                    using var secondEnumerator = secondDictionary.GetEnumerator();
-                    while (firstEnumerator.MoveNext() && secondEnumerator.MoveNext())
+                    foreach (var (firstKey, firstValue) in firstDictionary)
                     {
-                        if (!keyComparer.Equals(firstEnumerator.Current.Key, secondEnumerator.Current.Key)
-                            || !valueComparer.Equals(firstEnumerator.Current.Value, secondEnumerator.Current.Value))
+                        if (!secondDictionary.TryGetValue(firstKey, out var secondValue) ||
+                            !valueComparer.Equals(firstValue, secondValue))
                         {
                             return false;
                         }
                     }
 
-                    Debug.Assert(!firstEnumerator.MoveNext() && !secondEnumerator.MoveNext(), "We already know the collections have same count.");
                     return true;
                 }
 
             case (ImmutableDictionary<TKey, TValue> firstDictionary, ImmutableDictionary<TKey, TValue> secondDictionary):
                 {
-                    // 🐇 Avoid enumerator allocations for ImmutableDictionary<TKey, TValue>
-                    using var firstEnumerator = firstDictionary.GetEnumerator();
-                    using var secondEnumerator = secondDictionary.GetEnumerator();
-                    while (firstEnumerator.MoveNext() && secondEnumerator.MoveNext())
+                    foreach (var (firstKey, firstValue) in firstDictionary)
                     {
-                        if (!keyComparer.Equals(firstEnumerator.Current.Key, secondEnumerator.Current.Key)
-                            || !valueComparer.Equals(firstEnumerator.Current.Value, secondEnumerator.Current.Value))
+                        if (!secondDictionary.TryGetValue(firstKey, out var secondValue) ||
+                            !valueComparer.Equals(firstValue, secondValue))
                         {
                             return false;
                         }
                     }
 
-                    Debug.Assert(!firstEnumerator.MoveNext() && !secondEnumerator.MoveNext(), "We already know the collections have same count.");
                     return true;
                 }
 
             default:
                 {
-                    using var firstEnumerator = first.GetEnumerator();
-                    using var secondEnumerator = second.GetEnumerator();
-                    while (firstEnumerator.MoveNext() && secondEnumerator.MoveNext())
+                    foreach (var (firstKey, firstValue) in first)
                     {
-                        if (!keyComparer.Equals(firstEnumerator.Current.Key, secondEnumerator.Current.Key)
-                            || !valueComparer.Equals(firstEnumerator.Current.Value, secondEnumerator.Current.Value))
+                        if (!second.TryGetValue(firstKey, out var secondValue) ||
+                            !valueComparer.Equals(firstValue, secondValue))
                         {
                             return false;
                         }
                     }
 
-                    Debug.Assert(!firstEnumerator.MoveNext() && !secondEnumerator.MoveNext(), "We already know the collections have same count.");
                     return true;
                 }
         }
