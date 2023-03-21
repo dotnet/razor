@@ -7,6 +7,10 @@ using Microsoft.VisualStudio.Shell;
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll")]
 [assembly: ProvideCodeBase(CodeBase = @"$PackageFolder$\Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll")]
 
+[assembly: ProvideBindingRedirection(AssemblyName = "Microsoft.VisualStudio.LanguageServer.Protocol", GenerateCodeBase = true, OldVersionLowerBound = "17.4.0.0", OldVersionUpperBound = "Current")]
+[assembly: ProvideBindingRedirection(AssemblyName = "Microsoft.VisualStudio.LanguageServer.Protocol.Internal", GenerateCodeBase = true, OldVersionLowerBound = "17.4.0.0", OldVersionUpperBound = "Current")]
+[assembly: ProvideBindingRedirection(AssemblyName = "Microsoft.VisualStudio.LanguageServer.Protocol.Extensions", GenerateCodeBase = true, OldVersionLowerBound = "17.4.0.0", OldVersionUpperBound = "Current")]
+
 #if INCLUDE_ROSLYN_DEPS
 [assembly: ProvideBindingRedirection(AssemblyName = "Microsoft.CodeAnalysis", GenerateCodeBase = true, OldVersionLowerBound = "4.4.0.0", OldVersionUpperBound = "Current")]
 [assembly: ProvideBindingRedirection(AssemblyName = "Microsoft.CodeAnalysis.CSharp", GenerateCodeBase = true, OldVersionLowerBound = "4.4.0.0", OldVersionUpperBound = "Current")]
