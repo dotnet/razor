@@ -11,14 +11,16 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormattingEndpoint
+[LanguageServerEndpoint(Methods.TextDocumentOnTypeFormattingName)]
+internal class DocumentOnTypeFormattingEndpoint : IRazorRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>, IRegistrationExtension
 {
-    private readonly RazorFormattingService _razorFormattingService;
+    private readonly IRazorFormattingService _razorFormattingService;
     private readonly RazorDocumentMappingService _razorDocumentMappingService;
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
@@ -28,29 +30,14 @@ internal class RazorDocumentOnTypeFormattingEndpoint : IVSDocumentOnTypeFormatti
 
     public bool MutatesSolutionState => false;
 
-    public RazorDocumentOnTypeFormattingEndpoint(
-        RazorFormattingService razorFormattingService,
+    public DocumentOnTypeFormattingEndpoint(
+        IRazorFormattingService razorFormattingService,
         RazorDocumentMappingService razorDocumentMappingService,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor)
     {
-        if (razorFormattingService is null)
-        {
-            throw new ArgumentNullException(nameof(razorFormattingService));
-        }
-
-        if (razorDocumentMappingService is null)
-        {
-            throw new ArgumentNullException(nameof(razorDocumentMappingService));
-        }
-
-        if (optionsMonitor is null)
-        {
-            throw new ArgumentNullException(nameof(optionsMonitor));
-        }
-
-        _razorFormattingService = razorFormattingService;
-        _razorDocumentMappingService = razorDocumentMappingService;
-        _optionsMonitor = optionsMonitor;
+        _razorFormattingService = razorFormattingService ?? throw new ArgumentNullException(nameof(razorFormattingService));
+        _razorDocumentMappingService = razorDocumentMappingService ?? throw new ArgumentNullException(nameof(razorDocumentMappingService));
+        _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
     }
 
     public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)

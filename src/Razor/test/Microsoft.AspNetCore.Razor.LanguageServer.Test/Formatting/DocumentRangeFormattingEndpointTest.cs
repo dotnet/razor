@@ -11,9 +11,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class RazorDocumentRangeFormattingEndpointTest : FormattingLanguageServerTestBase
+public class DocumentRangeFormattingEndpointTest : FormattingLanguageServerTestBase
 {
-    public RazorDocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput)
+    public DocumentRangeFormattingEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
     }
@@ -29,7 +29,7 @@ public class RazorDocumentRangeFormattingEndpointTest : FormattingLanguageServer
         var formattingService = new DummyRazorFormattingService();
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-        var endpoint = new RazorDocumentRangeFormattingEndpoint(
+        var endpoint = new DocumentRangeFormattingEndpoint(
             formattingService, optionsMonitor);
         var @params = new DocumentRangeFormattingParams()
         {
@@ -51,7 +51,7 @@ public class RazorDocumentRangeFormattingEndpointTest : FormattingLanguageServer
         // Arrange
         var formattingService = new DummyRazorFormattingService();
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-        var endpoint = new RazorDocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
+        var endpoint = new DocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
         var uri = new Uri("file://path/test.razor");
         var @params = new DocumentRangeFormattingParams()
         {
@@ -77,7 +77,7 @@ public class RazorDocumentRangeFormattingEndpointTest : FormattingLanguageServer
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var formattingService = new DummyRazorFormattingService();
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-        var endpoint = new RazorDocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
+        var endpoint = new DocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
         var @params = new DocumentRangeFormattingParams()
         {
             TextDocument = new TextDocumentIdentifier { Uri = uri, }
@@ -97,7 +97,7 @@ public class RazorDocumentRangeFormattingEndpointTest : FormattingLanguageServer
         // Arrange
         var formattingService = new DummyRazorFormattingService();
         var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
-        var endpoint = new RazorDocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
+        var endpoint = new DocumentRangeFormattingEndpoint(formattingService, optionsMonitor);
         var @params = new DocumentRangeFormattingParams();
         var requestContext = CreateRazorRequestContext(documentContext: null);
 

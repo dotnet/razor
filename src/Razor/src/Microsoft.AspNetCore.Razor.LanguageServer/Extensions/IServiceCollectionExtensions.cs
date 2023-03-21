@@ -48,7 +48,7 @@ internal static class IServiceCollectionExtensions
     public static void AddFormattingServices(this IServiceCollection services)
     {
         // Formatting
-        services.AddSingleton<RazorFormattingService, DefaultRazorFormattingService>();
+        services.AddSingleton<IRazorFormattingService, RazorFormattingService>();
 
         // Formatting Passes
         services.AddSingleton<IFormattingPass, HtmlFormattingPass>();
@@ -58,9 +58,9 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<IFormattingPass, FormattingContentValidationPass>();
         services.AddSingleton<IFormattingPass, RazorFormattingPass>();
 
-        services.AddRegisteringHandler<RazorDocumentFormattingEndpoint>();
-        services.AddRegisteringHandler<RazorDocumentOnTypeFormattingEndpoint>();
-        services.AddRegisteringHandler<RazorDocumentRangeFormattingEndpoint>();
+        services.AddRegisteringHandler<DocumentFormattingEndpoint>();
+        services.AddRegisteringHandler<DocumentOnTypeFormattingEndpoint>();
+        services.AddRegisteringHandler<DocumentRangeFormattingEndpoint>();
     }
 
     public static void AddCompletionServices(this IServiceCollection services, LanguageServerFeatureOptions featureOptions)

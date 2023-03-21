@@ -6,50 +6,41 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-internal class RazorDocumentRangeFormattingEndpoint : IVSDocumentRangeFormattingEndpoint
+[LanguageServerEndpoint(Methods.TextDocumentFormattingName)]
+internal class DocumentFormattingEndpoint : IRazorRequestHandler<DocumentFormattingParams, TextEdit[]?>, IRegistrationExtension
 {
-    private readonly RazorFormattingService _razorFormattingService;
+    private readonly IRazorFormattingService _razorFormattingService;
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
-    public RazorDocumentRangeFormattingEndpoint(
-        RazorFormattingService razorFormattingService,
+    public DocumentFormattingEndpoint(
+        IRazorFormattingService razorFormattingService,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor)
     {
-
-        if (razorFormattingService is null)
-        {
-            throw new ArgumentNullException(nameof(razorFormattingService));
-        }
-
-        if (optionsMonitor is null)
-        {
-            throw new ArgumentNullException(nameof(optionsMonitor));
-        }
-
-        _razorFormattingService = razorFormattingService;
-        _optionsMonitor = optionsMonitor;
+        _razorFormattingService = razorFormattingService ?? throw new ArgumentNullException(nameof(razorFormattingService));
+        _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
     }
 
     public bool MutatesSolutionState => false;
 
     public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
     {
-        const string ServerCapability = "documentRangeFormattingProvider";
+        const string ServerCapability = "documentFormattingProvider";
 
-        return new RegistrationExtensionResult(ServerCapability, new SumType<bool, DocumentRangeFormattingOptions>(new DocumentRangeFormattingOptions()));
+        return new RegistrationExtensionResult(ServerCapability, new SumType<bool, DocumentFormattingOptions>(new DocumentFormattingOptions()));
     }
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentRangeFormattingParams request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentFormattingParams request)
     {
         return request.TextDocument;
     }
 
-    public async Task<TextEdit[]?> HandleRequestAsync(DocumentRangeFormattingParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
+    public async Task<TextEdit[]?> HandleRequestAsync(DocumentFormattingParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
         if (!_optionsMonitor.CurrentValue.EnableFormatting)
         {
@@ -68,8 +59,7 @@ internal class RazorDocumentRangeFormattingEndpoint : IVSDocumentRangeFormatting
             return null;
         }
 
-        var edits = await _razorFormattingService.FormatAsync(documentContext, request.Range, request.Options, cancellationToken);
-
+        var edits = await _razorFormattingService.FormatAsync(documentContext, range: null, request.Options, cancellationToken);
         return edits;
     }
 }
