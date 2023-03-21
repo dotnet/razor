@@ -4,7 +4,7 @@
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.WrapWithTag;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
 
 /// <summary>
 /// Class representing the response of an WrapWithTag response.
