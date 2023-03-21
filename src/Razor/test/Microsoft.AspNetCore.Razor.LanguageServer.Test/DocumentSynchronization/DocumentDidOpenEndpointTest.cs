@@ -3,7 +3,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
@@ -12,11 +11,11 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
-public class RazorDidOpenTextDocumentEndpointTest : LanguageServerTestBase
+public class DocumentDidOpenEndpointTest : LanguageServerTestBase
 {
-    public RazorDidOpenTextDocumentEndpointTest(ITestOutputHelper testOutput)
+    public DocumentDidOpenEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
     }
@@ -36,7 +35,7 @@ public class RazorDidOpenTextDocumentEndpointTest : LanguageServerTestBase
                 Assert.Equal(documentPath, path);
                 Assert.Equal(1337, version);
             });
-        var endpoint = new RazorDidOpenTextDocumentEndpoint(Dispatcher, projectService.Object);
+        var endpoint = new DocumentDidOpenEndpoint(Dispatcher, projectService.Object);
         var request = new DidOpenTextDocumentParams()
         {
             TextDocument = new TextDocumentItem()

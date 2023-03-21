@@ -9,19 +9,21 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
-internal class RazorDidChangeTextDocumentEndpoint : IVSDidChangeTextDocumentEndpoint
+[LanguageServerEndpoint(Methods.TextDocumentDidChangeName)]
+internal class DocumentDidChangeEndpoint : IRazorNotificationHandler<DidChangeTextDocumentParams>, ITextDocumentIdentifierHandler<DidChangeTextDocumentParams, TextDocumentIdentifier>, IRegistrationExtension
 {
     public bool MutatesSolutionState => true;
 
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly RazorProjectService _projectService;
 
-    public RazorDidChangeTextDocumentEndpoint(
+    public DocumentDidChangeEndpoint(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         RazorProjectService razorProjectService)
     {

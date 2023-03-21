@@ -7,33 +7,25 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
-internal class RazorDidCloseTextDocumentEndpoint : IVSDidCloseTextDocumentEndpoint
+[LanguageServerEndpoint(Methods.TextDocumentDidCloseName)]
+internal class DocumentDidCloseEndpoint : IRazorNotificationHandler<DidCloseTextDocumentParams>, ITextDocumentIdentifierHandler<DidCloseTextDocumentParams, TextDocumentIdentifier>
 {
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly RazorProjectService _projectService;
 
     public bool MutatesSolutionState => true;
 
-    public RazorDidCloseTextDocumentEndpoint(
+    public DocumentDidCloseEndpoint(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         RazorProjectService projectService)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (projectService is null)
-        {
-            throw new ArgumentNullException(nameof(projectService));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _projectService = projectService;
+        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+        _projectService = projectService ?? throw new ArgumentNullException(nameof(projectService));
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(DidCloseTextDocumentParams request)

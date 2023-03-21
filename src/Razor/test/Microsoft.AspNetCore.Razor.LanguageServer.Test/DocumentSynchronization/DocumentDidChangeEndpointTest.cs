@@ -3,7 +3,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
@@ -12,13 +11,13 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
-public class RazorDidChangeTextDocumentEndpointTest : LanguageServerTestBase
+public class DocumentDidChangeEndpointTest : LanguageServerTestBase
 {
     private readonly RazorProjectService _projectService;
 
-    public RazorDidChangeTextDocumentEndpointTest(ITestOutputHelper testOutput)
+    public DocumentDidChangeEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _projectService = Mock.Of<RazorProjectService>(MockBehavior.Strict);
@@ -28,7 +27,7 @@ public class RazorDidChangeTextDocumentEndpointTest : LanguageServerTestBase
     public void ApplyContentChanges_SingleChange()
     {
         // Arrange
-        var endpoint = new RazorDidChangeTextDocumentEndpoint(Dispatcher, _projectService);
+        var endpoint = new DocumentDidChangeEndpoint(Dispatcher, _projectService);
         var sourceText = SourceText.From("Hello World");
         var change = new TextDocumentContentChangeEvent()
         {
@@ -53,7 +52,7 @@ public class RazorDidChangeTextDocumentEndpointTest : LanguageServerTestBase
     public void ApplyContentChanges_MultipleChanges()
     {
         // Arrange
-        var endpoint = new RazorDidChangeTextDocumentEndpoint(Dispatcher, _projectService);
+        var endpoint = new DocumentDidChangeEndpoint(Dispatcher, _projectService);
         var sourceText = SourceText.From("Hello World");
         var changes = new[] {
             new TextDocumentContentChangeEvent()
@@ -122,7 +121,7 @@ public class RazorDidChangeTextDocumentEndpointTest : LanguageServerTestBase
                 Assert.Equal(documentPath.OriginalString, path);
                 Assert.Equal(1337, version);
             });
-        var endpoint = new RazorDidChangeTextDocumentEndpoint(Dispatcher, projectService.Object);
+        var endpoint = new DocumentDidChangeEndpoint(Dispatcher, projectService.Object);
         var change = new TextDocumentContentChangeEvent()
         {
             Range = new Range
