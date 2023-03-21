@@ -5,11 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
-internal class RazorDidSaveTextDocumentEndpoint : IVSDidSaveTextDocumentEndpoint
+[LanguageServerEndpoint(Methods.TextDocumentDidSaveName)]
+internal class DocumentDidSaveEndpoint : IRazorNotificationHandler<DidSaveTextDocumentParams>, ITextDocumentIdentifierHandler<DidSaveTextDocumentParams, TextDocumentIdentifier>
 {
     public bool MutatesSolutionState => false;
 

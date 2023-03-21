@@ -3,7 +3,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -11,11 +10,11 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
-public class RazorDidCloseTextDocumentEndpointTest : LanguageServerTestBase
+public class DocumentDidCloseEndpointTest : LanguageServerTestBase
 {
-    public RazorDidCloseTextDocumentEndpointTest(ITestOutputHelper testOutput)
+    public DocumentDidCloseEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
     }
@@ -29,7 +28,7 @@ public class RazorDidCloseTextDocumentEndpointTest : LanguageServerTestBase
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
         projectService.Setup(service => service.CloseDocument(It.IsAny<string>()))
             .Callback<string>((path) => Assert.Equal(documentPath, path));
-        var endpoint = new RazorDidCloseTextDocumentEndpoint(Dispatcher, projectService.Object);
+        var endpoint = new DocumentDidCloseEndpoint(Dispatcher, projectService.Object);
         var request = new DidCloseTextDocumentParams()
         {
             TextDocument = new TextDocumentIdentifier()
