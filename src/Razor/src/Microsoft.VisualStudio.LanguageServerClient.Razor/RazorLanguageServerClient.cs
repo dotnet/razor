@@ -45,7 +45,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
     private readonly LSPRequestInvoker _requestInvoker;
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
     private readonly RazorLanguageServerLogHubLoggerProviderFactory _logHubLoggerProviderFactory;
-    private readonly IOutputWindowLogger? _outputWindowLogger;
+    private readonly IEnumerable<ILogger> _loggers;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly VisualStudioHostServicesProvider? _vsHostWorkspaceServicesProvider;
     private RazorLanguageServerWrapper? _server;
@@ -68,7 +68,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         LSPRequestInvoker requestInvoker,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         RazorLanguageServerLogHubLoggerProviderFactory logHubLoggerProviderFactory,
-        [Import(AllowDefault = true)] IOutputWindowLogger? outputWindowLogger,
+        [ImportMany] IEnumerable<ILogger> loggers,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ILanguageClientBroker languageClientBroker,
@@ -137,7 +137,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         _requestInvoker = requestInvoker;
         _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
         _logHubLoggerProviderFactory = logHubLoggerProviderFactory;
-        _outputWindowLogger = outputWindowLogger;
+        _loggers = loggers;
         _languageServerFeatureOptions = languageServerFeatureOptions;
         _vsHostWorkspaceServicesProvider = vsHostWorkspaceServicesProvider;
         _languageClientBroker = languageClientBroker;
@@ -181,7 +181,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
 
         var logHubLogger = _loggerProvider.CreateLogger("Razor");
-        var loggers = _outputWindowLogger == null ? new ILogger[] { logHubLogger } : new ILogger[] { logHubLogger, _outputWindowLogger };
+        var loggers = _loggers.Append(logHubLogger);
         var razorLogger = new LoggerAdapter(loggers, _telemetryReporter);
         var lspOptions = RazorLSPOptions.Default.With(_clientSettingsManager.GetClientSettings());
         _server = RazorLanguageServerWrapper.Create(

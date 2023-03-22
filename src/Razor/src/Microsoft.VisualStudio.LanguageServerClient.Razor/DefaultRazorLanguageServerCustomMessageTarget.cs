@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
@@ -49,7 +50,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
     private readonly IClientSettingsManager _editorSettingsManager;
     private readonly LSPDocumentSynchronizer _documentSynchronizer;
-    private readonly IOutputWindowLogger? _outputWindowLogger;
+    private readonly IEnumerable<ILogger> _loggers;
 
     [ImportingConstructor]
     public DefaultRazorLanguageServerCustomMessageTarget(
@@ -59,7 +60,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         FormattingOptionsProvider formattingOptionsProvider,
         IClientSettingsManager editorSettingsManager,
         LSPDocumentSynchronizer documentSynchronizer,
-        [Import(AllowDefault = true)] IOutputWindowLogger? outputWindowLogger)
+        [ImportMany] IEnumerable<ILogger> loggers)
     {
         if (documentManager is null)
         {
@@ -103,7 +104,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         _formattingOptionsProvider = formattingOptionsProvider;
         _editorSettingsManager = editorSettingsManager;
         _documentSynchronizer = documentSynchronizer;
-        _outputWindowLogger = outputWindowLogger;
+        _loggers = loggers;
     }
 
     // Testing constructor
@@ -1159,7 +1160,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         }
         catch (Exception e)
         {
-            _outputWindowLogger?.LogError(e, "Exception thrown in PullDiagnostic delegation");
+            _loggers.LogError(e, "Exception thrown in PullDiagnostic delegation");
             // Return null if any of the tasks getting diagnostics results in an error
             return null;
         }

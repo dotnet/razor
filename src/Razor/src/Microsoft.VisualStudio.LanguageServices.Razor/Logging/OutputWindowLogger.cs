@@ -5,7 +5,6 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -13,8 +12,8 @@ using Microsoft.VisualStudio.Threading;
 namespace Microsoft.VisualStudio.LanguageServices.Razor.Logging;
 
 [Shared]
-[Export(typeof(IOutputWindowLogger))]
-internal class OutputWindowLogger : IOutputWindowLogger
+[Export(typeof(ILogger))]
+internal class OutputWindowLogger : ILogger
 {
     private const LogLevel MinimumLogLevel = LogLevel.Warning;
     private readonly OutputPane _outputPane;
@@ -36,6 +35,12 @@ internal class OutputWindowLogger : IOutputWindowLogger
 
     public bool IsEnabled(LogLevel logLevel)
     {
+        // Using a debugger? Go for it
+        if (System.Diagnostics.Debugger.IsAttached)
+        {
+            return true;
+        }
+
         return logLevel >= MinimumLogLevel;
     }
 
