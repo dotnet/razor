@@ -2,8 +2,9 @@
   <IgnorePatterns>
     <UsagePattern IdentityGlob="Microsoft.SourceBuild.Intermediate.*/*" />
 
-    <!-- TODO:
-         Comment about missing sbrp packages and reference to tracking issue. -->
+    <!-- Ignoring the following prebuilts. We so not have SBRP packages for
+         7.0 targeting packs and System.Text.Encoding.CodePages.6.0.0 package.
+         https://github.com/dotnet/source-build/issues/3341 -->
     <UsagePattern IdentityGlob="Microsoft.AspNetCore.App.Ref/7.0.2" />
     <UsagePattern IdentityGlob="Microsoft.NETCore.App.Ref/7.0.2" />
     <UsagePattern IdentityGlob="System.Text.Encoding.CodePages/6.0.0" />
