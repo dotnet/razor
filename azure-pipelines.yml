@@ -212,7 +212,6 @@ stages:
             $(_BuildArgs)
             $(_PublishArgs)
             $(_InternalRuntimeDownloadArgs)
-            /p:IncludeRoslynDeps=true
           name: Build
           displayName: Build and Deploy
           condition: succeeded()
@@ -235,8 +234,6 @@ stages:
             -prepareMachine
             -test
             -integrationTest
-            /p:BuildDependencyVsix=true
-            /p:IncludeRoslynDeps=true
           name: Run_Tests
           displayName: Run Unit and Integration tests
           condition: succeeded()
