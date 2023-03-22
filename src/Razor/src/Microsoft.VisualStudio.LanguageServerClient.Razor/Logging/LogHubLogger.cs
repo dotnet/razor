@@ -29,7 +29,7 @@ internal class LogHubLogger : ILogger
         _noopScope = new Scope();
     }
 
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => _noopScope;
+    public IDisposable BeginScope<TState>(TState state) => _noopScope;
 
     public bool IsEnabled(LogLevel logLevel) => true;
 

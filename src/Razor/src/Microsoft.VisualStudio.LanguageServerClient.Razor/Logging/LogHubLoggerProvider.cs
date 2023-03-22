@@ -50,7 +50,7 @@ internal class LogHubLoggerProvider : ILoggerProvider
 
     private class NoopLogger : ILogger
     {
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => Scope.Instance;
+        public IDisposable BeginScope<TState>(TState state) => Scope.Instance;
 
         public bool IsEnabled(LogLevel logLevel) => false;
 

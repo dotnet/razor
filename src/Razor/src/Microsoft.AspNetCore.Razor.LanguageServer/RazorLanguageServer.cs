@@ -124,7 +124,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 
         services.AddDiagnosticServices();
         services.AddSemanticTokensServices();
-        services.AddDocumentManagmentServices();
+        services.AddDocumentManagementServices(featureOptions);
         services.AddCompletionServices(featureOptions);
         services.AddFormattingServices();
         services.AddCodeActionsServices();
