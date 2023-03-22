@@ -4,9 +4,9 @@
 using System;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 
-internal class ValidateBreakpointRangeParamsBridge : VSInternalValidateBreakableRangeParams, ITextDocumentPositionParams
+internal class ValidateBreakpointRangeParams : VSInternalValidateBreakableRangeParams, ITextDocumentPositionParams
 {
     public Position Position
     {

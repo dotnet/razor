@@ -118,7 +118,7 @@ public class ValidateBreakpointRangeEndpointTest : SingleServerDelegatingEndpoin
 
         var endpoint = new ValidateBreakpointRangeEndpoint(DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, LoggerFactory);
 
-        var request = new ValidateBreakpointRangeParamsBridge
+        var request = new ValidateBreakpointRangeParams
         {
             TextDocument = new TextDocumentIdentifier
             {
