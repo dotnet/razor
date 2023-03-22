@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
@@ -107,12 +108,14 @@ public abstract class RazorSourceGeneratorTestsBase
     protected static async Task<string> RenderRazorPageAsync(Compilation compilation, string name)
     {
         // Load the compiled DLL.
+        var assemblyLoadContext = new AssemblyLoadContext("Razor execution", isCollectible: true);
         Assembly assembly;
         using (var peStream = new MemoryStream())
         {
             var emitResult = compilation.Emit(peStream);
             Assert.True(emitResult.Success, string.Join(Environment.NewLine, emitResult.Diagnostics));
-            assembly = Assembly.Load(peStream.ToArray());
+            peStream.Position = 0;
+            assembly = assemblyLoadContext.LoadFromStream(peStream);
         }
 
         // Find the generated Razor Page.
@@ -152,6 +155,8 @@ public abstract class RazorSourceGeneratorTestsBase
 
         // Render the page.
         await page.ExecuteAsync();
+
+        assemblyLoadContext.Unload();
 
         return writer.ToString();
     }
