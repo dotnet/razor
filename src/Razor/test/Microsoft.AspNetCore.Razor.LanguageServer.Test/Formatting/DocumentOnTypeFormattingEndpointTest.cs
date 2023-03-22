@@ -14,9 +14,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class RazorDocumentOnTypeFormattingEndpointTest : FormattingLanguageServerTestBase
+public class DocumentOnTypeFormattingEndpointTest : FormattingLanguageServerTestBase
 {
-    public RazorDocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput)
+    public DocumentOnTypeFormattingEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
     }
@@ -30,7 +30,7 @@ public class RazorDocumentOnTypeFormattingEndpointTest : FormattingLanguageServe
         var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: false);
-        var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
+        var endpoint = new DocumentOnTypeFormattingEndpoint(
             formattingService, documentMappingService, optionsMonitor);
         var @params = new DocumentOnTypeFormattingParams { TextDocument = new TextDocumentIdentifier { Uri = uri, } };
         var requestContext = CreateRazorRequestContext(documentContext: null);
@@ -59,7 +59,7 @@ public class RazorDocumentOnTypeFormattingEndpointTest : FormattingLanguageServe
         var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-        var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
+        var endpoint = new DocumentOnTypeFormattingEndpoint(
             formattingService, documentMappingService, optionsMonitor);
         var @params = new DocumentOnTypeFormattingParams()
         {
@@ -94,7 +94,7 @@ public class RazorDocumentOnTypeFormattingEndpointTest : FormattingLanguageServe
         var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-        var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
+        var endpoint = new DocumentOnTypeFormattingEndpoint(
             formattingService, documentMappingService, optionsMonitor);
         var @params = new DocumentOnTypeFormattingParams()
         {
@@ -130,7 +130,7 @@ public class RazorDocumentOnTypeFormattingEndpointTest : FormattingLanguageServe
         var documentMappingService = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
         documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Html);
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-        var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
+        var endpoint = new DocumentOnTypeFormattingEndpoint(
             formattingService, documentMappingService.Object, optionsMonitor);
         var @params = new DocumentOnTypeFormattingParams()
         {
@@ -166,7 +166,7 @@ public class RazorDocumentOnTypeFormattingEndpointTest : FormattingLanguageServe
         var documentMappingService = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
         documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Razor);
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-        var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
+        var endpoint = new DocumentOnTypeFormattingEndpoint(
             formattingService, documentMappingService.Object, optionsMonitor);
         var @params = new DocumentOnTypeFormattingParams()
         {
@@ -201,7 +201,7 @@ public class RazorDocumentOnTypeFormattingEndpointTest : FormattingLanguageServe
         var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, documentResolver, LoggerFactory);
 
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
-        var endpoint = new RazorDocumentOnTypeFormattingEndpoint(
+        var endpoint = new DocumentOnTypeFormattingEndpoint(
             formattingService, documentMappingService, optionsMonitor);
         var @params = new DocumentOnTypeFormattingParams()
         {

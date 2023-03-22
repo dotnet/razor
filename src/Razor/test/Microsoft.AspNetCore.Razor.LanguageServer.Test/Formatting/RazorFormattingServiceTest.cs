@@ -13,9 +13,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-public class DefaultRazorFormattingServiceTest : TestBase
+public class RazorFormattingServiceTest : TestBase
 {
-    public DefaultRazorFormattingServiceTest(ITestOutputHelper testOutput)
+    public RazorFormattingServiceTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
     }
@@ -45,7 +45,7 @@ public class Foo{}
         };
 
         // Act
-        var collapsedEdit = DefaultRazorFormattingService.MergeEdits(edits, sourceText);
+        var collapsedEdit = RazorFormattingService.MergeEdits(edits, sourceText);
 
         // Assert
         var multiEditChange = sourceText.WithChanges(edits.Select(e => e.AsTextChange(sourceText)));
