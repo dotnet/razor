@@ -247,8 +247,14 @@ public abstract class RazorSourceGeneratorTestsBase
            .AddProject(projectId, "TestProject", "TestProject", LanguageNames.CSharp);
 
         var project = solution.Projects.Single()
-            .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-            .WithNullableContextOptions(NullableContextOptions.Enable));
+            .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
+                nullableContextOptions: NullableContextOptions.Enable,
+                specificDiagnosticOptions: new KeyValuePair<string, ReportDiagnostic>[]
+                {
+                    // Ignore warnings about conflicts due to referencing `Microsoft.AspNetCore.App` DLLs.
+                    // Won't be necessary after fixing https://github.com/dotnet/roslyn/issues/19640.
+                    new("CS1701", ReportDiagnostic.Hidden)
+                }));
 
         project = project.WithParseOptions(((CSharpParseOptions)project.ParseOptions!).WithLanguageVersion(LanguageVersion.Preview));
 
@@ -279,7 +285,7 @@ public abstract class RazorSourceGeneratorTestsBase
 
         return project;
 
-        // In this project, we don't need shims, we reference the full ASP.NET Core SDK.
+        // In this project, we don't need shims, we reference the full ASP.NET Core DLLs.
         static bool excludeReference(string path)
         {
             return path.Contains("Shim.");
