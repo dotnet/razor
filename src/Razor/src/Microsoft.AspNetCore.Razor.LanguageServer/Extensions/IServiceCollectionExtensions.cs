@@ -154,10 +154,10 @@ internal static class IServiceCollectionExtensions
         services.AddRegisteringHandler<TextDocumentTextPresentationEndpoint>();
         services.AddRegisteringHandler<TextDocumentUriPresentationEndpoint>();
 
-        services.AddRegisteringHandler<RazorDidChangeTextDocumentEndpoint>();
-        services.AddHandler<RazorDidCloseTextDocumentEndpoint>();
-        services.AddHandler<RazorDidOpenTextDocumentEndpoint>();
-        services.AddHandler<RazorDidSaveTextDocumentEndpoint>();
+        services.AddRegisteringHandler<DocumentDidChangeEndpoint>();
+        services.AddHandler<DocumentDidCloseEndpoint>();
+        services.AddHandler<DocumentDidOpenEndpoint>();
+        services.AddHandler<DocumentDidSaveEndpoint>();
 
         services.AddHandler<RazorMapToDocumentEditsEndpoint>();
         services.AddHandler<RazorMapToDocumentRangesEndpoint>();

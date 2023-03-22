@@ -7,18 +7,20 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
-internal class RazorDidOpenTextDocumentEndpoint : IVSDidOpenTextDocumentEndpoint
+[LanguageServerEndpoint(Methods.TextDocumentDidOpenName)]
+internal class DocumentDidOpenEndpoint : IRazorNotificationHandler<DidOpenTextDocumentParams>
 {
     public bool MutatesSolutionState => true;
 
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly RazorProjectService _projectService;
 
-    public RazorDidOpenTextDocumentEndpoint(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorProjectService razorProjectService)
+    public DocumentDidOpenEndpoint(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, RazorProjectService razorProjectService)
     {
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _projectService = razorProjectService;
