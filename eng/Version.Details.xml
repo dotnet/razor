@@ -10,7 +10,7 @@
       <Sha>a848f811a52d75494029e663cd0a799be11744fe</Sha>
       <SourceBuild RepoName="source-build-reference-packages" ManagedOnly="true" />
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.CSharp" Version="4.6.0-3.23164.6">
+    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="4.6.0-3.23164.6">
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>3fc97de0f151e67a0b8ee2840edb04b49fbc623f</Sha>
       <SourceBuild RepoName="roslyn" ManagedOnly="true" />
