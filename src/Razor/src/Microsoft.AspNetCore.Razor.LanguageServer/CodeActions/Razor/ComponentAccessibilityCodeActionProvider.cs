@@ -137,7 +137,8 @@ internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvide
                 continue;
             }
 
-            // if fqn contains a generic typeparam, we should strip it out
+            // if fqn contains a generic typeparam, we should strip it out. Otherwise, replacing tag name will leave generic parameters in razor code, which are illegal
+            // e.g. <Component /> -> <Component<T> />
             var fullyQualifiedName = DefaultRazorComponentSearchEngine.RemoveGenericContent(tagHelperPair._short.Name).ToString();
 
             // Insert @using
