@@ -16,6 +16,7 @@ using System.Runtime.Loader;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -129,19 +130,22 @@ public abstract class RazorSourceGeneratorTestsBase
             Assert.Fail($"Razor page '{name}' not found, available types: [{availableTypes}]");
         }
 
-        var page = (RazorPage)Activator.CreateInstance(pageType)!;
+        var page = (RazorPageBase)Activator.CreateInstance(pageType)!;
 
         // Create ViewContext.
-        var writer = new StringWriter();
-        var httpContext = new DefaultHttpContext();
-        var services = new ServiceCollection();
-        services.AddRazorPages();
-        httpContext.RequestServices = services.BuildServiceProvider();
+        var appBuilder = WebApplication.CreateBuilder();
+        appBuilder.Services.AddMvc().AddApplicationPart(assembly);
+        var app = appBuilder.Build();
+        var httpContext = new DefaultHttpContext
+        {
+            RequestServices = app.Services
+        };
         var actionContext = new ActionContext(
             httpContext,
             new AspNetCore.Routing.RouteData(),
             new ActionDescriptor());
         var viewMock = new Mock<IView>();
+        var writer = new StringWriter();
         var viewContext = new ViewContext(
             actionContext,
             viewMock.Object,

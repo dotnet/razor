@@ -81,10 +81,11 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation!, ref driver, out compilation);
 
         // Assert
         Assert.Contains("HtmlTargetElementAttribute(\"vc:test\")", result.GeneratedSources.Single().SourceText.ToString());
         result.VerifyOutputsMatchBaseline();
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 }
