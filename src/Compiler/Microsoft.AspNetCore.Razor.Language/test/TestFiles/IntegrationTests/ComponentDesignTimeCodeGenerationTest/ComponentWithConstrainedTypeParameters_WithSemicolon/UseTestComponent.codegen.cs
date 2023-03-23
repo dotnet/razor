@@ -22,7 +22,7 @@ using Test;
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -121,10 +121,10 @@ namespace __Blazor.Test.UseTestComponent
             where TItem3 : global::Image, new()
         {
         __builder.OpenComponent<global::Test.TestComponent<TItem1, TItem2, TItem3>>(seq);
-        __builder.AddAttribute(__seq0, "Item1", __arg0);
-        __builder.AddAttribute(__seq1, "Items2", __arg1);
-        __builder.AddAttribute(__seq2, "Item3", __arg2);
-        __builder.AddAttribute(__seq3, "ChildContent", __arg3);
+        __builder.AddComponentParameter(__seq0, "Item1", __arg0);
+        __builder.AddComponentParameter(__seq1, "Items2", __arg1);
+        __builder.AddComponentParameter(__seq2, "Item3", __arg2);
+        __builder.AddComponentParameter(__seq3, "ChildContent", __arg3);
         __builder.CloseComponent();
         return default;
         }

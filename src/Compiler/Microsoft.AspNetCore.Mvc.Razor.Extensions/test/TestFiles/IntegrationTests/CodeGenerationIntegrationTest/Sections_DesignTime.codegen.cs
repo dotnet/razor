@@ -25,7 +25,7 @@ namespace AspNetCore
         private global::InputTestTagHelper __InputTestTagHelper;
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 #nullable restore
 #line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
 DateTime __typeHelper = default!;
@@ -35,7 +35,7 @@ DateTime __typeHelper = default!;
 #nullable disable
         }
         ))();
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 #nullable restore
 #line 3 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
 global::System.Object __typeHelper = "InputTestTagHelper, AppCode";
@@ -45,7 +45,7 @@ global::System.Object __typeHelper = "InputTestTagHelper, AppCode";
 #nullable disable
         }
         ))();
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 #nullable restore
 #line 11 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
 global::System.Object Section1 = null!;
@@ -58,7 +58,7 @@ global::System.Object Section1 = null!;
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()

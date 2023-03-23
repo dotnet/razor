@@ -17,16 +17,22 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal class ImplicitExpressionEditHandler : SpanEditHandler
 {
-    public ImplicitExpressionEditHandler(Func<string, IEnumerable<Syntax.InternalSyntax.SyntaxToken>> tokenizer, ImmutableHashSet<string> keywords, bool acceptTrailingDot)
-        : base(tokenizer)
+    public static void SetupBuilder(SpanEditHandlerBuilder builder, AcceptedCharactersInternal acceptedCharacters, Func<string, IEnumerable<Syntax.InternalSyntax.SyntaxToken>> tokenizer, bool acceptTrailingDot, ImmutableHashSet<string> keywords)
     {
-        Keywords = keywords;
-        AcceptTrailingDot = acceptTrailingDot;
+        builder.AcceptedCharacters = acceptedCharacters;
+        builder.Tokenizer = tokenizer;
+        builder.Factory = (acceptedCharacters, tokenizer) => new ImplicitExpressionEditHandler
+        {
+            AcceptedCharacters = acceptedCharacters,
+            Tokenizer = tokenizer,
+            AcceptTrailingDot = acceptTrailingDot,
+            Keywords = keywords,
+        };
     }
 
-    public bool AcceptTrailingDot { get; }
+    public required bool AcceptTrailingDot { get; init; }
 
-    public ImmutableHashSet<string> Keywords { get; }
+    public required ImmutableHashSet<string> Keywords { get; init; }
 
     public override string ToString()
     {
