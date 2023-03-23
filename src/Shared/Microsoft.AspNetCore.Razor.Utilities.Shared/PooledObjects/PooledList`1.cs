@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 internal ref struct PooledList<T>
 {
     private readonly ObjectPool<List<T>> _pool;
-    private List<T>? _set;
+    private List<T>? _list;
 
     public PooledList()
         : this(ListPool<T>.Default)
@@ -33,12 +33,12 @@ internal ref struct PooledList<T>
     }
 
     public int Count
-        => _set?.Count ?? 0;
+        => _list?.Count ?? 0;
 
     public void Add(T item)
     {
-        _set ??= _pool.Get();
-        _set.Add(item);
+        _list ??= _pool.Get();
+        _list.Add(item);
     }
 
     public void AddRange(IReadOnlyList<T> list)
@@ -48,19 +48,25 @@ internal ref struct PooledList<T>
             return;
         }
 
-        _set ??= _pool.Get();
-        _set.AddRange(list);
+        _list ??= _pool.Get();
+        _list.AddRange(list);
+    }
+
+    public void AddRange(IEnumerable<T> list)
+    {
+        _list ??= _pool.Get();
+        _list.AddRange(list);
     }
 
     public void ClearAndFree()
     {
-        if (_set is { } set)
+        if (_list is { } set)
         {
             _pool.Return(set);
-            _set = null;
+            _list = null;
         }
     }
 
     public readonly T[] ToArray()
-        => _set?.ToArray() ?? Array.Empty<T>();
+        => _list.ToArrayOrEmpty();
 }

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -12,7 +11,7 @@ internal class DefaultBoundAttributeParameterDescriptorBuilder : BoundAttributeP
 {
     private readonly DefaultBoundAttributeDescriptorBuilder _parent;
     private readonly string _kind;
-    private readonly ImmutableDictionary<string, string>.Builder _metadata;
+    private Dictionary<string, string>? _metadata;
 
     private RazorDiagnosticCollection? _diagnostics;
 
@@ -20,8 +19,6 @@ internal class DefaultBoundAttributeParameterDescriptorBuilder : BoundAttributeP
     {
         _parent = parent;
         _kind = kind;
-
-        _metadata = ImmutableDictionary.CreateBuilder<string, string>();
     }
 
     public override string? Name { get; set; }
@@ -34,7 +31,7 @@ internal class DefaultBoundAttributeParameterDescriptorBuilder : BoundAttributeP
 
     public override string? DisplayName { get; set; }
 
-    public override IDictionary<string, string> Metadata => _metadata;
+    public override IDictionary<string, string> Metadata => _metadata ??= new Dictionary<string, string>();
 
     public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
@@ -57,7 +54,7 @@ internal class DefaultBoundAttributeParameterDescriptorBuilder : BoundAttributeP
                 Documentation,
                 GetDisplayName(),
                 CaseSensitive,
-                _metadata.ToImmutable(),
+                MetadataCollection.CreateOrEmpty(_metadata),
                 diagnostics.ToArray());
 
             return descriptor;

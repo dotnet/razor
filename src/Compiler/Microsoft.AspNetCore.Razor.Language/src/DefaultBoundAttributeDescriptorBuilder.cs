@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
@@ -38,17 +37,14 @@ internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptor
 
     private readonly DefaultTagHelperDescriptorBuilder _parent;
     private readonly string _kind;
-    private readonly ImmutableDictionary<string, string>.Builder _metadata;
     private List<DefaultBoundAttributeParameterDescriptorBuilder>? _attributeParameterBuilders;
-
+    private Dictionary<string, string>? _metadata;
     private RazorDiagnosticCollection? _diagnostics;
 
     public DefaultBoundAttributeDescriptorBuilder(DefaultTagHelperDescriptorBuilder parent, string kind)
     {
         _parent = parent;
         _kind = kind;
-
-        _metadata = ImmutableDictionary.CreateBuilder<string, string>();
     }
 
     public override string? Name { get; set; }
@@ -67,7 +63,7 @@ internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptor
 
     public override string? DisplayName { get; set; }
 
-    public override IDictionary<string, string> Metadata => _metadata;
+    public override IDictionary<string, string> Metadata => _metadata ??= new Dictionary<string, string>();
 
     public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
@@ -110,7 +106,7 @@ internal class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDescriptor
                 GetDisplayName(),
                 CaseSensitive,
                 parameters,
-                _metadata.ToImmutable(),
+                MetadataCollection.CreateOrEmpty(_metadata),
                 diagnostics.ToArray())
             {
                 IsEditorRequired = IsEditorRequired,

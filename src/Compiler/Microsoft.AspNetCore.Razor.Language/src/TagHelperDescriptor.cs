@@ -196,12 +196,12 @@ public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
                 diagnostics.AddRange(attribute.Diagnostics);
             }
 
+            // BUG?: Diagnostics on BoundAttributeParameterDescriptors are not collected here.
+
             foreach (var rule in TagMatchingRules)
             {
-                diagnostics.AddRange(rule.Diagnostics);
+                diagnostics.AddRange(rule.GetAllDiagnostics());
             }
-
-            // BUG?: Diagnostics on BoundAttributeParameterDescriptors and RequiredAttributeDescriptors are not collected here.
 
             diagnostics.AddRange(Diagnostics);
 
