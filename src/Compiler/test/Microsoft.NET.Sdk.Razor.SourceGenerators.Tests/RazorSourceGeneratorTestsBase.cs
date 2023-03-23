@@ -402,7 +402,7 @@ internal static class Extensions
     }
 
     public static void VerifyTextMatchesBaseline(string actualText, string extension,
-        [CallerFilePath] string testPath = null!, [CallerMemberName] string testName = null!)
+        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
     {
         // Create output directory.
         var baselineDirectory = Path.Join(
