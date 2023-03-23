@@ -73,7 +73,7 @@
     <Tooling_MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.22512.1</Tooling_MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.5.0-preview-2-33117-317</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftVisualStudioPackagesVersion>17.5.274-preview</MicrosoftVisualStudioPackagesVersion>
-    <RoslynPackageVersion>$(MicrosoftNetCompilersToolsetVersion)</RoslynPackageVersion>
+    <RoslynPackageVersion>4.6.0-3.23164.6</RoslynPackageVersion>
     <VisualStudioLanguageServerProtocolVersion>17.6.4-preview</VisualStudioLanguageServerProtocolVersion>
     <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>$(RoslynPackageVersion)</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
     <!-- dotnet/runtime packages -->
@@ -137,11 +137,12 @@
     <Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>3.3.4</Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>
     <MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>$(RoslynPackageVersion)</MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>
     <MicrosoftCodeAnalysisExternalAccessOmniSharpCSharpPackageVersion>$(RoslynPackageVersion)</MicrosoftCodeAnalysisExternalAccessOmniSharpCSharpPackageVersion>
-    <MicrosoftCodeAnalysisCommonPackageVersion>$(RoslynPackageVersion)</MicrosoftCodeAnalysisCommonPackageVersion>
-    <MicrosoftCodeAnalysisCSharpPackageVersion>$(RoslynPackageVersion)</MicrosoftCodeAnalysisCSharpPackageVersion>
+    <!-- Microsoft.CodeAnalysis.Common and Microsoft.CodeAnalysis.CSharp packages are consumed in source-build.
+         Package version has to match roslyn repo reference as specified in MicrosoftNetCompilersToolsetVersion -->
+    <MicrosoftCodeAnalysisCommonPackageVersion>$(MicrosoftNetCompilersToolsetVersion)</MicrosoftCodeAnalysisCommonPackageVersion>
+    <MicrosoftCodeAnalysisCSharpPackageVersion>$(MicrosoftNetCompilersToolsetVersion)</MicrosoftCodeAnalysisCSharpPackageVersion>
     <MicrosoftCodeAnalysisCSharpEditorFeaturesPackageVersion>$(RoslynPackageVersion)</MicrosoftCodeAnalysisCSharpEditorFeaturesPackageVersion>
     <MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>$(RoslynPackageVersion)</MicrosoftCodeAnalysisCSharpFeaturesPackageVersion>
-    <MicrosoftCodeAnalysisCSharpPackageVersion>$(RoslynPackageVersion)</MicrosoftCodeAnalysisCSharpPackageVersion>
     <MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>$(RoslynPackageVersion)</MicrosoftCodeAnalysisCSharpWorkspacesPackageVersion>
     <MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>$(RoslynPackageVersion)</MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion>
     <MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>$(RoslynPackageVersion)</MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>
