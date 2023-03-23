@@ -95,8 +95,7 @@ internal class DefaultProjectChangePublisher : ProjectChangePublisher, IOmniShar
         // by the time we move the tempfile into its place
         using (var writer = tempFileInfo.CreateText())
         {
-            var projectRazorJson = new ProjectRazorJson(publishFilePath, projectSnapshot.InternalProjectSnapshot);
-            _serializer.Serialize(writer, projectRazorJson);
+            projectSnapshot.Serialize(publishFilePath, _serializer, writer);
         }
 
         var fileInfo = new FileInfo(publishFilePath);
