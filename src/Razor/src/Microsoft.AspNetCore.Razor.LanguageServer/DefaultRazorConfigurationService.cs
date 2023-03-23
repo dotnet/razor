@@ -85,8 +85,10 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
     // Internal for testing
     internal RazorLSPOptions BuildOptions(JObject[] result)
     {
-        ExtractVSCodeOptions(result, out var trace, out var enableFormatting, out var autoClosingTags);
-        var settings = ExtractVSOptions(result) ?? ClientSettings.Default;
+        ExtractVSCodeOptions(result, out var trace, out var enableFormatting, out var vsCodeAutoClosingTags);
+        var settings = ExtractVSOptions(result);
+
+        var autoClosingTags = vsCodeAutoClosingTags ?? settings.AdvancedSettings.AutoClosingTags;
 
         return new RazorLSPOptions(trace, enableFormatting, autoClosingTags, settings);
     }
@@ -95,14 +97,14 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
         JObject[] result,
         out Trace trace,
         out bool enableFormatting,
-        out bool autoClosingTags)
+        out bool? autoClosingTags)
     {
         var razor = result[0];
         var html = result[1];
 
         trace = RazorLSPOptions.Default.Trace;
         enableFormatting = RazorLSPOptions.Default.EnableFormatting;
-        autoClosingTags = RazorLSPOptions.Default.AutoClosingTags;
+        autoClosingTags = null;
 
         if (razor != null)
         {

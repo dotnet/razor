@@ -145,6 +145,127 @@ public class DefaultRazorConfigurationServiceTest : LanguageServerTestBase
     }
 
     [Fact]
+    public void BuildOptions_VSCodeOptionsOnly_ReturnsExpected()
+    {
+        // Arrange - purposely choosing options opposite of default
+        var expectedOptions = new RazorLSPOptions(
+            Trace.Verbose, EnableFormatting: false, AutoClosingTags: false, InsertSpaces: true, TabSize: 4, FormatOnType: true);
+        var razorJsonString = """
+            {
+              "trace": "Verbose",
+              "format": {
+                "enable": "false"
+              }
+            }
+
+            """;
+        var htmlJsonString = """
+            {
+              "format": "true",
+              "autoClosingTags": "false"
+            }
+
+            """;
+        var vsEditorJsonString = """
+            {
+            }
+            """;
+
+        // Act
+        var result = new JObject[] { JObject.Parse(razorJsonString), JObject.Parse(htmlJsonString), JObject.Parse(vsEditorJsonString) };
+        var languageServer = GetLanguageServer(result);
+        var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
+        var options = configurationService.BuildOptions(result);
+
+        // Assert
+        Assert.Equal(expectedOptions, options);
+    }
+
+    [Fact]
+    public void BuildOptions_VSOptionsOnly_ReturnsExpected()
+    {
+        // Arrange - purposely choosing options opposite of default
+        var expectedOptions = new RazorLSPOptions(
+            Trace.Off, EnableFormatting: true, AutoClosingTags: false, InsertSpaces: false, TabSize: 8, FormatOnType: false);
+        var razorJsonString = """
+            {
+            }
+
+            """;
+        var htmlJsonString = """
+            {
+            }
+
+            """;
+        var vsEditorJsonString = """
+            {
+                "ClientSpaceSettings": {
+                    "IndentSize": 8,
+                    "IndentWithTabs": "true"
+                },
+                "AdvancedSettings": {
+                    "FormatOnType": "false",
+                    "AutoClosingTags": "false"
+                }
+            }
+            """;
+
+        // Act
+        var result = new JObject[] { JObject.Parse(razorJsonString), JObject.Parse(htmlJsonString), JObject.Parse(vsEditorJsonString) };
+        var languageServer = GetLanguageServer(result);
+        var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
+        var options = configurationService.BuildOptions(result);
+
+        // Assert
+        Assert.Equal(expectedOptions, options);
+    }
+
+    [Fact]
+    public void BuildOptions_AllOptions_VSCodeOverridesVS()
+    {
+        // Arrange - purposely choosing options opposite of default
+        var expectedOptions = new RazorLSPOptions(
+            Trace.Verbose, EnableFormatting: false, AutoClosingTags: false, InsertSpaces: false, TabSize: 8, FormatOnType: false);
+        var razorJsonString = """
+            {
+              "trace": "Verbose",
+              "format": {
+                "enable": "false"
+              }
+            }
+
+            """;
+        var htmlJsonString = """
+            {
+              "format": "true",
+              "autoClosingTags": "false"
+            }
+
+            """;
+        var vsEditorJsonString = """
+            {
+                "ClientSpaceSettings": {
+                    "IndentSize": 8,
+                    "IndentWithTabs": "true"
+                },
+                "AdvancedSettings": {
+                    "FormatOnType": "false",
+                    "AutoClosingTags": "true"
+                }
+            }
+            """;
+
+        // Act
+        var result = new JObject[] { JObject.Parse(razorJsonString), JObject.Parse(htmlJsonString), JObject.Parse(vsEditorJsonString) };
+        var languageServer = GetLanguageServer(result);
+        var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
+        var options = configurationService.BuildOptions(result);
+
+        // Assert
+        Assert.Equal(expectedOptions, options);
+    }
+
+    [Fact]
     public void BuildOptions_MalformedOptions()
     {
         // This test is purely to ensure we don't crash if the user provides malformed options.

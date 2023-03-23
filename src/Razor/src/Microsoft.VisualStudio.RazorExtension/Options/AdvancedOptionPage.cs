@@ -34,4 +34,13 @@ internal class AdvancedOptionPage : DialogPage
         get => _optionsStorage.Value.FormatOnType;
         set => _optionsStorage.Value.FormatOnType = value;
     }
+
+    [LocCategory(nameof(VSPackage.Typing))]
+    [LocDescription(nameof(VSPackage.Setting_AutoClosingTagsDescription))]
+    [LocDisplayName(nameof(VSPackage.Setting_AutoClosingTagsDisplayName))]
+    public bool AutoClosingTags
+    {
+        get => _optionsStorage.Value.AutoClosingTags;
+        set => _optionsStorage.Value.AutoClosingTags = value;
+    }
 }
