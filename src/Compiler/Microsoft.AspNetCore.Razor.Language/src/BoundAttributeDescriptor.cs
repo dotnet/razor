@@ -16,6 +16,39 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// </summary>
 public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescriptor>
 {
+    private enum Flags : ushort
+    {
+        ContainsDiagnostics = 0x01,
+        IsDirectiveAttributeComputed = 0x02,
+        IsDirectiveAttribute = 0x04,
+        IsIndexerStringProperty = 0x08,
+        IsIndexerBooleanProperty = 0x10,
+        IsEnum = 0x20,
+        IsStringProperty = 0x40,
+        IsBooleanProperty = 0x80,
+        IsEditorRequired = 0x100,
+        HasIndexer = 0x200,
+        CaseSensitive = 0x400
+    }
+
+    private Flags _flags;
+
+    private bool HasFlag(Flags flag) => (_flags & flag) != 0;
+    private void SetFlag(Flags flags) => _flags |= flags;
+    private void ClearFlag(Flags flags) => _flags &= ~flags;
+
+    private void SetOrClearFlag(Flags flag, bool value)
+    {
+        if (value)
+        {
+            SetFlag(flag);
+        }
+        else
+        {
+            ClearFlag(flag);
+        }
+    }
+
     protected BoundAttributeDescriptor(string kind)
     {
         Kind = kind;
@@ -23,17 +56,41 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
 
     public string Kind { get; }
 
-    public bool IsIndexerStringProperty { get; protected set; }
+    public bool IsIndexerStringProperty
+    {
+        get => HasFlag(Flags.IsIndexerStringProperty);
+        protected set => SetOrClearFlag(Flags.IsIndexerStringProperty, value);
+    }
 
-    public bool IsIndexerBooleanProperty { get; protected set; }
+    public bool IsIndexerBooleanProperty
+    {
+        get => HasFlag(Flags.IsIndexerBooleanProperty);
+        protected set => SetOrClearFlag(Flags.IsIndexerBooleanProperty, value);
+    }
 
-    public bool IsEnum { get; protected set; }
+    public bool IsEnum
+    {
+        get => HasFlag(Flags.IsEnum);
+        protected set => SetOrClearFlag(Flags.IsEnum, value);
+    }
 
-    public bool IsStringProperty { get; protected set; }
+    public bool IsStringProperty
+    {
+        get => HasFlag(Flags.IsStringProperty);
+        protected set => SetOrClearFlag(Flags.IsStringProperty, value);
+    }
 
-    public bool IsBooleanProperty { get; protected set; }
+    public bool IsBooleanProperty
+    {
+        get => HasFlag(Flags.IsBooleanProperty);
+        protected set => SetOrClearFlag(Flags.IsBooleanProperty, value);
+    }
 
-    internal bool IsEditorRequired { get; set; }
+    internal bool IsEditorRequired
+    {
+        get => HasFlag(Flags.IsEditorRequired);
+        set => SetOrClearFlag(Flags.IsEditorRequired, value);
+    }
 
     public string Name { get; protected set; }
 
@@ -43,35 +100,57 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
 
     public string IndexerTypeName { get; protected set; }
 
-    public bool HasIndexer { get; protected set; }
+    public bool HasIndexer
+    {
+        get => HasFlag(Flags.HasIndexer);
+        protected set => SetOrClearFlag(Flags.HasIndexer, value);
+    }
 
     public string Documentation { get; protected set; }
 
     public string DisplayName { get; protected set; }
 
-    public bool CaseSensitive { get; protected set; }
-
-    // We need this to be atomic so:
-    // 0: Uninitialized
-    // 1: false
-    // 2: true
-    private int _isDirectiveAttribute;
+    public bool CaseSensitive
+    {
+        get => HasFlag(Flags.CaseSensitive);
+        protected set => SetOrClearFlag(Flags.CaseSensitive, value);
+    }
 
     public bool IsDirectiveAttribute
     {
         get
         {
-            if (_isDirectiveAttribute == 0)
+            if (!HasFlag(Flags.IsDirectiveAttributeComputed))
             {
-                _isDirectiveAttribute = Metadata.TryGetValue(ComponentMetadata.Common.DirectiveAttribute, out var value) &&
-                        string.Equals(bool.TrueString, value) ? 2 : 1;
+                // If we haven't computed this value yet, compute it by checking the metadata.
+                var isDirectiveAttribute = Metadata.TryGetValue(ComponentMetadata.Common.DirectiveAttribute, out var value) && value == bool.TrueString;
+                SetOrClearFlag(Flags.IsDirectiveAttribute, isDirectiveAttribute);
+                SetFlag(Flags.IsDirectiveAttributeComputed);
             }
 
-            return _isDirectiveAttribute == 2;
+            return HasFlag(Flags.IsDirectiveAttribute);
         }
     }
 
-    public IReadOnlyList<RazorDiagnostic> Diagnostics { get; protected set; }
+    public IReadOnlyList<RazorDiagnostic> Diagnostics
+    {
+        get => HasFlag(Flags.ContainsDiagnostics)
+            ? TagHelperDiagnostics.GetDiagnostics(this)
+            : Array.Empty<RazorDiagnostic>();
+
+        protected set
+        {
+            if (value?.Count > 0)
+            {
+                TagHelperDiagnostics.AddDiagnostics(this, value);
+                SetFlag(Flags.ContainsDiagnostics);
+            }
+            else
+            {
+                ClearFlag(Flags.ContainsDiagnostics);
+            }
+        }
+    }
 
     public IReadOnlyDictionary<string, string> Metadata { get; protected set; }
 
@@ -81,6 +160,11 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
     {
         get
         {
+            if (!HasFlag(Flags.ContainsDiagnostics))
+            {
+                return false;
+            }
+
             var errors = Diagnostics.Any(diagnostic => diagnostic.Severity == RazorDiagnosticSeverity.Error);
 
             return errors;

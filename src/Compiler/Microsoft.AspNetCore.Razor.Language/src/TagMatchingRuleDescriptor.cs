@@ -26,8 +26,11 @@ public abstract class TagMatchingRuleDescriptor : IEquatable<TagMatchingRuleDesc
 
     public bool CaseSensitive { get; protected set; }
 
-    public IReadOnlyList<RazorDiagnostic> Diagnostics { get; protected set; }
-
+    public IReadOnlyList<RazorDiagnostic> Diagnostics
+    {
+        get => TagHelperDiagnostics.GetDiagnostics(this);
+        protected set => TagHelperDiagnostics.AddDiagnostics(this, value);
+    }
 
     public bool HasErrors
     {
