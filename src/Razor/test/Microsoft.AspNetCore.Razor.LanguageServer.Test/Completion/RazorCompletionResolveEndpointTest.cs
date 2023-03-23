@@ -31,11 +31,6 @@ public class RazorCompletionResolveEndpointTest : LanguageServerTestBase
             _completionListCache);
     }
 
-    protected override Task InitializeAsync()
-    {
-        return _endpoint.OnInitializedAsync(new VSInternalClientCapabilities(), DisposalToken);
-    }
-
     [Fact]
     public async Task Handle_UncachedCompletionItem_NoChange()
     {
