@@ -70,7 +70,7 @@ internal static class IServiceCollectionExtensions
         if (featureOptions.SingleServerCompletionSupport)
         {
             services.AddRegisteringHandler<RazorCompletionEndpoint>();
-            services.AddHandler<RazorCompletionResolveEndpoint>();
+            services.AddRegisteringHandler<RazorCompletionResolveEndpoint>();
         }
         else
         {
