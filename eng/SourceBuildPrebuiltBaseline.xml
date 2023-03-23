@@ -2,7 +2,7 @@
   <IgnorePatterns>
     <UsagePattern IdentityGlob="Microsoft.SourceBuild.Intermediate.*/*" />
 
-    <!-- Ignoring the following prebuilts. We so not have SBRP packages for
+    <!-- Ignoring the following prebuilts. We do not have SBRP packages for
          7.0 targeting packs and System.Text.Encoding.CodePages.6.0.0 package.
          https://github.com/dotnet/source-build/issues/3341 -->
     <UsagePattern IdentityGlob="Microsoft.AspNetCore.App.Ref/7.0.2" />
