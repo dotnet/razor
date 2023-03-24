@@ -490,7 +490,7 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
                 // Add the second item
                 if (!key1Added && (key1LessThanKey2 || key1LessThanKey3))
                 {
-                    // If we haven't added key1 and it is less that key2 or key3, it must be second.
+                    // If we haven't added key1 and it is less than key2 or key3, it must be second.
                     hash.Add(_key1, StringComparer.Ordinal);
                     hash.Add(_value1, StringComparer.Ordinal);
                     key1Added = true;
