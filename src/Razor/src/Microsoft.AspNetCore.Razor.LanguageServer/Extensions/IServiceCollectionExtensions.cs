@@ -75,7 +75,7 @@ internal static class IServiceCollectionExtensions
         else
         {
             services.AddRegisteringHandler<LegacyRazorCompletionEndpoint>();
-            services.AddHandler<LegacyRazorCompletionResolveEndpoint>();
+            services.AddRegisteringHandler<LegacyRazorCompletionResolveEndpoint>();
         }
 
         services.AddSingleton<CompletionListCache>();
