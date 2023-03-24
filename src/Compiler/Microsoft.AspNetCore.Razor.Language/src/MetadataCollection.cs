@@ -49,41 +49,21 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
     public static MetadataCollection Create(KeyValuePair<string, string> pair)
         => new OneToThreeItems(pair.Key, pair.Value);
 
+    public static MetadataCollection Create(KeyValuePair<string, string> pair1, KeyValuePair<string, string> pair2)
+        => new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value);
+
+    public static MetadataCollection Create(KeyValuePair<string, string> pair1, KeyValuePair<string, string> pair2, KeyValuePair<string, string> pair3)
+        => new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value, pair3.Key, pair3.Value);
+
     public static MetadataCollection Create(params KeyValuePair<string, string>[] pairs)
-    {
-        switch (pairs.Length)
+        => pairs switch
         {
-            case 0:
-                return Empty;
-
-            case 1:
-                {
-                    var pair = pairs[0];
-
-                    return new OneToThreeItems(pair.Key, pair.Value);
-                }
-
-            case 2:
-                {
-                    var pair1 = pairs[0];
-                    var pair2 = pairs[1];
-
-                    return new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value);
-                }
-
-            case 3:
-                {
-                    var pair1 = pairs[0];
-                    var pair2 = pairs[1];
-                    var pair3 = pairs[2];
-
-                    return new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value, pair3.Key, pair3.Value);
-                }
-
-            default:
-                return new FourOrMoreItems(pairs);
-        }
-    }
+            [] => Empty,
+            [var pair] => new OneToThreeItems(pair.Key, pair.Value),
+            [var pair1, var pair2] => new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value),
+            [var pair1, var pair2, var pair3] => new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value, pair3.Key, pair3.Value),
+            _ => new FourOrMoreItems(pairs),
+        };
 
     public static MetadataCollection Create(IReadOnlyDictionary<string, string> map)
     {
@@ -163,9 +143,7 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
     }
 
     public static MetadataCollection CreateOrEmpty(IReadOnlyDictionary<string, string>? map)
-        => map is not null
-            ? MetadataCollection.Create(map)
-            : MetadataCollection.Empty;
+        => map is not null ? Create(map) : Empty;
 
     private class NoItems : MetadataCollection
     {
@@ -409,24 +387,67 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
 
         protected override int ComputeHashCode()
         {
-            var hash = HashCodeCombiner.Start();
-
-            hash.Add(_key1, StringComparer.Ordinal);
-            hash.Add(_value1, StringComparer.Ordinal);
-
-            if (_count > 1)
+            return _count switch
             {
-                hash.Add(_key2, StringComparer.Ordinal);
-                hash.Add(_value2, StringComparer.Ordinal);
+                1 => ComputeHashCodeForOneItem(),
+                2 => ComputeHashCodeForTwoItems(),
+                _ => ComputeHashCodeForThreeItems()
+            };
+
+            int ComputeHashCodeForOneItem()
+            {
+                var hash = HashCodeCombiner.Start();
+
+                hash.Add(_key1, StringComparer.Ordinal);
+                hash.Add(_value1, StringComparer.Ordinal);
+
+                return hash.CombinedHash;
             }
 
-            if (_count > 2)
+            int ComputeHashCodeForTwoItems()
             {
-                hash.Add(_key3, StringComparer.Ordinal);
-                hash.Add(_value3, StringComparer.Ordinal);
+                var hash = HashCodeCombiner.Start();
+
+                if (string.CompareOrdinal(_key1, _key2) < 0)
+                {
+                    hash.Add(_key1, StringComparer.Ordinal);
+                    hash.Add(_value1, StringComparer.Ordinal);
+                    hash.Add(_key2, StringComparer.Ordinal);
+                    hash.Add(_value2, StringComparer.Ordinal);
+                }
+                else
+                {
+                    hash.Add(_key2, StringComparer.Ordinal);
+                    hash.Add(_value2, StringComparer.Ordinal);
+                    hash.Add(_key1, StringComparer.Ordinal);
+                    hash.Add(_value1, StringComparer.Ordinal);
+                }
+
+                return hash.CombinedHash;
             }
 
-            return hash.CombinedHash;
+            int ComputeHashCodeForThreeItems()
+            {
+                var hash = HashCodeCombiner.Start();
+
+                using var _ = ListPool<KeyValuePair<string, string>>.GetPooledObject(out var list);
+
+                list.SetCapacityIfLarger(3);
+
+                list.Add(new KeyValuePair<string, string>(_key1, _value1));
+                list.Add(new KeyValuePair<string, string>(_key2, _value2));
+                list.Add(new KeyValuePair<string, string>(_key3, _value3));
+
+                list.Sort((kvp1, kvp2) => string.CompareOrdinal(kvp1.Key, kvp2.Key));
+
+                foreach (var (key, value) in list)
+                {
+                    hash.Add(key, StringComparer.Ordinal);
+                    hash.Add(value, StringComparer.Ordinal);
+                }
+
+                return hash.CombinedHash;
+            }
         }
     }
 
@@ -592,10 +613,21 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
             var values = _values;
             var count = keys.Length;
 
+            using var _ = ListPool<KeyValuePair<string, string>>.GetPooledObject(out var list);
+
+            list.SetCapacityIfLarger(count);
+
             for (var i = 0; i < count; i++)
             {
-                hash.Add(keys[i], StringComparer.Ordinal);
-                hash.Add(values[i], StringComparer.Ordinal);
+                list.Add(new KeyValuePair<string, string>(keys[i], values[i]));
+            }
+
+            list.Sort((kvp1, kvp2) => string.CompareOrdinal(kvp1.Key, kvp2.Key));
+
+            foreach (var (key, value) in list)
+            {
+                hash.Add(key, StringComparer.Ordinal);
+                hash.Add(value, StringComparer.Ordinal);
             }
 
             return hash.CombinedHash;
