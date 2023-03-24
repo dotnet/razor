@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
@@ -134,7 +135,6 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<CSharpCodeActionProvider, TypeAccessibilityCodeActionProvider>();
         services.AddSingleton<CSharpCodeActionProvider, DefaultCSharpCodeActionProvider>();
         services.AddSingleton<CSharpCodeActionResolver, DefaultCSharpCodeActionResolver>();
-        services.AddSingleton<CSharpCodeActionResolver, AddUsingsCSharpCodeActionResolver>();
         services.AddSingleton<CSharpCodeActionResolver, UnformattedRemappingCSharpCodeActionResolver>();
 
         // Razor Code actions
