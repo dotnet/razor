@@ -14,17 +14,14 @@ namespace Microsoft.AspNetCore.Razor.Language;
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
 {
-    private enum Flags : byte
-    {
-        ContainsDiagnostics = 0x01,
-        IsComponentFullyQualifiedNameMatchCacheSet = 0x02,
-        IsComponentFullyQualifiedNameMatchCache = 0x04,
-        IsChildContentTagHelperCacheSet = 0x08,
-        IsChildContentTagHelperCache = 0x10,
-        CaseSensitive = 0x20
-    }
+    private const int ContainsDiagnosticsBit = 1 << 0;
+    private const int IsComponentFullyQualifiedNameMatchCacheSetBit = 1 << 1;
+    private const int IsComponentFullyQualifiedNameMatchCacheBit = 1 << 2;
+    private const int IsChildContentTagHelperCacheSetBit = 1 << 3;
+    private const int IsChildContentTagHelperCacheBit = 1 << 4;
+    private const int CaseSensitiveBit = 1 << 5;
 
-    private Flags _flags;
+    private int _flags;
     private int? _hashCode;
 
     private IEnumerable<RazorDiagnostic> _allDiagnostics;
@@ -35,21 +32,10 @@ public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
         Kind = kind;
     }
 
-    private bool HasFlag(Flags flag) => (_flags & flag) != 0;
-    private void SetFlag(Flags flags) => _flags |= flags;
-    private void ClearFlag(Flags flags) => _flags &= ~flags;
-
-    private void SetOrClearFlag(Flags flag, bool value)
-    {
-        if (value)
-        {
-            SetFlag(flag);
-        }
-        else
-        {
-            ClearFlag(flag);
-        }
-    }
+    private bool HasFlag(int flag) => (_flags & flag) != 0;
+    private void SetFlag(int toSet) => ThreadSafeFlagOperations.Set(ref _flags, toSet);
+    private void ClearFlag(int toClear) => ThreadSafeFlagOperations.Clear(ref _flags, toClear);
+    private void SetOrClearFlag(int toChange, bool value) => ThreadSafeFlagOperations.SetOrClear(ref _flags, toChange, value);
 
     public string Kind { get; }
 
@@ -71,13 +57,13 @@ public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
 
     public bool CaseSensitive
     {
-        get => HasFlag(Flags.CaseSensitive);
-        protected set => SetOrClearFlag(Flags.CaseSensitive, value);
+        get => HasFlag(CaseSensitiveBit);
+        protected set => SetOrClearFlag(CaseSensitiveBit, value);
     }
 
     public IReadOnlyList<RazorDiagnostic> Diagnostics
     {
-        get => HasFlag(Flags.ContainsDiagnostics)
+        get => HasFlag(ContainsDiagnosticsBit)
             ? TagHelperDiagnostics.GetDiagnostics(this)
             : Array.Empty<RazorDiagnostic>();
 
@@ -86,11 +72,12 @@ public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
             if (value?.Count > 0)
             {
                 TagHelperDiagnostics.AddDiagnostics(this, value);
-                SetFlag(Flags.ContainsDiagnostics);
+                SetFlag(ContainsDiagnosticsBit);
             }
-            else
+            else if (HasFlag(ContainsDiagnosticsBit))
             {
-                ClearFlag(Flags.ContainsDiagnostics);
+                TagHelperDiagnostics.RemoveDiagnostics(this);
+                ClearFlag(ContainsDiagnosticsBit);
             }
         }
     }
@@ -99,37 +86,43 @@ public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
 
     internal bool? IsComponentFullyQualifiedNameMatchCache
     {
-        get => GetTriStateFlags(Flags.IsComponentFullyQualifiedNameMatchCacheSet, Flags.IsComponentFullyQualifiedNameMatchCache);
-        set => UpdateTriStateFlags(value, Flags.IsComponentFullyQualifiedNameMatchCacheSet, Flags.IsComponentFullyQualifiedNameMatchCache);
+        get => GetTriStateFlags(IsComponentFullyQualifiedNameMatchCacheSetBit, IsComponentFullyQualifiedNameMatchCacheBit);
+        set => UpdateTriStateFlags(value, IsComponentFullyQualifiedNameMatchCacheSetBit, IsComponentFullyQualifiedNameMatchCacheBit);
     }
 
     internal bool? IsChildContentTagHelperCache
     {
-        get => GetTriStateFlags(Flags.IsChildContentTagHelperCache, Flags.IsChildContentTagHelperCacheSet);
-        set => UpdateTriStateFlags(value, Flags.IsChildContentTagHelperCache, Flags.IsChildContentTagHelperCacheSet);
+        get => GetTriStateFlags(IsChildContentTagHelperCacheBit, IsChildContentTagHelperCacheSetBit);
+        set => UpdateTriStateFlags(value, IsChildContentTagHelperCacheBit, IsChildContentTagHelperCacheSetBit);
     }
 
-    private bool? GetTriStateFlags(Flags isSet, Flags isOn)
-        => HasFlag(isSet)
-            ? HasFlag(isOn)
-            : null;
+    private bool? GetTriStateFlags(int isSetFlag, int isOnFlag)
+    {
+        var flags = _flags;
 
-    private void UpdateTriStateFlags(bool? value, Flags isSet, Flags isOn)
+        if ((flags & isSetFlag) == 0)
+        {
+            return null;
+        }
+
+        return (flags & isOnFlag) != 0;
+    }
+
+    private void UpdateTriStateFlags(bool? value, int isSetFlag, int isOnFlag)
     {
         switch (value)
         {
             case true:
-                SetFlag(isOn);
-                SetFlag(isSet);
+                SetFlag(isSetFlag | isOnFlag);
                 break;
 
             case false:
-                ClearFlag(isOn);
-                SetFlag(isSet);
+                ClearFlag(isOnFlag);
+                SetFlag(isSetFlag);
                 break;
 
             case null:
-                ClearFlag(isSet);
+                ClearFlag(isSetFlag);
                 break;
         }
     }
@@ -169,7 +162,7 @@ public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
     {
         get
         {
-            if (!HasFlag(Flags.ContainsDiagnostics))
+            if (!HasFlag(ContainsDiagnosticsBit))
             {
                 return false;
             }

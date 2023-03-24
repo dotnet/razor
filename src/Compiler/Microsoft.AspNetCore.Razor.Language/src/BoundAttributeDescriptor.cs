@@ -16,38 +16,24 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// </summary>
 public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescriptor>
 {
-    private enum Flags : ushort
-    {
-        ContainsDiagnostics = 0x01,
-        IsDirectiveAttributeComputed = 0x02,
-        IsDirectiveAttribute = 0x04,
-        IsIndexerStringProperty = 0x08,
-        IsIndexerBooleanProperty = 0x10,
-        IsEnum = 0x20,
-        IsStringProperty = 0x40,
-        IsBooleanProperty = 0x80,
-        IsEditorRequired = 0x100,
-        HasIndexer = 0x200,
-        CaseSensitive = 0x400
-    }
+    private const int ContainsDiagnosticsBit = 1 << 0;
+    private const int IsDirectiveAttributeComputedBit = 1 << 1;
+    private const int IsDirectiveAttributeBit = 1 << 2;
+    private const int IsIndexerStringPropertyBit = 1 << 3;
+    private const int IsIndexerBooleanPropertyBit = 1 << 4;
+    private const int IsEnumBit = 1 << 5;
+    private const int IsStringPropertyBit = 1 << 6;
+    private const int IsBooleanPropertyBit = 1 << 7;
+    private const int IsEditorRequiredBit = 1 << 8;
+    private const int HasIndexerBit = 1 << 9;
+    private const int CaseSensitiveBit = 1 << 10;
 
-    private Flags _flags;
+    private int _flags;
 
-    private bool HasFlag(Flags flag) => (_flags & flag) != 0;
-    private void SetFlag(Flags flags) => _flags |= flags;
-    private void ClearFlag(Flags flags) => _flags &= ~flags;
-
-    private void SetOrClearFlag(Flags flag, bool value)
-    {
-        if (value)
-        {
-            SetFlag(flag);
-        }
-        else
-        {
-            ClearFlag(flag);
-        }
-    }
+    private bool HasFlag(int flag) => (_flags & flag) != 0;
+    private void SetFlag(int toSet) => ThreadSafeFlagOperations.Set(ref _flags, toSet);
+    private void ClearFlag(int toClear) => ThreadSafeFlagOperations.Clear(ref _flags, toClear);
+    private void SetOrClearFlag(int toChange, bool value) => ThreadSafeFlagOperations.SetOrClear(ref _flags, toChange, value);
 
     protected BoundAttributeDescriptor(string kind)
     {
@@ -58,38 +44,38 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
 
     public bool IsIndexerStringProperty
     {
-        get => HasFlag(Flags.IsIndexerStringProperty);
-        protected set => SetOrClearFlag(Flags.IsIndexerStringProperty, value);
+        get => HasFlag(IsIndexerStringPropertyBit);
+        protected set => SetOrClearFlag(IsIndexerStringPropertyBit, value);
     }
 
     public bool IsIndexerBooleanProperty
     {
-        get => HasFlag(Flags.IsIndexerBooleanProperty);
-        protected set => SetOrClearFlag(Flags.IsIndexerBooleanProperty, value);
+        get => HasFlag(IsIndexerBooleanPropertyBit);
+        protected set => SetOrClearFlag(IsIndexerBooleanPropertyBit, value);
     }
 
     public bool IsEnum
     {
-        get => HasFlag(Flags.IsEnum);
-        protected set => SetOrClearFlag(Flags.IsEnum, value);
+        get => HasFlag(IsEnumBit);
+        protected set => SetOrClearFlag(IsEnumBit, value);
     }
 
     public bool IsStringProperty
     {
-        get => HasFlag(Flags.IsStringProperty);
-        protected set => SetOrClearFlag(Flags.IsStringProperty, value);
+        get => HasFlag(IsStringPropertyBit);
+        protected set => SetOrClearFlag(IsStringPropertyBit, value);
     }
 
     public bool IsBooleanProperty
     {
-        get => HasFlag(Flags.IsBooleanProperty);
-        protected set => SetOrClearFlag(Flags.IsBooleanProperty, value);
+        get => HasFlag(IsBooleanPropertyBit);
+        protected set => SetOrClearFlag(IsBooleanPropertyBit, value);
     }
 
     internal bool IsEditorRequired
     {
-        get => HasFlag(Flags.IsEditorRequired);
-        set => SetOrClearFlag(Flags.IsEditorRequired, value);
+        get => HasFlag(IsEditorRequiredBit);
+        set => SetOrClearFlag(IsEditorRequiredBit, value);
     }
 
     public string Name { get; protected set; }
@@ -102,8 +88,8 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
 
     public bool HasIndexer
     {
-        get => HasFlag(Flags.HasIndexer);
-        protected set => SetOrClearFlag(Flags.HasIndexer, value);
+        get => HasFlag(HasIndexerBit);
+        protected set => SetOrClearFlag(HasIndexerBit, value);
     }
 
     public string Documentation { get; protected set; }
@@ -112,29 +98,36 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
 
     public bool CaseSensitive
     {
-        get => HasFlag(Flags.CaseSensitive);
-        protected set => SetOrClearFlag(Flags.CaseSensitive, value);
+        get => HasFlag(CaseSensitiveBit);
+        protected set => SetOrClearFlag(CaseSensitiveBit, value);
     }
 
     public bool IsDirectiveAttribute
     {
         get
         {
-            if (!HasFlag(Flags.IsDirectiveAttributeComputed))
+            if (!HasFlag(IsDirectiveAttributeComputedBit))
             {
                 // If we haven't computed this value yet, compute it by checking the metadata.
                 var isDirectiveAttribute = Metadata.TryGetValue(ComponentMetadata.Common.DirectiveAttribute, out var value) && value == bool.TrueString;
-                SetOrClearFlag(Flags.IsDirectiveAttribute, isDirectiveAttribute);
-                SetFlag(Flags.IsDirectiveAttributeComputed);
+                if (isDirectiveAttribute)
+                {
+                    SetFlag(IsDirectiveAttributeBit | IsDirectiveAttributeComputedBit);
+                }
+                else
+                {
+                    ClearFlag(IsDirectiveAttributeBit);
+                    SetFlag(IsDirectiveAttributeComputedBit);
+                }
             }
 
-            return HasFlag(Flags.IsDirectiveAttribute);
+            return HasFlag(IsDirectiveAttributeBit);
         }
     }
 
     public IReadOnlyList<RazorDiagnostic> Diagnostics
     {
-        get => HasFlag(Flags.ContainsDiagnostics)
+        get => HasFlag(ContainsDiagnosticsBit)
             ? TagHelperDiagnostics.GetDiagnostics(this)
             : Array.Empty<RazorDiagnostic>();
 
@@ -143,11 +136,12 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
             if (value?.Count > 0)
             {
                 TagHelperDiagnostics.AddDiagnostics(this, value);
-                SetFlag(Flags.ContainsDiagnostics);
+                SetFlag(ContainsDiagnosticsBit);
             }
-            else
+            else if (HasFlag(ContainsDiagnosticsBit))
             {
-                ClearFlag(Flags.ContainsDiagnostics);
+                TagHelperDiagnostics.RemoveDiagnostics(this);
+                ClearFlag(ContainsDiagnosticsBit);
             }
         }
     }
@@ -160,7 +154,7 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
     {
         get
         {
-            if (!HasFlag(Flags.ContainsDiagnostics))
+            if (!HasFlag(ContainsDiagnosticsBit))
             {
                 return false;
             }

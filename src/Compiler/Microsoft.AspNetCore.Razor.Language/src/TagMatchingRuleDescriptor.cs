@@ -41,8 +41,9 @@ public abstract class TagMatchingRuleDescriptor : IEquatable<TagMatchingRuleDesc
                 TagHelperDiagnostics.AddDiagnostics(this, value);
                 _containsDiagnostics = true;
             }
-            else
+            else if (_containsDiagnostics)
             {
+                TagHelperDiagnostics.RemoveDiagnostics(this);
                 _containsDiagnostics = false;
             }
         }

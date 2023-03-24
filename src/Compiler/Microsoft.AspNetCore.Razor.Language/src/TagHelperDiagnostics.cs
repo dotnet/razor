@@ -24,6 +24,9 @@ internal static class TagHelperDiagnostics
             ? diagnostics
             : Array.Empty<RazorDiagnostic>();
 
+    private static void RemoveDiagnosticsFromTable(object obj)
+        => s_diagnosticsTable.Remove(obj);
+
     public static void AddDiagnostics(AllowedChildTagDescriptor descriptor, IReadOnlyList<RazorDiagnostic> diagnostics)
         => AddDiagnosticsToTable(descriptor, diagnostics);
 
@@ -59,4 +62,22 @@ internal static class TagHelperDiagnostics
 
     public static IReadOnlyList<RazorDiagnostic> GetDiagnostics(TagMatchingRuleDescriptor descriptor)
         => GetDiagnosticsFromTable(descriptor);
+
+    public static void RemoveDiagnostics(AllowedChildTagDescriptor descriptor)
+        => RemoveDiagnosticsFromTable(descriptor);
+
+    public static void RemoveDiagnostics(BoundAttributeDescriptor descriptor)
+        => RemoveDiagnosticsFromTable(descriptor);
+
+    public static void RemoveDiagnostics(BoundAttributeParameterDescriptor descriptor)
+        => RemoveDiagnosticsFromTable(descriptor);
+
+    public static void RemoveDiagnostics(RequiredAttributeDescriptor descriptor)
+        => RemoveDiagnosticsFromTable(descriptor);
+
+    public static void RemoveDiagnostics(TagHelperDescriptor descriptor)
+        => RemoveDiagnosticsFromTable(descriptor);
+
+    public static void RemoveDiagnostics(TagMatchingRuleDescriptor descriptor)
+        => RemoveDiagnosticsFromTable(descriptor);
 }

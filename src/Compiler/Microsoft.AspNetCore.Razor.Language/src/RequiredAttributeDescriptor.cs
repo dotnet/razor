@@ -11,29 +11,15 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public abstract class RequiredAttributeDescriptor : IEquatable<RequiredAttributeDescriptor>
 {
-    private enum Flags : byte
-    {
-        ContainsDiagnostics = 0x01,
-        CaseSensitive = 0x02
-    }
+    private const int ContainsDiagnosticsBit = 0x01;
+    private const int CaseSensitiveBit = 0x02;
 
-    private Flags _flags;
+    private int _flags;
 
-    private bool HasFlag(Flags flag) => (_flags & flag) != 0;
-    private void SetFlag(Flags flags) => _flags |= flags;
-    private void ClearFlag(Flags flags) => _flags &= ~flags;
-
-    private void SetOrClearFlag(Flags flag, bool value)
-    {
-        if (value)
-        {
-            SetFlag(flag);
-        }
-        else
-        {
-            ClearFlag(flag);
-        }
-    }
+    private bool HasFlag(int flag) => (_flags & flag) != 0;
+    private void SetFlag(int toSet) => ThreadSafeFlagOperations.Set(ref _flags, toSet);
+    private void ClearFlag(int toClear) => ThreadSafeFlagOperations.Clear(ref _flags, toClear);
+    private void SetOrClearFlag(int toChange, bool value) => ThreadSafeFlagOperations.SetOrClear(ref _flags, toChange, value);
 
     public string Name { get; protected set; }
 
@@ -41,8 +27,8 @@ public abstract class RequiredAttributeDescriptor : IEquatable<RequiredAttribute
 
     public bool CaseSensitive
     {
-        get => HasFlag(Flags.CaseSensitive);
-        protected set => SetOrClearFlag(Flags.CaseSensitive, value);
+        get => HasFlag(CaseSensitiveBit);
+        protected set => SetOrClearFlag(CaseSensitiveBit, value);
     }
 
     public string Value { get; protected set; }
@@ -53,7 +39,7 @@ public abstract class RequiredAttributeDescriptor : IEquatable<RequiredAttribute
 
     public IReadOnlyList<RazorDiagnostic> Diagnostics
     {
-        get => HasFlag(Flags.ContainsDiagnostics)
+        get => HasFlag(ContainsDiagnosticsBit)
             ? TagHelperDiagnostics.GetDiagnostics(this)
             : Array.Empty<RazorDiagnostic>();
 
@@ -62,11 +48,12 @@ public abstract class RequiredAttributeDescriptor : IEquatable<RequiredAttribute
             if (value?.Count > 0)
             {
                 TagHelperDiagnostics.AddDiagnostics(this, value);
-                SetFlag(Flags.ContainsDiagnostics);
+                SetFlag(ContainsDiagnosticsBit);
             }
-            else
+            else if (HasFlag(ContainsDiagnosticsBit))
             {
-                ClearFlag(Flags.ContainsDiagnostics);
+                TagHelperDiagnostics.RemoveDiagnostics(this);
+                ClearFlag(ContainsDiagnosticsBit);
             }
         }
     }
@@ -77,7 +64,7 @@ public abstract class RequiredAttributeDescriptor : IEquatable<RequiredAttribute
     {
         get
         {
-            if (!HasFlag(Flags.ContainsDiagnostics))
+            if (!HasFlag(ContainsDiagnosticsBit))
             {
                 return false;
             }

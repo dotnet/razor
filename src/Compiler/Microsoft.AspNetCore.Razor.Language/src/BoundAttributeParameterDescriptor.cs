@@ -11,32 +11,18 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public abstract class BoundAttributeParameterDescriptor : IEquatable<BoundAttributeParameterDescriptor>
 {
-    private enum Flags : byte
-    {
-        ContainsDiagnostics = 0x01,
-        IsEnum = 0x02,
-        IsStringProperty = 0x04,
-        IsBooleanProperty = 0x08,
-        CaseSensitive = 0x10
-    }
+    private const int ContainsDiagnosticsBit = 1 << 0;
+    private const int IsEnumBit = 1 << 1;
+    private const int IsStringPropertyBit = 1 << 2;
+    private const int IsBooleanPropertyBit = 1 << 3;
+    private const int CaseSensitiveBit = 1 << 4;
 
-    private Flags _flags;
+    private int _flags;
 
-    private bool HasFlag(Flags flag) => (_flags & flag) != 0;
-    private void SetFlag(Flags flags) => _flags |= flags;
-    private void ClearFlag(Flags flags) => _flags &= ~flags;
-
-    private void SetOrClearFlag(Flags flag, bool value)
-    {
-        if (value)
-        {
-            SetFlag(flag);
-        }
-        else
-        {
-            ClearFlag(flag);
-        }
-    }
+    private bool HasFlag(int flag) => (_flags & flag) != 0;
+    private void SetFlag(int toSet) => ThreadSafeFlagOperations.Set(ref _flags, toSet);
+    private void ClearFlag(int toClear) => ThreadSafeFlagOperations.Clear(ref _flags, toClear);
+    private void SetOrClearFlag(int toChange, bool value) => ThreadSafeFlagOperations.SetOrClear(ref _flags, toChange, value);
 
     protected BoundAttributeParameterDescriptor(string kind)
     {
@@ -47,20 +33,20 @@ public abstract class BoundAttributeParameterDescriptor : IEquatable<BoundAttrib
 
     public bool IsEnum
     {
-        get => HasFlag(Flags.IsEnum);
-        protected set => SetOrClearFlag(Flags.IsEnum, value);
+        get => HasFlag(IsEnumBit);
+        protected set => SetOrClearFlag(IsEnumBit, value);
     }
 
     public bool IsStringProperty
     {
-        get => HasFlag(Flags.IsStringProperty);
-        protected set => SetOrClearFlag(Flags.IsStringProperty, value);
+        get => HasFlag(IsStringPropertyBit);
+        protected set => SetOrClearFlag(IsStringPropertyBit, value);
     }
 
     public bool IsBooleanProperty
     {
-        get => HasFlag(Flags.IsBooleanProperty);
-        protected set => SetOrClearFlag(Flags.IsBooleanProperty, value);
+        get => HasFlag(IsBooleanPropertyBit);
+        protected set => SetOrClearFlag(IsBooleanPropertyBit, value);
     }
 
     public string Name { get; protected set; }
@@ -73,13 +59,13 @@ public abstract class BoundAttributeParameterDescriptor : IEquatable<BoundAttrib
 
     public bool CaseSensitive
     {
-        get => HasFlag(Flags.CaseSensitive);
-        protected set => SetOrClearFlag(Flags.CaseSensitive, value);
+        get => HasFlag(CaseSensitiveBit);
+        protected set => SetOrClearFlag(CaseSensitiveBit, value);
     }
 
     public IReadOnlyList<RazorDiagnostic> Diagnostics
     {
-        get => HasFlag(Flags.ContainsDiagnostics)
+        get => HasFlag(ContainsDiagnosticsBit)
             ? TagHelperDiagnostics.GetDiagnostics(this)
             : Array.Empty<RazorDiagnostic>();
 
@@ -88,11 +74,12 @@ public abstract class BoundAttributeParameterDescriptor : IEquatable<BoundAttrib
             if (value?.Count > 0)
             {
                 TagHelperDiagnostics.AddDiagnostics(this, value);
-                SetFlag(Flags.ContainsDiagnostics);
+                SetFlag(ContainsDiagnosticsBit);
             }
-            else
+            else if (HasFlag(ContainsDiagnosticsBit))
             {
-                ClearFlag(Flags.ContainsDiagnostics);
+                TagHelperDiagnostics.RemoveDiagnostics(this);
+                ClearFlag(ContainsDiagnosticsBit);
             }
         }
     }
@@ -103,7 +90,7 @@ public abstract class BoundAttributeParameterDescriptor : IEquatable<BoundAttrib
     {
         get
         {
-            if (!HasFlag(Flags.ContainsDiagnostics))
+            if (!HasFlag(ContainsDiagnosticsBit))
             {
                 return false;
             }
