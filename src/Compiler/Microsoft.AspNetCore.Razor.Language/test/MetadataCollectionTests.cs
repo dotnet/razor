@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -45,5 +46,37 @@ public class MetadataCollectionTests
             Assert.True(collection2.TryGetValue(key, out var value2));
             Assert.Equal(value, value2);
         }
+    }
+
+    [Fact]
+    public void CreateThrowsOnDuplicateKeys()
+    {
+        var one = new KeyValuePair<string, string>("Key1", "Value1");
+        var two = new KeyValuePair<string, string>("Key2", "Value2");
+        var three = new KeyValuePair<string, string>("Key3", "Value3");
+        var four = new KeyValuePair<string, string>("Key4", "Value4");
+
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(one, one));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(new[] { one, one }));
+
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(one, one, three));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(new[] { one, one, three }));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(one, three, three));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(new[] { one, three, three }));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(one, two, one));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(new[] { one, two, one}));
+
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(one, one, three, four));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(new[] { one, one, three, four }));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(one, two, one, four));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(new[] { one, two, one, four }));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(one, two, three, one));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(new[] { one, two, three, one }));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(one, two, two, four));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(new[] { one, two, two, four }));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(one, two, three, two));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(new[] { one, one, three, two }));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(one, two, three, three));
+        Assert.Throws<ArgumentException>(() => MetadataCollection.Create(new[] { one, one, three, three }));
     }
 }

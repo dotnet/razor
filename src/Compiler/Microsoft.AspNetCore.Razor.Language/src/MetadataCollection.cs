@@ -155,7 +155,7 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
         {
         }
 
-        public override string this[string key] => throw new KeyNotFoundException();
+        public override string this[string key] => throw new KeyNotFoundException(Resources.FormatThe_given_key_0_was_not_present(key));
 
         public override IEnumerable<string> Keys => Array.Empty<string>();
         public override IEnumerable<string> Values => Array.Empty<string>();
@@ -206,6 +206,24 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
             _key3 = key3 ?? throw new ArgumentNullException(nameof(key3));
             _value3 = value3;
 
+            if (key1 == key2)
+            {
+                throw new ArgumentException(
+                    Resources.FormatAn_item_with_the_same_key_has_already_been_added_Key_0(key2), nameof(key2));
+            }
+
+            if (key1 == key3)
+            {
+                throw new ArgumentException(
+                    Resources.FormatAn_item_with_the_same_key_has_already_been_added_Key_0(key3), nameof(key3));
+            }
+
+            if (key2 == key3)
+            {
+                throw new ArgumentException(
+                    Resources.FormatAn_item_with_the_same_key_has_already_been_added_Key_0(key3), nameof(key3));
+            }
+
             _count = 3;
         }
 
@@ -215,6 +233,12 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
             _value1 = value1;
             _key2 = key2 ?? throw new ArgumentNullException(nameof(key2));
             _value2 = value2;
+
+            if (key1 == key2)
+            {
+                throw new ArgumentException(
+                    Resources.FormatAn_item_with_the_same_key_has_already_been_added_Key_0(key2), nameof(key2));
+            }
 
             _count = 2;
         }
@@ -246,7 +270,8 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
                     return _value3;
                 }
 
-                throw new KeyNotFoundException();
+                throw new KeyNotFoundException(
+                    Resources.FormatThe_given_key_0_was_not_present(key));
             }
         }
 
@@ -476,9 +501,10 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
 
             foreach (var (key, value) in map)
             {
-                // Because the keys are strings, we are guaranteed that there won't ever
-                // be a match. So, we can assume that the result of BinarySearch will
-                // always be negative and can immediately convert from the bitwise complement.
+                // Because the keys are strings that are already in a dictionary, we are
+                // guaranteed that there won't ever be a match. So, we can assume that
+                // the result of BinarySearch will always be negative and can immediately
+                // convert from the bitwise complement.
                 var index = ~keys.BinarySearch(key);
 
                 keys.Insert(index, key);
@@ -510,7 +536,8 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
 
                 if (index >= 0)
                 {
-                    throw new ArgumentException("Duplicate key encountered.", nameof(pairs));
+                    throw new ArgumentException(
+                        Resources.FormatAn_item_with_the_same_key_has_already_been_added_Key_0(key), nameof(pairs));
                 }
 
                 index = ~index;
@@ -532,7 +559,7 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
 
                 return index >= 0
                     ? _values[index]
-                    : throw new KeyNotFoundException();
+                    : throw new KeyNotFoundException(Resources.FormatThe_given_key_0_was_not_present(key));
             }
         }
 
