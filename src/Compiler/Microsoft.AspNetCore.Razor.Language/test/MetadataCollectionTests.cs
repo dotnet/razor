@@ -79,4 +79,41 @@ public class MetadataCollectionTests
         Assert.Throws<ArgumentException>(() => MetadataCollection.Create(one, two, three, three));
         Assert.Throws<ArgumentException>(() => MetadataCollection.Create(new[] { one, one, three, three }));
     }
+
+    [Fact]
+    public void HashCodesAreSameRegardlessOfOrdering()
+    {
+        var one = new KeyValuePair<string, string>("Key1", "Value1");
+        var two = new KeyValuePair<string, string>("Key2", "Value2");
+        var three = new KeyValuePair<string, string>("Key3", "Value3");
+        var four = new KeyValuePair<string, string>("Key4", "Value4");
+
+        Assert.Equal(
+            MetadataCollection.Create(one, two).GetHashCode(),
+            MetadataCollection.Create(two, one).GetHashCode());
+
+        Assert.Equal(
+            MetadataCollection.Create(one, two, three).GetHashCode(),
+            MetadataCollection.Create(two, one, three).GetHashCode());
+
+        Assert.Equal(
+            MetadataCollection.Create(one, two, three).GetHashCode(),
+            MetadataCollection.Create(three, two, one).GetHashCode());
+
+        Assert.Equal(
+            MetadataCollection.Create(one, two, three).GetHashCode(),
+            MetadataCollection.Create(one, three, two).GetHashCode());
+
+        Assert.Equal(
+            MetadataCollection.Create(one, two, three).GetHashCode(),
+            MetadataCollection.Create(two, three, one).GetHashCode());
+
+        Assert.Equal(
+            MetadataCollection.Create(one, two, three).GetHashCode(),
+            MetadataCollection.Create(three, one, two).GetHashCode());
+
+        Assert.Equal(
+            MetadataCollection.Create(one, two, three, four).GetHashCode(),
+            MetadataCollection.Create(four, three, two, one).GetHashCode());
+    }
 }

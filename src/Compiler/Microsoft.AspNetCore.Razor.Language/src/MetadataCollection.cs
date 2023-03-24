@@ -455,20 +455,78 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
             {
                 var hash = HashCodeCombiner.Start();
 
-                using var _ = ListPool<KeyValuePair<string, string>>.GetPooledObject(out var list);
+                // Note: Because we've already eliminated duplicate strings, all of the
+                // CompareOrdinal calls below should be either less than zero or greater
+                // than zero.
+                var key1LessThanKey2 = string.CompareOrdinal(_key1, _key2) < 0;
+                var key1LessThanKey3 = string.CompareOrdinal(_key1, _key3) < 0;
+                var key2LessThanKey3 = string.CompareOrdinal(_key2, _key3) < 0;
 
-                list.SetCapacityIfLarger(3);
+                var key1Added = false;
+                var key2Added = false;
 
-                list.Add(new KeyValuePair<string, string>(_key1, _value1));
-                list.Add(new KeyValuePair<string, string>(_key2, _value2));
-                list.Add(new KeyValuePair<string, string>(_key3, _value3));
-
-                list.Sort((kvp1, kvp2) => string.CompareOrdinal(kvp1.Key, kvp2.Key));
-
-                foreach (var (key, value) in list)
+                // Add the first item
+                if (key1LessThanKey2 && key1LessThanKey3)
                 {
-                    hash.Add(key, StringComparer.Ordinal);
-                    hash.Add(value, StringComparer.Ordinal);
+                    // If key1 is less than key2 and key3, it must go first.
+                    hash.Add(_key1, StringComparer.Ordinal);
+                    hash.Add(_value1, StringComparer.Ordinal);
+                    key1Added = true;
+                }
+                else if (!key1LessThanKey2 && key2LessThanKey3)
+                {
+                    // Since key1 isn't first, add key2 if it is less than key1 and key3
+                    hash.Add(_key2, StringComparer.Ordinal);
+                    hash.Add(_value2, StringComparer.Ordinal);
+                    key2Added = true;
+                }
+                else
+                {
+                    // Otherwise, key3 must go first.
+                    hash.Add(_key3, StringComparer.Ordinal);
+                    hash.Add(_value3, StringComparer.Ordinal);
+                }
+
+                // Add the second item
+                if (!key1Added && (key1LessThanKey2 || key1LessThanKey3))
+                {
+                    // If we haven't added key1 and it is less that key2 or key3, it must be second.
+                    hash.Add(_key1, StringComparer.Ordinal);
+                    hash.Add(_value1, StringComparer.Ordinal);
+                    key1Added = true;
+                }
+                else if (!key2Added && (!key1LessThanKey2 || key2LessThanKey3))
+                {
+                    // If we haven't added key2 and it is less than key1 or key3, it must be second.
+                    hash.Add(_key2, StringComparer.Ordinal);
+                    hash.Add(_value2, StringComparer.Ordinal);
+                    key2Added = true;
+                }
+                else
+                {
+                    // Otherwise, key3 must be go first.
+                    hash.Add(_key3, StringComparer.Ordinal);
+                    hash.Add(_value3, StringComparer.Ordinal);
+                }
+
+                // Add the final item
+                if (!key1Added)
+                {
+                    // If we haven't added key, it must go last.
+                    hash.Add(_key1, StringComparer.Ordinal);
+                    hash.Add(_value1, StringComparer.Ordinal);
+                }
+                else if (!key2Added)
+                {
+                    // If we haven't added key2, it must go last.
+                    hash.Add(_key2, StringComparer.Ordinal);
+                    hash.Add(_value2, StringComparer.Ordinal);
+                }
+                else
+                {
+                    // Otherwise, key3 must go last.
+                    hash.Add(_key3, StringComparer.Ordinal);
+                    hash.Add(_value3, StringComparer.Ordinal);
                 }
 
                 return hash.CombinedHash;
