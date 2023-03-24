@@ -64,7 +64,7 @@ public class AddUsingsCodeActionProviderFactoryTest : TestBase
         var csharpAddUsing = "Abc.Xyz;";
 
         // Act
-        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace);
+        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out _);
 
         // Assert
         Assert.False(res);
@@ -78,7 +78,7 @@ public class AddUsingsCodeActionProviderFactoryTest : TestBase
         var csharpAddUsing = "using Abc.Xyz;";
 
         // Act
-        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace);
+        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out _);
 
         // Assert
         Assert.True(res);
@@ -86,16 +86,31 @@ public class AddUsingsCodeActionProviderFactoryTest : TestBase
     }
 
     [Fact]
-    public void TryExtractNamespace_WithStatic_ReturnsTruue()
+    public void TryExtractNamespace_WithStatic_ReturnsTrue()
     {
         // Arrange
         var csharpAddUsing = "using static X.Y.Z;";
 
         // Act
-        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace);
+        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out _);
 
         // Assert
         Assert.True(res);
         Assert.Equal("static X.Y.Z", @namespace);
+    }
+
+    [Fact]
+    public void TryExtractNamespace_WithTypeNameCorrection_ReturnsTrue()
+    {
+        // Arrange
+        var csharpAddUsing = "Goo - using X.Y.Z;";
+
+        // Act
+        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
+
+        // Assert
+        Assert.True(res);
+        Assert.Equal("X.Y.Z", @namespace);
+        Assert.Equal("Goo - ", prefix);
     }
 }
