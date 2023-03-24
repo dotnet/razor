@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 public class RenameTests : AbstractRazorEditorTest
 {
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8121")]
+    [IdeFact]
     public async Task Rename_ComponentAttribute_FromRazor()
     {
         // Open the file
@@ -35,7 +35,7 @@ public class RenameTests : AbstractRazorEditorTest
         await TestServices.Editor.VerifyTextContainsAsync("<SurveyPrompt ZooperDooper=", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8121")]
+    [IdeFact]
     public async Task Rename_ComponentAttribute_FromCSharpInRazor()
     {
         // Open the file
@@ -60,7 +60,7 @@ public class RenameTests : AbstractRazorEditorTest
         await TestServices.Editor.VerifyTextContainsAsync("@ZooperDooper", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8121")]
+    [IdeFact]
     public async Task Rename_ComponentAttribute_FromCSharpInCSharp()
     {
         // Create the file
@@ -122,7 +122,7 @@ public class RenameTests : AbstractRazorEditorTest
         await TestServices.Editor.VerifyTextContainsAsync("@ZooperDooper", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8121")]
+    [IdeFact]
     public async Task Rename_ComponentAttribute_BoundAttribute()
     {
         // Create the files
