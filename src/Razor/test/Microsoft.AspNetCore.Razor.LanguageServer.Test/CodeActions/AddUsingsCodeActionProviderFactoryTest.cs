@@ -64,11 +64,12 @@ public class AddUsingsCodeActionProviderFactoryTest : TestBase
         var csharpAddUsing = "Abc.Xyz;";
 
         // Act
-        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out _);
+        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
 
         // Assert
         Assert.False(res);
         Assert.Empty(@namespace);
+        Assert.Empty(prefix);
     }
 
     [Fact]
@@ -78,11 +79,12 @@ public class AddUsingsCodeActionProviderFactoryTest : TestBase
         var csharpAddUsing = "using Abc.Xyz;";
 
         // Act
-        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out _);
+        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
 
         // Assert
         Assert.True(res);
         Assert.Equal("Abc.Xyz", @namespace);
+        Assert.Empty(prefix);
     }
 
     [Fact]
@@ -92,11 +94,12 @@ public class AddUsingsCodeActionProviderFactoryTest : TestBase
         var csharpAddUsing = "using static X.Y.Z;";
 
         // Act
-        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out _);
+        var res = AddUsingsCodeActionProviderHelper.TryExtractNamespace(csharpAddUsing, out var @namespace, out var prefix);
 
         // Assert
         Assert.True(res);
         Assert.Equal("static X.Y.Z", @namespace);
+        Assert.Empty(prefix);
     }
 
     [Fact]

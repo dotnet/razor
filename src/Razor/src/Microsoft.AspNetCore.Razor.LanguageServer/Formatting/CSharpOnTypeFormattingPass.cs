@@ -117,8 +117,8 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         var filteredEdits = FilterCSharpTextEdits(context, mappedEdits);
         if (filteredEdits.Length == 0)
         {
-            // There are no CSharp edits for us to apply, but we might still need to check for using statements, or other
-            // edits outside of our mappable area.
+            // There are no C# edits for us to apply that could be mapped, but we might still need to check for using statements
+            // because they are non mappable, but might be the only thing changed (eg from the Add Using code action)
             //
             // If there aren't any edits that are likely to contain using statement changes, this call will no-op.
 
