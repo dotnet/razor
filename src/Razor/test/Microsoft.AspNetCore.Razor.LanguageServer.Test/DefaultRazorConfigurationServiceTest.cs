@@ -26,7 +26,7 @@ public class DefaultRazorConfigurationServiceTest : LanguageServerTestBase
     {
         // Arrange
         var expectedOptions = new RazorLSPOptions(
-            Trace.Messages, EnableFormatting: false, AutoClosingTags: false, InsertSpaces: true, TabSize: 8, FormatOnType: false);
+            Trace.Messages, EnableFormatting: false, AutoClosingTags: false, InsertSpaces: true, TabSize: 4, FormatOnType: true);
         var razorJsonString =
             """
 
@@ -50,13 +50,6 @@ public class DefaultRazorConfigurationServiceTest : LanguageServerTestBase
 
         var vsEditorJsonString = """
             {
-                "ClientSpaceSettings": {
-                    "IndentSize": 8,
-                    "IndentWithTabs": "false"
-                },
-                "AdvancedSettings": {
-                    "FormatOnType": "false"
-                }
             }
 
             """;
@@ -98,50 +91,6 @@ public class DefaultRazorConfigurationServiceTest : LanguageServerTestBase
 
         // Assert
         Assert.Null(options);
-    }
-
-    [Fact]
-    public void BuildOptions_ReturnsExpectedOptions()
-    {
-        // Arrange - purposely choosing options opposite of default
-        var expectedOptions = new RazorLSPOptions(
-            Trace.Verbose, EnableFormatting: false, AutoClosingTags: false, InsertSpaces: false, TabSize: 8, FormatOnType: false);
-        var razorJsonString = """
-            {
-              "trace": "Verbose",
-              "format": {
-                "enable": "false"
-              }
-            }
-
-            """;
-        var htmlJsonString = """
-            {
-              "format": "true",
-              "autoClosingTags": "false"
-            }
-
-            """;
-        var vsEditorJsonString = """
-            {
-                "ClientSpaceSettings": {
-                    "IndentSize": 8,
-                    "IndentWithTabs": "true"
-                },
-                "AdvancedSettings": {
-                    "FormatOnType": "false"
-                }
-            }
-            """;
-
-        // Act
-        var result = new JObject[] { JObject.Parse(razorJsonString), JObject.Parse(htmlJsonString), JObject.Parse(vsEditorJsonString) };
-        var languageServer = GetLanguageServer(result);
-        var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
-        var options = configurationService.BuildOptions(result);
-
-        // Assert
-        Assert.Equal(expectedOptions, options);
     }
 
     [Fact]
@@ -206,51 +155,6 @@ public class DefaultRazorConfigurationServiceTest : LanguageServerTestBase
                 "AdvancedSettings": {
                     "FormatOnType": "false",
                     "AutoClosingTags": "false"
-                }
-            }
-            """;
-
-        // Act
-        var result = new JObject[] { JObject.Parse(razorJsonString), JObject.Parse(htmlJsonString), JObject.Parse(vsEditorJsonString) };
-        var languageServer = GetLanguageServer(result);
-        var configurationService = new DefaultRazorConfigurationService(languageServer, LoggerFactory);
-        var options = configurationService.BuildOptions(result);
-
-        // Assert
-        Assert.Equal(expectedOptions, options);
-    }
-
-    [Fact]
-    public void BuildOptions_AllOptions_VSCodeOverridesVS()
-    {
-        // Arrange - purposely choosing options opposite of default
-        var expectedOptions = new RazorLSPOptions(
-            Trace.Verbose, EnableFormatting: false, AutoClosingTags: false, InsertSpaces: false, TabSize: 8, FormatOnType: false);
-        var razorJsonString = """
-            {
-              "trace": "Verbose",
-              "format": {
-                "enable": "false"
-              }
-            }
-
-            """;
-        var htmlJsonString = """
-            {
-              "format": "true",
-              "autoClosingTags": "false"
-            }
-
-            """;
-        var vsEditorJsonString = """
-            {
-                "ClientSpaceSettings": {
-                    "IndentSize": 8,
-                    "IndentWithTabs": "true"
-                },
-                "AdvancedSettings": {
-                    "FormatOnType": "false",
-                    "AutoClosingTags": "true"
                 }
             }
             """;

@@ -85,26 +85,32 @@ internal class DefaultRazorConfigurationService : IConfigurationSyncService
     // Internal for testing
     internal RazorLSPOptions BuildOptions(JObject[] result)
     {
-        ExtractVSCodeOptions(result, out var trace, out var enableFormatting, out var vsCodeAutoClosingTags);
-        var settings = ExtractVSOptions(result);
-
-        var autoClosingTags = vsCodeAutoClosingTags ?? settings.AdvancedSettings.AutoClosingTags;
-
-        return new RazorLSPOptions(trace, enableFormatting, autoClosingTags, settings);
+        // VS Code will send back settings in the first two elements, VS will send back settings in the 3rd
+        // so we can effectively detect which IDE we're in.
+        if (result[0] is null or { Count: 0 } && result[1] is null or { Count: 0 })
+        {
+            var settings = ExtractVSOptions(result);
+            return RazorLSPOptions.From(settings);
+        }
+        else
+        {
+            ExtractVSCodeOptions(result, out var trace, out var enableFormatting, out var autoClosingTags);
+            return new RazorLSPOptions(trace, enableFormatting, autoClosingTags, ClientSettings.Default);
+        }
     }
 
     private void ExtractVSCodeOptions(
         JObject[] result,
         out Trace trace,
         out bool enableFormatting,
-        out bool? autoClosingTags)
+        out bool autoClosingTags)
     {
         var razor = result[0];
         var html = result[1];
 
         trace = RazorLSPOptions.Default.Trace;
         enableFormatting = RazorLSPOptions.Default.EnableFormatting;
-        autoClosingTags = null;
+        autoClosingTags = RazorLSPOptions.Default.AutoClosingTags;
 
         if (razor != null)
         {
