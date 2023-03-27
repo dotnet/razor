@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 
@@ -21,8 +22,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 return ImmutableArray<TagHelperDescriptor>.Empty;
             }
 
-            var results = ImmutableArray.CreateBuilder<TagHelperDescriptor>();
-            var context = TagHelperDescriptorProviderContext.Create(results);
+			using var pool = ArrayBuilderPool<TagHelperDescriptor>.GetPooledObject(out var results);
+			var context = TagHelperDescriptorProviderContext.Create(results);
             context.SetCompilation(Compilation);
             if (TargetSymbol is not null)
             {

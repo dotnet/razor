@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -185,7 +186,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     var tagHelperFeature = new StaticCompilationTagHelperFeature();
                     var discoveryProjectEngine = GetDiscoveryProjectEngine(compilation.References.ToImmutableArray(), tagHelperFeature);
 
-                    var descriptors = ImmutableArray.CreateBuilder<TagHelperDescriptor>();
+                    using var pool = ArrayBuilderPool<TagHelperDescriptor>.GetPooledObject(out var descriptors);
                     tagHelperFeature.Compilation = compilation;
                     foreach (var reference in compilation.References)
                     {
@@ -212,8 +213,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                         return ImmutableArray<TagHelperDescriptor>.Empty;
                     }
 
-                    var allTagHelpers = ImmutableArray.CreateBuilder<TagHelperDescriptor>(count);
-                    allTagHelpers.AddRange(tagHelpersFromCompilation);
+                    using var pool = ArrayBuilderPool<TagHelperDescriptor>.GetPooledObject(out var allTagHelpers);
+					allTagHelpers.AddRange(tagHelpersFromCompilation);
                     allTagHelpers.AddRange(tagHelpersFromReferences);
                     allTagHelpers.AddRange(tagHelpersFromComponents);
 
