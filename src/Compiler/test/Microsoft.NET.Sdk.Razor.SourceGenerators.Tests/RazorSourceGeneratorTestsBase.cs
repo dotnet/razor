@@ -101,7 +101,14 @@ public abstract class RazorSourceGeneratorTestsBase
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out _);
 
         var actualDiagnostics = outputCompilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
-        Assert.Collection(actualDiagnostics, expectedDiagnostics);
+        if (expectedDiagnostics.Length == 0 && actualDiagnostics.Any())
+        {
+            Assert.Fail($"Compilation failed: {string.Join(Environment.NewLine, actualDiagnostics)}");
+        }
+        else
+        {
+            Assert.Collection(actualDiagnostics, expectedDiagnostics);
+        }
 
         var result = driver.GetRunResult();
         return result.Results.Single();
