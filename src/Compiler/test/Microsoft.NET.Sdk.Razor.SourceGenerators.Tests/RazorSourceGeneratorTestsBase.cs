@@ -169,6 +169,12 @@ public abstract class RazorSourceGeneratorTestsBase
             writer,
             new HtmlHelperOptions());
 
+        if (page.GetType().GetProperty("ViewData") is { } viewDataProperty)
+        {
+            var pageViewData = Activator.CreateInstance(viewDataProperty.PropertyType, viewContext.ViewData);
+            viewDataProperty.SetValue(page, pageViewData);
+        }
+
         page.ViewContext = viewContext;
         page.HtmlEncoder = HtmlEncoder.Default;
 
