@@ -630,7 +630,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
     private void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node, ComponentIntermediateNode componentNode, string typeInferenceLocalName)
     {
-        if (node?.TagHelper?.Name is null || node.Annotations["OriginalAttributeSpan"] is null)
+        if (node?.TagHelper?.Name is null || node.Annotations[ComponentMetadata.Common.OriginalAttributeSpan] is null)
         {
             return;
         }
@@ -653,7 +653,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             return;
         }
 
-        var attributeSourceSpan = (SourceSpan)node.Annotations["OriginalAttributeSpan"];
+        var attributeSourceSpan = (SourceSpan)node.Annotations[ComponentMetadata.Common.OriginalAttributeSpan];
         attributeSourceSpan = new SourceSpan(attributeSourceSpan.FilePath, attributeSourceSpan.AbsoluteIndex + offset, attributeSourceSpan.LineIndex, attributeSourceSpan.CharacterIndex + offset, node.PropertyName.Length, attributeSourceSpan.LineCount, attributeSourceSpan.CharacterIndex + offset + node.PropertyName.Length);
 
         context.CodeWriter.Write(DesignTimeVariable);

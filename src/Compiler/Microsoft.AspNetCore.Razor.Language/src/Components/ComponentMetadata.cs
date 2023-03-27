@@ -41,6 +41,8 @@ internal static class ComponentMetadata
         public const string DirectiveAttribute = "Common.DirectiveAttribute";
 
         public const string AddAttributeMethodName = "Common.AddAttributeMethodName";
+
+        public const string OriginalAttributeSpan = "Common.OriginalAttributeSpan";
     }
 
     public static class Bind
