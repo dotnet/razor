@@ -30,6 +30,24 @@ namespace Test
 #nullable disable
             , -1, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create(this, 
             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, UpdateValue, ParentValue)));
+            __o = __typeInference_CreateMyComponent_0.
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+                   Value
+
+#line default
+#line hidden
+#nullable disable
+            ;
+            __o = __typeInference_CreateMyComponent_0.
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+                                                 Value
+
+#line default
+#line hidden
+#nullable disable
+            ;
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);
