@@ -52,6 +52,71 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
     }
 
     [Fact]
+    public async Task UnboundDynamicAttributes()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            // https://github.com/dotnet/aspnetcore/blob/b40cc0b/src/Mvc/test/WebSites/TagHelpersWebSite/Views/Home/UnboundDynamicAttributes.cshtml
+            ["Views/Home/Index.cshtml"] = """
+                @addTagHelper AddProcessedAttributeTagHelper, TestProject
+
+                @{
+                    var trueVar = true;
+                    var falseVar = false;
+                    var stringVar = "value";
+                    string? nullVar = null;
+                }
+
+                @functions {
+                    public Task DoSomething()
+                    {
+                        return Task.FromResult(true);
+                    }
+                }
+
+                <input checked="@true" />
+                <input checked="@trueVar" />
+                <input checked="@false" />
+                <input checked="@falseVar" />
+                <input checked="  @true    " />
+                <input checked="  @falseVar    " />
+                <input checked="    @stringVar: @trueVar   " />
+                <input checked="    value: @false   " />
+                <input checked="@true @trueVar" />
+                <input checked="   @falseVar  @true" />
+                <input checked="@null" />
+                <input checked="  @nullVar" />
+                <input checked="@nullVar   " />
+                <input checked="  @null @stringVar @trueVar" />
+                <input checked=" @if (trueVar) { <text>True</text> } else { await DoSomething(); <text>False</text> } " />
+                """
+        }, new()
+        {
+            ["AddProcessedAttributeTagHelper.cs"] = """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                [HtmlTargetElement("input")]
+                public class AddProcessedAttributeTagHelper : TagHelper
+                {
+                    public override void Process(TagHelperContext context, TagHelperOutput output)
+                    {
+                        output.Attributes.Add(new TagHelperAttribute("processed"));
+                    }
+                }
+                """
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
+
+    [Fact]
     public async Task ViewComponent()
     {
         // Arrange
