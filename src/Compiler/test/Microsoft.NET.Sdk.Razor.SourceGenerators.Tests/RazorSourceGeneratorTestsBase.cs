@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -134,7 +135,14 @@ public abstract class RazorSourceGeneratorTestsBase
 
         // Create ViewContext.
         var appBuilder = WebApplication.CreateBuilder();
-        appBuilder.Services.AddMvc().AddApplicationPart(assembly);
+        appBuilder.Services.AddMvc().ConfigureApplicationPartManager(manager =>
+        {
+            var partFactory = new ConsolidatedAssemblyApplicationPartFactory();
+            foreach (var applicationPart in partFactory.GetApplicationParts(assembly))
+            {
+                manager.ApplicationParts.Add(applicationPart);
+            }
+        });
         var app = appBuilder.Build();
         var httpContext = new DefaultHttpContext
         {

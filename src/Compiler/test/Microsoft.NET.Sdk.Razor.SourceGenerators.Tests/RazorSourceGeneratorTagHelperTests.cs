@@ -153,4 +153,133 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
         result.VerifyOutputsMatchBaseline();
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
+
+    [Fact]
+    public async Task ViewComponentTagHelpers()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            // https://github.com/dotnet/aspnetcore/blob/b40cc0b/src/Mvc/test/WebSites/TagHelpersWebSite/Views/Home/ViewComponentTagHelpers.cshtml
+            ["Views/Home/Index.cshtml"] = """
+                @addTagHelper "*, TestProject"
+                @{ 
+                    var year = 2016;
+                    var dict = new Dictionary<string, List<string>>();
+                    var items = new List<string>() { "One", "Two", "Three" };
+                    dict.Add("Foo", items);
+                }
+
+                <vc:generic items="dict"></vc:generic>
+                <!-- <vc:generic items-foo="items"></vc:generic> -->
+                <vc:duck beak-color="Green" /><br />
+                <div>
+                    <vc:copyright website="example.com" year="@year"></vc:copyright>
+                </div>
+                """,
+            ["Views/Shared/Components/Generic/Default.cshtml"] = """
+                @model Dictionary<string, List<string>>
+                <div>Items: </div>
+                <div>
+                    @foreach (var item in Model)
+                    {
+                        <strong>@item.Key</strong><br/>
+                        @foreach (var value in Model[item.Key])
+                        {
+                            <span>@value</span>
+                        }
+                    }
+                </div>
+                """,
+            ["Views/Shared/Components/Duck/Default.cshtml"] = """
+                @model string
+                <div id="ascii" style="font-family:Courier New, Courier, monospace; font-size: 6px">
+                    @Html.Raw(Model)
+                </div>
+                """,
+            ["Views/Shared/Components/Copyright/Default.cshtml"] = """
+                @model Dictionary<string, object>
+                <footer>Copyright @Model["year"] @Model["website"]</footer>
+                """,
+        }, new()
+        {
+            ["GlobalUsings.g.cs"] = """
+                global using System;
+                global using System.Collections.Generic;
+                """,
+            ["GenericViewComponent.cs"] = """
+                using Microsoft.AspNetCore.Mvc;
+
+                public class GenericViewComponent : ViewComponent
+                {
+                    public IViewComponentResult Invoke(Dictionary<string, List<string>> items)
+                    {
+                        return View(items);
+                    }
+                }
+                """,
+            ["CopyrightViewComponent.cs"] = """
+                using Microsoft.AspNetCore.Mvc;
+
+                public class CopyrightViewComponent : ViewComponent
+                {
+                    public IViewComponentResult Invoke(string website, int year)
+                    {
+                        var dict = new Dictionary<string, object>
+                        {
+                            ["website"] = website,
+                            ["year"] = year
+                        };
+
+                        return View(dict);
+                    }
+                }
+                """,
+            ["BeakColor.cs"] = """
+                public enum BeakColor
+                {
+                    Red,
+                    Blue,
+                    Green,
+                    Navy,
+                    Brown,
+                    Purple
+                }
+                """,
+            ["DuckViewComponent.cs"] = """
+                using System.Globalization;
+                using Microsoft.AspNetCore.Mvc;
+
+                public class DuckViewComponent : ViewComponent
+                {
+                    public IViewComponentResult Invoke(BeakColor beakColor)
+                    {
+                        var colorReplacement = string.Format(CultureInfo.InvariantCulture, "<span style='color:{0}'>&lt;</span>", beakColor);
+
+                        var resultString = DuckString
+                            .Replace("<", colorReplacement)
+                            .Replace(Environment.NewLine, "<br>")
+                            .Replace("\n", "<br>");
+
+                        return View<string>(resultString);
+                    }
+
+                    private const string DuckString = @"
+                          __
+                        <(o )___
+                         ( ._> /
+                          `---'
+                    ";
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
 }
