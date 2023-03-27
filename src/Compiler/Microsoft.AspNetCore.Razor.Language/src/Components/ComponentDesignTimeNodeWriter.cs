@@ -616,6 +616,12 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
+        // This attribute might only be here in order to allow us to generate code in WritePropertyAccess
+        if (node.IsDesignTimePropertyAccessHelper())
+        {
+            return;
+        }
+
         // Looks like:
         // __o = 17;
         context.CodeWriter.Write(DesignTimeVariable);
