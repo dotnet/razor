@@ -355,6 +355,35 @@ namespace Test
     }
 
     [Fact]
+    public void Component_WithWriteOnlyParameter()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class MyComponent : ComponentBase
+                {
+                    [Parameter]
+                    public int Prop { set { _ = value; } }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent Prop="1">
+            </MyComponent>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void ComponentWithTypeParameters_WithSemicolon()
     {
         // Arrange

@@ -513,13 +513,29 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         }
 
         // We need to write property access here in case we're in a scope for capturing types, because we need to re-use
-        // the type inference local for accessing property names
+        // the type inference local for accessing property names.
+        // We also need to disable BL0005, which is an analyzer provided by the runtime that will warn if a component
+        // parameter is explicitly set, but that's exactly what we will be doing in order to represent the attribute
+        // being set.
+
+        var wrotePragmaDisable = false;
         foreach (var child in node.Children)
         {
             if (child is ComponentAttributeIntermediateNode attribute)
             {
-                WritePropertyAccess(context, attribute, node, typeInferenceLocalName);
+                WritePropertyAccess(context, attribute, node, typeInferenceLocalName, shouldWriteBL0005Disable: !wrotePragmaDisable, out var wrotePropertyAccess);
+
+                if (wrotePropertyAccess)
+                {
+                    wrotePragmaDisable = true;
+                }
             }
+        }
+
+        if (wrotePragmaDisable)
+        {
+            // Restore the warning in case the user has written other code that explicitly sets a property
+            context.CodeWriter.WriteLine("#pragma warning restore BL0005");
         }
 
         typeInferenceCaptureScope?.Dispose();
@@ -628,8 +644,9 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         context.CodeWriter.WriteLine();
     }
 
-    private void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node, ComponentIntermediateNode componentNode, string typeInferenceLocalName)
+    private void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node, ComponentIntermediateNode componentNode, string typeInferenceLocalName, bool shouldWriteBL0005Disable, out bool wrotePropertyAccess)
     {
+        wrotePropertyAccess = false;
         if (node?.TagHelper?.Name is null || node.Annotations["OriginalAttributeSpan"] is null)
         {
             return;
@@ -653,11 +670,13 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             return;
         }
 
+        if (shouldWriteBL0005Disable)
+        {
+            context.CodeWriter.WriteLine("#pragma warning disable BL0005");
+        }
+
         var attributeSourceSpan = (SourceSpan)node.Annotations["OriginalAttributeSpan"];
         attributeSourceSpan = new SourceSpan(attributeSourceSpan.FilePath, attributeSourceSpan.AbsoluteIndex + offset, attributeSourceSpan.LineIndex, attributeSourceSpan.CharacterIndex + offset, node.PropertyName.Length, attributeSourceSpan.LineCount, attributeSourceSpan.CharacterIndex + offset + node.PropertyName.Length);
-
-        context.CodeWriter.Write(DesignTimeVariable);
-        context.CodeWriter.Write(" = ");
 
         if (componentNode.TypeInferenceNode == null)
         {
@@ -725,8 +744,10 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             context.CodeWriter.WriteLine(node.PropertyName);
         }
 
-        context.CodeWriter.Write(";");
+        context.CodeWriter.Write(" = default;");
         context.CodeWriter.WriteLine();
+
+        wrotePropertyAccess = true;
     }
 
     private void WriteComponentAttributeInnards(CodeRenderingContext context, ComponentAttributeIntermediateNode node, bool canTypeCheck)
