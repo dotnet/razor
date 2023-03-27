@@ -282,4 +282,88 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
         // Assert
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
+
+    [Fact]
+    public async Task WebsiteInformationTagHelper()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            // https://github.com/dotnet/aspnetcore/blob/b40cc0b/src/Mvc/test/WebSites/TagHelpersWebSite/Views/Home/About.cshtml
+            ["Views/Home/Index.cshtml"] = """
+                @using TestProject.Models
+
+                @{
+                    ViewBag.Title = "About";
+                }
+
+                @addTagHelper ATagHelper, TestProject
+                @addTagHelper WebsiteInformationTagHelper, TestProject
+
+                <div>
+                    <p>Hello, you've reached the about page.</p>
+
+                    <h3>Information about our website (outdated):</h3>
+                    <website-information info="new WebsiteContext {
+                                                    Version = new Version(1, 1),
+                                                    CopyrightYear = 1990,
+                                                    Approved = true,
+                                                    TagsToShow = 30 }"/>
+                </div>
+                """
+        }, new()
+        {
+            ["Models/WebsiteContext.cs"] = """
+                using System;
+
+                namespace TestProject.Models;
+
+                public class WebsiteContext
+                {
+                    public required Version Version { get; set; }
+
+                    public int CopyrightYear { get; set; }
+
+                    public bool Approved { get; set; }
+
+                    public int TagsToShow { get; set; }
+                }
+                """,
+            ["WebsiteInformationTagHelper.cs"] = """
+                using System;
+                using System.Globalization;
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+                using TestProject.Models;
+
+                public class WebsiteInformationTagHelper : TagHelper
+                {
+                    public required WebsiteContext Info { get; set; }
+
+                    public override void Process(TagHelperContext context, TagHelperOutput output)
+                    {
+                        output.TagName = "section";
+                        output.PostContent.AppendHtml(string.Format(
+                            CultureInfo.InvariantCulture,
+                            "<p><strong>Version:</strong> {0}</p>" + Environment.NewLine +
+                            "<p><strong>Copyright Year:</strong> {1}</p>" + Environment.NewLine +
+                            "<p><strong>Approved:</strong> {2}</p>" + Environment.NewLine +
+                            "<p><strong>Number of tags to show:</strong> {3}</p>" + Environment.NewLine,
+                            Info.Version,
+                            Info.CopyrightYear,
+                            Info.Approved,
+                            Info.TagsToShow));
+                        output.TagMode = TagMode.StartTagAndEndTag;
+                    }
+                }
+                """
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
 }
