@@ -78,10 +78,10 @@ stages:
           pool:
             ${{ if eq(variables['System.TeamProject'], 'public') }}:
               name: $(DncEngPublicBuildPool)
-              demands: ImageOverride -equals windows.vs2022preview.scout.amd64.open
+              demands: ImageOverride -equals windows.vs2022preview.amd64.open
             ${{ if ne(variables['System.TeamProject'], 'public') }}:
               name: $(DncEngInternalBuildPool)
-              demands: ImageOverride -equals windows.vs2022preview.scout.amd64
+              demands: ImageOverride -equals windows.vs2022preview.amd64
           steps:
           - task: NodeTool@0
             displayName: Install Node 10.x
@@ -126,11 +126,10 @@ stages:
         pool:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
             name: $(DncEngPublicBuildPool)
-            demands: ImageOverride -equals windows.vs2022preview.scout.amd64.open
+            demands: ImageOverride -equals windows.vs2022preview.amd64.open
           ${{ if ne(variables['System.TeamProject'], 'public') }}:
             name: $(DncEngInternalBuildPool)
-            #Switch to scout queue to get test pass
-            demands: ImageOverride -equals windows.vs2022preview.scout.amd64
+            demands: ImageOverride -equals windows.vs2022preview.amd64
         strategy:
           matrix:
             ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -213,7 +212,6 @@ stages:
             $(_BuildArgs)
             $(_PublishArgs)
             $(_InternalRuntimeDownloadArgs)
-            /p:IncludeRoslynDeps=true
           name: Build
           displayName: Build and Deploy
           condition: succeeded()
@@ -236,7 +234,6 @@ stages:
             -prepareMachine
             -test
             -integrationTest
-            /p:BuildDependencyVsix=true
           name: Run_Tests
           displayName: Run Unit and Integration tests
           condition: succeeded()

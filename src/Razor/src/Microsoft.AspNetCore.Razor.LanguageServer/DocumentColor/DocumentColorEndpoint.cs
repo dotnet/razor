@@ -36,6 +36,14 @@ internal sealed class DocumentColorEndpoint : IRazorRequestHandler<DocumentColor
 
     public async Task<ColorInformation[]> HandleRequestAsync(DocumentColorParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {
+        // Workaround for Web Tools bug https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1743689 where they sometimes
+        // send requests for filenames that are stale, possibly due to adornment taggers being cached incorrectly (or caching
+        // filenames incorrectly)
+        if (requestContext.DocumentContext is null)
+        {
+            return Array.Empty<ColorInformation>();
+        }
+
         var delegatedRequest = new DelegatedDocumentColorParams()
         {
             HostDocumentVersion = requestContext.GetRequiredDocumentContext().Version,
