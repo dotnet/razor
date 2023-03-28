@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -25,7 +26,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
     {
         var (_, serverStream) = FullDuplexStream.CreatePair();
         Logger = new NoopLogger();
-        RazorLanguageServer = RazorLanguageServerWrapper.Create(serverStream, serverStream, Logger, configure: (collection) =>
+        RazorLanguageServer = RazorLanguageServerWrapper.Create(serverStream, serverStream, Logger, NoOpTelemetryReporter.Instance, configure: (collection) =>
         {
             collection.AddSingleton<ClientNotifierServiceBase, NoopClientNotifierService>();
             Builder(collection);

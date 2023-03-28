@@ -48,7 +48,8 @@ public class Program
         var server = RazorLanguageServerWrapper.Create(
             Console.OpenStandardInput(),
             Console.OpenStandardOutput(),
-            logger);
+            logger,
+            NoOpTelemetryReporter.Instance);
         await server.WaitForExitAsync();
     }
 }
