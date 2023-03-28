@@ -469,4 +469,11 @@ internal static class Extensions
         Assert.StartsWith("#pragma", trimmed);
         return trimmed.Substring(trimmed.IndexOf('\n') + 1);
     }
+
+    public static void AssertSingleItem(this RazorEventListener.RazorEvent e, string expectedEventName, string expectedFileName)
+    {
+        Assert.Equal(expectedEventName, e.EventName);
+        var file = Assert.Single(e.Payload);
+        Assert.Equal(expectedFileName, file);
+    }
 }
