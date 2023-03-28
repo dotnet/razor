@@ -265,6 +265,134 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
     }
 
     [Fact]
+    public async Task Form_Employee()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            // https://github.com/dotnet/aspnetcore/blob/b40cc0b/src/Mvc/test/WebSites/TagHelpersWebSite/Views/Employee/Create.cshtml
+            ["Views/Home/Index.cshtml"] = """
+                @model TestProject.Models.Employee
+                @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+                
+                @{
+                    Html.Html5DateRenderingMode = Html5DateRenderingMode.Rfc3339;
+                }
+                
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta name="viewport" content="width=device-width" />
+                    <title>Create</title>
+                </head>
+                <body>
+                
+                    <form asp-antiforgery="false">
+                
+                        <div class="form-horizontal">
+                            <h4>Employee</h4>
+                            <hr />
+                            <div asp-validation-summary="All" class="text-danger">
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="Age" class="control-label col-md-2"></label>
+                                <div class="col-md-10">
+                                    <input asp-for="Age" class="form-control" />
+                                    <span asp-validation-for="Age"></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="Email" class="control-label col-md-2"></label>
+                                <div class="col-md-10">
+                                    <input asp-for="Email" class="form-control" />
+                                    <span asp-validation-for="Email"></span>
+                                </div>
+                            </div>
+                            <input type="hidden" asp-for="EmployeeId" value="0" />
+                            <div class="form-group">
+                                <label asp-for="FullName" class="control-label col-md-2"></label>
+                                <div class="col-md-10">
+                                    <input asp-for="FullName" class="form-control" />
+                                    <span asp-validation-for="FullName"></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="Gender" class="control-label col-md-2"></label>
+                                <div class="col-md-10">
+                                    <input type="radio" asp-for="Gender" value="M" /> Male
+                                    <input type="radio" asp-for="Gender" value="F" /> Female
+                                    <span asp-validation-for="Gender"></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="JoinDate" class="control-label col-md-2"></label>
+                                <div class="col-md-10">
+                                    <input asp-for="JoinDate" class="form-control" />
+                                    <span asp-validation-for="JoinDate"></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="Salary" class="control-label col-md-2"></label>
+                                <div class="col-md-10">
+                                    <input asp-for="Salary" class="form-control" />
+                                    <span asp-validation-for="Salary"></span>
+                                </div>
+                            </div>
+                
+                            <div class="form-group">
+                                <div class="col-md-offset-2 col-md-10">
+                                    <input type="submit" value="Create" class="btn btn-default" />
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </body>
+                </html>
+                """,
+        }, new()
+        {
+            ["Models/Employee.cs"] = """
+                using System;
+                using System.ComponentModel.DataAnnotations;
+
+                namespace TestProject.Models;
+
+                public class Employee
+                {
+                    public int EmployeeId { get; set; }
+
+                    [Display(Name = "Full Name", ShortName = "FN")]
+                    public string? FullName { get; set; }
+
+                    [DisplayFormat(NullDisplayText = "Not specified")]
+                    public string? Gender { get; set; }
+
+                    [Range(10, 100)]
+                    public int Age { get; set; }
+
+                    [Required]
+                    [DataType(DataType.Date)]
+                    public DateTimeOffset? JoinDate { get; set; }
+
+                    [DataType(DataType.EmailAddress)]
+                    public string? Email { get; set; }
+
+                    [DisplayFormat(NullDisplayText = "Not specified")]
+                    public int? Salary { get; set; }
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
+
+    [Fact]
     public async Task TagHelpersWebSite()
     {
         // Arrange
