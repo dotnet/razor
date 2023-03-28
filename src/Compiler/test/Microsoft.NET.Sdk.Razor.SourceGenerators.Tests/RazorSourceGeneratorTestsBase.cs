@@ -168,15 +168,38 @@ public abstract class RazorSourceGeneratorTestsBase
             writer,
             new HtmlHelperOptions());
 
+        // Find `_ViewStart.cshtml`s.
+        var viewStarts = GetViewStartNames(name)
+            .Select(n => assembly.GetType($"{generatedNamespace}.{n}"))
+            .Where(t => t is not null)
+            .Select(t => (IRazorPage)Activator.CreateInstance(t!)!)
+            .ToImmutableArray();
+
         // Render the page.
         var view = ActivatorUtilities.CreateInstance<RazorView>(app.Services,
-            /* IReadOnlyList<IRazorPage> viewStartPages */ Array.Empty<IRazorPage>(),
+            /* IReadOnlyList<IRazorPage> viewStartPages */ viewStarts,
             /* IRazorPage razorPage */ page);
         await view.RenderAsync(viewContext);
 
         assemblyLoadContext.Unload();
 
         return writer.ToString();
+
+        // Inspired by Microsoft.AspNetCore.Mvc.Razor.RazorFileHierarchy.GetViewStartPaths.
+        static IEnumerable<string> GetViewStartNames(string name)
+        {
+            var builder = new StringBuilder(name);
+            var maxIterations = 255;
+            var index = name.Length;
+            while (maxIterations-- > 0 && index > 1 && (index = name.LastIndexOf('_', index - 1)) != -1)
+            {
+                builder.Length = index + 1;
+                builder.Append("_ViewStart");
+
+                var itemPath = builder.ToString();
+                yield return itemPath;
+            }
+        }
     }
 
     protected static async Task VerifyRazorPageMatchesBaselineAsync(Compilation compilation, string name,

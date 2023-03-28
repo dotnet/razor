@@ -405,7 +405,6 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
 
                 @model WebsiteContext
                 @{
-                    Layout = "/Views/Shared/_Layout.cshtml";
                     ViewBag.Title = "Home Page";
                     ViewData.Model = new()
                     {
@@ -459,6 +458,11 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
 
                 @section footerContent {
                     <p condition="Model.Approved" bold surround="section">&copy; @Model.CopyrightYear - My ASP.NET Application</p>
+                }
+                """,
+            ["Views/_ViewStart.cshtml"] = """
+                @{
+                    Layout = "/Views/Shared/_Layout.cshtml";
                 }
                 """,
             ["Views/Shared/_Layout.cshtml"] = """
@@ -1080,47 +1084,42 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
                 @addTagHelper TestProject.TagHelpers.NestedViewImportsTagHelper, TestProject
                 <nested>some-content</nested>
                 """,
+            ["Views/RemoveInheritedTagHelpers/_ViewStart.cshtml"] = """
+                @{ 
+                    Layout = "~/Views/Shared/_LayoutWithRootTagHelper.cshtml";
+                }
+                """,
             ["Views/RemoveInheritedTagHelpers/_ViewImports.cshtml"] = """
                 @removeTagHelper TestProject.TagHelpers.RootViewStartTagHelper, TestProject
                 @addTagHelper TestProject.TagHelpers.NestedViewImportsTagHelper, TestProject
                 """,
             ["Views/RemoveInheritedTagHelpers/ViewWithInheritedRemoveTagHelper.cshtml"] = """
+                page:<root/>
+                <nested>some-content</nested>
+                """,
+            ["Views/InheritedTagHelperPrefix/_ViewStart.cshtml"] = """
                 @{ 
                     Layout = "~/Views/Shared/_LayoutWithRootTagHelper.cshtml";
                 }
-                page:<root/>
-                <nested>some-content</nested>
                 """,
             ["Views/InheritedTagHelperPrefix/_ViewImports.cshtml"] = """
                 @tagHelperPrefix inherited:
                 """,
             ["Views/InheritedTagHelperPrefix/InheritedTagHelperPrefix.cshtml"] = """
-                @{ 
-                    Layout = "~/Views/Shared/_LayoutWithRootTagHelper.cshtml";
-                }
                 page:<inherited:root></inherited:root>
                 """,
             ["Views/InheritedTagHelperPrefix/OverriddenTagHelperPrefix.cshtml"] = """
                 @tagHelperPrefix overridden
-                @{ 
-                    Layout = "~/Views/Shared/_LayoutWithRootTagHelper.cshtml";
-                }
                 page:<overriddenroot></overriddenroot>
                 """,
             ["Views/InheritedTagHelperPrefix/NestedInheritedTagHelperPrefix/_ViewImports.cshtml"] = """
                 @tagHelperPrefix nested-
                 """,
             ["Views/InheritedTagHelperPrefix/NestedInheritedTagHelperPrefix/NestedInheritedTagHelperPrefix.cshtml"] = """
-                @{ 
-                    Layout = "~/Views/Shared/_LayoutWithRootTagHelper.cshtml";
-                }
                 page:<nested-root></nested-root>
                 """,
             ["Views/InheritedTagHelperPrefix/NestedInheritedTagHelperPrefix/NestedOverriddenTagHelperPrefix.cshtml"] = """
                 @tagHelperPrefix nested-overridden
-                @{ 
-                    Layout = "~/Views/Shared/_LayoutWithRootTagHelper.cshtml";
-                }
                 page:<nested-overriddenroot></nested-overriddenroot>
                 """,
         }, new()
