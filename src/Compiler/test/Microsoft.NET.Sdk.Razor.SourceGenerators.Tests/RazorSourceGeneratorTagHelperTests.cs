@@ -562,7 +562,7 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
             // https://github.com/dotnet/aspnetcore/blob/b40cc0b/src/Mvc/test/WebSites/TagHelpersWebSite/Views/Home/ViewComponentTagHelpers.cshtml
             ["Views/Home/Index.cshtml"] = """
                 @addTagHelper "*, TestProject"
-                @{ 
+                @{
                     var year = 2016;
                     var dict = new Dictionary<string, List<string>>();
                     var items = new List<string>() { "One", "Two", "Three" };
@@ -573,7 +573,7 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
                 <!-- <vc:generic items-foo="items"></vc:generic> -->
                 <vc:duck beak-color="Green" /><br />
                 <div>
-                    <vc:copyright website="example.com" year="@year"></vc:copyright>
+                    <vc:copyright website="example.com" year="@year" bold></vc:copyright>
                 </div>
                 """,
             ["Views/Shared/Components/Generic/Default.cshtml"] = """
@@ -605,6 +605,28 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
             ["GlobalUsings.g.cs"] = """
                 global using System;
                 global using System.Collections.Generic;
+                """,
+            ["BoldTagHelper.cs"] = """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                [HtmlTargetElement(Attributes = "bold")]
+                public class BoldTagHelper : TagHelper
+                {
+                    public override int Order
+                    {
+                        get
+                        {
+                            return int.MinValue;
+                        }
+                    }
+
+                    public override void Process(TagHelperContext context, TagHelperOutput output)
+                    {
+                        output.Attributes.RemoveAll("bold");
+                        output.PreContent.AppendHtml("<b>");
+                        output.PostContent.AppendHtml("</b>");
+                    }
+                }
                 """,
             ["GenericViewComponent.cs"] = """
                 using Microsoft.AspNetCore.Mvc;
@@ -676,7 +698,7 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        RunGenerator(compilation!, ref driver, out compilation);
 
         // Assert
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");

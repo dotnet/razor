@@ -14,7 +14,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -169,14 +168,9 @@ public abstract class RazorSourceGeneratorTestsBase
             writer,
             new HtmlHelperOptions());
 
-        if (page.GetType().GetProperty("ViewData") is { } viewDataProperty)
-        {
-            var pageViewData = Activator.CreateInstance(viewDataProperty.PropertyType, viewContext.ViewData);
-            viewDataProperty.SetValue(page, pageViewData);
-        }
-
+        var pageActivator = app.Services.GetRequiredService<IRazorPageActivator>();
+        pageActivator.Activate(page, viewContext);
         page.ViewContext = viewContext;
-        page.HtmlEncoder = HtmlEncoder.Default;
 
         // Render the page.
         await page.ExecuteAsync();
