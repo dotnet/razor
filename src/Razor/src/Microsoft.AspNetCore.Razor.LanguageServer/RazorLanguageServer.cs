@@ -87,7 +87,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         }
         else
         {
-            services.AddSingleton<LoggerAdapter>((provider) =>
+            services.AddSingleton<LoggerAdapter>(static (provider) =>
             {
                 var loggers = provider.GetServices<ILogger>();
                 if (!loggers.Any())
@@ -96,7 +96,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
                 }
 
                 var telemetryReporter = provider.GetRequiredService<ITelemetryReporter>();
-                return new LoggerAdapter(loggers, _telemetryReporter);
+                return new LoggerAdapter(loggers, telemetryReporter);
             });
         }
 
