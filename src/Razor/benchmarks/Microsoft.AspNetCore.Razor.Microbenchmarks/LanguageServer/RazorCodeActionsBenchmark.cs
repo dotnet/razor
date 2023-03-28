@@ -25,7 +25,7 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
     private string? _filePath;
     private Uri? DocumentUri { get; set; }
     private CodeActionEndpoint? CodeActionEndpoint { get; set; }
-    private DocumentSnapshot? DocumentSnapshot { get; set; }
+    private IDocumentSnapshot? DocumentSnapshot { get; set; }
     private SourceText? DocumentText { get; set; }
     private Range? RazorCodeActionRange { get; set; }
     private Range? CSharpCodeActionRange { get; set; }
@@ -141,11 +141,11 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
     [Benchmark(Description = "Lightbulbs")]
     public async Task RazorLightbulbAsync()
     {
-        var request = new CodeActionParams
+        var request = new VSCodeActionParams
         {
             Range = RazorCodeActionRange!,
             Context = new VSInternalCodeActionContext(),
-            TextDocument = new TextDocumentIdentifier
+            TextDocument = new VSTextDocumentIdentifier
             {
                 Uri = DocumentUri!
             },

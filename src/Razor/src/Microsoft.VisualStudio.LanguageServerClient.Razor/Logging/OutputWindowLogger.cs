@@ -31,10 +31,7 @@ internal class OutputWindowLogger : ILogger
     {
     }
 
-    public IDisposable BeginScope<TState>(TState state)
-    {
-        throw new NotImplementedException();
-    }
+    public IDisposable BeginScope<TState>(TState state) => Scope.Instance;
 
     public bool IsEnabled(LogLevel logLevel)
     {
@@ -132,6 +129,15 @@ internal class OutputWindowLogger : ILogger
             }
 
             return null;
+        }
+    }
+
+    private class Scope : IDisposable
+    {
+        public static readonly Scope Instance = new();
+
+        public void Dispose()
+        {
         }
     }
 }

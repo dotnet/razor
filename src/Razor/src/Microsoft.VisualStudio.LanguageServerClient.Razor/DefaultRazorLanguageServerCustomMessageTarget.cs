@@ -10,12 +10,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
-using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -46,7 +47,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     private readonly JoinableTaskFactory _joinableTaskFactory;
     private readonly LSPRequestInvoker _requestInvoker;
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
-    private readonly EditorSettingsManager _editorSettingsManager;
+    private readonly IClientSettingsManager _editorSettingsManager;
     private readonly LSPDocumentSynchronizer _documentSynchronizer;
     private readonly ILogger _logger;
 
@@ -56,7 +57,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         JoinableTaskContext joinableTaskContext,
         LSPRequestInvoker requestInvoker,
         FormattingOptionsProvider formattingOptionsProvider,
-        EditorSettingsManager editorSettingsManager,
+        IClientSettingsManager editorSettingsManager,
         LSPDocumentSynchronizer documentSynchronizer,
         OutputWindowLogger logger)
     {
@@ -346,7 +347,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         codeActionParams.CodeActionParams.TextDocument.Uri = virtualDocumentSnapshot.Uri;
 
         var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
-        var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<CodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
+        var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSCodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
             textBuffer,
             Methods.TextDocumentCodeActionName,
             SupportsCodeActionResolve,
@@ -592,9 +593,12 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         {
             // Right now in VS we only care about editor settings, but we should update this logic later if
             // we want to support Razor and HTML settings as well.
-            var setting = item.Section == "vs.editor.razor"
-                ? _editorSettingsManager.Current
-                : new object();
+            var setting = item.Section switch
+            {
+                "vs.editor.razor" => _editorSettingsManager.GetClientSettings(),
+                _ => new object()
+            };
+
             result.Add(setting);
         }
 
