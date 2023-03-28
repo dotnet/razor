@@ -22,8 +22,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 return ImmutableArray<TagHelperDescriptor>.Empty;
             }
 
-			using var pool = ArrayBuilderPool<TagHelperDescriptor>.GetPooledObject(out var results);
-			var context = TagHelperDescriptorProviderContext.Create(results);
+            using var pool = ArrayBuilderPool<TagHelperDescriptor>.GetPooledObject(out var results);
+            var context = TagHelperDescriptorProviderContext.Create(results);
             context.SetCompilation(Compilation);
             if (TargetSymbol is not null)
             {
