@@ -168,12 +168,11 @@ public abstract class RazorSourceGeneratorTestsBase
             writer,
             new HtmlHelperOptions());
 
-        var pageActivator = app.Services.GetRequiredService<IRazorPageActivator>();
-        pageActivator.Activate(page, viewContext);
-        page.ViewContext = viewContext;
-
         // Render the page.
-        await page.ExecuteAsync();
+        var view = ActivatorUtilities.CreateInstance<RazorView>(app.Services,
+            /* IReadOnlyList<IRazorPage> viewStartPages */ Array.Empty<IRazorPage>(),
+            /* IRazorPage razorPage */ page);
+        await view.RenderAsync(viewContext);
 
         assemblyLoadContext.Unload();
 

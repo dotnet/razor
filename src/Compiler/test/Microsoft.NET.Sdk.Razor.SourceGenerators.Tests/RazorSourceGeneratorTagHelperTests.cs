@@ -65,6 +65,7 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
 
                 @model WebsiteContext
                 @{
+                    Layout = "/Views/Shared/_Layout.cshtml";
                     ViewBag.Title = "Home Page";
                     ViewData.Model = new()
                     {
@@ -120,7 +121,7 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
                     <p condition="Model.Approved" bold surround="section">&copy; @Model.CopyrightYear - My ASP.NET Application</p>
                 }
                 """,
-            ["Views/Shared/Layout.cshtml"] = """
+            ["Views/Shared/_Layout.cshtml"] = """
                 <!DOCTYPE html>
                 <html>
                 <head>
