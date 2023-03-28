@@ -438,13 +438,7 @@ internal static class Extensions
             Assert.True(touchedFiles.Add(baselinePath));
         }
 
-        foreach (var file in Directory.EnumerateFiles(baselineDirectory))
-        {
-            if (!touchedFiles.Contains(file))
-            {
-                File.Delete(file);
-            }
-        }
+        DeleteUnusedBaselines(baselineDirectory, touchedFiles);
 
         return result;
     }
@@ -469,6 +463,18 @@ internal static class Extensions
     {
         text = text.Replace("\r", "").Replace("\n", "\r\n");
         File.WriteAllText(baselinePath, text, _baselineEncoding);
+    }
+
+    [Conditional("GENERATE_BASELINES")]
+    private static void DeleteUnusedBaselines(string baselineDirectory, HashSet<string> touchedFiles)
+    {
+        foreach (var file in Directory.EnumerateFiles(baselineDirectory))
+        {
+            if (!touchedFiles.Contains(file))
+            {
+                File.Delete(file);
+            }
+        }
     }
 
     private static string GenerateExpectedOutput(GeneratorRunResult result)
