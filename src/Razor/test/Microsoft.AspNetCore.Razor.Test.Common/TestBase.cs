@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common.Logging;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Test.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
 using Xunit;

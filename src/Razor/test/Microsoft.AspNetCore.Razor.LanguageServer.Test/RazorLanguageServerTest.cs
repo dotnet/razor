@@ -4,8 +4,8 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Test.Common;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Nerdbank.Streams;
 using Xunit;

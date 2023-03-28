@@ -5,9 +5,9 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Telemetry;
 
-namespace Microsoft.CodeAnalysis.Remote.Razor;
+namespace Microsoft.AspNetCore.Razor.Telemetry;
 
-internal class NoOpTelemetryReporter : ITelemetryReporter
+public class NoOpTelemetryReporter : ITelemetryReporter
 {
     public static readonly NoOpTelemetryReporter Instance = new();
 

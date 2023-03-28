@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Telemetry;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
