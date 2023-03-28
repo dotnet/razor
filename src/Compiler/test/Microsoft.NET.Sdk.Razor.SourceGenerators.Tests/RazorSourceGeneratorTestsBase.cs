@@ -183,7 +183,12 @@ public abstract class RazorSourceGeneratorTestsBase
         [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
     {
         var html = await RenderRazorPageAsync(compilation, name);
-        Extensions.VerifyTextMatchesBaseline(html, "html", testPath: Path.Join(testPath, testName), testName: name);
+        Extensions.VerifyTextMatchesBaseline(
+            actualText: html,
+            fileName: name,
+            extension: "html",
+            testPath: testPath,
+            testName: testName);
     }
 
     protected static Project CreateTestProject(
@@ -383,8 +388,7 @@ internal static class Extensions
         return result;
     }
 
-    public static GeneratorRunResult VerifyOutputsMatchBaseline(this GeneratorRunResult result,
-        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
+    private static string CreateBaselineDirectory(string testPath, string testName)
     {
         var baselineDirectory = Path.Join(
             _testProjectRoot,
@@ -392,6 +396,13 @@ internal static class Extensions
             Path.GetFileNameWithoutExtension(testPath)!,
             testName);
         Directory.CreateDirectory(baselineDirectory);
+        return baselineDirectory;
+    }
+
+    public static GeneratorRunResult VerifyOutputsMatchBaseline(this GeneratorRunResult result,
+        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
+    {
+        var baselineDirectory = CreateBaselineDirectory(testPath, testName);
         var touchedFiles = new HashSet<string>();
 
         foreach (var source in result.GeneratedSources)
@@ -415,18 +426,14 @@ internal static class Extensions
         return result;
     }
 
-    public static void VerifyTextMatchesBaseline(string actualText, string extension,
+    public static void VerifyTextMatchesBaseline(string actualText, string fileName, string extension,
         [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
     {
         // Create output directory.
-        var baselineDirectory = Path.Join(
-            _testProjectRoot,
-            "TestFiles",
-            Path.GetFileNameWithoutExtension(testPath)!);
-        Directory.CreateDirectory(baselineDirectory);
+        var baselineDirectory = CreateBaselineDirectory(testPath, testName);
 
         // Generate baseline if enabled.
-        var baselinePath = Path.Join(baselineDirectory, $"{testName}.{extension}");
+        var baselinePath = Path.Join(baselineDirectory, $"{fileName}.{extension}");
         GenerateOutputBaseline(baselinePath, actualText);
 
         // Verify actual against baseline.
