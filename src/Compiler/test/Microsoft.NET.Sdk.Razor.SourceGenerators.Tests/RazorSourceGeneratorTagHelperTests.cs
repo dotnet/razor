@@ -1045,6 +1045,125 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
+    [Theory]
+    [InlineData("Views_Home_NestedViewImportsTagHelper")]
+    [InlineData("Views_Shared_ViewWithLayoutAndNestedTagHelper")]
+    [InlineData("Views_RemoveInheritedTagHelpers_ViewWithInheritedRemoveTagHelper")]
+    [InlineData("Views_InheritedTagHelperPrefix_InheritedTagHelperPrefix")]
+    [InlineData("Views_InheritedTagHelperPrefix_OverriddenTagHelperPrefix")]
+    [InlineData("Views_InheritedTagHelperPrefix_NestedInheritedTagHelperPrefix_NestedInheritedTagHelperPrefix")]
+    [InlineData("Views_InheritedTagHelperPrefix_NestedInheritedTagHelperPrefix_NestedOverriddenTagHelperPrefix")]
+    public async Task ViewImports(string name)
+    {
+        // Arrange
+        // https://github.com/dotnet/aspnetcore/blob/b40cc0b/src/Mvc/test/Mvc.FunctionalTests/TagHelpersTest.cs#L120
+        var project = CreateTestProject(new()
+        {
+            ["Views/_ViewImports.cshtml"] = """
+                @addTagHelper TestProject.TagHelpers.RootViewStartTagHelper, TestProject
+                """,
+            ["Views/Home/_ViewImports.cshtml"] = """
+                @addTagHelper TestProject.TagHelpers.NestedViewImportsTagHelper, TestProject
+                """,
+            ["Views/Home/NestedViewImportsTagHelper.cshtml"] = """
+                <root></root>
+                <nested>some-content</nested>
+                """,
+            ["Views/Shared/_LayoutWithRootTagHelper.cshtml"] = """
+                layout:<root></root>
+                @RenderBody()
+                """,
+            ["Views/Shared/ViewWithLayoutAndNestedTagHelper.cshtml"] = """
+                @{
+                    Layout = "~/Views/Shared/_LayoutWithRootTagHelper.cshtml";
+                }
+                @addTagHelper TestProject.TagHelpers.NestedViewImportsTagHelper, TestProject
+                <nested>some-content</nested>
+                """,
+            ["Views/RemoveInheritedTagHelpers/_ViewImports.cshtml"] = """
+                @removeTagHelper TestProject.TagHelpers.RootViewStartTagHelper, TestProject
+                @addTagHelper TestProject.TagHelpers.NestedViewImportsTagHelper, TestProject
+                """,
+            ["Views/RemoveInheritedTagHelpers/ViewWithInheritedRemoveTagHelper.cshtml"] = """
+                @{ 
+                    Layout = "~/Views/Shared/_LayoutWithRootTagHelper.cshtml";
+                }
+                page:<root/>
+                <nested>some-content</nested>
+                """,
+            ["Views/InheritedTagHelperPrefix/_ViewImports.cshtml"] = """
+                @tagHelperPrefix inherited:
+                """,
+            ["Views/InheritedTagHelperPrefix/InheritedTagHelperPrefix.cshtml"] = """
+                @{ 
+                    Layout = "~/Views/Shared/_LayoutWithRootTagHelper.cshtml";
+                }
+                page:<inherited:root></inherited:root>
+                """,
+            ["Views/InheritedTagHelperPrefix/OverriddenTagHelperPrefix.cshtml"] = """
+                @tagHelperPrefix overridden
+                @{ 
+                    Layout = "~/Views/Shared/_LayoutWithRootTagHelper.cshtml";
+                }
+                page:<overriddenroot></overriddenroot>
+                """,
+            ["Views/InheritedTagHelperPrefix/NestedInheritedTagHelperPrefix/_ViewImports.cshtml"] = """
+                @tagHelperPrefix nested-
+                """,
+            ["Views/InheritedTagHelperPrefix/NestedInheritedTagHelperPrefix/NestedInheritedTagHelperPrefix.cshtml"] = """
+                @{ 
+                    Layout = "~/Views/Shared/_LayoutWithRootTagHelper.cshtml";
+                }
+                page:<nested-root></nested-root>
+                """,
+            ["Views/InheritedTagHelperPrefix/NestedInheritedTagHelperPrefix/NestedOverriddenTagHelperPrefix.cshtml"] = """
+                @tagHelperPrefix nested-overridden
+                @{ 
+                    Layout = "~/Views/Shared/_LayoutWithRootTagHelper.cshtml";
+                }
+                page:<nested-overriddenroot></nested-overriddenroot>
+                """,
+        }, new()
+        {
+            ["RootViewStartTagHelper.cs"] = """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                namespace TestProject.TagHelpers;
+
+                [HtmlTargetElement("root")]
+                public class RootViewStartTagHelper : TagHelper
+                {
+                    public override void Process(TagHelperContext context, TagHelperOutput output)
+                    {
+                        output.Content.AppendHtml("root-content");
+                    }
+                }
+                """,
+            ["NestedViewImportsTagHelper.cs"] = """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                namespace TestProject.TagHelpers;
+
+                [HtmlTargetElement("nested")]
+                public class NestedViewImportsTagHelper : TagHelper
+                {
+                    public override void Process(TagHelperContext context, TagHelperOutput output)
+                    {
+                        output.Content.AppendHtml("nested-content");
+                    }
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        await VerifyRazorPageMatchesBaselineAsync(compilation, name);
+    }
+
     [Fact]
     public async Task WebsiteInformationTagHelper()
     {
