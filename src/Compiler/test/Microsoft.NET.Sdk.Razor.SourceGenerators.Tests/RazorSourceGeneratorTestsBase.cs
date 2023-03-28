@@ -180,10 +180,10 @@ public abstract class RazorSourceGeneratorTestsBase
     }
 
     protected static async Task VerifyRazorPageMatchesBaselineAsync(Compilation compilation, string name,
-        [CallerFilePath] string testPath = null!, [CallerMemberName] string testName = null!)
+        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
     {
         var html = await RenderRazorPageAsync(compilation, name);
-        Extensions.VerifyTextMatchesBaseline(html, "html", testPath: testPath, testName: testName);
+        Extensions.VerifyTextMatchesBaseline(html, "html", testPath: Path.Join(testPath, testName), testName: name);
     }
 
     protected static Project CreateTestProject(
@@ -384,7 +384,7 @@ internal static class Extensions
     }
 
     public static GeneratorRunResult VerifyOutputsMatchBaseline(this GeneratorRunResult result,
-        [CallerFilePath] string testPath = null!, [CallerMemberName] string testName = null!)
+        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
     {
         var baselineDirectory = Path.Join(
             _testProjectRoot,
