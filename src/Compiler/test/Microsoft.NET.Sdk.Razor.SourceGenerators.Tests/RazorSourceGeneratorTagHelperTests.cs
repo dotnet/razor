@@ -1057,6 +1057,7 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
     [InlineData("Views_InheritedTagHelperPrefix_OverriddenTagHelperPrefix")]
     [InlineData("Views_InheritedTagHelperPrefix_NestedInheritedTagHelperPrefix_NestedInheritedTagHelperPrefix")]
     [InlineData("Views_InheritedTagHelperPrefix_NestedInheritedTagHelperPrefix_NestedOverriddenTagHelperPrefix")]
+    [InlineData("Views_RemoveDefaultInheritedTagHelpers_Index")]
     public async Task ViewImports(string name)
     {
         // Arrange
@@ -1121,6 +1122,12 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
             ["Views/InheritedTagHelperPrefix/NestedInheritedTagHelperPrefix/NestedOverriddenTagHelperPrefix.cshtml"] = """
                 @tagHelperPrefix nested-overridden
                 page:<nested-overriddenroot></nested-overriddenroot>
+                """,
+            ["Views/RemoveDefaultInheritedTagHelpers/_ViewImports.cshtml"] = """
+                @removeTagHelper *, Microsoft.AspNetCore.Mvc.Razor
+                """,
+            ["Views/RemoveDefaultInheritedTagHelpers/Index.cshtml"] = """
+                <a href="~/VirtualPath">Virtual path</a>
                 """,
         }, new()
         {
