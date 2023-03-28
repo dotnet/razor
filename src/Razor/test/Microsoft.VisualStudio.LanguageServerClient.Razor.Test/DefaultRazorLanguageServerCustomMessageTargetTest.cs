@@ -15,12 +15,11 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
@@ -100,7 +99,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
         // Arrange
         var documentManager = Mock.Of<TrackingLSPDocumentManager>(MockBehavior.Strict);
         var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-        var outputWindowLogger = Mock.Of<OutputWindowLogger>(MockBehavior.Strict);
+        var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
 
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
@@ -139,7 +138,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
                 out It.Ref<LSPDocumentSnapshot>.IsAny))
             .Returns(false);
         var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-        var outputWindowLogger = Mock.Of<OutputWindowLogger>(MockBehavior.Strict);
+        var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
 
         var documentSynchronizer = GetDocumentSynchronizer();
 
@@ -195,7 +194,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
                 It.IsAny<DocumentRangeFormattingParams>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ReinvocationResponse<TextEdit[]>("languageClient", new[] { expectedEdit }));
-        var outputWindowLogger = Mock.Of<OutputWindowLogger>(MockBehavior.Strict);
+        var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
 
         var documentSynchronizer = GetDocumentSynchronizer(GetCSharpSnapshot(uri, hostDocumentSyncVersion: 1));
 
@@ -301,7 +300,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
             .Returns(expectedResults);
 
         var documentSynchronizer = GetDocumentSynchronizer(GetCSharpSnapshot());
-        var outputWindowLogger = Mock.Of<OutputWindowLogger>(MockBehavior.Strict);
+        var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
@@ -376,7 +375,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
                 It.IsAny<Uri>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
-        var outputWindowLogger = Mock.Of<OutputWindowLogger>(MockBehavior.Strict);
+        var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
             documentManager, JoinableTaskContext, requestInvoker.Object,
@@ -485,7 +484,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
                 It.IsAny<Uri>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
-        var outputWindowLogger = Mock.Of<OutputWindowLogger>(MockBehavior.Strict);
+        var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,

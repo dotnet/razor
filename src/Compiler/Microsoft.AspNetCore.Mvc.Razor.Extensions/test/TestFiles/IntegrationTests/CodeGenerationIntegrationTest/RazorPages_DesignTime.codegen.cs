@@ -32,7 +32,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
         private global::DivTagHelper __DivTagHelper;
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 #nullable restore
 #line 3 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPages.cshtml"
 NewModel __typeHelper = default!;
@@ -42,7 +42,7 @@ NewModel __typeHelper = default!;
 #nullable disable
         }
         ))();
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 // language=Route
 #nullable restore
 #line 4 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorPages.cshtml"
@@ -56,7 +56,7 @@ global::System.Object __typeHelper = "*, AppCode";
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
