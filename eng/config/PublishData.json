@@ -26,7 +26,7 @@
       ],
       "vsBranch": "rel/d17.6",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
+      "insertionCreateDraftPR": false,
       "insertionTitlePrefix": "[17.6P3]"
     },
     "release/dev17.7": {
