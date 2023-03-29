@@ -2,11 +2,10 @@
   <IgnorePatterns>
     <UsagePattern IdentityGlob="Microsoft.SourceBuild.Intermediate.*/*" />
 
-    <!-- Ignoring the following prebuilts. We do not have SBRP packages for
-         7.0 targeting packs and System.Text.Encoding.CodePages.6.0.0 package.
-         https://github.com/dotnet/source-build/issues/3341 -->
+    <!-- Ignoring the following prebuilts. net7.0 targeting is still needed
+         due to https://github.com/dotnet/razor/issues/8293#issuecomment-1454042002
+         net7.0 targeting removal is tracked in https://github.com/dotnet/razor/issues/8531 -->
     <UsagePattern IdentityGlob="Microsoft.AspNetCore.App.Ref/7.0.2" />
     <UsagePattern IdentityGlob="Microsoft.NETCore.App.Ref/7.0.2" />
-    <UsagePattern IdentityGlob="System.Text.Encoding.CodePages/6.0.0" />
   </IgnorePatterns>
 </UsageData>
