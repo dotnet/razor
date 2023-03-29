@@ -1,21 +1,17 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Microsoft.Extensions.ObjectPool;
-
 namespace Microsoft.AspNetCore.Razor.Language;
 
 internal partial class DefaultRequiredAttributeDescriptorBuilder
 {
-    private sealed class Policy : IPooledObjectPolicy<DefaultRequiredAttributeDescriptorBuilder>
+    private sealed class Policy : TagHelperPooledObjectPolicy<DefaultRequiredAttributeDescriptorBuilder>
     {
-        private const int MaxSize = 32;
-
         public static Policy Instance = new();
 
-        public DefaultRequiredAttributeDescriptorBuilder Create() => new();
+        public override DefaultRequiredAttributeDescriptorBuilder Create() => new();
 
-        public bool Return(DefaultRequiredAttributeDescriptorBuilder builder)
+        public override bool Return(DefaultRequiredAttributeDescriptorBuilder builder)
         {
             builder._parent = null;
 
@@ -24,15 +20,7 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder
             builder.Value = null;
             builder.ValueComparisonMode = default;
 
-            if (builder._diagnostics is { } diagnostics)
-            {
-                diagnostics.Clear();
-
-                if (diagnostics.Capacity > MaxSize)
-                {
-                    diagnostics.Capacity = MaxSize;
-                }
-            }
+            ClearDiagnostics(builder._diagnostics);
 
             builder._metadata?.Clear();
 

@@ -119,12 +119,10 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
                 Documentation,
                 GetDisplayName(),
                 CaseSensitive,
+                IsEditorRequired,
                 parameters,
                 MetadataCollection.CreateOrEmpty(_metadata),
-                diagnostics.ToArray())
-            {
-                IsEditorRequired = IsEditorRequired,
-            };
+                diagnostics.ToArray());
 
             return descriptor;
         }

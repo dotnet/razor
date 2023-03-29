@@ -1,21 +1,17 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using Microsoft.Extensions.ObjectPool;
-
 namespace Microsoft.AspNetCore.Razor.Language;
 
 internal partial class DefaultBoundAttributeDescriptorBuilder
 {
-    private sealed class Policy : IPooledObjectPolicy<DefaultBoundAttributeDescriptorBuilder>
+    private sealed class Policy : TagHelperPooledObjectPolicy<DefaultBoundAttributeDescriptorBuilder>
     {
-        private const int MaxSize = 32;
-
         public static Policy Instance = new();
 
-        public DefaultBoundAttributeDescriptorBuilder Create() => new();
+        public override DefaultBoundAttributeDescriptorBuilder Create() => new();
 
-        public bool Return(DefaultBoundAttributeDescriptorBuilder builder)
+        public override bool Return(DefaultBoundAttributeDescriptorBuilder builder)
         {
             builder._parent = null;
             builder._kind = null;
@@ -24,6 +20,7 @@ internal partial class DefaultBoundAttributeDescriptorBuilder
             builder.TypeName = null;
             builder.IsEnum = false;
             builder.IsDictionary = false;
+            builder.IsEditorRequired = false;
             builder.IndexerAttributeNamePrefix = null;
             builder.IndexerValueTypeName = null;
             builder.Documentation = null;
@@ -36,24 +33,10 @@ internal partial class DefaultBoundAttributeDescriptorBuilder
                     DefaultBoundAttributeParameterDescriptorBuilder.Return(attributeParameterBuilder);
                 }
 
-                attributeParameterBuilders.Clear();
-
-                if (attributeParameterBuilders.Capacity > MaxSize)
-                {
-                    attributeParameterBuilders.Capacity = MaxSize;
-                }
-
+                ClearList(attributeParameterBuilders);
             }
 
-            if (builder._diagnostics is { } diagnostics)
-            {
-                diagnostics.Clear();
-
-                if (diagnostics.Capacity > MaxSize)
-                {
-                    diagnostics.Capacity = MaxSize;
-                }
-            }
+            ClearDiagnostics(builder._diagnostics);
 
             builder._metadata?.Clear();
 

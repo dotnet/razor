@@ -1,22 +1,17 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Generic;
-using Microsoft.Extensions.ObjectPool;
-
 namespace Microsoft.AspNetCore.Razor.Language;
 
 internal partial class DefaultTagHelperDescriptorBuilder
 {
-    private sealed class Policy : IPooledObjectPolicy<DefaultTagHelperDescriptorBuilder>
+    private sealed class Policy : TagHelperPooledObjectPolicy<DefaultTagHelperDescriptorBuilder>
     {
-        private const int MaxSize = 32;
-
         public static Policy Instance = new();
 
-        public DefaultTagHelperDescriptorBuilder Create() => new();
+        public override DefaultTagHelperDescriptorBuilder Create() => new();
 
-        public bool Return(DefaultTagHelperDescriptorBuilder builder)
+        public override bool Return(DefaultTagHelperDescriptorBuilder builder)
         {
             builder._kind = null;
             builder._name = null;
@@ -34,7 +29,7 @@ internal partial class DefaultTagHelperDescriptorBuilder
                     DefaultAllowedChildTagDescriptorBuilder.Return(allowedChildTagBuilder);
                 }
 
-                ClearBuilderList(allowedChildTagBuilders);
+                ClearList(allowedChildTagBuilders);
             }
 
             if (builder._attributeBuilders is { } attributeBuilders)
@@ -44,7 +39,7 @@ internal partial class DefaultTagHelperDescriptorBuilder
                     DefaultBoundAttributeDescriptorBuilder.Return(attributeBuilder);
                 }
 
-                ClearBuilderList(attributeBuilders);
+                ClearList(attributeBuilders);
             }
 
             if (builder._tagMatchingRuleBuilders is { } tagMatchingRuleBuilders)
@@ -54,32 +49,14 @@ internal partial class DefaultTagHelperDescriptorBuilder
                     DefaultTagMatchingRuleDescriptorBuilder.Return(tagMatchingRuleBuilder);
                 }
 
-                ClearBuilderList(tagMatchingRuleBuilders);
+                ClearList(tagMatchingRuleBuilders);
             }
 
-            if (builder._diagnostics is { } diagnostics)
-            {
-                diagnostics.Clear();
-
-                if (diagnostics.Capacity > MaxSize)
-                {
-                    diagnostics.Capacity = MaxSize;
-                }
-            }
+            ClearDiagnostics(builder._diagnostics);
 
             builder._metadata.Clear();
 
             return true;
-
-            static void ClearBuilderList<T>(List<T> builders)
-            {
-                builders.Clear();
-
-                if (builders.Capacity > MaxSize)
-                {
-                    builders.Capacity = MaxSize;
-                }
-            }
         }
     }
 }

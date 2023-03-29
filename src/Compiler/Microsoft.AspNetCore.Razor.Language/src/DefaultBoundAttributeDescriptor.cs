@@ -16,6 +16,7 @@ internal sealed class DefaultBoundAttributeDescriptor : BoundAttributeDescriptor
         string? documentation,
         string? displayName,
         bool caseSensitive,
+        bool isEditorRequired,
         BoundAttributeParameterDescriptor[] parameterDescriptors,
         MetadataCollection metadata,
         RazorDiagnostic[] diagnostics)
@@ -30,6 +31,7 @@ internal sealed class DefaultBoundAttributeDescriptor : BoundAttributeDescriptor
         Documentation = documentation;
         DisplayName = displayName;
         CaseSensitive = caseSensitive;
+        IsEditorRequired = isEditorRequired;
         BoundAttributeParameters = parameterDescriptors;
 
         Metadata = metadata;
