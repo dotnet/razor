@@ -386,7 +386,7 @@ internal class DefaultTagHelperDescriptorFactory
                     property.GetMethod.DeclaredAccessibility == Accessibility.Public &&
                     property.GetAttributes().FirstOrDefault(a => a.AttributeClass.HasFullName(TagHelperTypes.HtmlAttributeNotBoundAttribute)) == null &&
                     (property.GetAttributes().Any(a => a.AttributeClass.HasFullName(TagHelperTypes.HtmlAttributeNameAttribute)) ||
-                    (property.SetMethod != null && property.SetMethod.DeclaredAccessibility == Accessibility.Public) ||
+                    property.SetMethod != null && property.SetMethod.DeclaredAccessibility == Accessibility.Public ||
                     IsPotentialDictionaryProperty(property)) &&
                     !accessibleProperties.ContainsKey(property.Name))
                 {
