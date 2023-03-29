@@ -189,10 +189,14 @@ public abstract class RazorSourceGeneratorTestsBase
         static IEnumerable<string> GetViewStartNames(string name)
         {
             var builder = new StringBuilder(name);
-            var maxIterations = 255;
             var index = name.Length;
-            while (maxIterations-- > 0 && index > 1 && (index = name.LastIndexOf('_', index - 1)) != -1)
+            for (var currentIteration = 0; currentIteration < 255; currentIteration++)
             {
+                if (index <= 1 || (index = name.LastIndexOf('_', index - 1)) < 0)
+                {
+                    break;
+                }
+
                 builder.Length = index + 1;
                 builder.Append("_ViewStart");
 
