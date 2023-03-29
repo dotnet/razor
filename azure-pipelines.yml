@@ -211,6 +211,9 @@ stages:
           displayName: Restore
           condition: succeeded()
 
+        - powershell: eng\SetupVSHive.ps1
+          displayName: Setup VS Hive
+
         - script: eng\cibuild.cmd
             -configuration $(_BuildConfig)
             -msbuildEngine vs
@@ -225,19 +228,6 @@ stages:
           name: Build
           displayName: Build and Deploy
           condition: succeeded()
-
-        - task: PublishBuildArtifacts@1
-          displayName: Upload Build BinLog
-          condition: always()
-          continueOnError: true
-          inputs:
-              pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
-              artifactName: $(Agent.Os)_$(Agent.JobName) BuildBinLog
-              artifactType: Container
-              parallel: true
-
-        - powershell: eng\SetupVSHive.ps1
-          displayName: Setup VS Hive
 
         - script: eng\CIBuild.cmd
             -configuration $(_BuildConfig)
@@ -255,63 +245,35 @@ stages:
           displayName: Run Integration Tests
           condition: succeeded()
 
-        - task: PublishBuildArtifacts@1
-          displayName: Upload Run tests BinLog
-          condition: always()
-          continueOnError: true
-          inputs:
-              pathtoPublish: artifacts/log/$(_BuildConfig)/Build.binlog
-              artifactName: $(Agent.Os)_$(Agent.JobName) RunTestsBinLog
-              artifactType: Container
-              parallel: true
-
         - powershell: ./eng/scripts/FinishDumpCollectionForHangingBuilds.ps1 artifacts/log/$(_BuildConfig)
           displayName: Finish background dump collection
           continueOnError: true
           condition: always()
 
-        - task: PublishBuildArtifacts@1
-          displayName: Upload Test Results
+        - publish: artifacts/log/$(_BuildConfig)
+          artifact: $(Agent.Os)_$(Agent.JobName) Logs
+          displayName: Publish Build Artifacts
           condition: always()
-          continueOnError: true
-          inputs:
-            pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
-            artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
-            artifactType: Container
-            parallel: true
 
-        # - task: PublishTestResults@2
-        #   displayName: Publish VSCode Test Results
-        #   inputs:
-        #     testResultsFormat: 'JUnit'
-        #     testResultsFiles: '*.xml'
-        #     searchFolder: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_BuildConfig)'
-        #   continueOnError: true
-        #   condition: always()
+        - publish: artifacts/TestResults/$(_BuildConfig)
+          artifact: $(Agent.Os)_$(Agent.JobName) TestResults
+          displayName: Publish Test Artifacts
+          condition: always()
 
         # Publish an artifact that the RoslynInsertionTool is able to find by its name.
-        - task: PublishBuildArtifacts@1
-          displayName: Publish Artifact VSSetup
-          inputs:
-            PathtoPublish: 'artifacts\VSSetup\$(_BuildConfig)'
-            ArtifactName: 'VSSetup'
-          continueOnError: true
+        - publish: artifacts\VSSetup\$(_BuildConfig)
+          artifact: VSSetup
+          displayName: Publish VSSetup
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
-        - task: PublishBuildArtifacts@1
+        - publish: artifacts\MPack\$(_BuildConfig)
+          artifact: MPack_$(Agent.Os)_$(_BuildConfig)
           displayName: Publish VS for Mac Artifacts
-          inputs:
-            PathtoPublish: 'artifacts\MPack\$(_BuildConfig)'
-            ArtifactName: MPack_$(Agent.Os)_$(_BuildConfig)
-          continueOnError: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
-        - task: PublishBuildArtifacts@1
+        - publish: artifacts\packages\$(_BuildConfig)
+          artifact: Packages_$(Agent.Os)_$(_BuildConfig)
           displayName: Publish package artifacts
-          inputs:
-            PathtoPublish: 'artifacts\packages\$(_BuildConfig)'
-            ArtifactName: Packages_$(Agent.Os)_$(_BuildConfig)
-          continueOnError: true
           condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
         - powershell: Write-Host "##vso[task.setvariable variable=VisualStudio.DropName]Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)"
@@ -378,15 +340,10 @@ stages:
             name: Build
             displayName: Build
             condition: succeeded()
-        - task: PublishBuildArtifacts@1
-          displayName: Upload TestResults
+        - publish: artifacts/TestResults/$(_BuildConfig)
+          artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
+          displayName: Publish Test Results
           condition: always()
-          continueOnError: true
-          inputs:
-            pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
-            artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
-            artifactType: Container
-            parallel: true
 
       - job: Linux
         container:
@@ -449,15 +406,10 @@ stages:
             name: Build
             displayName: Build
             condition: succeeded()
-        - task: PublishBuildArtifacts@1
-          displayName: Upload Test Results
+        - publish: artifacts/TestResults/$(_BuildConfig)/
+          artifact: $(Agent.Os)_$(Agent.JobName) TestResults
+          displayName: Publish Test Results
           condition: always()
-          continueOnError: true
-          inputs:
-            pathtoPublish: artifacts/TestResults/$(_BuildConfig)/
-            artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
-            artifactType: Container
-            parallel: true
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: eng\common\templates\post-build\post-build.yml
