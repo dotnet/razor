@@ -107,7 +107,7 @@ stages:
   # Three jobs for each of the three OSes we want to run on
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
-      enablePublishBuildArtifacts: true
+      enablePublishBuildArtifacts: false
       enablePublishTestResults: true
       enableTelemetry: true
       enableSourcebuild: true
@@ -251,12 +251,12 @@ stages:
           condition: always()
 
         - publish: artifacts/log/$(_BuildConfig)
-          artifact: $(Agent.Os)_$(Agent.JobName) Logs
+          artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) Logs
           displayName: Publish Build Artifacts
           condition: always()
 
         - publish: artifacts/TestResults/$(_BuildConfig)
-          artifact: $(Agent.Os)_$(Agent.JobName) TestResults
+          artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
           displayName: Publish Test Artifacts
           condition: always()
 
@@ -341,7 +341,7 @@ stages:
             displayName: Build
             condition: succeeded()
         - publish: artifacts/TestResults/$(_BuildConfig)
-          artifact: $(Agent.Os)_$(Agent.JobName) TestResults
+          artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
           displayName: Publish Test Results
           condition: always()
 
@@ -407,7 +407,7 @@ stages:
             displayName: Build
             condition: succeeded()
         - publish: artifacts/TestResults/$(_BuildConfig)/
-          artifact: $(Agent.Os)_$(Agent.JobName) TestResults
+          artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
           displayName: Publish Test Results
           condition: always()
 
