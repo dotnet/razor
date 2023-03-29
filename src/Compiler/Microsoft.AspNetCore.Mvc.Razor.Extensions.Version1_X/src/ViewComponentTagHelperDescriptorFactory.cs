@@ -58,30 +58,37 @@ internal class ViewComponentTagHelperDescriptorFactory
         var tagName = $"vc:{HtmlConventions.ToHtmlCase(shortName)}";
         var typeName = $"__Generated__{shortName}ViewComponentTagHelper";
         var displayName = shortName + "ViewComponentTagHelper";
-        var descriptorBuilder = TagHelperDescriptorBuilder.Create(ViewComponentTagHelperConventions.Kind, typeName, assemblyName);
-        descriptorBuilder.SetTypeName(typeName);
-        descriptorBuilder.DisplayName = displayName;
-
-        if (TryFindInvokeMethod(type, out var method, out var diagnostic))
+        var descriptorBuilder = TagHelperDescriptorBuilder.GetInstance(ViewComponentTagHelperConventions.Kind, typeName, assemblyName);
+        try
         {
-            var methodParameters = method.Parameters;
-            descriptorBuilder.TagMatchingRule(ruleBuilder =>
+            descriptorBuilder.SetTypeName(typeName);
+            descriptorBuilder.DisplayName = displayName;
+
+            if (TryFindInvokeMethod(type, out var method, out var diagnostic))
             {
-                ruleBuilder.TagName = tagName;
-                AddRequiredAttributes(methodParameters, ruleBuilder);
-            });
+                var methodParameters = method.Parameters;
+                descriptorBuilder.TagMatchingRule(ruleBuilder =>
+                {
+                    ruleBuilder.TagName = tagName;
+                    AddRequiredAttributes(methodParameters, ruleBuilder);
+                });
 
-            AddBoundAttributes(methodParameters, displayName, descriptorBuilder);
+                AddBoundAttributes(methodParameters, displayName, descriptorBuilder);
+            }
+            else
+            {
+                descriptorBuilder.Diagnostics.Add(diagnostic);
+            }
+
+            descriptorBuilder.Metadata[ViewComponentTagHelperMetadata.Name] = shortName;
+
+            var descriptor = descriptorBuilder.Build();
+            return descriptor;
         }
-        else
+        finally
         {
-            descriptorBuilder.Diagnostics.Add(diagnostic);
+            TagHelperDescriptorBuilder.ReturnInstance(descriptorBuilder);
         }
-
-        descriptorBuilder.Metadata[ViewComponentTagHelperMetadata.Name] = shortName;
-
-        var descriptor = descriptorBuilder.Build();
-        return descriptor;
     }
 
     private bool TryFindInvokeMethod(INamedTypeSymbol type, out IMethodSymbol method, out RazorDiagnostic diagnostic)

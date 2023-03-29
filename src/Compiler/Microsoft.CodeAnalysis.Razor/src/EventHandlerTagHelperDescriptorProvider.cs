@@ -44,7 +44,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
         }
     }
 
-    private List<EventHandlerData> GetEventHandlerData(TagHelperDescriptorProviderContext context, Compilation compilation, INamedTypeSymbol eventHandlerAttribute)
+    private static List<EventHandlerData> GetEventHandlerData(TagHelperDescriptorProviderContext context, Compilation compilation, INamedTypeSymbol eventHandlerAttribute)
     {
         var types = new List<INamedTypeSymbol>();
         var visitor = new EventHandlerDataVisitor(types);
@@ -106,170 +106,148 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
         return results;
     }
 
-    private List<TagHelperDescriptor> CreateEventHandlerTagHelpers(List<EventHandlerData> data)
+    private static List<TagHelperDescriptor> CreateEventHandlerTagHelpers(List<EventHandlerData> data)
     {
         var results = new List<TagHelperDescriptor>();
 
-        for (var i = 0; i < data.Count; i++)
+        foreach (var entry in data)
         {
-            var entry = data[i];
             var attributeName = "@" + entry.Attribute;
             var eventArgType = entry.EventArgsType.ToDisplayString();
 
-            var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.EventHandler.TagHelperKind, entry.Attribute, ComponentsApi.AssemblyName);
-            builder.CaseSensitive = true;
-            builder.Documentation = string.Format(
-                CultureInfo.CurrentCulture,
-                ComponentResources.EventHandlerTagHelper_Documentation,
-                attributeName,
-                eventArgType);
-
-            builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind);
-            builder.Metadata.Add(ComponentMetadata.EventHandler.EventArgsType, eventArgType);
-            builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
-            builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.EventHandler.RuntimeName;
-
-            // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
-            // a C# property will crash trying to create the tooltips.
-            builder.SetTypeName(entry.TypeName);
-            builder.SetTypeNamespace(entry.TypeNamespace);
-            builder.SetTypeNameIdentifier(entry.TypeNameIdentifier);
-
-            builder.TagMatchingRule(rule =>
+            var builder = TagHelperDescriptorBuilder.GetInstance(ComponentMetadata.EventHandler.TagHelperKind, entry.Attribute, ComponentsApi.AssemblyName);
+            try
             {
-                rule.TagName = "*";
-
-                rule.Attribute(a =>
-                {
-                    a.Name = attributeName;
-                    a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
-                    a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
-                });
-            });
-
-            if (entry.EnablePreventDefault)
-            {
-                builder.TagMatchingRule(rule =>
-                {
-                    rule.TagName = "*";
-
-                    rule.Attribute(a =>
-                    {
-                        a.Name = attributeName + ":preventDefault";
-                        a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
-                        a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
-                    });
-                });
-            }
-
-            if (entry.EnableStopPropagation)
-            {
-                builder.TagMatchingRule(rule =>
-                {
-                    rule.TagName = "*";
-
-                    rule.Attribute(a =>
-                    {
-                        a.Name = attributeName + ":stopPropagation";
-                        a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
-                        a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
-                    });
-                });
-            }
-
-            builder.BindAttribute(a =>
-            {
-                a.Documentation = string.Format(
+                builder.CaseSensitive = true;
+                builder.Documentation = string.Format(
                     CultureInfo.CurrentCulture,
                     ComponentResources.EventHandlerTagHelper_Documentation,
                     attributeName,
                     eventArgType);
 
-                a.Name = attributeName;
+                builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind);
+                builder.Metadata.Add(ComponentMetadata.EventHandler.EventArgsType, eventArgType);
+                builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
+                builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.EventHandler.RuntimeName;
 
-                // We want event handler directive attributes to default to C# context.
-                a.TypeName = $"Microsoft.AspNetCore.Components.EventCallback<{eventArgType}>";
-
-                // But make this weakly typed (don't type check) - delegates have their own type-checking
-                // logic that we don't want to interfere with.
-                a.Metadata.Add(ComponentMetadata.Component.WeaklyTypedKey, bool.TrueString);
-
-                a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
-
-                // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
+                // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
                 // a C# property will crash trying to create the tooltips.
-                a.SetPropertyName(entry.Attribute);
+                builder.SetTypeName(entry.TypeName);
+                builder.SetTypeNamespace(entry.TypeNamespace);
+                builder.SetTypeNameIdentifier(entry.TypeNameIdentifier);
+
+                builder.TagMatchingRule(rule =>
+                {
+                    rule.TagName = "*";
+
+                    rule.Attribute(a =>
+                    {
+                        a.Name = attributeName;
+                        a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+                        a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                    });
+                });
 
                 if (entry.EnablePreventDefault)
                 {
-                    a.BindAttributeParameter(parameter =>
+                    builder.TagMatchingRule(rule =>
                     {
-                        parameter.Name = "preventDefault";
-                        parameter.TypeName = typeof(bool).FullName;
-                        parameter.Documentation = string.Format(
-                            CultureInfo.CurrentCulture, ComponentResources.EventHandlerTagHelper_PreventDefault_Documentation, attributeName);
+                        rule.TagName = "*";
 
-                        parameter.SetPropertyName("PreventDefault");
+                        rule.Attribute(a =>
+                        {
+                            a.Name = attributeName + ":preventDefault";
+                            a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+                            a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                        });
                     });
                 }
 
                 if (entry.EnableStopPropagation)
                 {
-                    a.BindAttributeParameter(parameter =>
+                    builder.TagMatchingRule(rule =>
                     {
-                        parameter.Name = "stopPropagation";
-                        parameter.TypeName = typeof(bool).FullName;
-                        parameter.Documentation = string.Format(
-                            CultureInfo.CurrentCulture, ComponentResources.EventHandlerTagHelper_StopPropagation_Documentation, attributeName);
+                        rule.TagName = "*";
 
-                        parameter.SetPropertyName("StopPropagation");
+                        rule.Attribute(a =>
+                        {
+                            a.Name = attributeName + ":stopPropagation";
+                            a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
+                            a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                        });
                     });
                 }
-            });
 
-            results.Add(builder.Build());
+                builder.BindAttribute(a =>
+                {
+                    a.Documentation = string.Format(
+                        CultureInfo.CurrentCulture,
+                        ComponentResources.EventHandlerTagHelper_Documentation,
+                        attributeName,
+                        eventArgType);
+
+                    a.Name = attributeName;
+
+                    // We want event handler directive attributes to default to C# context.
+                    a.TypeName = $"Microsoft.AspNetCore.Components.EventCallback<{eventArgType}>";
+
+                    // But make this weakly typed (don't type check) - delegates have their own type-checking
+                    // logic that we don't want to interfere with.
+                    a.Metadata.Add(ComponentMetadata.Component.WeaklyTypedKey, bool.TrueString);
+
+                    a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+
+                    // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
+                    // a C# property will crash trying to create the tooltips.
+                    a.SetPropertyName(entry.Attribute);
+
+                    if (entry.EnablePreventDefault)
+                    {
+                        a.BindAttributeParameter(parameter =>
+                        {
+                            parameter.Name = "preventDefault";
+                            parameter.TypeName = typeof(bool).FullName;
+                            parameter.Documentation = string.Format(
+                                CultureInfo.CurrentCulture, ComponentResources.EventHandlerTagHelper_PreventDefault_Documentation, attributeName);
+
+                            parameter.SetPropertyName("PreventDefault");
+                        });
+                    }
+
+                    if (entry.EnableStopPropagation)
+                    {
+                        a.BindAttributeParameter(parameter =>
+                        {
+                            parameter.Name = "stopPropagation";
+                            parameter.TypeName = typeof(bool).FullName;
+                            parameter.Documentation = string.Format(
+                                CultureInfo.CurrentCulture, ComponentResources.EventHandlerTagHelper_StopPropagation_Documentation, attributeName);
+
+                            parameter.SetPropertyName("StopPropagation");
+                        });
+                    }
+                });
+
+                results.Add(builder.Build());
+            }
+            finally
+            {
+                TagHelperDescriptorBuilder.ReturnInstance(builder);
+            }
         }
 
         return results;
     }
 
-    private struct EventHandlerData
-    {
-        public EventHandlerData(
-            string assembly,
-            string typeName,
-            string typeNamespace,
-            string typeNameIdentifier,
-            string element,
-            INamedTypeSymbol eventArgsType,
-            bool enablePreventDefault,
-            bool enableStopPropagation)
-        {
-            Assembly = assembly;
-            TypeName = typeName;
-            TypeNamespace = typeNamespace;
-            TypeNameIdentifier = typeNameIdentifier;
-            Attribute = element;
-            EventArgsType = eventArgsType;
-            EnablePreventDefault = enablePreventDefault;
-            EnableStopPropagation = enableStopPropagation;
-        }
-
-        public string Assembly { get; }
-
-        public string TypeName { get; }
-        public string TypeNamespace { get; }
-
-        public string TypeNameIdentifier { get; }
-
-        public string Attribute { get; }
-
-        public INamedTypeSymbol EventArgsType { get; }
-
-        public bool EnablePreventDefault { get; }
-
-        public bool EnableStopPropagation { get; }
-    }
+    private readonly record struct EventHandlerData(
+        string Assembly,
+        string TypeName,
+        string TypeNamespace,
+        string TypeNameIdentifier,
+        string Attribute,
+        INamedTypeSymbol EventArgsType,
+        bool EnablePreventDefault,
+        bool EnableStopPropagation);
 
     private class EventHandlerDataVisitor : SymbolVisitor
     {

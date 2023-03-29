@@ -78,37 +78,51 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         }
     }
 
-    private TagHelperDescriptor CreateShortNameMatchingDescriptor(INamedTypeSymbol type)
+    private static TagHelperDescriptor CreateShortNameMatchingDescriptor(INamedTypeSymbol type)
     {
         var builder = CreateDescriptorBuilder(type);
-        builder.TagMatchingRule(r =>
+        try
         {
-            r.TagName = type.Name;
-        });
+            builder.TagMatchingRule(r =>
+            {
+                r.TagName = type.Name;
+            });
 
-        return builder.Build();
+            return builder.Build();
+        }
+        finally
+        {
+            TagHelperDescriptorBuilder.ReturnInstance(builder);
+        }
     }
 
-    private TagHelperDescriptor CreateFullyQualifiedNameMatchingDescriptor(INamedTypeSymbol type)
+    private static TagHelperDescriptor CreateFullyQualifiedNameMatchingDescriptor(INamedTypeSymbol type)
     {
         var builder = CreateDescriptorBuilder(type);
-        var containingNamespace = type.ContainingNamespace.ToDisplayString();
-        var fullName = $"{containingNamespace}.{type.Name}";
-        builder.TagMatchingRule(r =>
+        try
         {
-            r.TagName = fullName;
-        });
-        builder.Metadata[ComponentMetadata.Component.NameMatchKey] = ComponentMetadata.Component.FullyQualifiedNameMatch;
+            var containingNamespace = type.ContainingNamespace.ToDisplayString();
+            var fullName = $"{containingNamespace}.{type.Name}";
+            builder.TagMatchingRule(r =>
+            {
+                r.TagName = fullName;
+            });
+            builder.Metadata[ComponentMetadata.Component.NameMatchKey] = ComponentMetadata.Component.FullyQualifiedNameMatch;
 
-        return builder.Build();
+            return builder.Build();
+        }
+        finally
+        {
+            TagHelperDescriptorBuilder.ReturnInstance(builder);
+        }
     }
 
-    private TagHelperDescriptorBuilder CreateDescriptorBuilder(INamedTypeSymbol type)
+    private static TagHelperDescriptorBuilder CreateDescriptorBuilder(INamedTypeSymbol type)
     {
         var typeName = type.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat);
         var assemblyName = type.ContainingAssembly.Identity.Name;
 
-        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, typeName, assemblyName);
+        var builder = TagHelperDescriptorBuilder.GetInstance(ComponentMetadata.Component.TagHelperKind, typeName, assemblyName);
         builder.SetTypeName(typeName);
         builder.SetTypeNamespace(type.ContainingNamespace.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat));
         builder.SetTypeNameIdentifier(type.Name);
@@ -130,8 +144,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
 
             for (var i = 0; i < type.TypeArguments.Length; i++)
             {
-                var typeParameter = type.TypeArguments[i] as ITypeParameterSymbol;
-                if (typeParameter != null)
+                if (type.TypeArguments[i] is ITypeParameterSymbol typeParameter)
                 {
                     var cascade = cascadeGenericTypeAttributes.Contains(typeParameter.Name, StringComparer.Ordinal);
                     CreateTypeParameterProperty(builder, typeParameter, cascade);
@@ -167,7 +180,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         return builder;
     }
 
-    private void CreateProperty(TagHelperDescriptorBuilder builder, IPropertySymbol property, PropertyKind kind)
+    private static void CreateProperty(TagHelperDescriptorBuilder builder, IPropertySymbol property, PropertyKind kind)
     {
         builder.BindAttribute(pb =>
         {
@@ -209,7 +222,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             }
         });
 
-        bool HasTypeParameter(ITypeSymbol type)
+        static bool HasTypeParameter(ITypeSymbol type)
         {
             if (type is ITypeParameterSymbol)
             {
@@ -307,7 +320,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         }
     }
 
-    private void CreateTypeParameterProperty(TagHelperDescriptorBuilder builder, ITypeParameterSymbol typeParameter, bool cascade)
+    private static void CreateTypeParameterProperty(TagHelperDescriptorBuilder builder, ITypeParameterSymbol typeParameter, bool cascade)
     {
         builder.BindAttribute(pb =>
         {
@@ -368,55 +381,62 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         });
     }
 
-    private TagHelperDescriptor CreateChildContentDescriptor(TagHelperDescriptor component, BoundAttributeDescriptor attribute)
+    private static TagHelperDescriptor CreateChildContentDescriptor(TagHelperDescriptor component, BoundAttributeDescriptor attribute)
     {
         var typeName = component.GetTypeName() + "." + attribute.Name;
         var assemblyName = component.AssemblyName;
 
-        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.ChildContent.TagHelperKind, typeName, assemblyName);
-        builder.SetTypeName(typeName);
-        builder.SetTypeNamespace(component.GetTypeNamespace());
-        builder.SetTypeNameIdentifier(component.GetTypeNameIdentifier());
-        builder.CaseSensitive = true;
-
-        // This opts out this 'component' tag helper for any processing that's specific to the default
-        // Razor ITagHelper runtime.
-        builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.ChildContent.RuntimeName;
-
-        // Opt out of processing as a component. We'll process this specially as part of the component's body.
-        builder.Metadata[ComponentMetadata.SpecialKindKey] = ComponentMetadata.ChildContent.TagHelperKind;
-
-        var xml = attribute.Documentation;
-        if (!string.IsNullOrEmpty(xml))
+        var builder = TagHelperDescriptorBuilder.GetInstance(ComponentMetadata.ChildContent.TagHelperKind, typeName, assemblyName);
+        try
         {
-            builder.Documentation = xml;
+            builder.SetTypeName(typeName);
+            builder.SetTypeNamespace(component.GetTypeNamespace());
+            builder.SetTypeNameIdentifier(component.GetTypeNameIdentifier());
+            builder.CaseSensitive = true;
+
+            // This opts out this 'component' tag helper for any processing that's specific to the default
+            // Razor ITagHelper runtime.
+            builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.ChildContent.RuntimeName;
+
+            // Opt out of processing as a component. We'll process this specially as part of the component's body.
+            builder.Metadata[ComponentMetadata.SpecialKindKey] = ComponentMetadata.ChildContent.TagHelperKind;
+
+            var xml = attribute.Documentation;
+            if (!string.IsNullOrEmpty(xml))
+            {
+                builder.Documentation = xml;
+            }
+
+            // Child content matches the property name, but only as a direct child of the component.
+            builder.TagMatchingRule(r =>
+            {
+                r.TagName = attribute.Name;
+                r.ParentTag = component.TagMatchingRules[0].TagName;
+            });
+
+            if (attribute.IsParameterizedChildContentProperty())
+            {
+                // For child content attributes with a parameter, synthesize an attribute that allows you to name
+                // the parameter.
+                CreateContextParameter(builder, attribute.Name);
+            }
+
+            if (component.IsComponentFullyQualifiedNameMatch())
+            {
+                builder.Metadata[ComponentMetadata.Component.NameMatchKey] = ComponentMetadata.Component.FullyQualifiedNameMatch;
+            }
+
+            var descriptor = builder.Build();
+
+            return descriptor;
         }
-
-        // Child content matches the property name, but only as a direct child of the component.
-        builder.TagMatchingRule(r =>
+        finally
         {
-            r.TagName = attribute.Name;
-            r.ParentTag = component.TagMatchingRules[0].TagName;
-        });
-
-        if (attribute.IsParameterizedChildContentProperty())
-        {
-            // For child content attributes with a parameter, synthesize an attribute that allows you to name
-            // the parameter.
-            CreateContextParameter(builder, attribute.Name);
+            TagHelperDescriptorBuilder.ReturnInstance(builder);
         }
-
-        if (component.IsComponentFullyQualifiedNameMatch())
-        {
-            builder.Metadata[ComponentMetadata.Component.NameMatchKey] = ComponentMetadata.Component.FullyQualifiedNameMatch;
-        }
-
-        var descriptor = builder.Build();
-
-        return descriptor;
     }
 
-    private void CreateContextParameter(TagHelperDescriptorBuilder builder, string childContentName)
+    private static void CreateContextParameter(TagHelperDescriptorBuilder builder, string childContentName)
     {
         builder.BindAttribute(b =>
         {
@@ -425,14 +445,9 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             b.Metadata.Add(ComponentMetadata.Component.ChildContentParameterNameKey, bool.TrueString);
             b.Metadata.Add(TagHelperMetadata.Common.PropertyName, b.Name);
 
-            if (childContentName == null)
-            {
-                b.Documentation = ComponentResources.ChildContentParameterName_TopLevelDocumentation;
-            }
-            else
-            {
-                b.Documentation = string.Format(CultureInfo.InvariantCulture, ComponentResources.ChildContentParameterName_Documentation, childContentName);
-            }
+            b.Documentation = childContentName == null
+                ? ComponentResources.ChildContentParameterName_TopLevelDocumentation
+                : string.Format(CultureInfo.InvariantCulture, ComponentResources.ChildContentParameterName_Documentation, childContentName);
         });
     }
 
@@ -445,7 +460,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
     // - have the [Parameter] attribute
     // - have a setter, even if private
     // - are not indexers
-    private IEnumerable<(IPropertySymbol property, PropertyKind kind)> GetProperties(INamedTypeSymbol type)
+    private static Dictionary<string, (IPropertySymbol property, PropertyKind kind)>.ValueCollection GetProperties(INamedTypeSymbol type)
     {
         var properties = new Dictionary<string, (IPropertySymbol, PropertyKind)>(StringComparer.Ordinal);
         do
@@ -459,10 +474,9 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             }
 
             var members = type.GetMembers();
-            for (var i = 0; i < members.Length; i++)
+            foreach (var member in members)
             {
-                var property = members[i] as IPropertySymbol;
-                if (property == null)
+                if (member is not IPropertySymbol property)
                 {
                     // Not a property
                     continue;

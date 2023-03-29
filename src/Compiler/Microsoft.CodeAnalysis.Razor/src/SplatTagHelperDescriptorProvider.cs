@@ -46,42 +46,49 @@ internal class SplatTagHelperDescriptorProvider : ITagHelperDescriptorProvider
         context.Results.Add(CreateSplatTagHelper());
     }
 
-    private TagHelperDescriptor CreateSplatTagHelper()
+    private static TagHelperDescriptor CreateSplatTagHelper()
     {
-        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Splat.TagHelperKind, "Attributes", ComponentsApi.AssemblyName);
-        builder.CaseSensitive = true;
-        builder.Documentation = ComponentResources.SplatTagHelper_Documentation;
-
-        builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Splat.TagHelperKind);
-        builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
-        builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.Splat.RuntimeName;
-
-        // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
-        // a C# property will crash trying to create the tooltips.
-        builder.SetTypeName("Microsoft.AspNetCore.Components.Attributes");
-
-        builder.TagMatchingRule(rule =>
+        var builder = TagHelperDescriptorBuilder.GetInstance(ComponentMetadata.Splat.TagHelperKind, "Attributes", ComponentsApi.AssemblyName);
+        try
         {
-            rule.TagName = "*";
-            rule.Attribute(attribute =>
+            builder.CaseSensitive = true;
+            builder.Documentation = ComponentResources.SplatTagHelper_Documentation;
+
+            builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Splat.TagHelperKind);
+            builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
+            builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.Splat.RuntimeName;
+
+            // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
+            // a C# property will crash trying to create the tooltips.
+            builder.SetTypeName("Microsoft.AspNetCore.Components.Attributes");
+
+            builder.TagMatchingRule(rule =>
             {
-                attribute.Name = "@attributes";
-                attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                rule.TagName = "*";
+                rule.Attribute(attribute =>
+                {
+                    attribute.Name = "@attributes";
+                    attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                });
             });
-        });
 
-        builder.BindAttribute(attribute =>
-        {
-            attribute.Documentation = ComponentResources.SplatTagHelper_Documentation;
-            attribute.Name = "@attributes";
+            builder.BindAttribute(attribute =>
+            {
+                attribute.Documentation = ComponentResources.SplatTagHelper_Documentation;
+                attribute.Name = "@attributes";
 
                 // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
                 // a C# property will crash trying to create the tooltips.
                 attribute.SetPropertyName("Attributes");
-            attribute.TypeName = typeof(object).FullName;
-            attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
-        });
+                attribute.TypeName = typeof(object).FullName;
+                attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+            });
 
-        return builder.Build();
+            return builder.Build();
+        }
+        finally
+        {
+            TagHelperDescriptorBuilder.ReturnInstance(builder);
+        }
     }
 }

@@ -45,6 +45,35 @@ public abstract class TagHelperDescriptorBuilder
         return new DefaultTagHelperDescriptorBuilder(kind, name, assemblyName);
     }
 
+    /// <summary>
+    ///  Retreives a <see cref="TagHelperDescriptorBuilder"/> instance from the pool.
+    /// </summary>
+    public static TagHelperDescriptorBuilder GetInstance(string kind, string name, string assemblyName)
+    {
+        return DefaultTagHelperDescriptorBuilder.Get(kind, name, assemblyName);
+    }
+
+    /// <summary>
+    ///  Retreives a <see cref="TagHelperDescriptorBuilder"/> instance from the pool.
+    /// </summary>
+    public static TagHelperDescriptorBuilder GetInstance(string name, string assemblyName)
+    {
+        return DefaultTagHelperDescriptorBuilder.Get(name, assemblyName);
+    }
+
+    /// <summary>
+    ///  Returns a <see cref="DefaultTagHelperDescriptorBuilder"/> instance to the pool.
+    /// </summary>
+    public static void ReturnInstance(TagHelperDescriptorBuilder builder)
+    {
+        if (builder is not DefaultTagHelperDescriptorBuilder defaultBuilder)
+        {
+            return;
+        }
+
+        DefaultTagHelperDescriptorBuilder.Return(defaultBuilder);
+    }
+
     public abstract string Name { get; }
 
     public abstract string AssemblyName { get; }
