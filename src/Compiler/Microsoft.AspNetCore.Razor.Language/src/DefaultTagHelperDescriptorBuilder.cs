@@ -134,7 +134,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
 
         EnsureAttributeBuilders();
 
-        var builder = new DefaultBoundAttributeDescriptorBuilder(this, Kind);
+        var builder = DefaultBoundAttributeDescriptorBuilder.Get(this, Kind);
         configure(builder);
         _attributeBuilders.Add(builder);
     }
@@ -148,7 +148,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
 
         EnsureTagMatchingRuleBuilders();
 
-        var builder = new DefaultTagMatchingRuleDescriptorBuilder(this);
+        var builder = DefaultTagMatchingRuleDescriptorBuilder.Get(this);
         configure(builder);
         _tagMatchingRuleBuilders.Add(builder);
     }

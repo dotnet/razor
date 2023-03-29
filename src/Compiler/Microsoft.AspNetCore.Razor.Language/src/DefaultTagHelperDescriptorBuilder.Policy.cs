@@ -37,8 +37,25 @@ internal partial class DefaultTagHelperDescriptorBuilder
                 ClearBuilderList(allowedChildTagBuilders);
             }
 
-            ClearBuilderList(builder._attributeBuilders);
-            ClearBuilderList(builder._tagMatchingRuleBuilders);
+            if (builder._attributeBuilders is { } attributeBuilders)
+            {
+                foreach (var attributeBuilder in attributeBuilders)
+                {
+                    DefaultBoundAttributeDescriptorBuilder.Return(attributeBuilder);
+                }
+
+                ClearBuilderList(attributeBuilders);
+            }
+
+            if (builder._tagMatchingRuleBuilders is { } tagMatchingRuleBuilders)
+            {
+                foreach (var tagMatchingRuleBuilder in tagMatchingRuleBuilders)
+                {
+                    DefaultTagMatchingRuleDescriptorBuilder.Return(tagMatchingRuleBuilder);
+                }
+
+                ClearBuilderList(tagMatchingRuleBuilders);
+            }
 
             if (builder._diagnostics is { } diagnostics)
             {
@@ -54,13 +71,8 @@ internal partial class DefaultTagHelperDescriptorBuilder
 
             return true;
 
-            static void ClearBuilderList<T>(List<T>? builders)
+            static void ClearBuilderList<T>(List<T> builders)
             {
-                if (builders is null)
-                {
-                    return;
-                }
-
                 builders.Clear();
 
                 if (builders.Capacity > MaxSize)
