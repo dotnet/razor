@@ -27,7 +27,16 @@ internal partial class DefaultTagHelperDescriptorBuilder
             builder.CaseSensitive = false;
             builder.Documentation = null;
 
-            ClearBuilderList(builder._allowedChildTags);
+            if (builder._allowedChildTags is { } allowedChildTagBuilders)
+            {
+                foreach (var allowedChildTagBuilder in allowedChildTagBuilders)
+                {
+                    DefaultAllowedChildTagDescriptorBuilder.Return(allowedChildTagBuilder);
+                }
+
+                ClearBuilderList(allowedChildTagBuilders);
+            }
+
             ClearBuilderList(builder._attributeBuilders);
             ClearBuilderList(builder._tagMatchingRuleBuilders);
 

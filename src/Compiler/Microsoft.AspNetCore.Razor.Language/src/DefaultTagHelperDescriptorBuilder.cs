@@ -120,7 +120,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
 
         EnsureAllowedChildTags();
 
-        var builder = new DefaultAllowedChildTagDescriptorBuilder(this);
+        var builder = DefaultAllowedChildTagDescriptorBuilder.Get(this);
         configure(builder);
         _allowedChildTags.Add(builder);
     }
