@@ -38,9 +38,11 @@ internal class SourceGeneratorProjectEngine : DefaultRazorProjectEngine
         Debug.Assert(rewritePhaseIndex >= 0);
     }
 
-    public SourceGeneratorRazorCodeDocument ProcessInitialParse(RazorProjectItem projectItem)
+    public SourceGeneratorRazorCodeDocument ProcessInitialParse(RazorProjectItem projectItem, bool designTime)
     {
-        var codeDocument = CreateCodeDocumentCore(projectItem);
+        var codeDocument = designTime
+            ? CreateCodeDocumentDesignTimeCore(projectItem)
+            : CreateCodeDocumentCore(projectItem);
         ProcessPartial(codeDocument, 0, discoveryPhaseIndex);
 
         // record the syntax tree, before the tag helper re-writing occurs
