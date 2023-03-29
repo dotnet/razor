@@ -27,12 +27,7 @@ internal class AddUsingsCodeActionResolver : RazorCodeActionResolver
 
     public AddUsingsCodeActionResolver(DocumentContextFactory documentContextFactory)
     {
-        if (documentContextFactory is null)
-        {
-            throw new ArgumentNullException(nameof(documentContextFactory));
-        }
-
-        _documentContextFactory = documentContextFactory;
+        _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
     }
 
     public override string Action => LanguageServerConstants.CodeActions.AddUsing;
@@ -214,7 +209,6 @@ internal class AddUsingsCodeActionResolver : RazorCodeActionResolver
             {
                 foreach (var child in directiveNode.DescendantNodes())
                 {
-                    var context = child.GetEditHandler();
                     if (child.GetChunkGenerator() is AddImportChunkGenerator { IsStatic: false } usingStatement)
                     {
                         directives.Add(new RazorUsingDirective(directiveNode, usingStatement));
@@ -238,7 +232,7 @@ internal class AddUsingsCodeActionResolver : RazorCodeActionResolver
         return false;
     }
 
-    private struct RazorUsingDirective
+    private readonly struct RazorUsingDirective
     {
         readonly public RazorDirectiveSyntax Node { get; }
         readonly public AddImportChunkGenerator Statement { get; }

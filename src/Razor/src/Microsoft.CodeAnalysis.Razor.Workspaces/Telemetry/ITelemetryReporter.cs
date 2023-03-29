@@ -3,13 +3,12 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.VisualStudio.Telemetry;
 
 namespace Microsoft.AspNetCore.Razor.Telemetry;
 
 public interface ITelemetryReporter
 {
-    void ReportEvent(string name, TelemetrySeverity severity);
-    void ReportEvent<T>(string name, TelemetrySeverity severity, ImmutableDictionary<string, T> values);
+    void ReportEvent(string name, Severity severity);
+    void ReportEvent<T>(string name, Severity severity, ImmutableDictionary<string, T> values);
     void ReportFault(Exception exception, string? message, params object?[] @params);
 }

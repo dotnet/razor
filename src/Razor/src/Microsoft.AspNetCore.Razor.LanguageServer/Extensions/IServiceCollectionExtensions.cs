@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
@@ -70,12 +71,12 @@ internal static class IServiceCollectionExtensions
         if (featureOptions.SingleServerCompletionSupport)
         {
             services.AddRegisteringHandler<RazorCompletionEndpoint>();
-            services.AddHandler<RazorCompletionResolveEndpoint>();
+            services.AddRegisteringHandler<RazorCompletionResolveEndpoint>();
         }
         else
         {
             services.AddRegisteringHandler<LegacyRazorCompletionEndpoint>();
-            services.AddHandler<LegacyRazorCompletionResolveEndpoint>();
+            services.AddRegisteringHandler<LegacyRazorCompletionResolveEndpoint>();
         }
 
         services.AddSingleton<CompletionListCache>();
@@ -134,7 +135,6 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<CSharpCodeActionProvider, TypeAccessibilityCodeActionProvider>();
         services.AddSingleton<CSharpCodeActionProvider, DefaultCSharpCodeActionProvider>();
         services.AddSingleton<CSharpCodeActionResolver, DefaultCSharpCodeActionResolver>();
-        services.AddSingleton<CSharpCodeActionResolver, AddUsingsCSharpCodeActionResolver>();
         services.AddSingleton<CSharpCodeActionResolver, UnformattedRemappingCSharpCodeActionResolver>();
 
         // Razor Code actions
