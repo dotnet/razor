@@ -69,7 +69,7 @@ internal abstract class TagHelperResolver : IWorkspaceService
             timingDictionary[propertyName] = stopWatch.ElapsedMilliseconds;
         }
 
-        _telemetryReporter?.ReportEvent("taghelperresolver/gettaghelpers", VisualStudio.Telemetry.TelemetrySeverity.Normal, timingDictionary.ToImmutableDictionary());
+        _telemetryReporter?.ReportEvent("taghelperresolver/gettaghelpers", Severity.Normal, timingDictionary.ToImmutableDictionary());
         return new TagHelperResolutionResult(results, Array.Empty<RazorDiagnostic>());
     }
 

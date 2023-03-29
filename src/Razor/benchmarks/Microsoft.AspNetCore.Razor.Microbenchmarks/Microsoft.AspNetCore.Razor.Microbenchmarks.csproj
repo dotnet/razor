@@ -43,9 +43,6 @@
     <Compile Include="..\..\test\Microsoft.CodeAnalysis.Razor.Workspaces.Test.Common\TestWorkspaceServices.cs">
       <Link>TestServices\%(FileName)%(Extension)</Link>
     </Compile>
-    <Compile Include="..\..\test\Microsoft.AspNetCore.Razor.Test.Common\NoOpTelemetryReporter.cs">
-      <Link>TestServices\%(FileName)%(Extension)</Link>
-    </Compile>
 
     <None Remove=".gitignore" />
     <None Remove="BenchmarkDotNet.Artifacts\**" />
