@@ -341,7 +341,7 @@ stages:
             displayName: Build
             condition: succeeded()
         - publish: artifacts/TestResults/$(_BuildConfig)
-          artifactName: $(Agent.Os)_$(Agent.JobName) TestResults
+          artifact: $(Agent.Os)_$(Agent.JobName) TestResults
           displayName: Publish Test Results
           condition: always()
 
