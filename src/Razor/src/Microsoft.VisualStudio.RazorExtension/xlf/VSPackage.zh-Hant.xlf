@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Setting_AutoClosingTagsDisplayName">
         <source>Auto Insert Closing Tag</source>
-        <target state="new">Auto Insert Closing Tag</target>
+        <target state="translated">自動插入結尾標籤</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDescription">
