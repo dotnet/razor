@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Telemetry;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -48,7 +49,8 @@ public class Program
         var server = RazorLanguageServerWrapper.Create(
             Console.OpenStandardInput(),
             Console.OpenStandardOutput(),
-            logger);
+            logger,
+            NoOpTelemetryReporter.Instance);
         await server.WaitForExitAsync();
     }
 }

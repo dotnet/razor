@@ -24,26 +24,24 @@ internal class TelemetryReporter : ITelemetryReporter
     public TelemetryReporter(
         [Import(AllowDefault = true)] ILoggerFactory? loggerFactory = null,
         [ImportMany] IEnumerable<IFaultExceptionHandler>? faultExceptionHandlers = null)
-        : this(ImmutableArray.Create(TelemetryService.DefaultSession), loggerFactory, faultExceptionHandlers)
     {
-    }
-
-    public TelemetryReporter(ImmutableArray<TelemetrySession> telemetrySessions, ILoggerFactory? loggerFactory, IEnumerable<IFaultExceptionHandler>? faultExceptionHandlers)
-    {
-        _telemetrySessions = telemetrySessions;
+        // Get the DefaultSession for telemetry. This is set by VS with
+        // TelemetryService.SetDefaultSession and provides the correct
+        // appinsights keys etc
+        _telemetrySessions = ImmutableArray.Create(TelemetryService.DefaultSession);
         _faultExceptionHandlers = faultExceptionHandlers ?? Array.Empty<IFaultExceptionHandler>();
         _logger = loggerFactory?.CreateLogger<TelemetryReporter>();
     }
 
-    public void ReportEvent(string name, TelemetrySeverity severity)
+    public void ReportEvent(string name, Severity severity)
     {
-        var telemetryEvent = new TelemetryEvent(GetTelemetryName(name), severity);
+        var telemetryEvent = new TelemetryEvent(GetTelemetryName(name), ToTelemetrySeverity(severity));
         Report(telemetryEvent);
     }
 
-    public void ReportEvent<T>(string name, TelemetrySeverity severity, ImmutableDictionary<string, T> values)
+    public void ReportEvent<T>(string name, Severity severity, ImmutableDictionary<string, T> values)
     {
-        var telemetryEvent = new TelemetryEvent(GetTelemetryName(name), severity);
+        var telemetryEvent = new TelemetryEvent(GetTelemetryName(name), ToTelemetrySeverity(severity));
         foreach (var (propertyName, propertyValue) in values)
         {
             telemetryEvent.Properties.Add(GetPropertyName(propertyName), new TelemetryComplexProperty(propertyValue));
@@ -200,4 +198,13 @@ internal class TelemetryReporter : ITelemetryReporter
         // If we couldn't get a stack, do this
         return exception.Message;
     }
+
+    private static TelemetrySeverity ToTelemetrySeverity(Severity severity)
+        => severity switch
+        {
+            Severity.Normal => TelemetrySeverity.Normal,
+            Severity.Low => TelemetrySeverity.Low,
+            Severity.High => TelemetrySeverity.High,
+            _ => throw new InvalidOperationException($"Unknown severity: {severity}")
+        };
 }
