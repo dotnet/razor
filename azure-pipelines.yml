@@ -329,34 +329,16 @@ stages:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
 
         - script: eng/cibuild.sh
-            --restore
-            --nobl
-            $(_BuildArgs)
-            $(_InternalRuntimeDownloadArgs)
-          name: Restore
-          displayName: Restore
-          condition: succeeded()
-
-        - script: eng/cibuild.sh
             --build
             --pack
             --publish
             --configuration $(_BuildConfig)
             --prepareMachine
+            --test
             $(_BuildArgs)
             $(_InternalRuntimeDownloadArgs)
           name: Build
-          displayName: Build
-          condition: succeeded()
-
-        - script: eng/cibuild.sh
-            --test
-            --nobl
-            --restore
-            $(_BuildArgs)
-            $(_InternalRuntimeDownloadArgs)
-          name: Test
-          displayName: Test
+          displayName: Restore, Build and Test
           condition: succeeded()
 
         - publish: artifacts/TestResults/$(_BuildConfig)
@@ -413,34 +395,16 @@ stages:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
 
         - script: eng/cibuild.sh
-            --restore
-            --nobl
-            $(_BuildArgs)
-            $(_InternalRuntimeDownloadArgs)
-          name: Restore
-          displayName: Restore
-          condition: succeeded()
-
-        - script: eng/cibuild.sh
             --build
             --pack
             --publish
             --configuration $(_BuildConfig)
             --prepareMachine
+            --test
             $(_BuildArgs)
             $(_InternalRuntimeDownloadArgs)
           name: Build
-          displayName: Build
-          condition: succeeded()
-
-        - script: eng/cibuild.sh
-            --test
-            --nobl
-            --restore
-            $(_BuildArgs)
-            $(_InternalRuntimeDownloadArgs)
-          name: Test
-          displayName: Test
+          displayName: Restore, Build and Test
           condition: succeeded()
 
         - publish: artifacts/TestResults/$(_BuildConfig)/
