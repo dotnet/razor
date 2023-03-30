@@ -305,6 +305,14 @@ stages:
             matrix:
               release:
                 _BuildConfig: Release
+        variables:
+        - _BuildArgs: ''
+
+        # Variables for internal Official builds
+        - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+          - _BuildArgs: /p:DotNetPublishUsingPipelines=true
+              /p:OfficialBuildId=$(Build.BuildNumber)
+
         steps:
         - task: NodeTool@0
           displayName: Install Node 10.x
@@ -318,34 +326,21 @@ stages:
               arguments: $(Build.SourcesDirectory)/NuGet.config $Token
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
-        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - script: eng/cibuild.sh
-              --restore
-              --build
-              --test
-              --pack
-              --publish
-              --configuration $(_BuildConfig)
-              --prepareMachine
-              /p:DotNetPublishUsingPipelines=true
-              /p:OfficialBuildId=$(Build.BuildNumber)
-              $(_InternalRuntimeDownloadArgs)
-            name: Build
-            displayName: Build
-            condition: succeeded()
-        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-          - script: eng/cibuild.sh
-              --restore
-              --build
-              --test
-              --pack
-              --publish
-              --configuration $(_BuildConfig)
-              --prepareMachine
-              $(_InternalRuntimeDownloadArgs)
-            name: Build
-            displayName: Build
-            condition: succeeded()
+
+        - script: eng/cibuild.sh
+            --restore
+            --build
+            --test
+            --pack
+            --publish
+            --configuration $(_BuildConfig)
+            --prepareMachine
+            $(_BuildArgs)
+            $(_InternalRuntimeDownloadArgs)
+          name: Build
+          displayName: Build
+          condition: succeeded()
+
         - publish: artifacts/TestResults/$(_BuildConfig)
           artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
           displayName: Publish Test Results
@@ -362,10 +357,6 @@ stages:
             name: $(DncEngInternalBuildPool)
             demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
 
-        variables:
-        - LC_ALL: 'en_US.UTF-8'
-        - LANG: 'en_US.UTF-8'
-        - LANGUAGE: 'en_US.UTF-8'
         strategy:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
             matrix:
@@ -377,6 +368,18 @@ stages:
             matrix:
               release:
                 _BuildConfig: Release
+
+        variables:
+        - LC_ALL: 'en_US.UTF-8'
+        - LANG: 'en_US.UTF-8'
+        - LANGUAGE: 'en_US.UTF-8'
+        - _BuildArgs: ''
+
+        # Variables for internal Official builds
+        - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+          - _BuildArgs: /p:DotNetPublishUsingPipelines=true
+              /p:OfficialBuildId=$(Build.BuildNumber)
+
         steps:
         - task: NodeTool@0
           displayName: Install Node 10.x
@@ -390,34 +393,21 @@ stages:
               arguments: $(Build.SourcesDirectory)/NuGet.config $Token
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
-        - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - script: eng/cibuild.sh
-              --restore
-              --build
-              --pack
-              --test
-              --publish
-              --configuration $(_BuildConfig)
-              --prepareMachine
-              /p:DotNetPublishUsingPipelines=true
-              /p:OfficialBuildId=$(Build.BuildNumber)
-              $(_InternalRuntimeDownloadArgs)
-            name: Build
-            displayName: Build
-            condition: succeeded()
-        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-          - script: eng/cibuild.sh
-              --restore
-              --build
-              --pack
-              --test
-              --publish
-              --configuration $(_BuildConfig)
-              --prepareMachine
-              $(_InternalRuntimeDownloadArgs)
-            name: Build
-            displayName: Build
-            condition: succeeded()
+
+        - script: eng/cibuild.sh
+            --restore
+            --build
+            --pack
+            --test
+            --publish
+            --configuration $(_BuildConfig)
+            --prepareMachine
+            $(_BuildArgs)
+            $(_InternalRuntimeDownloadArgs)
+          name: Build
+          displayName: Build
+          condition: succeeded()
+
         - publish: artifacts/TestResults/$(_BuildConfig)/
           artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
           displayName: Publish Test Results
