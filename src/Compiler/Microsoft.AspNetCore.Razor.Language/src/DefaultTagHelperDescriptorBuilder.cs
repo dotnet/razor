@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
@@ -21,13 +20,11 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder, I
     private static readonly ObjectPool<HashSet<TagMatchingRuleDescriptor>> s_tagMatchingRuleSetPool
         = HashSetPool<TagMatchingRuleDescriptor>.Create(TagMatchingRuleDescriptorComparer.Default);
 
-    // Required values
-    private readonly ImmutableDictionary<string, string>.Builder _metadata;
-
     private List<DefaultAllowedChildTagDescriptorBuilder>? _allowedChildTags;
     private List<DefaultBoundAttributeDescriptorBuilder>? _attributeBuilders;
     private List<DefaultTagMatchingRuleDescriptorBuilder>? _tagMatchingRuleBuilders;
     private RazorDiagnosticCollection? _diagnostics;
+    private readonly Dictionary<string, string> _metadata;
 
     public DefaultTagHelperDescriptorBuilder(string kind, string name, string assemblyName)
     {
@@ -35,11 +32,12 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder, I
         Name = name;
         AssemblyName = assemblyName;
 
-        _metadata = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.Ordinal);
-
-        // Tells code generation that these tag helpers are compatible with ITagHelper.
-        // For now that's all we support.
-        _metadata.Add(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
+        _metadata = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            // Tells code generation that these tag helpers are compatible with ITagHelper.
+            // For now that's all we support.
+            { TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind }
+        };
     }
 
     public override string Name { get; }
@@ -153,7 +151,7 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder, I
             tagMatchingRules,
             attributes,
             allowedChildTags,
-            _metadata.ToImmutable(),
+            MetadataCollection.Create(_metadata),
             diagnostics.ToArray());
 
         return descriptor;

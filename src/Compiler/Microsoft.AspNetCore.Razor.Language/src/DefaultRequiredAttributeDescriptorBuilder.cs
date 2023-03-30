@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -12,12 +11,11 @@ internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDesc
 {
     private readonly DefaultTagMatchingRuleDescriptorBuilder _parent;
     private RazorDiagnosticCollection? _diagnostics;
-    private readonly ImmutableDictionary<string, string>.Builder _metadata;
+    private Dictionary<string, string>? _metadata;
 
     public DefaultRequiredAttributeDescriptorBuilder(DefaultTagMatchingRuleDescriptorBuilder parent)
     {
         _parent = parent;
-        _metadata = ImmutableDictionary.CreateBuilder<string, string>();
     }
 
     public override string? Name { get; set; }
@@ -30,7 +28,7 @@ internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDesc
 
     public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
-    public override IDictionary<string, string> Metadata => _metadata;
+    public override IDictionary<string, string> Metadata => _metadata ??= new Dictionary<string, string>();
 
     internal bool CaseSensitive => _parent.CaseSensitive;
 
@@ -53,7 +51,7 @@ internal class DefaultRequiredAttributeDescriptorBuilder : RequiredAttributeDesc
                 ValueComparisonMode,
                 displayName,
                 diagnostics.ToArray(),
-                _metadata.ToImmutable());
+                MetadataCollection.CreateOrEmpty(_metadata));
 
             return descriptor;
         }
