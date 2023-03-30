@@ -23,8 +23,8 @@
       <RidsPublishDir>$(ArtifactsDir)LanguageServer\$(Configuration)\</RidsPublishDir>
       <ZipOutputDir>$(RidsPublishDir)</ZipOutputDir>
       <_PackageVersion>@(_ResolvedPackageVersionInfo->'%(PackageVersion)')</_PackageVersion>
-      <_DotNetPath>$(MSBuildThisFileDirectory)..\.dotnet\dotnet</_DotNetPath>
-      <_DotNetPath Condition="!Exists($(_DotNetPath))">dotnet</_DotNetPath>
+      <_DotNetPath>$(DOTNET_HOST_PATH)</_DotNetPath>
+      <_DotNetPath Condition="'$(_DotNetPath)' == ''">dotnet</_DotNetPath>
     </PropertyGroup>
 
     <ItemGroup>
