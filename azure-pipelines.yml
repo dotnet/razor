@@ -352,6 +352,7 @@ stages:
         - script: eng/cibuild.sh
             --test
             --nobl
+            --restore
             $(_BuildArgs)
             $(_InternalRuntimeDownloadArgs)
           name: Test
@@ -435,6 +436,7 @@ stages:
         - script: eng/cibuild.sh
             --test
             --nobl
+            --restore
             $(_BuildArgs)
             $(_InternalRuntimeDownloadArgs)
           name: Test
