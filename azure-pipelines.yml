@@ -329,6 +329,7 @@ stages:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
 
         - script: eng/cibuild.sh
+            --restore
             --build
             --pack
             --publish
@@ -395,6 +396,7 @@ stages:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
 
         - script: eng/cibuild.sh
+            --restore
             --build
             --pack
             --publish
