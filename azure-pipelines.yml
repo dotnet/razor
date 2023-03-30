@@ -206,7 +206,7 @@ stages:
             -msbuildEngine vs
             -prepareMachine
             -restore
-            -excludeCIBinarylog
+            -nobl
           name: Restore
           displayName: Restore
           condition: succeeded()
@@ -233,6 +233,7 @@ stages:
             -configuration $(_BuildConfig)
             -prepareMachine
             -test
+            -nobl
           name: Run_Unit_Tests
           displayName: Run Unit Tests
           condition: succeeded()
@@ -329,7 +330,7 @@ stages:
 
         - script: eng/cibuild.sh
             --restore
-            --excludeCIBinaryLog
+            --nobl
             $(_BuildArgs)
             $(_InternalRuntimeDownloadArgs)
           name: Restore
@@ -350,7 +351,7 @@ stages:
 
         - script: eng/cibuild.sh
             --test
-            --excludeCIBinaryLog
+            --nobl
             $(_BuildArgs)
             $(_InternalRuntimeDownloadArgs)
           name: Test
@@ -412,7 +413,7 @@ stages:
 
         - script: eng/cibuild.sh
             --restore
-            --excludeCIBinaryLog
+            --nobl
             $(_BuildArgs)
             $(_InternalRuntimeDownloadArgs)
           name: Restore
@@ -433,7 +434,7 @@ stages:
 
         - script: eng/cibuild.sh
             --test
-            --excludeCIBinaryLog
+            --nobl
             $(_BuildArgs)
             $(_InternalRuntimeDownloadArgs)
           name: Test
