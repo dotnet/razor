@@ -19,8 +19,14 @@ internal static class ListExtensions
         }
     }
 
-    // On .NET Framework, List<T>.ToArray() will create a new empty array for any
-    // empty List<T>. This avoids that extra allocation.
+    /// <summary>
+    ///  Copies the elements of the <see cref="List{T}"/> to a new array, or returns an
+    ///  empty array if the <see cref="List{T}"/> is null.
+    /// </summary>
+    /// <remarks>
+    ///  On .NET Framework, <see cref="List{T}.ToArray()"/> will create a new empty array for any
+    ///  empty <see cref="List{T}"/>. This method avoids that extra allocation.
+    /// </remarks>
     public static T[] ToArrayOrEmpty<T>(this List<T>? list)
         => list?.Count > 0
             ? list.ToArray()

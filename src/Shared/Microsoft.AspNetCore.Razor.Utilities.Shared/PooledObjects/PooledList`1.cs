@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.ObjectPool;
 
@@ -9,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
 /// <summary>
 ///  Wraps a pooled <see cref="List{T}"/> but doesn't allocate it until
-///  it's needed. Note: Dispose this to ensure that the pooled set is returned
+///  it's needed. Note: Dispose this to ensure that the pooled list is returned
 ///  to the pool.
 /// </summary>
 internal ref struct PooledList<T>
@@ -60,9 +59,9 @@ internal ref struct PooledList<T>
 
     public void ClearAndFree()
     {
-        if (_list is { } set)
+        if (_list is { } list)
         {
-            _pool.Return(set);
+            _pool.Return(list);
             _list = null;
         }
     }

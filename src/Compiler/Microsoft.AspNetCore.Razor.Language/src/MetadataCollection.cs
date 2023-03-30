@@ -11,7 +11,7 @@ using Microsoft.Extensions.Internal;
 namespace Microsoft.AspNetCore.Razor.Language;
 
 /// <summary>
-///  Generally, there are only a handful of metadata data items stored on the various tag helper
+///  Generally, there are only a handful of metadata items stored on the various tag helper
 ///  objects. Often, it's just one or two items. To improve memory usage, MetadataCollection provides
 ///  multiple implementations to avoid creating a hash table.
 /// </summary>
@@ -670,6 +670,11 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
             }
 
             if (other is not FourOrMoreItems)
+            {
+                return false;
+            }
+
+            if (_count != other.Count)
             {
                 return false;
             }

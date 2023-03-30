@@ -86,14 +86,14 @@ public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
 
     internal bool? IsComponentFullyQualifiedNameMatchCache
     {
-        get => GetTriStateFlags(IsComponentFullyQualifiedNameMatchCacheSetBit, IsComponentFullyQualifiedNameMatchCacheBit);
-        set => UpdateTriStateFlags(value, IsComponentFullyQualifiedNameMatchCacheSetBit, IsComponentFullyQualifiedNameMatchCacheBit);
+        get => GetTriStateFlags(isSetFlag: IsComponentFullyQualifiedNameMatchCacheSetBit, isOnFlag: IsComponentFullyQualifiedNameMatchCacheBit);
+        set => UpdateTriStateFlags(value, isSetFlag: IsComponentFullyQualifiedNameMatchCacheSetBit, isOnFlag: IsComponentFullyQualifiedNameMatchCacheBit);
     }
 
     internal bool? IsChildContentTagHelperCache
     {
-        get => GetTriStateFlags(IsChildContentTagHelperCacheBit, IsChildContentTagHelperCacheSetBit);
-        set => UpdateTriStateFlags(value, IsChildContentTagHelperCacheBit, IsChildContentTagHelperCacheSetBit);
+        get => GetTriStateFlags(isSetFlag: IsChildContentTagHelperCacheSetBit, isOnFlag: IsChildContentTagHelperCacheBit);
+        set => UpdateTriStateFlags(value, isSetFlag: IsChildContentTagHelperCacheSetBit, isOnFlag: IsChildContentTagHelperCacheBit);
     }
 
     private bool? GetTriStateFlags(int isSetFlag, int isOnFlag)
@@ -190,6 +190,7 @@ public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
             }
 
             // BUG?: Diagnostics on BoundAttributeParameterDescriptors are not collected here.
+            // https://github.com/dotnet/razor/issues/8544
 
             foreach (var rule in TagMatchingRules)
             {
