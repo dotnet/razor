@@ -7,7 +7,7 @@ internal partial class DefaultTagMatchingRuleDescriptorBuilder
 {
     private sealed class Policy : TagHelperPooledObjectPolicy<DefaultTagMatchingRuleDescriptorBuilder>
     {
-        public static Policy Instance = new();
+        public static readonly Policy Instance = new();
 
         public override DefaultTagMatchingRuleDescriptorBuilder Create() => new();
 

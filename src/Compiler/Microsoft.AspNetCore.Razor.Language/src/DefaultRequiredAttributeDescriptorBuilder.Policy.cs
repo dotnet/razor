@@ -7,7 +7,7 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder
 {
     private sealed class Policy : TagHelperPooledObjectPolicy<DefaultRequiredAttributeDescriptorBuilder>
     {
-        public static Policy Instance = new();
+        public static readonly Policy Instance = new();
 
         public override DefaultRequiredAttributeDescriptorBuilder Create() => new();
 

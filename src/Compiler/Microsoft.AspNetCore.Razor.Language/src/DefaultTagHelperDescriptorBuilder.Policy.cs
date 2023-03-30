@@ -7,7 +7,7 @@ internal partial class DefaultTagHelperDescriptorBuilder
 {
     private sealed class Policy : TagHelperPooledObjectPolicy<DefaultTagHelperDescriptorBuilder>
     {
-        public static Policy Instance = new();
+        public static readonly Policy Instance = new();
 
         public override DefaultTagHelperDescriptorBuilder Create() => new();
 
