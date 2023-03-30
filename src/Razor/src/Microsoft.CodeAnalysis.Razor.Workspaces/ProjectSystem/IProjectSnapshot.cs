@@ -25,8 +25,6 @@ internal interface IProjectSnapshot
     RazorProjectEngine GetProjectEngine();
     IDocumentSnapshot? GetDocument(string filePath);
     bool IsImportDocument(IDocumentSnapshot document);
-    Task<RazorCodeDocument> GetCodeDocumentAsync(IDocumentSnapshot documentSnapshot);
-
 
     /// <summary>
     /// If the provided document is an import document, gets the other documents in the project

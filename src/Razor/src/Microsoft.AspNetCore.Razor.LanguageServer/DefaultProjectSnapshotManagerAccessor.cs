@@ -16,25 +16,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.RpcContracts.Documents;
+using System.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
-
-
-//internal class SnapshotHandler : IRazorRequestHandler<GetHostOutputRequest, GetHostOutputResponse>
-//{
-//    public bool MutatesSolutionState => false;
-
-//    public TextDocumentIdentifier GetTextDocumentIdentifier(GetHostOutputRequest request)
-//    {
-//        throw new NotImplementedException();
-//    }
-
-//    public Task<GetHostOutputResponse> HandleRequestAsync(GetHostOutputRequest request, RazorRequestContext context, CancellationToken cancellationToken)
-//    {
-//        throw new NotImplementedException();
-//    }
-//}
-
 
 
 internal class LspHostOutput : IGeneratorSnapshotProvider
@@ -46,9 +30,11 @@ internal class LspHostOutput : IGeneratorSnapshotProvider
         _notifier = notifier;
     }
 
-    public async Task GetGenerateDocumentsAsync(IDocumentSnapshot documentSnapshot)
+    public async Task<(string CSharp, string Html)> GetGenerateDocumentsAsync(IDocumentSnapshot documentSnapshot)
     {
-        // ask the LSP for the generated doc based on file path (and other stuff)
+        var projectRoot = documentSnapshot.Project.FilePath.Substring(0, documentSnapshot.Project.FilePath.LastIndexOf("/"));
+        var documentName = GetIdentifierFromPath(documentSnapshot.FilePath?.Substring(projectRoot.Length + 1) ?? "") + ".g.cs";
+
         var request = new GetHostOutputRequest()
         {
             TextDocument = new TextDocumentIdentifier()
@@ -59,12 +45,41 @@ internal class LspHostOutput : IGeneratorSnapshotProvider
                     Path = documentSnapshot.FilePath,
                     Host = string.Empty,
                 }.Uri
+            },
+            GeneratorName = "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator",
+            RequestedOutputs = new[]
+            {
+                documentName + ".rsg-cs",
+                documentName + ".rsg-html",
             }
         };
 
         var response = await _notifier.SendRequestAsync<GetHostOutputRequest, GetHostOutputResponse>(RazorLanguageServerCustomMessageTargets.RazorHostOutputsEndpointName, request, CancellationToken.None);
-        //Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Response to get gen was:" + response.Response);
+        return (response.Outputs[0] ?? string.Empty, response.Outputs[1] ?? string.Empty);  //TODO: do this on the roslyn side?
     }
+
+    //copied from the generator
+    private static string GetIdentifierFromPath(string filePath)
+    {
+        var builder = new StringBuilder(filePath.Length);
+
+        for (var i = 0; i < filePath.Length; i++)
+        {
+            switch (filePath[i])
+            {
+                case ':' or '\\' or '/':
+                case char ch when !char.IsLetterOrDigit(ch):
+                    builder.Append('_');
+                    break;
+                default:
+                    builder.Append(filePath[i]);
+                    break;
+            }
+        }
+
+        return builder.ToString();
+    }
+
 }
 
 internal class DefaultProjectSnapshotManagerAccessor : ProjectSnapshotManagerAccessor, IDisposable

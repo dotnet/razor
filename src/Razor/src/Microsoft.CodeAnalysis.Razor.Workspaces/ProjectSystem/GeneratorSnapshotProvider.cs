@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal interface IGeneratorSnapshotProvider : IWorkspaceService
 {
-    Task GetGenerateDocumentsAsync(IDocumentSnapshot documentSnapshot);
+    Task<(string CSharp, string Html)> GetGenerateDocumentsAsync(IDocumentSnapshot documentSnapshot);
 }
 
 //internal class GeneratorSnapshotProvider : IWorkspaceService

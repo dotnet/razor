@@ -12,6 +12,8 @@
     <NoWarn>$(NoWarn);RS2008;RS1036</NoWarn>
     <Nullable>enable</Nullable>
     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+    <DebugType>full</DebugType>
+
   </PropertyGroup>
 
   <ItemGroup>

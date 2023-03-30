@@ -113,7 +113,7 @@ internal class ProjectSnapshot : IProjectSnapshot
 
     private GeneratorDriverRunResult? _runResult;
 
-    public async Task<RazorCodeDocument> GetCodeDocumentAsync(IDocumentSnapshot documentSnapshot)
+    public async Task<(string CSharp, string Html)> GetGeneratedDocumentsAsync(IDocumentSnapshot documentSnapshot)
     {
         //Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("GetCodeDocumentAsync: "+filePath);
 
@@ -124,11 +124,12 @@ internal class ProjectSnapshot : IProjectSnapshot
         //            probably need the TCS pattern thingy again
 
         var snapshotService = State.Services.GetService<IGeneratorSnapshotProvider>();
-        Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message(this.State.Services.Workspace.CurrentSolution.Id.Id + HostProject.FilePath + ":Snaphost sevice is null: "+(snapshotService is null));
-
+        //Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message(this.State.Services.Workspace.CurrentSolution.Id.Id + HostProject.FilePath + ":Snaphost sevice is null: "+(snapshotService is null));
+        
         if (snapshotService is not null)
         {
-            await snapshotService.GetGenerateDocumentsAsync(documentSnapshot);
+            var result = await snapshotService.GetGenerateDocumentsAsync(documentSnapshot);
+            return result;
         }
 
         //if (_runResult is null)
@@ -155,6 +156,6 @@ internal class ProjectSnapshot : IProjectSnapshot
         // TODO: extract from the run-result the actual file
 
         // PROTOTYPE: how do we handle the case where we couldn't get the result?
-        return null!;
+        return ("", "");
     }
 }

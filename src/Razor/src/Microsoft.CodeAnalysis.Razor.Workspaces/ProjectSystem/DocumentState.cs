@@ -503,12 +503,29 @@ internal class DocumentState
             //           actually, is that true? Surely we'd create the snapshot with the data already generated? No, maybe not. Hmm. Argh, not sure. 
             // lets see what it looks like we if were to ask the project for the data here.
 
-            var codeDoc2 = project.GetCodeDocumentAsync(document);
+            var codeDoc2 = await project.GetGeneratedDocumentsAsync(document);
 
+            RazorCodeDocument codeDocument;
+            if (codeDoc2.CSharp != "")
+            {
+                codeDocument = RazorCodeDocument.Create(documentSource, importSources);
+                codeDocument.SetTagHelpers(project.TagHelpers); // TODO: are these only used for processing, or are they used elsewhere?
+                codeDocument.SetFileKind(document.FileKind);
 
+                var csharpDocument = RazorCSharpDocument.Create(codeDocument, codeDoc2.CSharp, RazorCodeGenerationOptions.CreateDesignTimeDefault(), Array.Empty<RazorDiagnostic>());
+                codeDocument.SetCSharpDocument(csharpDocument);
 
+                var htmlDocument = RazorHtmlDocument.Create(codeDocument, codeDoc2.Html, RazorCodeGenerationOptions.CreateDesignTimeDefault(), Array.Empty<SourceMapping>());
+                codeDocument.SetHtmlDocument(htmlDocument);
 
-            var codeDocument = projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources, project.TagHelpers);
+                Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Retrieved document from service");
+            }
+            else
+            {
+                codeDocument = projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources, project.TagHelpers);
+                Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Generated document locally");
+            }
+
             return (codeDocument, inputVersion);
         }
 

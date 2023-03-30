@@ -91,10 +91,4 @@ internal class EphemeralProjectSnapshot : IProjectSnapshot
         var factory = _services.GetRequiredService<ProjectSnapshotProjectEngineFactory>();
         return factory.Create(this);
     }
-
-    public Task<RazorCodeDocument> GetCodeDocumentAsync(IDocumentSnapshot documentSnapshot)
-    {
-        throw new NotImplementedException();
-    }
-
 }

@@ -59,6 +59,7 @@ internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGene
         _projectManager = projectManager;
 
         _tagHelperResolver = _projectManager.Workspace.Services.GetRequiredService<TagHelperResolver>();
+        var x = _projectManager.Workspace.Services.GetService<IGeneratorSnapshotProvider>();
     }
 
     public override void Update(Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)

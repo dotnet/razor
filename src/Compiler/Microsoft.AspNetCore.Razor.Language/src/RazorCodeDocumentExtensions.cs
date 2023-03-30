@@ -160,6 +160,16 @@ public static class RazorCodeDocumentExtensions
         document.Items[typeof(DocumentIntermediateNode)] = documentNode;
     }
 
+    internal static void SetHtmlDocument(this RazorCodeDocument document, RazorHtmlDocument htmlDocument)
+    {
+        if (htmlDocument == null)
+        {
+            throw new ArgumentNullException(nameof(htmlDocument));
+        }
+
+        document.Items[typeof(RazorHtmlDocument)] = htmlDocument;
+    }
+
     internal static RazorHtmlDocument GetHtmlDocument(this RazorCodeDocument document)
     {
         if (document == null)

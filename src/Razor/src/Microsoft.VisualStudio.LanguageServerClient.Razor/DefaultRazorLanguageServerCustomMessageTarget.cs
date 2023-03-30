@@ -1152,32 +1152,10 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
     public override async Task<GetHostOutputResponse?> HostOutputsAsync(GetHostOutputRequest request, CancellationToken cancellationToken)
     {
-        //try
-        //{
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<GetHostOutputRequest, GetHostOutputResponse>(RazorGetHostOutputHandler.MethodName, RazorLSPConstants.RazorCSharpLanguageServerName, request, cancellationToken);
 
-        if (_documentManager.TryGetDocument(request.TextDocument.Uri, out var documentSnapshot))
-        {
-            //var delegatedRequest = new GetHostOutputRequest()
-            //{
-            //    TextDocument = new TextDocumentIdentifier
-            //    {
-            //        Uri = documentSnapshot.Uri,
-            //    },
-            //};
-
-            var result = await _requestInvoker.ReinvokeRequestOnServerAsync<GetHostOutputRequest, GetHostOutputResponse>(RazorGetHostOutputHandler.MethodName, RazorLSPConstants.RazorCSharpLanguageServerName, request, cancellationToken);
-            return null;
-        }
-
-        return null;
-
-        //}
-        //catch (Exception)
-        //{
-        //    int a = 4;
-        //}
-        ////return result.Result; 
-        //return n
+        // PROTOTYPE: do we need to check success, or just let the outer handler deal with it?
+        return response.Result;
     }
 
     public override async Task<RazorPullDiagnosticResponse?> DiagnosticsAsync(DelegatedDiagnosticParams request, CancellationToken cancellationToken)
