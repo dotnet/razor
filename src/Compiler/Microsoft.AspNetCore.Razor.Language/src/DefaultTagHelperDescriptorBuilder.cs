@@ -24,9 +24,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         builder._name = name;
         builder._assemblyName = assemblyName;
 
-        // Tells code generation that these tag helpers are compatible with ITagHelper.
-        // For now that's all we support.
-        builder._metadata.Add(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
+        builder.InitializeMetadata();
 
         return builder;
     }
@@ -65,9 +63,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         _name = name;
         _assemblyName = assemblyName;
 
-        // Tells code generation that these tag helpers are compatible with ITagHelper.
-        // For now that's all we support.
-        _metadata.Add(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
+        InitializeMetadata();
     }
 
     public override string Kind => _kind.AssumeNotNull();
@@ -209,5 +205,12 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
     private void EnsureTagMatchingRuleBuilders()
     {
         _tagMatchingRuleBuilders ??= new List<DefaultTagMatchingRuleDescriptorBuilder>();
+    }
+
+    private void InitializeMetadata()
+    {
+        // Tells code generation that these tag helpers are compatible with ITagHelper.
+        // For now that's all we support.
+        _metadata.Add(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
     }
 }
