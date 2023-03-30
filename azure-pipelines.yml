@@ -329,8 +329,15 @@ stages:
 
         - script: eng/cibuild.sh
             --restore
+            --excludeCIBinaryLog
+            $(_BuildArgs)
+            $(_InternalRuntimeDownloadArgs)
+          name: Restore
+          displayName: Restore
+          condition: succeeded()
+
+        - script: eng/cibuild.sh
             --build
-            --test
             --pack
             --publish
             --configuration $(_BuildConfig)
@@ -339,6 +346,15 @@ stages:
             $(_InternalRuntimeDownloadArgs)
           name: Build
           displayName: Build
+          condition: succeeded()
+
+        - script: eng/cibuild.sh
+            --test
+            --excludeCIBinaryLog
+            $(_BuildArgs)
+            $(_InternalRuntimeDownloadArgs)
+          name: Test
+          displayName: Test
           condition: succeeded()
 
         - publish: artifacts/TestResults/$(_BuildConfig)
@@ -396,9 +412,16 @@ stages:
 
         - script: eng/cibuild.sh
             --restore
+            --excludeCIBinaryLog
+            $(_BuildArgs)
+            $(_InternalRuntimeDownloadArgs)
+          name: Restore
+          displayName: Restore
+          condition: succeeded()
+
+        - script: eng/cibuild.sh
             --build
             --pack
-            --test
             --publish
             --configuration $(_BuildConfig)
             --prepareMachine
@@ -406,6 +429,15 @@ stages:
             $(_InternalRuntimeDownloadArgs)
           name: Build
           displayName: Build
+          condition: succeeded()
+
+        - script: eng/cibuild.sh
+            --test
+            --excludeCIBinaryLog
+            $(_BuildArgs)
+            $(_InternalRuntimeDownloadArgs)
+          name: Test
+          displayName: Test
           condition: succeeded()
 
         - publish: artifacts/TestResults/$(_BuildConfig)/
