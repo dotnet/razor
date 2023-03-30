@@ -46,7 +46,7 @@ public abstract class TagHelperDescriptorBuilder
     }
 
     /// <summary>
-    ///  Retreives a <see cref="TagHelperDescriptorBuilder"/> instance from the pool.
+    ///  Retrieves a <see cref="TagHelperDescriptorBuilder"/> instance from the pool.
     /// </summary>
     public static TagHelperDescriptorBuilder GetInstance(string kind, string name, string assemblyName)
     {
@@ -54,7 +54,7 @@ public abstract class TagHelperDescriptorBuilder
     }
 
     /// <summary>
-    ///  Retreives a <see cref="TagHelperDescriptorBuilder"/> instance from the pool.
+    ///  Retrieves a <see cref="TagHelperDescriptorBuilder"/> instance from the pool.
     /// </summary>
     public static TagHelperDescriptorBuilder GetInstance(string name, string assemblyName)
     {
