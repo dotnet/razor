@@ -319,9 +319,10 @@ stages:
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - script: eng/common/cibuild.sh
+          - script: eng/cibuild.sh
               --restore
               --build
+              --test
               --pack
               --publish
               --configuration $(_BuildConfig)
@@ -333,7 +334,12 @@ stages:
             displayName: Build
             condition: succeeded()
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-          - script: eng/common/cibuild.sh
+          - script: eng/cibuild.sh
+              --restore
+              --build
+              --test
+              --pack
+              --publish
               --configuration $(_BuildConfig)
               --prepareMachine
               $(_InternalRuntimeDownloadArgs)
@@ -385,10 +391,11 @@ stages:
             env:
               Token: $(dn-bot-dnceng-artifact-feeds-rw)
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          - script: eng/common/cibuild.sh
+          - script: eng/cibuild.sh
               --restore
               --build
               --pack
+              --test
               --publish
               --configuration $(_BuildConfig)
               --prepareMachine
@@ -399,7 +406,12 @@ stages:
             displayName: Build
             condition: succeeded()
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-          - script: eng/common/cibuild.sh
+          - script: eng/cibuild.sh
+              --restore
+              --build
+              --pack
+              --test
+              --publish
               --configuration $(_BuildConfig)
               --prepareMachine
               $(_InternalRuntimeDownloadArgs)
