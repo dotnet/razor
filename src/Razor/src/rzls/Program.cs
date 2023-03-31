@@ -51,12 +51,15 @@ public class Program
             }
         }
 
+        var languageServerFeatureOptions = new ConfigurableLanguageServerFeatureOptions(args);
+
         var logger = new LspLogger(trace);
         var server = RazorLanguageServerWrapper.Create(
             Console.OpenStandardInput(),
             Console.OpenStandardOutput(),
             logger,
-            NoOpTelemetryReporter.Instance);
+            NoOpTelemetryReporter.Instance,
+            featureOptions: languageServerFeatureOptions);
         await server.WaitForExitAsync();
     }
 }
