@@ -4403,6 +4403,40 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    [InlineData("Row")]
+    [InlineData("Col")]
+    [InlineData("Input")]
+    public void ComponentWithVoidTagName(string componentName)
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse($$"""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class {{componentName}} : ComponentBase
+            {
+                [Parameter]
+                public RenderFragment ChildContent { get; set; }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp($$"""
+            <{{componentName}}>in markup</{{componentName}}>
+            @{
+                <{{componentName}}>in code block</{{componentName}}>
+            }
+            """);
+
+        // Assert
+        var generatedCSharp = generated.CodeDocument.GetCSharpDocument().GeneratedCode;
+        Assert.DoesNotContain($"<{componentName}>", generatedCSharp);
+        Assert.DoesNotContain($"</{componentName}>", generatedCSharp);
+        CompileToAssembly(generated);
+    }
+
     #endregion
 
     #region Directives

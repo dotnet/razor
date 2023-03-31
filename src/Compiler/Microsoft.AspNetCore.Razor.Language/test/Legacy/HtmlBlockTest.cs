@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -276,5 +277,47 @@ public class HtmlBlockTest : ParserTestBase
     public void HandlesForwardSlashInAttributeContent()
     {
         ParseDocumentTest(@"@{<p / class=foo />}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void Component_Row()
+    {
+        ParseDocumentTest("@{<Row>in code block</Row>}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void Component_Col()
+    {
+        ParseDocumentTest("@{<Col>in code block</Col>}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void Component_Input()
+    {
+        ParseDocumentTest("@{<Input>in code block</Input>}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_Standalone()
+    {
+        ParseDocumentTest("@{<col>while (true) { }}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_SelfClosed()
+    {
+        ParseDocumentTest("@{<col />while (true) { }}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_ClosedImmediately()
+    {
+        ParseDocumentTest("@{<col> </col>while (true) { }}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_ClosedLater()
+    {
+        ParseDocumentTest("@{<col>while (true) { }</col>}");
     }
 }
