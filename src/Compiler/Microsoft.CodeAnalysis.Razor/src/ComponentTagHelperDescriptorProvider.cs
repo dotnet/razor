@@ -202,6 +202,11 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
                 pb.Metadata.Add(ComponentMetadata.Component.GenericTypedKey, bool.TrueString);
             }
 
+            if (property.SetMethod.IsInitOnly)
+            {
+                pb.Metadata.Add(ComponentMetadata.Component.InitOnlyProperty, bool.TrueString);
+            }
+
             var xml = property.GetDocumentationCommentXml();
             if (!string.IsNullOrEmpty(xml))
             {

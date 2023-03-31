@@ -652,6 +652,12 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             return;
         }
 
+        if (bool.TryParse(node.BoundAttribute.Metadata[ComponentMetadata.Component.InitOnlyProperty], out var isInitOnly) && isInitOnly)
+        {
+            // If a component property is init only then the code we generate for it won't compile.
+            return;
+        }
+
         // Write the name of the property, for rename support.
         // __o = ((global::ComponentName)default).PropertyName;
         var originalAttributeName = node.Annotations[ComponentMetadata.Common.OriginalAttributeName]?.ToString() ?? node.AttributeName;
