@@ -10,24 +10,20 @@
                     RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
                         LeftBrace;[{];
                     CSharpCodeBlock - [2..29)::27
-                        MarkupBlock - [2..7)::5
-                            MarkupElement - [2..7)::5
+                        MarkupBlock - [2..29)::27
+                            MarkupElement - [2..29)::27
                                 MarkupStartTag - [2..7)::5 - [<col>] - Gen<Markup> - SpanEditHandler;Accepts:None
                                     OpenAngle;[<];
                                     Text;[col];
                                     CloseAngle;[>];
-                        CSharpStatementLiteral - [7..23)::16 - [while (true) { }] - Gen<Stmt> - SpanEditHandler;Accepts:Any
-                            Keyword;[while];
-                            Whitespace;[ ];
-                            LeftParenthesis;[(];
-                            Keyword;[true];
-                            RightParenthesis;[)];
-                            Whitespace;[ ];
-                            LeftBrace;[{];
-                            Whitespace;[ ];
-                            RightBrace;[}];
-                        MarkupBlock - [23..29)::6
-                            MarkupElement - [23..29)::6
+                                MarkupTextLiteral - [7..23)::16 - [while (true) { }] - Gen<Markup> - SpanEditHandler;Accepts:Any
+                                    Text;[while];
+                                    Whitespace;[ ];
+                                    Text;[(true)];
+                                    Whitespace;[ ];
+                                    Text;[{];
+                                    Whitespace;[ ];
+                                    Text;[}];
                                 MarkupEndTag - [23..29)::6 - [</col>] - Gen<Markup> - SpanEditHandler;Accepts:None
                                     OpenAngle;[<];
                                     ForwardSlash;[/];

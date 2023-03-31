@@ -704,6 +704,26 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                     {
                         // There is no matching end void tag.
                         tagMode = MarkupTagMode.Void;
+
+                        // Try looking (until the end of the code block) for a matching end tag.
+                        // This needs to be supported in case the tag is actually a component.
+                        while (!EndOfFile && !At(SyntaxKind.RightBrace))
+                        {
+                            if (At(SyntaxKind.OpenAngle) && NextIs(SyntaxKind.ForwardSlash))
+                            {
+                                NextToken();
+                                Assert(SyntaxKind.ForwardSlash);
+                                NextToken();
+                                if (At(SyntaxKind.Text) && string.Equals(CurrentToken.Content, tagName, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    // Found matching end tag.
+                                    tagMode = MarkupTagMode.Normal;
+                                    break;
+                                }
+                            }
+
+                            NextToken();
+                        }
                     }
 
                     // Go back to the bookmark and just finish this tag at the close angle
