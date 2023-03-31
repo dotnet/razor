@@ -80,49 +80,40 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
 
     private static TagHelperDescriptor CreateShortNameMatchingDescriptor(INamedTypeSymbol type)
     {
-        var builder = CreateDescriptorBuilder(type);
-        try
-        {
-            builder.TagMatchingRule(r =>
-            {
-                r.TagName = type.Name;
-            });
+        using var _ = GetPooledTagHelperDescriptorBuilder(type, out var builder);
 
-            return builder.Build();
-        }
-        finally
+        builder.TagMatchingRule(r =>
         {
-            TagHelperDescriptorBuilder.ReturnInstance(builder);
-        }
+            r.TagName = type.Name;
+        });
+
+        return builder.Build();
     }
 
     private static TagHelperDescriptor CreateFullyQualifiedNameMatchingDescriptor(INamedTypeSymbol type)
     {
-        var builder = CreateDescriptorBuilder(type);
-        try
-        {
-            var containingNamespace = type.ContainingNamespace.ToDisplayString();
-            var fullName = $"{containingNamespace}.{type.Name}";
-            builder.TagMatchingRule(r =>
-            {
-                r.TagName = fullName;
-            });
-            builder.Metadata[ComponentMetadata.Component.NameMatchKey] = ComponentMetadata.Component.FullyQualifiedNameMatch;
+        using var _ = GetPooledTagHelperDescriptorBuilder(type, out var builder);
 
-            return builder.Build();
-        }
-        finally
+        var containingNamespace = type.ContainingNamespace.ToDisplayString();
+        var fullName = $"{containingNamespace}.{type.Name}";
+        builder.TagMatchingRule(r =>
         {
-            TagHelperDescriptorBuilder.ReturnInstance(builder);
-        }
+            r.TagName = fullName;
+        });
+
+        builder.Metadata[ComponentMetadata.Component.NameMatchKey] = ComponentMetadata.Component.FullyQualifiedNameMatch;
+
+        return builder.Build();
     }
 
-    private static TagHelperDescriptorBuilder CreateDescriptorBuilder(INamedTypeSymbol type)
+    private static TagHelperDescriptorBuilder.PooledBuilder GetPooledTagHelperDescriptorBuilder(
+        INamedTypeSymbol type, out TagHelperDescriptorBuilder builder)
     {
         var typeName = type.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat);
         var assemblyName = type.ContainingAssembly.Identity.Name;
 
-        var builder = TagHelperDescriptorBuilder.GetInstance(ComponentMetadata.Component.TagHelperKind, typeName, assemblyName);
+        var pooledBuilder = TagHelperDescriptorBuilder.GetPooledInstance(ComponentMetadata.Component.TagHelperKind, typeName, assemblyName, out builder);
+
         builder.SetTypeName(typeName);
         builder.SetTypeNamespace(type.ContainingNamespace.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat));
         builder.SetTypeNameIdentifier(type.Name);
@@ -177,7 +168,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             CreateContextParameter(builder, childContentName: null);
         }
 
-        return builder;
+        return pooledBuilder;
     }
 
     private static void CreateProperty(TagHelperDescriptorBuilder builder, IPropertySymbol property, PropertyKind kind)
@@ -386,54 +377,50 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         var typeName = component.GetTypeName() + "." + attribute.Name;
         var assemblyName = component.AssemblyName;
 
-        var builder = TagHelperDescriptorBuilder.GetInstance(ComponentMetadata.ChildContent.TagHelperKind, typeName, assemblyName);
-        try
+        using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
+            ComponentMetadata.ChildContent.TagHelperKind, typeName, assemblyName,
+            out var builder);
+
+        builder.SetTypeName(typeName);
+        builder.SetTypeNamespace(component.GetTypeNamespace());
+        builder.SetTypeNameIdentifier(component.GetTypeNameIdentifier());
+        builder.CaseSensitive = true;
+
+        // This opts out this 'component' tag helper for any processing that's specific to the default
+        // Razor ITagHelper runtime.
+        builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.ChildContent.RuntimeName;
+
+        // Opt out of processing as a component. We'll process this specially as part of the component's body.
+        builder.Metadata[ComponentMetadata.SpecialKindKey] = ComponentMetadata.ChildContent.TagHelperKind;
+
+        var xml = attribute.Documentation;
+        if (!string.IsNullOrEmpty(xml))
         {
-            builder.SetTypeName(typeName);
-            builder.SetTypeNamespace(component.GetTypeNamespace());
-            builder.SetTypeNameIdentifier(component.GetTypeNameIdentifier());
-            builder.CaseSensitive = true;
-
-            // This opts out this 'component' tag helper for any processing that's specific to the default
-            // Razor ITagHelper runtime.
-            builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.ChildContent.RuntimeName;
-
-            // Opt out of processing as a component. We'll process this specially as part of the component's body.
-            builder.Metadata[ComponentMetadata.SpecialKindKey] = ComponentMetadata.ChildContent.TagHelperKind;
-
-            var xml = attribute.Documentation;
-            if (!string.IsNullOrEmpty(xml))
-            {
-                builder.Documentation = xml;
-            }
-
-            // Child content matches the property name, but only as a direct child of the component.
-            builder.TagMatchingRule(r =>
-            {
-                r.TagName = attribute.Name;
-                r.ParentTag = component.TagMatchingRules[0].TagName;
-            });
-
-            if (attribute.IsParameterizedChildContentProperty())
-            {
-                // For child content attributes with a parameter, synthesize an attribute that allows you to name
-                // the parameter.
-                CreateContextParameter(builder, attribute.Name);
-            }
-
-            if (component.IsComponentFullyQualifiedNameMatch())
-            {
-                builder.Metadata[ComponentMetadata.Component.NameMatchKey] = ComponentMetadata.Component.FullyQualifiedNameMatch;
-            }
-
-            var descriptor = builder.Build();
-
-            return descriptor;
+            builder.Documentation = xml;
         }
-        finally
+
+        // Child content matches the property name, but only as a direct child of the component.
+        builder.TagMatchingRule(r =>
         {
-            TagHelperDescriptorBuilder.ReturnInstance(builder);
+            r.TagName = attribute.Name;
+            r.ParentTag = component.TagMatchingRules[0].TagName;
+        });
+
+        if (attribute.IsParameterizedChildContentProperty())
+        {
+            // For child content attributes with a parameter, synthesize an attribute that allows you to name
+            // the parameter.
+            CreateContextParameter(builder, attribute.Name);
         }
+
+        if (component.IsComponentFullyQualifiedNameMatch())
+        {
+            builder.Metadata[ComponentMetadata.Component.NameMatchKey] = ComponentMetadata.Component.FullyQualifiedNameMatch;
+        }
+
+        var descriptor = builder.Build();
+
+        return descriptor;
     }
 
     private static void CreateContextParameter(TagHelperDescriptorBuilder builder, string childContentName)

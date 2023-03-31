@@ -12,7 +12,7 @@ internal partial class DefaultAllowedChildTagDescriptorBuilder : AllowedChildTag
 {
     private static readonly ObjectPool<DefaultAllowedChildTagDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 
-    public static DefaultAllowedChildTagDescriptorBuilder Get(DefaultTagHelperDescriptorBuilder parent)
+    public static DefaultAllowedChildTagDescriptorBuilder GetInstance(DefaultTagHelperDescriptorBuilder parent)
     {
         var builder = s_pool.Get();
 
@@ -21,7 +21,7 @@ internal partial class DefaultAllowedChildTagDescriptorBuilder : AllowedChildTag
         return builder;
     }
 
-    public static void Return(DefaultAllowedChildTagDescriptorBuilder builder)
+    public static void ReturnInstance(DefaultAllowedChildTagDescriptorBuilder builder)
         => s_pool.Return(builder);
 
     [AllowNull]

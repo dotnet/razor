@@ -13,7 +13,7 @@ internal partial class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRule
 {
     private static readonly ObjectPool<DefaultTagMatchingRuleDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 
-    public static DefaultTagMatchingRuleDescriptorBuilder Get(DefaultTagHelperDescriptorBuilder parent)
+    public static DefaultTagMatchingRuleDescriptorBuilder GetInstance(DefaultTagHelperDescriptorBuilder parent)
     {
         var builder = s_pool.Get();
 
@@ -22,7 +22,7 @@ internal partial class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRule
         return builder;
     }
 
-    public static void Return(DefaultTagMatchingRuleDescriptorBuilder builder)
+    public static void ReturnInstance(DefaultTagMatchingRuleDescriptorBuilder builder)
         => s_pool.Return(builder);
 
     private static readonly ObjectPool<HashSet<RequiredAttributeDescriptor>> s_requiredAttributeSetPool
@@ -69,7 +69,7 @@ internal partial class DefaultTagMatchingRuleDescriptorBuilder : TagMatchingRule
 
         EnsureRequiredAttributeBuilders();
 
-        var builder = DefaultRequiredAttributeDescriptorBuilder.Get(this);
+        var builder = DefaultRequiredAttributeDescriptorBuilder.GetInstance(this);
         configure(builder);
         _requiredAttributeBuilders.Add(builder);
     }

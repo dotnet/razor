@@ -63,63 +63,59 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
             return default;
         }
 
-        var builder = TagHelperDescriptorBuilder.GetInstance(Cached(descriptorKind), Cached(typeName), Cached(assemblyName));
-        try
+        using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
+            Cached(descriptorKind), Cached(typeName), Cached(assemblyName),
+            out var builder);
+
+        reader.ReadProperties(static (propertyName, arg) =>
         {
-            reader.ReadProperties(static (propertyName, arg) =>
+            var (reader, builder) = (arg.reader, arg.builder);
+            switch (propertyName)
             {
-                var (reader, builder) = (arg.reader, arg.builder);
-                switch (propertyName)
-                {
-                    case nameof(TagHelperDescriptor.Documentation):
-                        if (reader.Read())
-                        {
-                            var documentation = (string)reader.Value;
-                            builder.Documentation = Cached(documentation);
-                        }
+                case nameof(TagHelperDescriptor.Documentation):
+                    if (reader.Read())
+                    {
+                        var documentation = (string)reader.Value;
+                        builder.Documentation = Cached(documentation);
+                    }
 
-                        break;
-                    case nameof(TagHelperDescriptor.TagOutputHint):
-                        if (reader.Read())
-                        {
-                            var tagOutputHint = (string)reader.Value;
-                            // TODO: Needed?
-                            builder.TagOutputHint = Cached(tagOutputHint);
-                        }
+                    break;
+                case nameof(TagHelperDescriptor.TagOutputHint):
+                    if (reader.Read())
+                    {
+                        var tagOutputHint = (string)reader.Value;
+                        // TODO: Needed?
+                        builder.TagOutputHint = Cached(tagOutputHint);
+                    }
 
-                        break;
-                    case nameof(TagHelperDescriptor.CaseSensitive):
-                        if (reader.Read())
-                        {
-                            var caseSensitive = (bool)reader.Value;
-                            builder.CaseSensitive = caseSensitive;
-                        }
+                    break;
+                case nameof(TagHelperDescriptor.CaseSensitive):
+                    if (reader.Read())
+                    {
+                        var caseSensitive = (bool)reader.Value;
+                        builder.CaseSensitive = caseSensitive;
+                    }
 
-                        break;
-                    case nameof(TagHelperDescriptor.TagMatchingRules):
-                        ReadTagMatchingRules(reader, builder);
-                        break;
-                    case nameof(TagHelperDescriptor.BoundAttributes):
-                        ReadBoundAttributes(reader, builder);
-                        break;
-                    case nameof(TagHelperDescriptor.AllowedChildTags):
-                        ReadAllowedChildTags(reader, builder);
-                        break;
-                    case nameof(TagHelperDescriptor.Diagnostics):
-                        ReadDiagnostics(reader, builder.Diagnostics);
-                        break;
-                    case nameof(TagHelperDescriptor.Metadata):
-                        ReadMetadata(reader, builder.Metadata);
-                        break;
-                }
-            }, (reader, builder));
+                    break;
+                case nameof(TagHelperDescriptor.TagMatchingRules):
+                    ReadTagMatchingRules(reader, builder);
+                    break;
+                case nameof(TagHelperDescriptor.BoundAttributes):
+                    ReadBoundAttributes(reader, builder);
+                    break;
+                case nameof(TagHelperDescriptor.AllowedChildTags):
+                    ReadAllowedChildTags(reader, builder);
+                    break;
+                case nameof(TagHelperDescriptor.Diagnostics):
+                    ReadDiagnostics(reader, builder.Diagnostics);
+                    break;
+                case nameof(TagHelperDescriptor.Metadata):
+                    ReadMetadata(reader, builder.Metadata);
+                    break;
+            }
+        }, (reader, builder));
 
-            descriptor = builder.Build();
-        }
-        finally
-        {
-            TagHelperDescriptorBuilder.ReturnInstance(builder);
-        }
+        descriptor = builder.Build();
 
         if (!DisableCachingForTesting && hashWasRead)
         {

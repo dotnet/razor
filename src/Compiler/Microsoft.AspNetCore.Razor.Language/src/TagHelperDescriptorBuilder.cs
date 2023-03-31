@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public abstract class TagHelperDescriptorBuilder
+public abstract partial class TagHelperDescriptorBuilder
 {
     public static TagHelperDescriptorBuilder Create(string name, string assemblyName)
     {
@@ -46,32 +46,49 @@ public abstract class TagHelperDescriptorBuilder
     }
 
     /// <summary>
-    ///  Retrieves a <see cref="TagHelperDescriptorBuilder"/> instance from the pool.
+    ///  Retrieves a pooled <see cref="TagHelperDescriptorBuilder"/> instance.
     /// </summary>
-    public static TagHelperDescriptorBuilder GetInstance(string kind, string name, string assemblyName)
+    /// <remarks>
+    ///  The <see cref="PooledBuilder"/> returned by this method should be disposed
+    ///  to return the <see cref="TagHelperDescriptorBuilder"/> to its pool.
+    ///  The correct way to achieve this is with a using statement:
+    ///
+    /// <code>
+    ///  using var _ = TagHelperDescriptorBuilder.GetPooledInstance(..., out var builder);
+    /// </code>
+    /// 
+    ///  Once disposed, the builder can no longer be used.
+    /// </remarks>
+    public static PooledBuilder GetPooledInstance(
+        string kind, string name, string assemblyName,
+        out TagHelperDescriptorBuilder builder)
     {
-        return DefaultTagHelperDescriptorBuilder.Get(kind, name, assemblyName);
+        var defaultBuilder = DefaultTagHelperDescriptorBuilder.GetInstance(kind, name, assemblyName);
+        builder = defaultBuilder;
+        return new(defaultBuilder);
     }
 
     /// <summary>
-    ///  Retrieves a <see cref="TagHelperDescriptorBuilder"/> instance from the pool.
+    ///  Retrieves a pooled <see cref="TagHelperDescriptorBuilder"/> instance.
     /// </summary>
-    public static TagHelperDescriptorBuilder GetInstance(string name, string assemblyName)
+    /// <remarks>
+    ///  The <see cref="PooledBuilder"/> returned by this method should be disposed
+    ///  to return the <see cref="TagHelperDescriptorBuilder"/> to its pool.
+    ///  The correct way to achieve this is with a using statement:
+    ///
+    /// <code>
+    ///  using var _ = TagHelperDescriptorBuilder.GetPooledInstance(..., out var builder);
+    /// </code>
+    /// 
+    ///  Once disposed, the builder can no longer be used.
+    /// </remarks>
+    public static PooledBuilder GetPooledInstance(
+        string name, string assemblyName,
+        out TagHelperDescriptorBuilder builder)
     {
-        return DefaultTagHelperDescriptorBuilder.Get(name, assemblyName);
-    }
-
-    /// <summary>
-    ///  Returns a <see cref="DefaultTagHelperDescriptorBuilder"/> instance to the pool.
-    /// </summary>
-    public static void ReturnInstance(TagHelperDescriptorBuilder builder)
-    {
-        if (builder is not DefaultTagHelperDescriptorBuilder defaultBuilder)
-        {
-            return;
-        }
-
-        DefaultTagHelperDescriptorBuilder.Return(defaultBuilder);
+        var defaultBuilder = DefaultTagHelperDescriptorBuilder.GetInstance(name, assemblyName);
+        builder = defaultBuilder;
+        return new(defaultBuilder);
     }
 
     public abstract string Name { get; }

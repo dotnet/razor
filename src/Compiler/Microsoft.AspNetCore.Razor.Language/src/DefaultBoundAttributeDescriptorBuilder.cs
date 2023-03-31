@@ -13,7 +13,7 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
 {
     private static readonly ObjectPool<DefaultBoundAttributeDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 
-    public static DefaultBoundAttributeDescriptorBuilder Get(DefaultTagHelperDescriptorBuilder parent, string kind)
+    public static DefaultBoundAttributeDescriptorBuilder GetInstance(DefaultTagHelperDescriptorBuilder parent, string kind)
     {
         var builder = s_pool.Get();
 
@@ -23,7 +23,7 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
         return builder;
     }
 
-    public static void Return(DefaultBoundAttributeDescriptorBuilder builder)
+    public static void ReturnInstance(DefaultBoundAttributeDescriptorBuilder builder)
         => s_pool.Return(builder);
 
     private static readonly ObjectPool<HashSet<BoundAttributeParameterDescriptor>> s_boundAttributeParameterSetPool
@@ -92,7 +92,7 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
 
         EnsureAttributeParameterBuilders();
 
-        var builder = DefaultBoundAttributeParameterDescriptorBuilder.Get(this, _kind);
+        var builder = DefaultBoundAttributeParameterDescriptorBuilder.GetInstance(this, _kind);
         configure(builder);
         _attributeParameterBuilders.Add(builder);
     }

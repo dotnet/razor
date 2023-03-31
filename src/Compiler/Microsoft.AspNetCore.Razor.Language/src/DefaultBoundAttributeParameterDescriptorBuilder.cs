@@ -13,7 +13,7 @@ internal partial class DefaultBoundAttributeParameterDescriptorBuilder : BoundAt
 {
     private static readonly ObjectPool<DefaultBoundAttributeParameterDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 
-    public static DefaultBoundAttributeParameterDescriptorBuilder Get(DefaultBoundAttributeDescriptorBuilder parent, string kind)
+    public static DefaultBoundAttributeParameterDescriptorBuilder GetInstance(DefaultBoundAttributeDescriptorBuilder parent, string kind)
     {
         var builder = s_pool.Get();
 
@@ -23,7 +23,7 @@ internal partial class DefaultBoundAttributeParameterDescriptorBuilder : BoundAt
         return builder;
     }
 
-    public static void Return(DefaultBoundAttributeParameterDescriptorBuilder builder)
+    public static void ReturnInstance(DefaultBoundAttributeParameterDescriptorBuilder builder)
         => s_pool.Return(builder);
 
     [AllowNull]

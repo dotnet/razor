@@ -13,10 +13,10 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
 {
     private static readonly ObjectPool<DefaultTagHelperDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 
-    public static DefaultTagHelperDescriptorBuilder Get(string name, string assemblyName)
-        => Get(TagHelperConventions.DefaultKind, name, assemblyName);
+    public static DefaultTagHelperDescriptorBuilder GetInstance(string name, string assemblyName)
+        => GetInstance(TagHelperConventions.DefaultKind, name, assemblyName);
 
-    public static DefaultTagHelperDescriptorBuilder Get(string kind, string name, string assemblyName)
+    public static DefaultTagHelperDescriptorBuilder GetInstance(string kind, string name, string assemblyName)
     {
         var builder = s_pool.Get();
 
@@ -29,7 +29,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         return builder;
     }
 
-    public static void Return(DefaultTagHelperDescriptorBuilder builder)
+    public static void ReturnInstance(DefaultTagHelperDescriptorBuilder builder)
         => s_pool.Return(builder);
 
     private static readonly ObjectPool<HashSet<AllowedChildTagDescriptor>> s_allowedChildTagSetPool
@@ -116,7 +116,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
 
         EnsureAllowedChildTags();
 
-        var builder = DefaultAllowedChildTagDescriptorBuilder.Get(this);
+        var builder = DefaultAllowedChildTagDescriptorBuilder.GetInstance(this);
         configure(builder);
         _allowedChildTags.Add(builder);
     }
@@ -130,7 +130,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
 
         EnsureAttributeBuilders();
 
-        var builder = DefaultBoundAttributeDescriptorBuilder.Get(this, Kind);
+        var builder = DefaultBoundAttributeDescriptorBuilder.GetInstance(this, Kind);
         configure(builder);
         _attributeBuilders.Add(builder);
     }
@@ -144,7 +144,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
 
         EnsureTagMatchingRuleBuilders();
 
-        var builder = DefaultTagMatchingRuleDescriptorBuilder.Get(this);
+        var builder = DefaultTagMatchingRuleDescriptorBuilder.GetInstance(this);
         configure(builder);
         _tagMatchingRuleBuilders.Add(builder);
     }

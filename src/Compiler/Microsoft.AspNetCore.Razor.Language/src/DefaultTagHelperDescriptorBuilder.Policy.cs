@@ -24,9 +24,10 @@ internal partial class DefaultTagHelperDescriptorBuilder
 
             if (builder._allowedChildTags is { } allowedChildTagBuilders)
             {
+                // Make sure that we return all allowed child tag builders to their pool.
                 foreach (var allowedChildTagBuilder in allowedChildTagBuilders)
                 {
-                    DefaultAllowedChildTagDescriptorBuilder.Return(allowedChildTagBuilder);
+                    DefaultAllowedChildTagDescriptorBuilder.ReturnInstance(allowedChildTagBuilder);
                 }
 
                 ClearList(allowedChildTagBuilders);
@@ -34,9 +35,10 @@ internal partial class DefaultTagHelperDescriptorBuilder
 
             if (builder._attributeBuilders is { } attributeBuilders)
             {
+                // Make sure that we return all allowed bound attribute builders to their pool.
                 foreach (var attributeBuilder in attributeBuilders)
                 {
-                    DefaultBoundAttributeDescriptorBuilder.Return(attributeBuilder);
+                    DefaultBoundAttributeDescriptorBuilder.ReturnInstance(attributeBuilder);
                 }
 
                 ClearList(attributeBuilders);
@@ -44,9 +46,10 @@ internal partial class DefaultTagHelperDescriptorBuilder
 
             if (builder._tagMatchingRuleBuilders is { } tagMatchingRuleBuilders)
             {
+                // Make sure that we return all allowed tag matching rule builders to their pool.
                 foreach (var tagMatchingRuleBuilder in tagMatchingRuleBuilders)
                 {
-                    DefaultTagMatchingRuleDescriptorBuilder.Return(tagMatchingRuleBuilder);
+                    DefaultTagMatchingRuleDescriptorBuilder.ReturnInstance(tagMatchingRuleBuilder);
                 }
 
                 ClearList(tagMatchingRuleBuilders);

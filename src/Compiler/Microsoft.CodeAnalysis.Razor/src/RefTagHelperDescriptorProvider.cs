@@ -48,47 +48,43 @@ internal class RefTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
     private static TagHelperDescriptor CreateRefTagHelper()
     {
-        var builder = TagHelperDescriptorBuilder.GetInstance(ComponentMetadata.Ref.TagHelperKind, "Ref", ComponentsApi.AssemblyName);
-        try
+        using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
+            ComponentMetadata.Ref.TagHelperKind, "Ref", ComponentsApi.AssemblyName,
+            out var builder);
+
+        builder.CaseSensitive = true;
+        builder.Documentation = ComponentResources.RefTagHelper_Documentation;
+
+        builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Ref.TagHelperKind);
+        builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
+        builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.Ref.RuntimeName;
+
+        // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
+        // a C# property will crash trying to create the tooltips.
+        builder.SetTypeName("Microsoft.AspNetCore.Components.Ref");
+
+        builder.TagMatchingRule(rule =>
         {
-            builder.CaseSensitive = true;
-            builder.Documentation = ComponentResources.RefTagHelper_Documentation;
-
-            builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Ref.TagHelperKind);
-            builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
-            builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.Ref.RuntimeName;
-
-            // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
-            // a C# property will crash trying to create the tooltips.
-            builder.SetTypeName("Microsoft.AspNetCore.Components.Ref");
-
-            builder.TagMatchingRule(rule =>
+            rule.TagName = "*";
+            rule.Attribute(attribute =>
             {
-                rule.TagName = "*";
-                rule.Attribute(attribute =>
-                {
-                    attribute.Name = "@ref";
-                    attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
-                });
-            });
-
-            builder.BindAttribute(attribute =>
-            {
-                attribute.Documentation = ComponentResources.RefTagHelper_Documentation;
                 attribute.Name = "@ref";
-
-                // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
-                // a C# property will crash trying to create the tooltips.
-                attribute.SetPropertyName("Ref");
-                attribute.TypeName = typeof(object).FullName;
                 attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
             });
+        });
 
-            return builder.Build();
-        }
-        finally
+        builder.BindAttribute(attribute =>
         {
-            TagHelperDescriptorBuilder.ReturnInstance(builder);
-        }
+            attribute.Documentation = ComponentResources.RefTagHelper_Documentation;
+            attribute.Name = "@ref";
+
+            // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
+            // a C# property will crash trying to create the tooltips.
+            attribute.SetPropertyName("Ref");
+            attribute.TypeName = typeof(object).FullName;
+            attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+        });
+
+        return builder.Build();
     }
 }

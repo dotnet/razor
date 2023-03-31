@@ -42,27 +42,23 @@ internal class DefaultTagHelperDescriptorFactory
         var typeName = GetFullName(type);
         var assemblyName = type.ContainingAssembly.Identity.Name;
 
-        var descriptorBuilder = TagHelperDescriptorBuilder.GetInstance(typeName, assemblyName);
-        try
-        {
-            descriptorBuilder.SetTypeName(typeName);
-            descriptorBuilder.SetTypeNamespace(type.ContainingNamespace.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat));
-            descriptorBuilder.SetTypeNameIdentifier(type.Name);
+        using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
+            typeName, assemblyName,
+            out var descriptorBuilder);
 
-            AddBoundAttributes(type, descriptorBuilder);
-            AddTagMatchingRules(type, descriptorBuilder);
-            AddAllowedChildren(type, descriptorBuilder);
-            AddDocumentation(type, descriptorBuilder);
-            AddTagOutputHint(type, descriptorBuilder);
+        descriptorBuilder.SetTypeName(typeName);
+        descriptorBuilder.SetTypeNamespace(type.ContainingNamespace.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat));
+        descriptorBuilder.SetTypeNameIdentifier(type.Name);
 
-            var descriptor = descriptorBuilder.Build();
+        AddBoundAttributes(type, descriptorBuilder);
+        AddTagMatchingRules(type, descriptorBuilder);
+        AddAllowedChildren(type, descriptorBuilder);
+        AddDocumentation(type, descriptorBuilder);
+        AddTagOutputHint(type, descriptorBuilder);
 
-            return descriptor;
-        }
-        finally
-        {
-            TagHelperDescriptorBuilder.ReturnInstance(descriptorBuilder);
-        }
+        var descriptor = descriptorBuilder.Build();
+
+        return descriptor;
     }
 
     private static void AddTagMatchingRules(INamedTypeSymbol type, TagHelperDescriptorBuilder descriptorBuilder)

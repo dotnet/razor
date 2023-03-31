@@ -21,9 +21,10 @@ internal partial class DefaultTagMatchingRuleDescriptorBuilder
 
             if (builder._requiredAttributeBuilders is { } requiredAttributeBuilders)
             {
+                // Make sure that we return all allowed required attribute builders to their pool.
                 foreach (var requiredAttributeBuilder in requiredAttributeBuilders)
                 {
-                    DefaultRequiredAttributeDescriptorBuilder.Return(requiredAttributeBuilder);
+                    DefaultRequiredAttributeDescriptorBuilder.ReturnInstance(requiredAttributeBuilder);
                 }
 
                 ClearList(requiredAttributeBuilders);

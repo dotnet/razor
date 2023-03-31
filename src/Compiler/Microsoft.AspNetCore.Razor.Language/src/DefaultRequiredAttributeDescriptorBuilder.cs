@@ -14,7 +14,7 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
 {
     private static readonly ObjectPool<DefaultRequiredAttributeDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
 
-    public static DefaultRequiredAttributeDescriptorBuilder Get(DefaultTagMatchingRuleDescriptorBuilder parent)
+    public static DefaultRequiredAttributeDescriptorBuilder GetInstance(DefaultTagMatchingRuleDescriptorBuilder parent)
     {
         var builder = s_pool.Get();
 
@@ -23,7 +23,7 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
         return builder;
     }
 
-    public static void Return(DefaultRequiredAttributeDescriptorBuilder builder)
+    public static void ReturnInstance(DefaultRequiredAttributeDescriptorBuilder builder)
         => s_pool.Return(builder);
 
     [AllowNull]
