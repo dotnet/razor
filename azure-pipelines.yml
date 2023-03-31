@@ -70,6 +70,7 @@ stages:
       enablePublishBuildArtifacts: false
       enablePublishTestResults: false
       enablePublishUsingPipelines: false
+      enableSourcebuild: true
       jobs:
       # Code check
       - ${{ if or(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
@@ -104,13 +105,14 @@ stages:
           - powershell: ./restore.cmd -msbuildEngine dotnet -ci $(_InternalRuntimeDownloadArgs); ./eng/scripts/CodeCheck.ps1 -ci
             displayName: Run eng/scripts/CodeCheck.ps1
 
-  # Three jobs for each of the three OSes we want to run on
+  # Windows based jobs. This needs to be separate from Unix based jobs because it generates
+  # TRX files. That can only be toggled at the top level template level, not at the individual
+  # job.
   - template: /eng/common/templates/jobs/jobs.yml
     parameters:
       enablePublishBuildArtifacts: false
       enablePublishTestResults: true
       enableTelemetry: true
-      enableSourcebuild: true
       helixRepo: dotnet/razor
       helixType: build.product/
       # enableMicrobuild can't be read from a user-defined variable (Azure DevOps limitation)
@@ -292,23 +294,29 @@ stages:
             continueOnError: true
             condition: and(succeeded(), eq(variables['system.pullrequest.isfork'], false), eq(variables['_BuildConfig'], 'Release'))
 
+  # Unix jobs done as a group since they share the same test results format.
+  - template: /eng/common/templates/jobs/jobs.yml
+    parameters:
+      enablePublishBuildArtifacts: false
+      enablePublishTestResults: true
+      enableTelemetry: true
+      testResultsFormat: xunit
+      helixRepo: dotnet/razor
+      helixType: build.product/
+    -jobs:
       - job: macOS
         pool:
           vmImage: macOS-12
         strategy:
-          ${{ if eq(variables['System.TeamProject'], 'public') }}:
-            matrix:
-              debug:
-                _BuildConfig: Debug
-              release:
-                _BuildConfig: Release
-          ${{ if ne(variables['System.TeamProject'], 'public') }}:
             matrix:
               release:
                 _BuildConfig: Release
+              ${{ if eq(variables['System.TeamProject'], 'public') }}:
+                  debug:
+                    _BuildConfig: Debug
+
         variables:
         - _BuildArgs: ''
-
         # Variables for internal Official builds
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
           - _BuildArgs: /p:DotNetPublishUsingPipelines=true
@@ -319,6 +327,7 @@ stages:
           displayName: Install Node 10.x
           inputs:
             versionSpec: 10.x
+
         - ${{ if ne(variables['System.TeamProject'], 'public') }}:
           - task: Bash@3
             displayName: Setup Private Feeds Credentials
@@ -359,16 +368,12 @@ stages:
             demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
 
         strategy:
-          ${{ if eq(variables['System.TeamProject'], 'public') }}:
-            matrix:
-              debug:
-                _BuildConfig: Debug
-              release:
-                _BuildConfig: Release
-          ${{ if ne(variables['System.TeamProject'], 'public') }}:
-            matrix:
-              release:
-                _BuildConfig: Release
+          matrix:
+            release:
+              _BuildConfig: Release
+            ${{ if eq(variables['System.TeamProject'], 'public') }}:
+                debug:
+                  _BuildConfig: Debug
 
         variables:
         - LC_ALL: 'en_US.UTF-8'
