@@ -303,7 +303,7 @@ stages:
       testResultsFormat: xunit
       helixRepo: dotnet/razor
       helixType: build.product/
-    -jobs:
+      jobs:
       - job: macOS
         pool:
           vmImage: macOS-12
