@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
@@ -41,6 +42,13 @@ internal class DefaultCSharpCodeActionProvider : CSharpCodeActionProvider
     {
         // RazorPredefinedCodeFixProviderNames.RemoveUnusedVariable,
     };
+
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+
+    public DefaultCSharpCodeActionProvider(LanguageServerFeatureOptions languageServerFeatureOptions)
+    {
+        _languageServerFeatureOptions = languageServerFeatureOptions;
+    }
 
     public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
         RazorCodeActionContext context,
@@ -76,7 +84,8 @@ internal class DefaultCSharpCodeActionProvider : CSharpCodeActionProvider
 
         foreach (var codeAction in codeActions)
         {
-            if (codeAction.Name is not null && allowList.Contains(codeAction.Name))
+            if (_languageServerFeatureOptions.ShowAllCSharpCodeActions ||
+                (codeAction.Name is not null && allowList.Contains(codeAction.Name)))
             {
                 results.Add(codeAction.WrapResolvableCodeAction(context));
             }
