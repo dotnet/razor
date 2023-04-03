@@ -301,6 +301,19 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         while (_tagTracker.Count > 0)
         {
             var tracker = _tagTracker.Pop();
+
+            if (tracker.IsVoidTag)
+            {
+                // Reached the end of a code block with a void element left open.
+                // Reset to just after the void element and consider it self-closed.
+                // This will re-parse the text after the element as C# code instead of HTML markup.
+                builder.Clear();
+                builder.AddRange(tracker.PreviousNodes);
+                builder.Add(SyntaxFactory.MarkupElement(tracker.StartTag, EmptySyntaxList, endTag: null));
+                Context.Source.Position = tracker.TagLocation.AbsoluteIndex + tracker.StartTag.Width;
+                return;
+            }
+
             var element = SyntaxFactory.MarkupElement(tracker.StartTag, builder.Consume(), endTag: null);
             builder.AddRange(tracker.PreviousNodes);
             builder.Add(element);
@@ -459,6 +472,13 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             {
                 var acceptedCharacters = mode == ParseMode.MarkupInCodeBlock ? AcceptedCharactersInternal.None : AcceptedCharactersInternal.Any;
                 ParseJavascriptAndEndScriptTag(builder, startTag, acceptedCharacters);
+                return;
+            }
+
+            if (isWellFormed && tagMode == MarkupTagMode.Void && mode == ParseMode.MarkupInCodeBlock)
+            {
+                // Try parsing void tag as a normal tag (needs to be supported in case it's actually a component).
+                _tagTracker.Push(new TagTracker(tagName, startTag, tagStart, builder.Consume(), isWellFormed) { IsVoidTag = true });
                 return;
             }
 
@@ -704,26 +724,6 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                     {
                         // There is no matching end void tag.
                         tagMode = MarkupTagMode.Void;
-
-                        // Try looking (until the end of the code block) for a matching end tag.
-                        // This needs to be supported in case the tag is actually a component.
-                        while (!EndOfFile && !At(SyntaxKind.RightBrace))
-                        {
-                            if (At(SyntaxKind.OpenAngle) && NextIs(SyntaxKind.ForwardSlash))
-                            {
-                                NextToken();
-                                Assert(SyntaxKind.ForwardSlash);
-                                NextToken();
-                                if (At(SyntaxKind.Text) && string.Equals(CurrentToken.Content, tagName, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    // Found matching end tag.
-                                    tagMode = MarkupTagMode.Normal;
-                                    break;
-                                }
-                            }
-
-                            NextToken();
-                        }
                     }
 
                     // Go back to the bookmark and just finish this tag at the close angle
@@ -2265,5 +2265,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         public SyntaxList<RazorSyntaxNode> PreviousNodes { get; }
 
         public bool IsWellFormed { get; }
+
+        public bool IsVoidTag { get; init; }
     }
 }
