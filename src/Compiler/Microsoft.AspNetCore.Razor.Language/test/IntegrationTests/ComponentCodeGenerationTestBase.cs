@@ -4407,7 +4407,7 @@ namespace Test
     [InlineData("Row")]
     [InlineData("Col")]
     [InlineData("Input")]
-    public void ComponentWithVoidTagName(string componentName)
+    public void VoidTagName_Component(string componentName)
     {
         // Arrange
         AdditionalSyntaxTrees.Add(Parse($$"""
@@ -4435,6 +4435,28 @@ namespace Test
         Assert.DoesNotContain($"<{componentName}>", generatedCSharp);
         Assert.DoesNotContain($"</{componentName}>", generatedCSharp);
         CompileToAssembly(generated);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    [InlineData("col")]
+    [InlineData("input")]
+    public void VoidTagName_Element_ClosingInScript(string elementName)
+    {
+        // Arrange
+        var generated = CompileToCSharp($$"""
+            @{
+                <{{elementName}}>
+                x = 1;
+                <script suppress-error="BL9992">const text = '</{{elementName}}>';</script>
+            }
+            """);
+
+        // Act
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+
+        // Assert: `x = 1;` should be considered code, not markup, and hence give us:
+        // error CS0103: The name 'x' does not exist in the current context
+        Assert.Equal("CS0103", result.Diagnostics.Single().Id);
     }
 
     #endregion

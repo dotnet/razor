@@ -320,4 +320,10 @@ public class HtmlBlockTest : ParserTestBase
     {
         ParseDocumentTest("@{<col>while (true) { }</col>}");
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_ClosedInScript()
+    {
+        ParseDocumentTest("@{<col>x = 1;<script>const text = '</col>';</script>}");
+    }
 }
