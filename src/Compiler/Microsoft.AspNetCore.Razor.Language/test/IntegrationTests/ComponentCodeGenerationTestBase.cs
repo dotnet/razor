@@ -4424,9 +4424,12 @@ namespace Test
 
         // Act
         var generated = CompileToCSharp($$"""
+            @using Microsoft.AspNetCore.Components
+
             <{{componentName}}>in markup</{{componentName}}>
             @{
                 <{{componentName}}>in code block</{{componentName}}>
+                RenderFragment template = @<{{componentName}}>in template</{{componentName}}>;
             }
             """);
 
