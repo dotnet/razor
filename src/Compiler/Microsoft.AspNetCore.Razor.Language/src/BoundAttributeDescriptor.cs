@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -75,7 +74,7 @@ public abstract class BoundAttributeDescriptor : IEquatable<BoundAttributeDescri
     internal bool IsEditorRequired
     {
         get => HasFlag(IsEditorRequiredBit);
-        set => SetOrClearFlag(IsEditorRequiredBit, value);
+        private protected set => SetOrClearFlag(IsEditorRequiredBit, value);
     }
 
     public string Name { get; protected set; }

@@ -63,7 +63,9 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
             return default;
         }
 
-        var builder = TagHelperDescriptorBuilder.Create(Cached(descriptorKind), Cached(typeName), Cached(assemblyName));
+        using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
+            Cached(descriptorKind), Cached(typeName), Cached(assemblyName),
+            out var builder);
 
         reader.ReadProperties(static (propertyName, arg) =>
         {
@@ -114,6 +116,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
         }, (reader, builder));
 
         descriptor = builder.Build();
+
         if (!DisableCachingForTesting && hashWasRead)
         {
             TagHelperDescriptorCache.Set(hash, descriptor);
