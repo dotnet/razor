@@ -5,11 +5,9 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Serialization;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 internal class ProjectRazorJsonJsonConverter : JsonConverter
 {

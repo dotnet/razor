@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.CodeAnalysis.Razor.Serialization;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 internal class RazorDiagnosticJsonConverter : JsonConverter
 {

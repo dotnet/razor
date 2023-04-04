@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.Razor.Serialization;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 internal class RazorConfigurationJsonConverter : JsonConverter
 {

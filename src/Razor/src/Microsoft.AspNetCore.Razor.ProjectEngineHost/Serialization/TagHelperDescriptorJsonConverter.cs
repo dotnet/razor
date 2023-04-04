@@ -6,10 +6,9 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.Serialization.Internal;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.Razor.Serialization;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 internal class TagHelperDescriptorJsonConverter : JsonConverter
 {

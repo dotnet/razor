@@ -7,7 +7,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 internal sealed class TagHelperResolutionResultComparer : IEqualityComparer<TagHelperResolutionResult>
 {
@@ -24,13 +24,8 @@ internal sealed class TagHelperResolutionResultComparer : IEqualityComparer<TagH
             return false;
         }
 
-        Assumes.NotNull(x.Descriptors);
-        Assumes.NotNull(x.Diagnostics);
-        Assumes.NotNull(y.Descriptors);
-        Assumes.NotNull(y.Diagnostics);
-
-        return x.Descriptors.SequenceEqual(y.Descriptors, TagHelperDescriptorComparer.Default) &&
-               x.Diagnostics.SequenceEqual(y.Diagnostics);
+        return x.Descriptors.AssumeNotNull().SequenceEqual(y.Descriptors.AssumeNotNull(), TagHelperDescriptorComparer.Default) &&
+               x.Diagnostics.AssumeNotNull().SequenceEqual(y.Diagnostics.AssumeNotNull());
     }
 
     public int GetHashCode(TagHelperResolutionResult obj)

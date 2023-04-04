@@ -6,7 +6,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.Razor.Serialization;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 internal static class JsonReaderExtensions
 {

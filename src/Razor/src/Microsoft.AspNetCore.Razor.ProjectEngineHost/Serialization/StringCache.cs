@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.Razor.Serialization.Internal;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 /// <summary>
 /// This class helps de-duplicate dynamically created strings which might otherwise lead to memory bloat.

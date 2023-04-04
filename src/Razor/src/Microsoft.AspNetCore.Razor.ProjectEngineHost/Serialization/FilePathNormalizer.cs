@@ -6,7 +6,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 public static class FilePathNormalizer
 {
@@ -29,9 +29,7 @@ public static class FilePathNormalizer
             return "/";
         }
 
-        Assumes.NotNullOrEmpty(filePath);
-
-        var decodedPath = filePath.Contains("%") ? WebUtility.UrlDecode(filePath) : filePath;
+        var decodedPath = filePath.AssumeNotNull().Contains("%") ? WebUtility.UrlDecode(filePath) : filePath;
         var normalized = decodedPath.Replace('\\', '/');
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&

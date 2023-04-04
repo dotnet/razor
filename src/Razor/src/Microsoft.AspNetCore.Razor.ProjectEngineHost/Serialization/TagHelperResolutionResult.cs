@@ -4,10 +4,9 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.Serialization;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 [JsonConverter(typeof(TagHelperResolutionResultJsonConverter))]
 internal sealed class TagHelperResolutionResult

@@ -7,7 +7,7 @@ using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.Razor.Serialization;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 internal class TagHelperResolutionResultJsonConverter : JsonConverter
 {

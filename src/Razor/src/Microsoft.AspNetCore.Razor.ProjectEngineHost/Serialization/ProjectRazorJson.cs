@@ -2,41 +2,14 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 [JsonConverter(typeof(ProjectRazorJsonJsonConverter))]
 internal sealed class ProjectRazorJson
 {
-    public ProjectRazorJson(string serializedFilePath, IProjectSnapshot project)
-    {
-        SerializedFilePath = serializedFilePath;
-        FilePath = project.FilePath;
-        Configuration = project.Configuration;
-        RootNamespace = project.RootNamespace;
-        ProjectWorkspaceState = project.ProjectWorkspaceState;
-
-        var documents = new List<DocumentSnapshotHandle>();
-        foreach (var documentFilePath in project.DocumentFilePaths)
-        {
-            if (project.GetDocument(documentFilePath) is { } document)
-            {
-                var documentHandle = new DocumentSnapshotHandle(
-                    document.FilePath.AssumeNotNull(),
-                    document.TargetPath.AssumeNotNull(),
-                    document.FileKind.AssumeNotNull());
-
-                documents.Add(documentHandle);
-            }
-        }
-
-        Documents = documents;
-    }
-
     public ProjectRazorJson(
         string serializedOriginFilePath,
         string filePath,

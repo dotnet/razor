@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Internal;
 using Newtonsoft.Json;
 
-namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 public sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
 {
