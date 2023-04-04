@@ -116,14 +116,14 @@ internal static class IServiceCollectionExtensions
 
     public static void AddSemanticTokensServices(this IServiceCollection services)
     {
-        services.AddRegisteringHandler<RazorSemanticTokensEndpoint>();
-        services.AddRegisteringHandler<SemanticTokensRefreshEndpoint>();
+        services.AddRegisteringHandler<SemanticTokensRangeEndpoint>();
+        services.AddRegisteringHandler<RazorSemanticTokensRefreshEndpoint>();
 
         services.AddSingleton<WorkspaceSemanticTokensRefreshPublisher, DefaultWorkspaceSemanticTokensRefreshPublisher>();
         services.AddSingleton<ProjectSnapshotChangeTrigger, DefaultWorkspaceSemanticTokensRefreshTrigger>();
 
         // Ensure that we don't add the default service if something else has added one.
-        services.TryAddSingleton<RazorSemanticTokensInfoService, DefaultRazorSemanticTokensInfoService>();
+        services.TryAddSingleton<IRazorSemanticTokensInfoService, RazorSemanticTokensInfoService>();
     }
 
     public static void AddCodeActionsServices(this IServiceCollection services)
