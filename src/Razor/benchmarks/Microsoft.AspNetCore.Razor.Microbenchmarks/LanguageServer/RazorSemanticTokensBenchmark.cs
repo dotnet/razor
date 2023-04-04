@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -132,7 +133,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
         }
 
         // We can't get C# responses without significant amounts of extra work, so let's just shim it for now, any non-Null result is fine.
-        internal override Task<SemanticRange[]> GetCSharpSemanticRangesAsync(
+        internal override Task<List<SemanticRange>?> GetCSharpSemanticRangesAsync(
             RazorCodeDocument codeDocument,
             TextDocumentIdentifier textDocumentIdentifier,
             Range razorRange,
@@ -140,8 +141,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
             CancellationToken cancellationToken,
             string previousResultId = null)
         {
-            var result = Array.Empty<SemanticRange>();
-            return Task.FromResult(result);
+            return Task.FromResult(new List<SemanticRange>());
         }
     }
 }
