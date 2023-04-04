@@ -305,12 +305,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             if (tracker.IsVoidTag)
             {
                 // Reached the end of a code block with a void element left open.
-                // Reset to just after the void element and consider it self-closed.
-                // This will re-parse the text after the element as C# code instead of HTML markup.
-                builder.Clear();
-                builder.AddRange(tracker.PreviousNodes);
-                builder.Add(SyntaxFactory.MarkupElement(tracker.StartTag, EmptySyntaxList, endTag: null));
-                Context.Source.Position = tracker.TagLocation.AbsoluteIndex + tracker.StartTag.Width;
+                ResetBeforeVoidTag(builder, tracker);
                 return;
             }
 
@@ -513,6 +508,16 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 builder.Add(element);
                 return;
             }
+            else if (CurrentTracker is { IsVoidTag: true } tracker)
+            {
+                // Reached unmatched closing tag with a void element left open.
+                Debug.Assert(mode == ParseMode.MarkupInCodeBlock);
+                var popped = _tagTracker.Pop();
+                Debug.Assert(popped == tracker);
+                ResetBeforeVoidTag(builder, tracker);
+                NextToken();
+                return;
+            }
             else
             {
                 // Current tag scope does not match the end tag. Attempt to recover the start tag
@@ -530,6 +535,19 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Resets to just after the void element and adds it to the <paramref name="builder"/> as self-closed.
+    /// That will re-parse the text after the element as C# code instead of HTML markup.
+    /// </summary>
+    private void ResetBeforeVoidTag(SyntaxListBuilder<RazorSyntaxNode> builder, TagTracker tracker)
+    {
+        Debug.Assert(tracker.IsVoidTag);
+        builder.Clear();
+        builder.AddRange(tracker.PreviousNodes);
+        builder.Add(SyntaxFactory.MarkupElement(tracker.StartTag, EmptySyntaxList, endTag: null));
+        Context.Source.Position = tracker.TagLocation.AbsoluteIndex + tracker.StartTag.Width;
     }
 
     private void CompleteEndTag(
