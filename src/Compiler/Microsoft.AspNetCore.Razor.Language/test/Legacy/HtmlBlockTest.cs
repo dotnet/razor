@@ -326,4 +326,16 @@ public class HtmlBlockTest : ParserTestBase
     {
         ParseDocumentTest("@{<col>x = 1;<script>const text = '</col>';</script>}");
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_Wrapped()
+    {
+        ParseDocumentTest("@{<p>@{<input>}</p>}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTag_ErrorsInMarkup()
+    {
+        ParseDocumentTest("""@{<input>var x = "<a></b>";}""");
+    }
 }

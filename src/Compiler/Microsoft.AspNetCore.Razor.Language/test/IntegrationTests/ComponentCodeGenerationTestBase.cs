@@ -4440,6 +4440,45 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8460")]
+    public void VoidTagName_Component_Wrapped()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse($$"""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class Paragraph : ComponentBase
+            {
+                [Parameter]
+                public RenderFragment ChildContent { get; set; }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp($$"""
+            @using Microsoft.AspNetCore.Components
+            @{
+                <Paragraph>
+                @{
+                    <input>
+                }
+                </Paragraph>
+            }
+            """);
+
+        // Assert
+        var generatedCSharp = generated.CodeDocument.GetCSharpDocument().GeneratedCode;
+        Assert.DoesNotContain($"<Paragraph>", generatedCSharp);
+        Assert.DoesNotContain($"</Paragraph>", generatedCSharp);
+        if (!DesignTime)
+        {
+            Assert.Contains("<input>", generatedCSharp);
+        }
+        CompileToAssembly(generated);
+    }
+
     [Theory, WorkItem("https://github.com/dotnet/razor/issues/8460")]
     [InlineData("col")]
     [InlineData("input")]
