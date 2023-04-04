@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 
@@ -57,7 +58,43 @@ internal partial class ParserContext
     {
         get { return Source.Peek() == -1; }
     }
+
+    public ParserContextState TakeSnapshot()
+    {
+        return new ParserContextState(
+            new ErrorSink(ErrorSink.Errors),
+            SeenDirectives.ToImmutableArray(),
+            SourcePosition: Source.Position,
+            WhiteSpaceIsSignificantToAncestorBlock: WhiteSpaceIsSignificantToAncestorBlock,
+            NullGenerateWhitespaceAndNewLine: NullGenerateWhitespaceAndNewLine,
+            InTemplateContext: InTemplateContext,
+            StartOfLine: StartOfLine,
+            LastAcceptedCharacters);
+    }
+
+    public void Restore(ParserContextState state)
+    {
+        ErrorSink = state.ErrorSink;
+        SeenDirectives.Clear();
+        SeenDirectives.UnionWith(state.SeenDirectives);
+        Source.Position = state.SourcePosition;
+        WhiteSpaceIsSignificantToAncestorBlock = state.WhiteSpaceIsSignificantToAncestorBlock;
+        NullGenerateWhitespaceAndNewLine = state.NullGenerateWhitespaceAndNewLine;
+        InTemplateContext = state.InTemplateContext;
+        StartOfLine = state.StartOfLine;
+        LastAcceptedCharacters = state.LastAcceptedCharacters;
+    }
 }
+
+internal sealed record ParserContextState(
+    ErrorSink ErrorSink,
+    ImmutableArray<string> SeenDirectives,
+    int SourcePosition,
+    bool WhiteSpaceIsSignificantToAncestorBlock,
+    bool NullGenerateWhitespaceAndNewLine,
+    bool InTemplateContext,
+    bool StartOfLine,
+    AcceptedCharactersInternal LastAcceptedCharacters);
 
 // Debug Helpers
 
