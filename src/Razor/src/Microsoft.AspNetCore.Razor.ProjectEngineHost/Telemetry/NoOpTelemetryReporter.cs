@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.AspNetCore.Razor.Telemetry;
 
 namespace Microsoft.AspNetCore.Razor.Telemetry;
 
