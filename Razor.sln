@@ -172,6 +172,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp", "src\Razor\src\Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp\Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.csproj", "{3E2B6DF5-524F-4909-8A66-7F8C6383620A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.ProjectEngineHost", "src\Razor\src\Microsoft.AspNetCore.Razor.ProjectEngineHost\Microsoft.AspNetCore.Razor.ProjectEngineHost.csproj", "{2FB4801C-A083-4F08-A4FB-C4910985DE31}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
