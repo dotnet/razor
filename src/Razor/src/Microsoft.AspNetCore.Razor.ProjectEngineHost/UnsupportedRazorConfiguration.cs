@@ -4,7 +4,7 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
 public static class UnsupportedRazorConfiguration
 {

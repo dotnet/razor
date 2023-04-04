@@ -6,7 +6,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
 internal abstract class ProjectEngineFactory : IProjectEngineFactory
 {
@@ -18,8 +18,7 @@ internal abstract class ProjectEngineFactory : IProjectEngineFactory
         Action<RazorProjectEngineBuilder> configure)
     {
         // Rewrite the assembly name into a full name just like this one, but with the name of the MVC design time assembly.
-        var assemblyFullName = typeof(RazorProjectEngine).Assembly.FullName;
-        Assumes.NotNull(assemblyFullName);
+        var assemblyFullName = typeof(RazorProjectEngine).Assembly.FullName ?? throw new InvalidOperationException();
 
         var assemblyName = new AssemblyName(assemblyFullName)
         {

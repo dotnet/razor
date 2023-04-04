@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
 internal class ProjectEngineFactory_Unsupported : IProjectEngineFactory
 {

@@ -3,12 +3,11 @@
 
 #nullable disable
 
-using System.Composition;
 using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-[Export(typeof(IFallbackProjectEngineFactory))]
-internal class FallbackProjectEngineFactory : EmptyProjectEngineFactory, IFallbackProjectEngineFactory
+[ExportCustomProjectEngineFactory("Default", SupportsSerialization = true)]
+internal class ExportDefaultProjectEngineFactory : DefaultProjectEngineFactory
 {
 }
