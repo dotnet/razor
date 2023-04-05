@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
@@ -18,9 +17,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 
-public class FindReferencesEndpointTest : SingleServerDelegatingEndpointTestBase
+public class FindAllReferencesEndpointTest : SingleServerDelegatingEndpointTestBase
 {
-    public FindReferencesEndpointTest(ITestOutputHelper testOutput) : base(testOutput)
+    public FindAllReferencesEndpointTest(ITestOutputHelper testOutput) : base(testOutput)
     {
     }
 
@@ -68,7 +67,7 @@ public class FindReferencesEndpointTest : SingleServerDelegatingEndpointTestBase
             completedTokenSource.CancelAfter(0);
         });
 
-        var request = new ReferenceParamsBridge
+        var request = new ReferenceParams
         {
             Context = new ReferenceContext()
             {
