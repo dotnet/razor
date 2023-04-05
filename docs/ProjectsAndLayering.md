@@ -28,6 +28,7 @@ target the broadest set of frameworks.
 
 - Target Framework: `net8.0;netstandard2.0;net472`
 - Projects:
+  - Microsoft.AspNetCore.Razor.ProjectEngineHost
   - Microsoft.CodeAnalysis.Razor.Workspaces
 
 ### Razor Language Server
@@ -76,6 +77,12 @@ target the broadest set of frameworks.
 - Projects:
   - Microsoft.AspNetCore.Razor.OmniSharpPlugin
   - Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp
+
+### Miscellaneous / Test hosting
+
+- Target Framework: net7.0
+- Projects:
+  - Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace
 
 ## Testing Layers
 
