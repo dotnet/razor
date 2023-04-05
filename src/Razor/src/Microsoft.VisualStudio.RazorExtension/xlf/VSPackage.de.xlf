@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Setting_AutoClosingTagsDescription">
         <source>If true, closing tags will be automatically inserted</source>
-        <target state="new">If true, closing tags will be automatically inserted</target>
+        <target state="translated">Bei "true" werden schließende Tags automatisch eingefügt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_AutoClosingTagsDisplayName">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Typing">
         <source>Typing</source>
-        <target state="new">Typing</target>
+        <target state="translated">Eingabe</target>
         <note />
       </trans-unit>
     </body>
