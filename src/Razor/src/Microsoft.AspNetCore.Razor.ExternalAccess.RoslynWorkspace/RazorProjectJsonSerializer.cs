@@ -20,6 +20,7 @@ internal static class RazorProjectJsonSerializer
     private static readonly JsonSerializer s_serializer;
     private static readonly EmptyProjectEngineFactory s_fallbackProjectEngineFactory;
     private static readonly StringComparison s_stringComparison;
+    private static readonly (IProjectEngineFactory Value, ICustomProjectEngineFactoryMetadata)[] s_projectEngineFactories;
 
     static RazorProjectJsonSerializer()
     {
@@ -34,6 +35,8 @@ internal static class RazorProjectJsonSerializer
         s_stringComparison = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
             ? StringComparison.Ordinal
             : StringComparison.OrdinalIgnoreCase;
+
+        s_projectEngineFactories = ProjectEngineFactories.Factories.Select(f => (f.Item1.Value, f.Item2)).ToArray();
     }
 
     public static async Task SerializeAsync(Project project, string projectRazorJsonFileName, CancellationToken cancellationToken)
@@ -82,7 +85,7 @@ internal static class RazorProjectJsonSerializer
             fileSystem: fileSystem,
             configure: defaultConfigure,
             fallback: s_fallbackProjectEngineFactory,
-            factories: ProjectEngineFactories.Factories);
+            factories: s_projectEngineFactories);
 
         var resolver = new CompilationTagHelperResolver(NoOpTelemetryReporter.Instance);
         var tagHelpers = await resolver.GetTagHelpersAsync(project, engine, cancellationToken).ConfigureAwait(false);

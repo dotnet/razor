@@ -197,7 +197,11 @@
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer\Microsoft.AspNetCore.Razor.LanguageServer.csproj">
       <AdditionalProperties>TargetFramework=$(DefaultNetFxTargetFramework)</AdditionalProperties>
     </ProjectReference>
-
+    
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.ProjectEngineHost\Microsoft.AspNetCore.Razor.ProjectEngineHost.csproj">
+      <AdditionalProperties>TargetFramework=$(DefaultNetFxTargetFramework)</AdditionalProperties>
+    </ProjectReference>
+    
     <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj">
       <AdditionalProperties>TargetFramework=$(DefaultNetFxTargetFramework)</AdditionalProperties>
     </ProjectReference>
@@ -225,7 +229,6 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServerClient.Razor\Microsoft.VisualStudio.LanguageServerClient.Razor.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer.Common\Microsoft.AspNetCore.Razor.LanguageServer.Common.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer.Protocol\Microsoft.AspNetCore.Razor.LanguageServer.Protocol.csproj" />
-    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.ProjectEngineHost\Microsoft.AspNetCore.Razor.ProjectEngineHost.csproj" />
     <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Razor.Language\src\Microsoft.AspNetCore.Razor.Language.csproj" />
     <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.csproj" />
     <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X\src\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.csproj" />
