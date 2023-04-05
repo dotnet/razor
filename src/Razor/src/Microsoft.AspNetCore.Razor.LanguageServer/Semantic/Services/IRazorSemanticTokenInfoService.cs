@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-internal abstract class RazorSemanticTokensInfoService
+internal interface IRazorSemanticTokensInfoService
 {
-    public abstract Task<SemanticTokens?> GetSemanticTokensAsync(TextDocumentIdentifier textDocumentIdentifier, Range range, VersionedDocumentContext documentContext, CancellationToken cancellationToken);
+    Task<SemanticTokens?> GetSemanticTokensAsync(TextDocumentIdentifier textDocumentIdentifier, Range range, VersionedDocumentContext documentContext, CancellationToken cancellationToken);
 }

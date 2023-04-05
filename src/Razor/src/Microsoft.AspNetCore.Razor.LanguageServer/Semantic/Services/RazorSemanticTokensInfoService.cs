@@ -5,14 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
@@ -20,7 +18,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-internal class DefaultRazorSemanticTokensInfoService : RazorSemanticTokensInfoService
+internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 {
     private const int TokenSize = 5;
 
@@ -28,7 +26,7 @@ internal class DefaultRazorSemanticTokensInfoService : RazorSemanticTokensInfoSe
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly ILogger _logger;
 
-    public DefaultRazorSemanticTokensInfoService(
+    public RazorSemanticTokensInfoService(
         ClientNotifierServiceBase languageServer,
         RazorDocumentMappingService documentMappingService,
         ILoggerFactory loggerFactory)
@@ -41,20 +39,20 @@ internal class DefaultRazorSemanticTokensInfoService : RazorSemanticTokensInfoSe
             throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        _logger = loggerFactory.CreateLogger<DefaultRazorSemanticTokensInfoService>();
+        _logger = loggerFactory.CreateLogger<RazorSemanticTokensInfoService>();
     }
 
-    public override async Task<SemanticTokens?> GetSemanticTokensAsync(
+    public async Task<SemanticTokens?> GetSemanticTokensAsync(
         TextDocumentIdentifier textDocumentIdentifier,
         Range range,
         VersionedDocumentContext documentContext,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
         var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range);
-        IReadOnlyList<SemanticRange>? csharpSemanticRanges = null;
+        List<SemanticRange>? csharpSemanticRanges = null;
 
         try
         {
@@ -83,22 +81,17 @@ internal class DefaultRazorSemanticTokensInfoService : RazorSemanticTokensInfoSe
         return tokens;
     }
 
-    private static IReadOnlyList<SemanticRange>? CombineSemanticRanges(params IReadOnlyList<SemanticRange>?[] rangesArray)
+    private static List<SemanticRange>? CombineSemanticRanges(List<SemanticRange>? ranges1, List<SemanticRange>? ranges2)
     {
-        if (rangesArray.Any(a => a is null))
+        if (ranges1 is null || ranges2 is null)
         {
             // If we have an incomplete view of the situation we should return null so we avoid flashing.
             return null;
         }
 
-        var newList = new List<SemanticRange>();
-        foreach (var list in rangesArray)
-        {
-            if (list != null)
-            {
-                newList.AddRange(list);
-            }
-        }
+        var newList = new List<SemanticRange>(ranges1.Count + ranges2.Count);
+        newList.AddRange(ranges1);
+        newList.AddRange(ranges2);
 
         // Because SemanticToken data is generated relative to the previous token it must be in order.
         // We have a guarantee of order within any given language server, but the interweaving of them can be quite complex.
@@ -109,7 +102,7 @@ internal class DefaultRazorSemanticTokensInfoService : RazorSemanticTokensInfoSe
     }
 
     // Internal and virtual for testing only
-    internal virtual async Task<SemanticRange[]?> GetCSharpSemanticRangesAsync(
+    internal virtual async Task<List<SemanticRange>?> GetCSharpSemanticRangesAsync(
         RazorCodeDocument codeDocument,
         TextDocumentIdentifier textDocumentIdentifier,
         Range razorRange,
@@ -123,10 +116,10 @@ internal class DefaultRazorSemanticTokensInfoService : RazorSemanticTokensInfoSe
             !TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
         {
             // There's no C# in the range.
-            return Array.Empty<SemanticRange>();
+            return new List<SemanticRange>();
         }
 
-        var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, cancellationToken);
+        var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, cancellationToken).ConfigureAwait(false);
 
         // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
         // Unrecoverable, return default to indicate no change. We've already queued up a refresh request in
@@ -162,8 +155,7 @@ internal class DefaultRazorSemanticTokensInfoService : RazorSemanticTokensInfoSe
             previousSemanticRange = semanticRange;
         }
 
-        var result = razorRanges.ToArray();
-        return result;
+        return razorRanges;
     }
 
     // Internal for testing only
@@ -224,7 +216,7 @@ internal class DefaultRazorSemanticTokensInfoService : RazorSemanticTokensInfoSe
         var csharpResponse = await _languageServer.SendRequestAsync<ProvideSemanticTokensRangeParams, ProvideSemanticTokensResponse>(
             RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint,
             parameter,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
 
         if (csharpResponse is null)
         {
@@ -280,7 +272,7 @@ internal class DefaultRazorSemanticTokensInfoService : RazorSemanticTokensInfoSe
     }
 
     private static int[] ConvertSemanticRangesToSemanticTokensData(
-        IReadOnlyList<SemanticRange> semanticRanges,
+        List<SemanticRange> semanticRanges,
         RazorCodeDocument razorCodeDocument)
     {
         SemanticRange? previousResult = null;

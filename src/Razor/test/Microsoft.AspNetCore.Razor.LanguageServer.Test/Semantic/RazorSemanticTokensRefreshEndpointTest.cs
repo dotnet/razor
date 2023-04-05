@@ -16,11 +16,11 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-public class SemanticTokensRefreshEndpointTest : TestBase
+public class RazorSemanticTokensRefreshEndpointTest : TestBase
 {
-    public SemanticTokensRefreshEndpointTest(ITestOutputHelper testOutput)
+    public RazorSemanticTokensRefreshEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
     }
@@ -35,7 +35,7 @@ public class SemanticTokensRefreshEndpointTest : TestBase
         var serverClient = new TestClient();
         var errorReporter = new TestErrorReporter();
         using var semanticTokensRefreshPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(clientSettingsManager.Object, serverClient, errorReporter);
-        var refreshEndpoint = new SemanticTokensRefreshEndpoint(semanticTokensRefreshPublisher);
+        var refreshEndpoint = new RazorSemanticTokensRefreshEndpoint(semanticTokensRefreshPublisher);
         var refreshParams = new SemanticTokensRefreshParams();
         var requestContext = new RazorRequestContext();
 

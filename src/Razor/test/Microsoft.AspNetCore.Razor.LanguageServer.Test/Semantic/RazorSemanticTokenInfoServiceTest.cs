@@ -15,16 +15,16 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Semantic;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 // Sets the FileName static variable.
 // Finds the test method name using reflection, and uses
 // that to find the expected input/output test files as Embedded resources.
 [IntializeTestFile]
 [UseExportProvider]
-public class DefaultRazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
+public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
 {
-    public DefaultRazorSemanticTokenInfoServiceTest(ITestOutputHelper testOutput)
+    public RazorSemanticTokenInfoServiceTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
     }
@@ -636,7 +636,7 @@ public class DefaultRazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         string documentText,
         bool isRazorFile,
         Range range,
-        RazorSemanticTokensInfoService? service = null,
+        IRazorSemanticTokensInfoService? service = null,
         ProvideSemanticTokensResponse? csharpTokens = null,
         int documentVersion = 0)
     {
@@ -655,7 +655,7 @@ public class DefaultRazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         DocumentContentVersion[] documentTexts,
         bool[] isRazorArray,
         Range range,
-        RazorSemanticTokensInfoService? service = null,
+        IRazorSemanticTokensInfoService? service = null,
         ProvideSemanticTokensResponse? csharpTokens = null,
         int documentVersion = 0)
     {
@@ -683,7 +683,7 @@ public class DefaultRazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         AssertSemanticTokensMatchesBaseline(tokens?.Data);
     }
 
-    private RazorSemanticTokensInfoService GetDefaultRazorSemanticTokenInfoService(
+    private IRazorSemanticTokensInfoService GetDefaultRazorSemanticTokenInfoService(
         Queue<VersionedDocumentContext> documentSnapshots,
         ProvideSemanticTokensResponse? csharpTokens = null)
     {
@@ -703,7 +703,7 @@ public class DefaultRazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var settingsManager = new TestInitializeManager();
         var semanticTokensRefreshPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(settingsManager, testClient, errorReporter);
 
-        return new DefaultRazorSemanticTokensInfoService(
+        return new RazorSemanticTokensInfoService(
             languageServer.Object,
             documentMappingService,
             LoggerFactory);
