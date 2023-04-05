@@ -53,7 +53,8 @@ global::System.Object TParam = null!;
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-            __o = ((global::Test.MyComponent<TParam>)default).
+            #pragma warning disable BL0005
+            ((global::Test.MyComponent<TParam>)default).
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                                    Value
@@ -61,8 +62,8 @@ global::System.Object TParam = null!;
 #line default
 #line hidden
 #nullable disable
-            ;
-            __o = ((global::Test.MyComponent<TParam>)default).
+             = default;
+            ((global::Test.MyComponent<TParam>)default).
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                                                                  Value
@@ -70,7 +71,8 @@ global::System.Object TParam = null!;
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);

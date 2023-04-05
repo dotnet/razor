@@ -4,21 +4,13 @@
 using BenchmarkDotNet.Attributes;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Generator;
-internal class ParamsAllUnlessDebugAttribute
-#if DEBUG
-    : ParamsAttribute
-#else
-    : ParamsAllValuesAttribute
-#endif
-
+public class ColdBenchmarks : AbstractBenchmark
 {
-    internal ParamsAllUnlessDebugAttribute(params object[] args)
-#if DEBUG
-        : base(args[0])
-#else
-        : base()
-#endif
+    public ColdBenchmarks()
     {
-
+        this.Cold = true;
     }
+
+    [Benchmark]
+    public void Cold_Compilation() => RunBenchmark((p) => p.GeneratorDriver);
 }
