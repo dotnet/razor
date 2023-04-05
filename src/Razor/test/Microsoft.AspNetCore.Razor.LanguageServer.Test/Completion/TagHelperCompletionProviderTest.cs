@@ -23,6 +23,9 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     {
     }
 
+    private TagHelperCompletionProvider CreateTagHelperCompletionProvider()
+        => new(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, TestRazorLSPOptionsMonitor.Instance);
+
     [Fact]
     public void GetNearestAncestorTagInfo_MarkupElement()
     {
@@ -70,7 +73,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_AtEmptyTagName_ReturnsCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, TestRazorLSPOptionsMonitor.Instance);
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -93,7 +96,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_OutsideOfTagName_DoesNotReturnCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, TestRazorLSPOptionsMonitor.Instance);
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -113,7 +116,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_MalformedElement()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, TestRazorLSPOptionsMonitor.Instance);
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -134,7 +137,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_AtHtmlElementNameEdge_ReturnsCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, TestRazorLSPOptionsMonitor.Instance);
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -156,7 +159,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_AtTagHelperElementNameEdge_ReturnsCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, TestRazorLSPOptionsMonitor.Instance);
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -177,7 +180,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_AtAttributeEdge_IntAttribute_ReturnsCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService, TestRazorLSPOptionsMonitor.Instance);
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -210,7 +213,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_AtAttributeEdge_IntAttribute_Snippets_ReturnsCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var options = new RazorCompletionOptions(SnippetsSupported: true);
         var context = CreateRazorCompletionContext(
             """
@@ -247,7 +250,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_KnownHtmlElement_ReturnsCompletions_DefaultPriority()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -274,7 +277,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_InBody_ReturnsCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -305,7 +308,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_InBody_ParentRequiring_ReturnsCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -340,7 +343,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_AtAttributeEdge_BoolAttribute_ReturnsCompletionsWithout()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -383,7 +386,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
             attribute.TypeName = "System.Collections.Generic.IDictionary<System.String, System.Boolean>";
             attribute.AsDictionary("bool-val-", typeof(bool).FullName);
         });
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -426,7 +429,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
             attribute.TypeName = "System.Collections.Generic.IDictionary<System.String, System.Int32>";
             attribute.AsDictionary("int-val-", typeof(int).FullName);
         });
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -459,7 +462,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_MinimizedAttributeMiddle_ReturnsCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -479,7 +482,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_MinimizedAttributeEdge_ReturnsCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -499,7 +502,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_MinimizedTagHelperAttributeEdge_ReturnsCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -519,7 +522,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_InHtmlAttributeName_ReturnsNoCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -539,7 +542,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_InTagHelperAttribute_ReturnsNoCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -560,7 +563,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_InPossibePartiallyWrittenTagHelper_ReturnsCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -581,7 +584,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionsAt_MalformedAttributeValueInName_ReturnsCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -601,7 +604,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionsAt_MalformedAttributeNamePrefix_ReturnsCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -621,7 +624,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionAt_HtmlAttributeValue_DoesNotReturnCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -641,7 +644,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionsAt_AttributePrefix_ReturnsCompletions()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -662,7 +665,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionsAt_MiddleOfFullAttribute_ReturnsCompletions_NoSnippetBehaviour()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -694,7 +697,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionsAt_MiddleOfHtmlAttribute_ReturnsCompletion()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly
@@ -714,7 +717,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
     public void GetCompletionsAt_EndOfAttribute_ReturnsCompletion()
     {
         // Arrange
-        var service = new TagHelperCompletionProvider(RazorTagHelperCompletionService, HtmlFactsService, TagHelperFactsService);
+        var service = CreateTagHelperCompletionProvider();
         var context = CreateRazorCompletionContext(
             """
                 @addTagHelper *, TestAssembly

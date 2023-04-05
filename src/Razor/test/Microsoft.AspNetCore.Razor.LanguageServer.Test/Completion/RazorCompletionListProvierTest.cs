@@ -37,7 +37,7 @@ public class RazorCompletionListProvierTest : LanguageServerTestBase
             new DirectiveCompletionItemProvider(),
             new DirectiveAttributeCompletionItemProvider(tagHelperFactsService),
             new DirectiveAttributeParameterCompletionItemProvider(tagHelperFactsService),
-            new TagHelperCompletionProvider(tagHelperCompletionService, new DefaultHtmlFactsService(), tagHelperFactsService)
+            new TagHelperCompletionProvider(tagHelperCompletionService, new DefaultHtmlFactsService(), tagHelperFactsService, TestRazorLSPOptionsMonitor.Instance)
         };
 
         _completionFactsService = new DefaultRazorCompletionFactsService(completionProviders);
