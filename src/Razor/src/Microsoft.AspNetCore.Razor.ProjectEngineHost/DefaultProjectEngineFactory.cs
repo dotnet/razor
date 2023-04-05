@@ -14,10 +14,9 @@ internal class DefaultProjectEngineFactory : IProjectEngineFactory
     internal static RazorProjectEngine Create(RazorConfiguration configuration, RazorProjectFileSystem fileSystem, Action<RazorProjectEngineBuilder> configure, IProjectEngineFactory fallback, (IProjectEngineFactory, ICustomProjectEngineFactoryMetadata)[] factories)
     {
         var factoryToUse = fallback;
-        for (var i = 0; i < factories.Length; i++)
+        foreach (var (factory, metadata) in factories)
         {
-            var (factory, metadata) = factories[i];
-            if (string.Equals(configuration.ConfigurationName, metadata.ConfigurationName, StringComparison.Ordinal))
+            if (configuration.ConfigurationName == metadata.ConfigurationName)
             {
                 factoryToUse = factory;
             }

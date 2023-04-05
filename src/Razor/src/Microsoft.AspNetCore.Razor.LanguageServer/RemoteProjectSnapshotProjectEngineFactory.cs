@@ -17,7 +17,7 @@ internal class RemoteProjectSnapshotProjectEngineFactory : DefaultProjectSnapsho
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
     public RemoteProjectSnapshotProjectEngineFactory(IOptionsMonitor<RazorLSPOptions> optionsMonitor)
-        : base(FallbackProjectEngineFactory, MEFProjectEngineFactories.Factories)
+        : base(FallbackProjectEngineFactory, MefProjectEngineFactories.Factories)
     {
         if (optionsMonitor is null)
         {

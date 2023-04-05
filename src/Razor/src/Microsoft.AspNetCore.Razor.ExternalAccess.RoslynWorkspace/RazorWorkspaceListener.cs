@@ -128,9 +128,9 @@ public class RazorWorkspaceListener : IDisposable
     {
         lock (_gate)
         {
-            foreach (var kvp in _workQueues)
+            foreach (var (_, value) in _workQueues)
             {
-                kvp.Value.Dispose();
+                value.Dispose();
             }
         }
     }

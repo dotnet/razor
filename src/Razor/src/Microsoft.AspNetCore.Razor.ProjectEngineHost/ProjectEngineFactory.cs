@@ -18,7 +18,7 @@ internal abstract class ProjectEngineFactory : IProjectEngineFactory
         Action<RazorProjectEngineBuilder> configure)
     {
         // Rewrite the assembly name into a full name just like this one, but with the name of the MVC design time assembly.
-        var assemblyFullName = typeof(RazorProjectEngine).Assembly.FullName ?? throw new InvalidOperationException();
+        var assemblyFullName = typeof(RazorProjectEngine).Assembly.FullName.AssumeNotNull();
 
         var assemblyName = new AssemblyName(assemblyFullName)
         {
