@@ -13,11 +13,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class TestRazorLSPOptionsMonitor : RazorLSPOptionsMonitor
 {
+    private readonly IConfigurationSyncService _configuruationSyncService;
+
     private TestRazorLSPOptionsMonitor(
         IConfigurationSyncService configurationService,
         IOptionsMonitorCache<RazorLSPOptions> cache)
         : base(configurationService, cache, RazorLSPOptions.Default)
     {
+        _configuruationSyncService = configurationService;
     }
 
     public bool Called { get; private set; }
@@ -28,16 +31,32 @@ internal class TestRazorLSPOptionsMonitor : RazorLSPOptionsMonitor
         return base.UpdateAsync();
     }
 
+    public Task UpdateAsync(RazorLSPOptions options, CancellationToken cancellationToken)
+    {
+        if (_configuruationSyncService is not ConfigurationSyncService configurationSyncService)
+        {
+            throw new InvalidOperationException();
+        }
+
+        configurationSyncService.Options = options;
+        return UpdateAsync(cancellationToken);
+    }
+
     public static TestRazorLSPOptionsMonitor Create(
         IConfigurationSyncService? configurationService = null,
         IOptionsMonitorCache<RazorLSPOptions>? cache = null)
     {
-        configurationService ??= Mock.Of<IConfigurationSyncService>(
-           f => f.GetLatestOptionsAsync(CancellationToken.None) == Task.FromResult(RazorLSPOptions.Default),
-           MockBehavior.Strict);
-
+        configurationService ??= new ConfigurationSyncService();
         cache ??= new ServiceCollection().AddOptions().BuildServiceProvider().GetRequiredService<IOptionsMonitorCache<RazorLSPOptions>>();
 
         return new(configurationService, cache);
+    }
+
+    private class ConfigurationSyncService : IConfigurationSyncService
+    {
+        public RazorLSPOptions? Options { get; set; }
+
+        public Task<RazorLSPOptions?> GetLatestOptionsAsync(CancellationToken cancellationToken)
+            => Task.FromResult(Options);
     }
 }
