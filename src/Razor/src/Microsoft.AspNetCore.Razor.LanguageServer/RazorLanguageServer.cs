@@ -69,11 +69,6 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             .AddOptions()
             .AddLogging();
 
-        if (_configureServer is not null)
-        {
-            _configureServer(services);
-        }
-
         var serverManager = new DefaultClientNotifierService(_jsonRpc);
         services.AddSingleton<ClientNotifierServiceBase>(serverManager);
         if (_logger is LspLogger lspLogger)
@@ -157,6 +152,11 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         services.TryAddSingleton<HostServicesProvider, DefaultHostServicesProvider>();
 
         AddHandlers(services);
+
+        if (_configureServer is not null)
+        {
+            _configureServer(services);
+        }
 
         var lspServices = new LspServices(services);
 

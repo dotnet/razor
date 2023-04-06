@@ -1,35 +1,35 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 
-public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
+public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
 {
     private string? _filePath;
     private Uri? DocumentUri { get; set; }
-    private CodeActionEndpoint? CodeActionEndpoint { get; set; }
+    private DocumentPullDiagnosticsEndpoint? DocumentPullDiagnosticsEndpoint { get; set; }
     private IDocumentSnapshot? DocumentSnapshot { get; set; }
     private SourceText? DocumentText { get; set; }
-    private Range? RazorCodeActionRange { get; set; }
-    private Range? CSharpCodeActionRange { get; set; }
-    private Range? HtmlCodeActionRange { get; set; }
     private RazorRequestContext RazorRequestContext { get; set; }
 
     public enum FileTypes
@@ -46,27 +46,15 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
     {
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
 
-        CodeActionEndpoint = new CodeActionEndpoint(
-            documentMappingService: languageServer.GetRequiredService<RazorDocumentMappingService>(),
-            razorCodeActionProviders: languageServer.GetRequiredService<IEnumerable<RazorCodeActionProvider>>(),
-            csharpCodeActionProviders: languageServer.GetRequiredService<IEnumerable<CSharpCodeActionProvider>>(),
-            htmlCodeActionProviders: languageServer.GetRequiredService<IEnumerable<HtmlCodeActionProvider>>(),
-            languageServer: languageServer.GetRequiredService<ClientNotifierServiceBase>(),
-            languageServerFeatureOptions: languageServer.GetRequiredService<LanguageServerFeatureOptions>());
-
+        DocumentPullDiagnosticsEndpoint = new DocumentPullDiagnosticsEndpoint(
+            languageServerFeatureOptions: languageServer.GetRequiredService<LanguageServerFeatureOptions>(),
+            translateDiagnosticsService: languageServer.GetRequiredService<RazorTranslateDiagnosticsService>(),
+            languageServer: languageServer.GetRequiredService<ClientNotifierServiceBase>());
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
         _filePath = Path.Combine(projectRoot, "Components", "Pages", $"Generated.razor");
 
         var content = GetFileContents(this.FileType);
-
-        var htmlCodeActionIndex = content.IndexOf("|H|");
-        content = content.Replace("|H|", "");
-        var razorCodeActionIndex = content.IndexOf("|R|");
-        content = content.Replace("|R|", "");
-        var csharpCodeActionIndex = content.IndexOf("|C|");
-        content = content.Replace("|C|", "");
-
         File.WriteAllText(_filePath, content);
 
         var targetPath = "/Components/Pages/Generated.razor";
@@ -74,28 +62,36 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
         DocumentUri = new Uri(_filePath);
         DocumentSnapshot = GetDocumentSnapshot(projectFilePath, _filePath, targetPath);
         DocumentText = await DocumentSnapshot.GetTextAsync();
-
-        RazorCodeActionRange = ToRange(razorCodeActionIndex);
-        CSharpCodeActionRange = ToRange(csharpCodeActionIndex);
-        HtmlCodeActionRange = ToRange(htmlCodeActionIndex);
-
         var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, 1);
-
-        var codeDocument = await documentContext.GetCodeDocumentAsync(CancellationToken.None);
-        // Need a root namespace for the Extract to Code Behind light bulb to be happy
-        codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Create(c => c.RootNamespace = "Root.Namespace"));
 
         RazorRequestContext = new RazorRequestContext(documentContext, Logger, languageServer.GetLspServices());
 
-        Range ToRange(int index)
+        // Run once in setup to verify setup is correct
+        var request = new VSInternalDocumentDiagnosticsParams
         {
-            DocumentText.GetLineAndOffset(index, out var line, out var offset);
-            return new Range
+            TextDocument = new TextDocumentIdentifier
             {
-                Start = new Position(line, offset),
-                End = new Position(line, offset)
-            };
+                Uri = DocumentUri!
+            },
+        };
+
+        var diagnostics = await DocumentPullDiagnosticsEndpoint!.HandleRequestAsync(request, RazorRequestContext, CancellationToken.None);
+
+        if (!diagnostics!.ElementAtOrDefault(0)!.Diagnostics!.ElementAtOrDefault(0)!.Message.Contains("CallOnMe"))
+        {
+            throw new NotImplementedException("benchmark setup is wrong");
         }
+    }
+
+    protected internal override void Builder(IServiceCollection collection)
+    {
+        collection.AddSingleton<ClientNotifierServiceBase, NoopClientNotifierServiceForDiagnostics>();
+        collection.AddSingleton<IOnInitialized, NoopClientNotifierServiceForDiagnostics>();
+    }
+
+    private protected override LanguageServerFeatureOptions BuildFeatureOptions()
+    {
+        return new LanguageServerFeatureOptionsForDiagnostics();
     }
 
     private string GetFileContents(FileTypes fileType)
@@ -120,38 +116,34 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
         }
 
         sb.Append("""
-            <|H|div>
-                <span>@DateTime.Now</span>
-                @if (true)
-                {
-                    <span>@y</span>
-                }
-            </div>
 
-            @co|R|de {
-                private void |C|Goo()
+             <div></div>
+
+             @functions
+             {
+                public void M()
                 {
+                    CallOnMe();
                 }
-            }"
-            """);
+             }
+
+             """);
 
         return sb.ToString();
     }
 
-    [Benchmark(Description = "Lightbulbs")]
-    public async Task RazorLightbulbAsync()
+    [Benchmark(Description = "Diagnostics")]
+    public async Task RazorDiagnosticsAsync()
     {
-        var request = new VSCodeActionParams
+        var request = new VSInternalDocumentDiagnosticsParams
         {
-            Range = RazorCodeActionRange!,
-            Context = new VSInternalCodeActionContext(),
-            TextDocument = new VSTextDocumentIdentifier
+            TextDocument = new TextDocumentIdentifier
             {
                 Uri = DocumentUri!
             },
         };
 
-        await CodeActionEndpoint!.HandleRequestAsync(request, RazorRequestContext, CancellationToken.None);
+        await DocumentPullDiagnosticsEndpoint!.HandleRequestAsync(request, RazorRequestContext, CancellationToken.None);
     }
 
     [GlobalCleanup]
@@ -163,5 +155,73 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
 
         await innerServer.ShutdownAsync();
         await innerServer.ExitAsync();
+    }
+
+    private class LanguageServerFeatureOptionsForDiagnostics : LanguageServerFeatureOptions
+    {
+        public override bool SupportsFileManipulation => true;
+
+        public override string ProjectConfigurationFileName => "LanguageServerConstants.DefaultProjectConfigurationFile";
+
+        public override string CSharpVirtualDocumentSuffix => ".ide.g.cs";
+
+        public override string HtmlVirtualDocumentSuffix => "__virtual.html";
+
+        public override bool SingleServerCompletionSupport => false;
+
+        public override bool SingleServerSupport => true;
+
+        public override bool SupportsDelegatedCodeActions => true;
+
+        // Code action and rename paths in Windows VS Code need to be prefixed with '/':
+        // https://github.com/dotnet/razor/issues/8131
+        public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash
+            => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+    }
+
+    private class NoopClientNotifierServiceForDiagnostics : ClientNotifierServiceBase
+    {
+        public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        public override Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task SendNotificationAsync(string method, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
+        {
+            object result = new RazorPullDiagnosticResponse(
+                new[]
+                {
+                    new VSInternalDiagnosticReport()
+                    {
+                        ResultId = "5",
+                        Diagnostics = new Diagnostic[]
+                        {
+                            new()
+                            {
+                                Range = new Range()
+                                {
+                                    Start = new Position(10, 19),
+                                    End = new Position(10, 23)
+                                },
+                                Code = "CS0103",
+                                Severity = DiagnosticSeverity.Error,
+                                Source = "DocumentPullDiagnosticHandler",
+                                Message = "The name 'CallOnMe' does not exist in the current context"
+                            }
+                        }
+                    }
+                }, Array.Empty<VSInternalDiagnosticReport>());
+            return Task.FromResult((TResponse)result);
+        }
     }
 }
