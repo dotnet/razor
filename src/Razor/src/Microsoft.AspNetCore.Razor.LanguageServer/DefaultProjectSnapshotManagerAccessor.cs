@@ -35,27 +35,31 @@ internal class LspHostOutput : IGeneratorSnapshotProvider
         var projectRoot = documentSnapshot.Project.FilePath.Substring(0, documentSnapshot.Project.FilePath.LastIndexOf("/"));
         var documentName = GetIdentifierFromPath(documentSnapshot.FilePath?.Substring(projectRoot.Length + 1) ?? "") + ".g.cs";
 
-        var request = new GetHostOutputRequest()
-        {
-            TextDocument = new TextDocumentIdentifier()
-            {
-                Uri = new UriBuilder()
-                {
-                    Scheme = Uri.UriSchemeFile,
-                    Path = documentSnapshot.FilePath,
-                    Host = string.Empty,
-                }.Uri
-            },
-            GeneratorName = "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator",
-            RequestedOutputs = new[]
-            {
-                documentName + ".rsg-cs",
-                documentName + ".rsg-html",
-            }
-        };
+        var csharp = await RequestOutput(documentName + ".rsg-cs");
+        var html = await RequestOutput(documentName + ".rsg-html");
 
-        var response = await _notifier.SendRequestAsync<GetHostOutputRequest, GetHostOutputResponse>(RazorLanguageServerCustomMessageTargets.RazorHostOutputsEndpointName, request, CancellationToken.None);
-        return (response.Outputs[0] ?? string.Empty, response.Outputs[1] ?? string.Empty);  //TODO: do this on the roslyn side?
+        return (csharp, html);
+
+        async Task<string> RequestOutput(string name)
+        {
+            var request = new HostOutputRequest()
+            {
+                TextDocument = new TextDocumentIdentifier()
+                {
+                    Uri = new UriBuilder()
+                    {
+                        Scheme = Uri.UriSchemeFile,
+                        Path = documentSnapshot.FilePath,
+                        Host = string.Empty,
+                    }.Uri
+                },
+                GeneratorName = "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator",
+                RequestedOutput = name,
+            };
+
+            var response = await _notifier.SendRequestAsync<HostOutputRequest, HostOutputResponse>(RazorLanguageServerCustomMessageTargets.RazorHostOutputsEndpointName, request, CancellationToken.None);
+            return response.Output ?? string.Empty;
+        }
     }
 
     //copied from the generator
@@ -126,7 +130,7 @@ internal class DefaultProjectSnapshotManagerAccessor : ProjectSnapshotManagerAcc
         _notifierService = notifier;
         //_generatorSnapshotFactory = snapshotFactory;
 
-        Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("project accessor made. notifier is :" + (notifier is not null));
+        //Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("project accessor made. notifier is :" + (notifier is not null));
     }
 
     public override ProjectSnapshotManagerBase Instance

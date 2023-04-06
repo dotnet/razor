@@ -69,7 +69,7 @@ internal class ProjectState
         ImportsToRelatedDocuments = s_emptyImportsToRelatedDocuments;
         Version = VersionStamp.Create();
         DocumentCollectionVersion = Version;
-        GeneratorSnapshot = Services.GetService<IRazorGeneratorSnapshotFactory>()?.GetSnapshot(hostProject.FilePath);
+        //GeneratorSnapshot = Services.GetService<IRazorGeneratorSnapshotFactory>()?.GetSnapshot(hostProject.FilePath);
 
         _lock = new object();
     }
@@ -168,8 +168,6 @@ internal class ProjectState
     public IReadOnlyList<TagHelperDescriptor> TagHelpers => ProjectWorkspaceState?.TagHelpers ?? s_emptyTagHelpers;
 
     public LanguageVersion CSharpLanguageVersion => ProjectWorkspaceState?.CSharpLanguageVersion ?? LanguageVersion.Default;
-
-    public GeneratorSnapshot GeneratorSnapshot { get; }
 
     /// <summary>
     /// Gets the version of this project, INCLUDING content changes. The <see cref="Version"/> is

@@ -1150,9 +1150,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     public override Task<VSInternalReferenceItem[]?> ReferencesAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
         => DelegateTextDocumentPositionRequestAsync<VSInternalReferenceItem[]>(request, Methods.TextDocumentReferencesName, cancellationToken);
 
-    public override async Task<GetHostOutputResponse?> HostOutputsAsync(GetHostOutputRequest request, CancellationToken cancellationToken)
+    public override async Task<HostOutputResponse?> HostOutputsAsync(HostOutputRequest request, CancellationToken cancellationToken)
     {
-        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<GetHostOutputRequest, GetHostOutputResponse>(RazorGetHostOutputHandler.MethodName, RazorLSPConstants.RazorCSharpLanguageServerName, request, cancellationToken);
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<HostOutputRequest, HostOutputResponse>(RazorHostOutputHandler.MethodName, RazorLSPConstants.RazorCSharpLanguageServerName, request, cancellationToken);
 
         // PROTOTYPE: do we need to check success, or just let the outer handler deal with it?
         return response.Result;

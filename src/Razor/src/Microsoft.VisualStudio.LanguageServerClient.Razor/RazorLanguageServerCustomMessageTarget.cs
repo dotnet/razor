@@ -136,5 +136,5 @@ internal abstract class RazorLanguageServerCustomMessageTarget
     public abstract Task<VSInternalReferenceItem[]?> ReferencesAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
 
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorHostOutputsEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<GetHostOutputResponse?> HostOutputsAsync(GetHostOutputRequest request, CancellationToken cancellationToken);
+    public abstract Task<HostOutputResponse?> HostOutputsAsync(HostOutputRequest request, CancellationToken cancellationToken);
 }

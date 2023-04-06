@@ -518,12 +518,12 @@ internal class DocumentState
                 var htmlDocument = RazorHtmlDocument.Create(codeDocument, codeDoc2.Html, RazorCodeGenerationOptions.CreateDesignTimeDefault(), Array.Empty<SourceMapping>());
                 codeDocument.SetHtmlDocument(htmlDocument);
 
-                Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Retrieved document from service");
+                //Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Retrieved document from service");
             }
             else
             {
                 codeDocument = projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources, project.TagHelpers);
-                Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Generated document locally");
+                //Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Generated document locally");
             }
 
             return (codeDocument, inputVersion);
