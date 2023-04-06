@@ -154,7 +154,7 @@
     <value>Auto Insert Closing Tag</value>
   </data>
   <data name="Setting_AutoInsertAttributeQuotesDescription" xml:space="preserve">
-    <value>If true, completion  on attributes will add quotation marks</value>
+    <value>If true, completion on attributes will add quotation marks</value>
   </data>
   <data name="Setting_AutoInsertAttributeQuotesDisplayName" xml:space="preserve">
     <value>Auto Insert Attribute Quotes</value>
