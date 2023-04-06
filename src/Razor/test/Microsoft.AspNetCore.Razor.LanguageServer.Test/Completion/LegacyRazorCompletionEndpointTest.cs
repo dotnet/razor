@@ -41,7 +41,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
             new DirectiveCompletionItemProvider(),
             new DirectiveAttributeCompletionItemProvider(tagHelperFactsService),
             new DirectiveAttributeParameterCompletionItemProvider(tagHelperFactsService),
-            new TagHelperCompletionProvider(tagHelperCompletionService, new DefaultHtmlFactsService(), tagHelperFactsService, TestRazorLSPOptionsMonitor.Instance)
+            new TagHelperCompletionProvider(tagHelperCompletionService, new DefaultHtmlFactsService(), tagHelperFactsService, TestRazorLSPOptionsMonitor.Create())
         };
 
         _completionFactsService = new DefaultRazorCompletionFactsService(completionProviders);

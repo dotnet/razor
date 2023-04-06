@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -12,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class TestRazorLSPOptionsMonitor : RazorLSPOptionsMonitor
 {
-    public TestRazorLSPOptionsMonitor(
+    private TestRazorLSPOptionsMonitor(
         IConfigurationSyncService configurationService,
         IOptionsMonitorCache<RazorLSPOptions> cache)
         : base(configurationService, cache, RazorLSPOptions.Default)
@@ -27,9 +28,16 @@ internal class TestRazorLSPOptionsMonitor : RazorLSPOptionsMonitor
         return base.UpdateAsync();
     }
 
-    public static readonly TestRazorLSPOptionsMonitor Instance = new(
-        Mock.Of<IConfigurationSyncService>(
+    public static TestRazorLSPOptionsMonitor Create(
+        IConfigurationSyncService? configurationService = null,
+        IOptionsMonitorCache<RazorLSPOptions>? cache = null)
+    {
+        configurationService ??= Mock.Of<IConfigurationSyncService>(
            f => f.GetLatestOptionsAsync(CancellationToken.None) == Task.FromResult(RazorLSPOptions.Default),
-           MockBehavior.Strict),
-        new ServiceCollection().AddOptions().BuildServiceProvider().GetRequiredService<IOptionsMonitorCache<RazorLSPOptions>>());
+           MockBehavior.Strict);
+
+        cache ??= new ServiceCollection().AddOptions().BuildServiceProvider().GetRequiredService<IOptionsMonitorCache<RazorLSPOptions>>();
+
+        return new(configurationService, cache);
+    }
 }
