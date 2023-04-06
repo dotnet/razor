@@ -2,7 +2,7 @@
 
 ## High Level Overview
 
-![Layers](overview.svg)
+![Layers](./overview.svg)
 
 <details>
 Created with https://www.sankeymatic.com/build/
