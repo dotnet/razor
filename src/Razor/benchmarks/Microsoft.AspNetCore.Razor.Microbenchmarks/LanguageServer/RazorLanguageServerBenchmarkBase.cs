@@ -30,14 +30,14 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         Logger = new NoopLogger();
         RazorLanguageServer = RazorLanguageServerWrapper.Create(serverStream, serverStream, Logger, NoOpTelemetryReporter.Instance, configure: (collection) =>
         {
+            collection.AddSingleton<IOnInitialized, NoopClientNotifierService>();
+            collection.AddSingleton<ClientNotifierServiceBase, NoopClientNotifierService>();
             Builder(collection);
         }, featureOptions: BuildFeatureOptions());
     }
 
     protected internal virtual void Builder(IServiceCollection collection)
     {
-        collection.AddSingleton<IOnInitialized, NoopClientNotifierService>();
-        collection.AddSingleton<ClientNotifierServiceBase, NoopClientNotifierService>();
     }
 
     private protected virtual LanguageServerFeatureOptions BuildFeatureOptions()

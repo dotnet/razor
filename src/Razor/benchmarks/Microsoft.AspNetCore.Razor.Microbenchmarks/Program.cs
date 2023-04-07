@@ -75,7 +75,6 @@ internal class Program
     private static Job GetJob(IToolchain toolchain)
         => Job.Default
             .WithToolchain(toolchain)
-            .WithMinIterationCount(15)
             .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
 
     private static DisassemblyDiagnoser CreateDisassembler()

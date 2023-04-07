@@ -1,10 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable enable
-
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -18,7 +15,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
@@ -49,7 +45,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         DocumentPullDiagnosticsEndpoint = new DocumentPullDiagnosticsEndpoint(
             languageServerFeatureOptions: languageServer.GetRequiredService<LanguageServerFeatureOptions>(),
             translateDiagnosticsService: languageServer.GetRequiredService<RazorTranslateDiagnosticsService>(),
-            languageServer: languageServer.GetRequiredService<ClientNotifierServiceBase>());
+            languageServer: new ClientNotifierService());
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
         _filePath = Path.Combine(projectRoot, "Components", "Pages", $"Generated.razor");
@@ -83,15 +79,10 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         }
     }
 
-    protected internal override void Builder(IServiceCollection collection)
-    {
-        collection.AddSingleton<ClientNotifierServiceBase, NoopClientNotifierServiceForDiagnostics>();
-        collection.AddSingleton<IOnInitialized, NoopClientNotifierServiceForDiagnostics>();
-    }
 
     private protected override LanguageServerFeatureOptions BuildFeatureOptions()
     {
-        return new LanguageServerFeatureOptionsForDiagnostics();
+        return new DiagnosticsLanguageServerFeatureOptions();
     }
 
     private string GetFileContents(FileTypes fileType)
@@ -157,11 +148,11 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         await innerServer.ExitAsync();
     }
 
-    private class LanguageServerFeatureOptionsForDiagnostics : LanguageServerFeatureOptions
+    private class DiagnosticsLanguageServerFeatureOptions : LanguageServerFeatureOptions
     {
         public override bool SupportsFileManipulation => true;
 
-        public override string ProjectConfigurationFileName => "LanguageServerConstants.DefaultProjectConfigurationFile";
+        public override string ProjectConfigurationFileName => "project.razor.json";
 
         public override string CSharpVirtualDocumentSuffix => ".ide.g.cs";
 
@@ -177,9 +168,11 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         // https://github.com/dotnet/razor/issues/8131
         public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash
             => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+        public override bool ShowAllCSharpCodeActions => false;
     }
 
-    private class NoopClientNotifierServiceForDiagnostics : ClientNotifierServiceBase
+    private class ClientNotifierService : ClientNotifierServiceBase
     {
         public override Task OnInitializedAsync(VSInternalClientCapabilities clientCapabilities, CancellationToken cancellationToken)
         {
