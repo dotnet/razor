@@ -1015,7 +1015,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                 request.HostDocument.Version,
                 request.HostDocument.Uri,
-                cancellationToken);
+                rejectOnNewerParallelRequest: true,
+                cancellationToken,
+                isResolveCodeActionEndpoint: true);
             languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
         }
         else
