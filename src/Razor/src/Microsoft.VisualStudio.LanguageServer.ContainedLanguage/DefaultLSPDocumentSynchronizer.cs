@@ -58,13 +58,15 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
             requiredHostDocumentVersion,
             hostDocumentUri,
             rejectOnNewerParallelRequest: true,
-            cancellationToken);
+            cancellationToken,
+            isResolveCodeActionSync: false);
 
     public override async Task<SynchronizedResult<TVirtualDocumentSnapshot>> TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
         int requiredHostDocumentVersion,
         Uri hostDocumentUri,
         bool rejectOnNewerParallelRequest,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool isResolveCodeActionSync = false)
         where TVirtualDocumentSnapshot : class
     {
         if (hostDocumentUri is null)
@@ -90,7 +92,7 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
             }
 
             // Currently tracked synchronizing context is not sufficient, need to update a new one.
-            onSynchronizedTask = documentContext.GetSynchronizationTaskAsync(requiredHostDocumentVersion, rejectOnNewerParallelRequest, cancellationToken);
+            onSynchronizedTask = documentContext.GetSynchronizationTaskAsync(requiredHostDocumentVersion, rejectOnNewerParallelRequest, cancellationToken, isResolveCodeActionSync);
         }
 
         var onSynchronizedResult = await onSynchronizedTask.ConfigureAwait(false);
@@ -279,7 +281,7 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
             }
         }
 
-        public Task<bool> GetSynchronizationTaskAsync(int requiredHostDocumentVersion, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken)
+        public Task<bool> GetSynchronizationTaskAsync(int requiredHostDocumentVersion, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken, bool isResolveCodeActionSync = false)
         {
             // Cancel any out-of-date existing synchronizing contexts.
 
@@ -293,6 +295,14 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
                     context.SetSynchronized(result: false);
                     _synchronizingContexts.RemoveAt(i);
                 }
+            }
+
+            // TODO this is a partial workaround to fix prefix completion by avoiding sync (which times out during resolve endpoint) if we are currently at a higher version value
+            // this does not fix postfix completion and should be superceded by eventual synchronization fix
+
+            if (isResolveCodeActionSync && SeenHostDocumentVersion >= requiredHostDocumentVersion)
+            {
+                return Task.FromResult(true);
             }
 
             var synchronizingContext = new DocumentSynchronizingContext(requiredHostDocumentVersion, rejectOnNewerParallelRequest, _synchronizingTimeout, cancellationToken);
