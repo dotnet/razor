@@ -20,8 +20,7 @@ internal abstract class LSPDocumentSynchronizer : LSPDocumentChangeListener
         int requiredHostDocumentVersion,
         Uri hostDocumentUri,
         bool rejectOnNewerParallelRequest,
-        CancellationToken cancellationToken,
-        bool isResolveCodeActionEndpoint = false)
+        CancellationToken cancellationToken)
         where TVirtualDocumentSnapshot : VirtualDocumentSnapshot;
 
     [Obsolete]
