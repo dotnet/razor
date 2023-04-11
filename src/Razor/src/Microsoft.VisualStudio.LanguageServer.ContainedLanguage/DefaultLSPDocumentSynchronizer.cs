@@ -58,15 +58,13 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
             requiredHostDocumentVersion,
             hostDocumentUri,
             rejectOnNewerParallelRequest: true,
-            cancellationToken,
-            isResolveCodeActionSync: false);
+            cancellationToken);
 
     public override async Task<SynchronizedResult<TVirtualDocumentSnapshot>> TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
         int requiredHostDocumentVersion,
         Uri hostDocumentUri,
         bool rejectOnNewerParallelRequest,
-        CancellationToken cancellationToken,
-        bool isResolveCodeActionSync = false)
+        CancellationToken cancellationToken)
         where TVirtualDocumentSnapshot : class
     {
         if (hostDocumentUri is null)
@@ -92,7 +90,7 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
             }
 
             // Currently tracked synchronizing context is not sufficient, need to update a new one.
-            onSynchronizedTask = documentContext.GetSynchronizationTaskAsync(requiredHostDocumentVersion, rejectOnNewerParallelRequest, cancellationToken, isResolveCodeActionSync);
+            onSynchronizedTask = documentContext.GetSynchronizationTaskAsync(requiredHostDocumentVersion, rejectOnNewerParallelRequest, cancellationToken);
         }
 
         var onSynchronizedResult = await onSynchronizedTask.ConfigureAwait(false);
@@ -100,6 +98,30 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
         var virtualDocumentSnapshot = GetVirtualDocumentSnapshot<TVirtualDocumentSnapshot>(hostDocumentUri);
 
         return new SynchronizedResult<TVirtualDocumentSnapshot>(onSynchronizedResult, virtualDocumentSnapshot);
+    }
+
+    internal SynchronizedResult<TVirtualDocumentSnapshot>? TryReturnPossiblyFutureSnapshot<TVirtualDocumentSnapshot>(
+        int requiredHostDocumentVersion,
+        Uri hostDocumentUri) where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
+    {
+        lock (_documentContextLock)
+        {
+            var preSyncedSnapshot = GetVirtualDocumentSnapshot<TVirtualDocumentSnapshot>(hostDocumentUri);
+            var virtualDocumentUri = preSyncedSnapshot.Uri;
+            if (!_virtualDocumentContexts.TryGetValue(virtualDocumentUri, out var documentContext))
+            {
+                // Document was deleted/removed in mid-synchronization
+                return new SynchronizedResult<TVirtualDocumentSnapshot>(false, preSyncedSnapshot);
+            }
+
+            if (requiredHostDocumentVersion <= documentContext.SeenHostDocumentVersion)
+            {
+                // Already synchronized
+                return new SynchronizedResult<TVirtualDocumentSnapshot>(true, preSyncedSnapshot);
+            }
+        }
+
+        return null;
     }
 
     [Obsolete]
@@ -281,7 +303,7 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
             }
         }
 
-        public Task<bool> GetSynchronizationTaskAsync(int requiredHostDocumentVersion, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken, bool isResolveCodeActionSync = false)
+        public Task<bool> GetSynchronizationTaskAsync(int requiredHostDocumentVersion, bool rejectOnNewerParallelRequest, CancellationToken cancellationToken)
         {
             // Cancel any out-of-date existing synchronizing contexts.
 
@@ -295,14 +317,6 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
                     context.SetSynchronized(result: false);
                     _synchronizingContexts.RemoveAt(i);
                 }
-            }
-
-            // TODO this is a partial workaround to fix prefix completion by avoiding sync (which times out during resolve endpoint) if we are currently at a higher version value
-            // this does not fix postfix completion and should be superceded by eventual synchronization fix
-
-            if (isResolveCodeActionSync && SeenHostDocumentVersion >= requiredHostDocumentVersion)
-            {
-                return Task.FromResult(true);
             }
 
             var synchronizingContext = new DocumentSynchronizingContext(requiredHostDocumentVersion, rejectOnNewerParallelRequest, _synchronizingTimeout, cancellationToken);
