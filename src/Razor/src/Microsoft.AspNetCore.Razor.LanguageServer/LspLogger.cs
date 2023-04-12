@@ -30,7 +30,7 @@ internal class LspLogger : IRazorLogger
         _serviceBase = serviceBase;
     }
 
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+    public IDisposable BeginScope<TState>(TState state)
     {
         return new Disposable();
     }

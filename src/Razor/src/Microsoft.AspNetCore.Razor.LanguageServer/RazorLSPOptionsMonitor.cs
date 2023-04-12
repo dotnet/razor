@@ -34,7 +34,7 @@ internal class RazorLSPOptionsMonitor : IOptionsMonitor<RazorLSPOptions>
 
     public RazorLSPOptions CurrentValue => Get(Options.DefaultName);
 
-    public RazorLSPOptions Get(string? name)
+    public RazorLSPOptions Get(string name)
     {
         name ??= Options.DefaultName;
         return _cache.GetOrAdd(name, () => _currentValue);

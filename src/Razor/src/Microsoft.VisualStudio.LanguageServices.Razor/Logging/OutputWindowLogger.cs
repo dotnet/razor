@@ -3,8 +3,8 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -32,7 +32,7 @@ internal class OutputWindowLogger : IOutputWindowLogger
     {
     }
 
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => Scope.Instance;
+    public IDisposable BeginScope<TState>(TState state) => Scope.Instance;
 
     public bool IsEnabled(LogLevel logLevel)
     {

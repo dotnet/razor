@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
@@ -184,7 +184,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
         // For C# we run the edit through our formatting engine
         var edits = new[] { delegatedResponse.TextEdit };
 
-        var razorFormattingService = requestContext.GetRequiredService<RazorFormattingService>();
+        var razorFormattingService = requestContext.GetRequiredService<IRazorFormattingService>();
         TextEdit[] mappedEdits;
         if (delegatedResponse.TextEditFormat == InsertTextFormat.Snippet)
         {

@@ -10,7 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+<<<<<<< HEAD
     <ProjectReferemce Include="..\..\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj" ReferenceOutputAssembly="false" />
+=======
+    <ProjectReference Include="..\..\Microsoft.AspNetCore.Mvc.Razor.Extensions\src\Microsoft.AspNetCore.Mvc.Razor.Extensions.csproj" ReferenceOutputAssembly="false" />
+>>>>>>> main
 
     <Content Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Razor.Compiler.dll" PackagePath="lib\$(TargetFramework)" />
   </ItemGroup>

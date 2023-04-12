@@ -7,12 +7,24 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsPackable>true</IsPackable>
     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
+<<<<<<< HEAD
     <ProjectReferemce Include="..\..\Microsoft.Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj" ReferenceOutputAssembly="false" />
 
     <Content Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Razor.Compiler.dll" PackagePath="lib\$(TargetFramework)" />
+=======
+    <ProjectReference Include="..\..\Microsoft.AspNetCore.Razor.Language\src\Microsoft.AspNetCore.Razor.Language.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.csproj" PrivateAssets="all" />
+
+    <Content Include="$(OutDir)Microsoft.AspNetCore.Razor.Language.dll" PackagePath="lib\$(TargetFramework)" />
+    <Content Include="$(OutDir)Microsoft.CodeAnalysis.Razor.dll" PackagePath="lib\$(TargetFramework)" />
+    <Content Include="$(OutDir)Microsoft.AspNetCore.Razor.Utilities.Shared.dll" PackagePath="lib\$(TargetFramework)" />
+    <Content Include="$(OutDir)Microsoft.Extensions.ObjectPool.dll" PackagePath="lib\$(TargetFramework)" />
+    <Content Include="$(OutDir)System.Collections.Immutable.dll" PackagePath="lib\$(TargetFramework)" />
+>>>>>>> main
   </ItemGroup>
 
 </Project>

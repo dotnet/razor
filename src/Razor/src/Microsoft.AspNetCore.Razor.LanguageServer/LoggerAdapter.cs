@@ -24,16 +24,13 @@ public class LoggerAdapter : IRazorLogger
         _telemetryReporter = telemetryReporter;
     }
 
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+    public IDisposable BeginScope<TState>(TState state)
     {
         var compositeDisposable = new CompositeDisposable();
         foreach (var logger in _loggers)
         {
             var disposable = logger.BeginScope(state);
-            if (disposable != null)
-            {
-                compositeDisposable.AddDisposable(disposable);
-            }
+            compositeDisposable.AddDisposable(disposable);
         }
 
         return compositeDisposable;
@@ -82,7 +79,7 @@ public class LoggerAdapter : IRazorLogger
             }
 
             props.Add("message", message);
-            _telemetryReporter.ReportEvent("lsperror", VisualStudio.Telemetry.TelemetrySeverity.High, props.ToImmutableDictionary());
+            _telemetryReporter.ReportEvent("lsperror", Severity.High, props.ToImmutableDictionary());
         }
     }
 

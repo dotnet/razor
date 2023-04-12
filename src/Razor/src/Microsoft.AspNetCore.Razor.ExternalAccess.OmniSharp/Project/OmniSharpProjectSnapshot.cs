@@ -2,7 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Document;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
+using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.OmniSharp.Project;
 
@@ -31,6 +34,12 @@ public sealed class OmniSharpProjectSnapshot
 
         var internalDocumentSnapshot = new OmniSharpDocumentSnapshot(documentSnapshot);
         return internalDocumentSnapshot;
+    }
+
+    public void Serialize(string publishFilePath, JsonSerializer serializer, StreamWriter writer)
+    {
+        var projectRazorJson = InternalProjectSnapshot.ToProjectRazorJson(publishFilePath);
+        serializer.Serialize(writer, projectRazorJson);
     }
 
     internal static OmniSharpProjectSnapshot? Convert(IProjectSnapshot? projectSnapshot)

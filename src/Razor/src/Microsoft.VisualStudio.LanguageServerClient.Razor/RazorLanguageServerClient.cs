@@ -7,7 +7,6 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -184,11 +183,12 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         var logHubLogger = _loggerProvider.CreateLogger("Razor");
         var loggers = _outputWindowLogger == null ? new ILogger[] { logHubLogger } : new ILogger[] { logHubLogger, _outputWindowLogger };
         var razorLogger = new LoggerAdapter(loggers, _telemetryReporter);
-        var lspOptions = RazorLSPOptions.Default.With(_clientSettingsManager.GetClientSettings());
+        var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
         _server = RazorLanguageServerWrapper.Create(
             serverStream,
             serverStream,
             razorLogger,
+            _telemetryReporter,
             _projectSnapshotManagerDispatcher,
             ConfigureLanguageServer,
             _languageServerFeatureOptions,
@@ -260,7 +260,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         serviceCollection.AddLogging(logging =>
         {
             logging.AddFilter<LogHubLoggerProvider>(level => true);
-            logging.AddProvider(_loggerProvider.AssumeNotNull());
+            logging.AddProvider(_loggerProvider);
         });
 
         if (_vsHostWorkspaceServicesProvider is not null)
