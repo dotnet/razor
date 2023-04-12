@@ -382,14 +382,9 @@ internal static class Extensions
 
         foreach (var source in result.GeneratedSources)
         {
-<<<<<<< HEAD:src/Compiler/test/Microsoft.CodeAnalysis.Razor.Compiler.Tests/SourceGenerators/RazorSourceGeneratorTestsBase.cs
             var baselinePath = Path.Combine(baselineDirectory, source.HintName);
-            GenerateOutputBaseline(baselinePath, in source);
-=======
-            var baselinePath = Path.Join(baselineDirectory, source.HintName);
             var sourceText = source.SourceText.ToString();
             GenerateOutputBaseline(baselinePath, sourceText);
->>>>>>> main:src/Compiler/test/Microsoft.NET.Sdk.Razor.SourceGenerators.Tests/RazorSourceGeneratorTestsBase.cs
             var baselineText = File.ReadAllText(baselinePath);
             AssertEx.EqualOrDiff(TrimChecksum(baselineText), TrimChecksum(sourceText));
             Assert.True(touchedFiles.Add(baselinePath));

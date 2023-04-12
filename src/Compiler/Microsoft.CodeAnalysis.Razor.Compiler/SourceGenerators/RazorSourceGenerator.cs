@@ -143,28 +143,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     var result = tagHelperFeature.GetDescriptors();
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStop();
                     return result;
-<<<<<<< HEAD:src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/SourceGenerators/RazorSourceGenerator.cs
-                })
-                .WithLambdaComparer(static (a, b) =>
-                {
-                    if (a!.Count != b!.Count)
-                    {
-                        return false;
-                    }
-
-                    for (var i = 0; i < a.Count; i++)
-                    {
-                        if (!a[i].Equals(b[i]))
-                        {
-                            return false;
-                        }
-                    }
-
-                    return true;
-                }, getHashCode: static a => a.Count);
-=======
                 });
->>>>>>> main:src/Compiler/Microsoft.NET.Sdk.Razor.SourceGenerators/RazorSourceGenerator.cs
 
             var tagHelpersFromReferences = compilation
                 .Combine(razorSourceGeneratorOptions)
