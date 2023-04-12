@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(DefaultNetCoreTargetFramework)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);$(DefaultNetFxTargetFramework)</TargetFrameworks>
+    <DefaultItemExcludes>$(DefaultItemExcludes);**\TestFiles\**\*</DefaultItemExcludes>
+    <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
+    <IsTestProject>true</IsTestProject>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.Compiler.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.ComponentShim\Microsoft.AspNetCore.Razor.Test.ComponentShim.Compiler.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.MvcShim\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="**\TestFiles\**\*" />
+    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Some Microsoft.AspNetCore.Mvc.Razor.Extensions tests need MvcShim DLL. -->
+  <Target Name="CopyDepsFromShims_Build" AfterTargets="Build">
+    <ItemGroup>
+      <MvcShim Condition="$(TargetFramework) != ''" Include="$(ArtifactsBinDir)\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler.deps.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(MvcShim)" DestinationFolder="$(OutputPath)" />
+  </Target>
+  <Target Name="CopyDepsFromShims_Publish" AfterTargets="Publish">
+    <ItemGroup>
+      <MvcShim Condition="$(TargetFramework) != ''" Include="$(ArtifactsBinDir)\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler.deps.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(MvcShim)" DestinationFolder="$(PublishDir)" Condition="Exists($(PublishDir))" />
+  </Target>
+
+</Project>

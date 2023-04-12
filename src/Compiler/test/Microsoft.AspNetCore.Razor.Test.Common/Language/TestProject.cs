@@ -11,6 +11,8 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public static class TestProject
 {
+    private const string CompilerTests = "Microsoft.CodeAnalysis.Razor.Compiler.Tests";
+
     public static string GetProjectDirectory(string directoryHint, bool testDirectoryFirst = false)
     {
         var repoRoot = SearchUp(AppContext.BaseDirectory, "global.json");
@@ -23,10 +25,10 @@ public static class TestProject
             ? Path.Combine(repoRoot, "src", "Compiler", "test", directoryHint)
             : Path.Combine(repoRoot, "src", "Compiler", directoryHint, "test");
 
-        if (string.Equals(directoryHint, "Microsoft.AspNetCore.Razor.Language.Test", StringComparison.Ordinal))
+        if (string.Equals(directoryHint, CompilerTests, StringComparison.Ordinal))
         {
             Debug.Assert(!testDirectoryFirst);
-            projectDirectory = Path.Combine(repoRoot, "src", "Compiler", "Microsoft.AspNetCore.Razor.Language", "test");
+            projectDirectory = Path.Combine(repoRoot, "src", "Compiler", "test", CompilerTests);
         }
 
         return projectDirectory;
@@ -42,9 +44,9 @@ public static class TestProject
 
         var assemblyName = type.Assembly.GetName().Name;
         var projectDirectory = Path.Combine(repoRoot, "src", "Compiler", assemblyName, "test");
-        if (string.Equals(assemblyName, "Microsoft.AspNetCore.Razor.Language.Test", StringComparison.Ordinal))
+        if (string.Equals(assemblyName, CompilerTests, StringComparison.Ordinal))
         {
-            projectDirectory = Path.Combine(repoRoot, "src", "Compiler", "Microsoft.AspNetCore.Razor.Language", "test");
+            projectDirectory = Path.Combine(repoRoot, "src", "Compiler", "test", CompilerTests);
         }
 
         return projectDirectory;

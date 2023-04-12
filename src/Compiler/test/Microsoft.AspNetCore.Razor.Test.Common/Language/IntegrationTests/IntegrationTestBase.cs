@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -52,9 +52,12 @@ public abstract class IntegrationTestBase
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
     }
 
-    protected IntegrationTestBase(bool? generateBaselines = null, string? projectDirectoryHint = null)
+    protected IntegrationTestBase(bool? generateBaselines = null, string? projectDirectoryHint = null, string? testFilesDirectory = null)
     {
-        TestProjectRoot = projectDirectoryHint == null ? TestProject.GetProjectDirectory(GetType()) : TestProject.GetProjectDirectory(projectDirectoryHint);
+        TestFilesDirectory = testFilesDirectory ?? string.Empty;
+        TestProjectRoot = Path.Combine(
+            projectDirectoryHint == null ? TestProject.GetProjectDirectory(GetType()) : TestProject.GetProjectDirectory(projectDirectoryHint),
+            TestFilesDirectory);
 
         if (generateBaselines.HasValue)
         {
@@ -117,6 +120,8 @@ public abstract class IntegrationTestBase
     }
 
     public string FileExtension { get; set; } = ".cshtml";
+
+    protected string TestFilesDirectory { get; }
 
     protected virtual void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
     {
@@ -181,10 +186,11 @@ public abstract class IntegrationTestBase
         var suffixIndex = FileName.LastIndexOf("_", StringComparison.Ordinal);
         var normalizedFileName = suffixIndex == -1 ? FileName : FileName.Substring(0, suffixIndex);
         var sourceFileName = Path.ChangeExtension(normalizedFileName, FileExtension);
-        var testFile = TestFile.Create(sourceFileName, GetType().GetTypeInfo().Assembly);
+        var testFileName = Path.Combine(TestFilesDirectory, sourceFileName);
+        var testFile = TestFile.Create(testFileName, GetType().GetTypeInfo().Assembly);
         if (!testFile.Exists())
         {
-            throw new XunitException($"The resource {sourceFileName} was not found.");
+            throw new XunitException($"The resource {testFileName} was not found.");
         }
         var fileContent = testFile.ReadAllText();
         var normalizedContent = NormalizeNewLines(fileContent);
@@ -357,10 +363,11 @@ public abstract class IntegrationTestBase
             return;
         }
 
-        var irFile = TestFile.Create(baselineFileName, GetType().GetTypeInfo().Assembly);
+        var testFileName = Path.Combine(TestFilesDirectory, baselineFileName);
+        var irFile = TestFile.Create(testFileName, GetType().GetTypeInfo().Assembly);
         if (!irFile.Exists())
         {
-            throw new XunitException($"The resource {baselineFileName} was not found.");
+            throw new XunitException($"The resource {testFileName} was not found.");
         }
 
         var baseline = irFile.ReadAllText().Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
@@ -384,10 +391,11 @@ public abstract class IntegrationTestBase
             return;
         }
 
-        var htmlFile = TestFile.Create(baselineFileName, GetType().GetTypeInfo().Assembly);
+        var testFileName = Path.Combine(TestFilesDirectory, baselineFileName);
+        var htmlFile = TestFile.Create(testFileName, GetType().GetTypeInfo().Assembly);
         if (!htmlFile.Exists())
         {
-            throw new XunitException($"The resource {baselineFileName} was not found.");
+            throw new XunitException($"The resource {testFileName} was not found.");
         }
 
         var baseline = htmlFile.ReadAllText();
@@ -427,10 +435,11 @@ public abstract class IntegrationTestBase
             return;
         }
 
-        var codegenFile = TestFile.Create(baselineFileName, GetType().GetTypeInfo().Assembly);
+        var testFileName = Path.Combine(TestFilesDirectory, baselineFileName);
+        var codegenFile = TestFile.Create(testFileName, GetType().GetTypeInfo().Assembly);
         if (!codegenFile.Exists())
         {
-            throw new XunitException($"The resource {baselineFileName} was not found.");
+            throw new XunitException($"The resource {testFileName} was not found.");
         }
 
         var baseline = codegenFile.ReadAllText();
@@ -440,7 +449,8 @@ public abstract class IntegrationTestBase
         Assert.Equal(baseline, actual);
 
         var baselineDiagnostics = string.Empty;
-        var diagnosticsFile = TestFile.Create(baselineDiagnosticsFileName, GetType().GetTypeInfo().Assembly);
+        var testDiagnosticsFileName = Path.Combine(TestFilesDirectory, baselineDiagnosticsFileName);
+        var diagnosticsFile = TestFile.Create(testDiagnosticsFileName, GetType().GetTypeInfo().Assembly);
         if (diagnosticsFile.Exists())
         {
             baselineDiagnostics = diagnosticsFile.ReadAllText();
@@ -471,10 +481,11 @@ public abstract class IntegrationTestBase
             return;
         }
 
-        var testFile = TestFile.Create(baselineFileName, GetType().GetTypeInfo().Assembly);
+        var testFileName = Path.Combine(TestFilesDirectory, baselineFileName);
+        var testFile = TestFile.Create(testFileName, GetType().GetTypeInfo().Assembly);
         if (!testFile.Exists())
         {
-            throw new XunitException($"The resource {baselineFileName} was not found.");
+            throw new XunitException($"The resource {testFileName} was not found.");
         }
 
         var baseline = testFile.ReadAllText();
@@ -570,10 +581,11 @@ public abstract class IntegrationTestBase
             return;
         }
 
-        var testFile = TestFile.Create(baselineFileName, GetType().GetTypeInfo().Assembly);
+        var testFileName = Path.Combine(TestFilesDirectory, baselineFileName);
+        var testFile = TestFile.Create(testFileName, GetType().GetTypeInfo().Assembly);
         if (!testFile.Exists())
         {
-            throw new XunitException($"The resource {baselineFileName} was not found.");
+            throw new XunitException($"The resource {testFileName} was not found.");
         }
 
         var baseline = testFile.ReadAllText();
