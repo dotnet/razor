@@ -9,7 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj" />
+    <Compile Include="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\**\*.cs" Exclude="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\Properties\**\*.cs" LinkBase="Shared" />
+    <EmbeddedResource Include="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\Resources\SR.resx" LinkBase="Shared\Resources">
+      <GenerateSource>true</GenerateSource>
+      <Namespace>Microsoft.AspNetCore.Razor.Utilities.Shared.Resources</Namespace>
+    </EmbeddedResource>
+    <Using Include="Microsoft.AspNetCore.Razor.Utilities.Shared.Resources" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" />
+    <PackageReference Include="System.Collections.Immutable" />
   </ItemGroup>
 
 </Project>
