@@ -343,7 +343,7 @@ public abstract class RazorSourceGeneratorTestsBase
 
 internal static class Extensions
 {
-    private static readonly string _testProjectRoot = TestProject.GetProjectDirectory("Microsoft.NET.Sdk.Razor.SourceGenerators.Tests", testDirectoryFirst: true);
+    private static readonly string _testProjectRoot = TestProject.GetProjectDirectory(typeof(RazorSourceGeneratorTestsBase));
 
     // UTF-8 with BOM
     private static readonly Encoding _baselineEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
