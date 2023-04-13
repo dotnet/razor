@@ -37,10 +37,10 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-    public sealed override bool Equals(object obj)
+    public sealed override bool Equals(object? obj)
         => obj is MetadataCollection other && Equals(other);
 
-    public abstract bool Equals(MetadataCollection other);
+    public abstract bool Equals(MetadataCollection? other);
 
     protected abstract int ComputeHashCode();
 
@@ -173,7 +173,7 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
         }
 
         protected override int ComputeHashCode() => 0;
-        public override bool Equals(MetadataCollection other) => ReferenceEquals(this, other);
+        public override bool Equals(MetadataCollection? other) => ReferenceEquals(this, other);
     }
 
     private class OneToThreeItems : MetadataCollection
@@ -360,7 +360,7 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
             return false;
         }
 
-        public override bool Equals(MetadataCollection other)
+        public override bool Equals(MetadataCollection? other)
         {
             if (ReferenceEquals(this, other))
             {
@@ -662,7 +662,7 @@ internal abstract class MetadataCollection : IReadOnlyDictionary<string, string>
             return false;
         }
 
-        public override bool Equals(MetadataCollection other)
+        public override bool Equals(MetadataCollection? other)
         {
             if (ReferenceEquals(this, other))
             {
