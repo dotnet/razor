@@ -196,8 +196,8 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(s_singleRazorDiagnostic);
         processedOpenDocument.With(codeDocument);
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        languageServer.Setup(
-            server => server.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
+        languageServer
+            .Setup(server => server.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
                 RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName,
                 It.IsAny<DocumentDiagnosticParams>(),
                 It.IsAny<CancellationToken>()))
@@ -207,8 +207,8 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
             })
             .Returns(Task.FromResult(new SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?(new FullDocumentDiagnosticReport())));
 
-        languageServer.Setup(
-            server => server.SendNotificationAsync(
+        languageServer
+            .Setup(server => server.SendNotificationAsync(
                 "textDocument/publishDiagnostics",
                 It.IsAny<PublishDiagnosticParams>(),
                 It.IsAny<CancellationToken>()))
@@ -246,8 +246,8 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         processedOpenDocument.With(codeDocument);
         var arranging = true;
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        languageServer.Setup(
-            server => server.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
+        languageServer
+            .Setup(server => server.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
                 RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName,
                 It.IsAny<DocumentDiagnosticParams>(),
                 It.IsAny<CancellationToken>()))
@@ -314,7 +314,6 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
 
         using var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory);
         publisher.PublishedRazorDiagnostics[processedOpenDocument.FilePath] = s_singleRazorDiagnostic;
-
         publisher.Initialize(_projectManager);
 
         // Act & Assert
@@ -343,23 +342,20 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
             })
             .Returns(Task.FromResult(new SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?( new FullDocumentDiagnosticReport())));
 
-        languageServer.Setup(
-            server => server.SendNotificationAsync(
+        languageServer
+            .Setup(server => server.SendNotificationAsync(
                 "textDocument/publishDiagnostics",
                 It.IsAny<PublishDiagnosticParams>(),
                 It.IsAny<CancellationToken>()))
             .Callback<string, PublishDiagnosticParams, CancellationToken>((method, @params, cancellationToken) =>
             {
-                Assert.Equal(processedOpenDocument.FilePath.TrimStart('/'), @params.Uri.AbsolutePath);
-                Assert.True(processedOpenDocument.TryGetText(out var sourceText));
-                if (arranging)
-                {
-                    Assert.Empty(@params.Diagnostics);
-                }
-                else
+                if (!arranging)
                 {
                     Assert.Fail("This callback should not have been received since diagnostics are the same as previous published");
                 }
+                Assert.Equal(processedOpenDocument.FilePath.TrimStart('/'), @params.Uri.AbsolutePath);
+                Assert.True(processedOpenDocument.TryGetText(out var sourceText));
+                Assert.Empty(@params.Diagnostics);
             })
             .Returns(Task.CompletedTask);
 
