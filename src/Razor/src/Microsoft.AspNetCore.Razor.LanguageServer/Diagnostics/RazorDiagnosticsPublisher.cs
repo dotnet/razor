@@ -207,9 +207,9 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         lock (PublishedCSharpDiagnostics)
         {
             var filePath = document.FilePath.AssumeNotNull();
-            if (delegatedResponse != null && delegatedResponse.Value.First.Kind == "full")
+            if (delegatedResponse != null && delegatedResponse.Value.TryGetFirst(out var fullDocumentDiagnosticReport))
             {
-                csharpDiagnostics = delegatedResponse.Value.First.Items;
+                csharpDiagnostics = fullDocumentDiagnosticReport.Items;
             }
 
             if (PublishedRazorDiagnostics.TryGetValue(filePath, out var previousRazorDiagnostics) && razorDiagnostics.SequenceEqual(previousRazorDiagnostics)
