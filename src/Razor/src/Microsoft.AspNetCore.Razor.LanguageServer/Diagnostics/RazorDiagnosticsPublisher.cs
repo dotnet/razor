@@ -23,7 +23,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     // Internal for testing
     internal TimeSpan _publishDelay = TimeSpan.FromSeconds(2);
     internal readonly Dictionary<string, IReadOnlyList<RazorDiagnostic>> PublishedRazorDiagnostics;
-    internal readonly Dictionary<string, IReadOnlyList<Diagnostic>> PublishedCsharpDiagnostics;
+    internal readonly Dictionary<string, IReadOnlyList<Diagnostic>> PublishedCSharpDiagnostics;
     internal Timer? _workTimer;
     internal Timer? _documentClosedTimer;
 
@@ -57,7 +57,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _languageServer = languageServer;
         PublishedRazorDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
-        PublishedCsharpDiagnostics = new Dictionary<string, IReadOnlyList<Diagnostic>>(FilePathComparer.Instance);
+        PublishedCSharpDiagnostics = new Dictionary<string, IReadOnlyList<Diagnostic>>(FilePathComparer.Instance);
         _work = new Dictionary<string, IDocumentSnapshot>(FilePathComparer.Instance);
         _logger = loggerFactory.CreateLogger<RazorDiagnosticsPublisher>();
     }
@@ -126,15 +126,15 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         try
         {
             lock (PublishedRazorDiagnostics)
-            lock (PublishedCsharpDiagnostics)
+            lock (PublishedCSharpDiagnostics)
             {
                 ClearClosedDocumentsPublishedDiagnostics(PublishedRazorDiagnostics);
-                ClearClosedDocumentsPublishedDiagnostics(PublishedCsharpDiagnostics);
+                ClearClosedDocumentsPublishedDiagnostics(PublishedCSharpDiagnostics);
 
                 _documentClosedTimer?.Dispose();
                 _documentClosedTimer = null;
 
-                if (PublishedRazorDiagnostics.Count > 0 || PublishedCsharpDiagnostics.Count > 0)
+                if (PublishedRazorDiagnostics.Count > 0 || PublishedCSharpDiagnostics.Count > 0)
                 {
                     lock (_work)
                     {
@@ -148,7 +148,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         catch
         {
             lock (PublishedRazorDiagnostics)
-            lock (PublishedCsharpDiagnostics)
+            lock (PublishedCSharpDiagnostics)
             {
                 _documentClosedTimer?.Dispose();
                 _documentClosedTimer = null;
@@ -204,7 +204,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         IReadOnlyList<Diagnostic>? csharpDiagnostics = null;
 
         lock (PublishedRazorDiagnostics)
-        lock (PublishedCsharpDiagnostics)
+        lock (PublishedCSharpDiagnostics)
         {
             var filePath = document.FilePath.AssumeNotNull();
             if (delegatedResponse != null && delegatedResponse.Value.First.Kind == "full")
@@ -213,7 +213,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
             }
 
             if (PublishedRazorDiagnostics.TryGetValue(filePath, out var previousRazorDiagnostics) && razorDiagnostics.SequenceEqual(previousRazorDiagnostics)
-                && (csharpDiagnostics == null || (PublishedCsharpDiagnostics.TryGetValue(filePath, out var previousCsharpDiagnostics) && csharpDiagnostics.SequenceEqual(previousCsharpDiagnostics))))
+                && (csharpDiagnostics == null || (PublishedCSharpDiagnostics.TryGetValue(filePath, out var previousCsharpDiagnostics) && csharpDiagnostics.SequenceEqual(previousCsharpDiagnostics))))
             {
                 // Diagnostics are the same as last publish
                 return;
@@ -222,7 +222,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
             PublishedRazorDiagnostics[filePath] = razorDiagnostics;
             if (csharpDiagnostics != null)
             {
-                PublishedCsharpDiagnostics[filePath] = csharpDiagnostics;
+                PublishedCSharpDiagnostics[filePath] = csharpDiagnostics;
             }
         }
 

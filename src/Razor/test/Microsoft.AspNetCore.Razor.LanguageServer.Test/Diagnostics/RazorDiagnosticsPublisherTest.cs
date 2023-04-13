@@ -393,7 +393,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         using var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory);
         Assert.NotNull(_closedDocument.FilePath);
         publisher.PublishedRazorDiagnostics[_closedDocument.FilePath] = s_singleRazorDiagnostic;
-        publisher.PublishedCsharpDiagnostics[_closedDocument.FilePath] = s_singleCSharpDiagnostic;
+        publisher.PublishedCSharpDiagnostics[_closedDocument.FilePath] = s_singleCSharpDiagnostic;
         publisher.Initialize(_projectManager);
 
         // Act
@@ -411,7 +411,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         using var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory);
         Assert.NotNull(_openedDocument.FilePath);
         publisher.PublishedRazorDiagnostics[_openedDocument.FilePath] = s_singleRazorDiagnostic;
-        publisher.PublishedCsharpDiagnostics[_openedDocument.FilePath] = s_singleCSharpDiagnostic;
+        publisher.PublishedCSharpDiagnostics[_openedDocument.FilePath] = s_singleCSharpDiagnostic;
         publisher.Initialize(_projectManager);
 
         // Act & Assert
@@ -426,7 +426,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         using var publisher = new TestRazorDiagnosticsPublisher(LegacyDispatcher, languageServer.Object, LoggerFactory);
         Assert.NotNull(_closedDocument.FilePath);
         publisher.PublishedRazorDiagnostics[_closedDocument.FilePath] = s_emptyRazorDiagnostics;
-        publisher.PublishedCsharpDiagnostics[_closedDocument.FilePath] = s_emptyCSharpDiagnostics;
+        publisher.PublishedCSharpDiagnostics[_closedDocument.FilePath] = s_emptyCSharpDiagnostics;
         publisher.Initialize(_projectManager);
 
         // Act & Assert
@@ -442,9 +442,9 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
         Assert.NotNull(_closedDocument.FilePath);
         Assert.NotNull(_openedDocument.FilePath);
         publisher.PublishedRazorDiagnostics[_closedDocument.FilePath] = s_emptyRazorDiagnostics;
-        publisher.PublishedCsharpDiagnostics[_closedDocument.FilePath] = s_emptyCSharpDiagnostics;
+        publisher.PublishedCSharpDiagnostics[_closedDocument.FilePath] = s_emptyCSharpDiagnostics;
         publisher.PublishedRazorDiagnostics[_openedDocument.FilePath] = s_emptyRazorDiagnostics;
-        publisher.PublishedCsharpDiagnostics[_openedDocument.FilePath] = s_emptyCSharpDiagnostics;
+        publisher.PublishedCSharpDiagnostics[_openedDocument.FilePath] = s_emptyCSharpDiagnostics;
         publisher.Initialize(_projectManager);
 
         // Act
