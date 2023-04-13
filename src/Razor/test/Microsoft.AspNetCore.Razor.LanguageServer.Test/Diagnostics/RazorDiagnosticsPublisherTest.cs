@@ -39,7 +39,6 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
             Code = "TestCode",
             Severity = DiagnosticSeverity.Error,
             Message = "TestMessage"
-
         }
     };
 
@@ -91,7 +90,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
                 "textDocument/publishDiagnostics",
                 It.IsAny<PublishDiagnosticParams>(),
                 It.IsAny<CancellationToken>()))
-        .Returns(Task.CompletedTask)
+            .Returns(Task.CompletedTask)
             .Verifiable();
         Mock.Get(languageServerDocument)
             .Setup(d => d.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
@@ -217,7 +216,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
                 Assert.Equal(processedOpenDocument.FilePath.TrimStart('/'), @params.Uri.AbsolutePath);
                 var diagnostic = Assert.Single(@params.Diagnostics);
                 var razorDiagnostic = s_singleRazorDiagnostic[0];
-                    Assert.True(processedOpenDocument.TryGetText(out var sourceText));
+                Assert.True(processedOpenDocument.TryGetText(out var sourceText));
                 var expectedDiagnostic = RazorDiagnosticConverter.Convert(razorDiagnostic, sourceText);
                 Assert.Equal(expectedDiagnostic.Message, diagnostic.Message);
                 Assert.Equal(expectedDiagnostic.Severity, diagnostic.Severity);
@@ -353,6 +352,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
                 {
                     Assert.Fail("This callback should not have been received since diagnostics are the same as previous published");
                 }
+
                 Assert.Equal(processedOpenDocument.FilePath.TrimStart('/'), @params.Uri.AbsolutePath);
                 Assert.True(processedOpenDocument.TryGetText(out var sourceText));
                 Assert.Empty(@params.Diagnostics);

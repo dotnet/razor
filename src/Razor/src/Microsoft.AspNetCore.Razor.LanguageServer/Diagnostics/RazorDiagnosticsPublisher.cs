@@ -143,6 +143,27 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
                         StartDocumentClosedCheckTimer();
                     }
                 }
+
+                void ClearClosedDocumentsPublishedDiagnostics<T>(Dictionary<string, IReadOnlyList<T>> publishedDiagnostics) where T : class
+                {
+                    var originalPublishedDiagnostics = new Dictionary<string, IReadOnlyList<T>>(publishedDiagnostics);
+                    foreach (var (key, value) in originalPublishedDiagnostics)
+                    {
+                        Assumes.NotNull(_projectManager);
+                        if (!_projectManager.IsDocumentOpen(key))
+                        {
+                            // Document is now closed, we shouldn't track its diagnostics anymore.
+                            publishedDiagnostics.Remove(key);
+
+                            // If the last published diagnostics for the document were > 0 then we need to clear them out so the user
+                            // doesn't have a ton of closed document errors that they can't get rid of.
+                            if (value.Count > 0)
+                            {
+                                PublishDiagnosticsForFilePath(key, Array.Empty<Diagnostic>());
+                            }
+                        }
+                    }
+                }
             }
         }
         catch
@@ -155,27 +176,6 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
             }
 
             throw;
-        }
-    }
-
-    private void ClearClosedDocumentsPublishedDiagnostics<T>(Dictionary<string, IReadOnlyList<T>> publishedDiagnostics) where T : class
-    {
-        var originalPublishedDiagnostics = new Dictionary<string, IReadOnlyList<T>>(publishedDiagnostics);
-        foreach (var entry in originalPublishedDiagnostics)
-        {
-            Assumes.NotNull(_projectManager);
-            if (!_projectManager.IsDocumentOpen(entry.Key))
-            {
-                // Document is now closed, we shouldn't track its diagnostics anymore.
-                publishedDiagnostics.Remove(entry.Key);
-
-                // If the last published diagnostics for the document were > 0 then we need to clear them out so the user
-                // doesn't have a ton of closed document errors that they can't get rid of.
-                if (entry.Value.Count > 0)
-                {
-                    PublishDiagnosticsForFilePath(entry.Key, Array.Empty<Diagnostic>());
-                }
-            }
         }
     }
 
@@ -196,9 +196,9 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         };
 
         var delegatedResponse = await _languageServer.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
-        RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName,
-        delegatedParams,
-        CancellationToken.None).ConfigureAwait(false);
+            RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName,
+            delegatedParams,
+            CancellationToken.None).ConfigureAwait(false);
 
         var razorDiagnostics = result.GetCSharpDocument().Diagnostics;
         IReadOnlyList<Diagnostic>? csharpDiagnostics = null;
