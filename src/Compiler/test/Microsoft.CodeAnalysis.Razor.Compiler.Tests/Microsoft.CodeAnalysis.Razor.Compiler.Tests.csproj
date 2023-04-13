@@ -7,13 +7,15 @@
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
     <IsTestProject>true</IsTestProject>
     <PreserveCompilationContext>true</PreserveCompilationContext>
+    <_IncludeAspNetCoreDlls Condition="'$(TargetFramework)' != '$(DefaultNetFxTargetFramework)'">true</_IncludeAspNetCoreDlls>
+    <_ShimAliases Condition="'$(_IncludeAspNetCoreDlls)' == 'true'">shim</_ShimAliases>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor.Compiler\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.Compiler.csproj" />
-    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.ComponentShim\Microsoft.AspNetCore.Razor.Test.ComponentShim.Compiler.csproj" />
-    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.MvcShim\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.ComponentShim\Microsoft.AspNetCore.Razor.Test.ComponentShim.Compiler.csproj" Aliases="$(_ShimAliases)" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.MvcShim\Microsoft.AspNetCore.Razor.Test.MvcShim.Compiler.csproj" Aliases="$(_ShimAliases)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +26,11 @@
   <ItemGroup>
     <EmbeddedResource Include="**\TestFiles\**\*" />
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Source generator tests were not written for .NET framework. -->
+  <ItemGroup Condition="'$(TargetFramework)' == '$(DefaultNetFxTargetFramework)'">
+    <Compile Remove="SourceGenerators\**\*.cs" />
   </ItemGroup>
 
   <!-- Some Microsoft.AspNetCore.Mvc.Razor.Extensions tests need MvcShim DLL. -->
@@ -48,9 +55,9 @@
     And we don't want to reference ASP.NET Core SDK as that would be tied to our target SDK version.
   -->
   <PropertyGroup>
-    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch Condition="'$(_IncludeAspNetCoreDlls)' == 'true'">None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(_IncludeAspNetCoreDlls)' == 'true'">
     <PackageReference Include="Microsoft.AspNetCore.App.Runtime.win-x64" ExcludeAssets="all" GeneratePathProperty="true" />
     <Reference Include="$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net7.0\*.dll" />
   </ItemGroup>

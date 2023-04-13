@@ -3,11 +3,18 @@
 
 #nullable disable
 
+#if NETCOREAPP
+extern alias shim;
+using shim::Microsoft.AspNetCore.Components;
+using shim::Microsoft.AspNetCore.Components.Rendering;
+#else
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+#endif
+
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;

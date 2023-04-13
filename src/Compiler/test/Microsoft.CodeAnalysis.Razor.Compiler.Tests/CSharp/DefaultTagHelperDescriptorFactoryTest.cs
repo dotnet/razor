@@ -1439,7 +1439,11 @@ public class DefaultTagHelperDescriptorFactoryTest
         {{
         }}";
         var syntaxTree = CSharpSyntaxTree.ParseText(text);
-        var compilation = TestCompilation.Create(_assembly, syntaxTree);
+        var compilation = TestCompilation.Create(_assembly, syntaxTree
+#if NETCOREAPP
+            , aliasShims: true
+#endif
+            );
         var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
         var attribute = tagHelperType.GetAttributes().Single();
         var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: false, excludeHidden: false);
@@ -1622,7 +1626,11 @@ public class DefaultTagHelperDescriptorFactoryTest
                 public string SomeAttribute {{ get; set; }}
             }}";
         var syntaxTree = CSharpSyntaxTree.ParseText(text);
-        var compilation = TestCompilation.Create(_assembly, syntaxTree);
+        var compilation = TestCompilation.Create(_assembly, syntaxTree
+#if NETCOREAPP
+            , aliasShims: true
+#endif
+            );
         var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
         var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: false, excludeHidden: false);
 
@@ -1662,7 +1670,11 @@ public class DefaultTagHelperDescriptorFactoryTest
                 public System.Collections.Generic.IDictionary<string, int> SomeAttribute {{ get; set; }}
             }}";
         var syntaxTree = CSharpSyntaxTree.ParseText(text);
-        var compilation = TestCompilation.Create(_assembly, syntaxTree);
+        var compilation = TestCompilation.Create(_assembly, syntaxTree
+#if NETCOREAPP
+            , aliasShims: true
+#endif
+            );
         var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
         var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: false, excludeHidden: false);
 
@@ -1705,7 +1717,11 @@ public class DefaultTagHelperDescriptorFactoryTest
                 public string InvalidProperty {{ get; set; }}
             }}";
         var syntaxTree = CSharpSyntaxTree.ParseText(text);
-        var compilation = TestCompilation.Create(_assembly, syntaxTree);
+        var compilation = TestCompilation.Create(_assembly, syntaxTree
+#if NETCOREAPP
+            , aliasShims: true
+#endif
+            );
         var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
         var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: false, excludeHidden: false);
 
@@ -1751,7 +1767,11 @@ public class DefaultTagHelperDescriptorFactoryTest
                 public System.Collections.Generic.IDictionary<System.String, System.Int32> InvalidProperty {{ get; set; }}
             }}";
         var syntaxTree = CSharpSyntaxTree.ParseText(text);
-        var compilation = TestCompilation.Create(_assembly, syntaxTree);
+        var compilation = TestCompilation.Create(_assembly, syntaxTree
+#if NETCOREAPP
+            , aliasShims: true
+#endif
+            );
         var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
         var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: false, excludeHidden: false);
 
@@ -1793,7 +1813,11 @@ public class DefaultTagHelperDescriptorFactoryTest
             {{
             }}";
         var syntaxTree = CSharpSyntaxTree.ParseText(text);
-        var compilation = TestCompilation.Create(_assembly, syntaxTree);
+        var compilation = TestCompilation.Create(_assembly, syntaxTree
+#if NETCOREAPP
+            , aliasShims: true
+#endif
+            );
         var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
         var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: false, excludeHidden: false);
 
@@ -1834,7 +1858,11 @@ public class DefaultTagHelperDescriptorFactoryTest
             {{
             }}";
         var syntaxTree = CSharpSyntaxTree.ParseText(text);
-        var compilation = TestCompilation.Create(_assembly, syntaxTree);
+        var compilation = TestCompilation.Create(_assembly, syntaxTree
+#if NETCOREAPP
+            , aliasShims: true
+#endif
+            );
         var tagHelperType = compilation.GetTypeByMetadataName("DynamicTestTagHelper");
         var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: false, excludeHidden: false);
 
@@ -2211,7 +2239,11 @@ public class DefaultTagHelperDescriptorFactoryTest
         public class DocumentedTagHelper : " + typeof(AspNetCore.Razor.TagHelpers.TagHelper).Name + @"
         {
         }");
-        var compilation = TestCompilation.Create(_assembly, syntaxTree);
+        var compilation = TestCompilation.Create(_assembly, syntaxTree
+#if NETCOREAPP
+            , aliasShims: true
+#endif
+            );
         var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: true, excludeHidden: false);
         var typeSymbol = compilation.GetTypeByMetadataName("DocumentedTagHelper");
         var expectedDocumentation =
@@ -2260,7 +2292,11 @@ public class DefaultTagHelperDescriptorFactoryTest
             /// </remarks>
             public List<bool> RemarksAndSummaryProperty { get; set; }
         }");
-        var compilation = TestCompilation.Create(_assembly, syntaxTree);
+        var compilation = TestCompilation.Create(_assembly, syntaxTree
+#if NETCOREAPP
+            , aliasShims: true
+#endif
+            );
         var factory = new DefaultTagHelperDescriptorFactory(compilation, includeDocumentation: true, excludeHidden: false);
         var typeSymbol = compilation.GetTypeByMetadataName("DocumentedTagHelper");
         var expectedDocumentations = new[]

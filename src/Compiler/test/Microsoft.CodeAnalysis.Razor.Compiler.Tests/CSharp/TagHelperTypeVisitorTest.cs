@@ -14,7 +14,11 @@ public class TagHelperTypeVisitorTest
 {
     private static readonly Assembly _assembly = typeof(TagHelperTypeVisitorTest).GetTypeInfo().Assembly;
 
-    private static Compilation Compilation { get; } = TestCompilation.Create(_assembly);
+    private static Compilation Compilation { get; } = TestCompilation.Create(_assembly
+#if NETCOREAPP
+        , aliasShims: true
+#endif
+        );
 
     private static INamedTypeSymbol ITagHelperSymbol { get; } = Compilation.GetTypeByMetadataName(TagHelperTypes.ITagHelper);
 

@@ -17,7 +17,11 @@ public abstract class TagHelperDescriptorProviderTestBase
 {
     static TagHelperDescriptorProviderTestBase()
     {
-        BaseCompilation = TestCompilation.Create(typeof(ComponentTagHelperDescriptorProviderTest).Assembly);
+        BaseCompilation = TestCompilation.Create(typeof(ComponentTagHelperDescriptorProviderTest).Assembly
+#if NETCOREAPP
+            , aliasShims: true
+#endif
+            );
         CSharpParseOptions = new CSharpParseOptions(LanguageVersion.CSharp7_3);
     }
 
@@ -36,9 +40,7 @@ public abstract class TagHelperDescriptorProviderTestBase
     {
         var results =
          context.Results
-            .Where(c => c.AssemblyName != "Microsoft.AspNetCore.Razor.Test.ComponentShim.Compiler")
-            .Where(c => !c.DisplayName.StartsWith("Microsoft.AspNetCore.Components.Web", StringComparison.Ordinal))
-            .Where(c => c.GetTypeName() != "Microsoft.AspNetCore.Components.Bind")
+            .Where(c => !c.DisplayName.StartsWith("Microsoft.AspNetCore.Components.", StringComparison.Ordinal))
             .OrderBy(c => c.Name)
             .ToArray();
 

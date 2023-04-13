@@ -70,7 +70,11 @@ namespace TestAssembly
         public override void Process(TagHelperContext context, TagHelperOutput output) {}
     }
 }";
-        var compilation = TestCompilation.Create(_assembly, CSharpSyntaxTree.ParseText(csharp));
+        var compilation = TestCompilation.Create(_assembly, CSharpSyntaxTree.ParseText(csharp)
+#if NETCOREAPP
+            , aliasShims: true
+#endif
+            );
         var descriptorProvider = new DefaultTagHelperDescriptorProvider();
 
         var context = TagHelperDescriptorProviderContext.Create();
@@ -101,7 +105,11 @@ namespace TestAssembly
         public override void Process(TagHelperContext context, TagHelperOutput output) {}
     }
 }";
-        var compilation = TestCompilation.Create(_assembly, CSharpSyntaxTree.ParseText(csharp));
+        var compilation = TestCompilation.Create(_assembly, CSharpSyntaxTree.ParseText(csharp)
+#if NETCOREAPP
+            , aliasShims: true
+#endif
+            );
         var descriptorProvider = new DefaultTagHelperDescriptorProvider();
 
         var context = TagHelperDescriptorProviderContext.Create();
