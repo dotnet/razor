@@ -68,18 +68,13 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
 
         var results = new List<EventHandlerData>();
 
-        for (var i = 0; i < types.Count; i++)
+        foreach (var type in types)
         {
-            var type = types[i];
-            var attributes = type.GetAttributes();
-
             // Not handling duplicates here for now since we're the primary ones extending this.
             // If we see users adding to the set of event handler constructs we will want to add deduplication
             // and potentially diagnostics.
-            for (var j = 0; j < attributes.Length; j++)
+            foreach (var attribute in type.GetAttributes())
             {
-                var attribute = attributes[j];
-
                 if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, eventHandlerAttribute))
                 {
                     var enablePreventDefault = false;
