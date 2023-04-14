@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -243,7 +244,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
         }
     }
 
-    private List<ElementBindData> GetElementBindData(Compilation compilation)
+    private static List<ElementBindData> GetElementBindData(Compilation compilation)
     {
         var bindElement = compilation.GetTypeByMetadataName(ComponentsApi.BindElementAttribute.FullTypeName);
         var bindInputElement = compilation.GetTypeByMetadataName(ComponentsApi.BindInputElementAttribute.FullTypeName);
@@ -254,11 +255,12 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             return new List<ElementBindData>();
         }
 
-        var types = new List<INamedTypeSymbol>();
+        using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
         var visitor = new BindElementDataVisitor(types);
 
         // Visit the primary output of this compilation, as well as all references.
         visitor.Visit(compilation.Assembly);
+
         foreach (var reference in compilation.References)
         {
             // We ignore .netmodules here - there really isn't a case where they are used by user code
@@ -271,18 +273,13 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
         var results = new List<ElementBindData>();
 
-        for (var i = 0; i < types.Count; i++)
+        foreach (var type in types)
         {
-            var type = types[i];
-            var attributes = type.GetAttributes();
-
             // Not handling duplicates here for now since we're the primary ones extending this.
             // If we see users adding to the set of 'bind' constructs we will want to add deduplication
             // and potentially diagnostics.
-            for (var j = 0; j < attributes.Length; j++)
+            foreach (var attribute in type.GetAttributes())
             {
-                var attribute = attributes[j];
-
                 // We need to check the constructor argument length here, because this can show up as 0
                 // if the language service fails to initialize. This is an invalid case, so skip it.
                 if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindElement) && attribute.ConstructorArguments.Length == 4)
@@ -560,7 +557,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
                 BoundAttributeDescriptor valueAttribute = null;
                 BoundAttributeDescriptor expressionAttribute = null;
-                var valueAttributeName = changeAttribute.Name.Substring(0, changeAttribute.Name.Length - "Changed".Length);
+                var valueAttributeName = changeAttribute.Name[..^"Changed".Length];
                 var expressionAttributeName = valueAttributeName + "Expression";
                 for (var j = 0; j < tagHelper.BoundAttributes.Count; j++)
                 {
@@ -704,46 +701,19 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
     }
 
     [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-    private struct ElementBindData
+    private readonly record struct ElementBindData(
+        string Assembly,
+        string TypeName,
+        string TypeNamespace,
+        string TypeNameIdentifier,
+        string Element,
+        string TypeAttribute,
+        string Suffix,
+        string ValueAttribute,
+        string ChangeAttribute,
+        bool IsInvariantCulture = false,
+        string Format = null)
     {
-        public ElementBindData(
-            string assembly,
-            string typeName,
-            string typeNamespace,
-            string typeNameIdentifier,
-            string element,
-            string typeAttribute,
-            string suffix,
-            string valueAttribute,
-            string changeAttribute,
-            bool isInvariantCulture = false,
-            string format = null)
-        {
-            Assembly = assembly;
-            TypeName = typeName;
-            TypeNamespace = typeNamespace;
-            TypeNameIdentifier = typeNameIdentifier;
-            Element = element;
-            TypeAttribute = typeAttribute;
-            Suffix = suffix;
-            ValueAttribute = valueAttribute;
-            ChangeAttribute = changeAttribute;
-            IsInvariantCulture = isInvariantCulture;
-            Format = format;
-        }
-
-        public string Assembly { get; }
-        public string TypeName { get; }
-        public string TypeNamespace { get; }
-        public string TypeNameIdentifier { get; }
-        public string Element { get; }
-        public string TypeAttribute { get; }
-        public string Suffix { get; }
-        public string ValueAttribute { get; }
-        public string ChangeAttribute { get; }
-        public bool IsInvariantCulture { get; }
-        public string Format { get; }
-
         private string GetDebuggerDisplay()
         {
             return $"Element: {Element} - Suffix: {Suffix ?? "(none)"} - Type: {TypeAttribute} Value: {ValueAttribute} Change: {ChangeAttribute}";
