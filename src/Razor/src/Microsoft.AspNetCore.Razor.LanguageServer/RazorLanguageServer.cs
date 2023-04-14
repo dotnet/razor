@@ -139,15 +139,12 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         services.AddSingleton<IOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
 
         // Folding Range Providers
-        services.AddSingleton<RazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
+        services.AddSingleton<IRazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
 
         // Other
         services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();
         services.AddSingleton<WorkspaceDirectoryPathResolver, DefaultWorkspaceDirectoryPathResolver>();
         services.AddSingleton<RazorComponentSearchEngine, DefaultRazorComponentSearchEngine>();
-
-        // Folding Range Providers
-        services.AddSingleton<RazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
 
         services.AddSingleton<IFaultExceptionHandler, JsonRPCFaultExceptionHandler>();
 

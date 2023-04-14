@@ -76,7 +76,7 @@ public class CSharpCodeActionEndToEndTest : SingleServerDelegatingEndpointTestBa
         var razorCodeActionProviders = Array.Empty<RazorCodeActionProvider>();
         var csharpCodeActionProviders = new CSharpCodeActionProvider[]
         {
-            new DefaultCSharpCodeActionProvider()
+            new DefaultCSharpCodeActionProvider(TestLanguageServerFeatureOptions.Instance)
         };
         var htmlCodeActionProviders = Array.Empty<HtmlCodeActionProvider>();
 
