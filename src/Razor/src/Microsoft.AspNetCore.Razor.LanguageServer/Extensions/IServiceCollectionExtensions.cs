@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
+using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
+using Microsoft.AspNetCore.Razor.LanguageServer.InlineCompletion;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
@@ -70,12 +72,12 @@ internal static class IServiceCollectionExtensions
         if (featureOptions.SingleServerCompletionSupport)
         {
             services.AddRegisteringHandler<RazorCompletionEndpoint>();
-            services.AddHandler<RazorCompletionResolveEndpoint>();
+            services.AddRegisteringHandler<RazorCompletionResolveEndpoint>();
         }
         else
         {
             services.AddRegisteringHandler<LegacyRazorCompletionEndpoint>();
-            services.AddHandler<LegacyRazorCompletionResolveEndpoint>();
+            services.AddRegisteringHandler<LegacyRazorCompletionResolveEndpoint>();
         }
 
         services.AddSingleton<CompletionListCache>();
@@ -115,14 +117,14 @@ internal static class IServiceCollectionExtensions
 
     public static void AddSemanticTokensServices(this IServiceCollection services)
     {
-        services.AddRegisteringHandler<RazorSemanticTokensEndpoint>();
-        services.AddRegisteringHandler<SemanticTokensRefreshEndpoint>();
+        services.AddRegisteringHandler<SemanticTokensRangeEndpoint>();
+        services.AddRegisteringHandler<RazorSemanticTokensRefreshEndpoint>();
 
         services.AddSingleton<WorkspaceSemanticTokensRefreshPublisher, DefaultWorkspaceSemanticTokensRefreshPublisher>();
         services.AddSingleton<ProjectSnapshotChangeTrigger, DefaultWorkspaceSemanticTokensRefreshTrigger>();
 
         // Ensure that we don't add the default service if something else has added one.
-        services.TryAddSingleton<RazorSemanticTokensInfoService, DefaultRazorSemanticTokensInfoService>();
+        services.TryAddSingleton<IRazorSemanticTokensInfoService, RazorSemanticTokensInfoService>();
     }
 
     public static void AddCodeActionsServices(this IServiceCollection services)
@@ -134,7 +136,6 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<CSharpCodeActionProvider, TypeAccessibilityCodeActionProvider>();
         services.AddSingleton<CSharpCodeActionProvider, DefaultCSharpCodeActionProvider>();
         services.AddSingleton<CSharpCodeActionResolver, DefaultCSharpCodeActionResolver>();
-        services.AddSingleton<CSharpCodeActionResolver, AddUsingsCSharpCodeActionResolver>();
         services.AddSingleton<CSharpCodeActionResolver, UnformattedRemappingCSharpCodeActionResolver>();
 
         // Razor Code actions

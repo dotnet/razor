@@ -32,6 +32,16 @@
         <target state="translated">Razor Syntax Visualizer</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_AutoClosingTagsDescription">
+        <source>If true, closing tags will be automatically inserted</source>
+        <target state="translated">Si es verdadero, las etiquetas de cierre se insertarán automáticamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoClosingTagsDisplayName">
+        <source>Auto Insert Closing Tag</source>
+        <target state="translated">Insertar automáticamente etiqueta de cierre</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDescription">
         <source>If true, formatting will be enabled while typing</source>
         <target state="translated">Si es true, el formato se habilitará al escribir</target>
@@ -40,6 +50,11 @@
       <trans-unit id="Setting_FormattingOnTypeDisplayName">
         <source>Format On Type</source>
         <target state="translated">Dar formato al escribir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Typing">
+        <source>Typing</source>
+        <target state="translated">Escribiendo</target>
         <note />
       </trans-unit>
     </body>

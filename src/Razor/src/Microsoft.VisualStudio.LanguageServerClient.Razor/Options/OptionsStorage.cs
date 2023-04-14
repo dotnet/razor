@@ -21,23 +21,37 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Options;
 internal class OptionsStorage : IAdvancedSettingsStorage
 {
     private readonly WritableSettingsStore _writableSettingsStore;
-    private readonly ILanguageServiceBroker2 _languageServiceBroker;
     private readonly ITelemetryReporter _telemetryReporter;
+
     private const string Collection = "Razor";
+    private const string FormatOnTypeName = "FormatOnType";
+    private const string AutoClosingTagsName = "AutoClosingTags";
+
+    public bool FormatOnType
+    {
+        get => GetBool(FormatOnTypeName, defaultValue: true);
+        set => SetBool(FormatOnTypeName, value);
+    }
+
+    public bool AutoClosingTags
+    {
+        get => GetBool(AutoClosingTagsName, defaultValue: true);
+        set => SetBool(AutoClosingTagsName, value);
+    }
 
     [ImportingConstructor]
-    public OptionsStorage(SVsServiceProvider vsServiceProvider, ILanguageServiceBroker2 languageServiceBroker, ITelemetryReporter telemetryReporter)
+    public OptionsStorage(SVsServiceProvider vsServiceProvider, ITelemetryReporter telemetryReporter)
     {
         var shellSettingsManager = new ShellSettingsManager(vsServiceProvider);
         _writableSettingsStore = shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
 
         _writableSettingsStore.CreateCollection(Collection);
-        _languageServiceBroker = languageServiceBroker;
         _telemetryReporter = telemetryReporter;
     }
 
     public event EventHandler<ClientAdvancedSettingsChangedEventArgs>? Changed;
-    public ClientAdvancedSettings GetAdvancedSettings() => new(FormatOnType);
+
+    public ClientAdvancedSettings GetAdvancedSettings() => new(FormatOnType, AutoClosingTags);
 
     public bool GetBool(string name, bool defaultValue)
     {
@@ -52,7 +66,7 @@ internal class OptionsStorage : IAdvancedSettingsStorage
     public void SetBool(string name, bool value)
     {
         _writableSettingsStore.SetBoolean(Collection, name, value);
-        _telemetryReporter.ReportEvent("OptionChanged", Telemetry.TelemetrySeverity.Normal, new Dictionary<string, bool>()
+        _telemetryReporter.ReportEvent("OptionChanged", Severity.Normal, new Dictionary<string, bool>()
         {
             { name, value }
         }.ToImmutableDictionary());
@@ -63,13 +77,5 @@ internal class OptionsStorage : IAdvancedSettingsStorage
     private void NotifyChange()
     {
         Changed?.Invoke(this, new ClientAdvancedSettingsChangedEventArgs(GetAdvancedSettings()));
-    }
-
-    private const string FormatOnTypeName = "FormatOnType";
-
-    public bool FormatOnType
-    {
-        get => GetBool(FormatOnTypeName, defaultValue: true);
-        set => SetBool(FormatOnTypeName, value);
     }
 }
