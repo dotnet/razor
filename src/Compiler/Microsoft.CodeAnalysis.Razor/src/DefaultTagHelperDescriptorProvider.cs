@@ -58,7 +58,6 @@ public sealed class DefaultTagHelperDescriptorProvider : RazorEngineFeatureBase,
             }
         }
 
-
         var factory = new DefaultTagHelperDescriptorFactory(compilation, context.IncludeDocumentation, context.ExcludeHidden);
 
         foreach (var type in types)

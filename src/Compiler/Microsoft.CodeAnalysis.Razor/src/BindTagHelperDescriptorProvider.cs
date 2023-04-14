@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 {
+    private static TagHelperDescriptor s_fallbackBindTagHelper;
+
     // Run after the component tag helper provider, because we need to see the results.
     public int Order { get; set; } = 1000;
 
@@ -111,7 +113,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
         }
 
         // Tag Helper definition for case #1. This is the most general case.
-        context.Results.Add(CreateFallbackBindTagHelper());
+        context.Results.Add(GetOrCreateFallbackBindTagHelper());
 
         // For case #2 & #3 we have a whole bunch of attribute entries on BindMethods that we can use
         // to data-drive the definitions of these tag helpers.
@@ -131,109 +133,114 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
         }
     }
 
-    private static TagHelperDescriptor CreateFallbackBindTagHelper()
+    private static TagHelperDescriptor GetOrCreateFallbackBindTagHelper()
     {
-        using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
-            ComponentMetadata.Bind.TagHelperKind, "Bind", ComponentsApi.AssemblyName,
-            out var builder);
+        return s_fallbackBindTagHelper ??= CreateFallbackBindTagHelper();
 
-        builder.CaseSensitive = true;
-        builder.Documentation = ComponentResources.BindTagHelper_Fallback_Documentation;
-
-        builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind);
-        builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
-        builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.Bind.RuntimeName;
-        builder.Metadata[ComponentMetadata.Bind.FallbackKey] = bool.TrueString;
-
-        // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
-        // a C# property will crash trying to create the toolips.
-        builder.SetTypeName("Microsoft.AspNetCore.Components.Bind");
-        builder.SetTypeNamespace("Microsoft.AspNetCore.Components");
-        builder.SetTypeNameIdentifier("Bind");
-
-        builder.TagMatchingRule(rule =>
+        static TagHelperDescriptor CreateFallbackBindTagHelper()
         {
-            rule.TagName = "*";
-            rule.Attribute(attribute =>
-            {
-                attribute.Name = "@bind-";
-                attribute.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
-                attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
-            });
-        });
+            using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
+                ComponentMetadata.Bind.TagHelperKind, "Bind", ComponentsApi.AssemblyName,
+                out var builder);
 
-        builder.BindAttribute(attribute =>
-        {
-            attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
-            attribute.Documentation = ComponentResources.BindTagHelper_Fallback_Documentation;
+            builder.CaseSensitive = true;
+            builder.Documentation = ComponentResources.BindTagHelper_Fallback_Documentation;
 
-            var attributeName = "@bind-...";
-            attribute.Name = attributeName;
-            attribute.AsDictionary("@bind-", typeof(object).FullName);
+            builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind);
+            builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
+            builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.Bind.RuntimeName;
+            builder.Metadata[ComponentMetadata.Bind.FallbackKey] = bool.TrueString;
 
-            // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
+            // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
             // a C# property will crash trying to create the toolips.
-            attribute.SetPropertyName("Bind");
-            attribute.TypeName = "System.Collections.Generic.Dictionary<string, object>";
+            builder.SetTypeName("Microsoft.AspNetCore.Components.Bind");
+            builder.SetTypeNamespace("Microsoft.AspNetCore.Components");
+            builder.SetTypeNameIdentifier("Bind");
 
-            attribute.BindAttributeParameter(parameter =>
+            builder.TagMatchingRule(rule =>
             {
-                parameter.Name = "format";
-                parameter.TypeName = typeof(string).FullName;
-                parameter.Documentation = ComponentResources.BindTagHelper_Fallback_Format_Documentation;
-
-                parameter.SetPropertyName("Format");
+                rule.TagName = "*";
+                rule.Attribute(attribute =>
+                {
+                    attribute.Name = "@bind-";
+                    attribute.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                    attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                });
             });
 
-            attribute.BindAttributeParameter(parameter =>
+            builder.BindAttribute(attribute =>
             {
-                parameter.Name = "event";
-                parameter.TypeName = typeof(string).FullName;
-                parameter.Documentation = string.Format(CultureInfo.CurrentCulture, ComponentResources.BindTagHelper_Fallback_Event_Documentation, attributeName);
+                attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                attribute.Documentation = ComponentResources.BindTagHelper_Fallback_Documentation;
 
-                parameter.SetPropertyName("Event");
+                var attributeName = "@bind-...";
+                attribute.Name = attributeName;
+                attribute.AsDictionary("@bind-", typeof(object).FullName);
+
+                // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
+                // a C# property will crash trying to create the toolips.
+                attribute.SetPropertyName("Bind");
+                attribute.TypeName = "System.Collections.Generic.Dictionary<string, object>";
+
+                attribute.BindAttributeParameter(parameter =>
+                {
+                    parameter.Name = "format";
+                    parameter.TypeName = typeof(string).FullName;
+                    parameter.Documentation = ComponentResources.BindTagHelper_Fallback_Format_Documentation;
+
+                    parameter.SetPropertyName("Format");
+                });
+
+                attribute.BindAttributeParameter(parameter =>
+                {
+                    parameter.Name = "event";
+                    parameter.TypeName = typeof(string).FullName;
+                    parameter.Documentation = string.Format(CultureInfo.CurrentCulture, ComponentResources.BindTagHelper_Fallback_Event_Documentation, attributeName);
+
+                    parameter.SetPropertyName("Event");
+                });
+
+                attribute.BindAttributeParameter(parameter =>
+                {
+                    parameter.Name = "culture";
+                    parameter.TypeName = typeof(CultureInfo).FullName;
+                    parameter.Documentation = ComponentResources.BindTagHelper_Element_Culture_Documentation;
+
+                    parameter.SetPropertyName("Culture");
+                });
+
+                attribute.BindAttributeParameter(parameter =>
+                {
+                    parameter.Name = "get";
+                    parameter.TypeName = typeof(object).FullName;
+                    parameter.Documentation = ComponentResources.BindTagHelper_Element_Get_Documentation;
+
+                    parameter.SetPropertyName("Get");
+
+                    parameter.SetBindAttributeGetSet();
+                });
+
+                attribute.BindAttributeParameter(parameter =>
+                {
+                    parameter.Name = "set";
+                    parameter.TypeName = typeof(Delegate).FullName;
+                    parameter.Documentation = ComponentResources.BindTagHelper_Element_Set_Documentation;
+
+                    parameter.SetPropertyName("Set");
+                });
+
+                attribute.BindAttributeParameter(parameter =>
+                {
+                    parameter.Name = "after";
+                    parameter.TypeName = typeof(Delegate).FullName;
+                    parameter.Documentation = ComponentResources.BindTagHelper_Element_After_Documentation;
+
+                    parameter.SetPropertyName("After");
+                });
             });
 
-            attribute.BindAttributeParameter(parameter =>
-            {
-                parameter.Name = "culture";
-                parameter.TypeName = typeof(CultureInfo).FullName;
-                parameter.Documentation = ComponentResources.BindTagHelper_Element_Culture_Documentation;
-
-                parameter.SetPropertyName("Culture");
-            });
-
-            attribute.BindAttributeParameter(parameter =>
-            {
-                parameter.Name = "get";
-                parameter.TypeName = typeof(object).FullName;
-                parameter.Documentation = ComponentResources.BindTagHelper_Element_Get_Documentation;
-
-                parameter.SetPropertyName("Get");
-
-                parameter.SetBindAttributeGetSet();
-            });
-
-            attribute.BindAttributeParameter(parameter =>
-            {
-                parameter.Name = "set";
-                parameter.TypeName = typeof(Delegate).FullName;
-                parameter.Documentation = ComponentResources.BindTagHelper_Element_Set_Documentation;
-
-                parameter.SetPropertyName("Set");
-            });
-
-            attribute.BindAttributeParameter(parameter =>
-            {
-                parameter.Name = "after";
-                parameter.TypeName = typeof(Delegate).FullName;
-                parameter.Documentation = ComponentResources.BindTagHelper_Element_After_Documentation;
-
-                parameter.SetPropertyName("After");
-            });
-        });
-
-        return builder.Build();
+            return builder.Build();
+        }
     }
 
     private List<ElementBindData> GetElementBindData(Compilation compilation)
