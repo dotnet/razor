@@ -5,9 +5,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -44,9 +46,9 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
         }
     }
 
-    private static List<EventHandlerData> GetEventHandlerData(TagHelperDescriptorProviderContext context, Compilation compilation, INamedTypeSymbol eventHandlerAttribute)
+    private static ImmutableArray<EventHandlerData> GetEventHandlerData(TagHelperDescriptorProviderContext context, Compilation compilation, INamedTypeSymbol eventHandlerAttribute)
     {
-        var types = new List<INamedTypeSymbol>();
+        using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
         var visitor = new EventHandlerDataVisitor(types);
 
         var targetSymbol = context.Items.GetTargetSymbol();
@@ -66,10 +68,15 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
             }
         }
 
-        var results = new List<EventHandlerData>();
+        using var results = new PooledArrayBuilder<EventHandlerData>();
+
+        (string Assembly, string Type, string Namespace)? displayNames;
 
         foreach (var type in types)
         {
+            // Set this to null, since we have a new type.
+            displayNames = null;
+
             // Not handling duplicates here for now since we're the primary ones extending this.
             // If we see users adding to the set of event handler constructs we will want to add deduplication
             // and potentially diagnostics.
@@ -85,25 +92,31 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                         enableStopPropagation = (bool)attribute.ConstructorArguments[3].Value;
                     }
 
+                    // Be careful to only compute the display names once for each type.
+                    displayNames ??= (type.ContainingAssembly.Name, type.ToDisplayString(), type.ContainingNamespace.ToDisplayString());
+
+                    var (assemblyName, typeName, namespaceName) = displayNames.GetValueOrDefault();
+                    var constructorArguments = attribute.ConstructorArguments;
+
                     results.Add(new EventHandlerData(
-                        type.ContainingAssembly.Name,
-                        type.ToDisplayString(),
-                        type.ContainingNamespace.ToDisplayString(),
+                        assemblyName,
+                        typeName,
+                        namespaceName,
                         type.Name,
-                        (string)attribute.ConstructorArguments[0].Value,
-                        (INamedTypeSymbol)attribute.ConstructorArguments[1].Value,
+                        (string)constructorArguments[0].Value,
+                        (INamedTypeSymbol)constructorArguments[1].Value,
                         enablePreventDefault,
                         enableStopPropagation));
                 }
             }
         }
 
-        return results;
+        return results.ToImmutable();
     }
 
-    private static List<TagHelperDescriptor> CreateEventHandlerTagHelpers(List<EventHandlerData> data)
+    private static ImmutableArray<TagHelperDescriptor> CreateEventHandlerTagHelpers(ImmutableArray<EventHandlerData> data)
     {
-        var results = new List<TagHelperDescriptor>();
+        using var results = new PooledArrayBuilder<TagHelperDescriptor>();
 
         foreach (var entry in data)
         {
@@ -227,7 +240,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
             results.Add(builder.Build());
         }
 
-        return results;
+        return results.ToImmutable();
     }
 
     private readonly record struct EventHandlerData(
