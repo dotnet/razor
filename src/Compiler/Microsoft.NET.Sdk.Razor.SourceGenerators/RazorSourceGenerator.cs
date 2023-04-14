@@ -263,12 +263,13 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 context.AddSource(hintName, csharpDocument.GeneratedCode);
             });
 
-            var hostOutput = codeDocuments(designTime: true);
-            context.RegisterHostOutput(hostOutput, static (context, tuple, _) =>
+            context.RegisterHostOutput(processed(designTime: true), static (context, pair, _) =>
             {
-                var (hintName, codeDocument) = tuple;
-                context.AddOutput(hintName + ".rsg-cs", codeDocument.GetCSharpDocument().GeneratedCode);
-                context.AddOutput(hintName + ".rsg-html", codeDocument.GetHtmlDocument().GeneratedCode);
+                var (filePath, document) = pair;
+                var hintName = GetIdentifierFromPath(filePath);
+                context.AddOutput(hintName + ".rsg.json", RazorCodeDocumentSerializer.Instance.Serialize(document.CodeDocument));
+                context.AddOutput(hintName + ".rsg.cs", document.CodeDocument.GetCSharpDocument().GeneratedCode);
+                context.AddOutput(hintName + ".rsg.html", document.CodeDocument.GetHtmlDocument().GeneratedCode);
             });
         }
     }
