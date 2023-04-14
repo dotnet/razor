@@ -64,9 +64,17 @@ internal class DefaultTagHelperDescriptorFactory
 
     private static void AddTagMatchingRules(INamedTypeSymbol type, TagHelperDescriptorBuilder descriptorBuilder)
     {
-        var targetElementAttributes = type
-            .GetAttributes()
-            .Where(static attribute => attribute.AttributeClass.HasFullName(TagHelperTypes.HtmlTargetElementAttribute));
+        using var builder = new PooledArrayBuilder<AttributeData>();
+
+        foreach (var attribute in type.GetAttributes())
+        {
+            if (attribute.AttributeClass.HasFullName(TagHelperTypes.HtmlTargetElementAttribute))
+            {
+                builder.Add(attribute);
+            }
+        }
+
+        var targetElementAttributes = builder.ToImmutable();
 
         // If there isn't an attribute specifying the tag name derive it from the name
         if (!targetElementAttributes.Any())
