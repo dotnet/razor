@@ -274,55 +274,66 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
         using var results = new PooledArrayBuilder<ElementBindData>();
 
+        (string Assembly, string Type, string Namespace)? displayNames;
+
         foreach (var type in types)
         {
+            // Set this to null, since we have a new type.
+            displayNames = null;
+
             // Not handling duplicates here for now since we're the primary ones extending this.
             // If we see users adding to the set of 'bind' constructs we will want to add deduplication
             // and potentially diagnostics.
             foreach (var attribute in type.GetAttributes())
             {
+                // Be careful to only compute the display names once for each type.
+                displayNames ??= (type.ContainingAssembly.Name, type.ToDisplayString(), type.ContainingNamespace.ToDisplayString());
+
+                var (assemblyName, typeName, namespaceName) = displayNames.GetValueOrDefault();
+                var constructorArguments = attribute.ConstructorArguments;
+
                 // We need to check the constructor argument length here, because this can show up as 0
                 // if the language service fails to initialize. This is an invalid case, so skip it.
-                if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindElement) && attribute.ConstructorArguments.Length == 4)
+                if (constructorArguments.Length == 4 && SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindElement))
                 {
                     results.Add(new ElementBindData(
-                        type.ContainingAssembly.Name,
-                        type.ToDisplayString(),
-                        type.ContainingNamespace.ToDisplayString(),
+                        assemblyName,
+                        typeName,
+                        namespaceName,
                         type.Name,
-                        (string)attribute.ConstructorArguments[0].Value,
+                        (string)constructorArguments[0].Value,
                         null,
-                        (string)attribute.ConstructorArguments[1].Value,
-                        (string)attribute.ConstructorArguments[2].Value,
-                        (string)attribute.ConstructorArguments[3].Value));
+                        (string)constructorArguments[1].Value,
+                        (string)constructorArguments[2].Value,
+                        (string)constructorArguments[3].Value));
                 }
-                else if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindInputElement) && attribute.ConstructorArguments.Length == 4)
+                else if (constructorArguments.Length == 4 && SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindInputElement))
                 {
                     results.Add(new ElementBindData(
-                        type.ContainingAssembly.Name,
-                        type.ToDisplayString(),
+                        assemblyName,
+                        typeName,
                         type.ContainingNamespace.ToDisplayString(),
                         type.Name,
                         "input",
-                        (string)attribute.ConstructorArguments[0].Value,
-                        (string)attribute.ConstructorArguments[1].Value,
-                        (string)attribute.ConstructorArguments[2].Value,
-                        (string)attribute.ConstructorArguments[3].Value));
+                        (string)constructorArguments[0].Value,
+                        (string)constructorArguments[1].Value,
+                        (string)constructorArguments[2].Value,
+                        (string)constructorArguments[3].Value));
                 }
-                else if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindInputElement) && attribute.ConstructorArguments.Length == 6)
+                else if (constructorArguments.Length == 6 && SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindInputElement))
                 {
                     results.Add(new ElementBindData(
-                        type.ContainingAssembly.Name,
-                        type.ToDisplayString(),
-                        type.ContainingNamespace.ToDisplayString(),
+                        assemblyName,
+                        typeName,
+                        namespaceName,
                         type.Name,
                         "input",
-                        (string)attribute.ConstructorArguments[0].Value,
-                        (string)attribute.ConstructorArguments[1].Value,
-                        (string)attribute.ConstructorArguments[2].Value,
-                        (string)attribute.ConstructorArguments[3].Value,
-                        (bool)attribute.ConstructorArguments[4].Value,
-                        (string)attribute.ConstructorArguments[5].Value));
+                        (string)constructorArguments[0].Value,
+                        (string)constructorArguments[1].Value,
+                        (string)constructorArguments[2].Value,
+                        (string)constructorArguments[3].Value,
+                        (bool)constructorArguments[4].Value,
+                        (string)constructorArguments[5].Value));
                 }
             }
         }
