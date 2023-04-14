@@ -55,7 +55,9 @@
   <PropertyGroup Label="Automated">
     <MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>6.0.2-servicing.22064.6</MicrosoftNETCoreBrowserDebugHostTransportPackageVersion>
     <MicrosoftNETCorePlatformsPackageVersion>6.0.1</MicrosoftNETCorePlatformsPackageVersion>
-    <MicrosoftNetCompilersToolsetVersion>4.6.0-3.23164.6</MicrosoftNetCompilersToolsetVersion>
+    <MicrosoftSourceBuildIntermediatesourcebuildreferencepackagesPackageVersion>8.0.0-alpha.1.23214.4</MicrosoftSourceBuildIntermediatesourcebuildreferencepackagesPackageVersion>
+    <MicrosoftNetCompilersToolsetPackageVersion>4.6.0-3.23164.6</MicrosoftNetCompilersToolsetPackageVersion>
+    <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>4.6.0-3.23164.6</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
     <MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>4.6.0-3.23164.6</MicrosoftCodeAnalysisExternalAccessRazorPackageVersion>
     <MicrosoftCodeAnalysisExternalAccessOmniSharpCSharpPackageVersion>4.6.0-3.23164.6</MicrosoftCodeAnalysisExternalAccessOmniSharpCSharpPackageVersion>
     <MicrosoftCodeAnalysisCommonPackageVersion>4.6.0-3.23164.6</MicrosoftCodeAnalysisCommonPackageVersion>
@@ -72,6 +74,8 @@
     <MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>4.6.0-3.23164.6</MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>
     <MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>4.6.0-3.23164.6</MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>
     <MicrosoftVisualStudioLanguageServicesPackageVersion>4.6.0-3.23164.6</MicrosoftVisualStudioLanguageServicesPackageVersion>
+    <MicrosoftSourceLinkGitHubPackageVersion>8.0.0-beta.23210.3</MicrosoftSourceLinkGitHubPackageVersion>
+    <MicrosoftDotNetXliffTasksPackageVersion>1.0.0-beta.23206.1</MicrosoftDotNetXliffTasksPackageVersion>
   </PropertyGroup>
   <!--
 
@@ -89,9 +93,7 @@
     <Tooling_MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.22512.1</Tooling_MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.5.0-preview-2-33117-317</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftVisualStudioPackagesVersion>17.5.274-preview</MicrosoftVisualStudioPackagesVersion>
-    <RoslynPackageVersion>4.6.0-3.23164.6</RoslynPackageVersion>
     <VisualStudioLanguageServerProtocolVersion>17.6.4-preview</VisualStudioLanguageServerProtocolVersion>
-    <MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>$(RoslynPackageVersion)</MicrosoftCommonLanguageServerProtocolFrameworkPackageVersion>
     <!-- dotnet/runtime packages -->
     <MicrosoftExtensionsPackageVersion>6.0.0</MicrosoftExtensionsPackageVersion>
     <SystemCollectionsImmutablePackageVersion>6.0.0</SystemCollectionsImmutablePackageVersion>
@@ -106,6 +108,7 @@
     <MicrosoftBuildPackageVersion>16.8.0</MicrosoftBuildPackageVersion>
     <MicrosoftNETSdkRazorPackageVersion>6.0.0-alpha.1.21072.5</MicrosoftNETSdkRazorPackageVersion>
     <!-- Packages from dotnet/roslyn -->
+    <MicrosoftNetCompilersToolsetVersion>$(MicrosoftNetCompilersToolsetPackageVersion)</MicrosoftNetCompilersToolsetVersion>
     <MicrosoftCodeAnalysisAnalyzerTestingPackageVersion>$(Tooling_MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisAnalyzerTestingPackageVersion>
     <MicrosoftCodeAnalysisTestingVerifiersXunitPackageVersion>$(Tooling_MicrosoftCodeAnalysisTestingVersion)</MicrosoftCodeAnalysisTestingVerifiersXunitPackageVersion>
     <MicrosoftVisualStudioEditorPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioEditorPackageVersion>
