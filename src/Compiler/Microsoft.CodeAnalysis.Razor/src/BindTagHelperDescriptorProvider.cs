@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -244,7 +245,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
         }
     }
 
-    private static List<ElementBindData> GetElementBindData(Compilation compilation)
+    private static ImmutableArray<ElementBindData> GetElementBindData(Compilation compilation)
     {
         var bindElement = compilation.GetTypeByMetadataName(ComponentsApi.BindElementAttribute.FullTypeName);
         var bindInputElement = compilation.GetTypeByMetadataName(ComponentsApi.BindInputElementAttribute.FullTypeName);
@@ -252,7 +253,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
         if (bindElement == null || bindInputElement == null)
         {
             // This won't likely happen, but just in case.
-            return new List<ElementBindData>();
+            return ImmutableArray<ElementBindData>.Empty;
         }
 
         using var _ = ListPool<INamedTypeSymbol>.GetPooledObject(out var types);
@@ -271,7 +272,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             }
         }
 
-        var results = new List<ElementBindData>();
+        using var results = new PooledArrayBuilder<ElementBindData>();
 
         foreach (var type in types)
         {
@@ -326,12 +327,12 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             }
         }
 
-        return results;
+        return results.ToImmutable();
     }
 
-    private static List<TagHelperDescriptor> CreateElementBindTagHelpers(List<ElementBindData> data)
+    private static ImmutableArray<TagHelperDescriptor> CreateElementBindTagHelpers(ImmutableArray<ElementBindData> data)
     {
-        var results = new List<TagHelperDescriptor>();
+        using var results = new PooledArrayBuilder<TagHelperDescriptor>();
 
         foreach (var entry in data)
         {
@@ -520,12 +521,12 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             results.Add(builder.Build());
         }
 
-        return results;
+        return results.ToImmutable();
     }
 
-    private static List<TagHelperDescriptor> CreateComponentBindTagHelpers(ICollection<TagHelperDescriptor> tagHelpers)
+    private static ImmutableArray<TagHelperDescriptor> CreateComponentBindTagHelpers(ICollection<TagHelperDescriptor> tagHelpers)
     {
-        var results = new List<TagHelperDescriptor>();
+        using var results = new PooledArrayBuilder<TagHelperDescriptor>();
 
         foreach (var tagHelper in tagHelpers)
         {
@@ -697,7 +698,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             }
         }
 
-        return results;
+        return results.ToImmutable();
     }
 
     [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]

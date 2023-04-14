@@ -40,21 +40,21 @@ internal ref struct PooledList<T>
         _list.Add(item);
     }
 
-    public void AddRange(IReadOnlyList<T> list)
+    public void AddRange(IReadOnlyList<T> items)
     {
-        if (list.Count == 0)
+        if (items.Count == 0)
         {
             return;
         }
 
         _list ??= _pool.Get();
-        _list.AddRange(list);
+        _list.AddRange(items);
     }
 
-    public void AddRange(IEnumerable<T> list)
+    public void AddRange(IEnumerable<T> items)
     {
         _list ??= _pool.Get();
-        _list.AddRange(list);
+        _list.AddRange(items);
     }
 
     public void ClearAndFree()
