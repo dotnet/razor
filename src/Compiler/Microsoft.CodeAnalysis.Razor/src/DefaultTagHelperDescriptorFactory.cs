@@ -412,9 +412,11 @@ internal class DefaultTagHelperDescriptorFactory
                 return false;
             }
 
-            if (editorBrowsableAttribute.ConstructorArguments is [{ Value: EditorBrowsableState value }, ..])
+            var constructorArguments = editorBrowsableAttribute.ConstructorArguments;
+
+            if (constructorArguments.Length > 0)
             {
-                return value == EditorBrowsableState.Never;
+                return (EditorBrowsableState)constructorArguments[0].Value == EditorBrowsableState.Never;
             }
         }
 

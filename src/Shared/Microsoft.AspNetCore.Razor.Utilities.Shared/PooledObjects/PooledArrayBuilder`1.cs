@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 
 /// <summary>
 ///  Wraps a pooled <see cref="ImmutableArray{T}.Builder"/> but doesn't allocate it until
-///  it's needed. Note: Dispose this to ensure that the pooled list is returned
+///  it's needed. Note: Dispose this to ensure that the pooled array builder is returned
 ///  to the pool.
 /// </summary>
 internal ref struct PooledArrayBuilder<T>

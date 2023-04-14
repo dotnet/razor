@@ -140,7 +140,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             foreach (var attribute in type.GetAttributes())
             {
                 if (attribute.AttributeClass.HasFullName(ComponentsApi.CascadingTypeParameterAttribute.MetadataName) &&
-                    attribute.ConstructorArguments is [{ Value: string value }, ..])
+                    attribute.ConstructorArguments.FirstOrDefault() is { Value: string value })
                 {
                     cascadeGenericTypeAttributes.Add(value);
                 }
