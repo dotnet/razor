@@ -274,28 +274,24 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
         using var results = new PooledArrayBuilder<ElementBindData>();
 
-        (string Assembly, string Type, string Namespace)? displayNames;
-
         foreach (var type in types)
         {
-            // Set this to null, since we have a new type.
-            displayNames = null;
+            // Create helper to delay computing display names for this type when we need them.
+            var displayNames = new DisplayNameHelper(type);
 
             // Not handling duplicates here for now since we're the primary ones extending this.
             // If we see users adding to the set of 'bind' constructs we will want to add deduplication
             // and potentially diagnostics.
             foreach (var attribute in type.GetAttributes())
             {
-                // Be careful to only compute the display names once for each type.
-                displayNames ??= (type.ContainingAssembly.Name, type.ToDisplayString(), type.ContainingNamespace.ToDisplayString());
-
-                var (assemblyName, typeName, namespaceName) = displayNames.GetValueOrDefault();
                 var constructorArguments = attribute.ConstructorArguments;
 
                 // We need to check the constructor argument length here, because this can show up as 0
                 // if the language service fails to initialize. This is an invalid case, so skip it.
                 if (constructorArguments.Length == 4 && SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindElement))
                 {
+                    var (assemblyName, typeName, namespaceName) = displayNames.GetNames();
+
                     results.Add(new ElementBindData(
                         assemblyName,
                         typeName,
@@ -309,10 +305,12 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 }
                 else if (constructorArguments.Length == 4 && SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindInputElement))
                 {
+                    var (assemblyName, typeName, namespaceName) = displayNames.GetNames();
+
                     results.Add(new ElementBindData(
                         assemblyName,
                         typeName,
-                        type.ContainingNamespace.ToDisplayString(),
+                        namespaceName,
                         type.Name,
                         "input",
                         (string)constructorArguments[0].Value,
@@ -322,6 +320,8 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 }
                 else if (constructorArguments.Length == 6 && SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, bindInputElement))
                 {
+                    var (assemblyName, typeName, namespaceName) = displayNames.GetNames();
+
                     results.Add(new ElementBindData(
                         assemblyName,
                         typeName,
@@ -339,6 +339,27 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
         }
 
         return results.DrainToImmutable();
+    }
+
+    /// <summary>
+    ///  Helper to avoid computing various type-based names until necessary.
+    /// </summary>
+    private ref struct DisplayNameHelper
+    {
+        private readonly INamedTypeSymbol _type;
+        private (string Assembly, string Type, string Namespace)? _names;
+
+        public DisplayNameHelper(INamedTypeSymbol type)
+        {
+            _type = type;
+        }
+
+        public (string Assembly, string Type, string Namespace) GetNames()
+        {
+            _names ??= (_type.ContainingAssembly.Name, _type.ToDisplayString(), _type.ContainingNamespace.ToDisplayString());
+
+            return _names.GetValueOrDefault();
+        }
     }
 
     private static ImmutableArray<TagHelperDescriptor> CreateElementBindTagHelpers(ImmutableArray<ElementBindData> data)

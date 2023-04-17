@@ -70,12 +70,10 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
 
         using var results = new PooledArrayBuilder<EventHandlerData>();
 
-        (string Assembly, string Type, string Namespace)? displayNames;
-
         foreach (var type in types)
         {
-            // Set this to null, since we have a new type.
-            displayNames = null;
+            // Create helper to delay computing display names for this type when we need them.
+            var displayNames = new DisplayNameHelper(type);
 
             // Not handling duplicates here for now since we're the primary ones extending this.
             // If we see users adding to the set of event handler constructs we will want to add deduplication
@@ -92,10 +90,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                         enableStopPropagation = (bool)attribute.ConstructorArguments[3].Value;
                     }
 
-                    // Be careful to only compute the display names once for each type.
-                    displayNames ??= (type.ContainingAssembly.Name, type.ToDisplayString(), type.ContainingNamespace.ToDisplayString());
-
-                    var (assemblyName, typeName, namespaceName) = displayNames.GetValueOrDefault();
+                    var (assemblyName, typeName, namespaceName) = displayNames.GetNames();
                     var constructorArguments = attribute.ConstructorArguments;
 
                     results.Add(new EventHandlerData(
@@ -112,6 +107,27 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
         }
 
         return results.DrainToImmutable();
+    }
+
+    /// <summary>
+    ///  Helper to avoid computing various type-based names until necessary.
+    /// </summary>
+    private ref struct DisplayNameHelper
+    {
+        private readonly INamedTypeSymbol _type;
+        private (string Assembly, string Type, string Namespace)? _names;
+
+        public DisplayNameHelper(INamedTypeSymbol type)
+        {
+            _type = type;
+        }
+
+        public (string Assembly, string Type, string Namespace) GetNames()
+        {
+            _names ??= (_type.ContainingAssembly.Name, _type.ToDisplayString(), _type.ContainingNamespace.ToDisplayString());
+
+            return _names.GetValueOrDefault();
+        }
     }
 
     private static ImmutableArray<TagHelperDescriptor> CreateEventHandlerTagHelpers(ImmutableArray<EventHandlerData> data)
