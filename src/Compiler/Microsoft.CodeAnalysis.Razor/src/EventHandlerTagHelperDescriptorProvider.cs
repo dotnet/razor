@@ -111,7 +111,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
             }
         }
 
-        return results.ToImmutable();
+        return results.DrainToImmutable();
     }
 
     private static ImmutableArray<TagHelperDescriptor> CreateEventHandlerTagHelpers(ImmutableArray<EventHandlerData> data)
@@ -240,7 +240,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
             results.Add(builder.Build());
         }
 
-        return results.ToImmutable();
+        return results.DrainToImmutable();
     }
 
     private readonly record struct EventHandlerData(

@@ -74,7 +74,7 @@ internal class DefaultTagHelperDescriptorFactory
             }
         }
 
-        var targetElementAttributes = builder.ToImmutable();
+        var targetElementAttributes = builder.DrainToImmutable();
 
         // If there isn't an attribute specifying the tag name derive it from the name
         if (!targetElementAttributes.Any())

@@ -338,7 +338,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             }
         }
 
-        return results.ToImmutable();
+        return results.DrainToImmutable();
     }
 
     private static ImmutableArray<TagHelperDescriptor> CreateElementBindTagHelpers(ImmutableArray<ElementBindData> data)
@@ -532,7 +532,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             results.Add(builder.Build());
         }
 
-        return results.ToImmutable();
+        return results.DrainToImmutable();
     }
 
     private static ImmutableArray<TagHelperDescriptor> CreateComponentBindTagHelpers(ICollection<TagHelperDescriptor> tagHelpers)
@@ -709,7 +709,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             }
         }
 
-        return results.ToImmutable();
+        return results.DrainToImmutable();
     }
 
     [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
