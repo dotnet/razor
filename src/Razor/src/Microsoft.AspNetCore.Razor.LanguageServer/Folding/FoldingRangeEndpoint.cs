@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -92,6 +93,57 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
         return foldingRanges;
     }
 
+    private class RazorFileFoldingRangeSyntaxWalker : SyntaxWalker
+    {
+        private readonly RazorSourceDocument _source;
+        internal List<FoldingRange> Ranges { get; }
+
+        public RazorFileFoldingRangeSyntaxWalker(RazorSourceDocument source)
+        {
+            _source = source;
+            Ranges = new List<FoldingRange>();
+        }
+
+        public override void VisitRazorDirective(RazorDirectiveSyntax node)
+        {
+            // first rule: we can fold consecutive usings
+            // if we have an existing range that ends the line *before* this current using directive or begins the line *after*,
+            // we extend the range one line
+            if (node.Body is RazorDirectiveBodySyntax syntax && string.Equals(syntax.Keyword.GetFirstToken().Content, "using"))
+            {
+                var linePosition = node.GetLinePositionSpan(_source);
+
+                var isPartOfExistingRange = false;
+                foreach (var range in Ranges)
+                {
+                    if (range.EndLine + 1 == linePosition.Start.Line)
+                    {
+                        range.EndLine = linePosition.End.Line;
+                        range.EndCharacter = linePosition.End.Character;
+                        isPartOfExistingRange = true;
+                    }
+                    else if (range.StartLine - 1 == linePosition.End.Line)
+                    {
+                        range.StartLine = linePosition.Start.Line;
+                        range.StartCharacter = linePosition.Start.Character;
+                        isPartOfExistingRange = true;
+                    }
+                }
+
+                if (!isPartOfExistingRange)
+                {
+                    Ranges.Add(new FoldingRange
+                    {
+                        StartLine = linePosition.Start.Line,
+                        StartCharacter = linePosition.Start.Character,
+                        EndLine = linePosition.End.Line,
+                        EndCharacter = linePosition.End.Character
+                    });
+                }
+            }
+        }
+    }
+
     private async Task<IEnumerable<FoldingRange>?> HandleCoreAsync(RazorFoldingRangeRequestParam requestParams, DocumentContext documentContext, CancellationToken cancellationToken)
     {
         var foldingResponse = await _languageServer.SendRequestAsync<RazorFoldingRangeRequestParam, RazorFoldingRangeResponse?>(
@@ -106,6 +158,11 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
         }
 
         List<FoldingRange> mappedRanges = new();
+
+        var razorFileSyntaxWalker = new RazorFileFoldingRangeSyntaxWalker(codeDocument.Source);
+        razorFileSyntaxWalker.Visit(codeDocument.GetSyntaxTree().Root);
+
+        mappedRanges.AddRange(razorFileSyntaxWalker.Ranges);
 
         foreach (var foldingRange in foldingResponse.CSharpRanges)
         {
