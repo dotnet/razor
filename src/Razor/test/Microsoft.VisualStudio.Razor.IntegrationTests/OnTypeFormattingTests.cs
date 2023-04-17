@@ -28,7 +28,7 @@ public class OnTypeFormattingTests : AbstractRazorEditorTest
 ", ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.PlaceCaretAsync("3", charsOffset: 1, ControlledHangMitigatingCancellationToken);
 
-        await Task.Delay(500, ControlledHangMitigatingCancellationToken);
+        await Task.Delay(1000, ControlledHangMitigatingCancellationToken);
 
         // Act
         TestServices.Input.Send(";");
