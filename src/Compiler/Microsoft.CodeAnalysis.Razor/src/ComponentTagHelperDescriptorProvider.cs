@@ -312,21 +312,68 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
                     return false;
                 }
 
-                var members = returnType.GetMembers();
 
-                if (!members.OfType<IPropertySymbol>().Any(static p => p.Name == WellKnownMemberNames.IsCompleted && p.Type.SpecialType == SpecialType.System_Boolean && p.GetMethod != null))
+                var foundIsCompleted = false;
+                var foundOnCompleted = false;
+                var foundGetResult = false;
+
+                foreach (var member in returnType.GetMembers())
                 {
-                    return false;
+                    if (!foundIsCompleted &&
+                        member is IPropertySymbol property &&
+                        IsProperty_IsCompleted(property))
+                    {
+                        foundIsCompleted = true;
+                    }
+
+                    if (!(foundOnCompleted && foundGetResult) && member is IMethodSymbol method)
+                    {
+                        if (IsMethod_OnCompleted(method))
+                        {
+                            foundOnCompleted = true;
+                        }
+                        else if (IsMethod_GetResult(method))
+                        {
+                            foundGetResult = true;
+                        }
+                    }
+
+                    if (foundIsCompleted && foundOnCompleted && foundGetResult)
+                    {
+                        return true;
+                    }
                 }
 
-                var methods = members.OfType<IMethodSymbol>();
+                return false;
 
-                if (!methods.Any(static x => x.Name == WellKnownMemberNames.OnCompleted && x.ReturnsVoid && x.Parameters.Length == 1 && x.Parameters.First().Type.TypeKind == TypeKind.Delegate))
+                static bool IsProperty_IsCompleted(IPropertySymbol property)
                 {
-                    return false;
+                    return property is
+                    {
+                        Name: WellKnownMemberNames.IsCompleted,
+                        Type.SpecialType: SpecialType.System_Boolean,
+                        GetMethod: not null
+                    };
                 }
 
-                return methods.Any(static m => m.Name == WellKnownMemberNames.GetResult && !m.Parameters.Any());
+                static bool IsMethod_OnCompleted(IMethodSymbol method)
+                {
+                    return method is
+                    {
+                        Name: WellKnownMemberNames.OnCompleted,
+                        ReturnsVoid: true,
+                        Parameters: [{ Type.TypeKind: TypeKind.Delegate }]
+                    };
+                }
+
+                static bool IsMethod_GetResult(IMethodSymbol method)
+                {
+                    return method is
+                    {
+                        Name: WellKnownMemberNames.GetResult,
+                        Parameters: []
+                    };
+                }
             }
         }
     }
