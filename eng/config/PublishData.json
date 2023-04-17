@@ -24,9 +24,9 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.6",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[17.6P3]"
+      "insertionTitlePrefix": "[17.6]"
     },
     "release/dev17.7": {
       "nugetKind": [
