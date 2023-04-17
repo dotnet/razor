@@ -256,7 +256,7 @@ internal class RazorFormattingPass : FormattingPassBase
         //
         // The CSharpCodeBlockSyntax covers everything from the end of "attribute" to the end of the line
         if (IsSingleLineDirective(node, out var children) ||
-            IsUsingDirective(node, out children))
+            SyntaxNodeUtils.IsUsingDirective(node, out children))
         {
             // Shrink any block of C# that only has whitespace down to a single space.
             // In the @attribute case above this would only be the whitespace between the directive and code
@@ -278,26 +278,6 @@ internal class RazorFormattingPass : FormattingPassBase
             {
                 children = content.Children;
                 return true;
-            }
-
-            children = null;
-            return false;
-        }
-
-        static bool IsUsingDirective(SyntaxNode node, [NotNullWhen(true)] out SyntaxList<SyntaxNode>? children)
-        {
-            // Using directives are weird, because the directive keyword ("using") is part of the C# statement it represents
-            if (node is RazorDirectiveSyntax razorDirective &&
-                razorDirective.DirectiveDescriptor is null &&
-                razorDirective.Body is RazorDirectiveBodySyntax body &&
-                body.Keyword is CSharpStatementLiteralSyntax literal &&
-                literal.LiteralTokens.Count > 0)
-            {
-                if (literal.LiteralTokens[0] is { Kind: SyntaxKind.Keyword, Content: "using" })
-                {
-                    children = literal.LiteralTokens;
-                    return true;
-                }
             }
 
             children = null;
