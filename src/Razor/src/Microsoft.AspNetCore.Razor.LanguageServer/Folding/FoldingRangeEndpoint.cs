@@ -93,8 +93,6 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
         return foldingRanges;
     }
 
-
-
     private async Task<IEnumerable<FoldingRange>?> HandleCoreAsync(RazorFoldingRangeRequestParam requestParams, DocumentContext documentContext, CancellationToken cancellationToken)
     {
         var foldingResponse = await _languageServer.SendRequestAsync<RazorFoldingRangeRequestParam, RazorFoldingRangeResponse?>(
