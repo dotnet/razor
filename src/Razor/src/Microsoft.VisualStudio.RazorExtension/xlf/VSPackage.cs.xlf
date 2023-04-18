@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Setting_AutoClosingTagsDescription">
         <source>If true, closing tags will be automatically inserted</source>
-        <target state="new">If true, closing tags will be automatically inserted</target>
+        <target state="translated">Při hodnotě true se budou automaticky vkládat uzavírací značky.</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_AutoClosingTagsDisplayName">
@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Typing">
         <source>Typing</source>
-        <target state="new">Typing</target>
+        <target state="translated">Psaní</target>
         <note />
       </trans-unit>
     </body>
