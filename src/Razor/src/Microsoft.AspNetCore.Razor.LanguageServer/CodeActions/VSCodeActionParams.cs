@@ -4,7 +4,7 @@
 using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 /// <summary>
 /// We can't use the CodeActionParams defined in MS.VS.LS.Protocol, so need our own version, because the platform only
