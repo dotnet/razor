@@ -27,7 +27,7 @@ public class FoldingEndpointTest : SingleServerDelegatingEndpointTestBase
 
     [Fact]
     public Task FoldRazorUsings()
-        => VerifyRazorFolds("""
+        => VerifyRazorFoldsAsync("""
                 @using System
                 @using System.Text
 
@@ -38,7 +38,7 @@ public class FoldingEndpointTest : SingleServerDelegatingEndpointTestBase
                 @using System.CodeDom
                 """, new List<(int StartLine, int EndLine)> { (0, 1), (5, 7) });
 
-    private async Task VerifyRazorFolds(string input, List<(int StartLine, int EndLine)> expected)
+    private async Task VerifyRazorFoldsAsync(string input, List<(int StartLine, int EndLine)> expected)
     {
         var codeDocument = CreateCodeDocument(input);
         var razorFilePath = "C:/path/to/file.razor";
