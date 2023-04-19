@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -84,7 +85,9 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         }
     }
 
-    private static TagHelperDescriptor CreateShortNameMatchingDescriptor(INamedTypeSymbol type, (IPropertySymbol property, PropertyKind kind)[] properties)
+    private static TagHelperDescriptor CreateShortNameMatchingDescriptor(
+        INamedTypeSymbol type,
+        ImmutableArray<(IPropertySymbol property, PropertyKind kind)> properties)
     {
         using var _ = GetPooledTagHelperDescriptorBuilder(type, properties, out var builder);
 
@@ -96,7 +99,9 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         return builder.Build();
     }
 
-    private static TagHelperDescriptor CreateFullyQualifiedNameMatchingDescriptor(INamedTypeSymbol type, (IPropertySymbol property, PropertyKind kind)[] properties)
+    private static TagHelperDescriptor CreateFullyQualifiedNameMatchingDescriptor(
+        INamedTypeSymbol type,
+        ImmutableArray<(IPropertySymbol property, PropertyKind kind)> properties)
     {
         using var _ = GetPooledTagHelperDescriptorBuilder(type, properties, out var builder);
 
@@ -114,7 +119,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
 
     private static TagHelperDescriptorBuilder.PooledBuilder GetPooledTagHelperDescriptorBuilder(
         INamedTypeSymbol type,
-        (IPropertySymbol property, PropertyKind kind)[] properties,
+        ImmutableArray<(IPropertySymbol property, PropertyKind kind)> properties,
         out TagHelperDescriptorBuilder builder)
     {
         var typeName = type.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat);
@@ -513,10 +518,10 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
     // - have the [Parameter] attribute
     // - have a setter, even if private
     // - are not indexers
-    private static (IPropertySymbol property, PropertyKind kind)[] GetProperties(INamedTypeSymbol type)
+    private static ImmutableArray<(IPropertySymbol property, PropertyKind kind)> GetProperties(INamedTypeSymbol type)
     {
         using var names = new PooledHashSet<string>(StringHashSetPool.Ordinal);
-        using var resultList = new PooledList<(IPropertySymbol, PropertyKind)>();
+        using var results = new PooledArrayBuilder<(IPropertySymbol, PropertyKind)>();
 
         do
         {
@@ -597,14 +602,14 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
                 }
 
                 names.Add(property.Name);
-                resultList.Add((property, kind));
+                results.Add((property, kind));
             }
 
             type = type.BaseType;
         }
         while (type != null);
 
-        return resultList.ToArray();
+        return results.DrainToImmutable();
 
         static bool IsEnum(IPropertySymbol property)
         {
