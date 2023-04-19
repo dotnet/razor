@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
     <Configurations>Debug;Release</Configurations>
     <IsTestProject>true</IsTestProject>
+    <IsUnitTestProject>true</IsUnitTestProject>
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 
