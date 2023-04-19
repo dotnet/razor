@@ -17,11 +17,11 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 /// </remarks>
 internal static partial class StringHashSetPool
 {
-    public static readonly ObjectPool<HashSet<string>> Ordinal = ObjectPool.Create(new Policy(StringComparer.Ordinal));
-    public static readonly ObjectPool<HashSet<string>> OrdinalIgnoreCase = ObjectPool.Create(new Policy(StringComparer.OrdinalIgnoreCase));
+    public static readonly ObjectPool<HashSet<string>> Ordinal = HashSetPool<string>.Create(StringComparer.Ordinal);
+    public static readonly ObjectPool<HashSet<string>> OrdinalIgnoreCase = HashSetPool<string>.Create(StringComparer.OrdinalIgnoreCase);
 
     public static ObjectPool<HashSet<string>> Create(IEqualityComparer<string> comparer)
-        => DefaultPool.Create(new Policy(comparer));
+        => HashSetPool<string>.Create(comparer);
 
     public static PooledObject<HashSet<string>> GetPooledObject()
         => Ordinal.GetPooledObject();
