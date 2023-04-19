@@ -87,7 +87,7 @@ public sealed class RazorPackage : AsyncPackage
         var window = (SyntaxVisualizerToolWindow)FindToolWindow(typeof(SyntaxVisualizerToolWindow), id: 0, create: true);
         if (window?.Frame is not IVsWindowFrame windowFrame)
         {
-            throw new NotSupportedException("Can not create window");
+            throw new NotSupportedException("Can not create window.");
         }
 
         // Initialize command handlers in the window
