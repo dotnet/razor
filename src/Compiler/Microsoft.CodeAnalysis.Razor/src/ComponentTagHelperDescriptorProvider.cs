@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
@@ -399,48 +400,82 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             // things like constructor constraints and not null constraints in the
             // type parameter so we create a single string representation of all the constraints
             // here.
-            using var list = new PooledList<string>();
+            using var constraints = new PooledList<string>();
 
             // CS0449: The 'class', 'struct', 'unmanaged', 'notnull', and 'default' constraints
             // cannot be combined or duplicated, and must be specified first in the constraints list.
             if (typeParameter.HasReferenceTypeConstraint)
             {
-                list.Add("class");
+                constraints.Add("class");
             }
 
             if (typeParameter.HasNotNullConstraint)
             {
-                list.Add("notnull");
+                constraints.Add("notnull");
             }
 
             if (typeParameter.HasUnmanagedTypeConstraint)
             {
-                list.Add("unmanaged");
+                constraints.Add("unmanaged");
             }
             else if (typeParameter.HasValueTypeConstraint)
             {
                 // `HasValueTypeConstraint` is also true when `unmanaged` constraint is present.
-                list.Add("struct");
+                constraints.Add("struct");
             }
 
             foreach (var constraintType in typeParameter.ConstraintTypes)
             {
-                list.Add(constraintType.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
+                constraints.Add(constraintType.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
             }
 
             // CS0401: The new() constraint must be the last constraint specified.
             if (typeParameter.HasConstructorConstraint)
             {
-                list.Add("new()");
+                constraints.Add("new()");
             }
 
-            if (list.Count > 0)
+            if (TryGetWhereClauseText(typeParameter, constraints, out var whereClauseText))
             {
-                pb.Metadata[ComponentMetadata.Component.TypeParameterConstraintsKey] = $"where {typeParameter.Name} : {string.Join(", ", list.ToArray())}";
+                pb.Metadata[ComponentMetadata.Component.TypeParameterConstraintsKey] = whereClauseText;
             }
 
             pb.Documentation = string.Format(CultureInfo.InvariantCulture, ComponentResources.ComponentTypeParameter_Documentation, typeParameter.Name, builder.Name);
         });
+
+        static bool TryGetWhereClauseText(ITypeParameterSymbol typeParameter, PooledList<string> constraints, [NotNullWhen(true)] out string constraintsText)
+        {
+            if (constraints.Count == 0)
+            {
+                constraintsText = null;
+                return false;
+            }
+
+            using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
+            builder.Append("where ");
+            builder.Append(typeParameter.Name);
+            builder.Append(" : ");
+
+            var addComma = false;
+
+            foreach (var item in constraints)
+            {
+                if (addComma)
+                {
+                    builder.Append(", ");
+                }
+                else
+                {
+                    addComma = true;
+                }
+
+                builder.Append(item);
+            }
+
+            constraintsText = builder.ToString();
+            return true;
+        }
     }
 
     private static TagHelperDescriptor CreateChildContentDescriptor(TagHelperDescriptor component, BoundAttributeDescriptor attribute)
