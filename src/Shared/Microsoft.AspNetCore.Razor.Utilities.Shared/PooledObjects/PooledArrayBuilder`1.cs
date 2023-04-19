@@ -33,7 +33,7 @@ internal ref struct PooledArrayBuilder<T>
         ClearAndFree();
     }
 
-    public int Count
+    public readonly int Count
         => _builder?.Count ?? 0;
 
     public void Add(T item)
