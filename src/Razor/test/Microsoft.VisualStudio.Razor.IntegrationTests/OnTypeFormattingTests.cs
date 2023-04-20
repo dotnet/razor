@@ -27,17 +27,8 @@ public class OnTypeFormattingTests : AbstractRazorEditorTest
 </script>
 ", ControlledHangMitigatingCancellationToken);
 
-        await Task.Delay(500);
+        await Task.Delay(1000);
 
-        // We need to wait for the TypeScript LSP server to be ready, but it doesn't support semantic classifications,
-        // which is our normal method, so we use hover instead.
-        await TestServices.Editor.PlaceCaretAsync("F()", charsOffset: -1, ControlledHangMitigatingCancellationToken);
-        var position = await TestServices.Editor.GetCaretPositionAsync(ControlledHangMitigatingCancellationToken);
-        await TestServices.Editor.GetHoverStringAsync(position, ControlledHangMitigatingCancellationToken);
-
-        await Task.Delay(500);
-
-        // Now back to your regularly scheduled on type formatting test
         await TestServices.Editor.PlaceCaretAsync("3", charsOffset: 1, ControlledHangMitigatingCancellationToken);
 
         // Act
