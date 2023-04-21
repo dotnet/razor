@@ -3,17 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -36,6 +29,12 @@ public class FoldingEndpointTest : SingleServerDelegatingEndpointTestBase
                 @using System.Buffers
                 @using System.Drawing
                 @using System.CodeDom
+
+                @code {
+                    var helloWorld = "";
+                }
+
+                <p>hello!</p>
                 """, new List<(int StartLine, int EndLine)> { (0, 1), (5, 7) });
 
     private async Task VerifyRazorFoldsAsync(string input, List<(int StartLine, int EndLine)> expected)
@@ -46,7 +45,7 @@ public class FoldingEndpointTest : SingleServerDelegatingEndpointTestBase
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
         var endpoint = new FoldingRangeEndpoint(
-            DocumentMappingService, LanguageServer, new List<IRazorFoldingRangeProvider> { new RazorCodeBlockFoldingProvider() }, LoggerFactory);
+            DocumentMappingService, LanguageServer, new List<IRazorFoldingRangeProvider> { new RazorUsingsFoldingProvider(), new RazorCodeBlockFoldingProvider() }, LoggerFactory);
 
         var request = new FoldingRangeParams()
         {

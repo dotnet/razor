@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 
-internal sealed partial class RazorCodeBlockFoldingProvider : IRazorFoldingRangeProvider
+internal sealed partial class RazorUsingsFoldingProvider : IRazorFoldingRangeProvider
 {
     public async Task<ImmutableArray<FoldingRange>> GetFoldingRangesAsync(DocumentContext documentContext, CancellationToken cancellationToken)
     {
@@ -38,6 +38,12 @@ internal sealed partial class RazorCodeBlockFoldingProvider : IRazorFoldingRange
 
             builder.Add(foldingRange);
         }
+
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+
+        var razorFileSyntaxWalker = new RazorFileUsingsFoldingSyntaxWalker(codeDocument.Source);
+        razorFileSyntaxWalker.Visit(codeDocument.GetSyntaxTree().Root);
+        builder.AddRange(razorFileSyntaxWalker.Ranges);
 
         return builder.ToImmutableArray();
     }
