@@ -200,9 +200,9 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         {
             // TODO: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1806769
             delegatedResponse = await _languageServer.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
-            RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName,
-            delegatedParams,
-            CancellationToken.None).ConfigureAwait(false);
+                RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName,
+                delegatedParams,
+                CancellationToken.None).ConfigureAwait(false);
         }
         catch (Exception e)
         {
