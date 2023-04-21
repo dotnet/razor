@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
@@ -11,15 +10,13 @@ public class RazorWorkspaceListener : IDisposable
     private static readonly TimeSpan s_debounceTime = TimeSpan.FromMilliseconds(100);
 
     private string? _projectRazorJsonFileName;
-    private readonly Dictionary<string, TaskDelayScheduler> _workQueues;
+    private Workspace? _workspace;
+    private readonly Dictionary<ProjectId, TaskDelayScheduler> _workQueues;
     private readonly object _gate = new();
 
     public RazorWorkspaceListener()
     {
-        var comparer = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-            ? StringComparer.Ordinal
-            : StringComparer.OrdinalIgnoreCase;
-        _workQueues = new Dictionary<string, TaskDelayScheduler>(comparer);
+        _workQueues = new Dictionary<ProjectId, TaskDelayScheduler>();
     }
 
     public void EnsureInitialized(Workspace workspace, string projectRazorJsonFileName)
@@ -31,28 +28,47 @@ public class RazorWorkspaceListener : IDisposable
         }
 
         _projectRazorJsonFileName = projectRazorJsonFileName;
-        workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
+        _workspace = workspace;
+        _workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
     }
 
     private void Workspace_WorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
     {
         switch (e.Kind)
         {
-            case WorkspaceChangeKind.SolutionAdded:
             case WorkspaceChangeKind.SolutionChanged:
             case WorkspaceChangeKind.SolutionReloaded:
+                foreach (var project in e.OldSolution.Projects)
+                {
+                    RemoveProject(project);
+                }
+
                 foreach (var project in e.NewSolution.Projects)
                 {
                     EnqueueUpdate(project);
                 }
 
                 break;
+
+            case WorkspaceChangeKind.SolutionAdded:
+                foreach (var project in e.NewSolution.Projects)
+                {
+                    EnqueueUpdate(project);
+                }
+
+                break;
+
             case WorkspaceChangeKind.ProjectRemoved:
                 RemoveProject(e.OldSolution.GetProject(e.ProjectId));
                 break;
+
+            case WorkspaceChangeKind.ProjectReloaded:
+                RemoveProject(e.OldSolution.GetProject(e.ProjectId));
+                EnqueueUpdate(e.NewSolution.GetProject(e.ProjectId));
+                break;
+
             case WorkspaceChangeKind.ProjectAdded:
             case WorkspaceChangeKind.ProjectChanged:
-            case WorkspaceChangeKind.ProjectReloaded:
             case WorkspaceChangeKind.DocumentAdded:
             case WorkspaceChangeKind.DocumentRemoved:
             case WorkspaceChangeKind.DocumentReloaded:
@@ -66,7 +82,12 @@ public class RazorWorkspaceListener : IDisposable
             case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
             case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
             case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
-                EnqueueUpdate(e.NewSolution.GetProject(e.ProjectId));
+                var projectId = e.ProjectId ?? e.DocumentId?.ProjectId;
+                if (projectId is not null)
+                {
+                    EnqueueUpdate(e.NewSolution.GetProject(projectId));
+                }
+
                 break;
             case WorkspaceChangeKind.SolutionCleared:
             case WorkspaceChangeKind.SolutionRemoved:
@@ -83,7 +104,7 @@ public class RazorWorkspaceListener : IDisposable
 
     private void RemoveProject(Project? project)
     {
-        if (project?.FilePath is null)
+        if (project is null)
         {
             return;
         }
@@ -91,9 +112,9 @@ public class RazorWorkspaceListener : IDisposable
         TaskDelayScheduler? scheduler;
         lock (_gate)
         {
-            if (_workQueues.TryGetValue(project.FilePath, out scheduler))
+            if (_workQueues.TryGetValue(project.Id, out scheduler))
             {
-                _workQueues.Remove(project.FilePath);
+                _workQueues.Remove(project.Id);
             }
         }
 
@@ -105,7 +126,6 @@ public class RazorWorkspaceListener : IDisposable
         if (_projectRazorJsonFileName is null ||
             project is not
             {
-                FilePath: not null,
                 Language: LanguageNames.CSharp
             })
         {
@@ -115,13 +135,32 @@ public class RazorWorkspaceListener : IDisposable
         TaskDelayScheduler? scheduler;
         lock (_gate)
         {
-            if (!_workQueues.TryGetValue(project.FilePath, out scheduler))
+            if (!_workQueues.TryGetValue(project.Id, out scheduler))
             {
                 scheduler = new TaskDelayScheduler(s_debounceTime, CancellationToken.None);
+                _workQueues.Add(project.Id, scheduler);
             }
         }
 
-        scheduler.ScheduleAsyncTask(ct => RazorProjectJsonSerializer.SerializeAsync(project, _projectRazorJsonFileName, ct), CancellationToken.None);
+        var projectId = project.Id;
+        scheduler.ScheduleAsyncTask(ct => SerializeProjectAsync(projectId, ct), CancellationToken.None);
+    }
+
+    // Protected for testing
+    protected virtual Task SerializeProjectAsync(ProjectId projectId, CancellationToken ct)
+    {
+        if (_projectRazorJsonFileName is null || _workspace is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        var project = _workspace.CurrentSolution.GetProject(projectId);
+        if (project is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        return RazorProjectJsonSerializer.SerializeAsync(project, _projectRazorJsonFileName, ct);
     }
 
     public void Dispose()

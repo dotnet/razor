@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal abstract class RazorCodeActionResolver : BaseCodeActionResolver
+internal interface IRazorCodeActionResolver : ICodeActionResolver
 {
-    public abstract Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken);
+    Task<WorkspaceEdit?> ResolveAsync(JObject data, CancellationToken cancellationToken);
 }
