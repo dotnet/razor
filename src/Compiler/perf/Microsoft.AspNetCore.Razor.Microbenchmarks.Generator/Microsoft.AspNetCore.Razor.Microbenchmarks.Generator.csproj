@@ -37,11 +37,16 @@
     <Reference Include="$(PkgMicrosoft_NET_Sdk_Razor_SourceGenerators_Transport)\source-generators\*.dll" />
   </ItemGroup>
 
-  <!-- Work around https://github.com/dotnet/roslyn/issues/61454.  -->
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Copy SourceFiles="$([System.IO.Directory]::GetParent($(BundledRuntimeIdentifierGraphFile)))\NuGet.Frameworks.dll"
-          DestinationFolder="$(OutputPath)"
-          ContinueOnError="false" />
-  </Target>
+  <!-- Work around https://github.com/dotnet/roslyn/issues/61454. -->
+  <ItemGroup>
+    <None Include="$([System.IO.Directory]::GetParent($(BundledRuntimeIdentifierGraphFile)))\NuGet.Frameworks.dll">
+      <Link>NuGet.Frameworks.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$([System.IO.Directory]::GetParent($(BundledRuntimeIdentifierGraphFile)))\System.CodeDom.dll">
+      <Link>System.CodeDom.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>
