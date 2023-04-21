@@ -195,10 +195,19 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
             TextDocument = new TextDocumentIdentifier { Uri = uriBuilder.Uri },
         };
 
-        var delegatedResponse = await _languageServer.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
+        SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>? delegatedResponse = null;
+        try
+        {
+            // TODO: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1806769
+            delegatedResponse = await _languageServer.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
             RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName,
             delegatedParams,
             CancellationToken.None).ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to get C# diagnostics");
+        }
 
         var razorDiagnostics = result.GetCSharpDocument().Diagnostics;
         IReadOnlyList<Diagnostic>? csharpDiagnostics = null;
