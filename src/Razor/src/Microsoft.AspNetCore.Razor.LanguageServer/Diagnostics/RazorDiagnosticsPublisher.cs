@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Threading;
@@ -33,10 +34,12 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     private readonly Dictionary<string, IDocumentSnapshot> _work;
     private readonly ILogger<RazorDiagnosticsPublisher> _logger;
     private ProjectSnapshotManager? _projectManager;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
     public RazorDiagnosticsPublisher(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ClientNotifierServiceBase languageServer,
+        LanguageServerFeatureOptions languageServerFeatureOptions,
         ILoggerFactory loggerFactory)
     {
         if (projectSnapshotManagerDispatcher is null)
@@ -49,6 +52,11 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
             throw new ArgumentNullException(nameof(languageServer));
         }
 
+        if (languageServerFeatureOptions is null)
+        {
+            throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+        }
+
         if (loggerFactory is null)
         {
             throw new ArgumentNullException(nameof(loggerFactory));
@@ -56,6 +64,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
 
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _languageServer = languageServer;
+        _languageServerFeatureOptions = languageServerFeatureOptions;
         PublishedRazorDiagnostics = new Dictionary<string, IReadOnlyList<RazorDiagnostic>>(FilePathComparer.Instance);
         PublishedCSharpDiagnostics = new Dictionary<string, IReadOnlyList<Diagnostic>>(FilePathComparer.Instance);
         _work = new Dictionary<string, IDocumentSnapshot>(FilePathComparer.Instance);
@@ -183,30 +192,26 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
     internal async Task PublishDiagnosticsAsync(IDocumentSnapshot document)
     {
         var result = await document.GetGeneratedOutputAsync();
-        var uriBuilder = new UriBuilder()
-        {
-            Scheme = Uri.UriSchemeFile,
-            Path = document.FilePath,
-            Host = string.Empty,
-        };
-        
-        var delegatedParams = new DocumentDiagnosticParams
-        {
-            TextDocument = new TextDocumentIdentifier { Uri = uriBuilder.Uri },
-        };
 
         SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>? delegatedResponse = null;
-        try
+        if (_languageServerFeatureOptions.SupportsDelegatedDiagnostics)
         {
-            // TODO: https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1806769
+            var uriBuilder = new UriBuilder()
+            {
+                Scheme = Uri.UriSchemeFile,
+                Path = document.FilePath,
+                Host = string.Empty,
+            };
+
+            var delegatedParams = new DocumentDiagnosticParams
+            {
+                TextDocument = new TextDocumentIdentifier { Uri = uriBuilder.Uri },
+            };
+
             delegatedResponse = await _languageServer.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
                 RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName,
                 delegatedParams,
                 CancellationToken.None).ConfigureAwait(false);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Failed to get diagnostics");
         }
 
         var razorDiagnostics = result.GetCSharpDocument().Diagnostics;
