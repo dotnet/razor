@@ -206,7 +206,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to get C# diagnostics");
+            _logger.LogError(e, "Failed to get diagnostics");
         }
 
         var razorDiagnostics = result.GetCSharpDocument().Diagnostics;
