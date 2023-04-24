@@ -8,10 +8,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal abstract class HtmlCodeActionProvider : ICodeActionProvider
+internal interface IRazorCodeActionProvider
 {
-    public abstract Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
+    Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
         RazorCodeActionContext context,
-        IEnumerable<RazorVSInternalCodeAction> codeActions,
         CancellationToken cancellationToken);
 }
