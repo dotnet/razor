@@ -503,9 +503,21 @@ internal class DocumentState
             //           actually, is that true? Surely we'd create the snapshot with the data already generated? No, maybe not. Hmm. Argh, not sure. 
             // lets see what it looks like we if were to ask the project for the data here.
 
+
+
+            // So we have the source already, no need to serialize that. Then we have the codeDocument which is a layer over the top of the source doc
+            // The code doc has the imports, the source doc, the tag helpers, the file kind, the CSharp doc, the html doc, the options, the diagnostics and the source mappings
+
+            // Tag helpers are interesting, because we have a copy of them here already. So might not need to serialize those
+            // The chsarp and html docs are easy
+            // The options are simple value pairs, so should be easy
+            // Diagnostics are... complex? Ok the diagnostic descriptors are slightly hard, because they have a callback to get the resource, but we should be able to just 'flatten' them on the IDE side as the languages will be the same. 
+            // Source mappings are *shrug*?
+            // Huh, plus there is everything in the items collection which is... a lot. (SyntaxTrees etc)
+
             var codeDoc2 = await project.GetGeneratedDocumentsAsync(document);
 
-            RazorCodeDocument codeDocument;
+            RazorCodeDocument? codeDocument = null;
             if (codeDoc2.CSharp != "")
             {
                 codeDocument = RazorCodeDocument.Create(documentSource, importSources);
@@ -522,7 +534,7 @@ internal class DocumentState
             }
             else
             {
-                codeDocument = projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources, project.TagHelpers);
+                //codeDocument = projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources, project.TagHelpers);
                 //Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Generated document locally");
             }
 

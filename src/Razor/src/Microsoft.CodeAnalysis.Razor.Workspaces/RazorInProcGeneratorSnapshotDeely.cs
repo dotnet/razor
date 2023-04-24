@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -18,14 +19,59 @@ internal class DeelyFactory : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {
-        return new RazorInProcGeneratorSnapshotDeely();
+        //ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor = workspaceServices.GetRequiredService<ProjectSnapshotManagerAccessor>(workspaceServices);
+        return new RazorInProcGeneratorSnapshotDeely(workspaceServices.Workspace);
     }
 }
 
 internal class RazorInProcGeneratorSnapshotDeely : IGeneratorSnapshotProvider
 {
-    public Task<(string CSharp, string Html)> GetGenerateDocumentsAsync(IDocumentSnapshot documentSnapshot)
+
+    private readonly Workspace _workspace;
+
+    public RazorInProcGeneratorSnapshotDeely(Workspace workspace)
     {
-        return Task.FromResult(("abc", "def"));
+        _workspace = workspace;
+    }
+
+    public async Task<(string CSharp, string Html)> GetGenerateDocumentsAsync(IDocumentSnapshot documentSnapshot)
+    {
+        string? csharp = null;
+        string? html = null;
+
+        var project = _workspace.CurrentSolution.Projects.FirstOrDefault(p => p.FilePath == documentSnapshot.Project.FilePath);
+        if (project is not null)
+        {
+            // PROTOTYPE: factor this out so we can share it
+            var projectRoot = documentSnapshot.Project.FilePath.Substring(0, documentSnapshot.Project.FilePath.LastIndexOf("\\"));
+            var documentName = GetIdentifierFromPath(documentSnapshot.FilePath?.Substring(projectRoot.Length + 1) ?? "") + ".g.cs";
+
+            csharp = await RazorHostOutputHandler.GetHostOutputAsync(project, "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", documentName + ".rsg-cs", System.Threading.CancellationToken.None);
+            html = await RazorHostOutputHandler.GetHostOutputAsync(project, "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", documentName + ".rsg-html", System.Threading.CancellationToken.None);
+        }
+
+        return (csharp ?? "", html ?? "");
+    }
+
+    // PROTOTYPE: copied from the generator
+    internal static string GetIdentifierFromPath(string filePath)
+    {
+        var builder = new StringBuilder(filePath.Length);
+
+        for (var i = 0; i < filePath.Length; i++)
+        {
+            switch (filePath[i])
+            {
+                case ':' or '\\' or '/':
+                case char ch when !char.IsLetterOrDigit(ch):
+                    builder.Append('_');
+                    break;
+                default:
+                    builder.Append(filePath[i]);
+                    break;
+            }
+        }
+
+        return builder.ToString();
     }
 }

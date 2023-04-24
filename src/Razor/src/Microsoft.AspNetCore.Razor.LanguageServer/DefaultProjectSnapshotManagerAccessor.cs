@@ -20,7 +20,6 @@ using System.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-
 internal class LspHostOutput : IGeneratorSnapshotProvider
 {
     ClientNotifierServiceBase _notifier;
@@ -63,7 +62,7 @@ internal class LspHostOutput : IGeneratorSnapshotProvider
     }
 
     //copied from the generator
-    private static string GetIdentifierFromPath(string filePath)
+    internal static string GetIdentifierFromPath(string filePath)
     {
         var builder = new StringBuilder(filePath.Length);
 
