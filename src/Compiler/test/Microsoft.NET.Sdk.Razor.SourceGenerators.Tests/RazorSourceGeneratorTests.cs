@@ -242,10 +242,10 @@ namespace MyApp.Pages
                 e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
                 e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
                 e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("RazorCodeGenerateStart", "Pages/Index.razor"),
-                e => e.AssertSingleItem("RazorCodeGenerateStop", "Pages/Index.razor"),
-                e => e.AssertSingleItem("RazorCodeGenerateStart", "Pages/Counter.razor"),
-                e => e.AssertSingleItem("RazorCodeGenerateStop", "Pages/Counter.razor"),
+                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
                 e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
                 e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
             );
@@ -442,8 +442,8 @@ namespace MyApp.Pages
                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Counter.razor"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("RazorCodeGenerateStart", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("RazorCodeGenerateStop", "Pages/Counter.razor"),
+               e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
+               e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
             );
         }
@@ -812,8 +812,8 @@ __builder.AddContent(3, count);
                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Counter.razor"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("RazorCodeGenerateStart", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("RazorCodeGenerateStop", "Pages/Counter.razor"),
+               e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
+               e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
             );
         }
@@ -976,10 +976,10 @@ __builder.AddContent(3, count);
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("RazorCodeGenerateStart", "Pages/Index.razor"),
-               e => e.AssertSingleItem("RazorCodeGenerateStop", "Pages/Index.razor"),
-               e => e.AssertSingleItem("RazorCodeGenerateStart", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("RazorCodeGenerateStop", "Pages/Counter.razor"),
+               e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
+               e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
+               e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
+               e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
             );
         }
@@ -1124,10 +1124,10 @@ using SurveyPromptRootNamspace;
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("RazorCodeGenerateStart", "Pages/Index.razor"),
-               e => e.AssertSingleItem("RazorCodeGenerateStop", "Pages/Index.razor"),
-               e => e.AssertSingleItem("RazorCodeGenerateStart", "Pages/Counter.razor"),
-               e => e.AssertSingleItem("RazorCodeGenerateStop", "Pages/Counter.razor"),
+               e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
+               e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
+               e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
+               e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs")
             );
 
@@ -1297,10 +1297,10 @@ namespace AspNetCoreGeneratedDocument
                 e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.cshtml"),
                 e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Views/Shared/_Layout.cshtml"),
                 e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
-                e => e.AssertSingleItem("RazorCodeGenerateStart", "Pages/Index.cshtml"),
-                e => e.AssertSingleItem("RazorCodeGenerateStop", "Pages/Index.cshtml"),
-                e => e.AssertSingleItem("RazorCodeGenerateStart", "Views/Shared/_Layout.cshtml"),
-                e => e.AssertSingleItem("RazorCodeGenerateStop", "Views/Shared/_Layout.cshtml"),
+                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.cshtml", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.cshtml", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStart", "Views/Shared/_Layout.cshtml", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStop", "Views/Shared/_Layout.cshtml", "Runtime"),
                 e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_cshtml.g.cs"),
                 e => e.AssertSingleItem("AddSyntaxTrees", "Views_Shared__Layout_cshtml.g.cs")
             );
@@ -1501,8 +1501,8 @@ namespace AspNetCoreGeneratedDocument
                e => e.AssertSingleItem("RewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Views/Shared/_Layout.cshtml"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
-               e => e.AssertSingleItem("RazorCodeGenerateStart", "Views/Shared/_Layout.cshtml"),
-               e => e.AssertSingleItem("RazorCodeGenerateStop", "Views/Shared/_Layout.cshtml"),
+               e => e.AssertPair("RazorCodeGenerateStart", "Views/Shared/_Layout.cshtml", "Runtime"),
+               e => e.AssertPair("RazorCodeGenerateStop", "Views/Shared/_Layout.cshtml", "Runtime"),
                e => e.AssertSingleItem("AddSyntaxTrees", "Views_Shared__Layout_cshtml.g.cs")
             );
         }
@@ -1911,8 +1911,8 @@ namespace AspNetCoreGeneratedDocument
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.cshtml"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Views/Shared/_Layout.cshtml"),
                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
-               e => e.AssertSingleItem("RazorCodeGenerateStart", "Pages/Index.cshtml"),
-               e => e.AssertSingleItem("RazorCodeGenerateStop", "Pages/Index.cshtml"),
+               e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.cshtml", "Runtime"),
+               e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.cshtml", "Runtime"),
                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_cshtml.g.cs")
            );
         }

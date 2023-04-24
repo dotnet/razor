@@ -27,11 +27,11 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 			var compilation = context.CompilationProvider;
 
 			// determine if we should suppress this run and filter out all the additional files if so
-			var isGeneratorSuppressed = context.AnalyzerConfigOptionsProvider.Select(GetSuppressionStatus);
+			var isGeneratorSuppressed = analyzerConfigOptions.Select(GetSuppressionStatus);
 			var additionalTexts = context.AdditionalTextsProvider
-				 .Combine(isGeneratorSuppressed)
-				 .Where(pair => !pair.Right)
-				 .Select((pair, _) => pair.Left);
+				.Combine(isGeneratorSuppressed)
+				.Where(pair => !pair.Right)
+				.Select((pair, _) => pair.Left);
 
 			var razorSourceGeneratorOptions = analyzerConfigOptions
 				.Combine(parseOptions)
@@ -72,7 +72,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 				.WithLambdaComparer((old, @new) => (old.Right.Equals(@new.Right) && old.Left.Left.Equals(@new.Left.Left) && old.Left.Right.SequenceEqual(@new.Left.Right)), (a) => a.GetHashCode())
 				.Select(static (pair, _) =>
 				{
-
 					var ((sourceItem, importFiles), razorSourceGeneratorOptions) = pair;
 					RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStart(sourceItem.RelativePhysicalPath);
 
@@ -100,7 +99,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 				.Combine(razorSourceGeneratorOptions)
 				.SelectMany(static (pair, ct) =>
 				{
-
 					var ((generatedDeclarationSyntaxTree, compilation), razorSourceGeneratorOptions) = pair;
 					RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromComponentStart(generatedDeclarationSyntaxTree.FilePath);
 
@@ -222,11 +220,13 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 					return allTagHelpers.ToImmutable();
 				});
 
-			var generatedOutput = sourceItems
+			var withOptions = sourceItems
 				.Combine(importFiles.Collect())
 				.WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right), (a) => a.GetHashCode())
-				.Combine(razorSourceGeneratorOptions)
-				.Select(static (pair, _) =>
+				.Combine(razorSourceGeneratorOptions);
+
+			IncrementalValuesProvider<(string, SourceGeneratorRazorCodeDocument)> processed(bool designTime) => withOptions
+				.Select((pair, _) =>
 				{
 					var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
 
@@ -234,7 +234,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
 					var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
 
-					var document = projectEngine.ProcessInitialParse(sourceItem);
+					var document = projectEngine.ProcessInitialParse(sourceItem, designTime: designTime);
 
 					RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStop(sourceItem.RelativePhysicalPath);
 					return (projectEngine, sourceItem.RelativePhysicalPath, document);
@@ -258,7 +258,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 				.Combine(allTagHelpers)
 				.Select((pair, _) =>
 				{
-
 					var ((projectEngine, filePath, document), allTagHelpers) = pair;
 					RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStart(filePath);
 
@@ -271,12 +270,20 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 				.Select((pair, _) =>
 				{
 					var (projectEngine, filePath, document) = pair;
-					RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(filePath, "Runtime");
-					document = projectEngine.ProcessRemaining(document);
-					var csharpDocument = document.CodeDocument.GetCSharpDocument();
+					var kind = designTime ? "DesignTime" : "Runtime";
+					RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(filePath, kind);
 
-					RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(filePath, "Runtime");
-					return (filePath, csharpDocument);
+					document = projectEngine.ProcessRemaining(document);
+
+					RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(filePath, kind);
+					return (filePath, document);
+				});
+
+			var csharpDocuments = processed(designTime: false)
+				.Select(static (pair, _) =>
+				{
+					var (filePath, document) = pair;
+					return (filePath, csharpDocument: document.CodeDocument.GetCSharpDocument());
 				})
 				.WithLambdaComparer(static (a, b) =>
 				{
@@ -289,7 +296,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 					return string.Equals(a.csharpDocument.GeneratedCode, b.csharpDocument.GeneratedCode, StringComparison.Ordinal);
 				}, static a => StringComparer.Ordinal.GetHashCode(a.csharpDocument));
 
-			context.RegisterSourceOutput(generatedOutput, static (context, pair) =>
+			context.RegisterImplementationSourceOutput(csharpDocuments, static (context, pair) =>
 			{
 				var (filePath, csharpDocument) = pair;
 
@@ -307,14 +314,13 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 				context.AddSource(hintName, csharpDocument.GeneratedCode);
 			});
 
-            context.RegisterHostOutput(processed(designTime: true), static (context, pair, _) =>
-            {
-                var (filePath, document) = pair;
-                var hintName = GetIdentifierFromPath(filePath);
-                context.AddOutput(hintName + ".rsg.json", RazorCodeDocumentSerializer.Instance.Serialize(document.CodeDocument));
-                context.AddOutput(hintName + ".rsg.cs", document.CodeDocument.GetCSharpDocument().GeneratedCode);
-                context.AddOutput(hintName + ".rsg.html", document.CodeDocument.GetHtmlDocument().GeneratedCode);
-            });
-        }
-    }
+			context.RegisterHostOutput(processed(designTime: true), static (context, pair, _) =>
+			{
+				var (filePath, document) = pair;
+				var hintName = GetIdentifierFromPath(filePath);
+				context.AddOutput(hintName + ".rsg.cs", document.CodeDocument.GetCSharpDocument().GeneratedCode);
+				context.AddOutput(hintName + ".rsg.html", document.CodeDocument.GetHtmlDocument().GeneratedCode);
+			});
+		}
+	}
 }
