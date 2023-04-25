@@ -38,8 +38,7 @@ internal class DefaultClientNotifierService : ClientNotifierServiceBase
         await _initializedCompletionSource.Task;
         using var _ = _telemetryReporter?.StartEventScope(nameof(SendRequestAsync), Severity.Normal, new Dictionary<string, object?>()
         {
-            {"eventscope.method", method},
-            {"eventscope.params", @params}
+            {"eventscope.method", method}
         }.ToImmutableDictionary());
 
         var result = await _jsonRpc.InvokeAsync<TResponse>(method, @params);
@@ -52,8 +51,7 @@ internal class DefaultClientNotifierService : ClientNotifierServiceBase
         await _initializedCompletionSource.Task;
         using var _ = _telemetryReporter?.StartEventScope(nameof(SendNotificationAsync), Severity.Normal, new Dictionary<string, object?>()
         {
-            {"eventscope.method", method},
-            {"eventscope.params", @params}
+            {"eventscope.method", method}
         }.ToImmutableDictionary());
 
         await _jsonRpc.NotifyWithParameterObjectAsync(method, @params);
@@ -64,7 +62,7 @@ internal class DefaultClientNotifierService : ClientNotifierServiceBase
         await _initializedCompletionSource.Task;
         using var _ = _telemetryReporter?.StartEventScope(nameof(SendNotificationAsync), Severity.Normal, new Dictionary<string, object?>()
         {
-            {"eventscope.method", method},
+            {"eventscope.method", method}
         }.ToImmutableDictionary());
 
         await _jsonRpc.NotifyAsync(method);
