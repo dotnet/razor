@@ -126,7 +126,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
         var requestContext = new RazorRequestContext(DocumentContext, Logger, languageServer.GetLspServices());
 
-        NumberOfCsSemanticRangesToReturn = 100;
+        NumberOfCsSemanticRangesToReturn = 1000;
         await SemanticTokensRangeEndpoint.HandleRequestAsync(request, requestContext, cancellationToken);
     }
 
