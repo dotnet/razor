@@ -42,10 +42,10 @@
     <Using Include="$(ProjectName).Resources" />
   </ItemGroup>
 
-  <ItemGroup>
+  <!--<ItemGroup>
     <Reference Update="C:\Users\Chris\.nuget\packages\microsoft.visualstudio.languageserver.protocol\17.5.20-preview\lib\netstandard2.0\Microsoft.VisualStudio.LanguageServer.Protocol.dll">
       <SpecificVersion>True</SpecificVersion>
     </Reference>
-  </ItemGroup>
+  </ItemGroup>-->
 
 </Project>

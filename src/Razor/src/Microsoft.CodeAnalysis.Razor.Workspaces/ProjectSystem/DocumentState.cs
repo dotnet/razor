@@ -538,7 +538,7 @@ internal class DocumentState
                 //Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Generated document locally");
             }
 
-            return (codeDocument, inputVersion);
+            return (codeDocument!, inputVersion);
         }
 
         private static async Task<RazorSourceDocument> GetRazorSourceDocumentAsync(IDocumentSnapshot document, RazorProjectItem? projectItem)

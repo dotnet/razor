@@ -111,7 +111,7 @@ internal class ProjectSnapshot : IProjectSnapshot
         return State.ProjectEngine;
     }
 
-    private GeneratorDriverRunResult? _runResult;
+    //private GeneratorDriverRunResult? _runResult;
 
     public async Task<(string CSharp, string Html)> GetGeneratedDocumentsAsync(IDocumentSnapshot documentSnapshot)
     {
