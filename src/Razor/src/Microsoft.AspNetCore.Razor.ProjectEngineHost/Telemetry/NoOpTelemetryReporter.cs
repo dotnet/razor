@@ -26,12 +26,12 @@ public class NoOpTelemetryReporter : ITelemetryReporter
     {
     }
 
-    public IDisposable BeginScope(string name, Severity severity)
+    public IDisposable BeginBlock(string name, Severity severity)
     {
         return NullScope.Instance;
     }
 
-    public IDisposable BeginScope<T>(string name, Severity severity, T values) where T : IImmutableDictionary<string, object?>
+    public IDisposable BeginBlock<T>(string name, Severity severity, T values) where T : IImmutableDictionary<string, object?>
     {
         return NullScope.Instance;
     }

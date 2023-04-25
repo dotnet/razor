@@ -1346,7 +1346,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         public override Task<ReinvokeResponse<TOut>> ReinvokeRequestOnServerAsync<TIn, TOut>(string method, string languageServerName, TIn parameters, CancellationToken cancellationToken)
         {
-            using (_telemetryReporter?.BeginScope(nameof(ReinvokeRequestOnServerAsync), Severity.Normal, ImmutableDictionary<string, object?>.Empty
+            using (_telemetryReporter?.BeginBlock(nameof(ReinvokeRequestOnServerAsync), Severity.Normal, ImmutableDictionary<string, object?>.Empty
                     .Add("eventscope.method", method)
                     .Add("eventscope.languageservername", languageServerName)
             ))
@@ -1357,7 +1357,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         public override Task<ReinvokeResponse<TOut>> ReinvokeRequestOnServerAsync<TIn, TOut>(string method, string languageServerName, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
         {
-            using (_telemetryReporter?.BeginScope(nameof(ReinvokeRequestOnServerAsync), Severity.Normal, ImmutableDictionary<string, object?>.Empty
+            using (_telemetryReporter?.BeginBlock(nameof(ReinvokeRequestOnServerAsync), Severity.Normal, ImmutableDictionary<string, object?>.Empty
                     .Add("eventscope.method", method)
                     .Add("eventscope.languageservername", languageServerName)
             ))
@@ -1368,7 +1368,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         public override Task<ReinvocationResponse<TOut>?> ReinvokeRequestOnServerAsync<TIn, TOut>(ITextBuffer textBuffer, string method, string languageServerName, TIn parameters, CancellationToken cancellationToken)
         {
-            using (_telemetryReporter?.BeginScope(nameof(ReinvokeRequestOnServerAsync), Severity.Normal, ImmutableDictionary<string, object?>.Empty
+            using (_telemetryReporter?.BeginBlock(nameof(ReinvokeRequestOnServerAsync), Severity.Normal, ImmutableDictionary<string, object?>.Empty
                     .Add("eventscope.method", method)
                     .Add("eventscope.languageservername", languageServerName)
             ))
@@ -1379,7 +1379,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         public override Task<ReinvocationResponse<TOut>?> ReinvokeRequestOnServerAsync<TIn, TOut>(ITextBuffer textBuffer, string method, string languageServerName, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
         {
-            using (_telemetryReporter?.BeginScope(nameof(ReinvokeRequestOnServerAsync), Severity.Normal, ImmutableDictionary<string, object?>.Empty
+            using (_telemetryReporter?.BeginBlock(nameof(ReinvokeRequestOnServerAsync), Severity.Normal, ImmutableDictionary<string, object?>.Empty
                     .Add("eventscope.method", method)
                     .Add("eventscope.languageservername", languageServerName)
             ))
