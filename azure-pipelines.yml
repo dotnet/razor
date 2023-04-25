@@ -238,7 +238,7 @@ stages:
             -nobl
           name: Run_Unit_Tests
           displayName: Run Unit Tests
-          condition: succeeded()
+          condition: and(succeeded(), in(variables['Build.Reason'], 'PullRequest'))
 
         - script: eng\CIBuild.cmd
             -configuration $(_BuildConfig)
@@ -261,7 +261,7 @@ stages:
         - publish: artifacts/TestResults/$(_BuildConfig)
           artifact: $(Agent.Os)_$(Agent.JobName) Attempt $(System.JobAttempt) TestResults
           displayName: Publish Test Artifacts
-          condition: always()
+          condition: in(variables['Build.Reason'], 'PullRequest')
 
         # Publish an artifact that the RoslynInsertionTool is able to find by its name.
         - publish: artifacts\VSSetup\$(_BuildConfig)
