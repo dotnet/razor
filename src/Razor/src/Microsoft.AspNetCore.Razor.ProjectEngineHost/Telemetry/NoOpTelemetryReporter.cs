@@ -25,4 +25,21 @@ public class NoOpTelemetryReporter : ITelemetryReporter
     public void ReportFault(Exception exception, string? message, params object?[] @params)
     {
     }
+
+    public IDisposable StartEventScope(string name, Severity severity)
+    {
+        return NullScope.Instance;
+    }
+
+    public IDisposable StartEventScope<T>(string name, Severity severity, ImmutableDictionary<string, T> values)
+    {
+        return NullScope.Instance;
+    }
+
+    private class NullScope : IDisposable
+    {
+        public static NullScope Instance { get; } = new NullScope();
+        private NullScope() { }
+        public void Dispose() { }
+    }
 }

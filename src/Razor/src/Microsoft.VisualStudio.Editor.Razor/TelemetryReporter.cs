@@ -6,9 +6,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
+using Newtonsoft.Json.Linq;
+using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.Telemetry;
 
@@ -207,4 +211,47 @@ internal class TelemetryReporter : ITelemetryReporter
             Severity.High => TelemetrySeverity.High,
             _ => throw new InvalidOperationException($"Unknown severity: {severity}")
         };
+
+    public IDisposable StartEventScope(string name, Severity severity)
+    {
+        return new TelemetryScope(this, name, severity, ImmutableDictionary<string, object?>.Empty);
+    }
+
+    public IDisposable StartEventScope<T>(string name, Severity severity, ImmutableDictionary<string, T> values)
+    {
+        return new TelemetryScope(this, name, severity, values.ToImmutableDictionary((tuple) => tuple.Key, (tuple) => (object?)tuple.Value));
+    }
+
+    private class TelemetryScope : IDisposable
+    {
+        private readonly ITelemetryReporter _telemetryReporter;
+        private string _name;
+        private Severity _severity;
+        private ImmutableDictionary<string, object?> _values;
+        private bool _disposed;
+        private Stopwatch _stopwatch;
+
+        public TelemetryScope(ITelemetryReporter telemetryReporter, string name, Severity severity, ImmutableDictionary<string, object?> values)
+        {
+            _telemetryReporter = telemetryReporter;
+            _name = name;
+            _severity = severity;
+            _values = values;
+            _stopwatch = Stopwatch.StartNew();
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+
+            _stopwatch.Stop();
+            var values = _values.Add("eventscope.ellapsedms", _stopwatch.ElapsedMilliseconds);
+            _telemetryReporter.ReportEvent(_name, _severity, values);
+        }
+    }
 }
