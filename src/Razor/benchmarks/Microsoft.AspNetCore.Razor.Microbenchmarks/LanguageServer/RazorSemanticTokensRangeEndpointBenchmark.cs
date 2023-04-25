@@ -48,7 +48,8 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
     private string TargetPath { get; set; }
 
-    private static int NumberOfCsSemanticRangesToReturn { get; set; }
+    [Params(0, 100, 1000)]
+    public int NumberOfCsSemanticRangesToReturn { get; set; }
 
     [GlobalSetup]
     public async Task InitializeRazorSemanticAsync()
@@ -76,8 +77,8 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         };
     }
 
-    [Benchmark(Description = "Razor Semantic Tokens Range Endpoint [0]")]
-    public async Task RazorSemanticTokensRangeEndpointZeroCsRangesAsync()
+    [Benchmark(Description = "Razor Semantic Tokens Range Endpoint")]
+    public async Task RazorSemanticTokensRangeEndpointRangesAsync()
     {
         var textDocumentIdentifier = new TextDocumentIdentifier { Uri = DocumentUri };
         var cancellationToken = CancellationToken.None;
@@ -90,43 +91,8 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
         var requestContext = new RazorRequestContext(DocumentContext, Logger, languageServer.GetLspServices());
 
-        NumberOfCsSemanticRangesToReturn = 0;
-        await SemanticTokensRangeEndpoint.HandleRequestAsync(request, requestContext, cancellationToken);
-    }
+        ((TestCustomizableRazorSemanticTokensInfoService)RazorSemanticTokenService).RangeNumberToGenerate = NumberOfCsSemanticRangesToReturn;
 
-    [Benchmark(Description = "Razor Semantic Tokens Range Endpoint [100]")]
-    public async Task RazorSemanticTokensRangeEndpoint100CsRangesAsync()
-    {
-        var textDocumentIdentifier = new TextDocumentIdentifier { Uri = DocumentUri };
-        var cancellationToken = CancellationToken.None;
-        var documentVersion = 1;
-
-        await UpdateDocumentAsync(documentVersion, DocumentSnapshot, cancellationToken).ConfigureAwait(false);
-
-        var request = new SemanticTokensRangeParams { Range = Range, TextDocument = textDocumentIdentifier };
-
-        var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-        var requestContext = new RazorRequestContext(DocumentContext, Logger, languageServer.GetLspServices());
-
-        NumberOfCsSemanticRangesToReturn = 100;
-        await SemanticTokensRangeEndpoint.HandleRequestAsync(request, requestContext, cancellationToken);
-    }
-
-    [Benchmark(Description = "Razor Semantic Tokens Range Endpoint [1000]")]
-    public async Task RazorSemanticTokensRangeEndpoint1000CsRangesAsync()
-    {
-        var textDocumentIdentifier = new TextDocumentIdentifier { Uri = DocumentUri };
-        var cancellationToken = CancellationToken.None;
-        var documentVersion = 1;
-
-        await UpdateDocumentAsync(documentVersion, DocumentSnapshot, cancellationToken).ConfigureAwait(false);
-
-        var request = new SemanticTokensRangeParams { Range = Range, TextDocument = textDocumentIdentifier };
-
-        var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-        var requestContext = new RazorRequestContext(DocumentContext, Logger, languageServer.GetLspServices());
-
-        NumberOfCsSemanticRangesToReturn = 1000;
         await SemanticTokensRangeEndpoint.HandleRequestAsync(request, requestContext, cancellationToken);
     }
 
@@ -163,6 +129,8 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
     {
         private readonly Random _random;
 
+        public int RangeNumberToGenerate { get; set; }
+
         public TestCustomizableRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
             RazorDocumentMappingService documentMappingService,
@@ -182,7 +150,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
             string previousResultId = null)
         {
             var ranges = new List<SemanticRange>();
-            for (var i = 0; i < NumberOfCsSemanticRangesToReturn; i++)
+            for (var i = 0; i < RangeNumberToGenerate; i++)
             {
                 var startLine = _random.Next(razorRange.Start.Line, razorRange.End.Line);
                 var startChar = _random.Next(0, codeDocument.Source.Lines.GetLineLength(startLine));
