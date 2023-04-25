@@ -26,12 +26,12 @@ public class NoOpTelemetryReporter : ITelemetryReporter
     {
     }
 
-    public IDisposable StartEventScope(string name, Severity severity)
+    public IDisposable ReportScopedEvent(string name, Severity severity)
     {
         return NullScope.Instance;
     }
 
-    public IDisposable StartEventScope<T>(string name, Severity severity, ImmutableDictionary<string, T> values)
+    public IDisposable ReportScopedEvent<T>(string name, Severity severity, ImmutableDictionary<string, T> values)
     {
         return NullScope.Instance;
     }

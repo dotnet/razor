@@ -8,8 +8,8 @@ namespace Microsoft.AspNetCore.Razor.Telemetry;
 
 public interface ITelemetryReporter
 {
-    IDisposable StartEventScope(string name, Severity severity);
-    IDisposable StartEventScope<T>(string name, Severity severity, ImmutableDictionary<string, T> values);
+    IDisposable ReportScopedEvent(string name, Severity severity);
+    IDisposable ReportScopedEvent<T>(string name, Severity severity, ImmutableDictionary<string, T> values);
     void ReportEvent(string name, Severity severity);
     void ReportEvent<T>(string name, Severity severity, ImmutableDictionary<string, T> values);
     void ReportFault(Exception exception, string? message, params object?[] @params);

@@ -36,7 +36,7 @@ internal class DefaultClientNotifierService : ClientNotifierServiceBase
     public override async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
     {
         await _initializedCompletionSource.Task;
-        using var _ = _telemetryReporter?.StartEventScope(nameof(SendRequestAsync), Severity.Normal, new Dictionary<string, object?>()
+        using var _ = _telemetryReporter?.ReportScopedEvent(nameof(SendRequestAsync), Severity.Normal, new Dictionary<string, object?>()
         {
             {"eventscope.method", method}
         }.ToImmutableDictionary());
@@ -49,7 +49,7 @@ internal class DefaultClientNotifierService : ClientNotifierServiceBase
     public override async Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
     {
         await _initializedCompletionSource.Task;
-        using var _ = _telemetryReporter?.StartEventScope(nameof(SendNotificationAsync), Severity.Normal, new Dictionary<string, object?>()
+        using var _ = _telemetryReporter?.ReportScopedEvent(nameof(SendNotificationAsync), Severity.Normal, new Dictionary<string, object?>()
         {
             {"eventscope.method", method}
         }.ToImmutableDictionary());
@@ -60,7 +60,7 @@ internal class DefaultClientNotifierService : ClientNotifierServiceBase
     public override async Task SendNotificationAsync(string method, CancellationToken cancellationToken)
     {
         await _initializedCompletionSource.Task;
-        using var _ = _telemetryReporter?.StartEventScope(nameof(SendNotificationAsync), Severity.Normal, new Dictionary<string, object?>()
+        using var _ = _telemetryReporter?.ReportScopedEvent(nameof(SendNotificationAsync), Severity.Normal, new Dictionary<string, object?>()
         {
             {"eventscope.method", method}
         }.ToImmutableDictionary());

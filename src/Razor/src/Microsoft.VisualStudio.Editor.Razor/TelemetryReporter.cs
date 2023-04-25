@@ -212,12 +212,12 @@ internal class TelemetryReporter : ITelemetryReporter
             _ => throw new InvalidOperationException($"Unknown severity: {severity}")
         };
 
-    public IDisposable StartEventScope(string name, Severity severity)
+    public IDisposable ReportScopedEvent(string name, Severity severity)
     {
         return new TelemetryScope(this, name, severity, ImmutableDictionary<string, object?>.Empty);
     }
 
-    public IDisposable StartEventScope<T>(string name, Severity severity, ImmutableDictionary<string, T> values)
+    public IDisposable ReportScopedEvent<T>(string name, Severity severity, ImmutableDictionary<string, T> values)
     {
         return new TelemetryScope(this, name, severity, values.ToImmutableDictionary((tuple) => tuple.Key, (tuple) => (object?)tuple.Value));
     }
