@@ -74,7 +74,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
             _configureServer(services);
         }
 
-        var serverManager = new DefaultClientNotifierService(_jsonRpc, _telemetryReporter);
+        var serverManager = new DefaultClientNotifierService(_jsonRpc);
         services.AddSingleton<ClientNotifierServiceBase>(serverManager);
         if (_logger is LspLogger lspLogger)
         {

@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
@@ -32,6 +33,7 @@ using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
+using StreamJsonRpc;
 using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
     Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
     Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]>;
@@ -59,6 +61,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         FormattingOptionsProvider formattingOptionsProvider,
         IClientSettingsManager editorSettingsManager,
         LSPDocumentSynchronizer documentSynchronizer,
+        ITelemetryReporter telemetryReporter,
         [Import(AllowDefault = true)] IOutputWindowLogger? outputWindowLogger)
     {
         if (documentManager is null)
@@ -98,8 +101,14 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             throw new ArgumentException("The LSP document manager should be of type " + typeof(TrackingLSPDocumentManager).FullName, nameof(_documentManager));
         }
 
+        if (telemetryReporter is null)
+        {
+            throw new ArgumentNullException(nameof(telemetryReporter));
+        }
+
         _joinableTaskFactory = joinableTaskContext.Factory;
-        _requestInvoker = requestInvoker;
+
+        _requestInvoker = new TelemetryReportingLSPRequestInvoker(requestInvoker, telemetryReporter);
         _formattingOptionsProvider = formattingOptionsProvider;
         _editorSettingsManager = editorSettingsManager;
         _documentSynchronizer = documentSynchronizer;
@@ -1304,4 +1313,79 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     }
 
     private record struct DelegationRequestDetails(string LanguageServerName, Uri ProjectedUri, ITextBuffer TextBuffer);
+
+    private class TelemetryReportingLSPRequestInvoker : LSPRequestInvoker
+    {
+        private LSPRequestInvoker _requestInvoker;
+        private ITelemetryReporter _telemetryReporter;
+        public TelemetryReportingLSPRequestInvoker(LSPRequestInvoker requestInvoker, ITelemetryReporter telemetryReporter)
+        {
+            _requestInvoker = requestInvoker;
+            _telemetryReporter = telemetryReporter;
+        }
+
+        public override Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(string method, string contentType, TIn parameters, CancellationToken cancellationToken)
+        {
+            return _requestInvoker.ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(method, contentType, parameters, cancellationToken);
+        }
+
+        public override Task<IEnumerable<ReinvokeResponse<TOut>>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(string method, string contentType, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
+        {
+            return _requestInvoker.ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(method, contentType, capabilitiesFilter, parameters, cancellationToken);
+        }
+
+        public override IAsyncEnumerable<ReinvocationResponse<TOut>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(ITextBuffer textBuffer, string method, TIn parameters, CancellationToken cancellationToken)
+        {
+            return _requestInvoker.ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(textBuffer, method, parameters, cancellationToken);
+        }
+
+        public override IAsyncEnumerable<ReinvocationResponse<TOut>> ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(ITextBuffer textBuffer, string method, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
+        {
+            return _requestInvoker.ReinvokeRequestOnMultipleServersAsync<TIn, TOut>(textBuffer, method, capabilitiesFilter, parameters, cancellationToken);
+        }
+
+        public override Task<ReinvokeResponse<TOut>> ReinvokeRequestOnServerAsync<TIn, TOut>(string method, string languageServerName, TIn parameters, CancellationToken cancellationToken)
+        {
+            using (_telemetryReporter?.BeginScope(nameof(ReinvokeRequestOnServerAsync), Severity.Normal, ImmutableDictionary<string, object?>.Empty
+                    .Add("eventscope.method", method)
+                    .Add("eventscope.languageservername", languageServerName)
+            ))
+            {
+                return _requestInvoker.ReinvokeRequestOnServerAsync<TIn, TOut>(method, languageServerName, parameters, cancellationToken);
+            }
+        }
+
+        public override Task<ReinvokeResponse<TOut>> ReinvokeRequestOnServerAsync<TIn, TOut>(string method, string languageServerName, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
+        {
+            using (_telemetryReporter?.BeginScope(nameof(ReinvokeRequestOnServerAsync), Severity.Normal, ImmutableDictionary<string, object?>.Empty
+                    .Add("eventscope.method", method)
+                    .Add("eventscope.languageservername", languageServerName)
+            ))
+            {
+                return _requestInvoker.ReinvokeRequestOnServerAsync<TIn, TOut>(method, languageServerName, capabilitiesFilter, parameters, cancellationToken);
+            }
+        }
+
+        public override Task<ReinvocationResponse<TOut>?> ReinvokeRequestOnServerAsync<TIn, TOut>(ITextBuffer textBuffer, string method, string languageServerName, TIn parameters, CancellationToken cancellationToken)
+        {
+            using (_telemetryReporter?.BeginScope(nameof(ReinvokeRequestOnServerAsync), Severity.Normal, ImmutableDictionary<string, object?>.Empty
+                    .Add("eventscope.method", method)
+                    .Add("eventscope.languageservername", languageServerName)
+            ))
+            {
+                return _requestInvoker.ReinvokeRequestOnServerAsync<TIn, TOut>(textBuffer, method, languageServerName, parameters, cancellationToken);
+            }
+        }
+
+        public override Task<ReinvocationResponse<TOut>?> ReinvokeRequestOnServerAsync<TIn, TOut>(ITextBuffer textBuffer, string method, string languageServerName, Func<JToken, bool> capabilitiesFilter, TIn parameters, CancellationToken cancellationToken)
+        {
+            using (_telemetryReporter?.BeginScope(nameof(ReinvokeRequestOnServerAsync), Severity.Normal, ImmutableDictionary<string, object?>.Empty
+                    .Add("eventscope.method", method)
+                    .Add("eventscope.languageservername", languageServerName)
+            ))
+            {
+                return _requestInvoker.ReinvokeRequestOnServerAsync<TIn, TOut>(textBuffer, method, languageServerName, capabilitiesFilter, parameters, cancellationToken);
+            }
+        }
+    }
 }

@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -102,10 +103,11 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
         var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
 
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
+        var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
             documentManager, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, outputWindowLogger);
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, telemetryReporter.Object, outputWindowLogger);
 
         var request = new RazorDocumentRangeFormattingParams()
         {
@@ -141,10 +143,11 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
         var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
 
         var documentSynchronizer = GetDocumentSynchronizer();
+        var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
             documentManager, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, outputWindowLogger);
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, telemetryReporter.Object, outputWindowLogger);
 
         var request = new RazorDocumentRangeFormattingParams()
         {
@@ -197,10 +200,11 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
         var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
 
         var documentSynchronizer = GetDocumentSynchronizer(GetCSharpSnapshot(uri, hostDocumentSyncVersion: 1));
+        var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, outputWindowLogger);
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, telemetryReporter.Object, outputWindowLogger);
 
         var request = new RazorDocumentRangeFormattingParams()
         {
@@ -301,10 +305,11 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
 
         var documentSynchronizer = GetDocumentSynchronizer(GetCSharpSnapshot());
         var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
+        var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, outputWindowLogger);
+                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, telemetryReporter.Object, outputWindowLogger);
 
         var request = new DelegatedCodeActionParams()
         {
@@ -376,10 +381,11 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
         var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
+        var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
             documentManager, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, outputWindowLogger);
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, telemetryReporter.Object, outputWindowLogger);
 
         var codeAction = new VSInternalCodeAction()
         {
@@ -485,10 +491,11 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
         var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
+        var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, outputWindowLogger);
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, telemetryReporter.Object, outputWindowLogger);
         var request = new ProvideSemanticTokensRangeParams(
             textDocument: new TextDocumentIdentifier()
             {

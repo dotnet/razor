@@ -144,7 +144,7 @@ internal class TelemetryReporter : ITelemetryReporter
             // before we're ready to send them to the cloud
             var name = telemetryEvent.Name;
             var propertyString = string.Join(",", telemetryEvent.Properties.Select(kvp => $"[ {kvp.Key}:{kvp.Value} ]"));
-            _logger?.LogWarning("Telemetry Event: {name} \n Properties: {propertyString}\n", name, propertyString);
+            _logger?.LogTrace("Telemetry Event: {name} \n Properties: {propertyString}\n", name, propertyString);
 #endif
         }
         catch (Exception e)
