@@ -36,11 +36,8 @@ internal class DefaultClientNotifierService : ClientNotifierServiceBase
     public override async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
     {
         await _initializedCompletionSource.Task;
-        using var _ = _telemetryReporter?.ReportScopedEvent(nameof(SendRequestAsync), Severity.Normal, new Dictionary<string, object?>()
-        {
-            {"eventscope.method", method}
-        }.ToImmutableDictionary());
-
+        var values = GetValues(method);
+        using var _ = _telemetryReporter?.ReportScopedEvent(nameof(SendRequestAsync), Severity.Normal, values);
         var result = await _jsonRpc.InvokeAsync<TResponse>(method, @params);
 
         return result;
@@ -49,22 +46,16 @@ internal class DefaultClientNotifierService : ClientNotifierServiceBase
     public override async Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
     {
         await _initializedCompletionSource.Task;
-        using var _ = _telemetryReporter?.ReportScopedEvent(nameof(SendNotificationAsync), Severity.Normal, new Dictionary<string, object?>()
-        {
-            {"eventscope.method", method}
-        }.ToImmutableDictionary());
-
+        var values = GetValues(method);
+        using var _ = _telemetryReporter?.ReportScopedEvent(nameof(SendNotificationAsync), Severity.Normal, values);
         await _jsonRpc.NotifyWithParameterObjectAsync(method, @params);
     }
 
     public override async Task SendNotificationAsync(string method, CancellationToken cancellationToken)
     {
         await _initializedCompletionSource.Task;
-        using var _ = _telemetryReporter?.ReportScopedEvent(nameof(SendNotificationAsync), Severity.Normal, new Dictionary<string, object?>()
-        {
-            {"eventscope.method", method}
-        }.ToImmutableDictionary());
-
+        var values = GetValues(method);
+        using var _ = _telemetryReporter?.ReportScopedEvent(nameof(SendNotificationAsync), Severity.Normal, values);
         await _jsonRpc.NotifyAsync(method);
     }
 
@@ -78,5 +69,13 @@ internal class DefaultClientNotifierService : ClientNotifierServiceBase
     {
         _initializedCompletionSource.TrySetResult(true);
         return Task.CompletedTask;
+    }
+
+    private static ImmutableDictionary<string, object?> GetValues(string method)
+    {
+        return new Dictionary<string, object?>()
+        {
+            {"eventscope.method", method}
+        }.ToImmutableDictionary();
     }
 }
