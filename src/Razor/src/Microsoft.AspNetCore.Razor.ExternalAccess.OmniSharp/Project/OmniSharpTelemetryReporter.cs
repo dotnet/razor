@@ -20,12 +20,12 @@ internal class OmniSharpTelemetryReporter : ITelemetryReporter
     {
     }
 
-    public IDisposable ReportScopedEvent(string name, Severity severity)
+    public IDisposable BeginScope(string name, Severity severity)
     {
         return NullScope.Instance;
     }
 
-    public IDisposable ReportScopedEvent<T>(string name, Severity severity, ImmutableDictionary<string, T> values)
+    public IDisposable BeginScope<T>(string name, Severity severity, T values) where T : IImmutableDictionary<string, object?>
     {
         return NullScope.Instance;
     }

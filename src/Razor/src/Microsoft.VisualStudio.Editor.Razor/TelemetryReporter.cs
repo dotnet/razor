@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Threading;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
 using Newtonsoft.Json.Linq;
@@ -143,7 +144,7 @@ internal class TelemetryReporter : ITelemetryReporter
             // before we're ready to send them to the cloud
             var name = telemetryEvent.Name;
             var propertyString = string.Join(",", telemetryEvent.Properties.Select(kvp => $"[ {kvp.Key}:{kvp.Value} ]"));
-            _logger?.LogTrace("Telemetry Event: {name} \n Properties: {propertyString}\n", name, propertyString);
+            _logger?.LogWarning("Telemetry Event: {name} \n Properties: {propertyString}\n", name, propertyString);
 #endif
         }
         catch (Exception e)
@@ -212,12 +213,12 @@ internal class TelemetryReporter : ITelemetryReporter
             _ => throw new InvalidOperationException($"Unknown severity: {severity}")
         };
 
-    public IDisposable ReportScopedEvent(string name, Severity severity)
+    public IDisposable BeginScope(string name, Severity severity)
     {
-        return new TelemetryScope(this, name, severity, ImmutableDictionary<string, object?>.Empty);
+        return BeginScope(name, severity, ImmutableDictionary<string, object?>.Empty);
     }
 
-    public IDisposable ReportScopedEvent<T>(string name, Severity severity, ImmutableDictionary<string, T> values)
+    public IDisposable BeginScope<T>(string name, Severity severity, T values) where T : IImmutableDictionary<string, object?>
     {
         return new TelemetryScope(this, name, severity, values.ToImmutableDictionary((tuple) => tuple.Key, (tuple) => (object?)tuple.Value));
     }
@@ -237,7 +238,8 @@ internal class TelemetryReporter : ITelemetryReporter
             _name = name;
             _severity = severity;
             _values = values;
-            _stopwatch = Stopwatch.StartNew();
+            _stopwatch = StopwatchPool.Default.Get();
+            _stopwatch.Restart();
         }
 
         public void Dispose()
@@ -252,6 +254,7 @@ internal class TelemetryReporter : ITelemetryReporter
             _stopwatch.Stop();
             var values = _values.Add("eventscope.ellapsedms", _stopwatch.ElapsedMilliseconds);
             _telemetryReporter.ReportEvent(_name, _severity, values);
+            StopwatchPool.Default.Return(_stopwatch);
         }
     }
 }

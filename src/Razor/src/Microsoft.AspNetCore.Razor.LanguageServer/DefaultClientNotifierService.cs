@@ -36,26 +36,24 @@ internal class DefaultClientNotifierService : ClientNotifierServiceBase
     public override async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
     {
         await _initializedCompletionSource.Task;
-        var values = GetValues(method);
-        using var _ = _telemetryReporter?.ReportScopedEvent(nameof(SendRequestAsync), Severity.Normal, values);
-        var result = await _jsonRpc.InvokeAsync<TResponse>(method, @params);
-
-        return result;
+        using (_telemetryReporter?.BeginScope(nameof(SendRequestAsync), Severity.Normal, GetValues(method)))
+        {
+            return await _jsonRpc.InvokeAsync<TResponse>(method, @params);
+        }
     }
 
     public override async Task SendNotificationAsync<TParams>(string method, TParams @params, CancellationToken cancellationToken)
     {
         await _initializedCompletionSource.Task;
-        var values = GetValues(method);
-        using var _ = _telemetryReporter?.ReportScopedEvent(nameof(SendNotificationAsync), Severity.Normal, values);
-        await _jsonRpc.NotifyWithParameterObjectAsync(method, @params);
+        using (_telemetryReporter?.BeginScope(nameof(SendNotificationAsync), Severity.Normal, GetValues(method)))
+        {
+            await _jsonRpc.NotifyWithParameterObjectAsync(method, @params);
+        }
     }
 
     public override async Task SendNotificationAsync(string method, CancellationToken cancellationToken)
     {
         await _initializedCompletionSource.Task;
-        var values = GetValues(method);
-        using var _ = _telemetryReporter?.ReportScopedEvent(nameof(SendNotificationAsync), Severity.Normal, values);
         await _jsonRpc.NotifyAsync(method);
     }
 
@@ -71,11 +69,8 @@ internal class DefaultClientNotifierService : ClientNotifierServiceBase
         return Task.CompletedTask;
     }
 
-    private static ImmutableDictionary<string, object?> GetValues(string method)
+    private ImmutableDictionary<string, object?> GetValues(string method)
     {
-        return new Dictionary<string, object?>()
-        {
-            {"eventscope.method", method}
-        }.ToImmutableDictionary();
+        return ImmutableDictionary<string, object?>.Empty.Add("eventscope.method", method);
     }
 }
