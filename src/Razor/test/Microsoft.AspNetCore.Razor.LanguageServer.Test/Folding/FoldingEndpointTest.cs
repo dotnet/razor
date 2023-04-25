@@ -45,7 +45,7 @@ public class FoldingEndpointTest : SingleServerDelegatingEndpointTestBase
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
         var endpoint = new FoldingRangeEndpoint(
-            DocumentMappingService, LanguageServer, new List<IRazorFoldingRangeProvider> { new RazorUsingsFoldingProvider(), new RazorCodeBlockFoldingProvider() }, LoggerFactory);
+            DocumentMappingService, LanguageServer, new List<IRazorFoldingRangeProvider> { new UsingsFoldingRangeProvider(), new RazorCodeBlockFoldingProvider() }, LoggerFactory);
 
         var request = new FoldingRangeParams()
         {
