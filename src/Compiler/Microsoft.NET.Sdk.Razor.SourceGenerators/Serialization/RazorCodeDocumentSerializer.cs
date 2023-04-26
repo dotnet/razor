@@ -46,7 +46,6 @@ internal sealed class RazorCodeDocumentSerializer
             },
             ContractResolver = new RazorContractResolver(),
             TypeNameHandling = TypeNameHandling.Auto,
-            SerializationBinder = new RazorSerializationBinder(),
             DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
         };
     }
