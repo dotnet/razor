@@ -176,8 +176,7 @@ internal class OOPTagHelperResolver : TagHelperResolver
         stopWatch.Stop();
         if (fromCache)
         {
-             _telemetryReporter.ReportEvent("taghelpers.fromcache", Severity.Normal, ImmutableDictionary<string, object?>.Empty.Add
-                ("taghelper.cachedresult.ellapsedms", stopWatch.ElapsedMilliseconds));
+            _telemetryReporter.ReportEvent("taghelpers.fromcache", Severity.Normal, ImmutableDictionary<string, object?>.Empty.Add("taghelper.cachedresult.ellapsedms", stopWatch.ElapsedMilliseconds));
         }
 
         return tagHelpers;
