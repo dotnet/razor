@@ -20,6 +20,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures.Common" Version="$(MicrosoftCodeAnalysisEditorFeaturesCommonPackageVersion)" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsPackageVersion)" />
     <PackageReference Include="Moq" Version="$(MoqPackageVersion)" />
+    <PackageReference Include="System.Composition" Version="7.0.0.0" />
   </ItemGroup>
+
 
 </Project>
