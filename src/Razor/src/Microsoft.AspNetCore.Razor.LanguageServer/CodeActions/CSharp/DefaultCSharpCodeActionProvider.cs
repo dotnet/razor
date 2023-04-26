@@ -16,8 +16,11 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal class DefaultCSharpCodeActionProvider : CSharpCodeActionProvider
+internal sealed class DefaultCSharpCodeActionProvider : ICSharpCodeActionProvider
 {
+    private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult =
+        Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(Array.Empty<RazorVSInternalCodeAction>());
+
     // Internal for testing
     internal static readonly HashSet<string> SupportedDefaultCodeActionNames = new HashSet<string>()
     {
@@ -51,7 +54,7 @@ internal class DefaultCSharpCodeActionProvider : CSharpCodeActionProvider
         _languageServerFeatureOptions = languageServerFeatureOptions;
     }
 
-    public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
+    public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(
         RazorCodeActionContext context,
         IEnumerable<RazorVSInternalCodeAction> codeActions,
         CancellationToken cancellationToken)
@@ -70,7 +73,7 @@ internal class DefaultCSharpCodeActionProvider : CSharpCodeActionProvider
         // code action resolve.
         if (!context.SupportsCodeActionResolve)
         {
-            return EmptyResult;
+            return s_emptyResult;
         }
 
         var tree = context.CodeDocument.GetSyntaxTree();

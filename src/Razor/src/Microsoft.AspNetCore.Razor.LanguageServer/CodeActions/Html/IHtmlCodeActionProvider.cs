@@ -3,7 +3,6 @@
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal abstract class BaseCodeActionResolver
+internal interface IHtmlCodeActionProvider : ICodeActionProvider
 {
-    public abstract string Action { get; }
 }

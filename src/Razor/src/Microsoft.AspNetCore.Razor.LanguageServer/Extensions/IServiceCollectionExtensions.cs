@@ -130,23 +130,23 @@ internal static class IServiceCollectionExtensions
     public static void AddCodeActionsServices(this IServiceCollection services)
     {
         services.AddRegisteringHandler<CodeActionEndpoint>();
-        services.AddHandler<CodeActionResolutionEndpoint>();
+        services.AddHandler<CodeActionResolveEndpoint>();
 
         // CSharp Code actions
-        services.AddSingleton<CSharpCodeActionProvider, TypeAccessibilityCodeActionProvider>();
-        services.AddSingleton<CSharpCodeActionProvider, DefaultCSharpCodeActionProvider>();
+        services.AddSingleton<ICSharpCodeActionProvider, TypeAccessibilityCodeActionProvider>();
+        services.AddSingleton<ICSharpCodeActionProvider, DefaultCSharpCodeActionProvider>();
         services.AddSingleton<CSharpCodeActionResolver, DefaultCSharpCodeActionResolver>();
         services.AddSingleton<CSharpCodeActionResolver, UnformattedRemappingCSharpCodeActionResolver>();
 
         // Razor Code actions
-        services.AddSingleton<RazorCodeActionProvider, ExtractToCodeBehindCodeActionProvider>();
-        services.AddSingleton<RazorCodeActionResolver, ExtractToCodeBehindCodeActionResolver>();
-        services.AddSingleton<RazorCodeActionProvider, ComponentAccessibilityCodeActionProvider>();
-        services.AddSingleton<RazorCodeActionResolver, CreateComponentCodeActionResolver>();
-        services.AddSingleton<RazorCodeActionResolver, AddUsingsCodeActionResolver>();
+        services.AddSingleton<IRazorCodeActionProvider, ExtractToCodeBehindCodeActionProvider>();
+        services.AddSingleton<IRazorCodeActionResolver, ExtractToCodeBehindCodeActionResolver>();
+        services.AddSingleton<IRazorCodeActionProvider, ComponentAccessibilityCodeActionProvider>();
+        services.AddSingleton<IRazorCodeActionResolver, CreateComponentCodeActionResolver>();
+        services.AddSingleton<IRazorCodeActionResolver, AddUsingsCodeActionResolver>();
 
         // Html Code actions
-        services.AddSingleton<HtmlCodeActionProvider, DefaultHtmlCodeActionProvider>();
+        services.AddSingleton<IHtmlCodeActionProvider, DefaultHtmlCodeActionProvider>();
         services.AddSingleton<HtmlCodeActionResolver, DefaultHtmlCodeActionResolver>();
     }
 
