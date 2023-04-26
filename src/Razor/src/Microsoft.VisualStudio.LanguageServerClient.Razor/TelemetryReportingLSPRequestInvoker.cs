@@ -81,10 +81,10 @@ internal class TelemetryReportingLSPRequestInvoker : LSPRequestInvoker
 
     private IDisposable? Track(string name, string method, string languageServerName)
     {
-        return _telemetryReporter.BeginBlock(name, Severity.Normal, ImmutableDictionary.CreateRange(new Dictionary<string, object?>
+        return _telemetryReporter.BeginBlock(name, Severity.Normal, ImmutableDictionary.CreateRange(new KeyValuePair<string, object?>[]
         {
-            { "eventscope.method", method },
-            { "eventscope.languageservername", languageServerName },
+            new("eventscope.method", method),
+            new("eventscope.languageservername", languageServerName),
         }));
     }
 }
