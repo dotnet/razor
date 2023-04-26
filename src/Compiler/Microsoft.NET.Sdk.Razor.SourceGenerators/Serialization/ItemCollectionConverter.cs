@@ -38,16 +38,30 @@ internal sealed class ItemCollectionConverter : JsonConverter<ItemCollection>
 
         foreach (var pair in value)
         {
-            if (pair.Key is string k && pair.Value is string v)
+            if (pair.Key is string k)
             {
                 writer.WritePropertyName(k);
-                writer.WriteValue(v);
             }
             else
             {
                 Debug.Assert(false, $"Cannot serialize non-string annotation {pair}");
             }
-        }
+
+            switch (pair.Value)
+            {
+                case string s:
+                    writer.WriteValue(s);
+                    break;
+
+                case SourceSpan span:
+                    SourceSpanConverter.Instance.WriteJson(writer, span, serializer);
+                    break;
+
+                default:
+					Debug.Assert(false, $"Cannot serialize non-string annotation {pair}");
+                    break;
+			}
+		}
 
         writer.WriteEndObject();
     }
