@@ -34,23 +34,27 @@ internal class RazorInProcGeneratorSnapshotDeely : IGeneratorSnapshotProvider
         _workspace = workspace;
     }
 
-    public async Task<(string CSharp, string Html)> GetGenerateDocumentsAsync(IDocumentSnapshot documentSnapshot)
+    public async Task<(string CSharp, string Html, string Json)> GetGenerateDocumentsAsync(IDocumentSnapshot documentSnapshot)
     {
         string? csharp = null;
         string? html = null;
+        string? json = null;
+
 
         var project = _workspace.CurrentSolution.Projects.FirstOrDefault(p => p.FilePath == documentSnapshot.Project.FilePath);
         if (project is not null)
         {
             // PROTOTYPE: factor this out so we can share it
             var projectRoot = documentSnapshot.Project.FilePath.Substring(0, documentSnapshot.Project.FilePath.LastIndexOf("\\"));
-            var documentName = GetIdentifierFromPath(documentSnapshot.FilePath?.Substring(projectRoot.Length + 1) ?? "") + ".g.cs";
+            var documentName = GetIdentifierFromPath(documentSnapshot.FilePath?.Substring(projectRoot.Length + 1) ?? "");
 
-            csharp = await RazorHostOutputHandler.GetHostOutputAsync(project, "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", documentName + ".rsg-cs", System.Threading.CancellationToken.None);
-            html = await RazorHostOutputHandler.GetHostOutputAsync(project, "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", documentName + ".rsg-html", System.Threading.CancellationToken.None);
+            csharp = await RazorHostOutputHandler.GetHostOutputAsync(project, "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", documentName + ".rsg.cs", System.Threading.CancellationToken.None);
+            html = await RazorHostOutputHandler.GetHostOutputAsync(project, "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", documentName + ".rsg.html", System.Threading.CancellationToken.None);
+             json = await RazorHostOutputHandler.GetHostOutputAsync(project, "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", documentName + ".rsg.json", System.Threading.CancellationToken.None);
+
         }
 
-        return (csharp ?? "", html ?? "");
+        return (csharp ?? "", html ?? "", json ?? "");
     }
 
     // PROTOTYPE: copied from the generator

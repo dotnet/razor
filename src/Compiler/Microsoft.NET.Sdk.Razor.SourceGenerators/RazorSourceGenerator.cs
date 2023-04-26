@@ -318,6 +318,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 			{
 				var (filePath, document) = pair;
 				var hintName = GetIdentifierFromPath(filePath);
+				context.AddOutput(hintName + ".rsg.json", RazorCodeDocumentSerializer.Instance.Serialize(document.CodeDocument));
 				context.AddOutput(hintName + ".rsg.cs", document.CodeDocument.GetCSharpDocument().GeneratedCode);
 				context.AddOutput(hintName + ".rsg.html", document.CodeDocument.GetHtmlDocument().GeneratedCode);
 			});

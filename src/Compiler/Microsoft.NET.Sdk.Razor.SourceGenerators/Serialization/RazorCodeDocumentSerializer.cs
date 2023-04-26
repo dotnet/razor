@@ -11,7 +11,7 @@ using System.IO;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 
-internal sealed class RazorCodeDocumentSerializer
+public sealed class RazorCodeDocumentSerializer
 {
     private const string TagHelperContext = nameof(TagHelperContext);
     private const string ParserOptions = nameof(ParserOptions);
@@ -47,7 +47,7 @@ internal sealed class RazorCodeDocumentSerializer
             ContractResolver = new RazorContractResolver(),
             TypeNameHandling = TypeNameHandling.Auto,
             DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
-        };
+		};
     }
 
     public RazorCodeDocument? Deserialize(string json, RazorSourceDocument source)

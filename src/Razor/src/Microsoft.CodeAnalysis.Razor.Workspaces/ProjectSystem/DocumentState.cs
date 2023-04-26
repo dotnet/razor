@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -518,17 +519,20 @@ internal class DocumentState
             var codeDoc2 = await project.GetGeneratedDocumentsAsync(document);
 
             RazorCodeDocument? codeDocument = null;
-            if (codeDoc2.CSharp != "")
+            if (codeDoc2.Json != "")
             {
-                codeDocument = RazorCodeDocument.Create(documentSource, importSources);
-                codeDocument.SetTagHelpers(project.TagHelpers); // TODO: are these only used for processing, or are they used elsewhere?
-                codeDocument.SetFileKind(document.FileKind);
+                codeDocument = RazorCodeDocumentSerializer.Instance.Deserialize(codeDoc2.Json, documentSource); // TODO: do we need importSources?
+                var codeDoc3 = projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources, project.TagHelpers);
 
-                var csharpDocument = RazorCSharpDocument.Create(codeDocument, codeDoc2.CSharp, RazorCodeGenerationOptions.CreateDesignTimeDefault(), Array.Empty<RazorDiagnostic>());
-                codeDocument.SetCSharpDocument(csharpDocument);
+                //codeDocument = RazorCodeDocument.Create(documentSource, importSources);
+                //codeDocument.SetTagHelpers(project.TagHelpers); // TODO: are these only used for processing, or are they used elsewhere?
+                //codeDocument.SetFileKind(document.FileKind);
 
-                var htmlDocument = RazorHtmlDocument.Create(codeDocument, codeDoc2.Html, RazorCodeGenerationOptions.CreateDesignTimeDefault(), Array.Empty<SourceMapping>());
-                codeDocument.SetHtmlDocument(htmlDocument);
+                //var csharpDocument = RazorCSharpDocument.Create(codeDocument, codeDoc2.CSharp, RazorCodeGenerationOptions.CreateDesignTimeDefault(), Array.Empty<RazorDiagnostic>());
+                //codeDocument.SetCSharpDocument(csharpDocument);
+
+                //var htmlDocument = RazorHtmlDocument.Create(codeDocument, codeDoc2.Html, RazorCodeGenerationOptions.CreateDesignTimeDefault(), Array.Empty<SourceMapping>());
+                //codeDocument.SetHtmlDocument(htmlDocument);
 
                 //Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Retrieved document from service");
             }

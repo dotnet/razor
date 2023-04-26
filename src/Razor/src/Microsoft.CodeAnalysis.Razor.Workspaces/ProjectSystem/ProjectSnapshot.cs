@@ -113,7 +113,7 @@ internal class ProjectSnapshot : IProjectSnapshot
 
     //private GeneratorDriverRunResult? _runResult;
 
-    public async Task<(string CSharp, string Html)> GetGeneratedDocumentsAsync(IDocumentSnapshot documentSnapshot)
+    public async Task<(string CSharp, string Html, string Json)> GetGeneratedDocumentsAsync(IDocumentSnapshot documentSnapshot)
     {
         //Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("GetCodeDocumentAsync: "+filePath);
 
@@ -156,6 +156,6 @@ internal class ProjectSnapshot : IProjectSnapshot
         // TODO: extract from the run-result the actual file
 
         // PROTOTYPE: how do we handle the case where we couldn't get the result?
-        return ("", "");
+        return ("", "", "");
     }
 }

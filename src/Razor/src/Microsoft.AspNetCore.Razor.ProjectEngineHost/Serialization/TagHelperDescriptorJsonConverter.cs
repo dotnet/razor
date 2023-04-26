@@ -218,6 +218,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
         writer.WriteEndObject();
     }
 
+    // TODO: looks like we have bound attributes not part of tag helpers. We need to extract this to be an actual type converter and call into it here instead.
     private static void WriteBoundAttribute(JsonWriter writer, BoundAttributeDescriptor boundAttribute, JsonSerializer serializer)
     {
         writer.WriteStartObject();

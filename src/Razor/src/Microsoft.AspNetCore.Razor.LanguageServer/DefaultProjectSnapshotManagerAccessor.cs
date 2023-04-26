@@ -29,15 +29,17 @@ internal class LspHostOutput : IGeneratorSnapshotProvider
         _notifier = notifier;
     }
 
-    public async Task<(string CSharp, string Html)> GetGenerateDocumentsAsync(IDocumentSnapshot documentSnapshot)
+    public async Task<(string CSharp, string Html, string Json)> GetGenerateDocumentsAsync(IDocumentSnapshot documentSnapshot)
     {
         var projectRoot = documentSnapshot.Project.FilePath.Substring(0, documentSnapshot.Project.FilePath.LastIndexOf("/"));
-        var documentName = GetIdentifierFromPath(documentSnapshot.FilePath?.Substring(projectRoot.Length + 1) ?? "") + ".g.cs";
+        var documentName = GetIdentifierFromPath(documentSnapshot.FilePath?.Substring(projectRoot.Length + 1) ?? "");
 
-        var csharp = await RequestOutput(documentName + ".rsg-cs");
-        var html = await RequestOutput(documentName + ".rsg-html");
+        var csharp = await RequestOutput(documentName + ".rsg.cs");
+        var html = await RequestOutput(documentName + ".rsg.html");
+        var json = await RequestOutput(documentName + ".rsg.json");
 
-        return (csharp, html);
+
+        return (csharp, html, json);
 
         async Task<string> RequestOutput(string name)
         {
