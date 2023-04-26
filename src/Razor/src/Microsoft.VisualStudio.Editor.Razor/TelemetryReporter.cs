@@ -44,7 +44,7 @@ internal class TelemetryReporter : ITelemetryReporter
         Report(telemetryEvent);
     }
 
-    public void ReportEvent<T>(string name, Severity severity, ImmutableDictionary<string, T> values)
+    public void ReportEvent(string name, Severity severity, ImmutableDictionary<string, object?> values)
     {
         var telemetryEvent = new TelemetryEvent(GetTelemetryName(name), ToTelemetrySeverity(severity));
         foreach (var (propertyName, propertyValue) in values)

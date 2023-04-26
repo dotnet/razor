@@ -12,7 +12,7 @@ internal class OmniSharpTelemetryReporter : ITelemetryReporter
     {
     }
 
-    public void ReportEvent<T>(string name, Severity severity, ImmutableDictionary<string, T> values)
+    public void ReportEvent(string name, Severity severity, ImmutableDictionary<string, object?> values)
     {
     }
 
