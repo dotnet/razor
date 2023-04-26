@@ -15,7 +15,6 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-// Does the class need an export attribute?
 internal class TelemetryReportingLSPRequestInvoker : LSPRequestInvoker
 {
     private readonly LSPRequestInvoker _requestInvoker;

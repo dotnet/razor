@@ -218,7 +218,7 @@ internal class TelemetryReporter : ITelemetryReporter
         return BeginBlock(name, severity, ImmutableDictionary<string, object?>.Empty);
     }
 
-    public IDisposable BeginBlock<T>(string name, Severity severity, T values) where T : IImmutableDictionary<string, object?>
+    public IDisposable BeginBlock(string name, Severity severity, ImmutableDictionary<string, object?> values)
     {
         return new TelemetryScope(this, name, severity, values.ToImmutableDictionary((tuple) => tuple.Key, (tuple) => (object?)tuple.Value));
     }
