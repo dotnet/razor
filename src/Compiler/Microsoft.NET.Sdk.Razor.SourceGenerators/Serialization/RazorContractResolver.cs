@@ -32,6 +32,11 @@ internal sealed class RazorContractResolver : DefaultContractResolver
             property.Ignored = true;
         }
 
+        if (typeof(ExtensionIntermediateNode).IsAssignableFrom(property.DeclaringType))
+        {
+            property.ItemTypeNameHandling = TypeNameHandling.All;
+        }
+
         return property;
     }
 

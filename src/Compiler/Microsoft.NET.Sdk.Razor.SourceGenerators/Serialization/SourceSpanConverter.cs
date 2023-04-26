@@ -7,6 +7,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 internal sealed class SourceSpanConverter : JsonConverter<SourceSpan?>
 {
+    public static SourceSpanConverter Instance = new();
+
     public override SourceSpan? ReadJson(JsonReader reader, Type objectType, SourceSpan? existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
         var span = JObject.Load(reader);
