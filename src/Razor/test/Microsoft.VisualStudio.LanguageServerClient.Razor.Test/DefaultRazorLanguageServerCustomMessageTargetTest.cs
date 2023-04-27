@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
@@ -200,7 +201,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
 
         var documentSynchronizer = GetDocumentSynchronizer(GetCSharpSnapshot(uri, hostDocumentSyncVersion: 1));
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
-        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>())).Returns(NullScope.Instance);
+        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableDictionary<string, object?>>())).Returns(NullScope.Instance);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
@@ -492,7 +493,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
         var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
-        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>())).Returns(NullScope.Instance);
+        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableDictionary<string, object?>>())).Returns(NullScope.Instance);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
