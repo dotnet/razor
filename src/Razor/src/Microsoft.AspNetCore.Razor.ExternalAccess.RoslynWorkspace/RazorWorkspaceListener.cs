@@ -170,8 +170,12 @@ public class RazorWorkspaceListener : IDisposable
 
     public void Dispose()
     {
-        var queues = _workQueues;
-        _workQueues.Clear();
+        if (_workspace is not null)
+        {
+            _workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
+        }
+
+        var queues = Interlocked.Exchange(ref _workQueues, ImmutableDictionary<ProjectId, TaskDelayScheduler>.Empty);
         foreach (var (_, value) in queues)
         {
             value.Dispose();
