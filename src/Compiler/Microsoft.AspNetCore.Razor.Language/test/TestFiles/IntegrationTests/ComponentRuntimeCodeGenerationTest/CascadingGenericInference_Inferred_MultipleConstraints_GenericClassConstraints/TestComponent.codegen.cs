@@ -31,7 +31,7 @@ using Models;
 #nullable disable
             );
             __builder.AddAttribute(2, "ColumnsTemplate", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
-                global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_0(__builder2, 3, default(WeatherForecast), 4, "Date", 5, "Date", 6, "d", 7, "10rem");
+                global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_0(__builder2, 3, default(WeatherForecast)!, 4, "Date", 5, "Date", 6, "d", 7, "10rem");
             }
             ));
             __builder.CloseComponent();
