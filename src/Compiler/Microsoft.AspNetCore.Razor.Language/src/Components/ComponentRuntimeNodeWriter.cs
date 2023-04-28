@@ -526,6 +526,10 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 // first, and that's where it's populated. However if this goes wrong somehow, we don't want to
                 // throw, so use a fallback
                 context.CodeWriter.Write(syntheticArg.ValueExpression ?? "default");
+                if (!context.Options.SuppressNullabilityEnforcement && HasDefaultValueExpression(syntheticArg))
+                {
+                    context.CodeWriter.Write("!");
+                }
                 break;
             case TypeInferenceCapturedVariable capturedVariable:
                 context.CodeWriter.Write(capturedVariable.VariableName);
