@@ -5,7 +5,7 @@ using System;
 using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.RazorLanguageQuery;
 
 [DataContract]
 internal class RazorLanguageQueryParams
@@ -13,6 +13,6 @@ internal class RazorLanguageQueryParams
     [DataMember(Name = "uri")]
     public required Uri Uri { get; set; }
 
-    [DataMember(Name ="position")]
+    [DataMember(Name = "position")]
     public required Position Position { get; set; }
 }

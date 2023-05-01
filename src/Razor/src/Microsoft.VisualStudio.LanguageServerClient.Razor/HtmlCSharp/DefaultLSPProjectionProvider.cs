@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.LanguageServer.RazorLanguageQuery;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;

@@ -4,19 +4,21 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.RazorLanguageQuery;
 
-internal class RazorLanguageQueryEndpoint : IRazorLanguageQueryHandler
+[LanguageServerEndpoint(LanguageServerConstants.RazorLanguageQueryEndpoint)]
+internal sealed class RazorLanguageQueryEndpoint : IRazorRequestHandler<RazorLanguageQueryParams, RazorLanguageQueryResponse>
 {
-    public bool MutatesSolutionState { get; } = false;
-
     private readonly RazorDocumentMappingService _documentMappingService;
+
+    public bool MutatesSolutionState { get; } = false;
 
     public RazorLanguageQueryEndpoint(RazorDocumentMappingService documentMappingService)
     {
@@ -38,8 +40,8 @@ internal class RazorLanguageQueryEndpoint : IRazorLanguageQueryHandler
         var documentSnapshot = documentContext.Snapshot;
         var documentVersion = documentContext.Version;
 
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-        var sourceText = await documentSnapshot.GetTextAsync();
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+        var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
         var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
         var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
         var responsePosition = request.Position;

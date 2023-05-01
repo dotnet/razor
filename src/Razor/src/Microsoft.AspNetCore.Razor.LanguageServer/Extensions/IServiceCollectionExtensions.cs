@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.InlineCompletion;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.LanguageServer.RazorLanguageQuery;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis.Razor.Completion;
