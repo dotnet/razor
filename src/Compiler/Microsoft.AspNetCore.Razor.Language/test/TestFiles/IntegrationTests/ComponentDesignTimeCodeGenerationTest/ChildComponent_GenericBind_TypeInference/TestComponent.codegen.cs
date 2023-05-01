@@ -15,7 +15,7 @@ namespace Test
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -30,7 +30,8 @@ namespace Test
 #nullable disable
             , -1, 
             __value => Value = __value);
-            __o = __typeInference_CreateMyComponent_0.
+            #pragma warning disable BL0005
+            __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                    Item
@@ -38,7 +39,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);
@@ -56,7 +58,8 @@ __o = typeof(global::Test.MyComponent<>);
 #nullable disable
             , -1, 
             __value => Value = __value);
-            __o = __typeInference_CreateMyComponent_1.
+            #pragma warning disable BL0005
+            __typeInference_CreateMyComponent_1.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                    Item
@@ -64,7 +67,8 @@ __o = typeof(global::Test.MyComponent<>);
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);
@@ -92,16 +96,16 @@ namespace __Blazor.Test.TestComponent
         public static global::Test.MyComponent<TItem> CreateMyComponent_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0, int __seq1, global::System.Action<TItem> __arg1)
         {
         __builder.OpenComponent<global::Test.MyComponent<TItem>>(seq);
-        __builder.AddAttribute(__seq0, "Item", __arg0);
-        __builder.AddAttribute(__seq1, "ItemChanged", __arg1);
+        __builder.AddComponentParameter(__seq0, "Item", __arg0);
+        __builder.AddComponentParameter(__seq1, "ItemChanged", __arg1);
         __builder.CloseComponent();
         return default;
         }
         public static global::Test.MyComponent<TItem> CreateMyComponent_1<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TItem __arg0, int __seq1, global::System.Action<TItem> __arg1)
         {
         __builder.OpenComponent<global::Test.MyComponent<TItem>>(seq);
-        __builder.AddAttribute(__seq0, "Item", __arg0);
-        __builder.AddAttribute(__seq1, "ItemChanged", __arg1);
+        __builder.AddComponentParameter(__seq0, "Item", __arg0);
+        __builder.AddComponentParameter(__seq1, "ItemChanged", __arg1);
         __builder.CloseComponent();
         return default;
         }

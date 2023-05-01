@@ -20,8 +20,11 @@ public class DirectiveTokenEditHandlerTest
     public void CanAcceptChange_ProvisionallyAcceptsNonWhitespaceChanges(int index, int length, string newText)
     {
         // Arrange
-        var directiveTokenHandler = new TestDirectiveTokenEditHandler();
-        directiveTokenHandler.AcceptedCharacters = AcceptedCharactersInternal.NonWhitespace;
+        var directiveTokenHandler = new TestDirectiveTokenEditHandler()
+        {
+            AcceptedCharacters = AcceptedCharactersInternal.NonWhitespace,
+            Tokenizer = TestDirectiveTokenEditHandler.TestTokenizer
+        };
 
         var target = GetSyntaxNode(directiveTokenHandler, "SomeNamespace");
 
@@ -41,8 +44,11 @@ public class DirectiveTokenEditHandlerTest
     public void CanAcceptChange_RejectsWhitespaceChanges(int index, int length, string newText)
     {
         // Arrange
-        var directiveTokenHandler = new TestDirectiveTokenEditHandler();
-        directiveTokenHandler.AcceptedCharacters = AcceptedCharactersInternal.NonWhitespace;
+        var directiveTokenHandler = new TestDirectiveTokenEditHandler()
+        {
+            AcceptedCharacters = AcceptedCharactersInternal.NonWhitespace,
+            Tokenizer = TestDirectiveTokenEditHandler.TestTokenizer
+        };
 
         var target = GetSyntaxNode(directiveTokenHandler, "Some Namespace");
 
@@ -63,19 +69,13 @@ public class DirectiveTokenEditHandlerTest
         {
             builder.Add((SyntaxToken)token.CreateRed());
         }
-        var node = SyntaxFactory.CSharpStatementLiteral(builder.ToList());
+        var node = SyntaxFactory.CSharpStatementLiteral(builder.ToList(), SpanChunkGenerator.Null);
 
-        var context = new SpanContext(SpanChunkGenerator.Null, editHandler);
-
-        return node.WithSpanContext(context);
+        return node.WithEditHandler(editHandler);
     }
 
     private class TestDirectiveTokenEditHandler : DirectiveTokenEditHandler
     {
-        public TestDirectiveTokenEditHandler() : base(content => TestTokenizer(content))
-        {
-        }
-
         public new PartialParseResultInternal CanAcceptChange(SyntaxNode target, SourceChange change)
             => base.CanAcceptChange(target, change);
 

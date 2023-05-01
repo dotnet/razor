@@ -15,7 +15,7 @@ namespace Test
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -30,7 +30,8 @@ namespace Test
 #nullable disable
             , -1, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create(this, 
             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => ParentValue = __value, ParentValue)), -1, () => ParentValue);
-            __o = __typeInference_CreateMyComponent_0.
+            #pragma warning disable BL0005
+            __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                    SomeParam
@@ -38,7 +39,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);
@@ -66,9 +68,9 @@ namespace __Blazor.Test.TestComponent
         public static global::Test.MyComponent<T> CreateMyComponent_0<T>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, T __arg0, int __seq1, global::Microsoft.AspNetCore.Components.EventCallback<T> __arg1, int __seq2, global::System.Linq.Expressions.Expression<global::System.Func<T>> __arg2)
         {
         __builder.OpenComponent<global::Test.MyComponent<T>>(seq);
-        __builder.AddAttribute(__seq0, "SomeParam", __arg0);
-        __builder.AddAttribute(__seq1, "SomeParamChanged", __arg1);
-        __builder.AddAttribute(__seq2, "SomeParamExpression", __arg2);
+        __builder.AddComponentParameter(__seq0, "SomeParam", __arg0);
+        __builder.AddComponentParameter(__seq1, "SomeParamChanged", __arg1);
+        __builder.AddComponentParameter(__seq2, "SomeParamExpression", __arg2);
         __builder.CloseComponent();
         return default;
         }

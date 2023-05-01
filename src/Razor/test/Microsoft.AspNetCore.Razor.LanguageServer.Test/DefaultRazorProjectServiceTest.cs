@@ -10,11 +10,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Moq;
 using Xunit;
@@ -779,7 +779,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        projectService.AddProject(projectFilePath);
+        projectService.AddProject(projectFilePath, rootNamespace: null);
 
         // Assert
         projectSnapshotManager.VerifyAll();
@@ -798,7 +798,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        projectService.AddProject(projectFilePath);
+        projectService.AddProject(projectFilePath, rootNamespace: null);
 
         // Assert
         projectSnapshotManager.VerifyAll();

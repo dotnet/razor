@@ -19,7 +19,7 @@ using Test;
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
 global::System.Object __typeHelper = nameof(AnotherTest);
@@ -32,7 +32,7 @@ global::System.Object __typeHelper = nameof(AnotherTest);
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -41,7 +41,8 @@ global::System.Object __typeHelper = nameof(AnotherTest);
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-            __o = ((global::Test.HeaderComponent)default).
+            #pragma warning disable BL0005
+            ((global::Test.HeaderComponent)default).
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
                  Header
@@ -49,7 +50,8 @@ global::System.Object __typeHelper = nameof(AnotherTest);
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.HeaderComponent);
@@ -61,7 +63,8 @@ __o = typeof(global::Test.HeaderComponent);
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-            __o = ((global::AnotherTest.FooterComponent)default).
+            #pragma warning disable BL0005
+            ((global::AnotherTest.FooterComponent)default).
 #nullable restore
 #line 6 "x:\dir\subdir\Test\TestComponent.cshtml"
                  Footer
@@ -69,7 +72,8 @@ __o = typeof(global::Test.HeaderComponent);
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 6 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::AnotherTest.FooterComponent);

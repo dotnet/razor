@@ -14,10 +14,10 @@ using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
@@ -348,7 +348,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         var tagHelperFilePath = Path.Combine(current!.FullName, testFileName);
         var buffer = File.ReadAllBytes(tagHelperFilePath);
         var serializer = new JsonSerializer();
-        serializer.Converters.Add(new TagHelperDescriptorJsonConverter());
+        serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
 
         using var stream = new MemoryStream(buffer);
         using var streamReader = new StreamReader(stream);

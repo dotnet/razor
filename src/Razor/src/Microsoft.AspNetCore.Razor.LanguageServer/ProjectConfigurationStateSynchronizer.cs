@@ -6,9 +6,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -87,8 +86,9 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
                     }
 
                     var projectFilePath = FilePathNormalizer.Normalize(projectRazorJson.FilePath);
+                    var rootNamespace = projectRazorJson.RootNamespace;
                     _configurationToProjectMap[configurationFilePath] = projectFilePath;
-                    _projectService.AddProject(projectFilePath);
+                    _projectService.AddProject(projectFilePath, rootNamespace);
 
                     _logger.LogInformation("Project configuration file added for project '{0}': '{1}'", projectFilePath, configurationFilePath);
                     EnqueueUpdateProject(projectFilePath, projectRazorJson);

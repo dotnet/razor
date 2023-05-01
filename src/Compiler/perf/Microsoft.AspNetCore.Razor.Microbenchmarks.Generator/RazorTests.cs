@@ -11,10 +11,9 @@ public class RazorTests
     public void Project_Load_Cold()
     {
         // arrange
-        var razorBenchmarks = new RazorBenchmarks();
+        var razorBenchmarks = new ColdBenchmarks();
 
         // act
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Cold;
         razorBenchmarks.Setup();
 
         // assert
@@ -39,7 +38,6 @@ public class RazorTests
         var razorBenchmarks = new RazorBenchmarks();
 
         // act
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Warm;
         razorBenchmarks.Setup();
 
         // assert
@@ -56,7 +54,6 @@ public class RazorTests
     {
         // arrange
         var razorBenchmarks = new RazorBenchmarks();
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Warm;
         razorBenchmarks.Setup();
 
         // act
@@ -74,7 +71,6 @@ public class RazorTests
     {
         // arrange
         var razorBenchmarks = new RazorBenchmarks();
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Warm;
         razorBenchmarks.Setup();
 
         // check the contents of the generated 0 page
@@ -95,7 +91,6 @@ public class RazorTests
     {
         // arrange
         var razorBenchmarks = new RazorBenchmarks();
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Warm;
         razorBenchmarks.Setup();
 
         // act
@@ -112,7 +107,6 @@ public class RazorTests
     {
         // arrange
         var razorBenchmarks = new RazorBenchmarks();
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Warm;
         razorBenchmarks.Setup();
 
         // check the contents of the counter page
@@ -133,13 +127,12 @@ public class RazorTests
     {
         // arrange
         var razorBenchmarks = new RazorBenchmarks();
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Warm;
         razorBenchmarks.Setup();
 
         // check the contents of the counter and index page
         var initialResults = razorBenchmarks.Project!.GeneratorDriver.GetRunResult();
         Assert.Contains("public int IncrementAmount", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Counter_razor.g.cs").SourceText.ToString());
-        Assert.Contains("__builder.AddAttribute(6, \"IncrementAmount\", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>(", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Index_razor.g.cs").SourceText.ToString());
+        Assert.Contains("__builder.AddAttribute(6, \"IncrementAmount\", (object)(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>(", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Index_razor.g.cs").SourceText.ToString());
 
         // act
         var driver = razorBenchmarks.Razor_Edit_Dependent();
@@ -148,7 +141,7 @@ public class RazorTests
         var results = driver.GetRunResult();
         Assert.Empty(results.Diagnostics);
         Assert.DoesNotContain("public int IncrementAmount", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Counter_razor.g.cs").SourceText.ToString());
-        Assert.Contains("__builder.AddAttribute(6, \"IncrementAmount\", \"5\");", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Index_razor.g.cs").SourceText.ToString());
+        Assert.Contains("__builder.AddAttribute(6, \"IncrementAmount\", (object)(\"5\"));", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Index_razor.g.cs").SourceText.ToString());
     }
 
     [Fact]
@@ -156,7 +149,6 @@ public class RazorTests
     {
         // arrange
         var razorBenchmarks = new RazorBenchmarks();
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Warm;
         razorBenchmarks.Setup();
 
         // check the contents of the index page

@@ -12,7 +12,7 @@ internal class TestRazorLSPOptionsMonitor : RazorLSPOptionsMonitor
     public TestRazorLSPOptionsMonitor(
         IConfigurationSyncService configurationService,
         IOptionsMonitorCache<RazorLSPOptions> cache)
-        : base(configurationService, cache)
+        : base(configurationService, cache, RazorLSPOptions.Default)
     {
     }
 

@@ -7,6 +7,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
@@ -323,6 +324,102 @@ namespace Test
     }
 
     [Fact]
+    public void Component_WithEscapedParameterName()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class MyComponent : ComponentBase
+                {
+                    [Parameter]
+                    public int @class { get; set; }
+                    [Parameter]
+                    public int Prop2 { get; set; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent class="1" Prop2="2">
+            </MyComponent>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void Component_WithWriteOnlyParameter()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class MyComponent : ComponentBase
+                {
+                    [Parameter]
+                    public int Prop { set { _ = value; } }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent Prop="1">
+            </MyComponent>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void Component_WithInitOnlyParameter()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            namespace System.Runtime.CompilerServices;
+
+            internal static class IsExternalInit
+            {
+            }
+            """));
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class MyComponent : ComponentBase
+                {
+                    [Parameter]
+                    public int Prop { get; init; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent Prop="1">
+            </MyComponent>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void ComponentWithTypeParameters_WithSemicolon()
     {
         // Arrange
@@ -533,7 +630,7 @@ public struct MyStruct
         CompileToAssembly(generated);
     }
 
-    [Fact] // https://github.com/dotnet/razor/issues/7628
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7628")]
     public void ComponentWithTypeParameterValueTuple_ExplicitGenericArguments()
     {
         // Act
@@ -1223,6 +1320,272 @@ namespace Test
 
         Assert.Empty(generated.Diagnostics);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
+    public void AddAttribute_ImplicitStringConversion_TypeInference()
+    {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class MyClass<T>
+            {
+                public static implicit operator string(MyClass<T> c) => throw null!;
+            }
+
+            public class MyComponent<T> : ComponentBase
+            {
+                [Parameter]
+                public MyClass<T> MyParameter { get; set; } = null!;
+
+                [Parameter]
+                public bool BoolParameter { get; set; }
+
+                [Parameter]
+                public string StringParameter { get; set; } = null!;
+
+                [Parameter]
+                public System.Delegate DelegateParameter { get; set; } = null!;
+
+                [Parameter]
+                public object ObjectParameter { get; set; } = null!;
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent MyParameter="c"
+                BoolParameter="true"
+                StringParameter="str"
+                DelegateParameter="() => { }"
+                ObjectParameter="c" />
+
+            @code {
+                private readonly MyClass<string> c = new();
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
+    public void AddAttribute_ImplicitStringConversion_Bind()
+    {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+            
+            public class MyClass<T>
+            {
+                public static implicit operator string(MyClass<T> c) => throw null!;
+            }
+
+            public class MyComponent<T> : ComponentBase
+            {
+                [Parameter]
+                public MyClass<T> MyParameter { get; set; }
+
+                [Parameter]
+                public EventCallback<MyClass<T>> MyParameterChanged { get; set; }
+            
+                [Parameter]
+                public bool BoolParameter { get; set; }
+            
+                [Parameter]
+                public string StringParameter { get; set; } = null!;
+            
+                [Parameter]
+                public System.Delegate DelegateParameter { get; set; } = null!;
+            
+                [Parameter]
+                public object ObjectParameter { get; set; } = null!;
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent @bind-MyParameter="c"
+                BoolParameter="true"
+                StringParameter="str"
+                DelegateParameter="() => { }"
+                ObjectParameter="c" />
+
+            @code {
+                private MyClass<string> c = new();
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
+    public void AddAttribute_ImplicitStringConversion_CustomEvent()
+    {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+            
+            public class MyClass<T>
+            {
+                public static implicit operator string(MyClass<T> c) => throw null!;
+            }
+
+            public class MyComponent<T> : ComponentBase
+            {
+                [Parameter]
+                public MyClass<T> MyParameter { get; set; }
+
+                [Parameter]
+                public EventCallback MyEvent { get; set; }
+            
+                [Parameter]
+                public bool BoolParameter { get; set; }
+            
+                [Parameter]
+                public string StringParameter { get; set; } = null!;
+            
+                [Parameter]
+                public System.Delegate DelegateParameter { get; set; } = null!;
+            
+                [Parameter]
+                public object ObjectParameter { get; set; } = null!;
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent MyParameter="c"
+                MyEvent="() => { }"
+                BoolParameter="true"
+                StringParameter="str"
+                DelegateParameter="() => { }"
+                ObjectParameter="c" />
+
+            @code {
+                private MyClass<string> c = new();
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
+    public void AddAttribute_ImplicitStringConversion_BindUnknown()
+    {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+            
+            public class MyClass
+            {
+                public static implicit operator string(MyClass c) => throw null!;
+            }
+
+            public class MyComponent : ComponentBase
+            {
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent @bind-Value="c" />
+
+            @code {
+                private MyClass c = new();
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
+    public void AddAttribute_ImplicitStringConversion_BindUnknown_Assignment()
+    {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+            
+            public class MyClass
+            {
+                public static implicit operator string(MyClass c) => throw null!;
+            }
+
+            public class MyComponent : ComponentBase
+            {
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent @bind-Value="c1 = c2" />
+
+            @code {
+                private MyClass c1 = new();
+                private MyClass c2 = new();
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
+    public void AddAttribute_ImplicitBooleanConversion()
+    {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+            
+            public class MyClass<T>
+            {
+                public static implicit operator bool(MyClass<T> c) => throw null!;
+            }
+
+            public class MyComponent<T> : ComponentBase
+            {
+                [Parameter]
+                public MyClass<T> MyParameter { get; set; }
+            
+                [Parameter]
+                public bool BoolParameter { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent MyParameter="c" BoolParameter="c" />
+
+            @code {
+                private MyClass<string> c = new();
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     #endregion
 
     #region Bind
@@ -2005,14 +2368,12 @@ namespace Test
         AdditionalSyntaxTrees.Add(Parse(@"
 using System;
 using Microsoft.AspNetCore.Components;
-
 namespace Test
 {
     public class MyComponent : ComponentBase
     {
         [Parameter]
         public int Value { get; set; }
-
         [Parameter]
         public EventCallback<int> ValueChanged { get; set; }
     }
@@ -2023,18 +2384,174 @@ namespace Test
 <MyComponent @bind-Value:get=""ParentValue"" @bind-Value:set=""UpdateValue"" />
 @code {
     public int ParentValue { get; set; } = 42;
-
     public EventCallback<int> UpdateValue { get; set; }
 }");
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated);
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+
+        var error = Assert.Single(result.Diagnostics);
+        // Argument 1: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback' to '...' (System.Action/System.Func<Task>)
+        Assert.Equal("CS1503", error.Id);
     }
 
     [Fact]
     public void BindToGenericComponent_InferredType_WithGetSet_EventCallback()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+namespace Test
+{
+    public class MyComponent<TValue> : ComponentBase
+    {
+        [Parameter]
+        public TValue Value { get; set; }
+        [Parameter]
+        public EventCallback<TValue> ValueChanged { get; set; }
+    }
+    public class CustomValue
+    {
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent @bind-Value:get=""ParentValue"" @bind-Value:set=""UpdateValue"" />
+@code {
+    public CustomValue ParentValue { get; set; } = new CustomValue();
+    public EventCallback<CustomValue> UpdateValue { get; set; }
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+
+        var error = Assert.Single(result.Diagnostics);
+        // Argument 1: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback' to '...' (System.Action/System.Func<Task>)
+        Assert.Equal("CS1503", error.Id);
+    }
+
+    [Fact]
+    public void BindToGenericComponent_ExplicitType_WithGetSet_EventCallback()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+namespace Test
+{
+    public class MyComponent<TValue> : ComponentBase
+    {
+        [Parameter]
+        public TValue Value { get; set; }
+        [Parameter]
+        public EventCallback<TValue> ValueChanged { get; set; }
+    }
+    public class CustomValue
+    {
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent TValue=""CustomValue"" @bind-Value:get=""ParentValue"" @bind-Value:set=""UpdateValue"" />
+@code {
+    public CustomValue ParentValue { get; set; } = new CustomValue();
+    public EventCallback<CustomValue> UpdateValue { get; set; }
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+
+        var error = Assert.Single(result.Diagnostics);
+        // Argument 1: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback' to '...' (System.Action/System.Func<Task>)
+        Assert.Equal("CS1503", error.Id);
+
+    }
+
+    [Fact]
+    public void GenericComponentBindToGenericComponent_InferredType_WithGetSet_EventCallback()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+namespace Test
+{
+    public class MyComponent<TValue> : ComponentBase
+    {
+        [Parameter]
+        public TValue Value { get; set; }
+        [Parameter]
+        public EventCallback<TValue> ValueChanged { get; set; }
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+@typeparam TParam
+<MyComponent @bind-Value:get=""ParentValue"" @bind-Value:set=""UpdateValue"" />
+@code {
+    public TParam ParentValue { get; set; } = default;
+    public EventCallback<TParam> UpdateValue { get; set; }
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+
+        var error = Assert.Single(result.Diagnostics);
+        // Argument 1: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback' to '...' (System.Action/System.Func<Task>)
+        Assert.Equal("CS1503", error.Id);
+    }
+
+    [Fact]
+    public void GenericBindToGenericComponent_ExplicitType_WithGetSet_EventCallback()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+namespace Test
+{
+    public class MyComponent<TValue> : ComponentBase
+    {
+        [Parameter]
+        public TValue Value { get; set; }
+        [Parameter]
+        public EventCallback<TValue> ValueChanged { get; set; }
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+@typeparam TParam
+<MyComponent TValue=""TParam"" @bind-Value:get=""ParentValue"" @bind-Value:set=""UpdateValue"" />
+@code {
+    public TParam ParentValue { get; set; } = default;
+    public EventCallback<TParam> UpdateValue { get; set; }
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+
+        var error = Assert.Single(result.Diagnostics);
+        // Argument 1: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback' to '...' (System.Action/System.Func<Task>)
+        Assert.Equal("CS1503", error.Id);
+    }
+
+    [Fact]
+    public void BindToGenericComponent_InferredType_WithGetSet_Action()
     {
         // Arrange
         AdditionalSyntaxTrees.Add(Parse(@"
@@ -2063,7 +2580,7 @@ namespace Test
 @code {
     public CustomValue ParentValue { get; set; } = new CustomValue();
 
-    public EventCallback<CustomValue> UpdateValue { get; set; }
+    public void UpdateValue(CustomValue value) => ParentValue = value;
 }");
 
         // Assert
@@ -2073,7 +2590,47 @@ namespace Test
     }
 
     [Fact]
-    public void BindToGenericComponent_ExplicitType_WithGetSet_EventCallback()
+    public void BindToGenericComponent_InferredType_WithGetSet_Function()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<TValue> : ComponentBase
+    {
+        [Parameter]
+        public TValue Value { get; set; }
+
+        [Parameter]
+        public EventCallback<TValue> ValueChanged { get; set; }
+    }
+
+    public class CustomValue
+    {
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent @bind-Value:get=""ParentValue"" @bind-Value:set=""UpdateValue"" />
+@code {
+    public CustomValue ParentValue { get; set; } = new CustomValue();
+
+    public Task UpdateValue(CustomValue value) { ParentValue = value; return Task.CompletedTask; }
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+
+    [Fact]
+    public void BindToGenericComponent_ExplicitType_WithGetSet_Action()
     {
         // Arrange
         AdditionalSyntaxTrees.Add(Parse(@"
@@ -2102,7 +2659,7 @@ namespace Test
 @code {
     public CustomValue ParentValue { get; set; } = new CustomValue();
 
-    public EventCallback<CustomValue> UpdateValue { get; set; }
+    public void UpdateValue(CustomValue value) => ParentValue = value;
 }");
 
         // Assert
@@ -2112,7 +2669,46 @@ namespace Test
     }
 
     [Fact]
-    public void GenericComponentBindToGenericComponent_InferredType_WithGetSet_EventCallback()
+    public void BindToGenericComponent_ExplicitType_WithGetSet_Function()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<TValue> : ComponentBase
+    {
+        [Parameter]
+        public TValue Value { get; set; }
+
+        [Parameter]
+        public EventCallback<TValue> ValueChanged { get; set; }
+    }
+
+    public class CustomValue
+    {
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent TValue=""CustomValue"" @bind-Value:get=""ParentValue"" @bind-Value:set=""UpdateValue"" />
+@code {
+    public CustomValue ParentValue { get; set; } = new CustomValue();
+
+        public Task UpdateValue(CustomValue value) { ParentValue = value; return Task.CompletedTask; }
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void GenericComponentBindToGenericComponent_InferredType_WithGetSet_Action()
     {
         // Arrange
         AdditionalSyntaxTrees.Add(Parse(@"
@@ -2138,7 +2734,7 @@ namespace Test
 @code {
     public TParam ParentValue { get; set; } = default;
 
-    public EventCallback<TParam> UpdateValue { get; set; }
+    public void UpdateValue(TParam value) { ParentValue = value; }
 }");
 
         // Assert
@@ -2148,7 +2744,43 @@ namespace Test
     }
 
     [Fact]
-    public void GenericBindToGenericComponent_ExplicitType_WithGetSet_EventCallback()
+    public void GenericComponentBindToGenericComponent_InferredType_WithGetSet_Function()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<TValue> : ComponentBase
+    {
+        [Parameter]
+        public TValue Value { get; set; }
+
+        [Parameter]
+        public EventCallback<TValue> ValueChanged { get; set; }
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+@typeparam TParam
+<MyComponent @bind-Value:get=""ParentValue"" @bind-Value:set=""UpdateValue"" />
+@code {
+    public TParam ParentValue { get; set; } = default;
+
+    public Task UpdateValue(TParam value) { ParentValue = value; return Task.CompletedTask; }
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void GenericBindToGenericComponent_ExplicitType_WithGetSet_Action()
     {
         // Arrange
         AdditionalSyntaxTrees.Add(Parse(@"
@@ -2174,7 +2806,43 @@ namespace Test
 @code {
     public TParam ParentValue { get; set; } = default;
 
-    public EventCallback<TParam> UpdateValue { get; set; }
+    public void UpdateValue(TParam value) { ParentValue = value; }
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void GenericBindToGenericComponent_ExplicitType_WithGetSet_Function()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<TValue> : ComponentBase
+    {
+        [Parameter]
+        public TValue Value { get; set; }
+
+        [Parameter]
+        public EventCallback<TValue> ValueChanged { get; set; }
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+@typeparam TParam
+<MyComponent TValue=""TParam"" @bind-Value:get=""ParentValue"" @bind-Value:set=""UpdateValue"" />
+@code {
+    public TParam ParentValue { get; set; } = default;
+
+    public Task UpdateValue(TParam value) { ParentValue = value; return Task.CompletedTask; }
 }");
 
         // Assert
@@ -2249,6 +2917,42 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void BindToComponent_WithAfter_EventCallback()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter]
+        public int Value { get; set; }
+        [Parameter]
+        public EventCallback<int> ValueChanged { get; set; }
+    }
+}"));
+
+        // Act
+        var generated = CompileToCSharp(@"
+<MyComponent @bind-Value:get=""ParentValue"" @bind-Value:after=""UpdateValue"" />
+@code {
+    public int ParentValue { get; set; } = 42;
+    public EventCallback UpdateValue { get; set; }
+}");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        var result = CompileToAssembly(generated, throwOnFailure: false);
+
+        var error = Assert.Single(result.Diagnostics);
+        // Argument 1: cannot convert from 'Microsoft.AspNetCore.Components.EventCallback' to '...' (System.Action/System.Func<Task>)
+        Assert.Equal("CS1503", error.Id);
     }
 
     [Fact]
@@ -2523,41 +3227,6 @@ namespace Test
 <MyComponent @bind-Value:get=""ParentValue"" @bind-Value:after=""() => { }"" />
 @code {
     public int ParentValue { get; set; } = 42;
-}");
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated);
-    }
-
-    [Fact]
-    public void BindToComponent_WithAfter_EventCallback()
-    {
-        // Arrange
-        AdditionalSyntaxTrees.Add(Parse(@"
-using System;
-using Microsoft.AspNetCore.Components;
-
-namespace Test
-{
-    public class MyComponent : ComponentBase
-    {
-        [Parameter]
-        public int Value { get; set; }
-
-        [Parameter]
-        public EventCallback<int> ValueChanged { get; set; }
-    }
-}"));
-
-        // Act
-        var generated = CompileToCSharp(@"
-<MyComponent @bind-Value:get=""ParentValue"" @bind-Value:after=""UpdateValue"" />
-@code {
-    public int ParentValue { get; set; } = 42;
-
-    public EventCallback UpdateValue { get; set; }
 }");
 
         // Assert
@@ -6941,7 +7610,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Theory] // https://github.com/dotnet/razor/issues/7074
+    [Theory, WorkItem("https://github.com/dotnet/razor/issues/7074")]
     [InlineData("struct", null, "1")]
     [InlineData("class", null, "string.Empty")]
     [InlineData("notnull", null, "1")]
@@ -7386,6 +8055,58 @@ namespace Test
     public void Foo() { System.GC.KeepAlive(myInstance); }
 }
 ");
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8170")]
+    public void Component_WithRef_Nullable()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            <TestComponent @ref="myComponent" />
+
+            @code {
+                private TestComponent myComponent = null!;
+                public void Use() { System.GC.KeepAlive(myComponent); }
+            }
+            """,
+            nullableEnable: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8170")]
+    public void Component_WithRef_Nullable_Generic()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class MyComponent<T> : ComponentBase
+            {
+                [Parameter] public T MyParameter { get; set; } = default!;
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent @ref="myComponent" MyParameter="1" />
+
+            @code {
+                private MyComponent<int> myComponent = null!;
+                public void Use() { System.GC.KeepAlive(myComponent); }
+            }
+            """,
+            nullableEnable: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -8767,7 +9488,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Fact] // https://github.com/dotnet/blazor/issues/597
+    [Fact, WorkItem("https://github.com/dotnet/blazor/issues/597")]
     public void Regression_597()
     {
         // Arrange
@@ -8833,7 +9554,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Fact] // https://github.com/dotnet/blazor/issues/772
+    [Fact, WorkItem("https://github.com/dotnet/blazor/issues/772")]
     public void Regression_772()
     {
         // Arrange
@@ -8871,7 +9592,7 @@ Welcome to your new app.
             d => Assert.Equal("RZ1035", d.Id));
     }
 
-    [Fact] // https://github.com/dotnet/blazor/issues/773
+    [Fact, WorkItem("https://github.com/dotnet/blazor/issues/773")]
     public void Regression_773()
     {
         // Arrange

@@ -19,7 +19,7 @@ using N;
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
 global::System.Object TParam = null!;
@@ -32,7 +32,7 @@ global::System.Object TParam = null!;
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -62,7 +62,8 @@ global::System.Object TParam = null!;
 #nullable disable
             }
             );
-            __o = __typeInference_CreateTestComponent_0.
+            #pragma warning disable BL0005
+            __typeInference_CreateTestComponent_0.
 #nullable restore
 #line 12 "x:\dir\subdir\Test\TestComponent.cshtml"
                InferParam
@@ -70,7 +71,8 @@ global::System.Object TParam = null!;
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 12 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.TestComponent<>);
@@ -102,8 +104,8 @@ namespace __Blazor.Test.TestComponent
         public static global::Test.TestComponent<TParam> CreateTestComponent_0<TParam>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TParam __arg0, int __seq1, global::Microsoft.AspNetCore.Components.RenderFragment<(global::N.MyClass I1, global::N.MyStruct I2, TParam P)> __arg1)
         {
         __builder.OpenComponent<global::Test.TestComponent<TParam>>(seq);
-        __builder.AddAttribute(__seq0, "InferParam", __arg0);
-        __builder.AddAttribute(__seq1, "Template", __arg1);
+        __builder.AddComponentParameter(__seq0, "InferParam", __arg0);
+        __builder.AddComponentParameter(__seq1, "Template", __arg1);
         __builder.CloseComponent();
         return default;
         }

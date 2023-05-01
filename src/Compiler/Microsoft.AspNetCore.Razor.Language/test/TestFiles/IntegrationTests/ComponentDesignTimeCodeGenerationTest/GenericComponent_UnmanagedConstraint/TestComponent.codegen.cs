@@ -22,7 +22,7 @@ using Test;
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -36,7 +36,8 @@ using Test;
 #line hidden
 #nullable disable
             );
-            __o = __typeInference_CreateMyComponent_0.
+            #pragma warning disable BL0005
+            __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
              Parameter
@@ -44,7 +45,8 @@ using Test;
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);
@@ -65,7 +67,7 @@ namespace __Blazor.Test.TestComponent
             where T : unmanaged
         {
         __builder.OpenComponent<global::Test.MyComponent<T>>(seq);
-        __builder.AddAttribute(__seq0, "Parameter", __arg0);
+        __builder.AddComponentParameter(__seq0, "Parameter", __arg0);
         __builder.CloseComponent();
         return default;
         }

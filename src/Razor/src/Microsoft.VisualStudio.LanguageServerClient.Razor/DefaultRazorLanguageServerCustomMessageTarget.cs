@@ -16,18 +16,18 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -49,7 +49,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
     private readonly IClientSettingsManager _editorSettingsManager;
     private readonly LSPDocumentSynchronizer _documentSynchronizer;
-    private readonly ILogger _logger;
+    private readonly IOutputWindowLogger? _outputWindowLogger;
 
     [ImportingConstructor]
     public DefaultRazorLanguageServerCustomMessageTarget(
@@ -59,7 +59,8 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         FormattingOptionsProvider formattingOptionsProvider,
         IClientSettingsManager editorSettingsManager,
         LSPDocumentSynchronizer documentSynchronizer,
-        OutputWindowLogger logger)
+        ITelemetryReporter telemetryReporter,
+        [Import(AllowDefault = true)] IOutputWindowLogger? outputWindowLogger)
     {
         if (documentManager is null)
         {
@@ -91,11 +92,6 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             throw new ArgumentNullException(nameof(documentSynchronizer));
         }
 
-        if (logger is null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
-
         _documentManager = (TrackingLSPDocumentManager)documentManager;
 
         if (_documentManager is null)
@@ -103,12 +99,18 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             throw new ArgumentException("The LSP document manager should be of type " + typeof(TrackingLSPDocumentManager).FullName, nameof(_documentManager));
         }
 
+        if (telemetryReporter is null)
+        {
+            throw new ArgumentNullException(nameof(telemetryReporter));
+        }
+
         _joinableTaskFactory = joinableTaskContext.Factory;
-        _requestInvoker = requestInvoker;
+
+        _requestInvoker = new TelemetryReportingLSPRequestInvoker(requestInvoker, telemetryReporter);
         _formattingOptionsProvider = formattingOptionsProvider;
         _editorSettingsManager = editorSettingsManager;
         _documentSynchronizer = documentSynchronizer;
-        _logger = logger;
+        _outputWindowLogger = outputWindowLogger;
     }
 
     // Testing constructor
@@ -1017,10 +1019,27 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         }
         else if (request.OriginatingKind == RazorLanguageKind.CSharp)
         {
-            (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
-                request.HostDocument.Version,
-                request.HostDocument.Uri,
-                cancellationToken);
+            // TODO this is a partial workaround to fix prefix completion by avoiding sync (which times out during resolve endpoint) if we are currently at a higher version value
+            // this does not fix postfix completion and should be superceded by eventual synchronization fix
+
+            var futureDataSyncResult =
+                (_documentSynchronizer as DefaultLSPDocumentSynchronizer)?.TryReturnPossiblyFutureSnapshot<CSharpVirtualDocumentSnapshot>(
+                    request.HostDocument.Version,
+                    request.HostDocument.Uri);
+            if (futureDataSyncResult?.Synchronized == true)
+            {
+                (synchronized, virtualDocumentSnapshot) = futureDataSyncResult;
+            }
+            else
+            {
+                (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer
+                        .TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                            request.HostDocument.Version,
+                            request.HostDocument.Uri,
+                            rejectOnNewerParallelRequest: true,
+                            cancellationToken);
+            }
+
             languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
         }
         else
@@ -1164,7 +1183,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Exception thrown in PullDiagnostic delegation");
+            _outputWindowLogger?.LogError(e, "Exception thrown in PullDiagnostic delegation");
             // Return null if any of the tasks getting diagnostics results in an error
             return null;
         }

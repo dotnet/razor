@@ -207,8 +207,8 @@ public class CSharpCodeParserTest
         var document = RazorSyntaxTree.Parse(source);
 
         // Assert
-        var erroredNode = document.Root.DescendantNodes().Last(n => n.GetSpanContext()?.ChunkGenerator is TagHelperPrefixDirectiveChunkGenerator);
-        var chunkGenerator = Assert.IsType<TagHelperPrefixDirectiveChunkGenerator>(erroredNode.GetSpanContext().ChunkGenerator);
+        var erroredNode = document.Root.DescendantNodes().Last(n => n.GetChunkGenerator() is TagHelperPrefixDirectiveChunkGenerator);
+        var chunkGenerator = Assert.IsType<TagHelperPrefixDirectiveChunkGenerator>(erroredNode.GetChunkGenerator());
         var diagnostic = Assert.Single(chunkGenerator.Diagnostics);
         Assert.Equal(expectedDiagnostic, diagnostic);
     }
@@ -220,10 +220,12 @@ public class CSharpCodeParserTest
         var source = TestRazorSourceDocument.Create();
         var options = RazorParserOptions.CreateDefault();
         var context = new ParserContext(source, options);
-        var parser = new CSharpCodeParser(context);
 
         // Act & Assert (Does not throw)
-        parser.MapDirectives((b, t) => { }, "test");
-        parser.MapDirectives((b, t) => { }, "test");
+        var directiveDescriptors = new[] {
+            DirectiveDescriptor.CreateDirective("test", DirectiveKind.SingleLine),
+            DirectiveDescriptor.CreateDirective("test", DirectiveKind.SingleLine),
+        };
+        var parser = new CSharpCodeParser(directiveDescriptors, context);
     }
 }

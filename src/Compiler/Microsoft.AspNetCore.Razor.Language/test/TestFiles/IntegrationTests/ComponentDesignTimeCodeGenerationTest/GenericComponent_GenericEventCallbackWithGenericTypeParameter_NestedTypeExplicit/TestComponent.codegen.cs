@@ -19,7 +19,7 @@ using Test;
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 global::System.Object TChild = null!;
@@ -32,7 +32,7 @@ global::System.Object TChild = null!;
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -58,7 +58,8 @@ global::System.Object TChild = null!;
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-            __o = ((global::Test.MyComponent<TChild>)default).
+            #pragma warning disable BL0005
+            ((global::Test.MyComponent<TChild>)default).
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
                             MyEvent
@@ -66,7 +67,8 @@ global::System.Object TChild = null!;
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);

@@ -7,12 +7,12 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Serialization;
-using Microsoft.CodeAnalysis.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json;
 
@@ -68,8 +68,14 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
 
     internal IReadOnlyList<TagHelperDescriptor> GetTagHelperDescriptors()
     {
-        var tagHelpers = Path.Combine(RepoRoot, "src", "Razor", "benchmarks", "Microsoft.AspNetCore.Razor.Microbenchmarks", "taghelpers.json");
-        return ReadTagHelpers(tagHelpers);
+        var tagHelperBuffer = Resources.GetResourceBytes("taghelpers.json");
+
+        var serializer = new JsonSerializer();
+        serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
+        using var stream = new MemoryStream(tagHelperBuffer);
+        using var reader = new JsonTextReader(new StreamReader(stream));
+
+        return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader) ?? Array.Empty<TagHelperDescriptor>();
     }
 
     internal DefaultProjectSnapshotManager CreateProjectSnapshotManager()
@@ -89,15 +95,5 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
 #pragma warning disable CA2000 // Dispose objects before losing scope
             new AdhocWorkspace(services));
 #pragma warning restore CA2000 // Dispose objects before losing scope
-    }
-
-    private static IReadOnlyList<TagHelperDescriptor> ReadTagHelpers(string filePath)
-    {
-        var serializer = new JsonSerializer();
-        serializer.Converters.Add(RazorDiagnosticJsonConverter.Instance);
-        serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
-
-        using var reader = new JsonTextReader(File.OpenText(filePath));
-        return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader) ?? Array.Empty<TagHelperDescriptor>();
     }
 }

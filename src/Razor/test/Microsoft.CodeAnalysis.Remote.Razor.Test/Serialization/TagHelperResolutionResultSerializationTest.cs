@@ -9,9 +9,8 @@ using System.IO;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Xunit;
@@ -47,8 +46,8 @@ public class TagHelperResolutionResultSerializationTest : TestBase
         var tagHelperFilePath = Path.Combine(current.FullName, testFileName);
         var buffer = File.ReadAllBytes(tagHelperFilePath);
         var serializer = new JsonSerializer();
-        serializer.Converters.Add(new TagHelperDescriptorJsonConverter());
-        serializer.Converters.Add(new TagHelperResolutionResultJsonConverter());
+        serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
+        serializer.Converters.Add(TagHelperResolutionResultJsonConverter.Instance);
 
         IReadOnlyList<TagHelperDescriptor> deserializedTagHelpers;
         using (var stream = new MemoryStream(buffer))

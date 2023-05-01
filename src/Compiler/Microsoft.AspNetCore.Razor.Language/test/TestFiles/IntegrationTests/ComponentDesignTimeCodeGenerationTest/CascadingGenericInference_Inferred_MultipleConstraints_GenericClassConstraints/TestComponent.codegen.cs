@@ -22,7 +22,7 @@ using Models;
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -47,7 +47,8 @@ using Models;
             ;
             __builder.AddAttribute(-1, "ColumnsTemplate", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
                 var __typeInference_CreateColumn_0 = global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_0(__builder2, -1, default(WeatherForecast), -1, "", -1, "", -1, "", -1, "");
-                __o = __typeInference_CreateColumn_0.
+                #pragma warning disable BL0005
+                __typeInference_CreateColumn_0.
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
                              FieldName
@@ -55,7 +56,8 @@ using Models;
 #line default
 #line hidden
 #nullable disable
-                ;
+                 = default;
+                #pragma warning restore BL0005
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.Column<>);
@@ -85,10 +87,10 @@ namespace __Blazor.Test.TestComponent
             where TItem : global::System.Collections.Generic.IEnumerable<TItem>
         {
         __builder.OpenComponent<global::Test.Column<TItem>>(seq);
-        __builder.AddAttribute(__seq0, "Title", __arg0);
-        __builder.AddAttribute(__seq1, "FieldName", __arg1);
-        __builder.AddAttribute(__seq2, "Format", __arg2);
-        __builder.AddAttribute(__seq3, "Width", __arg3);
+        __builder.AddComponentParameter(__seq0, "Title", __arg0);
+        __builder.AddComponentParameter(__seq1, "FieldName", __arg1);
+        __builder.AddComponentParameter(__seq2, "Format", __arg2);
+        __builder.AddComponentParameter(__seq3, "Width", __arg3);
         __builder.CloseComponent();
         return default;
         }

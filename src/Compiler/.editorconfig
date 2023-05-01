@@ -21,6 +21,7 @@ insert_final_newline = true
 
 [*.cs]
 indent_size = 4
+charset = utf-8-bom
 dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
 
@@ -85,7 +86,7 @@ dotnet_diagnostic.CA1018.severity = warning
 dotnet_diagnostic.CA1047.severity = warning
 
 # CA1305: Specify IFormatProvider
-dotnet_diagnostic.CA1305.severity = warning
+dotnet_diagnostic.CA1305.severity = none
 
 # CA1507: Use nameof to express symbol names
 dotnet_diagnostic.CA1507.severity = warning

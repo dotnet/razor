@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.Serialization;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
@@ -96,8 +96,8 @@ public class TagHelperDescriptorCacheTest : TestBase
     private IReadOnlyList<TagHelperDescriptor> ReadTagHelpers(Stream stream)
     {
         var serializer = new JsonSerializer();
-        serializer.Converters.Add(new RazorDiagnosticJsonConverter());
-        serializer.Converters.Add(new TagHelperDescriptorJsonConverter());
+        serializer.Converters.Add(RazorDiagnosticJsonConverter.Instance);
+        serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
 
         IReadOnlyList<TagHelperDescriptor> result;
 

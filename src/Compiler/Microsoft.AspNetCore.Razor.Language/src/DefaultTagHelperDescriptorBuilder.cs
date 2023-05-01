@@ -1,65 +1,81 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder
+internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder, IBuilder<TagHelperDescriptor>
 {
-    // Required values
+    private static readonly ObjectPool<DefaultTagHelperDescriptorBuilder> s_pool = DefaultPool.Create(Policy.Instance);
+
+    public static DefaultTagHelperDescriptorBuilder GetInstance(string name, string assemblyName)
+        => GetInstance(TagHelperConventions.DefaultKind, name, assemblyName);
+
+    public static DefaultTagHelperDescriptorBuilder GetInstance(string kind, string name, string assemblyName)
+    {
+        var builder = s_pool.Get();
+
+        builder._kind = kind;
+        builder._name = name;
+        builder._assemblyName = assemblyName;
+
+        builder.InitializeMetadata();
+
+        return builder;
+    }
+
+    public static void ReturnInstance(DefaultTagHelperDescriptorBuilder builder)
+        => s_pool.Return(builder);
+
+    private static readonly ObjectPool<HashSet<AllowedChildTagDescriptor>> s_allowedChildTagSetPool
+        = HashSetPool<AllowedChildTagDescriptor>.Create(AllowedChildTagDescriptorComparer.Default);
+
+    private static readonly ObjectPool<HashSet<BoundAttributeDescriptor>> s_boundAttributeSetPool
+        = HashSetPool<BoundAttributeDescriptor>.Create(BoundAttributeDescriptorComparer.Default);
+
+    private static readonly ObjectPool<HashSet<TagMatchingRuleDescriptor>> s_tagMatchingRuleSetPool
+        = HashSetPool<TagMatchingRuleDescriptor>.Create(TagMatchingRuleDescriptorComparer.Default);
+
+    private string? _kind;
+    private string? _name;
+    private string? _assemblyName;
+
+    private List<DefaultAllowedChildTagDescriptorBuilder>? _allowedChildTags;
+    private List<DefaultBoundAttributeDescriptorBuilder>? _attributeBuilders;
+    private List<DefaultTagMatchingRuleDescriptorBuilder>? _tagMatchingRuleBuilders;
+    private RazorDiagnosticCollection? _diagnostics;
     private readonly Dictionary<string, string> _metadata;
 
-    private List<DefaultAllowedChildTagDescriptorBuilder> _allowedChildTags;
-    private List<DefaultBoundAttributeDescriptorBuilder> _attributeBuilders;
-    private List<DefaultTagMatchingRuleDescriptorBuilder> _tagMatchingRuleBuilders;
-    private RazorDiagnosticCollection _diagnostics;
+    private DefaultTagHelperDescriptorBuilder()
+    {
+        _metadata = new Dictionary<string, string>(StringComparer.Ordinal);
+    }
 
     public DefaultTagHelperDescriptorBuilder(string kind, string name, string assemblyName)
+        : this()
     {
-        Kind = kind;
-        Name = name;
-        AssemblyName = assemblyName;
+        _kind = kind;
+        _name = name;
+        _assemblyName = assemblyName;
 
-        _metadata = new Dictionary<string, string>(StringComparer.Ordinal);
-
-        // Tells code generation that these tag helpers are compatible with ITagHelper.
-        // For now that's all we support.
-        _metadata.Add(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
+        InitializeMetadata();
     }
 
-    public override string Name { get; }
-
-    public override string AssemblyName { get; }
-
-    public override string Kind { get; }
-
-    public override string DisplayName { get; set; }
-
-    public override string TagOutputHint { get; set; }
-
+    public override string Kind => _kind.AssumeNotNull();
+    public override string Name => _name.AssumeNotNull();
+    public override string AssemblyName => _assemblyName.AssumeNotNull();
+    public override string? DisplayName { get; set; }
+    public override string? TagOutputHint { get; set; }
     public override bool CaseSensitive { get; set; }
-
-    public override string Documentation { get; set; }
+    public override string? Documentation { get; set; }
 
     public override IDictionary<string, string> Metadata => _metadata;
-
-    public override RazorDiagnosticCollection Diagnostics
-    {
-        get
-        {
-            if (_diagnostics == null)
-            {
-                _diagnostics = new RazorDiagnosticCollection();
-            }
-
-            return _diagnostics;
-        }
-    }
+    public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
     public override IReadOnlyList<AllowedChildTagDescriptorBuilder> AllowedChildTags
     {
@@ -100,7 +116,7 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder
 
         EnsureAllowedChildTags();
 
-        var builder = new DefaultAllowedChildTagDescriptorBuilder(this);
+        var builder = DefaultAllowedChildTagDescriptorBuilder.GetInstance(this);
         configure(builder);
         _allowedChildTags.Add(builder);
     }
@@ -114,7 +130,7 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder
 
         EnsureAttributeBuilders();
 
-        var builder = new DefaultBoundAttributeDescriptorBuilder(this, Kind);
+        var builder = DefaultBoundAttributeDescriptorBuilder.GetInstance(this, Kind);
         configure(builder);
         _attributeBuilders.Add(builder);
     }
@@ -128,54 +144,20 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder
 
         EnsureTagMatchingRuleBuilders();
 
-        var builder = new DefaultTagMatchingRuleDescriptorBuilder(this);
+        var builder = DefaultTagMatchingRuleDescriptorBuilder.GetInstance(this);
         configure(builder);
         _tagMatchingRuleBuilders.Add(builder);
     }
 
     public override TagHelperDescriptor Build()
     {
-        var diagnostics = new HashSet<RazorDiagnostic>();
-        if (_diagnostics != null)
-        {
-            diagnostics.UnionWith(_diagnostics);
-        }
+        using var diagnostics = new PooledHashSet<RazorDiagnostic>();
 
-        var allowedChildTags = Array.Empty<AllowedChildTagDescriptor>();
-        if (_allowedChildTags != null)
-        {
-            var allowedChildTagsSet = new HashSet<AllowedChildTagDescriptor>(AllowedChildTagDescriptorComparer.Default);
-            for (var i = 0; i < _allowedChildTags.Count; i++)
-            {
-                allowedChildTagsSet.Add(_allowedChildTags[i].Build());
-            }
+        diagnostics.UnionWith(_diagnostics);
 
-            allowedChildTags = allowedChildTagsSet.ToArray();
-        }
-
-        var tagMatchingRules = Array.Empty<TagMatchingRuleDescriptor>();
-        if (_tagMatchingRuleBuilders != null)
-        {
-            var tagMatchingRuleSet = new HashSet<TagMatchingRuleDescriptor>(TagMatchingRuleDescriptorComparer.Default);
-            for (var i = 0; i < _tagMatchingRuleBuilders.Count; i++)
-            {
-                tagMatchingRuleSet.Add(_tagMatchingRuleBuilders[i].Build());
-            }
-
-            tagMatchingRules = tagMatchingRuleSet.ToArray();
-        }
-
-        var attributes = Array.Empty<BoundAttributeDescriptor>();
-        if (_attributeBuilders != null)
-        {
-            var attributeSet = new HashSet<BoundAttributeDescriptor>(BoundAttributeDescriptorComparer.Default);
-            for (var i = 0; i < _attributeBuilders.Count; i++)
-            {
-                attributeSet.Add(_attributeBuilders[i].Build());
-            }
-
-            attributes = attributeSet.ToArray();
-        }
+        var allowedChildTags = _allowedChildTags.BuildAllOrEmpty(s_allowedChildTagSetPool);
+        var tagMatchingRules = _tagMatchingRuleBuilders.BuildAllOrEmpty(s_tagMatchingRuleSetPool);
+        var attributes = _attributeBuilders.BuildAllOrEmpty(s_boundAttributeSetPool);
 
         var descriptor = new DefaultTagHelperDescriptor(
             Kind,
@@ -188,7 +170,7 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder
             tagMatchingRules,
             attributes,
             allowedChildTags,
-            new Dictionary<string, string>(_metadata),
+            MetadataCollection.Create(_metadata),
             diagnostics.ToArray());
 
         return descriptor;
@@ -205,37 +187,30 @@ internal class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBuilder
         _diagnostics?.Clear();
     }
 
-    public string GetDisplayName()
-    {
-        if (DisplayName != null)
-        {
-            return DisplayName;
-        }
+    public string GetDisplayName() => DisplayName ?? this.GetTypeName() ?? Name;
 
-        return this.GetTypeName() ?? Name;
-    }
-
+    [MemberNotNull(nameof(_allowedChildTags))]
     private void EnsureAllowedChildTags()
     {
-        if (_allowedChildTags == null)
-        {
-            _allowedChildTags = new List<DefaultAllowedChildTagDescriptorBuilder>();
-        }
+        _allowedChildTags ??= new List<DefaultAllowedChildTagDescriptorBuilder>();
     }
 
+    [MemberNotNull(nameof(_attributeBuilders))]
     private void EnsureAttributeBuilders()
     {
-        if (_attributeBuilders == null)
-        {
-            _attributeBuilders = new List<DefaultBoundAttributeDescriptorBuilder>();
-        }
+        _attributeBuilders ??= new List<DefaultBoundAttributeDescriptorBuilder>();
     }
 
+    [MemberNotNull(nameof(_tagMatchingRuleBuilders))]
     private void EnsureTagMatchingRuleBuilders()
     {
-        if (_tagMatchingRuleBuilders == null)
-        {
-            _tagMatchingRuleBuilders = new List<DefaultTagMatchingRuleDescriptorBuilder>();
-        }
+        _tagMatchingRuleBuilders ??= new List<DefaultTagMatchingRuleDescriptorBuilder>();
+    }
+
+    private void InitializeMetadata()
+    {
+        // Tells code generation that these tag helpers are compatible with ITagHelper.
+        // For now that's all we support.
+        _metadata.Add(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
     }
 }

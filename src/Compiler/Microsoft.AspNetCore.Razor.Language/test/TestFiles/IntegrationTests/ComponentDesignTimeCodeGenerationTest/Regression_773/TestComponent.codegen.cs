@@ -13,7 +13,7 @@ namespace Test
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 // language=Route,Component
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -27,7 +27,7 @@ global::System.Object __typeHelper = "/";
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -36,7 +36,8 @@ global::System.Object __typeHelper = "/";
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-            __o = ((global::Test.SurveyPrompt)default).
+            #pragma warning disable BL0005
+            ((global::Test.SurveyPrompt)default).
 #nullable restore
 #line 7 "x:\dir\subdir\Test\TestComponent.cshtml"
               Title
@@ -44,7 +45,8 @@ global::System.Object __typeHelper = "/";
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 7 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.SurveyPrompt);
