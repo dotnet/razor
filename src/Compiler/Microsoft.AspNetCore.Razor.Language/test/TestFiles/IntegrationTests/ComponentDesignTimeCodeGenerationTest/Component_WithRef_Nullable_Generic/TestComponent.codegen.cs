@@ -38,7 +38,8 @@ namespace Test
 #nullable disable
             }
             );
-            __o = __typeInference_CreateMyComponent_0.
+            #pragma warning disable BL0005
+            __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                                 MyParameter
@@ -46,7 +47,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);
@@ -75,7 +77,7 @@ namespace __Blazor.Test.TestComponent
         public static global::Test.MyComponent<T> CreateMyComponent_0<T>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, T __arg0, int __seq1, System.Action<global::Test.MyComponent<T>> __arg1)
         {
         __builder.OpenComponent<global::Test.MyComponent<T>>(seq);
-        __builder.AddAttribute(__seq0, "MyParameter", __arg0);
+        __builder.AddComponentParameter(__seq0, "MyParameter", __arg0);
         __builder.AddComponentReferenceCapture(__seq1, (__value) => { __arg1((global::Test.MyComponent<T>)__value); });
         __builder.CloseComponent();
         return default;

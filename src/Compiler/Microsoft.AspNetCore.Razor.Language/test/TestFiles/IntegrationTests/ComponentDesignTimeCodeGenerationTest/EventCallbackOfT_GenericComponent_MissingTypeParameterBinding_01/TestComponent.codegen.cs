@@ -29,7 +29,8 @@ namespace Test
 #line hidden
 #nullable disable
             ));
-            __o = __typeInference_CreateMyComponent_0.
+            #pragma warning disable BL0005
+            __typeInference_CreateMyComponent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
              OnClick
@@ -37,7 +38,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<,>);
@@ -65,7 +67,7 @@ namespace __Blazor.Test.TestComponent
         public static global::Test.MyComponent<T, System.Object> CreateMyComponent_0<T, T2>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, global::Microsoft.AspNetCore.Components.EventCallback<T> __arg0)
         {
         __builder.OpenComponent<global::Test.MyComponent<T, System.Object>>(seq);
-        __builder.AddAttribute(__seq0, "OnClick", __arg0);
+        __builder.AddComponentParameter(__seq0, "OnClick", __arg0);
         __builder.CloseComponent();
         return default;
         }

@@ -50,7 +50,8 @@ __o = typeof(global::Test.Column<>);
 #nullable disable
                 }
                 );
-                __o = __typeInference_CreateGrid_0.
+                #pragma warning disable BL0005
+                __typeInference_CreateGrid_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
       Items
@@ -58,7 +59,8 @@ __o = typeof(global::Test.Column<>);
 #line default
 #line hidden
 #nullable disable
-                ;
+                 = default;
+                #pragma warning restore BL0005
             }
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -79,8 +81,8 @@ namespace __Blazor.Test.TestComponent
         public static global::Test.Grid<TItem> CreateGrid_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, global::System.Collections.Generic.IEnumerable<TItem> __arg0, int __seq1, global::Microsoft.AspNetCore.Components.RenderFragment __arg1)
         {
         __builder.OpenComponent<global::Test.Grid<TItem>>(seq);
-        __builder.AddAttribute(__seq0, "Items", __arg0);
-        __builder.AddAttribute(__seq1, "ChildContent", __arg1);
+        __builder.AddComponentParameter(__seq0, "Items", __arg0);
+        __builder.AddComponentParameter(__seq1, "ChildContent", __arg1);
         __builder.CloseComponent();
         return default;
         }
@@ -92,7 +94,7 @@ namespace __Blazor.Test.TestComponent
         public static global::Test.Column<TItem> CreateColumn_1<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, System.Collections.Generic.IEnumerable<TItem> __syntheticArg0, int __seq0, global::Microsoft.AspNetCore.Components.RenderFragment<TItem> __arg0)
         {
         __builder.OpenComponent<global::Test.Column<TItem>>(seq);
-        __builder.AddAttribute(__seq0, "ChildContent", __arg0);
+        __builder.AddComponentParameter(__seq0, "ChildContent", __arg0);
         __builder.CloseComponent();
         return default;
         }

@@ -1,23 +1,19 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System.Collections.Generic;
-
 namespace Microsoft.AspNetCore.Razor.Language;
 
 internal class DefaultRequiredAttributeDescriptor : RequiredAttributeDescriptor
 {
     public DefaultRequiredAttributeDescriptor(
-        string name,
+        string? name,
         NameComparisonMode nameComparison,
         bool caseSensitive,
-        string value,
+        string? value,
         ValueComparisonMode valueComparison,
         string displayName,
         RazorDiagnostic[] diagnostics,
-        Dictionary<string, string> metadata)
+        MetadataCollection metadata)
     {
         Name = name;
         NameComparison = nameComparison;

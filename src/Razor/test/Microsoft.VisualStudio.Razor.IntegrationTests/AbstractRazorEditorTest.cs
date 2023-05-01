@@ -134,7 +134,7 @@ public abstract class AbstractRazorEditorTest : AbstractEditorTest
         if (!assembly.Location.StartsWith(localAppData, StringComparison.OrdinalIgnoreCase))
         {
             var version = assembly.GetName().Version;
-            throw new NotImplementedException($"Integration test not running against Experimental Extension assembly: {assembly.Location} verion: {version}");
+            throw new NotImplementedException($"Integration test not running against Experimental Extension assembly: {assembly.Location} version: {version}");
         }
 
         void CurrentDomain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
