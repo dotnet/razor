@@ -15,7 +15,7 @@ namespace Test
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -41,7 +41,8 @@ __o = typeof(global::Test.ChildComponent<>);
 #nullable disable
                 }
                 );
-                __o = __typeInference_CreateParentComponent_0.
+                #pragma warning disable BL0005
+                __typeInference_CreateParentComponent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                  Parameter
@@ -49,7 +50,8 @@ __o = typeof(global::Test.ChildComponent<>);
 #line default
 #line hidden
 #nullable disable
-                ;
+                 = default;
+                #pragma warning restore BL0005
             }
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -70,8 +72,8 @@ namespace __Blazor.Test.TestComponent
         public static global::Test.ParentComponent<T> CreateParentComponent_0<T>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, (T, T) __arg0, int __seq1, Microsoft.AspNetCore.Components.RenderFragment __arg1)
         {
         __builder.OpenComponent<global::Test.ParentComponent<T>>(seq);
-        __builder.AddAttribute(__seq0, "Parameter", __arg0);
-        __builder.AddAttribute(__seq1, "ChildContent", __arg1);
+        __builder.AddComponentParameter(__seq0, "Parameter", __arg0);
+        __builder.AddComponentParameter(__seq1, "ChildContent", __arg1);
         __builder.CloseComponent();
         return default;
         }
