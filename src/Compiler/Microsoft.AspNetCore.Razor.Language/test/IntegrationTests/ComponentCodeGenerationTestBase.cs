@@ -6726,6 +6726,77 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7103")]
+    public void CascadingGenericInference_ParameterInNamespace()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace MyApp
+            {
+                public class MyClass<T> { }
+            }
+
+            namespace MyApp.Components
+            {
+                [CascadingTypeParameter(nameof(T))]
+                public class ParentComponent<T> : ComponentBase
+                {
+                    [Parameter] public MyApp.MyClass<T> Parameter { get; set; } = null!;
+                }
+
+                public class ChildComponent<T> : ComponentBase { }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @namespace MyApp.Components
+
+            <ParentComponent Parameter="new MyClass<string>()">
+                <ChildComponent />
+            </ParentComponent>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void CascadingGenericInference_Tuple()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                [CascadingTypeParameter(nameof(T))]
+                public class ParentComponent<T> : ComponentBase
+                {
+                    [Parameter] public (T, T) Parameter { get; set; }
+                }
+
+                public class ChildComponent<T> : ComponentBase { }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <ParentComponent Parameter="(1, 2)">
+                <ChildComponent />
+            </ParentComponent>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/7428")]
     public void CascadingGenericInference_NullableEnabled()
     {
@@ -8899,6 +8970,34 @@ namespace Test
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, throwOnFailure: false);
+    }
+
+    [Fact]
+    public void ComponentImports_GlobalPrefix()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace MyComponents
+            {
+                public class Counter : ComponentBase
+                {
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("Index.razor", """
+            @using global::MyComponents
+
+            <Counter />
+            """);
+
+        // Assert
+        CompileToAssembly(generated);
+        Assert.DoesNotContain("<Counter", generated.Code);
+        Assert.Contains("global::MyComponents.Counter", generated.Code);
     }
 
     [Fact]
