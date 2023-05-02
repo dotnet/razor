@@ -405,10 +405,9 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
         parameter.ReplaceSourceWithCapturedVariable(variableName);
     }
 
-    protected static bool HasDefaultValueExpression(CascadingGenericTypeParameter syntheticArg)
+    protected static bool IsDefaultExpression(string expression)
     {
-        return syntheticArg.ValueExpression is null ||
-            syntheticArg.ValueExpression.StartsWith("default(", StringComparison.Ordinal);
+        return expression == "default" || expression.StartsWith("default(", StringComparison.Ordinal);
     }
 
     protected class TypeInferenceMethodParameter
