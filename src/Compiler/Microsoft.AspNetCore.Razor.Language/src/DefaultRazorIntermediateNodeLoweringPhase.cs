@@ -87,8 +87,8 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             if (!usingReferences.Contains(importedUsing) &&
                 // If the using is from the default import, avoid adding it
                 // if a user using exists which is the same except for the `global::` prefix.
-                (!TryRemoveGlobalPrefixFromDefaultUsing(in importedUsing, out var trimmedUsing) ||
-                !usingReferences.Contains(trimmedUsing)))
+                (!TryRemoveGlobalPrefixFromDefaultUsing(in importedUsing, out var trimmedUsingNamespace) ||
+                !Contains(usingReferences, trimmedUsingNamespace)))
             {
                 usingReferences.Insert(0, importedUsing);
             }
@@ -131,18 +131,28 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
         codeDocument.SetDocumentIntermediateNode(document);
 
-        static bool TryRemoveGlobalPrefixFromDefaultUsing(in UsingReference usingReference, out UsingReference trimmed)
+        static bool TryRemoveGlobalPrefixFromDefaultUsing(in UsingReference usingReference, out ReadOnlySpan<char> trimmedNamespace)
         {
             const string globalPrefix = "global::";
             if (usingReference.Source is { FilePath: null } && // the default import has null file path
                 usingReference.Namespace.StartsWith(globalPrefix, StringComparison.Ordinal))
             {
-                trimmed = new UsingReference(
-                    usingReference.Namespace.Substring(globalPrefix.Length),
-                    usingReference.Source);
+                trimmedNamespace = usingReference.Namespace.AsSpan()[globalPrefix.Length..];
                 return true;
             }
-            trimmed = usingReference;
+            trimmedNamespace = default;
+            return false;
+        }
+
+        static bool Contains(List<UsingReference> usingReferences, ReadOnlySpan<char> usingNamespace)
+        {
+            foreach (var usingReference in usingReferences)
+            {
+                if (usingReference.Equals(usingNamespace))
+                {
+                    return true;
+                }
+            }
             return false;
         }
     }
@@ -245,6 +255,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         public bool Equals(UsingReference other)
         {
             return string.Equals(Namespace, other.Namespace, StringComparison.Ordinal);
+        }
+
+        public readonly bool Equals(ReadOnlySpan<char> otherNamespace)
+        {
+            return Namespace.AsSpan().Equals(otherNamespace, StringComparison.Ordinal);
         }
 
         public override int GetHashCode() => Namespace.GetHashCode();
