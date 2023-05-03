@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
@@ -175,10 +176,7 @@ internal class OOPTagHelperResolver : TagHelperResolver
         stopWatch.Stop();
         if (fromCache)
         {
-            _telemetryReporter.ReportEvent("taghelpers.fromcache", VisualStudio.Telemetry.TelemetrySeverity.Normal, new Dictionary<string, long>()
-            {
-                { "taghelper.cachedresult.ellapsedms", stopWatch.ElapsedMilliseconds }
-            }.ToImmutableDictionary());
+            _telemetryReporter.ReportEvent("taghelpers.fromcache", Severity.Normal, ImmutableDictionary<string, object?>.Empty.Add("taghelper.cachedresult.ellapsedms", stopWatch.ElapsedMilliseconds));
         }
 
         return tagHelpers;

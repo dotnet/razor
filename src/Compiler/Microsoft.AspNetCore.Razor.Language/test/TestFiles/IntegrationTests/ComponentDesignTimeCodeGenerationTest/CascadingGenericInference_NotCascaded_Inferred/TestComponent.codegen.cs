@@ -49,7 +49,8 @@ __o = typeof(global::Test.Column<>);
 #nullable disable
                 }
                 );
-                __o = __typeInference_CreateGrid_0.
+                #pragma warning disable BL0005
+                __typeInference_CreateGrid_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
       Items
@@ -57,7 +58,8 @@ __o = typeof(global::Test.Column<>);
 #line default
 #line hidden
 #nullable disable
-                ;
+                 = default;
+                #pragma warning restore BL0005
             }
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -88,13 +90,13 @@ namespace __Blazor.Test.TestComponent
         {
             __arg0_out = __arg0;
         }
-        public static global::Test.Column<TItem> CreateColumn_1<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, System.Collections.Generic.IEnumerable<TItem> __syntheticArg0)
+        public static global::Test.Column<TItem> CreateColumn_1<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, global::System.Collections.Generic.IEnumerable<TItem> __syntheticArg0)
         {
         __builder.OpenComponent<global::Test.Column<TItem>>(seq);
         __builder.CloseComponent();
         return default;
         }
-        public static global::Test.Column<TItem> CreateColumn_2<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, System.Collections.Generic.IEnumerable<TItem> __syntheticArg0)
+        public static global::Test.Column<TItem> CreateColumn_2<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, global::System.Collections.Generic.IEnumerable<TItem> __syntheticArg0)
         {
         __builder.OpenComponent<global::Test.Column<TItem>>(seq);
         __builder.CloseComponent();

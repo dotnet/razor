@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis.Razor;
 
 internal class SplatTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 {
+    private static TagHelperDescriptor s_splatTagHelper;
+
     // Order doesn't matter
     public int Order { get; set; }
 
@@ -43,45 +45,53 @@ internal class SplatTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             return;
         }
 
-        context.Results.Add(CreateSplatTagHelper());
+        context.Results.Add(GetOrCreateSplatTagHelper());
     }
 
-    private TagHelperDescriptor CreateSplatTagHelper()
+    private static TagHelperDescriptor GetOrCreateSplatTagHelper()
     {
-        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Splat.TagHelperKind, "Attributes", ComponentsApi.AssemblyName);
-        builder.CaseSensitive = true;
-        builder.Documentation = ComponentResources.SplatTagHelper_Documentation;
+        return s_splatTagHelper ??= CreateSplatTagHelper();
 
-        builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Splat.TagHelperKind);
-        builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
-        builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.Splat.RuntimeName;
-
-        // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
-        // a C# property will crash trying to create the tooltips.
-        builder.SetTypeName("Microsoft.AspNetCore.Components.Attributes");
-
-        builder.TagMatchingRule(rule =>
+        static TagHelperDescriptor CreateSplatTagHelper()
         {
-            rule.TagName = "*";
-            rule.Attribute(attribute =>
+            using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
+                ComponentMetadata.Splat.TagHelperKind, "Attributes", ComponentsApi.AssemblyName,
+                out var builder);
+
+            builder.CaseSensitive = true;
+            builder.Documentation = ComponentResources.SplatTagHelper_Documentation;
+
+            builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Splat.TagHelperKind);
+            builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
+            builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.Splat.RuntimeName;
+
+            // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
+            // a C# property will crash trying to create the tooltips.
+            builder.SetTypeName("Microsoft.AspNetCore.Components.Attributes");
+
+            builder.TagMatchingRule(rule =>
             {
-                attribute.Name = "@attributes";
-                attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                rule.TagName = "*";
+                rule.Attribute(attribute =>
+                {
+                    attribute.Name = "@attributes";
+                    attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                });
             });
-        });
 
-        builder.BindAttribute(attribute =>
-        {
-            attribute.Documentation = ComponentResources.SplatTagHelper_Documentation;
-            attribute.Name = "@attributes";
+            builder.BindAttribute(attribute =>
+            {
+                attribute.Documentation = ComponentResources.SplatTagHelper_Documentation;
+                attribute.Name = "@attributes";
 
                 // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
                 // a C# property will crash trying to create the tooltips.
                 attribute.SetPropertyName("Attributes");
-            attribute.TypeName = typeof(object).FullName;
-            attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
-        });
+                attribute.TypeName = typeof(object).FullName;
+                attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+            });
 
-        return builder.Build();
+            return builder.Build();
+        }
     }
 }

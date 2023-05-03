@@ -41,6 +41,10 @@ internal static class ComponentMetadata
         public const string DirectiveAttribute = "Common.DirectiveAttribute";
 
         public const string AddAttributeMethodName = "Common.AddAttributeMethodName";
+
+        public const string OriginalAttributeSpan = "Common.OriginalAttributeSpan";
+
+        public const string IsDesignTimePropertyAccessHelper = "Common.IsDesignTimePropertyAccessHelper";
     }
 
     public static class Bind
@@ -118,6 +122,8 @@ internal static class ComponentMetadata
         public const string NameMatchKey = "Components.NameMatch";
 
         public const string FullyQualifiedNameMatch = "Components.FullyQualifiedNameMatch";
+
+        public const string InitOnlyProperty = "Components.InitOnlyProperty";
     }
 
     public static class EventHandler

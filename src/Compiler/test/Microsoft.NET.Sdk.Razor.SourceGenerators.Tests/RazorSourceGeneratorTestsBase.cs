@@ -43,9 +43,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 [Collection(nameof(RazorSourceGenerator))]
 public abstract class RazorSourceGeneratorTestsBase
 {
-    protected static async ValueTask<GeneratorDriver> GetDriverAsync(Project project)
+    protected static async ValueTask<GeneratorDriver> GetDriverAsync(Project project, Action<TestAnalyzerConfigOptionsProvider>? configureGlobalOptions = null)
     {
-        var (driver, _) = await GetDriverWithAdditionalTextAsync(project);
+        var (driver, _) = await GetDriverWithAdditionalTextAsync(project, configureGlobalOptions);
         return driver;
     }
 
@@ -522,5 +522,12 @@ internal static class Extensions
             .Replace("\\r\\n", "\\n");                                     // embedded new-lines
         Assert.StartsWith("#pragma", trimmed);
         return trimmed.Substring(trimmed.IndexOf('\n') + 1);
+    }
+
+    public static void AssertSingleItem(this RazorEventListener.RazorEvent e, string expectedEventName, string expectedFileName)
+    {
+        Assert.Equal(expectedEventName, e.EventName);
+        var file = Assert.Single(e.Payload);
+        Assert.Equal(expectedFileName, file);
     }
 }

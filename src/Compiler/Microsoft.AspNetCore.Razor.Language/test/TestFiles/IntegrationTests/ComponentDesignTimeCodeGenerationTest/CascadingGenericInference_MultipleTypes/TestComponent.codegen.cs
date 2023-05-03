@@ -48,7 +48,8 @@ namespace Test
 #line hidden
 #nullable disable
                     );
-                    __o = __typeInference_CreateChild_1.
+                    #pragma warning disable BL0005
+                    __typeInference_CreateChild_1.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
            ChildOnlyItems
@@ -56,7 +57,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-                    ;
+                     = default;
+                    #pragma warning restore BL0005
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.Child<,,,>);
@@ -66,7 +68,8 @@ __o = typeof(global::Test.Child<,,,>);
 #nullable disable
                 }
                 );
-                __o = __typeInference_CreateParent_0.
+                #pragma warning disable BL0005
+                __typeInference_CreateParent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
         Data
@@ -74,8 +77,8 @@ __o = typeof(global::Test.Child<,,,>);
 #line default
 #line hidden
 #nullable disable
-                ;
-                __o = __typeInference_CreateParent_0.
+                 = default;
+                __typeInference_CreateParent_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                                                                            Other
@@ -83,7 +86,8 @@ __o = typeof(global::Test.Child<,,,>);
 #line default
 #line hidden
 #nullable disable
-                ;
+                 = default;
+                #pragma warning restore BL0005
             }
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -116,7 +120,7 @@ namespace __Blazor.Test.TestComponent
             __arg0_out = __arg0;
             __arg1_out = __arg1;
         }
-        public static global::Test.Child<TOther, TValue, TKey, TChildOnly> CreateChild_1<TOther, TValue, TKey, TChildOnly>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, TOther __syntheticArg0, System.Collections.Generic.Dictionary<TKey, TValue> __syntheticArg1, System.Collections.Generic.Dictionary<TKey, TValue> __syntheticArg2, int __seq0, global::System.Collections.Generic.ICollection<TChildOnly> __arg0)
+        public static global::Test.Child<TOther, TValue, TKey, TChildOnly> CreateChild_1<TOther, TValue, TKey, TChildOnly>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, TOther __syntheticArg0, global::System.Collections.Generic.Dictionary<TKey, TValue> __syntheticArg1, global::System.Collections.Generic.Dictionary<TKey, TValue> __syntheticArg2, int __seq0, global::System.Collections.Generic.ICollection<TChildOnly> __arg0)
         {
         __builder.OpenComponent<global::Test.Child<TOther, TValue, TKey, TChildOnly>>(seq);
         __builder.AddComponentParameter(__seq0, "ChildOnlyItems", __arg0);

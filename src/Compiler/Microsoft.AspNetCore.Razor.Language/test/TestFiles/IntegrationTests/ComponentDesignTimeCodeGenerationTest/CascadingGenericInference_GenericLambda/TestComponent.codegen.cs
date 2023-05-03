@@ -40,7 +40,8 @@ namespace Test
 #line hidden
 #nullable disable
                     );
-                    __o = __typeInference_CreateColumn_1.
+                    #pragma warning disable BL0005
+                    __typeInference_CreateColumn_1.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                                                  SomeLambda
@@ -48,7 +49,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-                    ;
+                     = default;
+                    #pragma warning restore BL0005
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.Column<,>);
@@ -58,7 +60,8 @@ __o = typeof(global::Test.Column<,>);
 #nullable disable
                 }
                 );
-                __o = __typeInference_CreateGrid_0.
+                #pragma warning disable BL0005
+                __typeInference_CreateGrid_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
       Items
@@ -66,7 +69,8 @@ __o = typeof(global::Test.Column<,>);
 #line default
 #line hidden
 #nullable disable
-                ;
+                 = default;
+                #pragma warning restore BL0005
             }
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -97,7 +101,7 @@ namespace __Blazor.Test.TestComponent
         {
             __arg0_out = __arg0;
         }
-        public static global::Test.Column<TItem, TOutput> CreateColumn_1<TItem, TOutput>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, System.Collections.Generic.IEnumerable<TItem> __syntheticArg0, int __seq0, global::System.Func<TItem, TOutput> __arg0)
+        public static global::Test.Column<TItem, TOutput> CreateColumn_1<TItem, TOutput>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, global::System.Collections.Generic.IEnumerable<TItem> __syntheticArg0, int __seq0, global::System.Func<TItem, TOutput> __arg0)
         {
         __builder.OpenComponent<global::Test.Column<TItem, TOutput>>(seq);
         __builder.AddComponentParameter(__seq0, "SomeLambda", __arg0);

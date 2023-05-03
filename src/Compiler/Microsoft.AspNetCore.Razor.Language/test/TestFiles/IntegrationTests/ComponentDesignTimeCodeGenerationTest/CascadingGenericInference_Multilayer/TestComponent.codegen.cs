@@ -51,7 +51,8 @@ __o = typeof(global::Test.Passthrough);
 #nullable disable
                 }
                 );
-                __o = __typeInference_CreateAncestor_0.
+                #pragma warning disable BL0005
+                __typeInference_CreateAncestor_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
           Items
@@ -59,7 +60,8 @@ __o = typeof(global::Test.Passthrough);
 #line default
 #line hidden
 #nullable disable
-                ;
+                 = default;
+                #pragma warning restore BL0005
             }
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -90,7 +92,7 @@ namespace __Blazor.Test.TestComponent
         {
             __arg0_out = __arg0;
         }
-        public static global::Test.Child<TItem> CreateChild_1<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, System.Collections.Generic.IEnumerable<TItem> __syntheticArg0)
+        public static global::Test.Child<TItem> CreateChild_1<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, global::System.Collections.Generic.IEnumerable<TItem> __syntheticArg0)
         {
         __builder.OpenComponent<global::Test.Child<TItem>>(seq);
         __builder.CloseComponent();
