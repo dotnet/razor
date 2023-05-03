@@ -226,7 +226,12 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right), (a) => a.GetHashCode())
                 .Combine(razorSourceGeneratorOptions);
 
-            IncrementalValuesProvider<(string, SourceGeneratorRazorCodeDocument)> processed(bool designTime) => withOptions
+            var withOptionsDesignTime = withOptions
+                .Combine(analyzerConfigOptions.Select(GetHostOutputsEnabledStatus))
+                .Where(pair => pair.Right)
+                .Select((pair, _) => pair.Left);
+
+            IncrementalValuesProvider<(string, SourceGeneratorRazorCodeDocument)> processed(bool designTime) => (designTime ? withOptionsDesignTime : withOptions)
                 .Select((pair, _) =>
                 {
                     var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
