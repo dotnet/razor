@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
@@ -197,14 +198,14 @@ internal class FormattingLanguageServerClient : ClientNotifierServiceBase
     public override Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
     {
         if (@params is DocumentFormattingParams formattingParams &&
-            string.Equals(method, "textDocument/formatting", StringComparison.Ordinal))
+            string.Equals(method, RazorLanguageServerCustomMessageTargets.RazorHtmlFormattingEndpoint, StringComparison.Ordinal))
         {
             var response = Format(formattingParams);
 
             return Task.FromResult(Convert<TResponse>(response));
         }
         else if (@params is DocumentOnTypeFormattingParams onTypeFormattingParams &&
-            string.Equals(method, "textDocument/onTypeFormatting", StringComparison.Ordinal))
+            string.Equals(method, RazorLanguageServerCustomMessageTargets.RazorHtmlOnTypeFormattingEndpoint, StringComparison.Ordinal))
         {
             var response = Format(onTypeFormattingParams);
 
