@@ -13,7 +13,6 @@ internal static class JsonConverterCollectionExtensions
     {
         TagHelperDescriptorJsonConverter.Instance,
         RazorDiagnosticJsonConverter.Instance,
-        RazorExtensionJsonConverter.Instance,
         RazorConfigurationJsonConverter.Instance,
         ProjectRazorJsonJsonConverter.Instance,
     };
@@ -27,9 +26,7 @@ internal static class JsonConverterCollectionExtensions
 
         foreach (var converter in s_projectSerializerConverters)
         {
-            {
-                collection.Add(converter);
-            }
+            collection.Add(converter);
         }
     }
 }

@@ -23,7 +23,6 @@ public class RazorConfigurationSerializationTest : TestBase
     {
         var converters = new JsonConverterCollection
         {
-            RazorExtensionJsonConverter.Instance,
             RazorConfigurationJsonConverter.Instance
         };
 
