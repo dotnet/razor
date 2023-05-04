@@ -152,40 +152,6 @@ internal class FormattingLanguageServerClient : ClientNotifierServiceBase
         return response;
     }
 
-    private RazorDocumentFormattingResponse Format(RazorDocumentRangeFormattingParams @params)
-    {
-        if (@params.Kind == RazorLanguageKind.Razor)
-        {
-            throw new InvalidOperationException("We shouldn't be asked to format Razor language kind.");
-        }
-
-        var options = @params.Options;
-        var response = new RazorDocumentFormattingResponse();
-
-        if (@params.Kind == RazorLanguageKind.CSharp)
-        {
-            var codeDocument = _documents[@params.HostDocumentFilePath];
-            var csharpSourceText = codeDocument.GetCSharpSourceText();
-            var csharpDocument = GetCSharpDocument(codeDocument, @params.Options);
-            if (!csharpDocument.TryGetSyntaxRoot(out var root))
-            {
-                throw new InvalidOperationException("Couldn't get syntax root.");
-            }
-
-            var spanToFormat = @params.ProjectedRange.AsTextSpan(csharpSourceText);
-
-            var changes = Formatter.GetFormattedTextChanges(root, spanToFormat, csharpDocument.Project.Solution.Workspace);
-
-            response.Edits = changes.Select(c => c.AsTextEdit(csharpSourceText)).ToArray();
-        }
-        else
-        {
-            throw new InvalidOperationException($"We shouldn't be asked to format {@params.Kind} language kind.");
-        }
-
-        return response;
-    }
-
     private struct HtmlFormatterTextEdit
     {
 #pragma warning disable CS0649 // Field 'name' is never assigned to, and will always have its default value
@@ -230,14 +196,7 @@ internal class FormattingLanguageServerClient : ClientNotifierServiceBase
 
     public override Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
     {
-        if (@params is RazorDocumentRangeFormattingParams rangeFormattingParams &&
-           string.Equals(method, "razor/rangeFormatting", StringComparison.Ordinal))
-        {
-            var response = Format(rangeFormattingParams);
-
-            return Task.FromResult(Convert<TResponse>(response));
-        }
-        else if (@params is DocumentFormattingParams formattingParams &&
+        if (@params is DocumentFormattingParams formattingParams &&
             string.Equals(method, "textDocument/formatting", StringComparison.Ordinal))
         {
             var response = Format(formattingParams);
