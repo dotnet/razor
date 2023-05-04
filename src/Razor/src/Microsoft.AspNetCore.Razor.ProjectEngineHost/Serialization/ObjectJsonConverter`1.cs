@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 internal abstract class ObjectJsonConverter<T> : JsonConverter<T>
     where T : class
 {
-    protected abstract T? ReadFromProperties(JsonReader reader);
+    protected abstract T ReadFromProperties(JsonReader reader);
     protected abstract void WriteProperties(JsonWriter writer, T value);
 
     public sealed override T? ReadJson(JsonReader reader, Type objectType, T? existingValue, bool hasExistingValue, JsonSerializer serializer)

@@ -5,11 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 internal delegate void ReadPropertyValue<TData>(JsonReader reader, ref TData data);
+internal delegate T ReadValue<T>(JsonReader reader);
+internal delegate T ReadProperties<T>(JsonReader reader);
 
 internal sealed class PropertyMap<TData>
     where TData : struct
@@ -162,6 +165,41 @@ internal static class JsonReaderExtensions
         return reader.ReadNonNullString();
     }
 
+    [return: MaybeNull]
+    public static T ReadObject<T>(this JsonReader reader, ReadProperties<T> readProperties)
+    {
+        if (reader.TryReadNull())
+        {
+            return default;
+        }
+
+        return reader.ReadNonNullObject(readProperties);
+    }
+
+    [return: MaybeNull]
+    public static T ReadObject<T>(this JsonReader reader, string propertyName, ReadProperties<T> readProperties)
+    {
+        reader.ReadPropertyName(propertyName);
+
+        return reader.ReadObject(readProperties);
+    }
+
+    public static T ReadNonNullObject<T>(this JsonReader reader, ReadProperties<T> readProperties)
+    {
+        reader.ReadToken(JsonToken.StartObject);
+        var result = readProperties(reader);
+        reader.ReadToken(JsonToken.EndObject);
+
+        return result;
+    }
+
+    public static T ReadNonNullObject<T>(this JsonReader reader, string propertyName, ReadProperties<T> readProperties)
+    {
+        reader.ReadPropertyName(propertyName);
+
+        return readProperties(reader);
+    }
+
     public static TData ReadObjectData<TData>(this JsonReader reader, PropertyMap<TData> propertyMap)
         where TData : struct
     {
@@ -199,14 +237,14 @@ internal static class JsonReaderExtensions
                 case JsonToken.PropertyName:
                     var propertyName = (string)reader.Value.AssumeNotNull();
 
-                    if (!propertyMap.TryGetPropertyReader(propertyName, out var readProperty))
+                    if (!propertyMap.TryGetPropertyReader(propertyName, out var readPropertyValue))
                     {
                         throw new InvalidOperationException(
                             SR.FormatEncountered_unexpected_JSON_property_0(propertyName));
                     }
 
                     reader.Read();
-                    readProperty(reader, ref data);
+                    readPropertyValue(reader, ref data);
 
                     break;
 
@@ -219,6 +257,62 @@ internal static class JsonReaderExtensions
             }
         }
     }
+
+    public static T[]? ReadArray<T>(this JsonReader reader, ReadValue<T> readElement)
+    {
+        if (reader.TryReadNull())
+        {
+            return null;
+        }
+
+        reader.ReadToken(JsonToken.StartArray);
+
+        // First special case, is this an empty array?
+        if (reader.TokenType == JsonToken.EndArray)
+        {
+            reader.Read();
+            return Array.Empty<T>();
+        }
+
+        // Second special case, is this an array of one element?
+        var firstElement = readElement(reader);
+
+        if (reader.TokenType == JsonToken.EndArray)
+        {
+            reader.Read();
+            return new[] { firstElement };
+        }
+
+        // There's more than one element, so we need to acquire a pooled list to
+        // read the rest of the array elements.
+        using var _ = ListPool<T>.GetPooledObject(out var elements);
+
+        // Be sure to add the element that we already read.
+        elements.Add(firstElement);
+
+        do
+        {
+            var element = readElement(reader);
+            elements.Add(element);
+        }
+        while (reader.TokenType != JsonToken.EndArray);
+
+        reader.Read();
+
+        return elements.ToArray();
+    }
+
+    public static T[]? ReadArray<T>(this JsonReader reader, string propertyName, ReadValue<T> readElement)
+    {
+        reader.ReadPropertyName(propertyName);
+        return reader.ReadArray(readElement);
+    }
+
+    public static T[] ReadArrayOrEmpty<T>(this JsonReader reader, ReadValue<T> readElement)
+        => reader.ReadArray(readElement) ?? Array.Empty<T>();
+
+    public static T[] ReadArrayOrEmpty<T>(this JsonReader reader, string propertyName, ReadValue<T> readElement)
+        => reader.ReadArray(propertyName, readElement) ?? Array.Empty<T>();
 
 #nullable disable
 

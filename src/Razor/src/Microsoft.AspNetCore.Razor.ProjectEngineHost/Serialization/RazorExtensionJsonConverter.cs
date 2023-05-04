@@ -15,14 +15,8 @@ internal class RazorExtensionJsonConverter : ObjectJsonConverter<RazorExtension>
     }
 
     protected override RazorExtension ReadFromProperties(JsonReader reader)
-    {
-        var extensionName = reader.ReadNonNullString(nameof(RazorExtension.ExtensionName));
-
-        return new SerializedRazorExtension(extensionName);
-    }
+        => ObjectReaders.ReadExtensionFromProperties(reader);
 
     protected override void WriteProperties(JsonWriter writer, RazorExtension value)
-    {
-        writer.Write(nameof(value.ExtensionName), value.ExtensionName);
-    }
+        => ObjectWriters.WriteProperties(writer, value);
 }
