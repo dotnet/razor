@@ -1,59 +1,28 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
-internal class RazorExtensionJsonConverter : JsonConverter
+internal class RazorExtensionJsonConverter : ObjectJsonConverter<RazorExtension>
 {
-    public static readonly RazorExtensionJsonConverter Instance = new RazorExtensionJsonConverter();
+    public static readonly RazorExtensionJsonConverter Instance = new();
 
-    public override bool CanConvert(Type objectType)
+    private RazorExtensionJsonConverter()
     {
-        return typeof(RazorExtension).IsAssignableFrom(objectType);
     }
 
-    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+    protected override RazorExtension ReadFromProperties(JsonReader reader)
     {
-        if (reader.TokenType != JsonToken.StartObject)
-        {
-            return null;
-        }
-
-        var (_, extensionName) = reader.ReadProperties(static (propertyName, arg) =>
-        {
-            var (reader, extensionName) = (arg.reader, arg.extensionName);
-            switch (propertyName)
-            {
-                case nameof(RazorExtension.ExtensionName):
-                    if (reader.Read())
-                    {
-                        extensionName = (string)reader.Value;
-                    }
-
-                    break;
-            }
-
-            return (reader, extensionName);
-        }, (reader, extensionName: string.Empty));
+        var extensionName = reader.ReadNonNullString(nameof(RazorExtension.ExtensionName));
 
         return new SerializedRazorExtension(extensionName);
     }
 
-    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    protected override void WriteProperties(JsonWriter writer, RazorExtension value)
     {
-        var extension = (RazorExtension)value;
-
-        writer.WriteStartObject();
-
-        writer.WritePropertyName(nameof(RazorExtension.ExtensionName));
-        writer.WriteValue(extension.ExtensionName);
-
-        writer.WriteEndObject();
+        writer.Write(nameof(value.ExtensionName), value.ExtensionName);
     }
 }

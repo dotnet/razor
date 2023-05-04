@@ -57,6 +57,27 @@ internal static class JsonReaderExtensions
         reader.Read();
     }
 
+    public static bool IsPropertyName(this JsonReader reader, string propertyName)
+        => reader.TokenType == JsonToken.PropertyName &&
+           (string?)reader.Value == propertyName;
+
+    public static void ReadPropertyName(this JsonReader reader, string propertyName)
+    {
+        if (!reader.IsPropertyName(propertyName))
+        {
+            ThrowUnexpectedPropertyException(propertyName, (string?)reader.Value);
+        }
+
+        reader.Read();
+
+        [DoesNotReturn]
+        static void ThrowUnexpectedPropertyException(string expectedPropertyName, string? actualPropertyName)
+        {
+            throw new InvalidOperationException(
+                SR.FormatExpected_JSON_property_0_but_it_was_1(expectedPropertyName, actualPropertyName));
+        }
+    }
+
     public static bool TryReadNull(this JsonReader reader)
     {
         if (reader.TokenType == JsonToken.Null)
@@ -78,6 +99,13 @@ internal static class JsonReaderExtensions
         return result;
     }
 
+    public static bool ReadBoolean(this JsonReader reader, string propertyName)
+    {
+        reader.ReadPropertyName(propertyName);
+
+        return reader.ReadBoolean();
+    }
+
     public static int ReadInt32(this JsonReader reader)
     {
         reader.CheckToken(JsonToken.Integer);
@@ -86,6 +114,13 @@ internal static class JsonReaderExtensions
         reader.Read();
 
         return result;
+    }
+
+    public static int ReadInt32(this JsonReader reader, string propertyName)
+    {
+        reader.ReadPropertyName(propertyName);
+
+        return reader.ReadInt32();
     }
 
     public static string? ReadString(this JsonReader reader)
@@ -103,6 +138,13 @@ internal static class JsonReaderExtensions
         return result;
     }
 
+    public static string? ReadString(this JsonReader reader, string propertyName)
+    {
+        reader.ReadPropertyName(propertyName);
+
+        return reader.ReadString();
+    }
+
     public static string ReadNonNullString(this JsonReader reader)
     {
         reader.CheckToken(JsonToken.String);
@@ -111,6 +153,13 @@ internal static class JsonReaderExtensions
         reader.Read();
 
         return result;
+    }
+
+    public static string ReadNonNullString(this JsonReader reader, string propertyName)
+    {
+        reader.ReadPropertyName(propertyName);
+
+        return reader.ReadNonNullString();
     }
 
     public static TData ReadObjectData<TData>(this JsonReader reader, PropertyMap<TData> propertyMap)
