@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
@@ -19,16 +20,56 @@ internal static class JsonWriterExtensions
         writer.WriteValue(value);
     }
 
+    public static void WriteIfNotTrue(this JsonWriter writer, string propertyName, bool value)
+    {
+        if (value)
+        {
+            writer.Write(propertyName, value);
+        }
+    }
+
+    public static void WriteIfNotFalse(this JsonWriter writer, string propertyName, bool value)
+    {
+        if (!value)
+        {
+            writer.Write(propertyName, value);
+        }
+    }
+
     public static void Write(this JsonWriter writer, string propertyName, int value)
     {
         writer.WritePropertyName(propertyName);
         writer.WriteValue(value);
     }
 
+    public static void WriteIfNotDefault(this JsonWriter writer, string propertyName, int value, int defaultValue = default)
+    {
+        if (value != defaultValue)
+        {
+            writer.Write(propertyName, value);
+        }
+    }
+
     public static void Write(this JsonWriter writer, string propertyName, string? value)
     {
         writer.WritePropertyName(propertyName);
         writer.WriteValue(value);
+    }
+
+    public static void WriteIfNotDefault(this JsonWriter writer, string propertyName, string? value, string? defaultValue)
+    {
+        if (value != defaultValue)
+        {
+            writer.Write(propertyName, value);
+        }
+    }
+
+    public static void WriteIfNotNull(this JsonWriter writer, string propertyName, string? value)
+    {
+        if (value is not null)
+        {
+            writer.Write(propertyName, value);
+        }
     }
 
     public static void WriteObject<T>(this JsonWriter writer, string propertyName, T? value, WriteProperties<T> writeProperties)
@@ -131,6 +172,30 @@ internal static class JsonWriterExtensions
     {
         writer.WritePropertyName(propertyName);
         writer.WriteArray(elements, writeElement);
+    }
+
+    public static void WriteArrayIfNotNullOrEmpty<T>(this JsonWriter writer, string propertyName, IEnumerable<T>? elements, WriteValue<T> writeElement)
+    {
+        if (elements?.Any() == true)
+        {
+            writer.WriteArray(propertyName, elements, writeElement);
+        }
+    }
+
+    public static void WriteArrayIfNotNullOrEmpty<T>(this JsonWriter writer, string propertyName, IReadOnlyList<T>? elements, WriteValue<T> writeElement)
+    {
+        if (elements is { Count: > 0 })
+        {
+            writer.WriteArray(propertyName, elements, writeElement);
+        }
+    }
+
+    public static void WriteArrayIfNotDefaultOrEmpty<T>(this JsonWriter writer, string propertyName, ImmutableArray<T> elements, WriteValue<T> writeElement)
+    {
+        if (!elements.IsDefaultOrEmpty)
+        {
+            writer.WriteArray(propertyName, elements, writeElement);
+        }
     }
 
 #nullable disable

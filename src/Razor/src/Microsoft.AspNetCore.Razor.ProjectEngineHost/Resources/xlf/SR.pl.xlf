@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../SR.resx">
     <body>
+      <trans-unit id="Encountered_end_of_stream_before_end_of_object">
+        <source>Encountered end of stream before end of object.</source>
+        <target state="new">Encountered end of stream before end of object.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Encountered_unexpected_JSON_property_0">
         <source>Encountered unexpected JSON property '{0}'.</source>
         <target state="new">Encountered unexpected JSON property '{0}'.</target>

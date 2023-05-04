@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Encountered_end_of_stream_before_end_of_object" xml:space="preserve">
+    <value>Encountered end of stream before end of object.</value>
+  </data>
   <data name="Encountered_unexpected_JSON_property_0" xml:space="preserve">
     <value>Encountered unexpected JSON property '{0}'.</value>
   </data>
