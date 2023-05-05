@@ -8,29 +8,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal sealed class ProjectSnapshotHandle
 {
-    public ProjectSnapshotHandle(IProjectSnapshot snapshot)
-        : this(snapshot.FilePath, snapshot.Configuration, snapshot.RootNamespace)
-    {
-    }
+    public string FilePath { get; }
+    public RazorConfiguration? Configuration { get; }
+    public string? RootNamespace { get; }
 
     public ProjectSnapshotHandle(
         string filePath,
         RazorConfiguration? configuration,
         string? rootNamespace)
     {
-        if (filePath is null)
-        {
-            throw new ArgumentNullException(nameof(filePath));
-        }
-
-        FilePath = filePath;
+        FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
         Configuration = configuration;
         RootNamespace = rootNamespace;
     }
-
-    public RazorConfiguration? Configuration { get; }
-
-    public string FilePath { get; }
-
-    public string? RootNamespace { get; }
 }
