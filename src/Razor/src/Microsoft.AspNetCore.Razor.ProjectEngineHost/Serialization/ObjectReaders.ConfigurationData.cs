@@ -11,14 +11,14 @@ internal static partial class ObjectReaders
     private record struct ConfigurationData(string ConfigurationName, RazorLanguageVersion LanguageVersion, RazorExtension[] Extensions)
     {
         public static readonly PropertyMap<ConfigurationData> PropertyMap = new(
-            (nameof(ConfigurationData.ConfigurationName), ReadConfigurationName),
-            (nameof(ConfigurationData.LanguageVersion), ReadLanguageVersion),
-            (nameof(ConfigurationData.Extensions), ReadExtensions));
+            (nameof(ConfigurationName), ReadConfigurationName),
+            (nameof(LanguageVersion), ReadLanguageVersion),
+            (nameof(Extensions), ReadExtensions));
 
-        public static void ReadConfigurationName(JsonReader reader, ref ConfigurationData data)
+        private static void ReadConfigurationName(JsonReader reader, ref ConfigurationData data)
             => data.ConfigurationName = reader.ReadNonNullString();
 
-        public static void ReadLanguageVersion(JsonReader reader, ref ConfigurationData data)
+        private static void ReadLanguageVersion(JsonReader reader, ref ConfigurationData data)
         {
             string languageVersionValue;
 
@@ -38,7 +38,7 @@ internal static partial class ObjectReaders
                 : RazorLanguageVersion.Version_2_1;
         }
 
-        public static void ReadExtensions(JsonReader reader, ref ConfigurationData data)
+        private static void ReadExtensions(JsonReader reader, ref ConfigurationData data)
             => data.Extensions = reader.ReadArrayOrEmpty(ReadExtension);
     }
 }

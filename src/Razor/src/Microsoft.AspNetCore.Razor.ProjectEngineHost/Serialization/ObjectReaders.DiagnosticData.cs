@@ -11,21 +11,21 @@ internal static partial class ObjectReaders
     private record struct DiagnosticData(string Id, RazorDiagnosticSeverity Severity, string Message, SourceSpan Span)
     {
         public static readonly PropertyMap<DiagnosticData> PropertyMap = new(
-            (nameof(DiagnosticData.Id), ReadId),
-            (nameof(DiagnosticData.Severity), ReadSeverity),
-            (nameof(DiagnosticData.Message), ReadMessage),
-            (nameof(DiagnosticData.Span), ReadSpan));
+            (nameof(Id), ReadId),
+            (nameof(Severity), ReadSeverity),
+            (nameof(Message), ReadMessage),
+            (nameof(Span), ReadSpan));
 
-        public static void ReadId(JsonReader reader, ref DiagnosticData data)
+        private static void ReadId(JsonReader reader, ref DiagnosticData data)
             => data.Id = reader.ReadNonNullString();
 
-        public static void ReadSeverity(JsonReader reader, ref DiagnosticData data)
+        private static void ReadSeverity(JsonReader reader, ref DiagnosticData data)
             => data.Severity = (RazorDiagnosticSeverity)reader.ReadInt32();
 
-        public static void ReadMessage(JsonReader reader, ref DiagnosticData data)
+        private static void ReadMessage(JsonReader reader, ref DiagnosticData data)
             => data.Message = reader.ReadNonNullString();
 
-        public static void ReadSpan(JsonReader reader, ref DiagnosticData data)
+        private static void ReadSpan(JsonReader reader, ref DiagnosticData data)
         {
             SourceSpanData span = default;
             reader.ReadObjectData(ref span, SourceSpanData.PropertyMap);

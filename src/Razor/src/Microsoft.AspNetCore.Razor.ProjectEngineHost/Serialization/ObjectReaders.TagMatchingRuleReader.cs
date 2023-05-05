@@ -17,16 +17,16 @@ internal static partial class ObjectReaders
             (nameof(TagMatchingRuleDescriptor.Attributes), ReadAttributes),
             (nameof(TagMatchingRuleDescriptor.Diagnostics), ReadDiagnostics));
 
-        public static void ReadTagName(JsonReader reader, ref TagMatchingRuleReader arg)
+        private static void ReadTagName(JsonReader reader, ref TagMatchingRuleReader arg)
             => arg.Builder.TagName = Cached(reader.ReadString());
 
-        public static void ReadParentTag(JsonReader reader, ref TagMatchingRuleReader arg)
+        private static void ReadParentTag(JsonReader reader, ref TagMatchingRuleReader arg)
             => arg.Builder.ParentTag = Cached(reader.ReadString());
 
-        public static void ReadTagStructure(JsonReader reader, ref TagMatchingRuleReader arg)
+        private static void ReadTagStructure(JsonReader reader, ref TagMatchingRuleReader arg)
             => arg.Builder.TagStructure = (TagStructure)reader.ReadInt32();
 
-        public static void ReadAttributes(JsonReader reader, ref TagMatchingRuleReader arg)
+        private static void ReadAttributes(JsonReader reader, ref TagMatchingRuleReader arg)
         {
             reader.ProcessArray(arg.Builder, static (reader, builder) =>
             {
@@ -37,7 +37,7 @@ internal static partial class ObjectReaders
             });
         }
 
-        public static void ReadDiagnostics(JsonReader reader, ref TagMatchingRuleReader arg)
+        private static void ReadDiagnostics(JsonReader reader, ref TagMatchingRuleReader arg)
             => reader.ProcessArray(arg.Builder.Diagnostics, ProcessDiagnostic);
     }
 }

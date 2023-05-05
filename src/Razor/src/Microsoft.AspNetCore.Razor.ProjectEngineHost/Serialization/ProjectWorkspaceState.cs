@@ -50,7 +50,7 @@ public sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
 
     public override int GetHashCode()
     {
-        var hash = new HashCodeCombiner();
+        var hash = HashCodeCombiner.Start();
 
         foreach (var tagHelper in TagHelpers)
         {

@@ -22,17 +22,17 @@ internal class ProjectSnapshotHandleJsonConverter : ObjectJsonConverter<ProjectS
     private record struct Data(string FilePath, RazorConfiguration? Configuration, string? RootNamespace)
     {
         public static readonly PropertyMap<Data> PropertyMap = new(
-            (nameof(Data.FilePath), ReadFilePath),
-            (nameof(Data.Configuration), ReadConfiguration),
-            (nameof(Data.RootNamespace), ReadRootNamespace));
+            (nameof(FilePath), ReadFilePath),
+            (nameof(Configuration), ReadConfiguration),
+            (nameof(RootNamespace), ReadRootNamespace));
 
-        public static void ReadFilePath(JsonReader reader, ref Data data)
+        private static void ReadFilePath(JsonReader reader, ref Data data)
             => data.FilePath = reader.ReadNonNullString();
 
-        public static void ReadConfiguration(JsonReader reader, ref Data data)
+        private static void ReadConfiguration(JsonReader reader, ref Data data)
             => data.Configuration = reader.ReadObject(ObjectReaders.ReadConfigurationFromProperties);
 
-        public static void ReadRootNamespace(JsonReader reader, ref Data data)
+        private static void ReadRootNamespace(JsonReader reader, ref Data data)
             => data.RootNamespace = reader.ReadString();
     }
 

@@ -20,16 +20,16 @@ internal static partial class ObjectReaders
             (nameof(TagHelperDescriptor.Diagnostics), ReadDiagnostics),
             (nameof(TagHelperDescriptor.Metadata), ReadMetadata));
 
-        public static void ReadDocumentation(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadDocumentation(JsonReader reader, ref TagHelperReader arg)
             => arg.Builder.Documentation = Cached(reader.ReadString());
 
-        public static void ReadTagOutputHint(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadTagOutputHint(JsonReader reader, ref TagHelperReader arg)
             => arg.Builder.TagOutputHint = Cached(reader.ReadString());
 
-        public static void ReadCaseSensitive(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadCaseSensitive(JsonReader reader, ref TagHelperReader arg)
             => arg.Builder.CaseSensitive = reader.ReadBoolean();
 
-        public static void ReadTagMatchingRules(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadTagMatchingRules(JsonReader reader, ref TagHelperReader arg)
         {
             reader.ProcessArray(arg.Builder, static (reader, builder) =>
             {
@@ -40,7 +40,7 @@ internal static partial class ObjectReaders
             });
         }
 
-        public static void ReadBoundAttributes(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadBoundAttributes(JsonReader reader, ref TagHelperReader arg)
         {
             reader.ProcessArray(arg.Builder, static (reader, builder) =>
             {
@@ -51,7 +51,7 @@ internal static partial class ObjectReaders
             });
         }
 
-        public static void ReadAllowedChildTags(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadAllowedChildTags(JsonReader reader, ref TagHelperReader arg)
         {
             reader.ProcessArray(arg.Builder, static (reader, builder) =>
             {
@@ -62,10 +62,10 @@ internal static partial class ObjectReaders
             });
         }
 
-        public static void ReadDiagnostics(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadDiagnostics(JsonReader reader, ref TagHelperReader arg)
             => reader.ProcessArray(arg.Builder.Diagnostics, ProcessDiagnostic);
 
-        public static void ReadMetadata(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadMetadata(JsonReader reader, ref TagHelperReader arg)
             => reader.ProcessObject(arg.Builder.Metadata, ProcessMetadata);
     }
 }

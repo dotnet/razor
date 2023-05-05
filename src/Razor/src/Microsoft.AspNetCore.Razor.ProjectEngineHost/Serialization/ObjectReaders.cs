@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
@@ -67,6 +68,25 @@ internal static partial class ObjectReaders
         {
             return () => message;
         }
+    }
+
+    public static DocumentSnapshotHandle ReadDocumentSnapshotHandle(JsonReader reader)
+        => reader.ReadNonNullObject(ReadDocumentSnapshotHandleFromProperties);
+
+    public static DocumentSnapshotHandle ReadDocumentSnapshotHandleFromProperties(JsonReader reader)
+    {
+        DocumentSnapshotHandleData data = default;
+        reader.ReadProperties(ref data, DocumentSnapshotHandleData.PropertyMap);
+
+        return new DocumentSnapshotHandle(data.FilePath, data.TargetPath, data.FileKind);
+    }
+
+    public static ProjectWorkspaceState ReadProjectWorkspaceStateFromProperties(JsonReader reader)
+    {
+        ProjectWorkspaceStateData data = default;
+        reader.ReadProperties(ref data, ProjectWorkspaceStateData.PropertyMap);
+
+        return new ProjectWorkspaceState(data.TagHelpers, data.CSharpLanguageVersion);
     }
 
     public static TagHelperDescriptor ReadTagHelper(JsonReader reader, bool useCache)

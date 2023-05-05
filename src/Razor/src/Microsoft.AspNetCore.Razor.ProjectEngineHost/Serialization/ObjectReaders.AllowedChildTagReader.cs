@@ -15,13 +15,13 @@ internal static partial class ObjectReaders
             new(nameof(AllowedChildTagDescriptor.DisplayName), ReadDisplayName),
             new(nameof(AllowedChildTagDescriptor.Diagnostics), ReadDiagnostics));
 
-        public static void ReadName(JsonReader reader, ref AllowedChildTagReader arg)
+        private static void ReadName(JsonReader reader, ref AllowedChildTagReader arg)
             => arg.Builder.Name = Cached(reader.ReadString());
 
-        public static void ReadDisplayName(JsonReader reader, ref AllowedChildTagReader arg)
+        private static void ReadDisplayName(JsonReader reader, ref AllowedChildTagReader arg)
             => arg.Builder.DisplayName = Cached(reader.ReadString());
 
-        public static void ReadDiagnostics(JsonReader reader, ref AllowedChildTagReader arg)
+        private static void ReadDiagnostics(JsonReader reader, ref AllowedChildTagReader arg)
             => reader.ProcessArray(arg.Builder.Diagnostics, ProcessDiagnostic);
     }
 }

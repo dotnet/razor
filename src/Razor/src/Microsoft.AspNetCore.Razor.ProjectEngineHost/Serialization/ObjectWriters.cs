@@ -4,13 +4,14 @@
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 internal static class ObjectWriters
 {
-    public static void Write(JsonWriter writer, RazorExtension value)
+    public static void Write(JsonWriter writer, RazorExtension? value)
         => writer.WriteObject(value, WriteProperties);
 
     public static void WriteProperties(JsonWriter writer, RazorExtension value)
@@ -37,7 +38,7 @@ internal static class ObjectWriters
         writer.WriteArray(nameof(value.Extensions), value.Extensions, Write);
     }
 
-    public static void Write(JsonWriter writer, RazorDiagnostic value)
+    public static void Write(JsonWriter writer, RazorDiagnostic? value)
         => writer.WriteObject(value, WriteProperties);
 
     public static void WriteProperties(JsonWriter writer, RazorDiagnostic value)
@@ -55,7 +56,26 @@ internal static class ObjectWriters
         });
     }
 
-    public static void Write(JsonWriter writer, TagHelperDescriptor value)
+    public static void Write(JsonWriter writer, DocumentSnapshotHandle? value)
+        => writer.WriteObject(value, WriteProperties);
+
+    public static void WriteProperties(JsonWriter writer, DocumentSnapshotHandle value)
+    {
+        writer.Write(nameof(value.FilePath), value.FilePath);
+        writer.Write(nameof(value.TargetPath), value.TargetPath);
+        writer.Write(nameof(value.FileKind), value.FileKind);
+    }
+
+    public static void Write(JsonWriter writer, ProjectWorkspaceState? value)
+        => writer.WriteObject(value, WriteProperties);
+
+    public static void WriteProperties(JsonWriter writer, ProjectWorkspaceState value)
+    {
+        writer.WriteArray(nameof(value.TagHelpers), value.TagHelpers, Write);
+        writer.Write(nameof(value.CSharpLanguageVersion), (int)value.CSharpLanguageVersion);
+    }
+
+    public static void Write(JsonWriter writer, TagHelperDescriptor? value)
         => writer.WriteObject(value, WriteProperties);
 
     public static void WriteProperties(JsonWriter writer, TagHelperDescriptor value)

@@ -1,147 +1,83 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
-internal class ProjectRazorJsonJsonConverter : JsonConverter
+internal class ProjectRazorJsonJsonConverter : ObjectJsonConverter<ProjectRazorJson>
 {
-    public static readonly ProjectRazorJsonJsonConverter Instance = new ProjectRazorJsonJsonConverter();
-    private const string SerializationFormatPropertyName = "SerializationFormat";
+    public static readonly ProjectRazorJsonJsonConverter Instance = new();
 
-    public override bool CanConvert(Type objectType)
+    protected override ProjectRazorJson ReadFromProperties(JsonReader reader)
     {
-        return typeof(ProjectRazorJson).IsAssignableFrom(objectType);
-    }
+        Data data = default;
+        reader.ReadProperties(ref data, Data.PropertyMap);
 
-    public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-    {
-        if (reader.TokenType != JsonToken.StartObject)
-        {
-            var canConvert = typeof(ProjectRazorJson).IsAssignableFrom(objectType);
-            return canConvert;
-        }
+        // We need to add a serialization format to the project response to indicate that this version
+        // of the code is compatible with what's being serialized. This scenario typically happens when
+        // a user has an incompatible serialized project snapshot but is using the latest Razor bits.
 
-        var (_, _, _, _, serializationFormat, serializationFilePath, filePath, configuration, rootNamespace, projectWorkspaceState, documents) = reader.ReadProperties(static (propertyName, arg) =>
-        {
-            var (reader, objectType, existingValue, serializer, serializationFormat, serializationFilePath, filePath, configuration, rootNamespace, projectWorkspaceState, documents) = (arg.reader, arg.objectType, arg.existingValue, arg.serializer, arg.serializationFormat, arg.serializationFilePath, arg.filePath, arg.configuration, arg.rootNamespace, arg.projectWorkspaceState, arg.documents);
-            switch (propertyName)
-            {
-                case SerializationFormatPropertyName:
-                    if (reader.Read())
-                    {
-                        serializationFormat = (string)reader.Value;
-                    }
-
-                    break;
-
-                case nameof(ProjectRazorJson.SerializedFilePath):
-                    if (reader.Read())
-                    {
-                        serializationFilePath = (string)reader.Value;
-                    }
-
-                    break;
-                case nameof(ProjectRazorJson.FilePath):
-                    if (reader.Read())
-                    {
-                        filePath = (string)reader.Value;
-                    }
-
-                    break;
-                case nameof(ProjectRazorJson.Configuration):
-                    if (reader.Read())
-                    {
-                        configuration = RazorConfigurationJsonConverter.Instance.ReadJson(reader, objectType, existingValue, serializer) as RazorConfiguration;
-                    }
-
-                    break;
-                case nameof(ProjectRazorJson.RootNamespace):
-                    if (reader.Read())
-                    {
-                        rootNamespace = (string)reader.Value;
-                    }
-
-                    break;
-                case nameof(ProjectRazorJson.ProjectWorkspaceState):
-                    if (reader.Read())
-                    {
-                        projectWorkspaceState = serializer.Deserialize<ProjectWorkspaceState>(reader);
-                    }
-
-                    break;
-                case nameof(ProjectRazorJson.Documents):
-                    if (reader.Read())
-                    {
-                        documents = serializer.Deserialize<DocumentSnapshotHandle[]>(reader);
-                    }
-
-                    break;
-            }
-
-            return (reader, objectType, existingValue, serializer, serializationFormat, serializationFilePath, filePath, configuration, rootNamespace, projectWorkspaceState, documents);
-        }, (reader, objectType, existingValue, serializer, serializationFormat: (string)null, serializationFilePath: (string)null, filePath: (string)null, configuration: (RazorConfiguration)null, rootNamespace: (string)null, projectWorkspaceState: (ProjectWorkspaceState)null, documents: (DocumentSnapshotHandle[])null));
-
-        // We need to add a serialization format to the project response to indicate that this version of the code is compatible with what's being serialized.
-        // This scenario typically happens when a user has an incompatible serialized project snapshot but is using the latest Razor bits.
-
-        if (string.IsNullOrEmpty(serializationFormat) || serializationFormat != ProjectSerializationFormat.Version)
+        if (string.IsNullOrEmpty(data.SerializationFormat) || data.SerializationFormat != ProjectSerializationFormat.Version)
         {
             // Unknown serialization format.
-            return null;
+            return null!;
         }
 
-        return new ProjectRazorJson(serializationFilePath, filePath, configuration, rootNamespace, projectWorkspaceState, documents);
+        return new ProjectRazorJson(
+            data.SerializedFilePath, data.FilePath, data.Configuration, data.RootNamespace, data.ProjectWorkspaceState, data.Documents);
     }
 
-    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    private record struct Data(
+        string SerializedFilePath,
+        string FilePath,
+        RazorConfiguration? Configuration,
+        string? RootNamespace,
+        ProjectWorkspaceState? ProjectWorkspaceState,
+        DocumentSnapshotHandle[] Documents,
+        string? SerializationFormat)
     {
-        var projectRazorJson = (ProjectRazorJson)value;
+        public static readonly PropertyMap<Data> PropertyMap = new(
+            (nameof(SerializedFilePath), ReadSerializedFilePath),
+            (nameof(FilePath), ReadFilePath),
+            (nameof(Configuration), ReadConfiguration),
+            (nameof(RootNamespace), ReadRootNamespace),
+            (nameof(ProjectWorkspaceState), ReadProjectWorkspaceState),
+            (nameof(Documents), ReadDocuments),
+            (nameof(SerializationFormat), ReadSerializationFormat));
 
-        writer.WriteStartObject();
+        private static void ReadSerializedFilePath(JsonReader reader, ref Data data)
+            => data.SerializedFilePath = reader.ReadNonNullString();
 
-        writer.WritePropertyName(nameof(ProjectRazorJson.SerializedFilePath));
-        writer.WriteValue(projectRazorJson.SerializedFilePath);
+        private static void ReadFilePath(JsonReader reader, ref Data data)
+            => data.FilePath = reader.ReadNonNullString();
 
-        writer.WritePropertyName(nameof(ProjectRazorJson.FilePath));
-        writer.WriteValue(projectRazorJson.FilePath);
+        private static void ReadConfiguration(JsonReader reader, ref Data data)
+            => data.Configuration = reader.ReadObject(ObjectReaders.ReadConfigurationFromProperties);
 
-        if (projectRazorJson.Configuration is null)
-        {
-            writer.WritePropertyName(nameof(ProjectRazorJson.Configuration));
-            writer.WriteNull();
-        }
-        else
-        {
-            writer.WritePropertyName(nameof(ProjectRazorJson.Configuration));
-            serializer.Serialize(writer, projectRazorJson.Configuration);
-        }
+        private static void ReadRootNamespace(JsonReader reader, ref Data data)
+            => data.RootNamespace = reader.ReadString();
 
-        if (projectRazorJson.ProjectWorkspaceState is null)
-        {
-            writer.WritePropertyName(nameof(ProjectRazorJson.ProjectWorkspaceState));
-            writer.WriteNull();
-        }
-        else
-        {
-            writer.WritePropertyName(nameof(ProjectRazorJson.ProjectWorkspaceState));
-            serializer.Serialize(writer, projectRazorJson.ProjectWorkspaceState);
-        }
+        private static void ReadProjectWorkspaceState(JsonReader reader, ref Data data)
+            => data.ProjectWorkspaceState = reader.ReadObject(ObjectReaders.ReadProjectWorkspaceStateFromProperties);
 
-        writer.WritePropertyName(nameof(ProjectRazorJson.RootNamespace));
-        writer.WriteValue(projectRazorJson.RootNamespace);
+        private static void ReadDocuments(JsonReader reader, ref Data data)
+            => data.Documents = reader.ReadArrayOrEmpty(ObjectReaders.ReadDocumentSnapshotHandle);
 
-        writer.WritePropertyName(nameof(ProjectRazorJson.Documents));
-        serializer.Serialize(writer, projectRazorJson.Documents);
+        private static void ReadSerializationFormat(JsonReader reader, ref Data data)
+            => data.SerializationFormat = reader.ReadString();
+    }
 
-        writer.WritePropertyName(SerializationFormatPropertyName);
-        writer.WriteValue(ProjectSerializationFormat.Version);
-
-        writer.WriteEndObject();
+    protected override void WriteProperties(JsonWriter writer, ProjectRazorJson value)
+    {
+        writer.Write(nameof(value.SerializedFilePath), value.SerializedFilePath);
+        writer.Write(nameof(value.FilePath), value.FilePath);
+        writer.WriteObject(nameof(value.Configuration), value.Configuration, ObjectWriters.WriteProperties);
+        writer.WriteObject(nameof(value.ProjectWorkspaceState), value.ProjectWorkspaceState, ObjectWriters.WriteProperties);
+        writer.Write(nameof(value.RootNamespace), value.RootNamespace);
+        writer.WriteArray(nameof(value.Documents), value.Documents, ObjectWriters.Write);
+        writer.Write("SerializationFormat", ProjectSerializationFormat.Version);
     }
 }
