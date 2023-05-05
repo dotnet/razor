@@ -86,17 +86,17 @@ internal static partial class ObjectReaders
         // Required tokens (order matters)
         if (!reader.TryReadString(nameof(TagHelperDescriptor.Kind), out var descriptorKind))
         {
-            return default!;
+            return null!;
         }
 
         if (!reader.TryReadString(nameof(TagHelperDescriptor.Name), out var typeName))
         {
-            return default!;
+            return null!;
         }
 
         if (!reader.TryReadString(nameof(TagHelperDescriptor.AssemblyName), out var assemblyName))
         {
-            return default!;
+            return null!;
         }
 
         using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
