@@ -95,6 +95,24 @@ internal partial class JsonDataWriter
         }
     }
 
+    public void Write(string propertyName, Uri? value)
+    {
+        _writer.WritePropertyName(propertyName);
+        Write(value);
+    }
+
+    public void Write(Uri? value)
+    {
+        if (value is null)
+        {
+            _writer.WriteNull();
+        }
+        else
+        {
+            _writer.WriteValue(value.AbsoluteUri);
+        }
+    }
+
     public void WriteObject<T>(string propertyName, T? value, WriteProperties<T> writeProperties)
     {
         _writer.WritePropertyName(propertyName);

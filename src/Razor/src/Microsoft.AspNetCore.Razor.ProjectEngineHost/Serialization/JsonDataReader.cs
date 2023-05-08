@@ -248,6 +248,33 @@ internal partial class JsonDataReader
         return ReadNonNullString();
     }
 
+    public Uri? ReadUri(string propertyName)
+    {
+        ReadPropertyName(propertyName);
+
+        return ReadUri();
+    }
+
+    public Uri? ReadUri()
+    {
+        return ReadString() is string uriString
+            ? new Uri(uriString)
+            : null;
+    }
+
+    public Uri ReadNonNullUri(string propertyName)
+    {
+        ReadPropertyName(propertyName);
+
+        return ReadNonNullUri();
+    }
+
+    public Uri ReadNonNullUri()
+    {
+        var uriString = ReadNonNullString();
+        return new Uri(uriString);
+    }
+
     [return: MaybeNull]
     public T ReadObject<T>(ReadProperties<T> readProperties)
     {
