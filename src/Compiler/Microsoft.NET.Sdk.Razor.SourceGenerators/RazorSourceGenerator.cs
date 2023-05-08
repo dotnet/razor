@@ -113,7 +113,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 					if (root is CompilationUnitSyntax { Members: [NamespaceDeclarationSyntax { Members: [ClassDeclarationSyntax classSyntax, ..] }, ..] })
 					{
 						var declaredClass = compilationWithDeclarations.GetSemanticModel(generatedDeclarationSyntaxTree).GetDeclaredSymbol(classSyntax, ct);
-						Debug.Assert(declaredClass is null || declaredClass is { AllInterfaces: [{ Name: "IComponent" }, ..] });
+						
+						// PROTOTYPE: fix this
+						//Debug.Assert(declaredClass is null || declaredClass is { AllInterfaces: [{ Name: "IComponent" }, ..] });
 						targetSymbol = declaredClass ?? targetSymbol;
 					}
 

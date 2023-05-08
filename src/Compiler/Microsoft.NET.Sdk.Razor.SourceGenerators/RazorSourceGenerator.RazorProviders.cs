@@ -53,7 +53,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     razorLanguageVersionString);
             }
 
-            var razorConfiguration = RazorConfiguration.Create(razorLanguageVersion, configurationName ?? "default", System.Linq.Enumerable.Empty<RazorExtension>(), true);
+            var razorConfiguration = RazorConfiguration.Create(razorLanguageVersion, configurationName ?? "default", System.Linq.Enumerable.Empty<RazorExtension>(), false);
             
             var razorSourceGenerationOptions = new RazorSourceGenerationOptions()
             {
