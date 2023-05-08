@@ -81,6 +81,26 @@ public static class RazorCodeDocumentExtensions
         document.Items[nameof(GetReferencedTagHelpers)] = tagHelpers;
     }
 
+    internal static Dictionary<MarkupStartTagSyntax, TagHelperBinding> GetRewrittenTagHelpers(this RazorCodeDocument document)
+    {
+        if (document == null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        return document.Items[nameof(GetRewrittenTagHelpers)] as Dictionary<MarkupStartTagSyntax, TagHelperBinding>;
+    }
+
+    internal static void SetRewrittenTagHelpers(this RazorCodeDocument document, Dictionary<MarkupStartTagSyntax, TagHelperBinding> tagHelpers)
+    {
+        if (document == null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        document.Items[nameof(SetRewrittenTagHelpers)] = tagHelpers;
+    }
+
     public static RazorSyntaxTree GetPreTagHelperSyntaxTree(this RazorCodeDocument document)
     {
         if (document == null)

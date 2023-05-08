@@ -10,19 +10,29 @@ internal sealed class DefaultRazorTagHelperRewritePhase : RazorEnginePhaseBase
 {
     protected override void ExecuteCore(RazorCodeDocument codeDocument)
     {
+        var context = codeDocument.GetTagHelperContext();
+        if (context is not null)
+        {
+            RewriteTagHelpers(codeDocument, context.Prefix, context.TagHelpers);
+        }
+    }
+
+    public void RewriteTagHelpers(RazorCodeDocument codeDocument, string prefix, IReadOnlyList<TagHelperDescriptor> tagHelpers)
+    {
         var syntaxTree = codeDocument.GetPreTagHelperSyntaxTree() ?? codeDocument.GetSyntaxTree();
         ThrowForMissingDocumentDependency(syntaxTree);
 
-        var context = codeDocument.GetTagHelperContext();
-        if (context?.TagHelpers.Count > 0)
+        if (tagHelpers.Count > 0)
         {
-            var rewrittenSyntaxTree = TagHelperParseTreeRewriter.Rewrite(syntaxTree, context.Prefix, context.TagHelpers, out var usedHelpers);
+            var rewrittenSyntaxTree = TagHelperParseTreeRewriter.Rewrite(syntaxTree, prefix, tagHelpers, out var usedHelpers, out var rewrittenMap);
             codeDocument.SetSyntaxTree(rewrittenSyntaxTree);
             codeDocument.SetReferencedTagHelpers(usedHelpers);
+            codeDocument.SetRewrittenTagHelpers(rewrittenMap);
         }
         else
         {
             codeDocument.SetReferencedTagHelpers(new HashSet<TagHelperDescriptor>());
+            codeDocument.SetRewrittenTagHelpers(new Dictionary<Syntax.MarkupStartTagSyntax, TagHelperBinding>());
         }
     }
 }

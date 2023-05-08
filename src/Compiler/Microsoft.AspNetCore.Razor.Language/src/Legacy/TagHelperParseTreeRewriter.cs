@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 internal static class TagHelperParseTreeRewriter
 {
-    public static RazorSyntaxTree Rewrite(RazorSyntaxTree syntaxTree, string tagHelperPrefix, IEnumerable<TagHelperDescriptor> descriptors, out ISet<TagHelperDescriptor> usedDescriptors)
+    public static RazorSyntaxTree Rewrite(RazorSyntaxTree syntaxTree, string tagHelperPrefix, IEnumerable<TagHelperDescriptor> descriptors, out ISet<TagHelperDescriptor> usedDescriptors, out Dictionary<MarkupStartTagSyntax, TagHelperBinding> rewrittenMap)
     {
         var errorSink = new ErrorSink();
 
@@ -34,6 +34,7 @@ internal static class TagHelperParseTreeRewriter
         var diagnostics = CombineErrors(syntaxTree.Diagnostics, errorList).OrderBy(error => error.Span.AbsoluteIndex);
 
         usedDescriptors = rewriter.UsedDescriptors;
+        rewrittenMap = rewriter.Rewritten;
 
         var newSyntaxTree = RazorSyntaxTree.Create(rewritten, syntaxTree.Source, diagnostics, syntaxTree.Options);
         return newSyntaxTree;
@@ -65,6 +66,10 @@ internal static class TagHelperParseTreeRewriter
         private readonly RazorParserFeatureFlags _featureFlags;
         private readonly HashSet<TagHelperDescriptor> _usedDescriptors;
 
+        // PROTOTYPE:
+        private readonly Dictionary<MarkupStartTagSyntax, TagHelperBinding> _rewritten;
+
+
         public Rewriter(
             RazorSourceDocument source,
             string tagHelperPrefix,
@@ -80,9 +85,12 @@ internal static class TagHelperParseTreeRewriter
             _htmlAttributeTracker = new List<KeyValuePair<string, string>>();
             _featureFlags = featureFlags;
             _usedDescriptors = new HashSet<TagHelperDescriptor>();
+            _rewritten = new Dictionary<MarkupStartTagSyntax, TagHelperBinding>();
             _errorSink = errorSink;
         }
         public HashSet<TagHelperDescriptor> UsedDescriptors => _usedDescriptors;
+        public Dictionary<MarkupStartTagSyntax, TagHelperBinding> Rewritten => _rewritten;
+
 
         private TagTracker CurrentTracker => _trackerStack.Count > 0 ? _trackerStack.Peek() : null;
 
@@ -285,6 +293,8 @@ internal static class TagHelperParseTreeRewriter
 
             // We're in a start TagHelper block.
             ValidateStartTagSyntax(tagName, startTag);
+
+            _rewritten.Add(startTag, tagHelperBinding);
 
             var rewrittenStartTag = TagHelperBlockRewriter.Rewrite(
                 tagName,
