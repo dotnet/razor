@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
@@ -84,6 +85,7 @@ internal class TelemetryReportingLSPRequestInvoker : LSPRequestInvoker
         {
             new("eventscope.method", method),
             new("eventscope.languageservername", languageServerName),
+            new("eventscope.activityid", Trace.CorrelationManager.ActivityId),
         }));
     }
 }
