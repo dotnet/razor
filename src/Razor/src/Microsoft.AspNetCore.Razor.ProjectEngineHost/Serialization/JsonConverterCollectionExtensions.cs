@@ -12,7 +12,6 @@ internal static class JsonConverterCollectionExtensions
     private static readonly List<JsonConverter> s_projectSerializerConverters = new List<JsonConverter>(4)
     {
         TagHelperDescriptorJsonConverter.Instance,
-        RazorDiagnosticJsonConverter.Instance,
         RazorConfigurationJsonConverter.Instance,
         ProjectRazorJsonJsonConverter.Instance,
     };
