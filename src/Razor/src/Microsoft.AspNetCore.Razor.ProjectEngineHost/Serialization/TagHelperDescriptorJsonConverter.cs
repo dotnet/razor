@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
@@ -16,9 +15,9 @@ internal class TagHelperDescriptorJsonConverter : ObjectJsonConverter<TagHelperD
     {
     }
 
-    protected override TagHelperDescriptor ReadFromProperties(JsonReader reader)
+    protected override TagHelperDescriptor ReadFromProperties(JsonDataReader reader)
         => ObjectReaders.ReadTagHelperFromProperties(reader, !DisableCachingForTesting);
 
-    protected override void WriteProperties(JsonWriter writer, TagHelperDescriptor value)
+    protected override void WriteProperties(JsonDataWriter writer, TagHelperDescriptor value)
         => ObjectWriters.WriteProperties(writer, value);
 }

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Newtonsoft.Json;
-
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 internal static partial class ObjectReaders
@@ -16,19 +14,19 @@ internal static partial class ObjectReaders
             (nameof(CharacterIndex), ReadCharacterIndex),
             (nameof(Length), ReadLength));
 
-        private static void ReadFilePath(JsonReader reader, ref SourceSpanData data)
+        private static void ReadFilePath(JsonDataReader reader, ref SourceSpanData data)
             => data.FilePath = reader.ReadString();
 
-        private static void ReadAbsoluteIndex(JsonReader reader, ref SourceSpanData data)
+        private static void ReadAbsoluteIndex(JsonDataReader reader, ref SourceSpanData data)
             => data.AbsoluteIndex = reader.ReadInt32();
 
-        private static void ReadLineIndex(JsonReader reader, ref SourceSpanData data)
+        private static void ReadLineIndex(JsonDataReader reader, ref SourceSpanData data)
             => data.LineIndex = reader.ReadInt32();
 
-        private static void ReadCharacterIndex(JsonReader reader, ref SourceSpanData data)
+        private static void ReadCharacterIndex(JsonDataReader reader, ref SourceSpanData data)
             => data.CharacterIndex = reader.ReadInt32();
 
-        private static void ReadLength(JsonReader reader, ref SourceSpanData data)
+        private static void ReadLength(JsonDataReader reader, ref SourceSpanData data)
             => data.Length = reader.ReadInt32();
     }
 }

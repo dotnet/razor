@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
@@ -15,14 +14,14 @@ internal static partial class ObjectReaders
             (nameof(LanguageVersion), ReadLanguageVersion),
             (nameof(Extensions), ReadExtensions));
 
-        private static void ReadConfigurationName(JsonReader reader, ref ConfigurationData data)
+        private static void ReadConfigurationName(JsonDataReader reader, ref ConfigurationData data)
             => data.ConfigurationName = reader.ReadNonNullString();
 
-        private static void ReadLanguageVersion(JsonReader reader, ref ConfigurationData data)
+        private static void ReadLanguageVersion(JsonDataReader reader, ref ConfigurationData data)
         {
             string languageVersionValue;
 
-            if (reader.TokenType == JsonToken.StartObject)
+            if (reader.IsObjectStart)
             {
                 LanguageVersionData versionData = default;
                 reader.ReadObjectData(ref versionData, LanguageVersionData.PropertyMap);
@@ -38,7 +37,7 @@ internal static partial class ObjectReaders
                 : RazorLanguageVersion.Version_2_1;
         }
 
-        private static void ReadExtensions(JsonReader reader, ref ConfigurationData data)
+        private static void ReadExtensions(JsonDataReader reader, ref ConfigurationData data)
             => data.Extensions = reader.ReadArrayOrEmpty(ReadExtension);
     }
 }

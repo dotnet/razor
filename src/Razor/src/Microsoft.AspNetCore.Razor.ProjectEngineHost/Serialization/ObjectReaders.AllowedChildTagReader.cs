@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
@@ -15,13 +14,13 @@ internal static partial class ObjectReaders
             new(nameof(AllowedChildTagDescriptor.DisplayName), ReadDisplayName),
             new(nameof(AllowedChildTagDescriptor.Diagnostics), ReadDiagnostics));
 
-        private static void ReadName(JsonReader reader, ref AllowedChildTagReader arg)
+        private static void ReadName(JsonDataReader reader, ref AllowedChildTagReader arg)
             => arg.Builder.Name = Cached(reader.ReadString());
 
-        private static void ReadDisplayName(JsonReader reader, ref AllowedChildTagReader arg)
+        private static void ReadDisplayName(JsonDataReader reader, ref AllowedChildTagReader arg)
             => arg.Builder.DisplayName = Cached(reader.ReadString());
 
-        private static void ReadDiagnostics(JsonReader reader, ref AllowedChildTagReader arg)
+        private static void ReadDiagnostics(JsonDataReader reader, ref AllowedChildTagReader arg)
             => reader.ProcessArray(arg.Builder.Diagnostics, ProcessDiagnostic);
     }
 }

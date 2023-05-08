@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
@@ -20,16 +19,16 @@ internal static partial class ObjectReaders
             (nameof(TagHelperDescriptor.Diagnostics), ReadDiagnostics),
             (nameof(TagHelperDescriptor.Metadata), ReadMetadata));
 
-        private static void ReadDocumentation(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadDocumentation(JsonDataReader reader, ref TagHelperReader arg)
             => arg.Builder.Documentation = Cached(reader.ReadString());
 
-        private static void ReadTagOutputHint(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadTagOutputHint(JsonDataReader reader, ref TagHelperReader arg)
             => arg.Builder.TagOutputHint = Cached(reader.ReadString());
 
-        private static void ReadCaseSensitive(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadCaseSensitive(JsonDataReader reader, ref TagHelperReader arg)
             => arg.Builder.CaseSensitive = reader.ReadBoolean();
 
-        private static void ReadTagMatchingRules(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadTagMatchingRules(JsonDataReader reader, ref TagHelperReader arg)
         {
             reader.ProcessArray(arg.Builder, static (reader, builder) =>
             {
@@ -40,7 +39,7 @@ internal static partial class ObjectReaders
             });
         }
 
-        private static void ReadBoundAttributes(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadBoundAttributes(JsonDataReader reader, ref TagHelperReader arg)
         {
             reader.ProcessArray(arg.Builder, static (reader, builder) =>
             {
@@ -51,7 +50,7 @@ internal static partial class ObjectReaders
             });
         }
 
-        private static void ReadAllowedChildTags(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadAllowedChildTags(JsonDataReader reader, ref TagHelperReader arg)
         {
             reader.ProcessArray(arg.Builder, static (reader, builder) =>
             {
@@ -62,10 +61,10 @@ internal static partial class ObjectReaders
             });
         }
 
-        private static void ReadDiagnostics(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadDiagnostics(JsonDataReader reader, ref TagHelperReader arg)
             => reader.ProcessArray(arg.Builder.Diagnostics, ProcessDiagnostic);
 
-        private static void ReadMetadata(JsonReader reader, ref TagHelperReader arg)
+        private static void ReadMetadata(JsonDataReader reader, ref TagHelperReader arg)
             => reader.ProcessObject(arg.Builder.Metadata, ProcessMetadata);
     }
 }

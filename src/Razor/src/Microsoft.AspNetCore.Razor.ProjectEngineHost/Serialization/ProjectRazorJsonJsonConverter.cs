@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
@@ -11,7 +10,7 @@ internal class ProjectRazorJsonJsonConverter : ObjectJsonConverter<ProjectRazorJ
 {
     public static readonly ProjectRazorJsonJsonConverter Instance = new();
 
-    protected override ProjectRazorJson ReadFromProperties(JsonReader reader)
+    protected override ProjectRazorJson ReadFromProperties(JsonDataReader reader)
     {
         Data data = default;
         reader.ReadProperties(ref data, Data.PropertyMap);
@@ -48,29 +47,29 @@ internal class ProjectRazorJsonJsonConverter : ObjectJsonConverter<ProjectRazorJ
             (nameof(Documents), ReadDocuments),
             (nameof(SerializationFormat), ReadSerializationFormat));
 
-        private static void ReadSerializedFilePath(JsonReader reader, ref Data data)
+        private static void ReadSerializedFilePath(JsonDataReader reader, ref Data data)
             => data.SerializedFilePath = reader.ReadNonNullString();
 
-        private static void ReadFilePath(JsonReader reader, ref Data data)
+        private static void ReadFilePath(JsonDataReader reader, ref Data data)
             => data.FilePath = reader.ReadNonNullString();
 
-        private static void ReadConfiguration(JsonReader reader, ref Data data)
+        private static void ReadConfiguration(JsonDataReader reader, ref Data data)
             => data.Configuration = reader.ReadObject(ObjectReaders.ReadConfigurationFromProperties);
 
-        private static void ReadRootNamespace(JsonReader reader, ref Data data)
+        private static void ReadRootNamespace(JsonDataReader reader, ref Data data)
             => data.RootNamespace = reader.ReadString();
 
-        private static void ReadProjectWorkspaceState(JsonReader reader, ref Data data)
+        private static void ReadProjectWorkspaceState(JsonDataReader reader, ref Data data)
             => data.ProjectWorkspaceState = reader.ReadObject(ObjectReaders.ReadProjectWorkspaceStateFromProperties);
 
-        private static void ReadDocuments(JsonReader reader, ref Data data)
+        private static void ReadDocuments(JsonDataReader reader, ref Data data)
             => data.Documents = reader.ReadArrayOrEmpty(ObjectReaders.ReadDocumentSnapshotHandle);
 
-        private static void ReadSerializationFormat(JsonReader reader, ref Data data)
+        private static void ReadSerializationFormat(JsonDataReader reader, ref Data data)
             => data.SerializationFormat = reader.ReadString();
     }
 
-    protected override void WriteProperties(JsonWriter writer, ProjectRazorJson value)
+    protected override void WriteProperties(JsonDataWriter writer, ProjectRazorJson value)
     {
         writer.Write(nameof(value.SerializedFilePath), value.SerializedFilePath);
         writer.Write(nameof(value.FilePath), value.FilePath);

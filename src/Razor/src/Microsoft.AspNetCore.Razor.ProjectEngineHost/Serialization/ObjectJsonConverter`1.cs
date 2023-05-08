@@ -9,8 +9,8 @@ namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 internal abstract class ObjectJsonConverter<T> : JsonConverter<T>
     where T : class
 {
-    protected abstract T ReadFromProperties(JsonReader reader);
-    protected abstract void WriteProperties(JsonWriter writer, T value);
+    protected abstract T ReadFromProperties(JsonDataReader reader);
+    protected abstract void WriteProperties(JsonDataWriter writer, T value);
 
     public sealed override T? ReadJson(JsonReader reader, Type objectType, T? existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
@@ -21,7 +21,17 @@ internal abstract class ObjectJsonConverter<T> : JsonConverter<T>
 
         reader.ReadToken(JsonToken.StartObject);
 
-        var result = ReadFromProperties(reader);
+        T result;
+
+        var dataReader = JsonDataReader.Get(reader);
+        try
+        {
+            result = ReadFromProperties(dataReader);
+        }
+        finally
+        {
+            JsonDataReader.Return(dataReader);
+        }
 
         // JSON.NET serialization expects that we don't advance passed the end object token,
         // but we should verify that it's there.
@@ -39,7 +49,17 @@ internal abstract class ObjectJsonConverter<T> : JsonConverter<T>
         }
 
         writer.WriteStartObject();
-        WriteProperties(writer, value);
+
+        var dataWriter = JsonDataWriter.Get(writer);
+        try
+        {
+            WriteProperties(dataWriter, value);
+        }
+        finally
+        {
+            JsonDataWriter.Return(dataWriter);
+        }
+
         writer.WriteEndObject();
     }
 }

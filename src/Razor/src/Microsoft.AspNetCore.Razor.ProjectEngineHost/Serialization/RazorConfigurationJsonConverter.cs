@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
@@ -14,9 +13,9 @@ internal class RazorConfigurationJsonConverter : ObjectJsonConverter<RazorConfig
     {
     }
 
-    protected override RazorConfiguration ReadFromProperties(JsonReader reader)
+    protected override RazorConfiguration ReadFromProperties(JsonDataReader reader)
         => ObjectReaders.ReadConfigurationFromProperties(reader);
 
-    protected override void WriteProperties(JsonWriter writer, RazorConfiguration value)
+    protected override void WriteProperties(JsonDataWriter writer, RazorConfiguration value)
         => ObjectWriters.WriteProperties(writer, value);
 }

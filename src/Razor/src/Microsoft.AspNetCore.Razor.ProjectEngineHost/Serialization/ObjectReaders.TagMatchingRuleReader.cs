@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
@@ -17,16 +16,16 @@ internal static partial class ObjectReaders
             (nameof(TagMatchingRuleDescriptor.Attributes), ReadAttributes),
             (nameof(TagMatchingRuleDescriptor.Diagnostics), ReadDiagnostics));
 
-        private static void ReadTagName(JsonReader reader, ref TagMatchingRuleReader arg)
+        private static void ReadTagName(JsonDataReader reader, ref TagMatchingRuleReader arg)
             => arg.Builder.TagName = Cached(reader.ReadString());
 
-        private static void ReadParentTag(JsonReader reader, ref TagMatchingRuleReader arg)
+        private static void ReadParentTag(JsonDataReader reader, ref TagMatchingRuleReader arg)
             => arg.Builder.ParentTag = Cached(reader.ReadString());
 
-        private static void ReadTagStructure(JsonReader reader, ref TagMatchingRuleReader arg)
+        private static void ReadTagStructure(JsonDataReader reader, ref TagMatchingRuleReader arg)
             => arg.Builder.TagStructure = (TagStructure)reader.ReadInt32();
 
-        private static void ReadAttributes(JsonReader reader, ref TagMatchingRuleReader arg)
+        private static void ReadAttributes(JsonDataReader reader, ref TagMatchingRuleReader arg)
         {
             reader.ProcessArray(arg.Builder, static (reader, builder) =>
             {
@@ -37,7 +36,7 @@ internal static partial class ObjectReaders
             });
         }
 
-        private static void ReadDiagnostics(JsonReader reader, ref TagMatchingRuleReader arg)
+        private static void ReadDiagnostics(JsonDataReader reader, ref TagMatchingRuleReader arg)
             => reader.ProcessArray(arg.Builder.Diagnostics, ProcessDiagnostic);
     }
 }

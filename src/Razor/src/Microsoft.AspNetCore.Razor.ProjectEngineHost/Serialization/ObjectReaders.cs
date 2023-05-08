@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
@@ -34,17 +33,17 @@ internal static partial class ObjectReaders
         return s_stringCache.GetOrAddValue(str);
     }
 
-    public static RazorExtension ReadExtension(JsonReader reader)
+    public static RazorExtension ReadExtension(JsonDataReader reader)
         => reader.ReadNonNullObject(ReadExtensionFromProperties);
 
-    public static RazorExtension ReadExtensionFromProperties(JsonReader reader)
+    public static RazorExtension ReadExtensionFromProperties(JsonDataReader reader)
     {
         var extensionName = reader.ReadNonNullString(nameof(RazorExtension.ExtensionName));
 
         return new SerializedRazorExtension(extensionName);
     }
 
-    public static RazorConfiguration ReadConfigurationFromProperties(JsonReader reader)
+    public static RazorConfiguration ReadConfigurationFromProperties(JsonDataReader reader)
     {
         ConfigurationData data = default;
         reader.ReadProperties(ref data, ConfigurationData.PropertyMap);
@@ -52,10 +51,10 @@ internal static partial class ObjectReaders
         return RazorConfiguration.Create(data.LanguageVersion, data.ConfigurationName, data.Extensions);
     }
 
-    public static RazorDiagnostic ReadDiagnostic(JsonReader reader)
+    public static RazorDiagnostic ReadDiagnostic(JsonDataReader reader)
         => reader.ReadNonNullObject(ReadDiagnosticFromProperties);
 
-    public static RazorDiagnostic ReadDiagnosticFromProperties(JsonReader reader)
+    public static RazorDiagnostic ReadDiagnosticFromProperties(JsonDataReader reader)
     {
         DiagnosticData data = default;
         reader.ReadProperties(ref data, DiagnosticData.PropertyMap);
@@ -70,10 +69,10 @@ internal static partial class ObjectReaders
         }
     }
 
-    public static DocumentSnapshotHandle ReadDocumentSnapshotHandle(JsonReader reader)
+    public static DocumentSnapshotHandle ReadDocumentSnapshotHandle(JsonDataReader reader)
         => reader.ReadNonNullObject(ReadDocumentSnapshotHandleFromProperties);
 
-    public static DocumentSnapshotHandle ReadDocumentSnapshotHandleFromProperties(JsonReader reader)
+    public static DocumentSnapshotHandle ReadDocumentSnapshotHandleFromProperties(JsonDataReader reader)
     {
         DocumentSnapshotHandleData data = default;
         reader.ReadProperties(ref data, DocumentSnapshotHandleData.PropertyMap);
@@ -81,7 +80,7 @@ internal static partial class ObjectReaders
         return new DocumentSnapshotHandle(data.FilePath, data.TargetPath, data.FileKind);
     }
 
-    public static ProjectWorkspaceState ReadProjectWorkspaceStateFromProperties(JsonReader reader)
+    public static ProjectWorkspaceState ReadProjectWorkspaceStateFromProperties(JsonDataReader reader)
     {
         ProjectWorkspaceStateData data = default;
         reader.ReadProperties(ref data, ProjectWorkspaceStateData.PropertyMap);
@@ -89,10 +88,10 @@ internal static partial class ObjectReaders
         return new ProjectWorkspaceState(data.TagHelpers, data.CSharpLanguageVersion);
     }
 
-    public static TagHelperDescriptor ReadTagHelper(JsonReader reader, bool useCache)
+    public static TagHelperDescriptor ReadTagHelper(JsonDataReader reader, bool useCache)
         => reader.ReadNonNullObject(reader => ReadTagHelperFromProperties(reader, useCache));
 
-    public static TagHelperDescriptor ReadTagHelperFromProperties(JsonReader reader, bool useCache)
+    public static TagHelperDescriptor ReadTagHelperFromProperties(JsonDataReader reader, bool useCache)
     {
         // Try reading the optional hashcode
         var hashWasRead = reader.TryReadInt32(RazorSerializationConstants.HashCodePropertyName, out var hash);
@@ -135,7 +134,7 @@ internal static partial class ObjectReaders
         return descriptor;
     }
 
-    private static void ProcessDiagnostic(JsonReader reader, RazorDiagnosticCollection collection)
+    private static void ProcessDiagnostic(JsonDataReader reader, RazorDiagnosticCollection collection)
     {
         DiagnosticData data = default;
         reader.ReadObjectData(ref data, DiagnosticData.PropertyMap);
@@ -151,7 +150,7 @@ internal static partial class ObjectReaders
         }
     }
 
-    private static void ProcessMetadata(JsonReader reader, IDictionary<string, string?> dictionary)
+    private static void ProcessMetadata(JsonDataReader reader, IDictionary<string, string?> dictionary)
     {
         while (reader.TryReadNextPropertyName(out var key))
         {

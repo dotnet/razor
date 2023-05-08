@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
@@ -16,16 +15,16 @@ internal static partial class ObjectReaders
             (nameof(Message), ReadMessage),
             (nameof(Span), ReadSpan));
 
-        private static void ReadId(JsonReader reader, ref DiagnosticData data)
+        private static void ReadId(JsonDataReader reader, ref DiagnosticData data)
             => data.Id = reader.ReadNonNullString();
 
-        private static void ReadSeverity(JsonReader reader, ref DiagnosticData data)
+        private static void ReadSeverity(JsonDataReader reader, ref DiagnosticData data)
             => data.Severity = (RazorDiagnosticSeverity)reader.ReadInt32();
 
-        private static void ReadMessage(JsonReader reader, ref DiagnosticData data)
+        private static void ReadMessage(JsonDataReader reader, ref DiagnosticData data)
             => data.Message = reader.ReadNonNullString();
 
-        private static void ReadSpan(JsonReader reader, ref DiagnosticData data)
+        private static void ReadSpan(JsonDataReader reader, ref DiagnosticData data)
         {
             SourceSpanData span = default;
             reader.ReadObjectData(ref span, SourceSpanData.PropertyMap);

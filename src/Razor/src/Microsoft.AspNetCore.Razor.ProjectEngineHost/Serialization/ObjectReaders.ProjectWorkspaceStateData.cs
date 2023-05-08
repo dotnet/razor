@@ -3,7 +3,6 @@
 
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CSharp;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
@@ -15,10 +14,10 @@ internal static partial class ObjectReaders
             (nameof(TagHelpers), ReadTagHelpers),
             (nameof(CSharpLanguageVersion), ReadCSharpLanguageVersion));
 
-        private static void ReadTagHelpers(JsonReader reader, ref ProjectWorkspaceStateData data)
+        private static void ReadTagHelpers(JsonDataReader reader, ref ProjectWorkspaceStateData data)
             => data.TagHelpers = reader.ReadArrayOrEmpty(static reader => ReadTagHelper(reader, useCache: true));
 
-        private static void ReadCSharpLanguageVersion(JsonReader reader, ref ProjectWorkspaceStateData data)
+        private static void ReadCSharpLanguageVersion(JsonDataReader reader, ref ProjectWorkspaceStateData data)
             => data.CSharpLanguageVersion = (LanguageVersion)reader.ReadInt32();
     }
 }

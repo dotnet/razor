@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using Microsoft.AspNetCore.Razor.Language;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
@@ -19,28 +18,28 @@ internal static partial class ObjectReaders
             new(nameof(BoundAttributeParameterDescriptor.Metadata), ReadMetadata),
             new(nameof(BoundAttributeParameterDescriptor.Diagnostics), ReadDiagnostics));
 
-        private static void ReadKind(JsonReader reader, ref BoundAttributeParameterReader arg)
+        private static void ReadKind(JsonDataReader reader, ref BoundAttributeParameterReader arg)
         {
             // In old serialized files, Kind might appear, though it isn't meaningful.
             _ = reader.ReadString();
         }
 
-        private static void ReadName(JsonReader reader, ref BoundAttributeParameterReader arg)
+        private static void ReadName(JsonDataReader reader, ref BoundAttributeParameterReader arg)
             => arg.Builder.Name = Cached(reader.ReadString());
 
-        private static void ReadTypeName(JsonReader reader, ref BoundAttributeParameterReader arg)
+        private static void ReadTypeName(JsonDataReader reader, ref BoundAttributeParameterReader arg)
             => arg.Builder.TypeName = Cached(reader.ReadString());
 
-        private static void ReadIsEnum(JsonReader reader, ref BoundAttributeParameterReader arg)
+        private static void ReadIsEnum(JsonDataReader reader, ref BoundAttributeParameterReader arg)
             => arg.Builder.IsEnum = reader.ReadBoolean();
 
-        private static void ReadDocumentation(JsonReader reader, ref BoundAttributeParameterReader arg)
+        private static void ReadDocumentation(JsonDataReader reader, ref BoundAttributeParameterReader arg)
             => arg.Builder.Documentation = Cached(reader.ReadString());
 
-        private static void ReadMetadata(JsonReader reader, ref BoundAttributeParameterReader arg)
+        private static void ReadMetadata(JsonDataReader reader, ref BoundAttributeParameterReader arg)
             => reader.ProcessObject(arg.Builder.Metadata, ProcessMetadata);
 
-        private static void ReadDiagnostics(JsonReader reader, ref BoundAttributeParameterReader arg)
+        private static void ReadDiagnostics(JsonDataReader reader, ref BoundAttributeParameterReader arg)
             => reader.ProcessArray(arg.Builder.Diagnostics, ProcessDiagnostic);
     }
 }

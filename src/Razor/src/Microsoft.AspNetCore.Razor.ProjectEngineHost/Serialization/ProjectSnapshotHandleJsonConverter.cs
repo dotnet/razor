@@ -1,17 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
-internal class ProjectSnapshotHandleJsonConverter : ObjectJsonConverter<ProjectSnapshotHandle>
+internal partial class ProjectSnapshotHandleJsonConverter : ObjectJsonConverter<ProjectSnapshotHandle>
 {
     public static readonly ProjectSnapshotHandleJsonConverter Instance = new();
 
-    protected override ProjectSnapshotHandle ReadFromProperties(JsonReader reader)
+    protected override ProjectSnapshotHandle ReadFromProperties(JsonDataReader reader)
     {
         Data data = default;
         reader.ReadProperties(ref data, Data.PropertyMap);
@@ -19,24 +17,7 @@ internal class ProjectSnapshotHandleJsonConverter : ObjectJsonConverter<ProjectS
         return new(data.FilePath, data.Configuration, data.RootNamespace);
     }
 
-    private record struct Data(string FilePath, RazorConfiguration? Configuration, string? RootNamespace)
-    {
-        public static readonly PropertyMap<Data> PropertyMap = new(
-            (nameof(FilePath), ReadFilePath),
-            (nameof(Configuration), ReadConfiguration),
-            (nameof(RootNamespace), ReadRootNamespace));
-
-        private static void ReadFilePath(JsonReader reader, ref Data data)
-            => data.FilePath = reader.ReadNonNullString();
-
-        private static void ReadConfiguration(JsonReader reader, ref Data data)
-            => data.Configuration = reader.ReadObject(ObjectReaders.ReadConfigurationFromProperties);
-
-        private static void ReadRootNamespace(JsonReader reader, ref Data data)
-            => data.RootNamespace = reader.ReadString();
-    }
-
-    protected override void WriteProperties(JsonWriter writer, ProjectSnapshotHandle value)
+    protected override void WriteProperties(JsonDataWriter writer, ProjectSnapshotHandle value)
     {
         writer.Write(nameof(value.FilePath), value.FilePath);
         writer.WriteObject(nameof(value.Configuration), value.Configuration, ObjectWriters.WriteProperties);

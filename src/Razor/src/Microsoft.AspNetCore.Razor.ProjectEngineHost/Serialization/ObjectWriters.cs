@@ -5,24 +5,23 @@ using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 internal static class ObjectWriters
 {
-    public static void Write(JsonWriter writer, RazorExtension? value)
+    public static void Write(JsonDataWriter writer, RazorExtension? value)
         => writer.WriteObject(value, WriteProperties);
 
-    public static void WriteProperties(JsonWriter writer, RazorExtension value)
+    public static void WriteProperties(JsonDataWriter writer, RazorExtension value)
     {
         writer.Write(nameof(value.ExtensionName), value.ExtensionName);
     }
 
-    public static void Write(JsonWriter writer, RazorConfiguration? value)
+    public static void Write(JsonDataWriter writer, RazorConfiguration? value)
         => writer.WriteObject(value, WriteProperties);
 
-    public static void WriteProperties(JsonWriter writer, RazorConfiguration value)
+    public static void WriteProperties(JsonDataWriter writer, RazorConfiguration value)
     {
         writer.Write(nameof(value.ConfigurationName), value.ConfigurationName);
 
@@ -38,10 +37,10 @@ internal static class ObjectWriters
         writer.WriteArray(nameof(value.Extensions), value.Extensions, Write);
     }
 
-    public static void Write(JsonWriter writer, RazorDiagnostic? value)
+    public static void Write(JsonDataWriter writer, RazorDiagnostic? value)
         => writer.WriteObject(value, WriteProperties);
 
-    public static void WriteProperties(JsonWriter writer, RazorDiagnostic value)
+    public static void WriteProperties(JsonDataWriter writer, RazorDiagnostic value)
     {
         writer.Write(nameof(value.Id), value.Id);
         writer.Write(nameof(value.Severity), (int)value.Severity);
@@ -56,29 +55,29 @@ internal static class ObjectWriters
         });
     }
 
-    public static void Write(JsonWriter writer, DocumentSnapshotHandle? value)
+    public static void Write(JsonDataWriter writer, DocumentSnapshotHandle? value)
         => writer.WriteObject(value, WriteProperties);
 
-    public static void WriteProperties(JsonWriter writer, DocumentSnapshotHandle value)
+    public static void WriteProperties(JsonDataWriter writer, DocumentSnapshotHandle value)
     {
         writer.Write(nameof(value.FilePath), value.FilePath);
         writer.Write(nameof(value.TargetPath), value.TargetPath);
         writer.Write(nameof(value.FileKind), value.FileKind);
     }
 
-    public static void Write(JsonWriter writer, ProjectWorkspaceState? value)
+    public static void Write(JsonDataWriter writer, ProjectWorkspaceState? value)
         => writer.WriteObject(value, WriteProperties);
 
-    public static void WriteProperties(JsonWriter writer, ProjectWorkspaceState value)
+    public static void WriteProperties(JsonDataWriter writer, ProjectWorkspaceState value)
     {
         writer.WriteArray(nameof(value.TagHelpers), value.TagHelpers, Write);
         writer.Write(nameof(value.CSharpLanguageVersion), (int)value.CSharpLanguageVersion);
     }
 
-    public static void Write(JsonWriter writer, TagHelperDescriptor? value)
+    public static void Write(JsonDataWriter writer, TagHelperDescriptor? value)
         => writer.WriteObject(value, WriteProperties);
 
-    public static void WriteProperties(JsonWriter writer, TagHelperDescriptor value)
+    public static void WriteProperties(JsonDataWriter writer, TagHelperDescriptor value)
     {
         writer.Write(RazorSerializationConstants.HashCodePropertyName, TagHelperDescriptorCache.GetTagHelperDescriptorCacheId(value));
         writer.Write(nameof(value.Kind), value.Kind);
@@ -93,7 +92,7 @@ internal static class ObjectWriters
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);
         writer.WriteObject(nameof(value.Metadata), value.Metadata, WriteMetadata);
 
-        static void WriteTagMatchingRule(JsonWriter writer, TagMatchingRuleDescriptor value)
+        static void WriteTagMatchingRule(JsonDataWriter writer, TagMatchingRuleDescriptor value)
         {
             writer.WriteObject(value, static (writer, value) =>
             {
@@ -105,7 +104,7 @@ internal static class ObjectWriters
             });
         }
 
-        static void WriteRequiredAttribute(JsonWriter writer, RequiredAttributeDescriptor value)
+        static void WriteRequiredAttribute(JsonDataWriter writer, RequiredAttributeDescriptor value)
         {
             writer.WriteObject(value, static (writer, value) =>
             {
@@ -122,7 +121,7 @@ internal static class ObjectWriters
             });
         }
 
-        static void WriteBoundAttribute(JsonWriter writer, BoundAttributeDescriptor value)
+        static void WriteBoundAttribute(JsonDataWriter writer, BoundAttributeDescriptor value)
         {
             writer.WriteObject(value, static (writer, value) =>
             {
@@ -140,7 +139,7 @@ internal static class ObjectWriters
             });
         }
 
-        static void WriteBoundAttributeParameter(JsonWriter writer, BoundAttributeParameterDescriptor value)
+        static void WriteBoundAttributeParameter(JsonDataWriter writer, BoundAttributeParameterDescriptor value)
         {
             writer.WriteObject(value, static (writer, value) =>
             {
@@ -153,7 +152,7 @@ internal static class ObjectWriters
             });
         }
 
-        static void WriteAllowedChildTag(JsonWriter writer, AllowedChildTagDescriptor value)
+        static void WriteAllowedChildTag(JsonDataWriter writer, AllowedChildTagDescriptor value)
         {
             writer.WriteObject(value, static (writer, value) =>
             {
@@ -163,7 +162,7 @@ internal static class ObjectWriters
             });
         }
 
-        static void WriteMetadata(JsonWriter writer, IReadOnlyDictionary<string, string> metadata)
+        static void WriteMetadata(JsonDataWriter writer, IReadOnlyDictionary<string, string> metadata)
         {
             foreach (var (key, value) in metadata)
             {
