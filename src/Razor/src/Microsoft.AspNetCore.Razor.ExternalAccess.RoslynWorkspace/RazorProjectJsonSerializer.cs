@@ -98,7 +98,7 @@ internal static class RazorProjectJsonSerializer
         var jsonFilePath = Path.Combine(intermediateOutputPath, projectRazorJsonFileName);
 
         var projectRazorJson = new ProjectRazorJson(
-            serializedOriginFilePath: jsonFilePath,
+            serializedFilePath: jsonFilePath,
             filePath: project.FilePath!,
             configuration: configuration,
             rootNamespace: defaultNamespace,

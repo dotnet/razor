@@ -23,7 +23,7 @@ internal static class IProjectSnapshotExtensions
         }
 
         return new ProjectRazorJson(
-            serializedOriginFilePath: serializedFilePath,
+            serializedFilePath: serializedFilePath,
             filePath: project.FilePath,
             configuration: project.Configuration,
             rootNamespace: project.RootNamespace,

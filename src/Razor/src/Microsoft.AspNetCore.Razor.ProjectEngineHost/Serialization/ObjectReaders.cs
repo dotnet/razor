@@ -146,4 +146,23 @@ internal static partial class ObjectReaders
             dictionary[key] = value;
         }
     }
+
+    public static ProjectRazorJson ReadProjectRazorJsonFromProperties(JsonDataReader reader)
+    {
+        ProjectRazorJsonData data = default;
+        reader.ReadProperties(ref data, ProjectRazorJsonData.PropertyMap);
+
+        // We need to add a serialization format to the project response to indicate that this version
+        // of the code is compatible with what's being serialized. This scenario typically happens when
+        // a user has an incompatible serialized project snapshot but is using the latest Razor bits.
+
+        if (string.IsNullOrEmpty(data.SerializationFormat) || data.SerializationFormat != ProjectSerializationFormat.Version)
+        {
+            // Unknown serialization format.
+            return null!;
+        }
+
+        return new ProjectRazorJson(
+            data.SerializedFilePath, data.FilePath, data.Configuration, data.RootNamespace, data.ProjectWorkspaceState, data.Documents);
+    }
 }

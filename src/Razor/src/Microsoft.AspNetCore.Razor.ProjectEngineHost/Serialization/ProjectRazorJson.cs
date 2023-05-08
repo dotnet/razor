@@ -4,22 +4,20 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
-[JsonConverter(typeof(ProjectRazorJsonJsonConverter))]
 internal sealed class ProjectRazorJson
 {
     public ProjectRazorJson(
-        string serializedOriginFilePath,
+        string serializedFilePath,
         string filePath,
         RazorConfiguration? configuration,
         string? rootNamespace,
         ProjectWorkspaceState? projectWorkspaceState,
         IReadOnlyList<DocumentSnapshotHandle> documents)
     {
-        SerializedFilePath = serializedOriginFilePath;
+        SerializedFilePath = serializedFilePath;
         FilePath = filePath;
         Configuration = configuration;
         RootNamespace = rootNamespace;
