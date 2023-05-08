@@ -33,9 +33,6 @@ internal static partial class ObjectReaders
         return s_stringCache.GetOrAddValue(str);
     }
 
-    public static RazorExtension ReadExtension(JsonDataReader reader)
-        => reader.ReadNonNullObject(ReadExtensionFromProperties);
-
     public static RazorExtension ReadExtensionFromProperties(JsonDataReader reader)
     {
         var extensionName = reader.ReadNonNullString(nameof(RazorExtension.ExtensionName));
@@ -50,9 +47,6 @@ internal static partial class ObjectReaders
 
         return RazorConfiguration.Create(data.LanguageVersion, data.ConfigurationName, data.Extensions);
     }
-
-    public static RazorDiagnostic ReadDiagnostic(JsonDataReader reader)
-        => reader.ReadNonNullObject(ReadDiagnosticFromProperties);
 
     public static RazorDiagnostic ReadDiagnosticFromProperties(JsonDataReader reader)
     {
@@ -69,9 +63,6 @@ internal static partial class ObjectReaders
         }
     }
 
-    public static DocumentSnapshotHandle ReadDocumentSnapshotHandle(JsonDataReader reader)
-        => reader.ReadNonNullObject(ReadDocumentSnapshotHandleFromProperties);
-
     public static DocumentSnapshotHandle ReadDocumentSnapshotHandleFromProperties(JsonDataReader reader)
     {
         DocumentSnapshotHandleData data = default;
@@ -87,9 +78,6 @@ internal static partial class ObjectReaders
 
         return new ProjectWorkspaceState(data.TagHelpers, data.CSharpLanguageVersion);
     }
-
-    public static TagHelperDescriptor ReadTagHelper(JsonDataReader reader, bool useCache)
-        => reader.ReadNonNullObject(reader => ReadTagHelperFromProperties(reader, useCache));
 
     public static TagHelperDescriptor ReadTagHelperFromProperties(JsonDataReader reader, bool useCache)
     {

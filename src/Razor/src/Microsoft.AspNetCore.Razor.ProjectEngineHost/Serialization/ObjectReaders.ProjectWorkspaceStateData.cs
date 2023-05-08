@@ -15,7 +15,9 @@ internal static partial class ObjectReaders
             (nameof(CSharpLanguageVersion), ReadCSharpLanguageVersion));
 
         private static void ReadTagHelpers(JsonDataReader reader, ref ProjectWorkspaceStateData data)
-            => data.TagHelpers = reader.ReadArrayOrEmpty(static reader => ReadTagHelper(reader, useCache: true));
+            => data.TagHelpers = reader.ReadArrayOrEmpty(
+                static r => r.ReadNonNullObject(
+                    static r => ReadTagHelperFromProperties(r, useCache: true)));
 
         private static void ReadCSharpLanguageVersion(JsonDataReader reader, ref ProjectWorkspaceStateData data)
             => data.CSharpLanguageVersion = (LanguageVersion)reader.ReadInt32();

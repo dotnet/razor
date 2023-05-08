@@ -38,6 +38,6 @@ internal static partial class ObjectReaders
         }
 
         private static void ReadExtensions(JsonDataReader reader, ref ConfigurationData data)
-            => data.Extensions = reader.ReadArrayOrEmpty(ReadExtension);
+            => data.Extensions = reader.ReadArrayOrEmpty(static r => r.ReadNonNullObject(ReadExtensionFromProperties));
     }
 }

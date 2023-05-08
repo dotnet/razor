@@ -63,7 +63,7 @@ internal class ProjectRazorJsonJsonConverter : ObjectJsonConverter<ProjectRazorJ
             => data.ProjectWorkspaceState = reader.ReadObject(ObjectReaders.ReadProjectWorkspaceStateFromProperties);
 
         private static void ReadDocuments(JsonDataReader reader, ref Data data)
-            => data.Documents = reader.ReadArrayOrEmpty(ObjectReaders.ReadDocumentSnapshotHandle);
+            => data.Documents = reader.ReadArrayOrEmpty(static r => r.ReadNonNullObject(ObjectReaders.ReadDocumentSnapshotHandleFromProperties));
 
         private static void ReadSerializationFormat(JsonDataReader reader, ref Data data)
             => data.SerializationFormat = reader.ReadString();

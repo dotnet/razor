@@ -14,9 +14,11 @@ internal partial class TagHelperResolutionResultJsonConverter
             (nameof(Data.Diagnostics), ReadDiagnostics));
 
         public static void ReadDescriptors(JsonDataReader reader, ref Data data)
-            => data.Descriptors = reader.ReadArrayOrEmpty(static reader => ObjectReaders.ReadTagHelper(reader, useCache: true));
+            => data.Descriptors = reader.ReadArrayOrEmpty(
+                static r => r.ReadNonNullObject(
+                    static r => ObjectReaders.ReadTagHelperFromProperties(r, useCache: true)));
 
         public static void ReadDiagnostics(JsonDataReader reader, ref Data data)
-            => data.Diagnostics = reader.ReadArrayOrEmpty(ObjectReaders.ReadDiagnostic);
+            => data.Diagnostics = reader.ReadArrayOrEmpty(static r => r.ReadNonNullObject(ObjectReaders.ReadDiagnosticFromProperties));
     }
 }
