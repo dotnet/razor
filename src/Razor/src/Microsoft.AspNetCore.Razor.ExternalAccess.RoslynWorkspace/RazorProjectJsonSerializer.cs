@@ -92,7 +92,7 @@ internal static class RazorProjectJsonSerializer
         var tagHelpers = await resolver.GetTagHelpersAsync(project, engine, cancellationToken).ConfigureAwait(false);
 
         var projectWorkspaceState = new ProjectWorkspaceState(
-            tagHelpers: tagHelpers.Descriptors!,
+            tagHelpers: tagHelpers.Descriptors,
             csharpLanguageVersion: csharpLanguageVersion);
 
         var jsonFilePath = Path.Combine(intermediateOutputPath, projectRazorJsonFileName);
