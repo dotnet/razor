@@ -155,7 +155,6 @@
     <OmniSharpExtensionsLanguageProtocolPackageVersion>$(OmniSharpExtensionsLanguageServerPackageVersion)</OmniSharpExtensionsLanguageProtocolPackageVersion>
     <OmniSharpMSBuildPackageVersion>1.39.1</OmniSharpMSBuildPackageVersion>
     <StreamJsonRpcPackageVersion>2.14.20</StreamJsonRpcPackageVersion>
-    <SystemReactivePackageVersion>5.0</SystemReactivePackageVersion>
     <SystemRuntimeInteropServicesRuntimePackageVersion>4.3.0</SystemRuntimeInteropServicesRuntimePackageVersion>
     <Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>3.3.4</Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion>
     <Tooling_MicrosoftCodeAnalysisBannedApiAnalyzersPackageVersion>$(Tooling_MicrosoftCodeAnalysisAnalyzersPackageVersion)</Tooling_MicrosoftCodeAnalysisBannedApiAnalyzersPackageVersion>
