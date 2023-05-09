@@ -1138,7 +1138,7 @@ namespace Test
         Assert.Empty(generated.Diagnostics);
     }
 
-    [Fact] // https://github.com/dotnet/razor/issues/7395
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7395")]
     public void Component_WithEditorRequiredParameter_ValueSpecifiedUsingBind()
     {
         AdditionalSyntaxTrees.Add(Parse("""
@@ -6754,7 +6754,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Fact] // https://github.com/dotnet/razor/issues/7103
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7103")]
     public void CascadingGenericInference_ParameterInNamespace()
     {
         // Arrange
