@@ -123,12 +123,12 @@ internal class ProjectSnapshot : IProjectSnapshot
         // PROTOTYPE: how do we handle getting the snapshot and not doing it multiple times?
         //            probably need the TCS pattern thingy again
 
-        var snapshotService = State.Services.GetService<IGeneratorSnapshotProvider>();
+        var snapshotService = State.Services.GetService<IRazorGeneratedDocumentProvider>();
         //Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message(this.State.Services.Workspace.CurrentSolution.Id.Id + HostProject.FilePath + ":Snaphost sevice is null: "+(snapshotService is null));
         
         if (snapshotService is not null)
         {
-            var result = await snapshotService.GetGenerateDocumentsAsync(documentSnapshot);
+            var result = await snapshotService.GetGeneratedDocumentAsync(documentSnapshot);
             return result;
         }
 

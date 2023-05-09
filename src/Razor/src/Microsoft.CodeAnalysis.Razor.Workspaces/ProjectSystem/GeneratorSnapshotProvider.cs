@@ -12,20 +12,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-internal interface IGeneratorSnapshotProvider : IWorkspaceService
+internal interface IRazorGeneratedDocumentProvider : IWorkspaceService
 {
-    Task<(string CSharp, string Html, string Json)> GetGenerateDocumentsAsync(IDocumentSnapshot documentSnapshot);
+    Task<(string CSharp, string Html, string Json)> GetGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot);
 }
-
-//internal class GeneratorSnapshotProvider : IWorkspaceService
-//{
-//    public Task<GeneratorSnapshot> GetGeneratorSnapshotAsync(ProjectState project)
-//    {
-//        return Task.FromResult(new GeneratorSnapshot());
-//    }
-//}
-
-//internal class GeneratorSnapshot
-//{
-//    public RazorCodeDocument GetGeneratedSnapshot(string uri) { return null; }
-//}

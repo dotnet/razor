@@ -14,44 +14,41 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor.Remote;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
-[ExportWorkspaceServiceFactory(typeof(IGeneratorSnapshotProvider), ServiceLayer.Default)]
-internal class DeelyFactory : IWorkspaceServiceFactory
+[ExportWorkspaceServiceFactory(typeof(IRazorGeneratedDocumentProvider), ServiceLayer.Default)]
+internal class InProcRazorGeneratedDocumentProviderFactory : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {
-        //ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor = workspaceServices.GetRequiredService<ProjectSnapshotManagerAccessor>(workspaceServices);
-        return new RazorInProcGeneratorSnapshotDeely(workspaceServices.Workspace);
+        return new InProcRazorGeneratedDocumentProvider(workspaceServices.Workspace);
     }
 }
 
-internal class RazorInProcGeneratorSnapshotDeely : IGeneratorSnapshotProvider
+internal class InProcRazorGeneratedDocumentProvider : IRazorGeneratedDocumentProvider
 {
 
     private readonly Workspace _workspace;
 
-    public RazorInProcGeneratorSnapshotDeely(Workspace workspace)
+    public InProcRazorGeneratedDocumentProvider(Workspace workspace)
     {
         _workspace = workspace;
     }
 
-    public async Task<(string CSharp, string Html, string Json)> GetGenerateDocumentsAsync(IDocumentSnapshot documentSnapshot)
+    public async Task<(string CSharp, string Html, string Json)> GetGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot)
     {
         string? csharp = null;
         string? html = null;
         string? json = null;
 
-
         var project = _workspace.CurrentSolution.Projects.FirstOrDefault(p => p.FilePath == documentSnapshot.Project.FilePath);
         if (project is not null)
         {
-            // PROTOTYPE: factor this out so we can share it
+            // PROTOTYPE: factor this out so we can share its
             var projectRoot = documentSnapshot.Project.FilePath.Substring(0, documentSnapshot.Project.FilePath.LastIndexOf("\\"));
             var documentName = GetIdentifierFromPath(documentSnapshot.FilePath?.Substring(projectRoot.Length + 1) ?? "");
 
             csharp = await RazorHostOutputHandler.GetHostOutputAsync(project, "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", documentName + ".rsg.cs", System.Threading.CancellationToken.None);
             html = await RazorHostOutputHandler.GetHostOutputAsync(project, "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", documentName + ".rsg.html", System.Threading.CancellationToken.None);
-             json = await RazorHostOutputHandler.GetHostOutputAsync(project, "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", documentName + ".rsg.json", System.Threading.CancellationToken.None);
-
+            json = await RazorHostOutputHandler.GetHostOutputAsync(project, "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", documentName + ".rsg.json", System.Threading.CancellationToken.None);
         }
 
         return (csharp ?? "", html ?? "", json ?? "");

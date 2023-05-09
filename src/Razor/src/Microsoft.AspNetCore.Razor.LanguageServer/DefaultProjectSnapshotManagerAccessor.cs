@@ -20,16 +20,16 @@ using System.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class LspHostOutput : IGeneratorSnapshotProvider
+internal class LspRazorGeneratedDocumentProvider : IRazorGeneratedDocumentProvider
 {
-    ClientNotifierServiceBase _notifier;
+    readonly ClientNotifierServiceBase _notifier;
 
-    public LspHostOutput(ClientNotifierServiceBase notifier)
+    public LspRazorGeneratedDocumentProvider(ClientNotifierServiceBase notifier)
     {
         _notifier = notifier;
     }
 
-    public async Task<(string CSharp, string Html, string Json)> GetGenerateDocumentsAsync(IDocumentSnapshot documentSnapshot)
+    public async Task<(string CSharp, string Html, string Json)> GetGeneratedDocumentAsync(IDocumentSnapshot documentSnapshot)
     {
         var projectRoot = documentSnapshot.Project.FilePath.Substring(0, documentSnapshot.Project.FilePath.LastIndexOf("/"));
         var documentName = GetIdentifierFromPath(documentSnapshot.FilePath?.Substring(projectRoot.Length + 1) ?? "");
@@ -145,7 +145,7 @@ internal class DefaultProjectSnapshotManagerAccessor : ProjectSnapshotManagerAcc
                     {
                         //PROTOTYPE: it's here we could inject a 'host outputs retrieval' service
                         new RemoteProjectSnapshotProjectEngineFactory(_optionsMonitor)
-                        , new LspHostOutput(_notifierService)
+                        , new LspRazorGeneratedDocumentProvider(_notifierService)
                     });
                 _instance = new DefaultProjectSnapshotManager(
                     _projectSnapshotManagerDispatcher,
