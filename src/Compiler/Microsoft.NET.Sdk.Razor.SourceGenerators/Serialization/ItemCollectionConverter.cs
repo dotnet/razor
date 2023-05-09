@@ -18,8 +18,17 @@ internal sealed class ItemCollectionConverter : JsonConverter<ItemCollection>
         while (reader.Read() && reader.TokenType == JsonToken.PropertyName)
         {
             var propertyName = (string)reader.Value!;
-            var value = reader.ReadAsString();
-            result.Add(propertyName, value);
+
+            reader.Read();
+            if (reader.TokenType == JsonToken.String)
+            {
+                result.Add(propertyName, (string)reader.Value!);
+            }
+            else if(reader.TokenType == JsonToken.StartObject)
+            {
+                var sourceSpan = SourceSpanConverter.Instance.ReadJson(reader, typeof(SourceSpan), null, false, serializer);
+                result.Add(propertyName, sourceSpan);
+            }
         }
 
         Debug.Assert(reader.TokenType == JsonToken.EndObject);

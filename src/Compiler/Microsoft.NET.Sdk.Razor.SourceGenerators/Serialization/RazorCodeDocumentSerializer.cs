@@ -6,8 +6,11 @@ using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.Razor.Serialization;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 
@@ -22,6 +25,7 @@ public sealed class RazorCodeDocumentSerializer
     private const string CSharpDocument = nameof(CSharpDocument);
     private const string HtmlDocument = nameof(HtmlDocument);
     private const string Namespace = nameof(Namespace);
+    private const string ReferencedTagHelpers = nameof(ReferencedTagHelpers);
 
     private readonly JsonSerializer _serializer;
 
@@ -43,21 +47,22 @@ public sealed class RazorCodeDocumentSerializer
                 new DirectiveTokenDescriptorConverter(),
                 new ItemCollectionConverter(),
                 new RazorSourceDocumentConverter(),
+                new MetadataCollectionConverter()
             },
             ContractResolver = new RazorContractResolver(),
             TypeNameHandling = TypeNameHandling.Auto,
             DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate,
-		};
+        };
     }
 
-    public RazorCodeDocument? Deserialize(string json, RazorSourceDocument source)
+    public RazorCodeDocument? Deserialize(string json, RazorSourceDocument source, IReadOnlyCollection<TagHelperDescriptor>? tagHelpers = null)
     {
         using var textReader = new StringReader(json);
         using var jsonReader = new JsonTextReader(textReader);
-        return Deserialize(jsonReader, source);
+        return Deserialize(jsonReader, source, tagHelpers);
     }
 
-    public RazorCodeDocument? Deserialize(JsonReader reader, RazorSourceDocument source)
+    public RazorCodeDocument? Deserialize(JsonReader reader, RazorSourceDocument source, IReadOnlyCollection<TagHelperDescriptor>? tagHelpers = null)
     {
         if (!reader.Read() || reader.TokenType != JsonToken.StartObject)
         {
@@ -75,6 +80,35 @@ public sealed class RazorCodeDocumentSerializer
                     break;
                 case nameof(CssScope):
                     document.SetCssScope(reader.ReadAsString());
+                    break;
+                case ReferencedTagHelpers:
+                    if (tagHelpers is null)
+                    {
+                        throw new ArgumentNullException(nameof(tagHelpers));
+                    }
+
+                    reader.Read(); //array start
+                    Debug.Assert(reader.TokenType == JsonToken.StartArray);
+
+                    HashSet<TagHelperDescriptor> referencedTagHelpers = new HashSet<TagHelperDescriptor>();
+
+                    reader.Read();
+                    while (reader.TokenType == JsonToken.Integer)
+                    {
+                        var hash = (int)(long)reader.Value!;
+                        
+                        // PROTOTYPE: we should build a map before deserializing
+                        // how do we handle dupes?
+                        var helper = tagHelpers.FirstOrDefault(t => t.GetHashCode() == hash);
+                        if (helper is not null)
+                        {
+                            referencedTagHelpers.Add(helper);
+                        }
+                        reader.Read();
+                    }
+                    Debug.Assert(reader.TokenType == JsonToken.EndArray);
+                    
+                    document.SetReferencedTagHelpers(referencedTagHelpers);
                     break;
                 case nameof(TagHelperContext):
                     if (reader.Read() && reader.TokenType == JsonToken.StartObject)
@@ -192,6 +226,25 @@ public sealed class RazorCodeDocumentSerializer
             writer.WriteEndObject();
         }
 
+        if (document.GetReferencedTagHelpers() is { Count: > 0 } referencedTagHelpers)
+        {
+            // PROTOTYPE: no prefix support yet
+            //if (tagHelperContext.Prefix is { } prefix)
+            //{
+            //    writer.WritePropertyName(nameof(TagHelperDocumentContext.Prefix));
+            //    writer.WriteValue(prefix);
+            //}
+
+            //writer.WritePropertyName(ReferencedTagHelpers);
+            //writer.WriteStartArray();
+            //foreach (var tagHelper in referencedTagHelpers)
+            //{
+            //    writer.WriteValue(tagHelper.GetHashCode());
+            //}
+            //writer.WriteEndArray();
+            //_serializer.Serialize(writer, referencedTagHelpers);
+        }
+
         if (document.GetSyntaxTree() is { } syntaxTree)
         {
             writer.WritePropertyName(SyntaxTree);
@@ -209,6 +262,12 @@ public sealed class RazorCodeDocumentSerializer
             writer.WritePropertyName(HtmlDocument);
             SerializeHtmlDocument(writer, htmlDocument);
         }
+
+        //if (document.GetRewrittenTagHelpers() is { } rewrittenTagHelpers)
+        //{
+        //    writer.WritePropertyName("RewrittenTagHelpers");
+        //    SerializeRerittenTagHelpers()
+        //}
 
         document.TryComputeNamespace(fallbackToRootNamespace: true, check: false, out var @namespace);
         writer.WritePropertyName(Namespace);
