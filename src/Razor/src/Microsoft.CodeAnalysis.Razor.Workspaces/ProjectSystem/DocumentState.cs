@@ -353,52 +353,52 @@ internal class DocumentState
                 TaskCompletionSource<(RazorCodeDocument, VersionStamp)>? tcs = null;
 
                 lock (_lock)
+            {
+                if (_taskUnsafeReference is null ||
+                    !_taskUnsafeReference.TryGetTarget(out taskUnsafe))
                 {
-                    if (_taskUnsafeReference is null ||
-                        !_taskUnsafeReference.TryGetTarget(out taskUnsafe))
-                    {
-                        // So this is a bit confusing. Instead of directly calling the Razor parser inside of this lock we create an indirect TaskCompletionSource
-                        // to represent when it completes. The reason behind this is that there are several scenarios in which the Razor parser will run synchronously
-                        // (mostly all in VS) resulting in this lock being held for significantly longer than expected. To avoid threads queuing up repeatedly on the
-                        // above lock and blocking we can allow those threads to await asynchronously for the completion of the original parse.
+                    // So this is a bit confusing. Instead of directly calling the Razor parser inside of this lock we create an indirect TaskCompletionSource
+                    // to represent when it completes. The reason behind this is that there are several scenarios in which the Razor parser will run synchronously
+                    // (mostly all in VS) resulting in this lock being held for significantly longer than expected. To avoid threads queuing up repeatedly on the
+                    // above lock and blocking we can allow those threads to await asynchronously for the completion of the original parse.
 
-                        tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
-                        taskUnsafe = tcs.Task;
-                        _taskUnsafeReference = new WeakReference<Task<(RazorCodeDocument, VersionStamp)>>(taskUnsafe);
-                    }
-                }
-
-                if (tcs is null)
-                {
-                    // There's no task completion source created meaning a value was retrieved from cache, just return it.
-                    return taskUnsafe;
-                }
-
-                // Typically in VS scenarios this will run synchronously because all resources are readily available.
-                var outputTask = ComputeGeneratedOutputAndVersionAsync(project, document);
-                if (outputTask.IsCompleted)
-                {
-                    // Compiling ran synchronously, lets just immediately propagate to the TCS
-                    PropagateToTaskCompletionSource(outputTask, tcs);
-                }
-                else
-                {
-                    // Task didn't run synchronously (most likely outside of VS), lets allocate a bit more but utilize ContinueWith
-                    // to properly connect the output task and TCS
-                    _ = outputTask.ContinueWith(
-                        static (task, state) =>
-                        {
-                            Assumes.NotNull(state);
-                            var tcs = (TaskCompletionSource<(RazorCodeDocument, VersionStamp)>)state;
-
-                            PropagateToTaskCompletionSource(task, tcs);
-                        },
-                        tcs,
-                        CancellationToken.None,
-                        TaskContinuationOptions.ExecuteSynchronously,
-                        TaskScheduler.Default);
+                    tcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                    taskUnsafe = tcs.Task;
+                    _taskUnsafeReference = new WeakReference<Task<(RazorCodeDocument, VersionStamp)>>(taskUnsafe);
                 }
             }
+
+            if (tcs is null)
+            {
+                // There's no task completion source created meaning a value was retrieved from cache, just return it.
+                return taskUnsafe;
+            }
+
+            // Typically in VS scenarios this will run synchronously because all resources are readily available.
+            var outputTask = ComputeGeneratedOutputAndVersionAsync(project, document);
+            if (outputTask.IsCompleted)
+            {
+                // Compiling ran synchronously, lets just immediately propagate to the TCS
+                PropagateToTaskCompletionSource(outputTask, tcs);
+            }
+            else
+            {
+                // Task didn't run synchronously (most likely outside of VS), lets allocate a bit more but utilize ContinueWith
+                // to properly connect the output task and TCS
+                _ = outputTask.ContinueWith(
+                    static (task, state) =>
+                    {
+                        Assumes.NotNull(state);
+                        var tcs = (TaskCompletionSource<(RazorCodeDocument, VersionStamp)>)state;
+
+                        PropagateToTaskCompletionSource(task, tcs);
+                    },
+                    tcs,
+                    CancellationToken.None,
+                    TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default);
+            }
+        }
 
             return taskUnsafe;
 
@@ -428,6 +428,9 @@ internal class DocumentState
 
         private async Task<(RazorCodeDocument, VersionStamp)> ComputeGeneratedOutputAndVersionAsync(ProjectSnapshot project, IDocumentSnapshot document)
         {
+            // PROTOTYPE: need to revisit these assumptions and check they hold still. Ideally we'd have a way to ask the LSP
+            //            if we needed to update rather than encoding assumptions here.
+
             // We only need to produce the generated code if any of our inputs is newer than the
             // previously cached output.
             //
@@ -501,45 +504,24 @@ internal class DocumentState
 
             // PROTOTYPE: it's at this point that we want to reach into the 'generator snapshot' and grab the generated documents
 
-            //           actually, is that true? Surely we'd create the snapshot with the data already generated? No, maybe not. Hmm. Argh, not sure. 
-            // lets see what it looks like we if were to ask the project for the data here.
+            var serializedCodeDoc = await project.GetGeneratedDocumentsAsync(document);
 
-
-
-            // So we have the source already, no need to serialize that. Then we have the codeDocument which is a layer over the top of the source doc
-            // The code doc has the imports, the source doc, the tag helpers, the file kind, the CSharp doc, the html doc, the options, the diagnostics and the source mappings
-
-            // Tag helpers are interesting, because we have a copy of them here already. So might not need to serialize those
-            // The chsarp and html docs are easy
-            // The options are simple value pairs, so should be easy
-            // Diagnostics are... complex? Ok the diagnostic descriptors are slightly hard, because they have a callback to get the resource, but we should be able to just 'flatten' them on the IDE side as the languages will be the same. 
-            // Source mappings are *shrug*?
-            // Huh, plus there is everything in the items collection which is... a lot. (SyntaxTrees etc)
-
-            var codeDoc2 = await project.GetGeneratedDocumentsAsync(document);
-
-            RazorCodeDocument? codeDocument = null;
-            if (codeDoc2.Json != "")
+            var codeDocument = RazorCodeDocumentSerializer.Instance.Deserialize(serializedCodeDoc.Json, documentSource, project.TagHelpers); ;
+            if (codeDocument is null)
             {
-                codeDocument = RazorCodeDocumentSerializer.Instance.Deserialize(codeDoc2.Json, documentSource); // TODO: do we need importSources?
-                var codeDoc3 = projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources, project.TagHelpers);
-
-                //codeDocument = RazorCodeDocument.Create(documentSource, importSources);
-                //codeDocument.SetTagHelpers(project.TagHelpers); // TODO: are these only used for processing, or are they used elsewhere?
-                //codeDocument.SetFileKind(document.FileKind);
-
-                //var csharpDocument = RazorCSharpDocument.Create(codeDocument, codeDoc2.CSharp, RazorCodeGenerationOptions.CreateDesignTimeDefault(), Array.Empty<RazorDiagnostic>());
-                //codeDocument.SetCSharpDocument(csharpDocument);
-
-                //var htmlDocument = RazorHtmlDocument.Create(codeDocument, codeDoc2.Html, RazorCodeGenerationOptions.CreateDesignTimeDefault(), Array.Empty<SourceMapping>());
-                //codeDocument.SetHtmlDocument(htmlDocument);
-
-                //Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Retrieved document from service");
+                // PROTOTYPE: if we can't get the doc, use an empty one
+                codeDocument = RazorCodeDocument.Create(documentSource, Array.Empty<RazorSourceDocument>());
+                codeDocument.SetCSharpDocument(new DefaultRazorCSharpDocument(codeDocument, "", null!, null!, null!, null!));
             }
             else
             {
-                //codeDocument = projectEngine.ProcessDesignTime(documentSource, fileKind: document.FileKind, importSources, project.TagHelpers);
-                //Microsoft.CodeAnalysis.CodeAnalysisEventSource.Log.Message("Generated document locally");
+                // PROTOTYPE: we need to re-parse the syntax tree for the tag helpers.
+                //            we should just use the rewritten tag helpers so its fast.
+                //            Ideally we should map what was replaced so we can do it even faster
+                var prefix = codeDocument.GetTagHelperContext().Prefix;
+                var phase = new DefaultRazorTagHelperRewritePhase();
+
+                phase.RewriteTagHelpers(codeDocument!, prefix, codeDocument!.GetTagHelperContext().TagHelpers);
             }
 
             return (codeDocument!, inputVersion);
