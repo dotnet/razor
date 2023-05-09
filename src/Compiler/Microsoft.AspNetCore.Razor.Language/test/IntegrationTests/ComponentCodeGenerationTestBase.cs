@@ -1138,6 +1138,37 @@ namespace Test
         Assert.Empty(generated.Diagnostics);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7395")]
+    public void Component_WithEditorRequiredParameter_ValueSpecifiedUsingBind()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter]
+                [EditorRequired]
+                public string Property1 { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters @bind-Property1="myField" />
+
+            @code {
+                private string myField = "Some Value";
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+        Assert.Empty(generated.Diagnostics);
+    }
+
     [Fact]
     public void Component_WithEditorRequiredChildContent_NoValueSpecified()
     {
@@ -6723,7 +6754,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Fact] // https://github.com/dotnet/razor/issues/7103
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7103")]
     public void CascadingGenericInference_ParameterInNamespace()
     {
         // Arrange
