@@ -32,6 +32,16 @@
         <target state="translated">Razor Syntax Visualizer</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_AutoClosingTagsDescription">
+        <source>If true, closing tags will be automatically inserted</source>
+        <target state="translated">При значении true закрывающие теги вставляются автоматически</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoClosingTagsDisplayName">
+        <source>Auto Insert Closing Tag</source>
+        <target state="translated">Автоматически вставлять закрывающий тег</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDescription">
         <source>If true, formatting will be enabled while typing</source>
         <target state="translated">Если задано значение true, при вводе текста будет включено форматирование</target>
@@ -40,6 +50,11 @@
       <trans-unit id="Setting_FormattingOnTypeDisplayName">
         <source>Format On Type</source>
         <target state="translated">Форматировать по типу</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Typing">
+        <source>Typing</source>
+        <target state="translated">Ввод с клавиатуры</target>
         <note />
       </trans-unit>
     </body>

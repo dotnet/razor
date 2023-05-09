@@ -26,7 +26,7 @@ namespace AspNetCore
         private global::AspNetCore.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ViewComponentTagHelper.__Generated__TestViewComponentTagHelper __TestViewComponentTagHelper;
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {
-        ((System.Action)(() => {
+        ((global::System.Action)(() => {
 #nullable restore
 #line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ViewComponentTagHelper.cshtml"
 global::System.Object __typeHelper = "*, AppCode";
@@ -39,7 +39,7 @@ global::System.Object __typeHelper = "*, AppCode";
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()

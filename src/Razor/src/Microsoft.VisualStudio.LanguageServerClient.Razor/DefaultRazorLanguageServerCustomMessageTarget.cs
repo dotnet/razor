@@ -16,19 +16,18 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -60,6 +59,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         FormattingOptionsProvider formattingOptionsProvider,
         IClientSettingsManager editorSettingsManager,
         LSPDocumentSynchronizer documentSynchronizer,
+        ITelemetryReporter telemetryReporter,
         [Import(AllowDefault = true)] IOutputWindowLogger? outputWindowLogger)
     {
         if (documentManager is null)
@@ -99,8 +99,14 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             throw new ArgumentException("The LSP document manager should be of type " + typeof(TrackingLSPDocumentManager).FullName, nameof(_documentManager));
         }
 
+        if (telemetryReporter is null)
+        {
+            throw new ArgumentNullException(nameof(telemetryReporter));
+        }
+
         _joinableTaskFactory = joinableTaskContext.Factory;
-        _requestInvoker = requestInvoker;
+
+        _requestInvoker = new TelemetryReportingLSPRequestInvoker(requestInvoker, telemetryReporter);
         _formattingOptionsProvider = formattingOptionsProvider;
         _editorSettingsManager = editorSettingsManager;
         _documentSynchronizer = documentSynchronizer;
@@ -173,9 +179,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             state: null);
     }
 
-    public override async Task<RazorDocumentRangeFormattingResponse> RazorDocumentFormattingAsync(VersionedDocumentFormattingParams request, CancellationToken cancellationToken)
+    public override async Task<RazorDocumentFormattingResponse> HtmlFormattingAsync(RazorDocumentFormattingParams request, CancellationToken cancellationToken)
     {
-        var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<TextEdit>() };
+        var response = new RazorDocumentFormattingResponse() { Edits = Array.Empty<TextEdit>() };
 
         await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -212,9 +218,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         return response;
     }
 
-    public override async Task<RazorDocumentRangeFormattingResponse> HtmlOnTypeFormattingAsync(RazorDocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
+    public override async Task<RazorDocumentFormattingResponse> HtmlOnTypeFormattingAsync(RazorDocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
     {
-        var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<TextEdit>() };
+        var response = new RazorDocumentFormattingResponse() { Edits = Array.Empty<TextEdit>() };
 
         var hostDocumentUri = request.TextDocument.Uri;
 
@@ -239,63 +245,6 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         var edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnTypeFormattingParams, TextEdit[]>(
             textBuffer,
             Methods.TextDocumentOnTypeFormattingName,
-            languageServerName,
-            formattingParams,
-            cancellationToken).ConfigureAwait(false);
-
-        response.Edits = edits?.Response ?? Array.Empty<TextEdit>();
-
-        return response;
-    }
-
-    public override async Task<RazorDocumentRangeFormattingResponse> RazorRangeFormattingAsync(RazorDocumentRangeFormattingParams request, CancellationToken cancellationToken)
-    {
-        var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<TextEdit>() };
-
-        if (request.Kind == RazorLanguageKind.Razor)
-        {
-            return response;
-        }
-
-        await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        var hostDocumentUri = new Uri(request.HostDocumentFilePath);
-        var (synchronized, csharpDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
-            request.HostDocumentVersion,
-            hostDocumentUri,
-            cancellationToken);
-
-        string languageServerName;
-        Uri projectedUri;
-
-        if (!synchronized)
-        {
-            // Document could not be synchronized
-            return response;
-        }
-
-        if (request.Kind == RazorLanguageKind.CSharp)
-        {
-            languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
-            projectedUri = csharpDocument.Uri;
-        }
-        else
-        {
-            Debug.Fail("Unexpected RazorLanguageKind. This can't really happen in a real scenario.");
-            return response;
-        }
-
-        var formattingParams = new DocumentRangeFormattingParams()
-        {
-            TextDocument = new TextDocumentIdentifier() { Uri = projectedUri },
-            Range = request.ProjectedRange,
-            Options = request.Options
-        };
-
-        var textBuffer = csharpDocument.Snapshot.TextBuffer;
-        var edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
-            textBuffer,
-            Methods.TextDocumentRangeFormattingName,
             languageServerName,
             formattingParams,
             cancellationToken).ConfigureAwait(false);
@@ -1013,10 +962,27 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         }
         else if (request.OriginatingKind == RazorLanguageKind.CSharp)
         {
-            (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
-                request.HostDocument.Version,
-                request.HostDocument.Uri,
-                cancellationToken);
+            // TODO this is a partial workaround to fix prefix completion by avoiding sync (which times out during resolve endpoint) if we are currently at a higher version value
+            // this does not fix postfix completion and should be superceded by eventual synchronization fix
+
+            var futureDataSyncResult =
+                (_documentSynchronizer as DefaultLSPDocumentSynchronizer)?.TryReturnPossiblyFutureSnapshot<CSharpVirtualDocumentSnapshot>(
+                    request.HostDocument.Version,
+                    request.HostDocument.Uri);
+            if (futureDataSyncResult?.Synchronized == true)
+            {
+                (synchronized, virtualDocumentSnapshot) = futureDataSyncResult;
+            }
+            else
+            {
+                (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer
+                        .TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                            request.HostDocument.Version,
+                            request.HostDocument.Uri,
+                            rejectOnNewerParallelRequest: true,
+                            cancellationToken);
+            }
+
             languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
         }
         else

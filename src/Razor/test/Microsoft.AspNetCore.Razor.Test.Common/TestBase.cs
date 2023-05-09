@@ -8,9 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common.Logging;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
 using Xunit;
@@ -74,7 +72,7 @@ public abstract partial class TestBase : IAsyncLifetime
     /// <summary>
     ///  An <see cref="IRazorLogger"/> for the currently running test.
     /// </summary>
-    protected IRazorLogger Logger => _logger ??= new LoggerAdapter(new[] { LoggerFactory.CreateLogger(GetType()) }, new TelemetryReporter(LoggerFactory));
+    protected IRazorLogger Logger => _logger ??= new LoggerAdapter(new[] { LoggerFactory.CreateLogger(GetType()) }, NoOpTelemetryReporter.Instance);
 
     private protected IErrorReporter ErrorReporter => _errorReporter ??= new TestErrorReporter(Logger);
 

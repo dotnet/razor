@@ -3,11 +3,11 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
@@ -39,7 +39,7 @@ __builder2.AddContent(1, context.ToLowerInvariant());
 #line hidden
 #nullable disable
             __builder.OpenComponent<global::Test.MyComponent>(2);
-            __builder.AddAttribute(3, "Header", (global::Microsoft.AspNetCore.Components.RenderFragment<System.String>)(
+            __builder.AddComponentParameter(3, "Header", (global::Microsoft.AspNetCore.Components.RenderFragment<System.String>)(
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                      header

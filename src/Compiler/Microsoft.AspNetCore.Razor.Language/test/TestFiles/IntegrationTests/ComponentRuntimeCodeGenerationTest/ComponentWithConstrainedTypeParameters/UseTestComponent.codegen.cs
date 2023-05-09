@@ -3,11 +3,11 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
 #nullable restore
 #line 1 "x:\dir\subdir\Test\UseTestComponent.cshtml"
 using Test;
@@ -82,10 +82,10 @@ namespace __Blazor.Test.UseTestComponent
             where TItem3 : global::Image, new()
         {
         __builder.OpenComponent<global::Test.TestComponent<TItem1, TItem2, TItem3>>(seq);
-        __builder.AddAttribute(__seq0, "Item1", __arg0);
-        __builder.AddAttribute(__seq1, "Items2", __arg1);
-        __builder.AddAttribute(__seq2, "Item3", __arg2);
-        __builder.AddAttribute(__seq3, "ChildContent", __arg3);
+        __builder.AddComponentParameter(__seq0, "Item1", __arg0);
+        __builder.AddComponentParameter(__seq1, "Items2", __arg1);
+        __builder.AddComponentParameter(__seq2, "Item3", __arg2);
+        __builder.AddComponentParameter(__seq3, "ChildContent", __arg3);
         __builder.CloseComponent();
         }
     }

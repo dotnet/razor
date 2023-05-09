@@ -3,11 +3,11 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
@@ -23,7 +23,7 @@ namespace Test
 #line hidden
 #nullable disable
             ));
-            __builder.AddAttribute(2, "myevent", global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, callback: ValueChanged, value: ParentValue), ParentValue));
+            __builder.AddAttribute(2, "myevent", global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredBindSetter(callback: ValueChanged, value: ParentValue), ParentValue));
             __builder.SetUpdatesAttributeName("myvalue");
             __builder.CloseElement();
         }

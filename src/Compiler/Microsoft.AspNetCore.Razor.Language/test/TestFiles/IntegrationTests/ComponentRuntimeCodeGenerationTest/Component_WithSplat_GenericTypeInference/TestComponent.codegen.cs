@@ -3,11 +3,11 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
@@ -50,7 +50,7 @@ namespace __Blazor.Test.TestComponent
         public static void CreateMyComponent_0<T>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, T __arg0, int __seq1, global::System.Collections.Generic.IEnumerable<global::System.Collections.Generic.KeyValuePair<string, object>> __arg1)
         {
         __builder.OpenComponent<global::Test.MyComponent<T>>(seq);
-        __builder.AddAttribute(__seq0, "Value", __arg0);
+        __builder.AddComponentParameter(__seq0, "Value", __arg0);
         __builder.AddMultipleAttributes(__seq1, __arg1);
         __builder.CloseComponent();
         }

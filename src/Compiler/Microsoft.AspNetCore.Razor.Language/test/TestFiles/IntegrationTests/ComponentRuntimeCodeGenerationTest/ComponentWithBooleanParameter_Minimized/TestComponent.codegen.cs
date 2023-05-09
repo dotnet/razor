@@ -3,11 +3,11 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
@@ -24,7 +24,7 @@ __builder.AddContent(1, TestBool);
             __builder.CloseElement();
             __builder.AddMarkupContent(2, "\r\n\r\n");
             __builder.OpenComponent<global::Test.TestComponent>(3);
-            __builder.AddAttribute(4, "TestBool", true);
+            __builder.AddComponentParameter(4, "TestBool", true);
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

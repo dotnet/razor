@@ -3,11 +3,11 @@
 namespace AnotherTest
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 using Test;
@@ -21,11 +21,11 @@ using Test;
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.HeaderComponent>(0);
-            __builder.AddAttribute(1, "Header", "head");
+            __builder.AddComponentParameter(1, "Header", "head");
             __builder.CloseComponent();
             __builder.AddMarkupContent(2, "\r\n");
             __builder.OpenComponent<global::AnotherTest.FooterComponent>(3);
-            __builder.AddAttribute(4, "Footer", "feet");
+            __builder.AddComponentParameter(4, "Footer", "feet");
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

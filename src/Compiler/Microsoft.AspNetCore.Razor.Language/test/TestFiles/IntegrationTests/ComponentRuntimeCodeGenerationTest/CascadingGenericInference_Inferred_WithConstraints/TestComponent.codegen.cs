@@ -3,18 +3,18 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.Grid<WeatherForecast>>(0);
-            __builder.AddAttribute(1, "Items", 
+            __builder.AddComponentParameter(1, "Items", 
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                                        Array.Empty<WeatherForecast>()
@@ -41,10 +41,10 @@ namespace __Blazor.Test.TestComponent
             where TItem : class
         {
         __builder.OpenComponent<global::Test.Column<TItem>>(seq);
-        __builder.AddAttribute(__seq0, "Title", __arg0);
-        __builder.AddAttribute(__seq1, "FieldName", __arg1);
-        __builder.AddAttribute(__seq2, "Format", __arg2);
-        __builder.AddAttribute(__seq3, "Width", __arg3);
+        __builder.AddComponentParameter(__seq0, "Title", __arg0);
+        __builder.AddComponentParameter(__seq1, "FieldName", __arg1);
+        __builder.AddComponentParameter(__seq2, "Format", __arg2);
+        __builder.AddComponentParameter(__seq3, "Width", __arg3);
         __builder.CloseComponent();
         }
     }

@@ -3,11 +3,11 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 219
@@ -15,7 +15,7 @@ namespace Test
         }
         #pragma warning restore 219
         #pragma warning disable 0414
-        private static System.Object __o = null;
+        private static object __o = null;
         #pragma warning restore 0414
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -51,7 +51,8 @@ namespace Test
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-            __o = ((global::Test.MyComponent)default).
+            #pragma warning disable BL0005
+            ((global::Test.MyComponent)default).
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
     IntProperty
@@ -59,8 +60,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ;
-            __o = ((global::Test.MyComponent)default).
+             = default;
+            ((global::Test.MyComponent)default).
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
     BoolProperty
@@ -68,8 +69,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ;
-            __o = ((global::Test.MyComponent)default).
+             = default;
+            ((global::Test.MyComponent)default).
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
     StringProperty
@@ -77,8 +78,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ;
-            __o = ((global::Test.MyComponent)default).
+             = default;
+            ((global::Test.MyComponent)default).
 #nullable restore
 #line 5 "x:\dir\subdir\Test\TestComponent.cshtml"
     ObjectProperty
@@ -86,7 +87,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent);

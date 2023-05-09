@@ -5,23 +5,22 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
@@ -93,140 +92,6 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
 
         // Assert
         documentManager.VerifyAll();
-    }
-
-    [Fact]
-    public async Task RazorRangeFormattingAsync_LanguageKindRazor_ReturnsEmpty()
-    {
-        // Arrange
-        var documentManager = Mock.Of<TrackingLSPDocumentManager>(MockBehavior.Strict);
-        var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-        var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
-
-        var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
-
-        var target = new DefaultRazorLanguageServerCustomMessageTarget(
-            documentManager, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, outputWindowLogger);
-
-        var request = new RazorDocumentRangeFormattingParams()
-        {
-            HostDocumentFilePath = "c:/Some/path/to/file.razor",
-            Kind = RazorLanguageKind.Razor,
-            ProjectedRange = new Range(),
-            Options = new FormattingOptions()
-            {
-                TabSize = 4,
-                InsertSpaces = true
-            }
-        };
-
-        // Act
-        var result = await target.RazorRangeFormattingAsync(request, DisposalToken);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Empty(result.Edits);
-    }
-
-    [Fact]
-    public async Task RazorRangeFormattingAsync_DocumentNotFound_ReturnsEmpty()
-    {
-        // Arrange
-        var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict).Object;
-        Mock.Get(documentManager)
-            .Setup(m => m.TryGetDocument(
-                new Uri("c:/Some/path/to/file.razor"),
-                out It.Ref<LSPDocumentSnapshot>.IsAny))
-            .Returns(false);
-        var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-        var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
-
-        var documentSynchronizer = GetDocumentSynchronizer();
-
-        var target = new DefaultRazorLanguageServerCustomMessageTarget(
-            documentManager, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, outputWindowLogger);
-
-        var request = new RazorDocumentRangeFormattingParams()
-        {
-            HostDocumentFilePath = "c:/Some/path/to/file.razor",
-            Kind = RazorLanguageKind.CSharp,
-            ProjectedRange = new Range(),
-            Options = new FormattingOptions()
-            {
-                TabSize = 4,
-                InsertSpaces = true
-            }
-        };
-
-        // Act
-        var result = await target.RazorRangeFormattingAsync(request, DisposalToken);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Empty(result.Edits);
-    }
-
-    [Fact]
-    public async Task RazorRangeFormattingAsync_ValidRequest_InvokesLanguageServer()
-    {
-        // Arrange
-        var filePath = "c:/Some/path/to/file.razor";
-        var uri = new Uri(filePath);
-        var virtualDocument = new CSharpVirtualDocumentSnapshot(new Uri($"{filePath}.g.cs"), _textBuffer.CurrentSnapshot, 1);
-        LSPDocumentSnapshot document = new TestLSPDocumentSnapshot(uri, 1, new[] { virtualDocument });
-        var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-        documentManager
-            .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
-            .Returns(true);
-
-        var expectedEdit = new TextEdit()
-        {
-            NewText = "SomeEdit",
-            Range = new Range() { Start = new Position(), End = new Position() }
-        };
-
-        var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-        requestInvoker
-            .Setup(r => r.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
-                _textBuffer,
-                It.IsAny<string>(),
-                It.IsAny<string>(),
-                It.IsAny<DocumentRangeFormattingParams>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ReinvocationResponse<TextEdit[]>("languageClient", new[] { expectedEdit }));
-        var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
-
-        var documentSynchronizer = GetDocumentSynchronizer(GetCSharpSnapshot(uri, hostDocumentSyncVersion: 1));
-
-        var target = new DefaultRazorLanguageServerCustomMessageTarget(
-            documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, outputWindowLogger);
-
-        var request = new RazorDocumentRangeFormattingParams()
-        {
-            HostDocumentFilePath = filePath,
-            Kind = RazorLanguageKind.CSharp,
-            ProjectedRange = new Range()
-            {
-                Start = new Position(),
-                End = new Position()
-            },
-            Options = new FormattingOptions()
-            {
-                TabSize = 4,
-                InsertSpaces = true
-            }
-        };
-
-        // Act
-        var result = await target.RazorRangeFormattingAsync(request, DisposalToken);
-
-        // Assert
-        Assert.NotNull(result);
-        var edit = Assert.Single(result.Edits);
-        Assert.Equal("SomeEdit", edit.NewText);
     }
 
     [Fact]
@@ -303,10 +168,11 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
 
         var documentSynchronizer = GetDocumentSynchronizer(GetCSharpSnapshot());
         var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
+        var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, outputWindowLogger);
+                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, telemetryReporter.Object, outputWindowLogger);
 
         var request = new DelegatedCodeActionParams()
         {
@@ -378,10 +244,11 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
         var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
+        var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
             documentManager, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, outputWindowLogger);
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, telemetryReporter.Object, outputWindowLogger);
 
         var codeAction = new VSInternalCodeAction()
         {
@@ -487,10 +354,12 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
         var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
+        var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
+        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableDictionary<string, object>>())).Returns(NullScope.Instance);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, outputWindowLogger);
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, telemetryReporter.Object, outputWindowLogger);
         var request = new ProvideSemanticTokensRangeParams(
             textDocument: new TextDocumentIdentifier()
             {
@@ -534,5 +403,12 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
         var csharpDoc = new CSharpVirtualDocumentSnapshot(uri, snapshot.Object, hostDocumentSyncVersion);
 
         return csharpDoc;
+    }
+
+    private class NullScope : IDisposable
+    {
+        public static NullScope Instance { get; } = new NullScope();
+        private NullScope() { }
+        public void Dispose() { }
     }
 }

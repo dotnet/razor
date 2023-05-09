@@ -61,14 +61,14 @@ internal static class AddUsingsCodeActionProviderHelper
             // Filter to using directives
             .OfType<UsingDirectiveSyntax>()
             // Select everything after the initial "using " part of the statement. This is slightly lazy, for sure, but has
-            // the advantage of us not caring about chagnes to C# syntax, we just grab whatever Roslyn wanted to put in, so
+            // the advantage of us not caring about changes to C# syntax, we just grab whatever Roslyn wanted to put in, so
             // we should still work in C# v26
             .Select(u => u.ToString()["using ".Length..]);
 
         return usings;
     }
 
-    internal static readonly Regex AddUsingVSCodeAction = new Regex("^@?using ([^;]+);?$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+    internal static readonly Regex AddUsingVSCodeAction = new Regex("@?using ([^;]+);?$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     // Internal for testing
     internal static string GetNamespaceFromFQN(string fullyQualifiedName)
@@ -112,8 +112,9 @@ internal static class AddUsingsCodeActionProviderHelper
     /// </summary>
     /// <param name="csharpAddUsing">Add using statement of the form `using System.X;`</param>
     /// <param name="namespace">Extract namespace `System.X`</param>
+    /// <param name="prefix">The prefix to show, before the namespace, if any</param>
     /// <returns></returns>
-    internal static bool TryExtractNamespace(string csharpAddUsing, out string @namespace)
+    internal static bool TryExtractNamespace(string csharpAddUsing, out string @namespace, out string prefix)
     {
         // We must remove any leading/trailing new lines from the add using edit
         csharpAddUsing = csharpAddUsing.Trim();
@@ -127,10 +128,12 @@ internal static class AddUsingsCodeActionProviderHelper
         {
             // Text edit in an unexpected format
             @namespace = string.Empty;
+            prefix = string.Empty;
             return false;
         }
 
         @namespace = regexMatchedTextEdit.Groups[1].Value;
+        prefix = csharpAddUsing[..regexMatchedTextEdit.Index];
         return true;
     }
 

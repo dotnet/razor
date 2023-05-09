@@ -1,0 +1,19 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [22] ) - global::System
+        UsingDirective - (26:2,1 [42] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [27] ) - global::System.Linq
+        UsingDirective - (97:4,1 [38] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [47] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [49] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentAttribute - (26:0,26 [1] x:\dir\subdir\Test\TestComponent.cshtml) - MyParameter - MyParameter - AttributeStructure.DoubleQuotes
+                        LazyIntermediateToken - (26:0,26 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - c
+                    ComponentAttribute - (44:0,44 [1] x:\dir\subdir\Test\TestComponent.cshtml) - BoolParameter - BoolParameter - AttributeStructure.DoubleQuotes
+                        LazyIntermediateToken - (44:0,44 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - c
+            CSharpCode - (60:2,7 [42] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (60:2,7 [42] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private MyClass<string> c = new();\n
+    NamespaceDeclaration -  - __Blazor.Test.TestComponent
+        ClassDeclaration -  - internal static - TypeInference -  - 
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateMyComponent_0
