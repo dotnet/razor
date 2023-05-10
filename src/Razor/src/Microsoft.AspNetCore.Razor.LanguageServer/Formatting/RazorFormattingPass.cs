@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using SyntaxNodeExtensions = Microsoft.AspNetCore.Razor.LanguageServer.Extensions.SyntaxNodeExtensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
@@ -256,7 +257,7 @@ internal class RazorFormattingPass : FormattingPassBase
         //
         // The CSharpCodeBlockSyntax covers everything from the end of "attribute" to the end of the line
         if (IsSingleLineDirective(node, out var children) ||
-            SyntaxNodeUtils.IsUsingDirective(node, out children))
+            SyntaxNodeExtensions.IsUsingDirective(node, out children))
         {
             // Shrink any block of C# that only has whitespace down to a single space.
             // In the @attribute case above this would only be the whitespace between the directive and code
