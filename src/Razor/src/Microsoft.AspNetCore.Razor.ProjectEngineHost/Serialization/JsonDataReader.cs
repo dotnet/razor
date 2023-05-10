@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
@@ -15,27 +14,6 @@ internal delegate T ReadValue<T>(JsonDataReader reader);
 internal delegate T ReadProperties<T>(JsonDataReader reader);
 internal delegate void ProcessValue<T>(JsonDataReader reader, T arg);
 internal delegate void ProcessProperties<T>(JsonDataReader reader, T arg);
-
-internal sealed class PropertyMap<TData>
-    where TData : struct
-{
-    private readonly Dictionary<string, ReadPropertyValue<TData>> _map;
-
-    public PropertyMap(params (string, ReadPropertyValue<TData>)[] pairs)
-    {
-        var map = new Dictionary<string, ReadPropertyValue<TData>>(capacity: pairs.Length);
-
-        foreach (var (key, value) in pairs)
-        {
-            map.Add(key, value);
-        }
-
-        _map = map;
-    }
-
-    public bool TryGetPropertyReader(string key, [MaybeNullWhen(false)] out ReadPropertyValue<TData> value)
-        => _map.TryGetValue(key, out value);
-}
 
 internal partial class JsonDataReader
 {
