@@ -72,7 +72,7 @@ internal class DefaultProjectSnapshotManagerAccessor : ProjectSnapshotManagerAcc
                 var workspace = _workspaceFactory.Create(
                     workspaceServices: new IWorkspaceService[]
                     {
-                        //PROTOTYPE: it's here we could inject a 'host outputs retrieval' service
+                        //PROTOTYPE: is this the right place to inject the service?
                         new RemoteProjectSnapshotProjectEngineFactory(_optionsMonitor)
                         , new LspRazorGeneratedDocumentProvider(_notifierService)
                     });
