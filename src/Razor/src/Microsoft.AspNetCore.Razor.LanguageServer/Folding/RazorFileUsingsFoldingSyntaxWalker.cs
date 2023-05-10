@@ -6,10 +6,11 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using SyntaxNodeExtensions = Microsoft.AspNetCore.Razor.LanguageServer.Extensions.SyntaxNodeExtensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 
-internal class RazorFileUsingsFoldingSyntaxWalker : SyntaxWalker
+internal sealed class RazorFileUsingsFoldingSyntaxWalker : SyntaxWalker
 {
     private readonly RazorSourceDocument _source;
     internal List<FoldingRange> Ranges { get; }
@@ -25,7 +26,7 @@ internal class RazorFileUsingsFoldingSyntaxWalker : SyntaxWalker
         // first rule: we can fold consecutive usings
         // if we have an existing range that ends the line *before* this current using directive or begins the line *after*,
         // we extend the range one line
-        if (SyntaxNodeUtils.IsUsingDirective(node, out _))
+        if (SyntaxNodeExtensions.IsUsingDirective(node, out _))
         {
             var linePosition = node.GetLinePositionSpan(_source);
 
