@@ -362,7 +362,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
-        // We might need a scope for inferring types, 
+        // We might need a scope for inferring types,
         CodeWriterExtensions.CSharpCodeWritingScope? typeInferenceCaptureScope = null;
         string typeInferenceLocalName = null;
 
@@ -610,7 +610,12 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 // The value should be populated before we use it, because we emit code for creating ancestors
                 // first, and that's where it's populated. However if this goes wrong somehow, we don't want to
                 // throw, so use a fallback
-                context.CodeWriter.Write(syntheticArg.ValueExpression ?? "default");
+                var valueExpression = syntheticArg.ValueExpression ?? "default";
+                context.CodeWriter.Write(valueExpression);
+                if (!context.Options.SuppressNullabilityEnforcement && IsDefaultExpression(valueExpression))
+                {
+                    context.CodeWriter.Write("!");
+                }
                 break;
             case TypeInferenceCapturedVariable capturedVariable:
                 context.CodeWriter.Write(capturedVariable.VariableName);
@@ -632,6 +637,12 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
+        // This attribute might only be here in order to allow us to generate code in WritePropertyAccess
+        if (node.IsDesignTimePropertyAccessHelper())
+        {
+            return;
+        }
+
         // Looks like:
         // __o = 17;
         context.CodeWriter.Write(DesignTimeVariable);
@@ -647,7 +658,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
     private void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node, ComponentIntermediateNode componentNode, string typeInferenceLocalName, bool shouldWriteBL0005Disable, out bool wrotePropertyAccess)
     {
         wrotePropertyAccess = false;
-        if (node?.TagHelper?.Name is null || node.Annotations["OriginalAttributeSpan"] is null)
+        if (node?.TagHelper?.Name is null || node.Annotations[ComponentMetadata.Common.OriginalAttributeSpan] is null)
         {
             return;
         }
@@ -683,7 +694,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             context.CodeWriter.WriteLine("#pragma warning disable BL0005");
         }
 
-        var attributeSourceSpan = (SourceSpan)node.Annotations["OriginalAttributeSpan"];
+        var attributeSourceSpan = (SourceSpan)node.Annotations[ComponentMetadata.Common.OriginalAttributeSpan];
         attributeSourceSpan = new SourceSpan(attributeSourceSpan.FilePath, attributeSourceSpan.AbsoluteIndex + offset, attributeSourceSpan.LineIndex, attributeSourceSpan.CharacterIndex + offset, node.PropertyName.Length, attributeSourceSpan.LineCount, attributeSourceSpan.CharacterIndex + offset + node.PropertyName.Length);
 
         if (componentNode.TypeInferenceNode == null)

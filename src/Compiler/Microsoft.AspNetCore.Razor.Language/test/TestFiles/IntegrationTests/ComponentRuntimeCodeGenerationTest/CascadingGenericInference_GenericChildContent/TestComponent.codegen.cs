@@ -3,11 +3,11 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
@@ -59,7 +59,7 @@ namespace __Blazor.Test.TestComponent
         {
             __arg0_out = __arg0;
         }
-        public static void CreateColumn_1<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, System.Collections.Generic.IEnumerable<TItem> __syntheticArg0, int __seq0, global::Microsoft.AspNetCore.Components.RenderFragment<TItem> __arg0)
+        public static void CreateColumn_1<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, global::System.Collections.Generic.IEnumerable<TItem> __syntheticArg0, int __seq0, global::Microsoft.AspNetCore.Components.RenderFragment<TItem> __arg0)
         {
         __builder.OpenComponent<global::Test.Column<TItem>>(seq);
         __builder.AddComponentParameter(__seq0, "ChildContent", __arg0);

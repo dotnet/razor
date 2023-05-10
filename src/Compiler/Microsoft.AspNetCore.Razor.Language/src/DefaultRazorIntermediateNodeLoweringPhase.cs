@@ -83,9 +83,14 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         var usingReferences = new List<UsingReference>(visitor.Usings);
         for (var j = importedUsings.Count - 1; j >= 0; j--)
         {
-            if (!usingReferences.Contains(importedUsings[j]))
+            var importedUsing = importedUsings[j];
+            if (!usingReferences.Contains(importedUsing) &&
+                // If the using is from the default import, avoid adding it
+                // if a user using exists which is the same except for the `global::` prefix.
+                (!TryRemoveGlobalPrefixFromDefaultUsing(in importedUsing, out var trimmedUsingNamespace) ||
+                !Contains(usingReferences, trimmedUsingNamespace)))
             {
-                usingReferences.Insert(0, importedUsings[j]);
+                usingReferences.Insert(0, importedUsing);
             }
         }
 
@@ -125,6 +130,31 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         }
 
         codeDocument.SetDocumentIntermediateNode(document);
+
+        static bool TryRemoveGlobalPrefixFromDefaultUsing(in UsingReference usingReference, out ReadOnlySpan<char> trimmedNamespace)
+        {
+            const string globalPrefix = "global::";
+            if (usingReference.Source is { FilePath: null } && // the default import has null file path
+                usingReference.Namespace.StartsWith(globalPrefix, StringComparison.Ordinal))
+            {
+                trimmedNamespace = usingReference.Namespace.AsSpan()[globalPrefix.Length..];
+                return true;
+            }
+            trimmedNamespace = default;
+            return false;
+        }
+
+        static bool Contains(List<UsingReference> usingReferences, ReadOnlySpan<char> usingNamespace)
+        {
+            foreach (var usingReference in usingReferences)
+            {
+                if (usingReference.Equals(usingNamespace))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     private IReadOnlyList<UsingReference> ImportDirectives(
@@ -225,6 +255,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
         public bool Equals(UsingReference other)
         {
             return string.Equals(Namespace, other.Namespace, StringComparison.Ordinal);
+        }
+
+        public readonly bool Equals(ReadOnlySpan<char> otherNamespace)
+        {
+            return Namespace.AsSpan().Equals(otherNamespace, StringComparison.Ordinal);
         }
 
         public override int GetHashCode() => Namespace.GetHashCode();
@@ -1768,7 +1803,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                             IsIndexerNameMatch = indexerMatch,
                         };
 
-                        setTagHelperProperty.Annotations.Add("OriginalAttributeSpan", BuildSourceSpanFromNode(node.Name));
+                        setTagHelperProperty.Annotations.Add(ComponentMetadata.Common.OriginalAttributeSpan, BuildSourceSpanFromNode(node.Name));
 
                         _builder.Add(setTagHelperProperty);
                     }
@@ -1909,7 +1944,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                             IsIndexerNameMatch = indexerMatch,
                         };
 
-                        setTagHelperProperty.Annotations.Add("OriginalAttributeSpan", BuildSourceSpanFromNode(node.Name));
+                        setTagHelperProperty.Annotations.Add(ComponentMetadata.Common.OriginalAttributeSpan, BuildSourceSpanFromNode(node.Name));
 
                         _builder.Push(setTagHelperProperty);
                         VisitAttributeValue(attributeValueNode);
@@ -1988,7 +2023,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                             };
                         }
 
-                        attributeNode.Annotations.Add("OriginalAttributeSpan", BuildSourceSpanFromNode(node.Name));
+                        attributeNode.Annotations.Add(ComponentMetadata.Common.OriginalAttributeSpan, BuildSourceSpanFromNode(node.Name));
 
                         _builder.Push(attributeNode);
                         VisitAttributeValue(attributeValueNode);
