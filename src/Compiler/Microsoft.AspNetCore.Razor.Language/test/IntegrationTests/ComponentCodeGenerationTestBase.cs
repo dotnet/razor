@@ -6825,6 +6825,40 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7428")]
+    public void CascadingGenericInference_NullableEnabled()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            [CascadingTypeParameter(nameof(TRow))]
+            public class Parent<TRow>: ComponentBase
+            {
+                [Parameter]
+                public RenderFragment<TRow>? ChildContent { get; set; }
+            }
+
+            public class Child<TRow> : ComponentBase
+            {
+                [Parameter]
+                public RenderFragment<TRow>? ChildContent { get; set; }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <Parent TRow="string">
+                <Child Context="childContext">@childContext.Length</Child>
+            </Parent>
+            """, nullableEnable: true);
+
+        // Assert
+        CompileToAssembly(generated);
+    }
+
     [Fact]
     public void ChildComponent_GenericWeaklyTypedAttribute()
     {
