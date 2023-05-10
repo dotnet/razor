@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -12,6 +13,8 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
+using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -130,6 +133,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
                 RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint => await HandleProvideCodeActionsAsync(@params),
                 RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint => await HandleResolveCodeActionsAsync(@params),
                 RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName => await HandlePullDiagnosticsAsync(@params),
+                RazorLanguageServerCustomMessageTargets.RazorFoldingRangeEndpoint => await HandleFoldingRangeAsync(@params),
                 _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
             };
 
@@ -154,6 +158,11 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
                 _cancellationToken);
 
             return new RazorPullDiagnosticResponse(result, Array.Empty<VSInternalDiagnosticReport>());
+        }
+
+        private Task<RazorFoldingRangeResponse> HandleFoldingRangeAsync<TParams>(TParams @params)
+        {
+            return Task.FromResult(new RazorFoldingRangeResponse(ImmutableArray<FoldingRange>.Empty, ImmutableArray<FoldingRange>.Empty));
         }
 
         private async Task<VSInternalCodeAction> HandleResolveCodeActionsAsync<TParams>(TParams @params)
