@@ -15,6 +15,10 @@ namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 internal delegate void WriteProperties<T>(JsonDataWriter writer, T value);
 internal delegate void WriteValue<T>(JsonDataWriter writer, T value);
 
+/// <summary>
+///  This is an abstraction used to write JSON data. Currently, this
+///  wraps a <see cref="JsonWriter"/> from JSON.NET.
+/// </summary>
 internal partial class JsonDataWriter
 {
     private static readonly ObjectPool<JsonDataWriter> s_pool = DefaultPool.Create(Policy.Instance);
