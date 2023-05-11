@@ -48,6 +48,10 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
     private string TargetPath { get; set; }
 
+    private CancellationToken CancellationToken { get; set; }
+
+    private RazorRequestContext RequestContext { get; set; }
+
     [Params(0, 100, 1000)]
     public int NumberOfCsSemanticRangesToReturn { get; set; }
 
@@ -75,25 +79,26 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
             Start = new Position { Line = 0, Character = 0 },
             End = new Position { Line = text.Lines.Count - 1, Character = text.Lines.Last().Span.Length - 1 }
         };
+
+        var documentVersion = 1;
+        CancellationToken = CancellationToken.None;
+        await UpdateDocumentAsync(documentVersion, DocumentSnapshot, CancellationToken).ConfigureAwait(false);
+
+        var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
+        RequestContext = new RazorRequestContext(DocumentContext, Logger, languageServer.GetLspServices());
+
     }
 
     [Benchmark(Description = "Razor Semantic Tokens Range Endpoint")]
     public async Task RazorSemanticTokensRangeEndpointRangesAsync()
     {
         var textDocumentIdentifier = new TextDocumentIdentifier { Uri = DocumentUri };
-        var cancellationToken = CancellationToken.None;
-        var documentVersion = 1;
-
-        await UpdateDocumentAsync(documentVersion, DocumentSnapshot, cancellationToken).ConfigureAwait(false);
 
         var request = new SemanticTokensRangeParams { Range = Range, TextDocument = textDocumentIdentifier };
 
-        var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-        var requestContext = new RazorRequestContext(DocumentContext, Logger, languageServer.GetLspServices());
-
         ((TestCustomizableRazorSemanticTokensInfoService)RazorSemanticTokenService).RangeNumberToGenerate = NumberOfCsSemanticRangesToReturn;
 
-        await SemanticTokensRangeEndpoint.HandleRequestAsync(request, requestContext, cancellationToken);
+        await SemanticTokensRangeEndpoint.HandleRequestAsync(request, RequestContext, CancellationToken);
     }
 
     private async Task UpdateDocumentAsync(int newVersion, IDocumentSnapshot documentSnapshot,
