@@ -52,8 +52,13 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
     private RazorRequestContext RequestContext { get; set; }
 
-    [Params(0, 100, 1000)]
+    private const int MaximumNumberOfCsSemanticRangesToReturn = 1000;
+
+    [Params(0, 100, MaximumNumberOfCsSemanticRangesToReturn)]
     public int NumberOfCsSemanticRangesToReturn { get; set; }
+
+    private static List<SemanticRange> PregeneratedRandomSemanticRanges { get; set; }
+
 
     [GlobalSetup]
     public async Task InitializeRazorSemanticAsync()
@@ -87,6 +92,23 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
         RequestContext = new RazorRequestContext(DocumentContext, Logger, languageServer.GetLspServices());
 
+        var random = new Random();
+        var codeDocument = await DocumentContext.GetCodeDocumentAsync(CancellationToken);
+        PregeneratedRandomSemanticRanges = new List<SemanticRange>();
+        for (var i = 0; i < MaximumNumberOfCsSemanticRangesToReturn; i++)
+        {
+            var startLine = random.Next(Range.Start.Line, Range.End.Line);
+            var startChar = random.Next(0, codeDocument.Source.Lines.GetLineLength(startLine));
+            var endLine = random.Next(startLine, Range.End.Line);
+            var endChar = startLine == endLine
+                ? random.Next(startChar, codeDocument.Source.Lines.GetLineLength(startLine))
+                : random.Next(0, codeDocument.Source.Lines.GetLineLength(endLine));
+
+            PregeneratedRandomSemanticRanges.Add(
+                new SemanticRange(random.Next(),
+                    new Range { Start = new Position(startLine, startChar), End = new Position(endLine, endChar) },
+                    0));
+        }
     }
 
     [Benchmark(Description = "Razor Semantic Tokens Range Endpoint")]
@@ -132,8 +154,6 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
     internal class TestCustomizableRazorSemanticTokensInfoService : RazorSemanticTokensInfoService
     {
-        private readonly Random _random;
-
         public int RangeNumberToGenerate { get; set; }
 
         public TestCustomizableRazorSemanticTokensInfoService(
@@ -142,7 +162,6 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
             ILoggerFactory loggerFactory)
             : base(languageServer, documentMappingService, loggerFactory)
         {
-            _random = new Random();
         }
 
         // We can't get C# responses without significant amounts of extra work, so let's just shim it for now, any non-Null result is fine.
@@ -154,23 +173,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
             CancellationToken cancellationToken,
             string previousResultId = null)
         {
-            var ranges = new List<SemanticRange>();
-            for (var i = 0; i < RangeNumberToGenerate; i++)
-            {
-                var startLine = _random.Next(razorRange.Start.Line, razorRange.End.Line);
-                var startChar = _random.Next(0, codeDocument.Source.Lines.GetLineLength(startLine));
-                var endLine = _random.Next(startLine, razorRange.End.Line);
-                var endChar = startLine == endLine
-                    ? _random.Next(startChar, codeDocument.Source.Lines.GetLineLength(startLine))
-                    : _random.Next(0, codeDocument.Source.Lines.GetLineLength(endLine));
-
-                ranges.Add(
-                    new SemanticRange(_random.Next(),
-                        new Range { Start = new Position(startLine, startChar), End = new Position(endLine, endChar) },
-                        0));
-            }
-
-            return Task.FromResult(ranges);
+            return Task.FromResult(PregeneratedRandomSemanticRanges.Take(RangeNumberToGenerate).ToList());
         }
     }
 }
