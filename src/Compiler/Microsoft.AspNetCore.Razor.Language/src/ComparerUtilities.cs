@@ -9,6 +9,17 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal static class ComparerUtilities
 {
+    public static bool AreDocumentationObjectsEqual(object? x, object? y)
+    {
+        return (x, y) switch
+        {
+            (string s1, string s2) => s1 == s2,
+            (DocumentationDescriptor d1, DocumentationDescriptor d2) => d1.Equals(d2),
+            (null, null) => true,
+            _ => false
+        };
+    }
+
     public static bool Equals<T>(IReadOnlyList<T>? first, IReadOnlyList<T>? second, IEqualityComparer<T>? comparer)
     {
         if (first == second)
