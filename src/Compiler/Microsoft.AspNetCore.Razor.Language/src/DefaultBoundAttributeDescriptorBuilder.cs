@@ -55,7 +55,7 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
     [AllowNull]
     private string _kind;
     private List<DefaultBoundAttributeParameterDescriptorBuilder>? _attributeParameterBuilders;
-    private object? _documentationObject;
+    private DocumentationObject _documentationObject;
     private Dictionary<string, string?>? _metadata;
     private RazorDiagnosticCollection? _diagnostics;
 
@@ -78,18 +78,8 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
 
     public override string? Documentation
     {
-        get
-        {
-            return _documentationObject switch
-            {
-                string s => s,
-                DocumentationDescriptor d => d.GetText(),
-                null => null,
-                _ => throw new NotSupportedException()
-            };
-        }
-
-        set => _documentationObject = value;
+        get => _documentationObject.GetText();
+        set => _documentationObject = new(value);
     }
 
     public override string? DisplayName { get; set; }
@@ -116,12 +106,12 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
 
     internal override void SetDocumentation(string text)
     {
-        _documentationObject = text;
+        _documentationObject = new(text);
     }
 
     internal override void SetDocumentation(DocumentationDescriptor documentation)
     {
-        _documentationObject = documentation;
+        _documentationObject = new(documentation);
     }
 
     public BoundAttributeDescriptor Build()

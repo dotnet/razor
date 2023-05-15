@@ -10,7 +10,7 @@ internal class DefaultTagHelperDescriptor : TagHelperDescriptor
         string name,
         string assemblyName,
         string displayName,
-        object? documentationObject,
+        DocumentationObject documentationObject,
         string? tagOutputHint,
         bool caseSensitive,
         TagMatchingRuleDescriptor[] tagMatchingRules,

@@ -10,7 +10,7 @@ internal class DefaultBoundAttributeParameterDescriptor : BoundAttributeParamete
         string? name,
         string? typeName,
         bool isEnum,
-        object? documentationObject,
+        DocumentationObject documentationObject,
         string? displayName,
         bool caseSensitive,
         MetadataCollection metadata,

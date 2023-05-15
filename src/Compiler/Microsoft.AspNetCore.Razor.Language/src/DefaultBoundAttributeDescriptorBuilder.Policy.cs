@@ -15,7 +15,7 @@ internal partial class DefaultBoundAttributeDescriptorBuilder
         {
             builder._parent = null;
             builder._kind = null;
-            builder._documentationObject = null;
+            builder._documentationObject = default;
 
             builder.Name = null;
             builder.TypeName = null;

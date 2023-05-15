@@ -92,9 +92,9 @@ internal static class ObjectWriters
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);
         writer.WriteObject(nameof(value.Metadata), value.Metadata, WriteMetadata);
 
-        static void WriteDocumentationObject(JsonDataWriter writer, string propertyName, object? documentationObject)
+        static void WriteDocumentationObject(JsonDataWriter writer, string propertyName, DocumentationObject documentationObject)
         {
-            switch (documentationObject)
+            switch (documentationObject.Object)
             {
                 case DocumentationDescriptor descriptor:
                     writer.WriteObject(propertyName, descriptor, static (writer, value) =>

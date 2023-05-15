@@ -45,7 +45,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
     private string? _name;
     private string? _assemblyName;
 
-    private object? _documentationObject;
+    private DocumentationObject _documentationObject;
 
     private List<DefaultAllowedChildTagDescriptorBuilder>? _allowedChildTags;
     private List<DefaultBoundAttributeDescriptorBuilder>? _attributeBuilders;
@@ -77,18 +77,8 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
 
     public override string? Documentation
     {
-        get
-        {
-            return _documentationObject switch
-            {
-                string s => s,
-                DocumentationDescriptor d => d.GetText(),
-                null => null,
-                _ => throw new NotSupportedException()
-            };
-        }
-
-        set => _documentationObject = value;
+        get => _documentationObject.GetText();
+        set => _documentationObject = new(value);
     }
 
     public override IDictionary<string, string?> Metadata => _metadata;
@@ -168,12 +158,12 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
 
     internal override void SetDocumentation(string text)
     {
-        _documentationObject = text;
+        _documentationObject = new(text);
     }
 
     internal override void SetDocumentation(DocumentationDescriptor documentation)
     {
-        _documentationObject = documentation;
+        _documentationObject = new(documentation);
     }
 
     public override TagHelperDescriptor Build()
@@ -205,7 +195,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
 
     public override void Reset()
     {
-        _documentationObject = null;
+        _documentationObject = default;
         TagOutputHint = null;
         _allowedChildTags?.Clear();
         _attributeBuilders?.Clear();

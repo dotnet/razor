@@ -18,7 +18,7 @@ public abstract class BoundAttributeParameterDescriptor : IEquatable<BoundAttrib
     private const int CaseSensitiveBit = 1 << 4;
 
     private int _flags;
-    private object _documentationObject;
+    private DocumentationObject _documentationObject;
 
     private bool HasFlag(int flag) => (_flags & flag) != 0;
     private void SetFlag(int toSet) => ThreadSafeFlagOperations.Set(ref _flags, toSet);
@@ -56,21 +56,11 @@ public abstract class BoundAttributeParameterDescriptor : IEquatable<BoundAttrib
 
     public string Documentation
     {
-        get
-        {
-            return _documentationObject switch
-            {
-                string s => s,
-                DocumentationDescriptor d => d.GetText(),
-                null => null,
-                _ => throw new NotSupportedException()
-            };
-        }
-
-        protected set => _documentationObject = value;
+        get => _documentationObject.GetText();
+        protected set => _documentationObject = new(value);
     }
 
-    internal object DocumentationObject
+    internal DocumentationObject DocumentationObject
     {
         get => _documentationObject;
         set => _documentationObject = value;
