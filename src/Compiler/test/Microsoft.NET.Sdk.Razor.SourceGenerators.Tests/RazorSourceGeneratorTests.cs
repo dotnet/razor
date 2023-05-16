@@ -1451,6 +1451,57 @@ namespace AspNetCoreGeneratedDocument
         }
 
         [Fact, WorkItem("https://github.com/dotnet/razor/issues/7049")]
+        public async Task SourceGenerator_CshtmlFiles_TagHelperInFunction_ManualSuppression()
+        {
+            // Arrange
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.cshtml"] = """
+                @addTagHelper *, TestProject
+
+                @{ await RenderMyRazor(); }
+
+                @functions {
+                    #pragma warning disable 1998
+                    async Task RenderMyRazor()
+                    {
+                        var lambdaWithUnnecessaryAsync1 = async () => { };
+                        <email>first tag helper</email>
+                        <email>
+                            second tag helper
+                            <email>nested tag helper</email>
+                        </email>
+                        var lambdaWithUnnecessaryAsync2 = async () => { };
+                    }
+                }
+                """,
+            }, new()
+            {
+                ["EmailTagHelper.cs"] = """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                public class EmailTagHelper : TagHelper
+                {
+                    public override void Process(TagHelperContext context, TagHelperOutput output)
+                    {
+                        output.TagName = "a";
+                    }
+                }
+                """
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project);
+
+            // Act
+            var result = RunGenerator(compilation!, ref driver,
+                d => Assert.Equal("Pages/Index.cshtml(15,52): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.", d.ToString()));
+
+            // Assert
+            Assert.Empty(result.Diagnostics);
+            Assert.Single(result.GeneratedSources);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/7049")]
         public async Task SourceGenerator_CshtmlFiles_TagHelperInBody()
         {
             // Arrange
