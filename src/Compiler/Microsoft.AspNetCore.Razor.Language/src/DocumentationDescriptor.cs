@@ -30,6 +30,12 @@ internal abstract partial class DocumentationDescriptor : IEquatable<Documentati
 
     public static DocumentationDescriptor From(DocumentationId id, params object?[]? args)
     {
+        if (id < 0 || id > DocumentationId.Last)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(id), id, Resources.FormatUnknown_documentation_id_0(id));
+        }
+
         if (args is null or { Length: 0 })
         {
             return id switch

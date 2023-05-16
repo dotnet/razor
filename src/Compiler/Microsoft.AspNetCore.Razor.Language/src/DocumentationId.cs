@@ -5,6 +5,9 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal enum DocumentationId
 {
+    // New values must always be placed at the end of the enum
+    // and Last must be updated to point to the final value.
+    // Do NOT insert items or change the order below.
     BindTagHelper_Fallback,
     BindTagHelper_Fallback_Event,
     BindTagHelper_Fallback_Format,
@@ -25,4 +28,6 @@ internal enum DocumentationId
     KeyTagHelper,
     RefTagHelper,
     SplatTagHelper,
+
+    Last = SplatTagHelper
 }
