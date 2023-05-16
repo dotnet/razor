@@ -631,11 +631,9 @@ Line: }
 
 exports[`Grammar tests @code directive Variable starting with code 1`] = `
 "Line: @codeTest then words
- - token from 0 to 1 (@) with scopes text.aspnetcorerazor, keyword.control.cshtml.transition
- - token from 1 to 5 (code) with scopes text.aspnetcorerazor, keyword.control.razor.directive.code
- - token from 5 to 9 (Test) with scopes text.aspnetcorerazor
- - token from 9 to 10 ( ) with scopes text.aspnetcorerazor
- - token from 10 to 21 (then words) with scopes text.aspnetcorerazor
+ - token from 0 to 1 (@) with scopes text.aspnetcorerazor, meta.expression.implicit.cshtml, keyword.control.cshtml.transition
+ - token from 1 to 9 (codeTest) with scopes text.aspnetcorerazor, meta.expression.implicit.cshtml, source.cs, variable.other.object.cs
+ - token from 9 to 21 ( then words) with scopes text.aspnetcorerazor
 "
 `;
 
