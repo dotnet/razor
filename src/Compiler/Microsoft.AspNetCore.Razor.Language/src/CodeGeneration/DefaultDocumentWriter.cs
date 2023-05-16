@@ -202,7 +202,12 @@ internal class DefaultDocumentWriter : DocumentWriter
 
             using (Context.CodeWriter.BuildScope())
             {
+                var previous = Context.Items[CodeRenderingContext.AsyncWarningSuppressed];
+                Context.Items[CodeRenderingContext.AsyncWarningSuppressed] = bool.TrueString;
+
                 VisitDefault(node);
+
+                Context.Items[CodeRenderingContext.AsyncWarningSuppressed] = previous;
             }
 
             Context.CodeWriter.WriteLine("#pragma warning restore 1998");

@@ -14,6 +14,8 @@ public abstract class CodeRenderingContext
 
     internal static readonly object SuppressUniqueIds = "SuppressUniqueIds";
 
+    internal static readonly object AsyncWarningSuppressed = "AsyncWarningSuppressed";
+
     public abstract IEnumerable<IntermediateNode> Ancestors { get; }
 
     public abstract CodeWriter CodeWriter { get; }

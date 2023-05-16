@@ -114,14 +114,24 @@ internal sealed class DefaultTagHelperTargetExtension : IDefaultTagHelperTargetE
                 .Write(node.TagMode.ToString())
                 .WriteParameterSeparator()
                 .WriteStringLiteral(uniqueId)
-                .WriteParameterSeparator()
-                .WriteLine()
-                // We generate async lambda but the body might not contain awaits.
-                .WriteLine("#pragma warning disable 1998");
+                .WriteParameterSeparator();
+
+            // Disable "unnecessary async" warning. We generate async lambda but the body might not contain awaits.
+            // First check if we are not inside ExecuteAsync. There the warning is already disabled,
+            // so doing disable/restore would restore it for the rest of the method body.
+            var suppressAsyncWarning = (string)context.Items[CodeRenderingContext.AsyncWarningSuppressed] != bool.TrueString;
+            if (suppressAsyncWarning)
+            {
+                context.CodeWriter.WriteLine()
+                    .WriteLine("#pragma warning disable 1998");
+            }
 
             using (context.CodeWriter.BuildAsyncLambda())
             {
-                context.CodeWriter.WriteLine("#pragma warning restore 1998");
+                if (suppressAsyncWarning)
+                {
+                    context.CodeWriter.WriteLine("#pragma warning restore 1998");
+                }
 
                 // We remove and redirect writers so TagHelper authors can retrieve content.
                 context.RenderChildren(node, new RuntimeNodeWriter());

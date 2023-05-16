@@ -2044,10 +2044,7 @@ namespace AspNetCoreGeneratedDocument
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
             WriteLiteral(""\r\n"");
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin(""h2"", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, ""5d59ecd7b7cf7355d7f60234988be34b81a8b6142529"", 
-            #pragma warning disable 1998
-            async() => {
-                #pragma warning restore 1998
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin(""h2"", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, ""5d59ecd7b7cf7355d7f60234988be34b81a8b6142529"", async() => {
                 WriteLiteral(""Hello world"");
             }
             );
@@ -2546,10 +2543,7 @@ namespace AspNetCoreGeneratedDocument
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin(""vc:test"", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, ""209ff2a910aa467bb7942ed3e6cb586652327a442587"", 
-            #pragma warning disable 1998
-            async() => {
-                #pragma warning restore 1998
+            __tagHelperExecutionContext = __tagHelperScopeManager.Begin(""vc:test"", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, ""209ff2a910aa467bb7942ed3e6cb586652327a442587"", async() => {
             }
             );
             __TestViewComponentTagHelper = CreateTagHelper<global::AspNetCoreGeneratedDocument.Views_Home_Index.__Generated__TestViewComponentTagHelper>();
