@@ -1450,6 +1450,45 @@ namespace AspNetCoreGeneratedDocument
             Assert.Single(result.GeneratedSources);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/7049")]
+        public async Task SourceGenerator_CshtmlFiles_TagHelperInBody()
+        {
+            // Arrange
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.cshtml"] = """
+                @addTagHelper *, TestProject
+
+                <email>tag helper</email>
+                @section MySection {
+                    <p>my section</p>
+                }
+                """,
+            }, new()
+            {
+                ["EmailTagHelper.cs"] = """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                public class EmailTagHelper : TagHelper
+                {
+                    public override void Process(TagHelperContext context, TagHelperOutput output)
+                    {
+                        output.TagName = "a";
+                    }
+                }
+                """
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project);
+
+            // Act
+            var result = RunGenerator(compilation!, ref driver);
+
+            // Assert
+            Assert.Empty(result.Diagnostics);
+            Assert.Single(result.GeneratedSources);
+        }
+
         [Fact]
         public async Task SourceGenerator_CshtmlFiles_WhenMarkupChanges()
         {
