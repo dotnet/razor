@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -24,12 +23,6 @@ internal abstract partial class DocumentationDescriptor
             => other is SimpleDescriptor { Id: var id } && Id == id;
 
         protected override int ComputeHashCode()
-        {
-            var result = HashCodeCombiner.Start();
-
-            result.Add((int)Id);
-
-            return result.CombinedHash;
-        }
+            => Id.GetHashCode();
     }
 }

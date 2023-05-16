@@ -79,7 +79,7 @@ internal abstract partial class DocumentationDescriptor
         {
             var result = HashCodeCombiner.Start();
 
-            result.Add((int)Id);
+            result.Add(Id);
 
             foreach (var arg in Args)
             {
