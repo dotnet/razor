@@ -22,7 +22,7 @@ internal abstract partial class DocumentationDescriptor
             foreach (var arg in args)
             {
                 Debug.Assert(
-                    arg is string || arg is int || arg is bool || arg is null,
+                    arg is string or int or bool or null,
                     "Only string, int, bool, or null arguments are allowed.");
             }
 #endif
@@ -62,7 +62,6 @@ internal abstract partial class DocumentationDescriptor
                     (string s1, string s2) => s1 == s2,
                     (int i1, int i2) => i1 == i2,
                     (bool b1, bool b2) => b1 == b2,
-                    (object o1, object o2) => Equals(o1, o2),
                     (null, null) => true,
                     _ => false
                 };
