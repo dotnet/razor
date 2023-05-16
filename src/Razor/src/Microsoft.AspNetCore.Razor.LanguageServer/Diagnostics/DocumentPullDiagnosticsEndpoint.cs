@@ -57,13 +57,13 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
 
     public async Task<IEnumerable<VSInternalDiagnosticReport>?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {
+        if (!_languageServerFeatureOptions.SingleServerSupport)
+        {
+            return default;
+        }
+
         using (Track("diagnostics"))
         {
-            if (!_languageServerFeatureOptions.SingleServerSupport)
-            {
-                return default;
-            }
-
             var documentContext = context.GetRequiredDocumentContext();
 
             var razorDiagnostics = await GetRazorDiagnosticsAsync(documentContext, cancellationToken).ConfigureAwait(false);
@@ -114,7 +114,7 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         }
     }
 
-    private IDisposable? Track(string name, Guid guid)
+    private IDisposable? Track(string name)
     {
         return _telemetryReporter.BeginBlock(name, Severity.Normal, ImmutableDictionary.CreateRange(new KeyValuePair<string, object?>[]
         {
