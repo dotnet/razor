@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -113,7 +114,11 @@ internal static class ObjectWriters
                     break;
 
                 case null:
-                    // Don't write anything if there isn't any documentation.
+                    // Don't write a property if there isn't any documentation.
+                    break;
+
+                default:
+                    Debug.Fail($"Documentation objects should only be of type {nameof(DocumentationDescriptor)}, string, or null.");
                     break;
             }
         }
