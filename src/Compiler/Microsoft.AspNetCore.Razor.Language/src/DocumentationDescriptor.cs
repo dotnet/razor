@@ -28,9 +28,6 @@ internal abstract partial class DocumentationDescriptor : IEquatable<Documentati
     public static readonly DocumentationDescriptor RefTagHelper = new SimpleDescriptor(DocumentationId.RefTagHelper);
     public static readonly DocumentationDescriptor SplatTagHelper = new SimpleDescriptor(DocumentationId.SplatTagHelper);
 
-    public static DocumentationDescriptor Format(DocumentationId id, params object?[] args)
-        => new FormattedDescriptor(id, args);
-
     public static DocumentationDescriptor From(DocumentationId id, params object?[]? args)
     {
         if (args is null or { Length: 0 })
@@ -58,11 +55,17 @@ internal abstract partial class DocumentationDescriptor : IEquatable<Documentati
                 DocumentationId.RefTagHelper => RefTagHelper,
                 DocumentationId.SplatTagHelper => SplatTagHelper,
 
+                // If this exception is thrown, there are two potential problems:
+                //
+                // 1. Arguments are being passed for a DocumentationId that doesn't require formatting.
+                // 2. A new DocumentationId was added that needs an entry added in the switch expression above
+                //    to return a DocumentationDescriptor.
+
                 _ => throw new NotSupportedException(Resources.FormatUnknown_documentation_id_0(id))
             };
         }
 
-        return Format(id, args);
+        return new FormattedDescriptor(id, args);
     }
 
     public DocumentationId Id { get; }
@@ -111,6 +114,9 @@ internal abstract partial class DocumentationDescriptor : IEquatable<Documentati
             DocumentationId.KeyTagHelper => ComponentResources.KeyTagHelper_Documentation,
             DocumentationId.RefTagHelper => ComponentResources.RefTagHelper_Documentation,
             DocumentationId.SplatTagHelper => ComponentResources.SplatTagHelper_Documentation,
+
+            // If this exception is thrown, a new DocumentationId was added that needs an entry added in
+            // the switch expression above to return a resource string.
 
             var id => throw new NotSupportedException(Resources.FormatUnknown_documentation_id_0(id))
         };

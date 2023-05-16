@@ -441,7 +441,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             }
 
             pb.SetDocumentation(
-                DocumentationDescriptor.Format(
+                DocumentationDescriptor.From(
                     DocumentationId.ComponentTypeParameter,
                     typeParameter.Name,
                     builder.Name));
@@ -544,7 +544,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
 
             var documentation = childContentName == null
                 ? DocumentationDescriptor.ChildContentParameterName_TopLevel
-                : DocumentationDescriptor.Format(DocumentationId.ChildContentParameterName, childContentName);
+                : DocumentationDescriptor.From(DocumentationId.ChildContentParameterName, childContentName);
 
             b.SetDocumentation(documentation);
         });

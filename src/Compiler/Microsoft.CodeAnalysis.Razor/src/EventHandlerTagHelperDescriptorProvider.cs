@@ -145,7 +145,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
 
             builder.CaseSensitive = true;
             builder.SetDocumentation(
-                DocumentationDescriptor.Format(
+                DocumentationDescriptor.From(
                     DocumentationId.EventHandlerTagHelper,
                     attributeName,
                     eventArgType));
@@ -206,7 +206,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
             builder.BindAttribute(a =>
             {
                 a.SetDocumentation(
-                    DocumentationDescriptor.Format(
+                    DocumentationDescriptor.From(
                         DocumentationId.EventHandlerTagHelper,
                         attributeName,
                         eventArgType));
@@ -233,7 +233,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                         parameter.Name = "preventDefault";
                         parameter.TypeName = typeof(bool).FullName;
                         parameter.SetDocumentation(
-                            DocumentationDescriptor.Format(
+                            DocumentationDescriptor.From(
                                 DocumentationId.EventHandlerTagHelper_PreventDefault,
                                 attributeName));
 
@@ -248,7 +248,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                         parameter.Name = "stopPropagation";
                         parameter.TypeName = typeof(bool).FullName;
                         parameter.SetDocumentation(
-                            DocumentationDescriptor.Format(
+                            DocumentationDescriptor.From(
                                 DocumentationId.EventHandlerTagHelper_StopPropagation,
                                 attributeName));
 

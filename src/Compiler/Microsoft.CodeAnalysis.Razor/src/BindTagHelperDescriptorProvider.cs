@@ -198,7 +198,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     parameter.Name = "event";
                     parameter.TypeName = typeof(string).FullName;
                     parameter.SetDocumentation(
-                        DocumentationDescriptor.Format(
+                        DocumentationDescriptor.From(
                             DocumentationId.BindTagHelper_Fallback_Event, attributeName));
 
                     parameter.SetPropertyName("Event");
@@ -384,7 +384,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
             builder.CaseSensitive = true;
             builder.SetDocumentation(
-                DocumentationDescriptor.Format(
+                DocumentationDescriptor.From(
                     DocumentationId.BindTagHelper_Element,
                     entry.ValueAttribute,
                     entry.ChangeAttribute));
@@ -472,7 +472,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             {
                 a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                 a.SetDocumentation(
-                    DocumentationDescriptor.Format(
+                    DocumentationDescriptor.From(
                         DocumentationId.BindTagHelper_Element,
                         entry.ValueAttribute,
                         entry.ChangeAttribute));
@@ -489,7 +489,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     parameter.Name = "format";
                     parameter.TypeName = typeof(string).FullName;
                     parameter.SetDocumentation(
-                        DocumentationDescriptor.Format(
+                        DocumentationDescriptor.From(
                             DocumentationId.BindTagHelper_Element_Format,
                             attributeName));
 
@@ -501,7 +501,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     parameter.Name = "event";
                     parameter.TypeName = typeof(string).FullName;
                     parameter.SetDocumentation(
-                        DocumentationDescriptor.Format(
+                        DocumentationDescriptor.From(
                             DocumentationId.BindTagHelper_Element_Event,
                             attributeName));
 
@@ -552,7 +552,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 attribute.Name = formatAttributeName;
                 attribute.TypeName = "System.String";
                 attribute.SetDocumentation(
-                    DocumentationDescriptor.Format(
+                    DocumentationDescriptor.From(
                         DocumentationId.BindTagHelper_Element_Format,
                         attributeName));
 
@@ -635,7 +635,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 builder.DisplayName = tagHelper.DisplayName;
                 builder.CaseSensitive = true;
                 builder.SetDocumentation(
-                    DocumentationDescriptor.Format(
+                    DocumentationDescriptor.From(
                         DocumentationId.BindTagHelper_Component,
                         valueAttribute.Name,
                         changeAttribute.Name));
@@ -689,7 +689,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 {
                     attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                     attribute.SetDocumentation(
-                        DocumentationDescriptor.Format(
+                        DocumentationDescriptor.From(
                             DocumentationId.BindTagHelper_Component,
                             valueAttribute.Name,
                             changeAttribute.Name));
