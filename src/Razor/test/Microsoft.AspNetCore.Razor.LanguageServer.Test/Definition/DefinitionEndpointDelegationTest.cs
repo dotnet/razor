@@ -99,11 +99,17 @@ public class DefinitionEndpointDelegationTest : SingleServerDelegatingEndpointTe
         Assert.Equal(21, location.Range.Start.Line);
     }
 
-    [Fact]
-    public async Task Handle_SingleServer_ComponentAttribute_OtherRazorFile()
+    [Theory]
+    [InlineData("Ti$$tle")]
+    [InlineData("$$@bind-Title")]
+    [InlineData("@$$bind-Title")]
+    [InlineData("@bi$$nd-Title")]
+    [InlineData("@bind$$-Title")]
+    [InlineData("@bind-Ti$$tle")]
+    public async Task Handle_SingleServer_ComponentAttribute_OtherRazorFile(string attribute)
     {
-        var input = """
-                <SurveyPrompt @bind-Ti$$tle="InputValue" @bind-Value:after="BindAfter" />
+        var input = $$"""
+                <SurveyPrompt {{attribute}}="InputValue" />
 
                 @code
                 {

@@ -53,6 +53,8 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
+    protected override bool TreatAnyAttributePositionAsAttributeName => true;
+
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(ReferenceParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
     {
         // HTML doesn't need to do FAR

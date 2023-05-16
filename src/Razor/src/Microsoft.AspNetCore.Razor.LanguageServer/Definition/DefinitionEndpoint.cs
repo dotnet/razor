@@ -47,6 +47,8 @@ internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextD
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
+    protected override bool TreatAnyAttributePositionAsAttributeName => true;
+
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName;
 
     public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
