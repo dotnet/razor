@@ -54,14 +54,9 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
     protected virtual bool TreatAnyAttributePositionAsAttributeName { get; } = false;
 
     /// <summary>
-    /// If <see cref="TreatAnyAttributePositionAsAttributeName "/> is <see langword="true"/>, returns whether the position was adjusted
-    /// </summary>
-    protected bool DidTreatAttributePositionAsAttributeName { get; private set; }
-
-    /// <summary>
     /// If <see cref="TreatAnyAttributePositionAsAttributeName "/> is <see langword="true"/>, returns the range of the full attribute
     /// </summary>
-    protected Range OriginalAttributeRange { get; private set; }
+    protected Range? OriginalAttributeRange { get; private set; }
 
     /// <summary>
     /// The name of the endpoint to delegate to, from <see cref="RazorLanguageServerCustomMessageTargets"/>. This is the
@@ -136,7 +131,6 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
                 {
                     sourceText.GetLineAndOffset(attributeNameIndex, out var line, out var offset);
 
-                    DidTreatAttributePositionAsAttributeName = true;
                     OriginalAttributeRange = attributeSpan.AsRange(sourceText);
 
                     position = new Position(line, offset);

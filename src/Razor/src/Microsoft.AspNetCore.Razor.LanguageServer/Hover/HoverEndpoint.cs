@@ -98,7 +98,7 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
         // If we don't include the originally requested position in our response, the client may not show it, so we extend the range to ensure it is in there.
         // eg for hovering at @bind-Value:af$$ter, we want to show people the hover for the Value property, so Roslyn will return to us the range for just the
         // portion of the attribute that says "Value".
-        if (DidTreatAttributePositionAsAttributeName)
+        if (OriginalAttributeRange is not null)
         {
             response.Range = OriginalAttributeRange;
         }
