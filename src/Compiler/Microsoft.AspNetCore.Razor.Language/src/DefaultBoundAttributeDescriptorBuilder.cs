@@ -55,7 +55,8 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
     [AllowNull]
     private string _kind;
     private List<DefaultBoundAttributeParameterDescriptorBuilder>? _attributeParameterBuilders;
-    private Dictionary<string, string>? _metadata;
+    private DocumentationObject _documentationObject;
+    private Dictionary<string, string?>? _metadata;
     private RazorDiagnosticCollection? _diagnostics;
 
     private DefaultBoundAttributeDescriptorBuilder()
@@ -74,10 +75,16 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
     public override bool IsDictionary { get; set; }
     public override string? IndexerAttributeNamePrefix { get; set; }
     public override string? IndexerValueTypeName { get; set; }
-    public override string? Documentation { get; set; }
+
+    public override string? Documentation
+    {
+        get => _documentationObject.GetText();
+        set => _documentationObject = new(value);
+    }
+
     public override string? DisplayName { get; set; }
 
-    public override IDictionary<string, string> Metadata => _metadata ??= new Dictionary<string, string>();
+    public override IDictionary<string, string?> Metadata => _metadata ??= new Dictionary<string, string?>();
 
     public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
@@ -95,6 +102,16 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
         var builder = DefaultBoundAttributeParameterDescriptorBuilder.GetInstance(this, _kind);
         configure(builder);
         _attributeParameterBuilders.Add(builder);
+    }
+
+    internal override void SetDocumentation(string text)
+    {
+        _documentationObject = new(text);
+    }
+
+    internal override void SetDocumentation(DocumentationDescriptor documentation)
+    {
+        _documentationObject = new(documentation);
     }
 
     public BoundAttributeDescriptor Build()
@@ -116,7 +133,7 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
                 IsDictionary,
                 IndexerAttributeNamePrefix,
                 IndexerValueTypeName,
-                Documentation,
+                _documentationObject,
                 GetDisplayName(),
                 CaseSensitive,
                 IsEditorRequired,

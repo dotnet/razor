@@ -45,15 +45,17 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
     private string? _name;
     private string? _assemblyName;
 
+    private DocumentationObject _documentationObject;
+
     private List<DefaultAllowedChildTagDescriptorBuilder>? _allowedChildTags;
     private List<DefaultBoundAttributeDescriptorBuilder>? _attributeBuilders;
     private List<DefaultTagMatchingRuleDescriptorBuilder>? _tagMatchingRuleBuilders;
     private RazorDiagnosticCollection? _diagnostics;
-    private readonly Dictionary<string, string> _metadata;
+    private readonly Dictionary<string, string?> _metadata;
 
     private DefaultTagHelperDescriptorBuilder()
     {
-        _metadata = new Dictionary<string, string>(StringComparer.Ordinal);
+        _metadata = new Dictionary<string, string?>(StringComparer.Ordinal);
     }
 
     public DefaultTagHelperDescriptorBuilder(string kind, string name, string assemblyName)
@@ -72,9 +74,14 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
     public override string? DisplayName { get; set; }
     public override string? TagOutputHint { get; set; }
     public override bool CaseSensitive { get; set; }
-    public override string? Documentation { get; set; }
 
-    public override IDictionary<string, string> Metadata => _metadata;
+    public override string? Documentation
+    {
+        get => _documentationObject.GetText();
+        set => _documentationObject = new(value);
+    }
+
+    public override IDictionary<string, string?> Metadata => _metadata;
     public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
     public override IReadOnlyList<AllowedChildTagDescriptorBuilder> AllowedChildTags
@@ -149,6 +156,16 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         _tagMatchingRuleBuilders.Add(builder);
     }
 
+    internal override void SetDocumentation(string text)
+    {
+        _documentationObject = new(text);
+    }
+
+    internal override void SetDocumentation(DocumentationDescriptor documentation)
+    {
+        _documentationObject = new(documentation);
+    }
+
     public override TagHelperDescriptor Build()
     {
         using var diagnostics = new PooledHashSet<RazorDiagnostic>();
@@ -164,7 +181,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
             Name,
             AssemblyName,
             GetDisplayName(),
-            Documentation,
+            _documentationObject,
             TagOutputHint,
             CaseSensitive,
             tagMatchingRules,
@@ -178,7 +195,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
 
     public override void Reset()
     {
-        Documentation = null;
+        _documentationObject = default;
         TagOutputHint = null;
         _allowedChildTags?.Clear();
         _attributeBuilders?.Clear();
