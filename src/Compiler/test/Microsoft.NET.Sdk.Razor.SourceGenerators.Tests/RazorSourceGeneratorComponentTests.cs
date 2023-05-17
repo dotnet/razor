@@ -49,4 +49,45 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         Assert.Empty(result.Diagnostics);
         Assert.Equal(2, result.GeneratedSources.Length);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8718")]
+    public async Task PartialClass_NoBaseInCSharp()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Shared/Component1.razor"] = """
+                <Component2 />
+                """,
+            ["Shared/Component2.razor"] = """
+                @inherits ComponentBase
+
+                @code {
+                    [Parameter]
+                    public RenderFragment? ChildContent { get; set; }
+                }
+                """
+        }, new()
+        {
+            ["Component2.razor.cs"] = """
+                using Microsoft.AspNetCore.Components;
+
+                namespace MyApp.Shared;
+
+                public partial class Component2
+                {
+
+                }
+                """
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.Equal(2, result.GeneratedSources.Length);
+    }
 }
