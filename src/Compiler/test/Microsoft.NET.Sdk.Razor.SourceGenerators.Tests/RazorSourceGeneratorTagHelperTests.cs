@@ -1304,4 +1304,57 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
         Assert.Equal(2, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8718")]
+    public async Task ComponentAndTagHelper_HtmlTargetElement()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                @addTagHelper *, TestProject
+
+                <email mail="example1">inside email</email>
+                <mail mail="example2">inside mail</mail>
+                """,
+            ["Shared/EmailTagHelper.razor"] = """
+                @using Microsoft.AspNetCore.Razor.TagHelpers;
+                @attribute [HtmlTargetElement("mail")]
+                @inherits ComponentAndTagHelper
+                @code {
+                    public string? Mail { get; set; }
+                }
+                """,
+        }, new()
+        {
+            ["EmailTagHelper.cs"] = """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+                namespace MyApp.Shared;
+
+                public abstract class ComponentAndTagHelper : TagHelper
+                {
+                    protected abstract void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder);
+                }
+
+                public partial class EmailTagHelper : ComponentAndTagHelper
+                {
+                    public override void Process(TagHelperContext context, TagHelperOutput output)
+                    {
+                        output.TagName = "a";
+                        output.Attributes.SetAttribute("href", $"mailto:{Mail}");
+                    }
+                }
+                """
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.Equal(2, result.GeneratedSources.Length);
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
 }
