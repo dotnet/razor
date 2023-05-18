@@ -15,15 +15,20 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         // Arrange
         var project = CreateTestProject(new()
         {
+            ["Views/Home/Index.cshtml"] = """
+                @(await Html.RenderComponentAsync<MyApp.Shared.Component1>(RenderMode.Static))
+                """,
             ["Shared/Component1.razor"] = """
-                <Component2 />
+                <Component2 Param="42" />
                 """,
             ["Shared/Component2.razor"] = """
                 @inherits ComponentBase
+                
+                Value: @(Param + 1)
 
                 @code {
                     [Parameter]
-                    public RenderFragment? ChildContent { get; set; }
+                    public int Param { get; set; }
                 }
                 """
         }, new()
@@ -33,21 +38,22 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
                 namespace MyApp.Shared;
 
-                public partial class Component2 : ComponentBase
-                {
-
-                }
+                public partial class Component2 : ComponentBase { }
                 """
         });
         var compilation = await project.GetCompilationAsync();
-        var driver = await GetDriverAsync(project);
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "7.0";
+        });
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation!, ref driver, out compilation);
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        Assert.Equal(2, result.GeneratedSources.Length);
+        Assert.Equal(3, result.GeneratedSources.Length);
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/8718")]
@@ -56,15 +62,20 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         // Arrange
         var project = CreateTestProject(new()
         {
+            ["Views/Home/Index.cshtml"] = """
+                @(await Html.RenderComponentAsync<MyApp.Shared.Component1>(RenderMode.Static))
+                """,
             ["Shared/Component1.razor"] = """
-                <Component2 />
+                <Component2 Param="42" />
                 """,
             ["Shared/Component2.razor"] = """
                 @inherits ComponentBase
 
+                Value: @(Param + 1)
+
                 @code {
                     [Parameter]
-                    public RenderFragment? ChildContent { get; set; }
+                    public int Param { get; set; }
                 }
                 """
         }, new()
@@ -74,20 +85,21 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
                 namespace MyApp.Shared;
 
-                public partial class Component2
-                {
-
-                }
+                public partial class Component2 { }
                 """
         });
         var compilation = await project.GetCompilationAsync();
-        var driver = await GetDriverAsync(project);
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "7.0";
+        });
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation!, ref driver, out compilation);
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        Assert.Equal(2, result.GeneratedSources.Length);
+        Assert.Equal(3, result.GeneratedSources.Length);
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 }
