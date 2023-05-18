@@ -65,7 +65,21 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
         // This will always be null for a component document.
         var tagHelperPrefix = visitor.TagHelperPrefix;
 
-        descriptors = visitor.Matches.ToArray();
+        // Merge descriptors with the same full name to deduplicate partial class definitions.
+        var finalDescriptors = new Dictionary<TagHelperDescriptor, TagHelperDescriptor>(TagHelperDescriptorSimpleComparer.Default);
+        foreach (var descriptor in visitor.Matches)
+        {
+            if (finalDescriptors.TryGetValue(descriptor, out var existing))
+            {
+                finalDescriptors[descriptor] = TagHelperDescriptor.Merge(existing, descriptor);
+            }
+            else
+            {
+                finalDescriptors.Add(descriptor, descriptor);
+            }
+        }
+
+        descriptors = finalDescriptors.Values.ToArray();
 
         var context = TagHelperDocumentContext.Create(tagHelperPrefix, descriptors);
         codeDocument.SetTagHelperContext(context);

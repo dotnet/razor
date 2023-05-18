@@ -216,6 +216,33 @@ public abstract class TagHelperDescriptor : IEquatable<TagHelperDescriptor>
         return _allDiagnostics;
     }
 
+    internal static TagHelperDescriptor Merge(TagHelperDescriptor x, TagHelperDescriptor y)
+    {
+        Debug.Assert(x.Kind == y.Kind &&
+            x.Name == y.Name &&
+            x.AssemblyName == y.AssemblyName &&
+            x.DisplayName == y.DisplayName);
+
+        var merged = new DefaultTagHelperDescriptor(
+            kind: x.Kind,
+            name: x.Name,
+            assemblyName: x.AssemblyName,
+            displayName: x.DisplayName,
+            documentationObject: x.DocumentationObject.Object is null ? y.DocumentationObject : x.DocumentationObject,
+            tagOutputHint: x.TagOutputHint ?? y.TagOutputHint,
+            caseSensitive: x.CaseSensitive || y.CaseSensitive,
+            tagMatchingRules: x.TagMatchingRules.Union(y.TagMatchingRules).ToArray(),
+            attributeDescriptors: x.BoundAttributes.Union(y.BoundAttributes).ToArray(),
+            allowedChildTags: x.AllowedChildTags.Union(y.AllowedChildTags).ToArray(),
+            metadata: MetadataCollection.Create(x.Metadata.Union(y.Metadata).ToArray()),
+            diagnostics: x.Diagnostics.Union(y.Diagnostics).ToArray());
+
+        Debug.Assert(TagHelperDescriptorSimpleComparer.Default.Equals(x, merged) &&
+            TagHelperDescriptorSimpleComparer.Default.Equals(y, merged));
+
+        return merged;
+    }
+
     public override string ToString()
     {
         return DisplayName ?? base.ToString();
