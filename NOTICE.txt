@@ -6836,7 +6836,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ---------------------------------------------------------
 
-OmniSharp.Extensions.JsonRpc 0.19.5 - MIT
+OmniSharp.Extensions.JsonRpc 0.19.7 - MIT
 
 
 Copyright OmniSharp and contributors
@@ -6871,7 +6871,7 @@ SOFTWARE.
 
 ---------------------------------------------------------
 
-OmniSharp.Extensions.JsonRpc.Generators 0.19.5 - MIT
+OmniSharp.Extensions.JsonRpc.Generators 0.19.7 - MIT
 
 
 Copyright OmniSharp and contributors
@@ -6906,7 +6906,7 @@ SOFTWARE.
 
 ---------------------------------------------------------
 
-OmniSharp.Extensions.LanguageProtocol 0.19.5 - MIT
+OmniSharp.Extensions.LanguageProtocol 0.19.7 - MIT
 
 
 Copyright OmniSharp and contributors
@@ -6941,7 +6941,7 @@ SOFTWARE.
 
 ---------------------------------------------------------
 
-OmniSharp.Extensions.LanguageServer 0.19.5 - MIT
+OmniSharp.Extensions.LanguageServer 0.19.7 - MIT
 
 
 Copyright OmniSharp and contributors
@@ -6976,7 +6976,7 @@ SOFTWARE.
 
 ---------------------------------------------------------
 
-OmniSharp.Extensions.LanguageServer.Shared 0.19.5 - MIT
+OmniSharp.Extensions.LanguageServer.Shared 0.19.7 - MIT
 
 
 Copyright OmniSharp and contributors
