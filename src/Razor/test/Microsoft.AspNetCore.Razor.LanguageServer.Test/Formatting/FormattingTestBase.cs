@@ -244,11 +244,10 @@ public class FormattingTestBase : RazorIntegrationTestBase
 
         var sourceDocument = text.GetRazorSourceDocument(path, path);
 
-        // Yes I know "BlazorServer_31 is weird, but thats what is in the taghelpers.json file
         const string DefaultImports = """
-                @using BlazorServer_31
-                @using BlazorServer_31.Pages
-                @using BlazorServer_31.Shared
+                @using BlazorApp1
+                @using BlazorApp1.Pages
+                @using BlazorApp1.Shared
                 @using Microsoft.AspNetCore.Components
                 @using Microsoft.AspNetCore.Components.Authorization
                 @using Microsoft.AspNetCore.Components.Routing

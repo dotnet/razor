@@ -80,17 +80,13 @@ public abstract class LanguageServerTestBase : TestBase
         }
 
         var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath);
-        var projectEngine = RazorProjectEngine.Create(builder =>
-        {
-            RazorExtensions.Register(builder);
-        });
+        var projectEngine = RazorProjectEngine.Create(RazorExtensions.Register);
         var importDocumentName = fileKind == FileKinds.Legacy ? "_ViewImports.cshtml" : "_Imports.razor";
-        // Yes I know "BlazorServer_31 is weird, but thats what is in the taghelpers.json file
         var defaultImportDocument = TestRazorSourceDocument.Create(
             """
-                @using BlazorServer_31
-                @using BlazorServer_31.Pages
-                @using BlazorServer_31.Shared
+                @using BlazorApp1
+                @using BlazorApp1.Pages
+                @using BlazorApp1.Shared
                 @using System;
                 @using Microsoft.AspNetCore.Components
                 @using Microsoft.AspNetCore.Components.Authorization
