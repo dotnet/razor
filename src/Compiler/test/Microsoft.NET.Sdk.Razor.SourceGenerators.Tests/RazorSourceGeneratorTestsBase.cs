@@ -18,8 +18,10 @@ using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -43,9 +45,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 [Collection(nameof(RazorSourceGenerator))]
 public abstract class RazorSourceGeneratorTestsBase
 {
-    protected static async ValueTask<GeneratorDriver> GetDriverAsync(Project project)
+    protected static async ValueTask<GeneratorDriver> GetDriverAsync(Project project, Action<TestAnalyzerConfigOptionsProvider>? configureGlobalOptions = null)
     {
-        var (driver, _) = await GetDriverWithAdditionalTextAsync(project);
+        var (driver, _) = await GetDriverWithAdditionalTextAsync(project, configureGlobalOptions);
         return driver;
     }
 
@@ -134,12 +136,27 @@ public abstract class RazorSourceGeneratorTestsBase
 
         // Create ViewContext.
         var appBuilder = WebApplication.CreateBuilder();
-        appBuilder.Services.AddMvc().AddApplicationPart(assembly);
+        appBuilder.Services.AddMvc().ConfigureApplicationPartManager(manager =>
+        {
+            var partFactory = new ConsolidatedAssemblyApplicationPartFactory();
+            foreach (var applicationPart in partFactory.GetApplicationParts(assembly))
+            {
+                manager.ApplicationParts.Add(applicationPart);
+            }
+        });
         var app = appBuilder.Build();
         var httpContext = new DefaultHttpContext
         {
             RequestServices = app.Services
         };
+        var requestFeature = new HttpRequestFeature
+        {
+            Method = HttpMethods.Get,
+            Protocol = HttpProtocol.Http2,
+            Scheme = "http"
+        };
+        requestFeature.Headers.Host = "localhost";
+        httpContext.Features.Set<IHttpRequestFeature>(requestFeature);
         var actionContext = new ActionContext(
             httpContext,
             new AspNetCore.Routing.RouteData(),
@@ -158,7 +175,10 @@ public abstract class RazorSourceGeneratorTestsBase
         page.HtmlEncoder = HtmlEncoder.Default;
 
         // Render the page.
-        await page.ExecuteAsync();
+        var view = ActivatorUtilities.CreateInstance<RazorView>(app.Services,
+             /* IReadOnlyList<IRazorPage> viewStartPages */ Array.Empty<IRazorPage>(),
+             /* IRazorPage razorPage */ page);
+        await view.RenderAsync(viewContext);
 
         assemblyLoadContext.Unload();
 

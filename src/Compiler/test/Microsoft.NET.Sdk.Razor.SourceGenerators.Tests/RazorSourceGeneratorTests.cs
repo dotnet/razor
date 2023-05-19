@@ -61,19 +61,40 @@ namespace MyApp.Pages
             Assert.Single(result.GeneratedSources);
         }
 
-        internal class InMemoryAdditionalText : AdditionalText
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/8610")]
+        public async Task SourceGenerator_RazorFiles_UsingAlias_NestedClass()
         {
-            private readonly SourceText _content;
-
-            public InMemoryAdditionalText(string path, string content)
+            // Arrange
+            var project = CreateTestProject(new()
             {
-                Path = path;
-                _content = SourceText.From(content, Encoding.UTF8);
-            }
+                ["Pages/Index.razor"] = """
+                    @code {
+                        public class MyModel { }
+                    }
+                    """,
+                ["Shared/MyComponent.razor"] = """
+                    @using MyAlias = Pages.Index.MyModel;
 
-            public override string Path { get; }
+                    <MyComponent Data="@Data" />
 
-            public override SourceText GetText(CancellationToken cancellationToken = default) => _content;
+                    @code {
+                        [Parameter]
+                        public MyAlias? Data { get; set; }
+                    }
+                    """,
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project, options =>
+            {
+                options.TestGlobalOptions["build_property.RazorLangVersion"] = "7.0";
+            });
+
+            // Act
+            var result = RunGenerator(compilation!, ref driver);
+
+            // Assert
+            Assert.Empty(result.Diagnostics);
+            Assert.Equal(2, result.GeneratedSources.Length);
         }
 
         [Fact]
