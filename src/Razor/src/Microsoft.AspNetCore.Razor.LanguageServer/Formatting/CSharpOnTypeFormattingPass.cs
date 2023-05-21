@@ -168,7 +168,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         //
         // We'll happy format lines 1 and 2, and ignore the closing brace altogether. So, by looking one line further
         // we won't have that problem.
-        if (rangeAfterFormatting.End.Line + lineDelta < cleanedText.Lines.Count)
+        if (rangeAfterFormatting.End.Line + lineDelta < cleanedText.Lines.Count - 1)
         {
             lineDelta++;
         }
