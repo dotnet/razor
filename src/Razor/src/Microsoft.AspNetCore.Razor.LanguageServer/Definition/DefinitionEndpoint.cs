@@ -47,7 +47,7 @@ internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextD
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
-    protected override bool TreatAnyAttributePositionAsAttributeName => true;
+    protected override IProjectionStrategy ProjectionStrategy => PreferAttributeNameProjectionStrategy.Instance;
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName;
 

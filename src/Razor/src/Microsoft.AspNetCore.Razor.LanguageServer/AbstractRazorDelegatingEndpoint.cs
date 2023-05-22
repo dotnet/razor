@@ -37,6 +37,11 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
         Logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    /// <summary>
+    /// The strategy to use to project the incoming caret position onto the generated C#/Html document
+    /// </summary>
+    protected virtual IProjectionStrategy ProjectionStrategy { get; } = DefaultProjectionStrategy.Instance;
+
     protected bool SingleServerSupport => _languageServerFeatureOptions.SingleServerSupport;
 
     protected virtual bool OnlySingleServer { get; } = true;
@@ -46,17 +51,6 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
     /// for component attributes that are fully within a Html context, but map to a C# property write in the generated document.
     /// </summary>
     protected virtual bool PreferCSharpOverHtmlIfPossible { get; } = false;
-
-    /// <summary>
-    /// When <see langword="true"/>, we'll adjust the position of the caret to the name portion of an attribute if it is in the
-    /// attribute, but not the name. eg. if we get @bi$$nd-Value we'll act as though we got @bind-$$Value
-    /// </summary>
-    protected virtual bool TreatAnyAttributePositionAsAttributeName { get; } = false;
-
-    /// <summary>
-    /// If <see cref="TreatAnyAttributePositionAsAttributeName "/> is <see langword="true"/>, returns the range of the full attribute
-    /// </summary>
-    protected Range? OriginalAttributeRange { get; private set; }
 
     /// <summary>
     /// The name of the endpoint to delegate to, from <see cref="RazorLanguageServerCustomMessageTargets"/>. This is the
@@ -117,28 +111,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
             return default;
         }
 
-        var position = request.Position;
-        if (TreatAnyAttributePositionAsAttributeName)
-        {
-            var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-            if (request.Position.TryGetAbsoluteIndex(sourceText, Logger, out var absoluteIndex))
-            {
-                // First, lets see if we should adjust the location to get a better result from C#. For example given <Component @bi|nd-Value="Pants" />
-                // where | is the cursor, we would be unable to map that location to C#. If we pretend the caret was 3 characters to the right though,
-                // in the actual component property name, then the C# server would give us a result, so we fake it.
-                if (RazorSyntaxFacts.TryGetAttributeNameAbsoluteIndex(codeDocument, absoluteIndex, out var attributeNameIndex, out var attributeSpan))
-                {
-                    sourceText.GetLineAndOffset(attributeNameIndex, out var line, out var offset);
-
-                    OriginalAttributeRange = attributeSpan.AsRange(sourceText);
-
-                    position = new Position(line, offset);
-                }
-            }
-        }
-
-        var projection = await _documentMappingService.TryGetProjectionAsync(documentContext, position, requestContext.Logger, cancellationToken).ConfigureAwait(false);
+        var projection = await ProjectionStrategy.TryGetProjectionAsync(_documentMappingService, documentContext, request.Position, requestContext.Logger, cancellationToken).ConfigureAwait(false);
         if (projection is null)
         {
             return default;

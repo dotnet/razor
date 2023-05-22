@@ -36,7 +36,7 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
-    protected override bool TreatAnyAttributePositionAsAttributeName => true;
+    protected override IProjectionStrategy ProjectionStrategy => PreferAttributeNameProjectionStrategy.Instance;
 
     public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
     {

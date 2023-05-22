@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -49,7 +50,7 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
-    protected override bool TreatAnyAttributePositionAsAttributeName => true;
+    protected override IProjectionStrategy ProjectionStrategy => PreferAttributeNameProjectionStrategy.Instance;
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
@@ -98,9 +99,10 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
         // If we don't include the originally requested position in our response, the client may not show it, so we extend the range to ensure it is in there.
         // eg for hovering at @bind-Value:af$$ter, we want to show people the hover for the Value property, so Roslyn will return to us the range for just the
         // portion of the attribute that says "Value".
-        if (OriginalAttributeRange is not null)
+        if (RazorSyntaxFacts.TryGetFullAttributeNameSpan(codeDocument, projection.AbsoluteIndex, out var originalAttributeRange))
         {
-            response.Range = OriginalAttributeRange;
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+            response.Range = originalAttributeRange.AsRange(sourceText);
         }
         else if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), response.Range, out var projectedRange))
         {

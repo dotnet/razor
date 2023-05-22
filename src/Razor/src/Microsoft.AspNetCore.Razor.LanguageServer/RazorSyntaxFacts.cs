@@ -15,10 +15,9 @@ internal static class RazorSyntaxFacts
     /// attribute that represents the attribute name. eg. for @bi$$nd-Value it will find the absolute index
     /// of "Value"
     /// </summary>
-    public static bool TryGetAttributeNameAbsoluteIndex(RazorCodeDocument codeDocument, int absoluteIndex, out int attributeNameAbsoluteIndex, out TextSpan fullAttributeNameSpan)
+    public static bool TryGetAttributeNameAbsoluteIndex(RazorCodeDocument codeDocument, int absoluteIndex, out int attributeNameAbsoluteIndex)
     {
         attributeNameAbsoluteIndex = 0;
-        fullAttributeNameSpan = default;
 
         var tree = codeDocument.GetSyntaxTree();
         var owner = tree.GetOwner(absoluteIndex);
@@ -40,12 +39,10 @@ internal static class RazorSyntaxFacts
         // Can't get to this point if owner was null, but the compiler doesn't know that
         Assumes.NotNull(owner);
 
-        fullAttributeNameSpan = GetFullAttributeNameSpan(owner.Parent);
-
         // The GetOwner method can be surprising, eg. Foo="$$Bar" will return the starting quote of the attribute value,
         // but its parent is the attribute name. Easy enough to filter that sort of thing out by just requiring
         // the caret position to be somewhere within the attribute name.
-        if (!fullAttributeNameSpan.Contains(absoluteIndex))
+        if (!GetFullAttributeNameSpan(owner.Parent).Contains(absoluteIndex))
         {
             return false;
         }
@@ -68,7 +65,17 @@ internal static class RazorSyntaxFacts
         return false;
     }
 
-    private static TextSpan GetFullAttributeNameSpan(SyntaxNode node)
+    public static bool TryGetFullAttributeNameSpan(RazorCodeDocument codeDocument, int absoluteIndex, out TextSpan attributeNameSpan)
+    {
+        var tree = codeDocument.GetSyntaxTree();
+        var owner = tree.GetOwner(absoluteIndex);
+
+        attributeNameSpan = GetFullAttributeNameSpan(owner?.Parent);
+
+        return attributeNameSpan != default;
+    }
+
+    private static TextSpan GetFullAttributeNameSpan(SyntaxNode? node)
     {
         return node switch
         {
@@ -76,7 +83,7 @@ internal static class RazorSyntaxFacts
             MarkupMinimizedTagHelperAttributeSyntax att => att.Name.Span,
             MarkupTagHelperDirectiveAttributeSyntax att => CalculateFullSpan(att.Name, att.ParameterName, att.Transition),
             MarkupMinimizedTagHelperDirectiveAttributeSyntax att => CalculateFullSpan(att.Name, att.ParameterName, att.Transition),
-            _ => Assumed.Unreachable<TextSpan>(),
+            _ => default,
         };
 
         static TextSpan CalculateFullSpan(MarkupTextLiteralSyntax attributeName, MarkupTextLiteralSyntax? parameterName, RazorMetaCodeSyntax? transition)
