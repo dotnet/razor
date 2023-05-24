@@ -15,7 +15,7 @@ internal partial class TagHelperResolutionResultJsonConverter : ObjectJsonConver
     {
         var descriptors = reader.ReadArrayOrEmpty(nameof(TagHelperResolutionResult.Descriptors),
             static r => ObjectReaders.ReadTagHelper(r, useCache: true));
-        var diagnostics = reader.ReadArrayOrEmpty(nameof(TagHelperResolutionResult.Diagnostics), ObjectReaders.ReadDiagnostic);
+        var diagnostics = reader.ReadImmutableArrayOrEmpty(nameof(TagHelperResolutionResult.Diagnostics), ObjectReaders.ReadDiagnostic);
 
         return new(descriptors, diagnostics);
     }

@@ -183,7 +183,7 @@ internal partial class JsonDataWriter
 
     public void WriteObjectIfNotDefault<T>(string propertyName, T? value, T? defaultValue, WriteProperties<T> writeProperties)
     {
-        if (!EqualityComparer<T>.Default.Equals(value, defaultValue))
+        if (!EqualityComparer<T?>.Default.Equals(value, defaultValue))
         {
             WriteObject(propertyName, value, writeProperties);
         }

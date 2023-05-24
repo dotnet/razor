@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -15,9 +16,10 @@ internal static partial class ObjectReaders
             (nameof(CSharpLanguageVersion), ReadCSharpLanguageVersion));
 
         private static void ReadTagHelpers(JsonDataReader reader, ref ProjectWorkspaceStateData data)
-            => data.TagHelpers = reader.ReadArrayOrEmpty(
+            => data.TagHelpers = reader.ReadArray(
                 static r => r.ReadNonNullObject(
-                    static r => ReadTagHelperFromProperties(r, useCache: true)));
+                    static r => ReadTagHelperFromProperties(r, useCache: true)))
+                ?? Array.Empty<TagHelperDescriptor>();
 
         private static void ReadCSharpLanguageVersion(JsonDataReader reader, ref ProjectWorkspaceStateData data)
             => data.CSharpLanguageVersion = (LanguageVersion)reader.ReadInt32();

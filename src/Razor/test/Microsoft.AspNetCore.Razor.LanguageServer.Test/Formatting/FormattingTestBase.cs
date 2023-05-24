@@ -343,7 +343,8 @@ public class FormattingTestBase : RazorIntegrationTestBase
         using var reader = new StreamReader(stream);
 
         return JsonDataConvert.DeserializeData(reader,
-            static r => r.ReadArrayOrEmpty(
-                static r => ObjectReaders.ReadTagHelper(r, useCache: false)));
+            static r => r.ReadArray(
+                static r => ObjectReaders.ReadTagHelper(r, useCache: false)))
+            ?? Array.Empty<TagHelperDescriptor>();
     }
 }

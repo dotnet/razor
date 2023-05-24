@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
@@ -28,8 +29,9 @@ internal static class CommonResources
         using var reader = new StreamReader(stream);
 
         return JsonDataConvert.DeserializeData(reader,
-            static r => r.ReadArrayOrEmpty(
-                static r => ObjectReaders.ReadTagHelper(r, useCache: false)));
+            static r => r.ReadArray(
+                static r => ObjectReaders.ReadTagHelper(r, useCache: false)))
+            ?? Array.Empty<TagHelperDescriptor>();
     }
 
     private static ProjectRazorJson LoadProjectRazorJson(byte[] bytes)

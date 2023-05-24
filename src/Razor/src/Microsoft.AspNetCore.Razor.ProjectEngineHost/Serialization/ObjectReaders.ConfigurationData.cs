@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
@@ -38,6 +39,7 @@ internal static partial class ObjectReaders
         }
 
         private static void ReadExtensions(JsonDataReader reader, ref ConfigurationData data)
-            => data.Extensions = reader.ReadArrayOrEmpty(static r => r.ReadNonNullObject(ReadExtensionFromProperties));
+            => data.Extensions = reader.ReadArray(static r => r.ReadNonNullObject(ReadExtensionFromProperties))
+                ?? Array.Empty<RazorExtension>();
     }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -33,16 +34,17 @@ internal static partial class ObjectReaders
             => data.FilePath = reader.ReadNonNullString();
 
         private static void ReadConfiguration(JsonDataReader reader, ref ProjectRazorJsonData data)
-            => data.Configuration = reader.ReadObject(ObjectReaders.ReadConfigurationFromProperties);
+            => data.Configuration = reader.ReadObject(ReadConfigurationFromProperties);
 
         private static void ReadRootNamespace(JsonDataReader reader, ref ProjectRazorJsonData data)
             => data.RootNamespace = reader.ReadString();
 
         private static void ReadProjectWorkspaceState(JsonDataReader reader, ref ProjectRazorJsonData data)
-            => data.ProjectWorkspaceState = reader.ReadObject(ObjectReaders.ReadProjectWorkspaceStateFromProperties);
+            => data.ProjectWorkspaceState = reader.ReadObject(ReadProjectWorkspaceStateFromProperties);
 
         private static void ReadDocuments(JsonDataReader reader, ref ProjectRazorJsonData data)
-            => data.Documents = reader.ReadArrayOrEmpty(static r => r.ReadNonNullObject(ObjectReaders.ReadDocumentSnapshotHandleFromProperties));
+            => data.Documents = reader.ReadArray(static r => r.ReadNonNullObject(ReadDocumentSnapshotHandleFromProperties))
+                ?? Array.Empty<DocumentSnapshotHandle>();
 
         private static void ReadSerializationFormat(JsonDataReader reader, ref ProjectRazorJsonData data)
             => data.SerializationFormat = reader.ReadString();

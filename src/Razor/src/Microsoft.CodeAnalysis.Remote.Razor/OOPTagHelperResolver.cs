@@ -135,7 +135,7 @@ internal class OOPTagHelperResolver : TagHelperResolver
 
         var tagHelpers = ProduceTagHelpersFromDelta(projectSnapshot.FilePath, lastResultId, result.Value);
 
-        var resolutionResult = new TagHelperResolutionResult(tagHelpers, diagnostics: Array.Empty<RazorDiagnostic>());
+        var resolutionResult = new TagHelperResolutionResult(tagHelpers, ImmutableArray<RazorDiagnostic>.Empty);
         return resolutionResult;
     }
 

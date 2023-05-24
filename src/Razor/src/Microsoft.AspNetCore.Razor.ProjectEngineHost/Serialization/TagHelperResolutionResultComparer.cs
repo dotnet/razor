@@ -42,9 +42,9 @@ internal sealed class TagHelperResolutionResultComparer : IEqualityComparer<TagH
             hash.Add(descriptor);
         }
 
-        for (var i = 0; i < obj.Diagnostics.Count; i++)
+        foreach (var diagnostic in obj.Diagnostics)
         {
-            hash.Add(obj.Diagnostics[i]);
+            hash.Add(diagnostic);
         }
 
         return hash.CombinedHash;
