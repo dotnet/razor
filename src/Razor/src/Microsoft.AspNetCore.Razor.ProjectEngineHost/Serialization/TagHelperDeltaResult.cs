@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 
-namespace Microsoft.CodeAnalysis.Remote.Razor;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 internal record TagHelperDeltaResult(
     bool Delta,

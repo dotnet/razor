@@ -129,7 +129,7 @@ internal static class ObjectWriters
             {
                 writer.Write(nameof(value.TagName), value.TagName);
                 writer.WriteIfNotNull(nameof(value.ParentTag), value.ParentTag);
-                writer.WriteIfNotDefault(nameof(value.TagStructure), (int)value.TagStructure);
+                writer.WriteIfNotZero(nameof(value.TagStructure), (int)value.TagStructure);
                 writer.WriteArrayIfNotNullOrEmpty(nameof(value.Attributes), value.Attributes, WriteRequiredAttribute);
                 writer.WriteArrayIfNotNullOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);
             });
@@ -140,9 +140,9 @@ internal static class ObjectWriters
             writer.WriteObject(value, static (writer, value) =>
             {
                 writer.Write(nameof(value.Name), value.Name);
-                writer.WriteIfNotDefault(nameof(value.NameComparison), (int)value.NameComparison);
+                writer.WriteIfNotZero(nameof(value.NameComparison), (int)value.NameComparison);
                 writer.WriteIfNotNull(nameof(value.Value), value.Value);
-                writer.WriteIfNotDefault(nameof(value.ValueComparison), (int)value.ValueComparison);
+                writer.WriteIfNotZero(nameof(value.ValueComparison), (int)value.ValueComparison);
                 writer.WriteArrayIfNotNullOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);
 
                 if (value.Metadata is { Count: > 0 })

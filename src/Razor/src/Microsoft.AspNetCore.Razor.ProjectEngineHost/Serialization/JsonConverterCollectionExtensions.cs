@@ -13,6 +13,7 @@ internal static class JsonConverterCollectionExtensions
     {
         TagHelperDescriptorJsonConverter.Instance,
         TagHelperResolutionResultJsonConverter.Instance,
+        TagHelperDeltaResultJsonConverter.Instance,
         ProjectRazorJsonJsonConverter.Instance,
     };
 

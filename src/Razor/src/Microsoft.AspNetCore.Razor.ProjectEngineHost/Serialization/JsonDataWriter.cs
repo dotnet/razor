@@ -79,7 +79,12 @@ internal partial class JsonDataWriter
         _writer.WriteValue(value);
     }
 
-    public void WriteIfNotDefault(string propertyName, int value, int defaultValue = default)
+    public void WriteIfNotZero(string propertyName, int value)
+    {
+        WriteIfNotDefault(propertyName, value, defaultValue: 0);
+    }
+
+    public void WriteIfNotDefault(string propertyName, int value, int defaultValue)
     {
         if (value != defaultValue)
         {
