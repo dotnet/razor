@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -42,7 +43,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var hostProject = new HostProject("C:/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
         projectManager.ProjectAdded(hostProject);
         var projectService = CreateProjectService(new TestProjectResolver(), projectManager);
-        var projectWorkspaceState = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.LatestMajor);
+        var projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.LatestMajor);
 
         // Act
         projectService.UpdateProject(hostProject.FilePath, hostProject.Configuration, hostProject.RootNamespace, projectWorkspaceState, _emptyDocuments);

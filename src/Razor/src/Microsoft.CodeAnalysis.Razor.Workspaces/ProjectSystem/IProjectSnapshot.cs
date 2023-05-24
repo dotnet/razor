@@ -17,7 +17,7 @@ internal interface IProjectSnapshot
     string? RootNamespace { get; }
     VersionStamp Version { get; }
     LanguageVersion CSharpLanguageVersion { get; }
-    IReadOnlyList<TagHelperDescriptor> TagHelpers { get; }
+    ImmutableArray<TagHelperDescriptor> TagHelpers { get; }
     ProjectWorkspaceState? ProjectWorkspaceState { get; }
 
     RazorProjectEngine GetProjectEngine();

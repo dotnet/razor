@@ -71,7 +71,7 @@ internal abstract class RazorServiceBase : IDisposable
 
         public LanguageVersion CSharpLanguageVersion => LanguageVersion.Default;
 
-        public IReadOnlyList<TagHelperDescriptor> TagHelpers => Array.Empty<TagHelperDescriptor>();
+        public ImmutableArray<TagHelperDescriptor> TagHelpers => ImmutableArray<TagHelperDescriptor>.Empty;
 
         public ProjectWorkspaceState? ProjectWorkspaceState => null;
 

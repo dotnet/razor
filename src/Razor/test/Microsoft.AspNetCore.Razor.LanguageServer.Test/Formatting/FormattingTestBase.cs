@@ -65,12 +65,13 @@ public class FormattingTestBase : RazorIntegrationTestBase
         int tabSize = 4,
         bool insertSpaces = true,
         string? fileKind = null,
-        IReadOnlyList<TagHelperDescriptor>? tagHelpers = null,
+        ImmutableArray<TagHelperDescriptor> tagHelpers = default,
         bool allowDiagnostics = false,
         RazorLSPOptions? razorLSPOptions = null)
     {
         // Arrange
         fileKind ??= FileKinds.Component;
+        tagHelpers = tagHelpers.NullToEmpty();
 
         TestFileMarkupParser.GetSpans(input, out input, out ImmutableArray<TextSpan> spans);
 
@@ -233,13 +234,13 @@ public class FormattingTestBase : RazorIntegrationTestBase
         return source.WithChanges(changes);
     }
 
-    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? fileKind = default, bool allowDiagnostics = false)
+    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers = default, string? fileKind = default, bool allowDiagnostics = false)
     {
         fileKind ??= FileKinds.Component;
-        tagHelpers ??= Array.Empty<TagHelperDescriptor>();
+        tagHelpers = tagHelpers.NullToEmpty();
         if (fileKind == FileKinds.Component)
         {
-            tagHelpers = tagHelpers.Concat(s_defaultComponents).ToArray();
+            tagHelpers = tagHelpers.AddRange(s_defaultComponents);
         }
 
         var sourceDocument = text.GetRazorSourceDocument(path, path);

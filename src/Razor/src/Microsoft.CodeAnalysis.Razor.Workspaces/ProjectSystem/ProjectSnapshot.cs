@@ -42,7 +42,7 @@ internal class ProjectSnapshot : IProjectSnapshot
 
     public virtual VersionStamp Version => State.Version;
 
-    public IReadOnlyList<TagHelperDescriptor> TagHelpers => State.TagHelpers;
+    public ImmutableArray<TagHelperDescriptor> TagHelpers => State.TagHelpers;
 
     public ProjectWorkspaceState? ProjectWorkspaceState => State.ProjectWorkspaceState;
 

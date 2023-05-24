@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -132,7 +133,8 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
             queue.Initialize(projectManager);
 
             // Act
-            projectManager.ProjectWorkspaceStateChanged(_hostProject1.FilePath, new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp8));
+            projectManager.ProjectWorkspaceStateChanged(_hostProject1.FilePath,
+                new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp8));
         }, DisposalToken);
 
         // Assert
@@ -158,7 +160,8 @@ public class OpenDocumentGeneratorTest : LanguageServerTestBase
             queue.Initialize(projectManager);
 
             // Act
-            projectManager.ProjectWorkspaceStateChanged(_hostProject1.FilePath, new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.CSharp8));
+            projectManager.ProjectWorkspaceStateChanged(_hostProject1.FilePath,
+                new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp8));
         }, DisposalToken);
 
         // Assert

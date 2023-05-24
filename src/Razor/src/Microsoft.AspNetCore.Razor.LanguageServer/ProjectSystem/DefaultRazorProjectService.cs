@@ -275,7 +275,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
         {
             _logger.LogInformation("Updating project '{filePath}' TagHelpers ({projectWorkspaceState.TagHelpers.Count}) and C# Language Version ({projectWorkspaceState.CSharpLanguageVersion}).",
-                filePath, projectWorkspaceState.TagHelpers.Count, projectWorkspaceState.CSharpLanguageVersion);
+                filePath, projectWorkspaceState.TagHelpers.Length, projectWorkspaceState.CSharpLanguageVersion);
         }
 
         _projectSnapshotManagerAccessor.Instance.ProjectWorkspaceStateChanged(project.FilePath, projectWorkspaceState);

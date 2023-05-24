@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +17,7 @@ internal class TestTagHelperResolver : TagHelperResolver
     {
     }
 
-    public List<TagHelperDescriptor> TagHelpers { get; set; } = new List<TagHelperDescriptor>();
+    public ImmutableArray<TagHelperDescriptor> TagHelpers { get; set; } = ImmutableArray<TagHelperDescriptor>.Empty;
 
     public override Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
     {

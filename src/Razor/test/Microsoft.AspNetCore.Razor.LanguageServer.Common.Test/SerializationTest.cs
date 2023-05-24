@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -27,11 +28,9 @@ public class SerializationTest : TestBase
             new SerializedRazorExtension("TestExtension"),
         };
         Configuration = RazorConfiguration.Create(languageVersion, "Custom", extensions);
-        ProjectWorkspaceState = new ProjectWorkspaceState(new[]
-        {
-            TagHelperDescriptorBuilder.Create("Test", "TestAssembly").Build(),
-        },
-        LanguageVersion.LatestMajor);
+        ProjectWorkspaceState = new ProjectWorkspaceState(ImmutableArray.Create(
+            TagHelperDescriptorBuilder.Create("Test", "TestAssembly").Build()),
+            csharpLanguageVersion: LanguageVersion.LatestMajor);
     }
 
     private RazorConfiguration Configuration { get; }

@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,11 +32,9 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
 
         _projectSnapshotManager = new TestProjectSnapshotManager(Workspace);
 
-        _projectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(new[]
-        {
-            TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()
-        },
-        default);
+        _projectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(ImmutableArray.Create(
+            TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()),
+            csharpLanguageVersion: default);
     }
 
     [Fact]
@@ -63,7 +62,12 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
         var project = Assert.Single(_projectSnapshotManager.Projects);
         Assert.Equal("/guest/path/project.csproj", project.FilePath);
         Assert.Same(RazorConfiguration.Default, project.Configuration);
-        Assert.Same(_projectWorkspaceStateWithTagHelpers.TagHelpers, project.TagHelpers);
+
+        Assert.Equal(_projectWorkspaceStateWithTagHelpers.TagHelpers.Length, project.TagHelpers.Length);
+        for (var i = 0; i < _projectWorkspaceStateWithTagHelpers.TagHelpers.Length; i++)
+        {
+            Assert.Same(_projectWorkspaceStateWithTagHelpers.TagHelpers[i], project.TagHelpers[i]);
+        }
     }
 
     [Fact]
@@ -89,7 +93,12 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
         var project = Assert.Single(_projectSnapshotManager.Projects);
         Assert.Equal("/guest/path/project.csproj", project.FilePath);
         Assert.Same(RazorConfiguration.Default, project.Configuration);
-        Assert.Same(_projectWorkspaceStateWithTagHelpers.TagHelpers, project.TagHelpers);
+
+        Assert.Equal(_projectWorkspaceStateWithTagHelpers.TagHelpers.Length, project.TagHelpers.Length);
+        for (var i = 0; i < _projectWorkspaceStateWithTagHelpers.TagHelpers.Length; i++)
+        {
+            Assert.Same(_projectWorkspaceStateWithTagHelpers.TagHelpers[i], project.TagHelpers[i]);
+        }
     }
 
     [Fact]
@@ -184,6 +193,11 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
         var project = Assert.Single(_projectSnapshotManager.Projects);
         Assert.Equal("/guest/path/project.csproj", project.FilePath);
         Assert.Same(RazorConfiguration.Default, project.Configuration);
-        Assert.Same(newProjectWorkspaceState.TagHelpers, project.TagHelpers);
+
+        Assert.Equal(_projectWorkspaceStateWithTagHelpers.TagHelpers.Length, project.TagHelpers.Length);
+        for (var i = 0; i < _projectWorkspaceStateWithTagHelpers.TagHelpers.Length; i++)
+        {
+            Assert.Same(_projectWorkspaceStateWithTagHelpers.TagHelpers[i], project.TagHelpers[i]);
+        }
     }
 }
