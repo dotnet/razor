@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -30,6 +31,6 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
             Project project,
             IProjectSnapshot projectSnapshot,
             CancellationToken cancellationToken = default)
-            => Task.FromResult(new TagHelperResolutionResult(_tagHelpers, Array.Empty<RazorDiagnostic>()));
+            => Task.FromResult(new TagHelperResolutionResult(_tagHelpers));
     }
 }

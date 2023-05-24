@@ -68,6 +68,6 @@ internal class CompilationTagHelperResolver
         }
 
         _telemetryReporter?.ReportEvent("taghelperresolver/gettaghelpers", Severity.Normal, timingDictionary.ToImmutableDictionary());
-        return new TagHelperResolutionResult(results, ImmutableArray<RazorDiagnostic>.Empty);
+        return new TagHelperResolutionResult(results);
     }
 }

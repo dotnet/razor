@@ -15,14 +15,12 @@ internal partial class TagHelperResolutionResultJsonConverter : ObjectJsonConver
     {
         var descriptors = reader.ReadArrayOrEmpty(nameof(TagHelperResolutionResult.Descriptors),
             static r => ObjectReaders.ReadTagHelper(r, useCache: true));
-        var diagnostics = reader.ReadImmutableArrayOrEmpty(nameof(TagHelperResolutionResult.Diagnostics), ObjectReaders.ReadDiagnostic);
 
-        return new(descriptors, diagnostics);
+        return new(descriptors);
     }
 
     protected override void WriteProperties(JsonDataWriter writer, TagHelperResolutionResult value)
     {
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.Descriptors), value.Descriptors, ObjectWriters.Write);
-        writer.WriteArrayIfNotNullOrEmpty(nameof(value.Diagnostics), value.Diagnostics, ObjectWriters.Write);
     }
 }

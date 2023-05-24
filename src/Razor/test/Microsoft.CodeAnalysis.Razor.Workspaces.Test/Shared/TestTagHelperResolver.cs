@@ -22,6 +22,6 @@ internal class TestTagHelperResolver : TagHelperResolver
 
     public override Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult(new TagHelperResolutionResult(TagHelpers.ToArray(), ImmutableArray<RazorDiagnostic>.Empty));
+        return Task.FromResult(new TagHelperResolutionResult(TagHelpers.ToArray()));
     }
 }

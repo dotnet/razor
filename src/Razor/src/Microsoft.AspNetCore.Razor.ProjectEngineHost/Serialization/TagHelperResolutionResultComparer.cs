@@ -24,8 +24,7 @@ internal sealed class TagHelperResolutionResultComparer : IEqualityComparer<TagH
             return false;
         }
 
-        return x.Descriptors.SequenceEqual(y.Descriptors, TagHelperDescriptorComparer.Default) &&
-               x.Diagnostics.SequenceEqual(y.Diagnostics);
+        return x.Descriptors.SequenceEqual(y.Descriptors, TagHelperDescriptorComparer.Default);
     }
 
     public int GetHashCode(TagHelperResolutionResult? obj)
@@ -40,11 +39,6 @@ internal sealed class TagHelperResolutionResultComparer : IEqualityComparer<TagH
         foreach (var descriptor in obj.Descriptors)
         {
             hash.Add(descriptor);
-        }
-
-        foreach (var diagnostic in obj.Diagnostics)
-        {
-            hash.Add(diagnostic);
         }
 
         return hash.CombinedHash;
