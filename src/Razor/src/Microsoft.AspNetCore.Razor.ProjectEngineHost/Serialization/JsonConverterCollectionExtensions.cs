@@ -2,20 +2,20 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 internal static class JsonConverterCollectionExtensions
 {
-    private static readonly List<JsonConverter> s_projectSerializerConverters = new List<JsonConverter>(4)
-    {
-        TagHelperDescriptorJsonConverter.Instance,
-        TagHelperResolutionResultJsonConverter.Instance,
-        TagHelperDeltaResultJsonConverter.Instance,
-        ProjectRazorJsonJsonConverter.Instance,
-    };
+    private static readonly ImmutableArray<JsonConverter> s_converters = ImmutableArray.CreateRange(
+        new JsonConverter[]
+        {
+            TagHelperResolutionResultJsonConverter.Instance,
+            TagHelperDeltaResultJsonConverter.Instance,
+            ProjectRazorJsonJsonConverter.Instance
+        });
 
     public static void RegisterProjectSerializerConverters(this JsonConverterCollection collection)
     {
@@ -24,7 +24,7 @@ internal static class JsonConverterCollectionExtensions
             throw new ArgumentNullException(nameof(collection));
         }
 
-        foreach (var converter in s_projectSerializerConverters)
+        foreach (var converter in s_converters)
         {
             collection.Add(converter);
         }
