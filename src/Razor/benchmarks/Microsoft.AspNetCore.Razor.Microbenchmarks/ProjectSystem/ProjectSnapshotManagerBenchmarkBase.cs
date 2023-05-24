@@ -63,19 +63,8 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
 
         Documents = documents.ToImmutable();
 
-        TagHelperResolver = new StaticTagHelperResolver(GetTagHelperDescriptors(), NoOpTelemetryReporter.Instance);
-    }
-
-    internal IReadOnlyList<TagHelperDescriptor> GetTagHelperDescriptors()
-    {
-        var tagHelperBuffer = Resources.GetResourceBytes("taghelpers.json");
-
-        var serializer = new JsonSerializer();
-        serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
-        using var stream = new MemoryStream(tagHelperBuffer);
-        using var reader = new JsonTextReader(new StreamReader(stream));
-
-        return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader) ?? Array.Empty<TagHelperDescriptor>();
+        var tagHelpers = CommonResources.LegacyTagHelpers;
+        TagHelperResolver = new StaticTagHelperResolver(tagHelpers, NoOpTelemetryReporter.Instance);
     }
 
     internal DefaultProjectSnapshotManager CreateProjectSnapshotManager()

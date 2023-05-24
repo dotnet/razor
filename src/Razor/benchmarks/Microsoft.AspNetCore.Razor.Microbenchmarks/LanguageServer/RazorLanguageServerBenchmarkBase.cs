@@ -59,7 +59,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
 
         var projectSnapshotManager = CreateProjectSnapshotManager();
         projectSnapshotManager.ProjectAdded(hostProject);
-        var tagHelpers = GetTagHelperDescriptors();
+        var tagHelpers = CommonResources.LegacyTagHelpers;
         var projectWorkspaceState = new ProjectWorkspaceState(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.CSharp11);
         projectSnapshotManager.ProjectWorkspaceStateChanged(projectFilePath, projectWorkspaceState);
         projectSnapshotManager.DocumentAdded(hostProject, hostDocument, textLoader);
