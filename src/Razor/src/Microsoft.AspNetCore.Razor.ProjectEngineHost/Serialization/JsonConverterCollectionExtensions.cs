@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Newtonsoft.Json;
 
@@ -12,12 +13,13 @@ internal static class JsonConverterCollectionExtensions
     private static readonly ImmutableArray<JsonConverter> s_converters = ImmutableArray.CreateRange(
         new JsonConverter[]
         {
-            TagHelperResolutionResultJsonConverter.Instance,
+            ProjectRazorJsonJsonConverter.Instance,
+            ProjectSnapshotHandleJsonConverter.Instance,
             TagHelperDeltaResultJsonConverter.Instance,
-            ProjectRazorJsonJsonConverter.Instance
+            TagHelperResolutionResultJsonConverter.Instance,
         });
 
-    public static void RegisterProjectSerializerConverters(this JsonConverterCollection collection)
+    public static void RegisterRazorConverters(this ICollection<JsonConverter> collection)
     {
         if (collection is null)
         {

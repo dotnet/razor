@@ -30,7 +30,7 @@ internal static class RazorProjectJsonSerializer
             Formatting = Formatting.Indented
         };
 
-        s_serializer.Converters.RegisterProjectSerializerConverters();
+        s_serializer.Converters.RegisterRazorConverters();
 
         s_fallbackProjectEngineFactory = new EmptyProjectEngineFactory();
         s_stringComparison = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)

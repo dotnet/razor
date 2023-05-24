@@ -28,6 +28,6 @@ internal static class JsonConverterCollectionExtensions
             collection.Add(s_razorConverters[i]);
         }
 
-        collection.RegisterProjectSerializerConverters();
+        ProjectEngineHost.Serialization.JsonConverterCollectionExtensions.RegisterRazorConverters(collection);
     }
 }
