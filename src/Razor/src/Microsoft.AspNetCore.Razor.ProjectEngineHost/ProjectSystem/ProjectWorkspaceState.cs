@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
 public sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
 {
@@ -20,7 +20,7 @@ public sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
     public ProjectWorkspaceState(
         IReadOnlyCollection<TagHelperDescriptor> tagHelpers,
         LanguageVersion csharpLanguageVersion)
-        : this((tagHelpers as IReadOnlyList<TagHelperDescriptor>) ?? tagHelpers.ToList(), csharpLanguageVersion)
+        : this(tagHelpers as IReadOnlyList<TagHelperDescriptor> ?? tagHelpers.ToList(), csharpLanguageVersion)
     {
     }
 

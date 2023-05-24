@@ -3,12 +3,19 @@
 
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Serialization;
 
-namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
 internal sealed class ProjectRazorJson
 {
+    public string SerializedFilePath { get; }
+    public string FilePath { get; }
+    public RazorConfiguration? Configuration { get; }
+    public string? RootNamespace { get; }
+    public ProjectWorkspaceState? ProjectWorkspaceState { get; }
+    public IReadOnlyList<DocumentSnapshotHandle> Documents { get; }
+
     public ProjectRazorJson(
         string serializedFilePath,
         string filePath,
@@ -24,16 +31,4 @@ internal sealed class ProjectRazorJson
         ProjectWorkspaceState = projectWorkspaceState;
         Documents = documents;
     }
-
-    public string SerializedFilePath { get; }
-
-    public string FilePath { get; }
-
-    public RazorConfiguration? Configuration { get; }
-
-    public string? RootNamespace { get; }
-
-    public ProjectWorkspaceState? ProjectWorkspaceState { get; }
-
-    public IReadOnlyList<DocumentSnapshotHandle> Documents { get; }
 }

@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -39,8 +39,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 [Collection("FormattingTestSerialRuns")]
 public class FormattingTestBase : RazorIntegrationTestBase
 {
-    private static readonly AsyncLocal<string> s_fileName = new AsyncLocal<string>();
-    private static readonly IReadOnlyList<TagHelperDescriptor> s_defaultComponents = GetDefaultRuntimeComponents();
+    private static readonly AsyncLocal<string> s_fileName = new();
+    private static readonly ImmutableArray<TagHelperDescriptor> s_defaultComponents = GetDefaultRuntimeComponents();
 
     public FormattingTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -335,7 +335,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         return null;
     }
 
-    private static IReadOnlyList<TagHelperDescriptor> GetDefaultRuntimeComponents()
+    private static ImmutableArray<TagHelperDescriptor> GetDefaultRuntimeComponents()
     {
         var bytes = TestResources.GetResourceBytes(TestResources.BlazorServerAppTagHelpersJson);
 
@@ -343,8 +343,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         using var reader = new StreamReader(stream);
 
         return JsonDataConvert.DeserializeData(reader,
-            static r => r.ReadArray(
-                static r => ObjectReaders.ReadTagHelper(r, useCache: false)))
-            ?? Array.Empty<TagHelperDescriptor>();
+            static r => r.ReadImmutableArray(
+                static r => ObjectReaders.ReadTagHelper(r, useCache: false)));
     }
 }

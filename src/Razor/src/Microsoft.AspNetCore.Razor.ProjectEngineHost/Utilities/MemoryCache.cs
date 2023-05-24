@@ -6,8 +6,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.AspNetCore.Razor;
 
-namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+namespace Microsoft.AspNetCore.Razor.Utilities;
 
 // We've created our own MemoryCache here, ideally we would use the one in Microsoft.Extensions.Caching.Memory,
 // but until we update O# that causes an Assembly load problem.

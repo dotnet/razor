@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+using Microsoft.AspNetCore.Razor.Serialization.Converters;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Newtonsoft.Json;
 

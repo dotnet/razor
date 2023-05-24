@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+namespace Microsoft.AspNetCore.Razor.Serialization;
 
 internal delegate void WriteProperties<T>(JsonDataWriter writer, T value);
 internal delegate void WriteValue<T>(JsonDataWriter writer, T value);

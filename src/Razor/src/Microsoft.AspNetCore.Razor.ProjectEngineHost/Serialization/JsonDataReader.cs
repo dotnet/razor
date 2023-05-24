@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+namespace Microsoft.AspNetCore.Razor.Serialization;
 
 internal delegate void ReadPropertyValue<TData>(JsonDataReader reader, ref TData data);
 internal delegate T ReadValue<T>(JsonDataReader reader);
