@@ -317,7 +317,7 @@ internal partial class JsonDataReader
     {
         ReadPropertyName(propertyName);
 
-        return readProperties(this);
+        return ReadNonNullObject(readProperties);
     }
 
     public TData ReadObjectData<TData>(PropertyMap<TData> propertyMap)

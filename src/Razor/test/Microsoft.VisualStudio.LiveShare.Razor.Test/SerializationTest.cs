@@ -34,11 +34,11 @@ public class SerializationTest : TestBase
         var expectedRootNamespace = "project";
         var handle = new ProjectSnapshotHandleProxy(new Uri("vsls://some/path/project.csproj"), RazorConfiguration.Default, expectedRootNamespace, projectWorkspaceState);
 
-        var serializedHandle = JsonConvert.SerializeObject(handle, ProjectSnapshotHandleProxyJsonConverter.Instance);
-        Assert.NotNull(serializedHandle);
+        var json = JsonConvert.SerializeObject(handle, ProjectSnapshotHandleProxyJsonConverter.Instance);
+        Assert.NotNull(json);
 
         // Act
-        var deserializedHandle = JsonConvert.DeserializeObject<ProjectSnapshotHandleProxy>(serializedHandle, ProjectSnapshotHandleProxyJsonConverter.Instance);
+        var deserializedHandle = JsonConvert.DeserializeObject<ProjectSnapshotHandleProxy>(json, ProjectSnapshotHandleProxyJsonConverter.Instance);
         Assert.NotNull(deserializedHandle);
 
         // Assert

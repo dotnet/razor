@@ -1,21 +1,21 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
 
 internal record TagHelperDeltaResult(
     bool Delta,
     int ResultId,
-    IReadOnlyCollection<TagHelperDescriptor> Added,
-    IReadOnlyCollection<TagHelperDescriptor> Removed)
+    ImmutableArray<TagHelperDescriptor> Added,
+    ImmutableArray<TagHelperDescriptor> Removed)
 {
-    public IReadOnlyCollection<TagHelperDescriptor> Apply(IReadOnlyCollection<TagHelperDescriptor> baseTagHelpers)
+    public ImmutableArray<TagHelperDescriptor> Apply(ImmutableArray<TagHelperDescriptor> baseTagHelpers)
     {
-        if (Added.Count == 0 && Removed.Count == 0)
+        if (Added.Length == 0 && Removed.Length == 0)
         {
             return baseTagHelpers;
         }
@@ -25,7 +25,8 @@ internal record TagHelperDeltaResult(
         //
         // 1. This TagHelperDeltaResult.Apply where we don't iterate / Contains check the "base" collection.
         // 2. The rest of the Razor project system. Everything there is always indexed / iterated as a list.
-        var newTagHelpers = new List<TagHelperDescriptor>(baseTagHelpers.Count + Added.Count - Removed.Count);
+        using var _ = ArrayBuilderPool<TagHelperDescriptor>.GetPooledObject(out var newTagHelpers);
+        newTagHelpers.SetCapacityIfNeeded(baseTagHelpers.Length + Added.Length - Removed.Length);
         newTagHelpers.AddRange(Added);
 
         foreach (var existingTagHelper in baseTagHelpers)
@@ -36,6 +37,6 @@ internal record TagHelperDeltaResult(
             }
         }
 
-        return newTagHelpers;
+        return newTagHelpers.ToImmutable();
     }
 }

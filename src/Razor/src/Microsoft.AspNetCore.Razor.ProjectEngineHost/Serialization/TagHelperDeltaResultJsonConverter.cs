@@ -15,9 +15,9 @@ internal partial class TagHelperDeltaResultJsonConverter : ObjectJsonConverter<T
     {
         var delta = reader.ReadBooleanOrTrue(nameof(TagHelperDeltaResult.Delta));
         var resultId = reader.ReadInt32OrZero(nameof(TagHelperDeltaResult.ResultId));
-        var added = reader.ReadArrayOrEmpty(nameof(TagHelperDeltaResult.Added),
+        var added = reader.ReadImmutableArrayOrEmpty(nameof(TagHelperDeltaResult.Added),
             static r => ObjectReaders.ReadTagHelper(r, useCache: true));
-        var removed = reader.ReadArrayOrEmpty(nameof(TagHelperDeltaResult.Removed),
+        var removed = reader.ReadImmutableArrayOrEmpty(nameof(TagHelperDeltaResult.Removed),
             static r => ObjectReaders.ReadTagHelper(r, useCache: true));
 
         return new(delta, resultId, added, removed);

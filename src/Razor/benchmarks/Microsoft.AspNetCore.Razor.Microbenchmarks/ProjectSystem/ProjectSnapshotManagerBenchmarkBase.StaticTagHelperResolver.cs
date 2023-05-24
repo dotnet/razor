@@ -19,9 +19,9 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
 {
     private class StaticTagHelperResolver : TagHelperResolver
     {
-        private readonly IReadOnlyList<TagHelperDescriptor> _tagHelpers;
+        private readonly ImmutableArray<TagHelperDescriptor> _tagHelpers;
 
-        public StaticTagHelperResolver(IReadOnlyList<TagHelperDescriptor> tagHelpers, ITelemetryReporter telemetryReporter)
+        public StaticTagHelperResolver(ImmutableArray<TagHelperDescriptor> tagHelpers, ITelemetryReporter telemetryReporter)
             : base(telemetryReporter)
         {
             _tagHelpers = tagHelpers;
