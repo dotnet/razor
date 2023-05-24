@@ -54,7 +54,7 @@ internal partial class JsonDataWriter
 
     public void WriteIfNotTrue(string propertyName, bool value)
     {
-        if (value)
+        if (!value)
         {
             Write(propertyName, value);
         }
@@ -62,7 +62,7 @@ internal partial class JsonDataWriter
 
     public void WriteIfNotFalse(string propertyName, bool value)
     {
-        if (!value)
+        if (value)
         {
             Write(propertyName, value);
         }

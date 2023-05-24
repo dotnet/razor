@@ -170,8 +170,8 @@ internal static class ObjectWriters
                 writer.Write(nameof(value.Kind), value.Kind);
                 writer.Write(nameof(value.Name), value.Name);
                 writer.Write(nameof(value.TypeName), value.TypeName);
-                writer.WriteIfNotTrue(nameof(value.IsEnum), value.IsEnum);
-                writer.WriteIfNotTrue(nameof(value.IsEditorRequired), value.IsEditorRequired);
+                writer.WriteIfNotFalse(nameof(value.IsEnum), value.IsEnum);
+                writer.WriteIfNotFalse(nameof(value.IsEditorRequired), value.IsEditorRequired);
                 writer.WriteIfNotNull(nameof(value.IndexerNamePrefix), value.IndexerNamePrefix);
                 writer.WriteIfNotNull(nameof(value.IndexerTypeName), value.IndexerTypeName);
                 WriteDocumentationObject(writer, nameof(value.Documentation), value.DocumentationObject);
@@ -187,7 +187,7 @@ internal static class ObjectWriters
             {
                 writer.Write(nameof(value.Name), value.Name);
                 writer.Write(nameof(value.TypeName), value.TypeName);
-                writer.WriteIfNotTrue(nameof(value.IsEnum), value.IsEnum);
+                writer.WriteIfNotFalse(nameof(value.IsEnum), value.IsEnum);
                 WriteDocumentationObject(writer, nameof(value.Documentation), value.DocumentationObject);
                 writer.WriteArrayIfNotNullOrEmpty(nameof(value.Diagnostics), value.Diagnostics, Write);
                 writer.WriteObject(nameof(value.Metadata), value.Metadata, WriteMetadata);
