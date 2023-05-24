@@ -295,6 +295,14 @@ internal partial class JsonDataReader
         return ReadObject(readProperties);
     }
 
+    [return: MaybeNull]
+    public T ReadObjectOrDefault<T>(string propertyName, ReadProperties<T> readProperties, T defaultValue)
+        => TryReadPropertyName(propertyName) ? ReadObject(readProperties) : defaultValue;
+
+    public T? ReadObjectOrNull<T>(string propertyName, ReadProperties<T> readProperties)
+        where T : class
+        => ReadObjectOrDefault(propertyName, readProperties, defaultValue: null);
+
     public T ReadNonNullObject<T>(ReadProperties<T> readProperties)
     {
         _reader.ReadToken(JsonToken.StartObject);

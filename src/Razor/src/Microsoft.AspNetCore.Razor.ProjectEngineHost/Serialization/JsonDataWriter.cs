@@ -181,6 +181,22 @@ internal partial class JsonDataWriter
         _writer.WriteEndObject();
     }
 
+    public void WriteObjectIfNotDefault<T>(string propertyName, T? value, T? defaultValue, WriteProperties<T> writeProperties)
+    {
+        if (!EqualityComparer<T>.Default.Equals(value, defaultValue))
+        {
+            WriteObject(propertyName, value, writeProperties);
+        }
+    }
+
+    public void WriteObjectIfNotNull<T>(string propertyName, T? value, WriteProperties<T> writeProperties)
+    {
+        if (value is not null)
+        {
+            WriteObject(propertyName, value, writeProperties);
+        }
+    }
+
     public void WriteArray<T>(IEnumerable<T>? elements, WriteValue<T> writeElement)
     {
         if (writeElement is null)

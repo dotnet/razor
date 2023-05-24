@@ -9,18 +9,13 @@ internal partial class ProjectSnapshotHandleJsonConverter : ObjectJsonConverter<
 {
     public static readonly ProjectSnapshotHandleJsonConverter Instance = new();
 
-    protected override ProjectSnapshotHandle ReadFromProperties(JsonDataReader reader)
+    private ProjectSnapshotHandleJsonConverter()
     {
-        Data data = default;
-        reader.ReadProperties(ref data, Data.PropertyMap);
-
-        return new(data.FilePath, data.Configuration, data.RootNamespace);
     }
+
+    protected override ProjectSnapshotHandle ReadFromProperties(JsonDataReader reader)
+        => ObjectReaders.ReadProjectSnapshotHandleFromProperties(reader);
 
     protected override void WriteProperties(JsonDataWriter writer, ProjectSnapshotHandle value)
-    {
-        writer.Write(nameof(value.FilePath), value.FilePath);
-        writer.WriteObject(nameof(value.Configuration), value.Configuration, ObjectWriters.WriteProperties);
-        writer.Write(nameof(value.RootNamespace), value.RootNamespace);
-    }
+        => ObjectWriters.WriteProperties(writer, value);
 }

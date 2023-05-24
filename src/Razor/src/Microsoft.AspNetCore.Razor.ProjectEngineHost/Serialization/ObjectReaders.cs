@@ -63,6 +63,15 @@ internal static partial class ObjectReaders
         }
     }
 
+    public static ProjectSnapshotHandle ReadProjectSnapshotHandleFromProperties(JsonDataReader reader)
+    {
+        var filePath = reader.ReadNonNullString(nameof(ProjectSnapshotHandle.FilePath));
+        var configuration = reader.ReadObjectOrNull(nameof(ProjectSnapshotHandle.Configuration), ReadConfigurationFromProperties);
+        var rootNamespace = reader.ReadStringOrNull(nameof(ProjectSnapshotHandle.RootNamespace));
+
+        return new(filePath, configuration, rootNamespace);
+    }
+
     public static DocumentSnapshotHandle ReadDocumentSnapshotHandleFromProperties(JsonDataReader reader)
     {
         DocumentSnapshotHandleData data = default;

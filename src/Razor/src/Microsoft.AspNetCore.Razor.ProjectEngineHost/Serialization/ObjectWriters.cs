@@ -56,6 +56,16 @@ internal static class ObjectWriters
         });
     }
 
+    public static void Write(JsonDataWriter writer, ProjectSnapshotHandle? value)
+        => writer.WriteObject(value, WriteProperties);
+
+    public static void WriteProperties(JsonDataWriter writer, ProjectSnapshotHandle value)
+    {
+        writer.Write(nameof(value.FilePath), value.FilePath);
+        writer.WriteObjectIfNotNull(nameof(value.Configuration), value.Configuration, WriteProperties);
+        writer.WriteIfNotNull(nameof(value.RootNamespace), value.RootNamespace);
+    }
+
     public static void Write(JsonDataWriter writer, DocumentSnapshotHandle? value)
         => writer.WriteObject(value, WriteProperties);
 
