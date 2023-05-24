@@ -7,7 +7,7 @@ internal partial class TagHelperDeltaResultJsonConverter : ObjectJsonConverter<T
 {
     public static readonly TagHelperDeltaResultJsonConverter Instance = new();
 
-    public TagHelperDeltaResultJsonConverter()
+    private TagHelperDeltaResultJsonConverter()
     {
     }
 

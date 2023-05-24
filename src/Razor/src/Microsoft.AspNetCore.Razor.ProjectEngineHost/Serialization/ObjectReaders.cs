@@ -48,6 +48,9 @@ internal static partial class ObjectReaders
         return RazorConfiguration.Create(data.LanguageVersion, data.ConfigurationName, data.Extensions);
     }
 
+    public static RazorDiagnostic ReadDiagnostic(JsonDataReader reader)
+        => reader.ReadNonNullObject(ReadDiagnosticFromProperties);
+
     public static RazorDiagnostic ReadDiagnosticFromProperties(JsonDataReader reader)
     {
         DiagnosticData data = default;
