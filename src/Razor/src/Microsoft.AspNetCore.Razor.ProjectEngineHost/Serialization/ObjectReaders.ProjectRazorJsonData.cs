@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 
@@ -15,7 +15,7 @@ internal static partial class ObjectReaders
         RazorConfiguration? Configuration,
         string? RootNamespace,
         ProjectWorkspaceState? ProjectWorkspaceState,
-        DocumentSnapshotHandle[] Documents,
+        ImmutableArray<DocumentSnapshotHandle> Documents,
         string? SerializationFormat)
     {
         public static readonly PropertyMap<ProjectRazorJsonData> PropertyMap = new(
@@ -43,8 +43,7 @@ internal static partial class ObjectReaders
             => data.ProjectWorkspaceState = reader.ReadObject(ReadProjectWorkspaceStateFromProperties);
 
         private static void ReadDocuments(JsonDataReader reader, ref ProjectRazorJsonData data)
-            => data.Documents = reader.ReadArray(static r => r.ReadNonNullObject(ReadDocumentSnapshotHandleFromProperties))
-                ?? Array.Empty<DocumentSnapshotHandle>();
+            => data.Documents = reader.ReadImmutableArray(static r => r.ReadNonNullObject(ReadDocumentSnapshotHandleFromProperties));
 
         private static void ReadSerializationFormat(JsonDataReader reader, ref ProjectRazorJsonData data)
             => data.SerializationFormat = reader.ReadString();

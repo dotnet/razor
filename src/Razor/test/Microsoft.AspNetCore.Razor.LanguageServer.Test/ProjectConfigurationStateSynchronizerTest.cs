@@ -55,7 +55,7 @@ public class ProjectConfigurationStateSynchronizerTest : LanguageServerTestBase
             RazorConfiguration.Default,
             rootNamespace: "TestRootNamespace",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp5),
-            Array.Empty<DocumentSnapshotHandle>());
+            ImmutableArray<DocumentSnapshotHandle>.Empty);
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
         projectService.Setup(service => service.AddProject(projectRazorJson.FilePath, projectRazorJson.RootNamespace)).Verifiable();
         projectService.Setup(service => service.UpdateProject(
@@ -69,7 +69,7 @@ public class ProjectConfigurationStateSynchronizerTest : LanguageServerTestBase
              null,
              null,
              ProjectWorkspaceState.Default,
-             Array.Empty<DocumentSnapshotHandle>())).Verifiable();
+             ImmutableArray<DocumentSnapshotHandle>.Empty)).Verifiable();
         var synchronizer = GetSynchronizer(projectService.Object);
         var jsonFileDeserializer = CreateJsonFileDeserializer(projectRazorJson);
         var addArgs = new ProjectConfigurationFileChangeEventArgs("/path/to\\obj/project.razor.json", RazorFileChangeKind.Added, jsonFileDeserializer);
@@ -121,7 +121,7 @@ public class ProjectConfigurationStateSynchronizerTest : LanguageServerTestBase
             RazorConfiguration.Default,
             rootNamespace: "TestRootNamespace",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp5),
-            Array.Empty<DocumentSnapshotHandle>());
+            ImmutableArray<DocumentSnapshotHandle>.Empty);
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
         projectService.Setup(service => service.AddProject(projectRazorJson.FilePath, projectRazorJson.RootNamespace)).Verifiable();
         projectService.Setup(service => service.UpdateProject(
@@ -156,7 +156,7 @@ public class ProjectConfigurationStateSynchronizerTest : LanguageServerTestBase
             RazorConfiguration.Default,
             rootNamespace: "TestRootNamespace",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp5),
-            Array.Empty<DocumentSnapshotHandle>());
+            ImmutableArray<DocumentSnapshotHandle>.Empty);
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
         projectService.Setup(service => service.AddProject(projectRazorJson.FilePath, projectRazorJson.RootNamespace)).Verifiable();
         projectService.Setup(service => service.UpdateProject(
@@ -205,7 +205,7 @@ public class ProjectConfigurationStateSynchronizerTest : LanguageServerTestBase
             RazorConfiguration.Default,
             rootNamespace: "TestRootNamespace",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp5),
-            Array.Empty<DocumentSnapshotHandle>());
+            ImmutableArray<DocumentSnapshotHandle>.Empty);
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
         projectService.Setup(service => service.AddProject(initialProjectRazorJson.FilePath, initialProjectRazorJson.RootNamespace)).Verifiable();
         projectService.Setup(service => service.UpdateProject(
@@ -223,7 +223,7 @@ public class ProjectConfigurationStateSynchronizerTest : LanguageServerTestBase
                 Array.Empty<RazorExtension>()),
             rootNamespace: "TestRootNamespace2",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp6),
-            Array.Empty<DocumentSnapshotHandle>());
+            ImmutableArray<DocumentSnapshotHandle>.Empty);
         projectService.Setup(service => service.UpdateProject(
             changedProjectRazorJson.FilePath,
             changedProjectRazorJson.Configuration,
@@ -266,7 +266,7 @@ public class ProjectConfigurationStateSynchronizerTest : LanguageServerTestBase
             RazorConfiguration.Default,
             rootNamespace: "TestRootNamespace",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp5),
-            Array.Empty<DocumentSnapshotHandle>());
+            ImmutableArray<DocumentSnapshotHandle>.Empty);
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
         projectService.Setup(service => service.AddProject(initialProjectRazorJson.FilePath, initialProjectRazorJson.RootNamespace)).Verifiable();
         projectService.Setup(service => service.UpdateProject(
@@ -284,7 +284,7 @@ public class ProjectConfigurationStateSynchronizerTest : LanguageServerTestBase
                 Array.Empty<RazorExtension>()),
             rootNamespace: "TestRootNamespace2",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp6),
-            Array.Empty<DocumentSnapshotHandle>());
+            ImmutableArray<DocumentSnapshotHandle>.Empty);
 
         // This is the request that happens when the server is reset
         projectService.Setup(service => service.UpdateProject(
@@ -349,7 +349,7 @@ public class ProjectConfigurationStateSynchronizerTest : LanguageServerTestBase
             RazorConfiguration.Default,
             rootNamespace: "TestRootNamespace",
             new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.CSharp5),
-            Array.Empty<DocumentSnapshotHandle>());
+            ImmutableArray<DocumentSnapshotHandle>.Empty);
 
         var filePath = "path/to/project.csproj";
         var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);

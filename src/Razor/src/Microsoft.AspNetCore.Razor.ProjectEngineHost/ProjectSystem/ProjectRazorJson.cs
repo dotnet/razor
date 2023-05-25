@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Serialization;
 
@@ -14,7 +14,7 @@ internal sealed class ProjectRazorJson
     public RazorConfiguration? Configuration { get; }
     public string? RootNamespace { get; }
     public ProjectWorkspaceState? ProjectWorkspaceState { get; }
-    public IReadOnlyList<DocumentSnapshotHandle> Documents { get; }
+    public ImmutableArray<DocumentSnapshotHandle> Documents { get; }
 
     public ProjectRazorJson(
         string serializedFilePath,
@@ -22,13 +22,13 @@ internal sealed class ProjectRazorJson
         RazorConfiguration? configuration,
         string? rootNamespace,
         ProjectWorkspaceState? projectWorkspaceState,
-        IReadOnlyList<DocumentSnapshotHandle> documents)
+        ImmutableArray<DocumentSnapshotHandle> documents)
     {
         SerializedFilePath = serializedFilePath;
         FilePath = filePath;
         Configuration = configuration;
         RootNamespace = rootNamespace;
         ProjectWorkspaceState = projectWorkspaceState;
-        Documents = documents;
+        Documents = documents.NullToEmpty();
     }
 }

@@ -129,7 +129,7 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
             }
 
             var projectWorkspaceState = projectRazorJson.ProjectWorkspaceState ?? ProjectWorkspaceState.Default;
-            var documents = projectRazorJson.Documents ?? Array.Empty<DocumentSnapshotHandle>();
+            var documents = projectRazorJson.Documents;
             _projectService.UpdateProject(
                 projectRazorJson.FilePath,
                 projectRazorJson.Configuration,
