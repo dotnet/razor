@@ -2,38 +2,31 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
 public sealed class ProjectWorkspaceState : IEquatable<ProjectWorkspaceState>
 {
-    public static readonly ProjectWorkspaceState Default = new(Array.Empty<TagHelperDescriptor>(), LanguageVersion.Default);
+    public static readonly ProjectWorkspaceState Default = new(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.Default);
 
-    public IReadOnlyList<TagHelperDescriptor> TagHelpers { get; }
+    public ImmutableArray<TagHelperDescriptor> TagHelpers { get; }
     public LanguageVersion CSharpLanguageVersion { get; }
 
     public ProjectWorkspaceState(
-        IReadOnlyCollection<TagHelperDescriptor> tagHelpers,
-        LanguageVersion csharpLanguageVersion)
-        : this((tagHelpers as IReadOnlyList<TagHelperDescriptor>) ?? tagHelpers.ToList(), csharpLanguageVersion)
-    {
-    }
-
-    public ProjectWorkspaceState(
-        IReadOnlyList<TagHelperDescriptor> tagHelpers,
+        ImmutableArray<TagHelperDescriptor> tagHelpers,
         LanguageVersion csharpLanguageVersion)
     {
-        TagHelpers = tagHelpers ?? throw new ArgumentNullException(nameof(tagHelpers));
+        TagHelpers = tagHelpers;
         CSharpLanguageVersion = csharpLanguageVersion;
     }
 
     public override bool Equals(object? obj)
-        => Equals(obj as ProjectWorkspaceState);
+        => obj is ProjectWorkspaceState other && Equals(other);
 
     public bool Equals(ProjectWorkspaceState? other)
         => other is not null &&

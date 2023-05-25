@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -39,8 +39,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 [Collection("FormattingTestSerialRuns")]
 public class FormattingTestBase : RazorIntegrationTestBase
 {
-    private static readonly AsyncLocal<string> s_fileName = new AsyncLocal<string>();
-    private static readonly IReadOnlyList<TagHelperDescriptor> s_defaultComponents = GetDefaultRuntimeComponents();
+    private static readonly AsyncLocal<string> s_fileName = new();
+    private static readonly ImmutableArray<TagHelperDescriptor> s_defaultComponents = GetDefaultRuntimeComponents();
 
     public FormattingTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -65,12 +65,13 @@ public class FormattingTestBase : RazorIntegrationTestBase
         int tabSize = 4,
         bool insertSpaces = true,
         string? fileKind = null,
-        IReadOnlyList<TagHelperDescriptor>? tagHelpers = null,
+        ImmutableArray<TagHelperDescriptor> tagHelpers = default,
         bool allowDiagnostics = false,
         RazorLSPOptions? razorLSPOptions = null)
     {
         // Arrange
         fileKind ??= FileKinds.Component;
+        tagHelpers = tagHelpers.NullToEmpty();
 
         TestFileMarkupParser.GetSpans(input, out input, out ImmutableArray<TextSpan> spans);
 
@@ -233,13 +234,13 @@ public class FormattingTestBase : RazorIntegrationTestBase
         return source.WithChanges(changes);
     }
 
-    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? fileKind = default, bool allowDiagnostics = false)
+    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers = default, string? fileKind = default, bool allowDiagnostics = false)
     {
         fileKind ??= FileKinds.Component;
-        tagHelpers ??= Array.Empty<TagHelperDescriptor>();
+        tagHelpers = tagHelpers.NullToEmpty();
         if (fileKind == FileKinds.Component)
         {
-            tagHelpers = tagHelpers.Concat(s_defaultComponents).ToArray();
+            tagHelpers = tagHelpers.AddRange(s_defaultComponents);
         }
 
         var sourceDocument = text.GetRazorSourceDocument(path, path);
@@ -335,7 +336,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         return null;
     }
 
-    private static IReadOnlyList<TagHelperDescriptor> GetDefaultRuntimeComponents()
+    private static ImmutableArray<TagHelperDescriptor> GetDefaultRuntimeComponents()
     {
         var bytes = TestResources.GetResourceBytes(TestResources.BlazorServerAppTagHelpersJson);
 
@@ -343,7 +344,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         using var reader = new StreamReader(stream);
 
         return JsonDataConvert.DeserializeData(reader,
-            static r => r.ReadArrayOrEmpty(
+            static r => r.ReadImmutableArray(
                 static r => ObjectReaders.ReadTagHelper(r, useCache: false)));
     }
 }
