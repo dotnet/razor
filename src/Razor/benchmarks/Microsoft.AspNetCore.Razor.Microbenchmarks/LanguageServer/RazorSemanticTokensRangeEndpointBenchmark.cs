@@ -52,9 +52,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
     private RazorRequestContext RequestContext { get; set; }
 
-    private const int MaximumNumberOfCsSemanticRangesToReturn = 1000;
-
-    [Params(0, 100, MaximumNumberOfCsSemanticRangesToReturn)]
+    [Params(0, 100, 1000)]
     public int NumberOfCsSemanticRangesToReturn { get; set; }
 
     private static List<SemanticRange> PregeneratedRandomSemanticRanges { get; set; }
@@ -94,8 +92,8 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
         var random = new Random();
         var codeDocument = await DocumentContext.GetCodeDocumentAsync(CancellationToken);
-        PregeneratedRandomSemanticRanges = new List<SemanticRange>();
-        for (var i = 0; i < MaximumNumberOfCsSemanticRangesToReturn; i++)
+        PregeneratedRandomSemanticRanges = new List<SemanticRange>(NumberOfCsSemanticRangesToReturn);
+        for (var i = 0; i < NumberOfCsSemanticRangesToReturn; i++)
         {
             var startLine = random.Next(Range.Start.Line, Range.End.Line);
             var startChar = random.Next(0, codeDocument.Source.Lines.GetLineLength(startLine));
@@ -115,10 +113,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
     public async Task RazorSemanticTokensRangeEndpointRangesAsync()
     {
         var textDocumentIdentifier = new TextDocumentIdentifier { Uri = DocumentUri };
-
         var request = new SemanticTokensRangeParams { Range = Range, TextDocument = textDocumentIdentifier };
-
-        ((TestCustomizableRazorSemanticTokensInfoService)RazorSemanticTokenService).RangeNumberToGenerate = NumberOfCsSemanticRangesToReturn;
 
         await SemanticTokensRangeEndpoint.HandleRequestAsync(request, RequestContext, CancellationToken);
     }
@@ -154,8 +149,6 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
     internal class TestCustomizableRazorSemanticTokensInfoService : RazorSemanticTokensInfoService
     {
-        public int RangeNumberToGenerate { get; set; }
-
         public TestCustomizableRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
             RazorDocumentMappingService documentMappingService,
@@ -173,7 +166,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
             CancellationToken cancellationToken,
             string previousResultId = null)
         {
-            return Task.FromResult(PregeneratedRandomSemanticRanges.Take(RangeNumberToGenerate).ToList());
+            return Task.FromResult(PregeneratedRandomSemanticRanges);
         }
     }
 }
