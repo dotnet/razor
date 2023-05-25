@@ -92,7 +92,7 @@ internal class InitializeHandler : IRequestHandler<InitializeParams, InitializeR
                 HoverProvider = true,
                 DefinitionProvider = true,
                 DocumentHighlightProvider = true,
-                RenameProvider = true,
+                RenameProvider = new RenameOptions() { PrepareProvider = true },
                 ReferencesProvider = true,
                 SignatureHelpProvider = new SignatureHelpOptions()
                 {
