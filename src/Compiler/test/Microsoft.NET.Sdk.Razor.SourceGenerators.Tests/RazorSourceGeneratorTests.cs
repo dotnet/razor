@@ -770,7 +770,7 @@ __builder.AddContent(3, count);
         #pragma warning restore 1998
 #nullable restore
 #line 7 ""Pages/Counter.razor""
-
+ 
     private int count;
 
     public void Click() => count++;
@@ -948,7 +948,7 @@ __builder.AddContent(3, count);
         #pragma warning restore 1998
 #nullable restore
 #line 7 ""Pages/Counter.razor""
-
+ 
     private int count;
 
     public void Click() => count++;

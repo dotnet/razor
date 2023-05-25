@@ -474,7 +474,7 @@ internal static class Extensions
             }
             else
             {
-                Assert.Equal(TrimChecksum(diff), TrimChecksum(actual.GeneratedSources[i].SourceText.ToString()));
+                AssertEx.EqualOrDiff(TrimChecksum(diff), TrimChecksum(actual.GeneratedSources[i].SourceText.ToString()));
             }
         }
 
