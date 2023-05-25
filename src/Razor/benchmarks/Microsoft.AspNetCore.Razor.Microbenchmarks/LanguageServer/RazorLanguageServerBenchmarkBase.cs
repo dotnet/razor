@@ -92,7 +92,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         }
     }
 
-    private class NoopLogger : IRazorLogger
+    internal class NoopLogger : IRazorLogger
     {
         public IDisposable BeginScope<TState>(TState state)
         {
