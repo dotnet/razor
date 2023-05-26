@@ -142,7 +142,7 @@ internal class TelemetryReporter : ITelemetryReporter
             var propertyString = string.Join(",", telemetryEvent.Properties.Select(kvp => $"[ {kvp.Key}:{kvp.Value} ]"));
             _logger?.LogTrace("Telemetry Event: {name} \n Properties: {propertyString}\n", name, propertyString);
 
-            Debug.Assert(telemetryEvent.Name != GetTelemetryName("fault"), $"Fault Event: {name} \n Properties: {propertyString}");
+            Debug.Assert(telemetryEvent is not FaultEvent, $"Fault Event: {name} \n Properties: {propertyString}");
 #endif
         }
         catch (Exception e)
