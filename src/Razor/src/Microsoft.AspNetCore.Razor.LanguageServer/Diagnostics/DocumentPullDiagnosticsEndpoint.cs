@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -22,15 +24,18 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly RazorTranslateDiagnosticsService _translateDiagnosticsService;
+    private readonly ITelemetryReporter _telemetryReporter;
 
     public DocumentPullDiagnosticsEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         RazorTranslateDiagnosticsService translateDiagnosticsService,
-        ClientNotifierServiceBase languageServer)
+        ClientNotifierServiceBase languageServer,
+        ITelemetryReporter telemetryReporter)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
         _translateDiagnosticsService = translateDiagnosticsService ?? throw new ArgumentNullException(nameof(translateDiagnosticsService));
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+        _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
     }
 
     public bool MutatesSolutionState => false;
@@ -57,53 +62,71 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
             return default;
         }
 
-        var documentContext = context.GetRequiredDocumentContext();
-
-        var razorDiagnostics = await GetRazorDiagnosticsAsync(documentContext, cancellationToken).ConfigureAwait(false);
-
-        var (csharpDiagnostics, htmlDiagnostics) = await GetHtmlCSharpDiagnosticsAsync(documentContext, cancellationToken).ConfigureAwait(false);
-
-        using var _ = ListPool<VSInternalDiagnosticReport>.GetPooledObject(out var allDiagnostics);
-        allDiagnostics.SetCapacityIfLarger(
-            (razorDiagnostics?.Length ?? 0) +
-            (csharpDiagnostics?.Length ?? 0) +
-            (htmlDiagnostics?.Length ?? 0));
-
-        if (razorDiagnostics is not null)
+        using (Track("diagnostics"))
         {
-            // No extra work to do for Razor diagnostics
-            allDiagnostics.AddRange(razorDiagnostics);
-        }
+            var documentContext = context.GetRequiredDocumentContext();
 
-        if (csharpDiagnostics is not null)
-        {
-            foreach (var report in csharpDiagnostics)
+            var razorDiagnostics = await GetRazorDiagnosticsAsync(documentContext, cancellationToken).ConfigureAwait(false);
+
+            var (csharpDiagnostics, htmlDiagnostics) = await GetHtmlCSharpDiagnosticsAsync(documentContext, cancellationToken).ConfigureAwait(false);
+
+            using var _ = ListPool<VSInternalDiagnosticReport>.GetPooledObject(out var allDiagnostics);
+            allDiagnostics.SetCapacityIfLarger(
+                (razorDiagnostics?.Length ?? 0) +
+                (csharpDiagnostics?.Length ?? 0) +
+                (htmlDiagnostics?.Length ?? 0));
+
+            if (razorDiagnostics is not null)
             {
-                if (report.Diagnostics is not null)
-                {
-                    var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, report.Diagnostics, documentContext, cancellationToken).ConfigureAwait(false);
-                    report.Diagnostics = mappedDiagnostics;
-                }
-
-                allDiagnostics.Add(report);
+                // No extra work to do for Razor diagnostics
+                allDiagnostics.AddRange(razorDiagnostics);
             }
-        }
 
-        if (htmlDiagnostics is not null)
-        {
-            foreach (var report in htmlDiagnostics)
+            if (csharpDiagnostics is not null)
             {
-                if (report.Diagnostics is not null)
+                foreach (var report in csharpDiagnostics)
                 {
-                    var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, report.Diagnostics, documentContext, cancellationToken).ConfigureAwait(false);
-                    report.Diagnostics = mappedDiagnostics;
+                    if (report.Diagnostics is not null)
+                    {
+                        var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, report.Diagnostics, documentContext, cancellationToken).ConfigureAwait(false);
+                        report.Diagnostics = mappedDiagnostics;
+                    }
+
+                    allDiagnostics.Add(report);
                 }
-
-                allDiagnostics.Add(report);
             }
-        }
 
-        return allDiagnostics.ToArray();
+            if (htmlDiagnostics is not null)
+            {
+                foreach (var report in htmlDiagnostics)
+                {
+                    if (report.Diagnostics is not null)
+                    {
+                        var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, report.Diagnostics, documentContext, cancellationToken).ConfigureAwait(false);
+                        report.Diagnostics = mappedDiagnostics;
+                    }
+
+                    allDiagnostics.Add(report);
+                }
+            }
+
+            return allDiagnostics.ToArray();
+        }
+    }
+
+    private IDisposable? Track(string name)
+    {
+        if (!System.Diagnostics.Debugger.IsAttached)
+        {
+            System.Diagnostics.Debugger.Launch();
+            System.Diagnostics.Debugger.Break();
+        }
+        return _telemetryReporter.BeginBlock(name, Severity.Normal, ImmutableDictionary.CreateRange(new KeyValuePair<string, object?>[]
+        {
+            new("eventscope.method", "textdocument/_vs_diagnostic"),
+            new("eventscope.languageservername", "Razor Language Server"),
+            new("eventscope.activityid", System.Diagnostics.Trace.CorrelationManager.ActivityId),
+        }));
     }
 
     private static async Task<VSInternalDiagnosticReport[]?> GetRazorDiagnosticsAsync(VersionedDocumentContext documentContext, CancellationToken cancellationToken)

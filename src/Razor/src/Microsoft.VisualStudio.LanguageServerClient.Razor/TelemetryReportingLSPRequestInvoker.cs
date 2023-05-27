@@ -84,6 +84,7 @@ internal class TelemetryReportingLSPRequestInvoker : LSPRequestInvoker
         {
             new("eventscope.method", method),
             new("eventscope.languageservername", languageServerName),
+            new("eventscope.activityid", System.Diagnostics.Trace.CorrelationManager.ActivityId),
         }));
     }
 }
