@@ -39,49 +39,6 @@ internal abstract class IRazorDocumentMappingService
     /// for some other reason, the original passed in range is returned unchanged.
     /// </summary>
     public abstract Task<(Uri MappedDocumentUri, Range MappedRange)> MapFromProjectedDocumentRangeAsync(Uri virtualDocumentUri, Range projectedRange, CancellationToken cancellationToken);
-
-    public async Task<Projection> GetProjectionAsync(DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
-    {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-
-        sourceText.GetLineAndOffset(absoluteIndex, out var line, out var character);
-        var projectedPosition = new Position(line, character);
-
-        var languageKind = GetLanguageKind(codeDocument, absoluteIndex, rightAssociative: false);
-        if (languageKind is not RazorLanguageKind.Razor)
-        {
-            var generatedDocument = languageKind is RazorLanguageKind.CSharp
-                ? (IRazorGeneratedDocument)codeDocument.GetCSharpDocument()
-                : codeDocument.GetHtmlDocument();
-            if (TryMapToProjectedDocumentPosition(generatedDocument, absoluteIndex, out var mappedPosition, out _))
-            {
-                // For C# locations, we attempt to return the corresponding position
-                // within the projected document
-                projectedPosition = mappedPosition;
-            }
-            else
-            {
-                // It no longer makes sense to think of this location as C# or Html, since it doesn't
-                // correspond to any position in the projected document. This should not happen
-                // since there should be source mappings for all the C# spans.
-                languageKind = RazorLanguageKind.Razor;
-            }
-        }
-
-        return new Projection(languageKind, projectedPosition, absoluteIndex);
-    }
-
-    public async Task<Projection?> TryGetProjectionAsync(DocumentContext documentContext, Position position, ILogger logger, CancellationToken cancellationToken)
-    {
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
-        {
-            return null;
-        }
-
-        return await GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
-    }
 }
 
 internal record Projection(RazorLanguageKind LanguageKind, Position Position, int AbsoluteIndex);
