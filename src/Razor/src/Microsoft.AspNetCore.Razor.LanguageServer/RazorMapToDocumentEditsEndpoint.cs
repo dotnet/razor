@@ -86,7 +86,7 @@ internal class RazorMapToDocumentEditsEndpoint : IRazorMapToDocumentEditsHandler
             };
         }
 
-        var documentMappingService = requestContext.GetRequiredService<RazorDocumentMappingService>();
+        var documentMappingService = requestContext.GetRequiredService<IRazorDocumentMappingService>();
         var edits = new List<TextEdit>();
         for (var i = 0; i < request.ProjectedTextEdits.Length; i++)
         {

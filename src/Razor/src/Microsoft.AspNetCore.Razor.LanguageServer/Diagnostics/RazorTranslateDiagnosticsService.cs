@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 internal class RazorTranslateDiagnosticsService
 {
     private readonly ILogger _logger;
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
     // Internal for testing
     internal static readonly IReadOnlyCollection<string> CSharpDiagnosticsToIgnore = new HashSet<string>()
@@ -35,7 +35,7 @@ internal class RazorTranslateDiagnosticsService
         "IDE0005_gen", // Using directive is unnecessary
     };
 
-    public RazorTranslateDiagnosticsService(RazorDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
+    public RazorTranslateDiagnosticsService(IRazorDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
     {
         if (documentMappingService is null)
         {

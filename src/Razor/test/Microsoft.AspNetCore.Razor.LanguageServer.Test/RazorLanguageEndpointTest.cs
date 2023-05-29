@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 public class RazorLanguageEndpointTest : LanguageServerTestBase
 {
-    private readonly RazorDocumentMappingService _mappingService;
+    private readonly IRazorDocumentMappingService _mappingService;
 
     public RazorLanguageEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)

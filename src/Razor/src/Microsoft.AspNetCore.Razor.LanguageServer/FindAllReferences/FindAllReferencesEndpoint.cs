@@ -22,11 +22,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoint<ReferenceParams, VSInternalReferenceItem[]>, IRegistrationExtension
 {
     private readonly LanguageServerFeatureOptions _featureOptions;
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
     public FindAllReferencesEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         ILoggerFactory loggerFactory,
         LanguageServerFeatureOptions featureOptions)

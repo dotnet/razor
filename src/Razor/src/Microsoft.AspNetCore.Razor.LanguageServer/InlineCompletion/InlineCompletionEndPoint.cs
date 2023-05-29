@@ -30,7 +30,7 @@ internal sealed class InlineCompletionEndpoint : IRazorRequestHandler<VSInternal
         "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly AdhocWorkspaceFactory _adhocWorkspaceFactory;
 
@@ -38,7 +38,7 @@ internal sealed class InlineCompletionEndpoint : IRazorRequestHandler<VSInternal
 
     [ImportingConstructor]
     public InlineCompletionEndpoint(
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         AdhocWorkspaceFactory adhocWorkspaceFactory)
     {

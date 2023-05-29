@@ -19,13 +19,13 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
    where TRequest : ITextDocumentPositionParams
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
     protected readonly ILogger Logger;
 
     protected AbstractRazorDelegatingEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         ILogger logger)
     {

@@ -42,7 +42,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
     internal DocumentContextFactory DocumentContextFactory { get; private set; }
     internal LanguageServerFeatureOptions LanguageServerFeatureOptions { get; private set; }
     internal TestLanguageServer LanguageServer { get; private set; }
-    internal RazorDocumentMappingService DocumentMappingService { get; private set; }
+    internal IRazorDocumentMappingService DocumentMappingService { get; private set; }
 
     protected SingleServerDelegatingEndpointTestBase(ITestOutputHelper testOutput)
         : base(testOutput)

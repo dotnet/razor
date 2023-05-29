@@ -32,7 +32,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
     private readonly ProjectSnapshotManager _projectSnapshotManager;
     private readonly RazorComponentSearchEngine _componentSearchEngine;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
     public RenameEndpoint(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -40,7 +40,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         RazorComponentSearchEngine componentSearchEngine,
         ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         ILoggerFactory loggerFactory)
         : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RenameEndpoint>())

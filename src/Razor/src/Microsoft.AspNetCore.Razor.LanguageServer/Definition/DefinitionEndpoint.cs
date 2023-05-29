@@ -31,11 +31,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, DefinitionResult?>, IRegistrationExtension
 {
     private readonly RazorComponentSearchEngine _componentSearchEngine;
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
     public DefinitionEndpoint(
         RazorComponentSearchEngine componentSearchEngine,
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         ClientNotifierServiceBase languageServer,
         ILoggerFactory loggerFactory)
@@ -254,7 +254,7 @@ internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextD
         return new Range { Start = new Position(0, 0), End = new Position(0, 0) };
     }
 
-    internal static async Task<Range?> TryGetPropertyRangeAsync(RazorCodeDocument codeDocument, string propertyName, RazorDocumentMappingService documentMappingService, ILogger logger, CancellationToken cancellationToken)
+    internal static async Task<Range?> TryGetPropertyRangeAsync(RazorCodeDocument codeDocument, string propertyName, IRazorDocumentMappingService documentMappingService, ILogger logger, CancellationToken cancellationToken)
     {
         // Parse the C# file and find the property that matches the name.
         // We don't worry about parameter attributes here for two main reasons:

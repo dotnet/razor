@@ -23,14 +23,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 public class CodeActionEndpointTest : LanguageServerTestBase
 {
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ClientNotifierServiceBase _languageServer;
 
     public CodeActionEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _documentMappingService = Mock.Of<RazorDocumentMappingService>(
+        _documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.TryMapToProjectedDocumentRange(
                 It.IsAny<IRazorGeneratedDocument>(),
                 It.IsAny<Range>(),

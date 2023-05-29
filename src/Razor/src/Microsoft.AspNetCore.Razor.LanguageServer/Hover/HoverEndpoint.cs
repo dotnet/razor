@@ -19,13 +19,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, VSInternalHover?>, IRegistrationExtension
 {
     private readonly IHoverInfoService _hoverInfoService;
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
     private VSInternalClientCapabilities? _clientCapabilities;
 
     public HoverEndpoint(
         IHoverInfoService hoverInfoService,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         ILoggerFactory loggerFactory)
         : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<HoverEndpoint>())

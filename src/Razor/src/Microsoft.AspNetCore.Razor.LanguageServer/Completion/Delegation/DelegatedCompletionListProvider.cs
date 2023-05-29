@@ -23,13 +23,13 @@ internal class DelegatedCompletionListProvider
             .Union(s_razorTriggerCharacters);
 
     private readonly ImmutableArray<DelegatedCompletionResponseRewriter> _responseRewriters;
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly CompletionListCache _completionListCache;
 
     public DelegatedCompletionListProvider(
         IEnumerable<DelegatedCompletionResponseRewriter> responseRewriters,
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         CompletionListCache completionListCache)
     {

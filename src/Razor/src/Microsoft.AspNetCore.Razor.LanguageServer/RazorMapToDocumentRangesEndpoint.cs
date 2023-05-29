@@ -13,9 +13,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class RazorMapToDocumentRangesEndpoint : IRazorMapToDocumentRangesHandler
 {
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
-    public RazorMapToDocumentRangesEndpoint(RazorDocumentMappingService documentMappingService)
+    public RazorMapToDocumentRangesEndpoint(IRazorDocumentMappingService documentMappingService)
     {
         _documentMappingService = documentMappingService;
     }

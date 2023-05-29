@@ -20,12 +20,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : IRazorRequestHandler<TParams, WorkspaceEdit?>, IRegistrationExtension
     where TParams : IPresentationParams
 {
-    private readonly RazorDocumentMappingService _razorDocumentMappingService;
+    private readonly IRazorDocumentMappingService _razorDocumentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
     protected AbstractTextDocumentPresentationEndpointBase(
-        RazorDocumentMappingService razorDocumentMappingService,
+        IRazorDocumentMappingService razorDocumentMappingService,
         ClientNotifierServiceBase languageServer,
         LanguageServerFeatureOptions languageServerFeatureOptions)
     {

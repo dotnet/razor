@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class DefaultRazorDocumentMappingService : RazorDocumentMappingService
+internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly DocumentContextFactory _documentContextFactory;

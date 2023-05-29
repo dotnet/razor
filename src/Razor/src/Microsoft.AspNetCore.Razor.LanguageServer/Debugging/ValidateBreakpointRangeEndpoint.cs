@@ -18,10 +18,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 [LanguageServerEndpoint(VSInternalMethods.TextDocumentValidateBreakableRangeName)]
 internal class ValidateBreakpointRangeEndpoint : AbstractRazorDelegatingEndpoint<ValidateBreakpointRangeParams, Range?>, IRegistrationExtension
 {
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
     public ValidateBreakpointRangeEndpoint(
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         ClientNotifierServiceBase languageServer,
         ILoggerFactory loggerFactory)

@@ -15,7 +15,7 @@ internal abstract class FormattingPassBase : IFormattingPass
     protected static readonly int DefaultOrder = 1000;
 
     public FormattingPassBase(
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase server)
     {
         if (documentMappingService is null)
@@ -35,7 +35,7 @@ internal abstract class FormattingPassBase : IFormattingPass
 
     public virtual int Order => DefaultOrder;
 
-    protected RazorDocumentMappingService DocumentMappingService { get; }
+    protected IRazorDocumentMappingService DocumentMappingService { get; }
 
     public abstract Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken);
 

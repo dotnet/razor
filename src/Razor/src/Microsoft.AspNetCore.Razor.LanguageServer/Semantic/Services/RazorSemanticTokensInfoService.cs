@@ -22,13 +22,13 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 {
     private const int TokenSize = 5;
 
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly ILogger _logger;
 
     public RazorSemanticTokensInfoService(
         ClientNotifierServiceBase languageServer,
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ILoggerFactory loggerFactory)
     {
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));

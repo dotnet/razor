@@ -15,9 +15,9 @@ internal class RazorLanguageQueryEndpoint : IRazorLanguageQueryHandler
 {
     public bool MutatesSolutionState { get; } = false;
 
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
-    public RazorLanguageQueryEndpoint(RazorDocumentMappingService documentMappingService)
+    public RazorLanguageQueryEndpoint(IRazorDocumentMappingService documentMappingService)
     {
         _documentMappingService = documentMappingService;
     }

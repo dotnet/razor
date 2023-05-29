@@ -46,7 +46,7 @@ public class DefaultHtmlCodeActionProviderTest : LanguageServerTestBase
         var context = CreateRazorCodeActionContext(request, location, documentPath, contents);
         context.CodeDocument.SetFileKind(FileKinds.Legacy);
 
-        var documentMappingService = Mock.Of<RazorDocumentMappingService>(MockBehavior.Strict);
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(MockBehavior.Strict);
         var provider = new DefaultHtmlCodeActionProvider(documentMappingService);
 
         var codeActions = new[] { new RazorVSInternalCodeAction() { Name = "Test" } };
@@ -95,7 +95,7 @@ public class DefaultHtmlCodeActionProviderTest : LanguageServerTestBase
             }
         };
 
-        var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
+        var documentMappingServiceMock = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
         documentMappingServiceMock
             .Setup(c => c.RemapWorkspaceEditAsync(It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(remappedEdit);

@@ -20,11 +20,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 [LanguageServerEndpoint(LanguageServerConstants.RazorProximityExpressionsEndpoint)]
 internal class RazorProximityExpressionsEndpoint : IRazorDocumentlessRequestHandler<RazorProximityExpressionsParams, RazorProximityExpressionsResponse?>, ITextDocumentIdentifierHandler<RazorProximityExpressionsParams, Uri>
 {
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly ILogger _logger;
 
     public RazorProximityExpressionsEndpoint(
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ILoggerFactory loggerFactory)
     {
         if (documentMappingService is null)

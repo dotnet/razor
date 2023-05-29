@@ -33,7 +33,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
     public CSharpOnTypeFormattingPass(
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase server,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor,
         ILoggerFactory loggerFactory)

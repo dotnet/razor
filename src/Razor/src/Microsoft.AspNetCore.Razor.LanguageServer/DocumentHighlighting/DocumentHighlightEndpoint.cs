@@ -18,11 +18,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting;
 [LanguageServerEndpoint(Methods.TextDocumentDocumentHighlightName)]
 internal class DocumentHighlightEndpoint : AbstractRazorDelegatingEndpoint<DocumentHighlightParams, DocumentHighlight[]?>, IRegistrationExtension
 {
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
     public DocumentHighlightEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         ILoggerFactory loggerFactory)
         : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<DocumentHighlightEndpoint>())

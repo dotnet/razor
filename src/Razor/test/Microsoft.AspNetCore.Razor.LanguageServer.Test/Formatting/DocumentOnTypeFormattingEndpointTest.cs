@@ -127,7 +127,7 @@ public class DocumentOnTypeFormattingEndpointTest : FormattingLanguageServerTest
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var formattingService = new DummyRazorFormattingService();
 
-        var documentMappingService = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
+        var documentMappingService = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
         documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Html);
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
         var endpoint = new DocumentOnTypeFormattingEndpoint(
@@ -163,7 +163,7 @@ public class DocumentOnTypeFormattingEndpointTest : FormattingLanguageServerTest
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var formattingService = new DummyRazorFormattingService();
 
-        var documentMappingService = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
+        var documentMappingService = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
         documentMappingService.Setup(s => s.GetLanguageKind(codeDocument, 17, false)).Returns(RazorLanguageKind.Razor);
         var optionsMonitor = GetOptionsMonitor(enableFormatting: true);
         var endpoint = new DocumentOnTypeFormattingEndpoint(

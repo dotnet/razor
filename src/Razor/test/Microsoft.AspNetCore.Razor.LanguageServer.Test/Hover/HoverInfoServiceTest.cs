@@ -604,7 +604,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
             .Setup(c => c.SendRequestAsync<IDelegatedParams, VSInternalHover>(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, It.IsAny<DelegatedPositionParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(delegatedHover);
 
-        var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
+        var documentMappingServiceMock = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
         documentMappingServiceMock
             .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
             .Returns(RazorLanguageKind.CSharp);
@@ -794,13 +794,13 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
     }
 
     private HoverEndpoint CreateEndpoint(LanguageServerFeatureOptions languageServerFeatureOptions = null,
-        RazorDocumentMappingService documentMappingService = null,
+        IRazorDocumentMappingService documentMappingService = null,
         ClientNotifierServiceBase languageServer = null)
     {
 
         languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(options => options.SupportsFileManipulation == true && options.SingleServerSupport == false, MockBehavior.Strict);
 
-        var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
+        var documentMappingServiceMock = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
         documentMappingServiceMock
             .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
             .Returns(Protocol.RazorLanguageKind.Html);
