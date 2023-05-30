@@ -280,13 +280,13 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         }
 
         if (!range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var startIndex) ||
-            !TryMapToProjectedDocumentPosition(generatedDocument, startIndex, out var generatedRangeStart, out var _))
+            !TryMapToGeneratedDocumentPosition(generatedDocument, startIndex, out var generatedRangeStart, out var _))
         {
             return false;
         }
 
         if (!range.End.TryGetAbsoluteIndex(sourceText, _logger, out var endIndex) ||
-            !TryMapToProjectedDocumentPosition(generatedDocument, endIndex, out var generatedRangeEnd, out var _))
+            !TryMapToGeneratedDocumentPosition(generatedDocument, endIndex, out var generatedRangeEnd, out var _))
         {
             return false;
         }
@@ -352,12 +352,12 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
     }
 
     public bool TryMapToProjectedDocumentOrNextCSharpPosition(IRazorGeneratedDocument generatedDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
-        => TryMapToProjectedDocumentPositionInternal(generatedDocument, absoluteIndex, nextCSharpPositionOnFailure: true, out projectedPosition, out projectedIndex);
+        => TryMapToGeneratedDocumentPositionInternal(generatedDocument, absoluteIndex, nextCSharpPositionOnFailure: true, out projectedPosition, out projectedIndex);
 
-    public bool TryMapToProjectedDocumentPosition(IRazorGeneratedDocument generatedDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
-        => TryMapToProjectedDocumentPositionInternal(generatedDocument, absoluteIndex, nextCSharpPositionOnFailure: false, out projectedPosition, out projectedIndex);
+    public bool TryMapToGeneratedDocumentPosition(IRazorGeneratedDocument generatedDocument, int hostDocumentIndex, [NotNullWhen(true)] out Position? generatedPosition, out int generatedIndex)
+        => TryMapToGeneratedDocumentPositionInternal(generatedDocument, hostDocumentIndex, nextCSharpPositionOnFailure: false, out generatedPosition, out generatedIndex);
 
-    private static bool TryMapToProjectedDocumentPositionInternal(IRazorGeneratedDocument generatedDocument, int absoluteIndex, bool nextCSharpPositionOnFailure, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
+    private static bool TryMapToGeneratedDocumentPositionInternal(IRazorGeneratedDocument generatedDocument, int hostDocumentIndex, bool nextCSharpPositionOnFailure, [NotNullWhen(true)] out Position? generatedPosition, out int generatedIndex)
     {
         if (generatedDocument is null)
         {
@@ -373,15 +373,15 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         {
             var originalSpan = mapping.OriginalSpan;
             var originalAbsoluteIndex = originalSpan.AbsoluteIndex;
-            if (originalAbsoluteIndex <= absoluteIndex)
+            if (originalAbsoluteIndex <= hostDocumentIndex)
             {
                 // Treat the mapping as owning the edge at its end (hence <= originalSpan.Length),
                 // otherwise we wouldn't handle the cursor being right after the final C# char
-                var distanceIntoOriginalSpan = absoluteIndex - originalAbsoluteIndex;
+                var distanceIntoOriginalSpan = hostDocumentIndex - originalAbsoluteIndex;
                 if (distanceIntoOriginalSpan <= originalSpan.Length)
                 {
-                    projectedIndex = mapping.GeneratedSpan.AbsoluteIndex + distanceIntoOriginalSpan;
-                    projectedPosition = GetProjectedPosition(generatedDocument, projectedIndex);
+                    generatedIndex = mapping.GeneratedSpan.AbsoluteIndex + distanceIntoOriginalSpan;
+                    generatedPosition = GetGeneratedPosition(generatedDocument, generatedIndex);
                     return true;
                 }
             }
@@ -389,12 +389,12 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             {
                 // The "next" C# location is only valid if it is on the same line in the source document
                 // as the requested position.
-                codeDocument.GetSourceText().GetLineAndOffset(absoluteIndex, out var hostDocumentLine, out _);
+                codeDocument.GetSourceText().GetLineAndOffset(hostDocumentIndex, out var hostDocumentLine, out _);
 
                 if (mapping.OriginalSpan.LineIndex == hostDocumentLine)
                 {
-                    projectedIndex = mapping.GeneratedSpan.AbsoluteIndex;
-                    projectedPosition = GetProjectedPosition(generatedDocument, projectedIndex);
+                    generatedIndex = mapping.GeneratedSpan.AbsoluteIndex;
+                    generatedPosition = GetGeneratedPosition(generatedDocument, generatedIndex);
                     return true;
                 }
 
@@ -402,16 +402,16 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             }
         }
 
-        projectedPosition = default;
-        projectedIndex = default;
+        generatedPosition = default;
+        generatedIndex = default;
         return false;
 
-        static Position GetProjectedPosition(IRazorGeneratedDocument generatedDocument, int projectedIndex)
+        static Position GetGeneratedPosition(IRazorGeneratedDocument generatedDocument, int projectedIndex)
         {
             var generatedSource = GetGeneratedSourceText(generatedDocument);
             var generatedLinePosition = generatedSource.Lines.GetLinePosition(projectedIndex);
-            var projectedPosition = new Position(generatedLinePosition.Line, generatedLinePosition.Character);
-            return projectedPosition;
+            var generatedPosition = new Position(generatedLinePosition.Line, generatedLinePosition.Character);
+            return generatedPosition;
         }
     }
 

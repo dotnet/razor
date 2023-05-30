@@ -44,7 +44,7 @@ internal sealed class TestLSPProjectionProvider : LSPProjectionProvider
 
         if (languageKind == RazorLanguageKind.CSharp)
         {
-            if (!_mappingService.TryMapToProjectedDocumentPosition(codeDocument.GetCSharpDocument(), absoluteIndex, out var projectedPosition, out var projectedIndex))
+            if (!_mappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), absoluteIndex, out var projectedPosition, out var projectedIndex))
             {
                 return Task.FromResult<ProjectionResult>(null);
             }

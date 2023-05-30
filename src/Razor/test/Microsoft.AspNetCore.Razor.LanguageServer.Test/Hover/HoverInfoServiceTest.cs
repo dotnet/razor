@@ -617,7 +617,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var projectedPosition = new Position(1, 1);
         var projectedIndex = 1;
         documentMappingServiceMock.Setup(
-            c => c.TryMapToProjectedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex))
+            c => c.TryMapToGeneratedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex))
             .Returns(true);
 
         var endpoint = CreateEndpoint(languageServerFeatureOptions, documentMappingServiceMock.Object, languageServerMock.Object);

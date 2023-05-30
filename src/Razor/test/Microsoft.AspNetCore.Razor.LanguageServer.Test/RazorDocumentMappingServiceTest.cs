@@ -467,7 +467,7 @@ public class RazorDocumentMappingServiceTest : TestBase
             new[] { new SourceMapping(new SourceSpan(2, 100), new SourceSpan(0, 100)) });
 
         // Act
-        var result = service.TryMapToProjectedDocumentPosition(
+        var result = service.TryMapToGeneratedDocumentPosition(
             codeDoc.GetCSharpDocument(),
             1,
             out var projectedPosition,
@@ -493,7 +493,7 @@ public class RazorDocumentMappingServiceTest : TestBase
             });
 
         // Act
-        if (service.TryMapToProjectedDocumentPosition(
+        if (service.TryMapToGeneratedDocumentPosition(
             codeDoc.GetCSharpDocument(),
             16,
             out var projectedPosition,
@@ -505,7 +505,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         }
         else
         {
-            Assert.False(true, $"{service.TryMapToProjectedDocumentPosition} should have returned true");
+            Assert.False(true, $"{service.TryMapToGeneratedDocumentPosition} should have returned true");
         }
     }
 
@@ -523,7 +523,7 @@ public class RazorDocumentMappingServiceTest : TestBase
             });
 
         // Act & Assert
-        if (service.TryMapToProjectedDocumentPosition(
+        if (service.TryMapToGeneratedDocumentPosition(
             codeDoc.GetCSharpDocument(),
             28,
             out var projectedPosition,
@@ -553,7 +553,7 @@ public class RazorDocumentMappingServiceTest : TestBase
             });
 
         // Act & Assert
-        if (service.TryMapToProjectedDocumentPosition(
+        if (service.TryMapToGeneratedDocumentPosition(
             codeDoc.GetCSharpDocument(),
             35,
             out var projectedPosition,

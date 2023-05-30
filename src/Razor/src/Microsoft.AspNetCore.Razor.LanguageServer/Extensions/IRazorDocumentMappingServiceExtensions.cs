@@ -31,7 +31,7 @@ internal static class IRazorDocumentMappingServiceExtensions
             var generatedDocument = languageKind is RazorLanguageKind.CSharp
                 ? (IRazorGeneratedDocument)codeDocument.GetCSharpDocument()
                 : codeDocument.GetHtmlDocument();
-            if (service.TryMapToProjectedDocumentPosition(generatedDocument, absoluteIndex, out var mappedPosition, out _))
+            if (service.TryMapToGeneratedDocumentPosition(generatedDocument, absoluteIndex, out var mappedPosition, out _))
             {
                 // For C# locations, we attempt to return the corresponding position
                 // within the projected document

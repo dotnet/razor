@@ -63,7 +63,7 @@ internal class RazorBreakpointSpanEndpoint : IRazorDocumentlessRequestHandler<Ra
         var languageKind = _documentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
         // If we're in C#, then map to the right position in the generated document
         if (languageKind == RazorLanguageKind.CSharp &&
-            !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument.GetCSharpDocument(), hostDocumentIndex, out _, out projectedIndex))
+            !_documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), hostDocumentIndex, out _, out projectedIndex))
         {
             return null;
         }
