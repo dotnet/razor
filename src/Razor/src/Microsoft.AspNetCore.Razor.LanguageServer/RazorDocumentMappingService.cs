@@ -51,22 +51,22 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         _logger = loggerFactory.CreateLogger<RazorDocumentMappingService>();
     }
 
-    public TextEdit[] GetProjectedDocumentEdits(IRazorGeneratedDocument generatedDocument, TextEdit[] edits)
+    public TextEdit[] GetHostDocumentEdits(IRazorGeneratedDocument generatedDocument, TextEdit[] generatedDocumentEdits)
     {
         var projectedEdits = new List<TextEdit>();
-        var csharpSourceText = GetGeneratedSourceText(generatedDocument);
+        var generatedDocumentSourceText = GetGeneratedSourceText(generatedDocument);
         var lastNewLineAddedToLine = 0;
 
-        foreach (var edit in edits)
+        foreach (var edit in generatedDocumentEdits)
         {
             var range = edit.Range;
-            if (!IsRangeWithinDocument(range, csharpSourceText))
+            if (!IsRangeWithinDocument(range, generatedDocumentSourceText))
             {
                 continue;
             }
 
-            var startSync = range.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out var startIndex);
-            var endSync = range.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out var endIndex);
+            var startSync = range.Start.TryGetAbsoluteIndex(generatedDocumentSourceText, _logger, out var startIndex);
+            var endSync = range.End.TryGetAbsoluteIndex(generatedDocumentSourceText, _logger, out var endIndex);
             if (startSync is false || endSync is false)
             {
                 break;
@@ -120,8 +120,8 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
                 Debug.Assert(lastNewLine == 0 || edit.NewText[..(lastNewLine - 1)].All(c => c == '\r' || c == '\n'), "We are throwing away part of an edit that has more than just empty lines!");
 
                 var proposedRange = new Range { Start = new Position(range.End.Line, 0), End = new Position(range.End.Line, range.End.Character) };
-                startSync = proposedRange.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out startIndex);
-                endSync = proposedRange.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out endIndex);
+                startSync = proposedRange.Start.TryGetAbsoluteIndex(generatedDocumentSourceText, _logger, out startIndex);
+                endSync = proposedRange.End.TryGetAbsoluteIndex(generatedDocumentSourceText, _logger, out endIndex);
                 if (startSync is false || endSync is false)
                 {
                     break;
@@ -172,7 +172,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
                     continue;
                 }
 
-                var line = csharpSourceText.Lines[range.Start.Line];
+                var line = generatedDocumentSourceText.Lines[range.Start.Line];
 
                 // If the line isn't blank, then this isn't a functions directive
                 if (line.GetFirstNonWhitespaceOffset() is not null)

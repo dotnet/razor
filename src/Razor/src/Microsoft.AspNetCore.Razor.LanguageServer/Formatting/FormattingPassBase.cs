@@ -62,7 +62,7 @@ internal abstract class FormattingPassBase : IFormattingPass
             return Array.Empty<TextEdit>();
         }
 
-        var edits = DocumentMappingService.GetProjectedDocumentEdits(codeDocument.GetCSharpDocument(), projectedTextEdits);
+        var edits = DocumentMappingService.GetHostDocumentEdits(codeDocument.GetCSharpDocument(), projectedTextEdits);
 
         return edits;
     }
