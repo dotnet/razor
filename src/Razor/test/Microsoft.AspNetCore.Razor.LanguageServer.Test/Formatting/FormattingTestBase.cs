@@ -185,9 +185,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         var uri = new Uri(path);
         var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        var mappingService = new DefaultRazorDocumentMappingService();
-#pragma warning restore CS0618 // Type or member is obsolete
+        var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
         if (languageKind == RazorLanguageKind.Html)
         {

@@ -601,7 +601,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument("@code {}");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         Range? projectedRange = null;
-        var documentMappingService = Mock.Of<DefaultRazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             d => d.TryMapToProjectedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<Range>(), out projectedRange) == false
         , MockBehavior.Strict);
         var codeActionEndpoint = new CodeActionEndpoint(
@@ -691,10 +691,10 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         Assert.Equal(projectedRange, diagnostics[1].Range);
     }
 
-    private static DefaultRazorDocumentMappingService CreateDocumentMappingService(Range? projectedRange = null)
+    private static IRazorDocumentMappingService CreateDocumentMappingService(Range? projectedRange = null)
     {
         projectedRange ??= new Range { Start = new Position(5, 2), End = new Position(5, 2) };
-        var documentMappingService = Mock.Of<DefaultRazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             d => d.TryMapToProjectedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<Range>(), out projectedRange) == true &&
                  d.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp
         , MockBehavior.Strict);

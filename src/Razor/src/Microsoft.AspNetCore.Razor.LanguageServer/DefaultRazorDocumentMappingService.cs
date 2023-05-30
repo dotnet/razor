@@ -30,7 +30,6 @@ internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
         LanguageServerFeatureOptions languageServerFeatureOptions,
         DocumentContextFactory documentContextFactory,
         ILoggerFactory loggerFactory)
-        : base()
     {
         if (languageServerFeatureOptions is null)
         {
@@ -52,12 +51,7 @@ internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
         _logger = loggerFactory.CreateLogger<DefaultRazorDocumentMappingService>();
     }
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    [Obsolete("This only exists to prevent Moq from complaining, use the other constructor.")]
-    public DefaultRazorDocumentMappingService() { }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
-    public override TextEdit[] GetProjectedDocumentEdits(IRazorGeneratedDocument generatedDocument, TextEdit[] edits)
+    public TextEdit[] GetProjectedDocumentEdits(IRazorGeneratedDocument generatedDocument, TextEdit[] edits)
     {
         var projectedEdits = new List<TextEdit>();
         var csharpSourceText = GetGeneratedSourceText(generatedDocument);
@@ -220,10 +214,10 @@ internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
         return projectedEdits.ToArray();
     }
 
-    public override bool TryMapFromProjectedDocumentRange(IRazorGeneratedDocument generatedDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange)
+    public bool TryMapFromProjectedDocumentRange(IRazorGeneratedDocument generatedDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange)
         => TryMapFromProjectedDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out originalRange);
 
-    public override bool TryMapFromProjectedDocumentRange(IRazorGeneratedDocument generatedDocument, Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange)
+    public bool TryMapFromProjectedDocumentRange(IRazorGeneratedDocument generatedDocument, Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange)
     {
         if (generatedDocument is null)
         {
@@ -253,7 +247,7 @@ internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
         }
     }
 
-    public override bool TryMapToProjectedDocumentRange(IRazorGeneratedDocument generatedDocument, Range originalRange, [NotNullWhen(true)] out Range? projectedRange)
+    public bool TryMapToProjectedDocumentRange(IRazorGeneratedDocument generatedDocument, Range originalRange, [NotNullWhen(true)] out Range? projectedRange)
     {
         if (generatedDocument is null)
         {
@@ -322,7 +316,7 @@ internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
         return true;
     }
 
-    public override bool TryMapFromProjectedDocumentPosition(IRazorGeneratedDocument generatedDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Position? originalPosition, out int originalIndex)
+    public bool TryMapFromProjectedDocumentPosition(IRazorGeneratedDocument generatedDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Position? originalPosition, out int originalIndex)
     {
         if (generatedDocument is null)
         {
@@ -360,10 +354,10 @@ internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
         return false;
     }
 
-    public override bool TryMapToProjectedDocumentOrNextCSharpPosition(IRazorGeneratedDocument generatedDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
+    public bool TryMapToProjectedDocumentOrNextCSharpPosition(IRazorGeneratedDocument generatedDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
         => TryMapToProjectedDocumentPositionInternal(generatedDocument, absoluteIndex, nextCSharpPositionOnFailure: true, out projectedPosition, out projectedIndex);
 
-    public override bool TryMapToProjectedDocumentPosition(IRazorGeneratedDocument generatedDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
+    public bool TryMapToProjectedDocumentPosition(IRazorGeneratedDocument generatedDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
         => TryMapToProjectedDocumentPositionInternal(generatedDocument, absoluteIndex, nextCSharpPositionOnFailure: false, out projectedPosition, out projectedIndex);
 
     private static bool TryMapToProjectedDocumentPositionInternal(IRazorGeneratedDocument generatedDocument, int absoluteIndex, bool nextCSharpPositionOnFailure, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex)
@@ -424,7 +418,7 @@ internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
         }
     }
 
-    public override RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex, bool rightAssociative)
+    public RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex, bool rightAssociative)
     {
         if (codeDocument is null)
         {
@@ -439,7 +433,7 @@ internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
         return languageKind;
     }
 
-    public async override Task<WorkspaceEdit> RemapWorkspaceEditAsync(WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit> RemapWorkspaceEditAsync(WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
     {
         if (workspaceEdit.TryGetDocumentChanges(out var documentChanges))
         {
@@ -462,7 +456,7 @@ internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
         return workspaceEdit;
     }
 
-    public async override Task<(Uri MappedDocumentUri, Range MappedRange)> MapFromProjectedDocumentRangeAsync(Uri virtualDocumentUri, Range projectedRange, CancellationToken cancellationToken)
+    public async Task<(Uri MappedDocumentUri, Range MappedRange)> MapFromProjectedDocumentRangeAsync(Uri virtualDocumentUri, Range projectedRange, CancellationToken cancellationToken)
     {
         var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(virtualDocumentUri);
 
