@@ -717,16 +717,25 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                         context.CodeWriter.Write(", ");
                     }
 
-                    foreach (var token in typeArgumentNode.Children.OfType<IntermediateToken>())
+                    writeTypeArgument(typeArgumentNode.Children);
+
+                    void writeTypeArgument(IntermediateNodeCollection typeArgumentComponents)
                     {
-                        // As per WriteComponentTypeArgument, we expect every token to be C#, but check just in case
-                        if (token.IsCSharp)
+                        foreach (var typeArgumentNodeComponent in typeArgumentComponents)
                         {
-                            context.CodeWriter.Write(token.Content);
-                        }
-                        else
-                        {
-                            Debug.Fail($"Unexpected non-C# content in a generic type parameter: '{token.Content}'");
+                            switch (typeArgumentNodeComponent)
+                            {
+                                case IntermediateToken { IsCSharp: true } token:
+                                    context.CodeWriter.Write(token.Content);
+                                    break;
+                                case CSharpExpressionIntermediateNode cSharpExpression:
+                                    writeTypeArgument(cSharpExpression.Children);
+                                    break;
+                                default:
+                                    // As per WriteComponentTypeArgument, we expect every token to be C#, but check just in case
+                                    Debug.Fail($"Unexpected non-C# content in a generic type parameter: '{typeArgumentNodeComponent}'");
+                                    break;
+                            }
                         }
                     }
                 }
