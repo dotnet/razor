@@ -182,7 +182,7 @@ public class DefinitionEndpointDelegationTest : SingleServerDelegatingEndpointTe
         Assert.Equal(range.Start.Character, location.Range.Start.Character);
     }
 
-    private async Task VerifyCSharpGoToDefinitionAsync(string input, string filePath = null)
+    private async Task VerifyCSharpGoToDefinitionAsync(string input, string? filePath = null)
     {
         // Arrange
         TestFileMarkupParser.GetPositionAndSpan(input, out var output, out var cursorPosition, out var expectedSpan);
