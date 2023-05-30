@@ -121,7 +121,7 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
                 parameter.Name = "something";
                 parameter.TypeName = typeof(string).FullName;
 
-                parameter.SetPropertyName("Something");
+                parameter.SetMetadata(CommonMetadata.PropertyName("Something"));
             });
         });
         directiveAttribute1.Metadata[TagHelperMetadata.Common.ClassifyAttributesOnly] = bool.TrueString;
@@ -159,7 +159,7 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
                 parameter.Name = "something";
                 parameter.TypeName = typeof(string).FullName;
 
-                parameter.SetPropertyName("Something");
+                parameter.SetMetadata(CommonMetadata.PropertyName("Something"));
             });
         });
         directiveAttribute2.Metadata[TagHelperMetadata.Common.ClassifyAttributesOnly] = bool.TrueString;

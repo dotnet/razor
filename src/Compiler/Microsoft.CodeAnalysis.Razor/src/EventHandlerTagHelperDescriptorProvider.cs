@@ -237,7 +237,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                                 DocumentationId.EventHandlerTagHelper_PreventDefault,
                                 attributeName));
 
-                        parameter.SetPropertyName("PreventDefault");
+                        parameter.SetMetadata(CommonMetadata.Parameters.PreventDefault);
                     });
                 }
 
@@ -252,7 +252,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                                 DocumentationId.EventHandlerTagHelper_StopPropagation,
                                 attributeName));
 
-                        parameter.SetPropertyName("StopPropagation");
+                        parameter.SetMetadata(CommonMetadata.Parameters.StopPropagation);
                     });
                 }
             });

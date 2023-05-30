@@ -4,6 +4,8 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -67,6 +69,11 @@ public static class BoundAttributeDescriptorBuilderExtensions
             string.Equals(bool.TrueString, value);
     }
 
+    internal static void SetMetadata(this BoundAttributeParameterDescriptorBuilder builder, KeyValuePair<string, string> pair)
+    {
+        builder.SetMetadata(MetadataCollection.Create(pair));
+    }
+
     public static void SetPropertyName(this BoundAttributeParameterDescriptorBuilder builder, string propertyName)
     {
         if (builder == null)
@@ -79,6 +86,8 @@ public static class BoundAttributeDescriptorBuilderExtensions
             throw new ArgumentNullException(nameof(propertyName));
         }
 
+        Debug.Fail($"Do not use this method. {nameof(BoundAttributeParameterDescriptorBuilder.SetMetadata)} should be used instead.");
+
         builder.Metadata[TagHelperMetadata.Common.PropertyName] = propertyName;
     }
 
@@ -89,8 +98,10 @@ public static class BoundAttributeDescriptorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
+        Debug.Fail($"Do not use this method. {nameof(BoundAttributeParameterDescriptorBuilder.SetMetadata)} should be used instead.");
+
         builder.Metadata[ComponentMetadata.Bind.BindAttributeGetSet] = bool.TrueString;
-    }    
+    }
 
     public static string GetPropertyName(this BoundAttributeParameterDescriptorBuilder builder)
     {
@@ -99,7 +110,9 @@ public static class BoundAttributeDescriptorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        if (builder.Metadata.TryGetValue(TagHelperMetadata.Common.PropertyName, out var value))
+        Debug.Fail($"Do not use this method. {nameof(BoundAttributeParameterDescriptorBuilder.TryGetMetadataValue)} should be used instead.");
+
+        if (builder.TryGetMetadataValue(TagHelperMetadata.Common.PropertyName, out var value))
         {
             return value;
         }

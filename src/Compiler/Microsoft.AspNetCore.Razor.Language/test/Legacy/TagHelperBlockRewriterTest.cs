@@ -2247,7 +2247,7 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                         {
                             p.Name = "event";
                             p.TypeName = typeof(string).FullName;
-                            p.SetPropertyName("Event");
+                            p.SetMetadata(CommonMetadata.PropertyName("Event"));
                         }))
                     .Build(),
         };
@@ -2291,7 +2291,7 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                         {
                             p.Name = "param";
                             p.TypeName = typeof(string).FullName;
-                            p.SetPropertyName("Param");
+                            p.SetMetadata(CommonMetadata.PropertyName("Param"));
                         }))
                     .Build(),
         };
