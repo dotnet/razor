@@ -5,12 +5,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -41,7 +43,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var hostProject = new HostProject("C:/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
         projectManager.ProjectAdded(hostProject);
         var projectService = CreateProjectService(new TestProjectResolver(), projectManager);
-        var projectWorkspaceState = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), LanguageVersion.LatestMajor);
+        var projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, LanguageVersion.LatestMajor);
 
         // Act
         projectService.UpdateProject(hostProject.FilePath, hostProject.Configuration, hostProject.RootNamespace, projectWorkspaceState, _emptyDocuments);
@@ -567,6 +569,56 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
                 Assert.Same(ownerProject.HostProject, hostProject);
                 Assert.Equal(documentFilePath, hostDocument.FilePath);
             });
+        projectSnapshotManager.Setup(manager => manager.IsDocumentOpen(It.IsAny<string>()))
+            .Returns<string>((filePath) =>
+            {
+                Assert.Equal(filePath, documentFilePath);
+                return false;
+            });
+
+        var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
+
+        // Act
+        projectService.RemoveDocument(documentFilePath);
+
+        // Assert
+        projectSnapshotManager.VerifyAll();
+    }
+
+    [Fact]
+    public void RemoveOpenDocument_RemovesDocumentFromOwnerProject_MovesToMiscellaneousProject()
+    {
+        // Arrange
+        var documentFilePath = "C:/path/to/document.cshtml";
+        var miscellaneousProject = TestProjectSnapshot.Create("C:/__MISC_PROJECT__");
+        var ownerProject = TestProjectSnapshot.Create("C:/path/to/project.csproj", new[] { documentFilePath });
+        var projectResolver = new TestProjectResolver(
+            new Dictionary<string, IProjectSnapshot>
+            {
+                [documentFilePath] = ownerProject
+            },
+            TestProjectSnapshot.Create("C:/__MISC_PROJECT__"));
+        var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
+        projectSnapshotManager.Setup(manager => manager.DocumentRemoved(It.IsAny<HostProject>(), It.IsAny<HostDocument>()))
+            .Callback<HostProject, HostDocument>((hostProject, hostDocument) =>
+            {
+                Assert.Same(ownerProject.HostProject, hostProject);
+                Assert.Equal(documentFilePath, hostDocument.FilePath);
+            });
+        projectSnapshotManager.Setup(manager => manager.DocumentAdded(It.IsAny<HostProject>(), It.IsAny<HostDocument>(), It.IsAny<TextLoader>()))
+            .Callback<HostProject, HostDocument, TextLoader>((hostProject, hostDocument, loader) =>
+            {
+                Assert.Equal(miscellaneousProject.FilePath, hostProject.FilePath);
+                Assert.Equal(documentFilePath, hostDocument.FilePath);
+                Assert.NotNull(loader);
+            });
+        projectSnapshotManager.Setup(manager => manager.IsDocumentOpen(It.IsAny<string>()))
+            .Returns<string>((filePath) =>
+            {
+                Assert.Equal(filePath, documentFilePath);
+                return true;
+            });
+
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
@@ -592,6 +644,12 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
                 Assert.Same(miscellaneousProject.HostProject, hostProject);
                 Assert.Equal(documentFilePath, hostDocument.FilePath);
             });
+        projectSnapshotManager.Setup(manager => manager.IsDocumentOpen(It.IsAny<string>()))
+            .Returns<string>((filePath) =>
+            {
+                Assert.Equal(filePath, documentFilePath);
+                return false;
+            }); 
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
