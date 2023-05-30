@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -13,6 +14,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal static class IRazorDocumentMappingServiceExtensions
 {
+    public static bool TryMapFromProjectedDocumentRange(this IRazorDocumentMappingService service, IRazorGeneratedDocument generatedDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange)
+        => service.TryMapFromProjectedDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out originalRange);
+
     public static async Task<Projection> GetProjectionAsync(this IRazorDocumentMappingService service, DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);

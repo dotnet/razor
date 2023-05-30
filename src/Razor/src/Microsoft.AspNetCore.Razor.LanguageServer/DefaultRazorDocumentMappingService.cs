@@ -214,9 +214,6 @@ internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
         return projectedEdits.ToArray();
     }
 
-    public bool TryMapFromProjectedDocumentRange(IRazorGeneratedDocument generatedDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange)
-        => TryMapFromProjectedDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out originalRange);
-
     public bool TryMapFromProjectedDocumentRange(IRazorGeneratedDocument generatedDocument, Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange)
     {
         if (generatedDocument is null)
@@ -484,7 +481,7 @@ internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
         // We already checked that the uri was for a virtual document, above
         Assumes.NotNull(generatedDocument);
 
-        if (TryMapFromProjectedDocumentRange(generatedDocument, projectedRange, out var mappedRange))
+        if (TryMapFromProjectedDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out var mappedRange))
         {
             return (razorDocumentUri, mappedRange);
         }
@@ -911,7 +908,7 @@ internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
         for (var i = 0; i < edits.Length; i++)
         {
             var projectedRange = edits[i].Range;
-            if (!TryMapFromProjectedDocumentRange(generatedDocument, projectedRange, out var originalRange))
+            if (!TryMapFromProjectedDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out var originalRange))
             {
                 // Can't map range. Discard this edit.
                 continue;
