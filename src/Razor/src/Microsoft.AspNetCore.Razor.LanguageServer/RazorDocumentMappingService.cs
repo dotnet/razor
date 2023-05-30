@@ -214,29 +214,29 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         return projectedEdits.ToArray();
     }
 
-    public bool TryMapFromProjectedDocumentRange(IRazorGeneratedDocument generatedDocument, Range projectedRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? originalRange)
+    public bool TryMapToHostDocumentRange(IRazorGeneratedDocument generatedDocument, Range generatedDocumentRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? hostDocumentRange)
     {
         if (generatedDocument is null)
         {
             throw new ArgumentNullException(nameof(generatedDocument));
         }
 
-        if (projectedRange is null)
+        if (generatedDocumentRange is null)
         {
-            throw new ArgumentNullException(nameof(projectedRange));
+            throw new ArgumentNullException(nameof(generatedDocumentRange));
         }
 
         if (mappingBehavior == MappingBehavior.Strict)
         {
-            return TryMapFromProjectedDocumentRangeStrict(generatedDocument, projectedRange, out originalRange);
+            return TryMapToHostDocumentRangeStrict(generatedDocument, generatedDocumentRange, out hostDocumentRange);
         }
         else if (mappingBehavior == MappingBehavior.Inclusive)
         {
-            return TryMapFromProjectedDocumentRangeInclusive(generatedDocument, projectedRange, out originalRange);
+            return TryMapToHostDocumentRangeInclusive(generatedDocument, generatedDocumentRange, out hostDocumentRange);
         }
         else if (mappingBehavior == MappingBehavior.Inferred)
         {
-            return TryMapFromProjectedDocumentRangeInferred(generatedDocument, projectedRange, out originalRange);
+            return TryMapToHostDocumentRangeInferred(generatedDocument, generatedDocumentRange, out hostDocumentRange);
         }
         else
         {
@@ -481,7 +481,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         // We already checked that the uri was for a virtual document, above
         Assumes.NotNull(generatedDocument);
 
-        if (TryMapFromProjectedDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out var mappedRange))
+        if (TryMapToHostDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out var mappedRange))
         {
             return (razorDocumentUri, mappedRange);
         }
@@ -586,12 +586,12 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         }
     }
 
-    private bool TryMapFromProjectedDocumentRangeStrict(IRazorGeneratedDocument generatedDocument, Range projectedRange, out Range? originalRange)
+    private bool TryMapToHostDocumentRangeStrict(IRazorGeneratedDocument generatedDocument, Range generatedDocumentRange, [NotNullWhen(returnValue: true)] out Range? hostDocumentRange)
     {
-        originalRange = default;
+        hostDocumentRange = default;
 
         var csharpSourceText = GetGeneratedSourceText(generatedDocument);
-        var range = projectedRange;
+        var range = generatedDocumentRange;
         if (!IsRangeWithinDocument(range, csharpSourceText))
         {
             return false;
@@ -609,7 +609,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             return false;
         }
 
-        originalRange = new Range
+        hostDocumentRange = new Range
         {
             Start = hostDocumentStart,
             End = hostDocumentEnd
@@ -618,24 +618,24 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         return true;
     }
 
-    private bool TryMapFromProjectedDocumentRangeInclusive(IRazorGeneratedDocument generatedDocument, Range projectedRange, [NotNullWhen(returnValue: true)] out Range? originalRange)
+    private bool TryMapToHostDocumentRangeInclusive(IRazorGeneratedDocument generatedDocument, Range generatedDocumentRange, [NotNullWhen(returnValue: true)] out Range? hostDocumentRange)
     {
         if (generatedDocument.CodeDocument is not { } codeDocument)
         {
             throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
         }
 
-        originalRange = default;
+        hostDocumentRange = default;
 
         var csharpSourceText = GetGeneratedSourceText(generatedDocument);
 
-        if (!IsRangeWithinDocument(projectedRange, csharpSourceText))
+        if (!IsRangeWithinDocument(generatedDocumentRange, csharpSourceText))
         {
             return false;
         }
 
-        var projectedRangeAsSpan = projectedRange.AsTextSpan(csharpSourceText);
-        var range = projectedRange;
+        var projectedRangeAsSpan = generatedDocumentRange.AsTextSpan(csharpSourceText);
+        var range = generatedDocumentRange;
         var startIndex = projectedRangeAsSpan.Start;
         var startMappedDirectly = TryMapFromProjectedDocumentPosition(generatedDocument, startIndex, out var hostDocumentStart, out _);
 
@@ -645,7 +645,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         if (startMappedDirectly && endMappedDirectly)
         {
             // We strictly mapped the start/end of the projected range.
-            originalRange = new Range
+            hostDocumentRange = new Range
             {
                 Start = hostDocumentStart!,
                 End = hostDocumentEnd!
@@ -675,7 +675,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             // We're intersecting or overlapping a single mapping, lets choose that.
 
             var mapping = candidateMappings[0];
-            originalRange = ConvertMapping(codeDocument.Source, mapping);
+            hostDocumentRange = ConvertMapping(codeDocument.Source, mapping);
             return true;
         }
         else
@@ -710,7 +710,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         }
     }
 
-    private bool TryMapFromProjectedDocumentRangeInferred(IRazorGeneratedDocument generatedDocument, Range projectedRange, [NotNullWhen(returnValue: true)] out Range? originalRange)
+    private bool TryMapToHostDocumentRangeInferred(IRazorGeneratedDocument generatedDocument, Range generatedDocumentRange, [NotNullWhen(returnValue: true)] out Range? hostDocumentRange)
     {
         if (generatedDocument.CodeDocument is not { } codeDocument)
         {
@@ -718,16 +718,16 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         }
 
         // Inferred mapping behavior is a superset of inclusive mapping behavior so if the range is "inclusive" lets use that mapping.
-        if (TryMapFromProjectedDocumentRangeInclusive(generatedDocument, projectedRange, out originalRange))
+        if (TryMapToHostDocumentRangeInclusive(generatedDocument, generatedDocumentRange, out hostDocumentRange))
         {
             return true;
         }
 
         // Doesn't map so lets try and infer some mappings
 
-        originalRange = default;
+        hostDocumentRange = default;
         var csharpSourceText = GetGeneratedSourceText(generatedDocument);
-        var projectedRangeAsSpan = projectedRange.AsTextSpan(csharpSourceText);
+        var projectedRangeAsSpan = generatedDocumentRange.AsTextSpan(csharpSourceText);
         SourceMapping? mappingBeforeProjectedRange = null;
         SourceMapping? mappingAfterProjectedRange = null;
 
@@ -770,7 +770,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             var originalStartPositionAfterProjectedRange = sourceDocument.Lines.GetLocation(originalSpanAfterProjectedRange.AbsoluteIndex);
             var inferredEndPosition = new Position(originalStartPositionAfterProjectedRange.LineIndex, originalStartPositionAfterProjectedRange.CharacterIndex);
 
-            originalRange = new Range()
+            hostDocumentRange = new Range()
             {
                 Start = inferredStartPosition,
                 End = inferredEndPosition,
@@ -785,7 +785,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         var endOfDocumentLocation = sourceDocument.Lines.GetLocation(sourceDocument.Length);
         var endOfDocumentPosition = new Position(endOfDocumentLocation.LineIndex, endOfDocumentLocation.CharacterIndex);
 
-        originalRange = new Range()
+        hostDocumentRange = new Range()
         {
             Start = inferredStartPosition,
             End = endOfDocumentPosition,
@@ -908,7 +908,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         for (var i = 0; i < edits.Length; i++)
         {
             var projectedRange = edits[i].Range;
-            if (!TryMapFromProjectedDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out var originalRange))
+            if (!TryMapToHostDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out var originalRange))
             {
                 // Can't map range. Discard this edit.
                 continue;

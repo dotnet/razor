@@ -72,7 +72,7 @@ internal class DocumentHighlightEndpoint : AbstractRazorDelegatingEndpoint<Docum
         var csharpDocument = codeDocument.GetCSharpDocument();
         foreach (var highlight in response)
         {
-            if (_documentMappingService.TryMapFromProjectedDocumentRange(csharpDocument, highlight.Range, out var mappedRange))
+            if (_documentMappingService.TryMapToHostDocumentRange(csharpDocument, highlight.Range, out var mappedRange))
             {
                 highlight.Range = mappedRange;
             }

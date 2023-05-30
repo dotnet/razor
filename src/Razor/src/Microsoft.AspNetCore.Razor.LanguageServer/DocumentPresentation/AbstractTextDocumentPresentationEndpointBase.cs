@@ -233,7 +233,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
         var mappedEdits = new List<TextEdit>();
         foreach (var edit in edits)
         {
-            if (!_razorDocumentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), edit.Range, out var newRange))
+            if (!_razorDocumentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), edit.Range, out var newRange))
             {
                 return null;
             }

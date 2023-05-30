@@ -125,7 +125,7 @@ internal sealed class InlineCompletionEndpoint : IRazorRequestHandler<VSInternal
             var containsSnippet = item.TextFormat == InsertTextFormat.Snippet;
             var range = item.Range ?? new Range { Start = projectedPosition, End = projectedPosition };
 
-            if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), range, out var rangeInRazorDoc))
+            if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), range, out var rangeInRazorDoc))
             {
                 requestContext.Logger.LogWarning("Could not remap projected range {range} to razor document", range);
                 continue;

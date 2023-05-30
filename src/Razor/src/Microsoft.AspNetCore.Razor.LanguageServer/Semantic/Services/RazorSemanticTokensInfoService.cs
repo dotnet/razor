@@ -143,7 +143,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
             var semanticRange = DataToSemanticRange(
                 lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
-            if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), semanticRange.Range, out var originalRange))
+            if (_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), semanticRange.Range, out var originalRange))
             {
                 var razorSemanticRange = new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers);
                 if (razorRange is null || razorRange.OverlapsWith(razorSemanticRange.Range))

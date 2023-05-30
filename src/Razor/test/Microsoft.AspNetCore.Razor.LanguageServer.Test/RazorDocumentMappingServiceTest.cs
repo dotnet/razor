@@ -39,7 +39,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         };
 
         // Act
-        var result = service.TryMapFromProjectedDocumentRange(
+        var result = service.TryMapToHostDocumentRange(
             codeDoc.GetCSharpDocument(),
             projectedRange,
             MappingBehavior.Strict,
@@ -66,7 +66,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         };
 
         // Act
-        var result = service.TryMapFromProjectedDocumentRange(
+        var result = service.TryMapToHostDocumentRange(
             codeDoc.GetCSharpDocument(),
             projectedRange,
             MappingBehavior.Strict,
@@ -98,7 +98,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         };
 
         // Act
-        var result = service.TryMapFromProjectedDocumentRange(
+        var result = service.TryMapToHostDocumentRange(
             codeDoc.GetCSharpDocument(),
             projectedRange,
             MappingBehavior.Strict,
@@ -130,7 +130,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         };
 
         // Act
-        var result = service.TryMapFromProjectedDocumentRange(
+        var result = service.TryMapToHostDocumentRange(
             codeDoc.GetCSharpDocument(),
             projectedRange,
             MappingBehavior.Inclusive,
@@ -162,7 +162,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         };
 
         // Act
-        var result = service.TryMapFromProjectedDocumentRange(
+        var result = service.TryMapToHostDocumentRange(
             codeDoc.GetCSharpDocument(),
             projectedRange,
             MappingBehavior.Inclusive,
@@ -194,7 +194,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         };
 
         // Act
-        var result = service.TryMapFromProjectedDocumentRange(
+        var result = service.TryMapToHostDocumentRange(
             codeDoc.GetCSharpDocument(),
             projectedRange,
             MappingBehavior.Inclusive,
@@ -225,7 +225,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         };
 
         // Act
-        var result = service.TryMapFromProjectedDocumentRange(
+        var result = service.TryMapToHostDocumentRange(
             codeDoc.GetCSharpDocument(),
             projectedRange,
             MappingBehavior.Inclusive,
@@ -256,7 +256,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         };
 
         // Act
-        var result = service.TryMapFromProjectedDocumentRange(
+        var result = service.TryMapToHostDocumentRange(
             codeDoc.GetCSharpDocument(),
             projectedRange,
             MappingBehavior.Inclusive,
@@ -288,7 +288,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         };
 
         // Act
-        var result = service.TryMapFromProjectedDocumentRange(
+        var result = service.TryMapToHostDocumentRange(
             codeDoc.GetCSharpDocument(),
             projectedRange,
             MappingBehavior.Inclusive,
@@ -319,7 +319,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         };
 
         // Act
-        var result = service.TryMapFromProjectedDocumentRange(
+        var result = service.TryMapToHostDocumentRange(
             codeDoc.GetCSharpDocument(),
             projectedRange,
             MappingBehavior.Inclusive,
@@ -351,7 +351,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         };
 
         // Act
-        var result = service.TryMapFromProjectedDocumentRange(
+        var result = service.TryMapToHostDocumentRange(
             codeDoc.GetCSharpDocument(),
             projectedRange,
             MappingBehavior.Inferred,
@@ -378,7 +378,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         };
 
         // Act
-        var result = service.TryMapFromProjectedDocumentRange(
+        var result = service.TryMapToHostDocumentRange(
             codeDoc.GetCSharpDocument(),
             projectedRange,
             MappingBehavior.Inferred,
@@ -413,7 +413,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         };
 
         // Act
-        var result = service.TryMapFromProjectedDocumentRange(
+        var result = service.TryMapToHostDocumentRange(
             codeDoc.GetCSharpDocument(),
             projectedRange,
             MappingBehavior.Inferred,
@@ -445,7 +445,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         };
 
         // Act
-        var result = service.TryMapFromProjectedDocumentRange(
+        var result = service.TryMapToHostDocumentRange(
             codeDoc.GetCSharpDocument(),
             projectedRange,
             MappingBehavior.Inferred,

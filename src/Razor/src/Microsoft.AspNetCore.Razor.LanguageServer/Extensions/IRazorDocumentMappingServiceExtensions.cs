@@ -14,8 +14,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal static class IRazorDocumentMappingServiceExtensions
 {
-    public static bool TryMapFromProjectedDocumentRange(this IRazorDocumentMappingService service, IRazorGeneratedDocument generatedDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange)
-        => service.TryMapFromProjectedDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out originalRange);
+    public static bool TryMapToHostDocumentRange(this IRazorDocumentMappingService service, IRazorGeneratedDocument generatedDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange)
+        => service.TryMapToHostDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out originalRange);
 
     public static async Task<Projection> GetProjectionAsync(this IRazorDocumentMappingService service, DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
     {

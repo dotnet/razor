@@ -92,7 +92,7 @@ internal sealed class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeA
             return codeAction;
         }
 
-        if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), textEdit.Range, MappingBehavior.Inclusive, out var originalRange))
+        if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), textEdit.Range, MappingBehavior.Inclusive, out var originalRange))
         {
             // Text edit failed to map
             return codeAction;

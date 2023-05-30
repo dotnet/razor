@@ -91,7 +91,7 @@ internal class RazorMapToDocumentEditsEndpoint : IRazorMapToDocumentEditsHandler
         for (var i = 0; i < request.ProjectedTextEdits.Length; i++)
         {
             var projectedRange = request.ProjectedTextEdits[i].Range;
-            if (!documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), projectedRange, out var originalRange))
+            if (!documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), projectedRange, out var originalRange))
             {
                 // Can't map range. Discard this edit.
                 continue;

@@ -99,7 +99,7 @@ internal class RazorBreakpointSpanEndpoint : IRazorDocumentlessRequestHandler<Ra
 
         // Now map that new C# location back to the host document
         var mappingBehavior = GetMappingBehavior(documentContext);
-        if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), projectedRange, mappingBehavior, out var hostDocumentRange))
+        if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), projectedRange, mappingBehavior, out var hostDocumentRange))
         {
             return null;
         }

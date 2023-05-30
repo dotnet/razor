@@ -111,7 +111,7 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
         {
             var range = GetRange(foldingRange);
 
-            if (_documentMappingService.TryMapFromProjectedDocumentRange(
+            if (_documentMappingService.TryMapToHostDocumentRange(
                 codeDocument.GetCSharpDocument(),
                 range,
                 out var mappedRange))
