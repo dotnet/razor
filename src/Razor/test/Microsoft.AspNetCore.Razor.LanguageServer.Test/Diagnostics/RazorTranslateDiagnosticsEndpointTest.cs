@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
@@ -1197,7 +1198,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         descriptor.BindAttribute(builder =>
             builder
                 .Name("onactivate")
-                .PropertyName("onactivate")
+                .Metadata(PropertyName("onactivate"))
                 .TypeName(typeof(string).FullName));
         return descriptor;
     }

@@ -75,7 +75,7 @@ internal class SplatTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 rule.Attribute(attribute =>
                 {
                     attribute.Name = "@attributes";
-                    attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                    attribute.SetMetadata(CommonMetadata.Attributes.IsDirectiveAttribute);
                 });
             });
 
@@ -84,11 +84,10 @@ internal class SplatTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 attribute.SetDocumentation(DocumentationDescriptor.SplatTagHelper);
                 attribute.Name = "@attributes";
 
-                // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
-                // a C# property will crash trying to create the tooltips.
-                attribute.SetPropertyName("Attributes");
                 attribute.TypeName = typeof(object).FullName;
-                attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                attribute.SetMetadata(
+                    CommonMetadata.PropertyName("Attributes"),
+                    CommonMetadata.IsDirectiveAttribute);
             });
 
             return builder.Build();

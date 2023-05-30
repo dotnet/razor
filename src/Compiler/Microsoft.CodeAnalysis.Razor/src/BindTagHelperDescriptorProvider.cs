@@ -172,16 +172,16 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
             builder.BindAttribute(attribute =>
             {
-                attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                 attribute.SetDocumentation(DocumentationDescriptor.BindTagHelper_Fallback);
 
                 var attributeName = "@bind-...";
                 attribute.Name = attributeName;
                 attribute.AsDictionary("@bind-", typeof(object).FullName);
 
-                // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
-                // a C# property will crash trying to create the toolips.
-                attribute.SetPropertyName("Bind");
+                attribute.SetMetadata(
+                    CommonMetadata.PropertyName("Bind"),
+                    CommonMetadata.IsDirectiveAttribute);
+
                 attribute.TypeName = "System.Collections.Generic.Dictionary<string, object>";
 
                 attribute.BindAttributeParameter(parameter =>
@@ -468,7 +468,6 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
             builder.BindAttribute(a =>
             {
-                a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                 a.SetDocumentation(
                     DocumentationDescriptor.From(
                         DocumentationId.BindTagHelper_Element,
@@ -478,9 +477,9 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 a.Name = attributeName;
                 a.TypeName = typeof(object).FullName;
 
-                // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
-                // a C# property will crash trying to create the toolips.
-                a.SetPropertyName(name);
+                a.SetMetadata(
+                    CommonMetadata.IsDirectiveAttribute,
+                    CommonMetadata.PropertyName(name));
 
                 a.BindAttributeParameter(parameter =>
                 {
@@ -553,9 +552,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                         DocumentationId.BindTagHelper_Element_Format,
                         attributeName));
 
-                // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
-                // a C# property will crash trying to create the toolips.
-                attribute.SetPropertyName(formatName);
+                attribute.SetMetadata(CommonMetadata.PropertyName(formatName));
             });
 
             results.Add(builder.Build());
@@ -684,7 +681,6 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
                 builder.BindAttribute(attribute =>
                 {
-                    attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
                     attribute.SetDocumentation(
                         DocumentationDescriptor.From(
                             DocumentationId.BindTagHelper_Component,
@@ -695,9 +691,9 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     attribute.TypeName = changeAttribute.TypeName;
                     attribute.IsEnum = valueAttribute.IsEnum;
 
-                    // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
-                    // a C# property will crash trying to create the toolips.
-                    attribute.SetPropertyName(valueAttribute.GetPropertyName());
+                    attribute.SetMetadata(
+                        CommonMetadata.PropertyName(valueAttribute.GetPropertyName()),
+                        CommonMetadata.IsDirectiveAttribute);
 
                     attribute.BindAttributeParameter(parameter =>
                     {

@@ -115,12 +115,12 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
         _documentationObject = new(documentation);
     }
 
-    internal override void SetMetadata(MetadataCollection metadata)
+    public override void SetMetadata(MetadataCollection metadata)
     {
         _metadata = metadata;
     }
 
-    internal override bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
+    public override bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
     {
         if (_metadata is { } metadata)
         {
@@ -181,7 +181,11 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
         }
 
         var parentTypeName = _parent.GetTypeName();
-        var propertyName = this.GetPropertyName();
+
+        if (!TryGetMetadataValue(TagHelperMetadata.Common.PropertyName, out var propertyName))
+        {
+            propertyName = null;
+        }
 
         if (TypeName != null &&
             propertyName != null &&

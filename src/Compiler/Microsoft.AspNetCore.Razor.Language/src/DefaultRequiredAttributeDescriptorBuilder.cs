@@ -52,12 +52,12 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
 
     internal bool CaseSensitive => _parent.CaseSensitive;
 
-    internal override void SetMetadata(MetadataCollection metadata)
+    public override void SetMetadata(MetadataCollection metadata)
     {
         _metadata = metadata;
     }
 
-    internal override bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
+    public override bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
     {
         if (_metadata is { } metadata)
         {

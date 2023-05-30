@@ -12,6 +12,30 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public static class BoundAttributeDescriptorBuilderExtensions
 {
+    public static void SetMetadata(
+        this BoundAttributeDescriptorBuilder builder,
+        KeyValuePair<string, string> pair)
+    {
+        builder.SetMetadata(MetadataCollection.Create(pair));
+    }
+
+    internal static void SetMetadata(
+        this BoundAttributeDescriptorBuilder builder,
+        KeyValuePair<string, string> pair1,
+        KeyValuePair<string, string> pair2)
+    {
+        builder.SetMetadata(MetadataCollection.Create(pair1, pair2));
+    }
+
+    internal static void SetMetadata(
+        this BoundAttributeDescriptorBuilder builder,
+        KeyValuePair<string, string> pair1,
+        KeyValuePair<string, string> pair2,
+        KeyValuePair<string, string> pair3)
+    {
+        builder.SetMetadata(MetadataCollection.Create(pair1, pair2, pair3));
+    }
+
     public static void SetPropertyName(this BoundAttributeDescriptorBuilder builder, string propertyName)
     {
         if (builder == null)
@@ -24,6 +48,8 @@ public static class BoundAttributeDescriptorBuilderExtensions
             throw new ArgumentNullException(nameof(propertyName));
         }
 
+        Debug.Fail($"Do not use this method. {nameof(BoundAttributeDescriptorBuilder.SetMetadata)} should be used instead.");
+
         builder.Metadata[TagHelperMetadata.Common.PropertyName] = propertyName;
     }
 
@@ -34,7 +60,9 @@ public static class BoundAttributeDescriptorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        if (builder.Metadata.TryGetValue(TagHelperMetadata.Common.PropertyName, out var value))
+        Debug.Fail($"Do not use this method. {nameof(BoundAttributeDescriptorBuilder.TryGetMetadataValue)} should be used instead.");
+
+        if (builder.TryGetMetadataValue(TagHelperMetadata.Common.PropertyName, out var value))
         {
             return value;
         }
@@ -64,9 +92,8 @@ public static class BoundAttributeDescriptorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return
-            builder.Metadata.TryGetValue(ComponentMetadata.Common.DirectiveAttribute, out var value) &&
-            string.Equals(bool.TrueString, value);
+        return builder.TryGetMetadataValue(ComponentMetadata.Common.DirectiveAttribute, out var value) &&
+               value == bool.TrueString;
     }
 
     internal static void SetMetadata(this BoundAttributeParameterDescriptorBuilder builder, KeyValuePair<string, string> pair)
@@ -122,6 +149,8 @@ public static class BoundAttributeDescriptorBuilderExtensions
 
     public static void SetGloballyQualifiedTypeName(this BoundAttributeDescriptorBuilder builder, string globallyQualifiedTypeName)
     {
+        Debug.Fail($"Do not use this method. {nameof(BoundAttributeDescriptorBuilder.SetMetadata)} should be used instead.");
+
         builder.Metadata[TagHelperMetadata.Common.GloballyQualifiedTypeName] = globallyQualifiedTypeName;
     }
 }

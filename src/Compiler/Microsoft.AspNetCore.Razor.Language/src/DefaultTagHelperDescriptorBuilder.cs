@@ -168,7 +168,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         _documentationObject = new(documentation);
     }
 
-    internal override void SetMetadata(MetadataCollection metadata)
+    public override void SetMetadata(MetadataCollection metadata)
     {
         Debug.Assert(
             metadata.ContainsKey(TagHelperMetadata.Runtime.Name),
@@ -177,7 +177,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         _metadata = metadata;
     }
 
-    internal override bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
+    public override bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
     {
         if (_metadata is { } metadata)
         {

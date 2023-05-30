@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Test;
 using Xunit;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
@@ -335,12 +336,12 @@ public class DefaultTagHelperDescriptorFactoryTest
                             .BoundAttributeDescriptor(builder =>
                                 builder
                                     .Name("non-enum-property")
-                                    .PropertyName(nameof(EnumTagHelper.NonEnumProperty))
+                                    .Metadata(PropertyName(nameof(EnumTagHelper.NonEnumProperty)))
                                     .TypeName(typeof(int).FullName))
                             .BoundAttributeDescriptor(builder =>
                                 builder
                                     .Name("enum-property")
-                                    .PropertyName(nameof(EnumTagHelper.EnumProperty))
+                                    .Metadata(PropertyName(nameof(EnumTagHelper.EnumProperty)))
                                     .TypeName(typeof(CustomEnum).FullName)
                                     .AsEnum())
                             .Build()
@@ -356,12 +357,12 @@ public class DefaultTagHelperDescriptorFactoryTest
                             .BoundAttributeDescriptor(builder =>
                                 builder
                                     .Name("non-enum-property")
-                                    .PropertyName(nameof(MultiEnumTagHelper.NonEnumProperty))
+                                    .Metadata(PropertyName(nameof(MultiEnumTagHelper.NonEnumProperty)))
                                     .TypeName(typeof(int).FullName))
                             .BoundAttributeDescriptor(builder =>
                                 builder
                                     .Name("enum-property")
-                                    .PropertyName(nameof(MultiEnumTagHelper.EnumProperty))
+                                    .Metadata(PropertyName(nameof(MultiEnumTagHelper.EnumProperty)))
                                     .TypeName(typeof(CustomEnum).FullName)
                                     .AsEnum())
                             .Build()
@@ -376,18 +377,18 @@ public class DefaultTagHelperDescriptorFactoryTest
                             .BoundAttributeDescriptor(builder =>
                                 builder
                                     .Name("nested-enum-property")
-                                    .PropertyName(nameof(NestedEnumTagHelper.NestedEnumProperty))
+                                    .Metadata(PropertyName(nameof(NestedEnumTagHelper.NestedEnumProperty)))
                                     .TypeName($"{typeof(NestedEnumTagHelper).FullName}.{nameof(NestedEnumTagHelper.NestedEnum)}")
                                     .AsEnum())
                             .BoundAttributeDescriptor(builder =>
                                 builder
                                     .Name("non-enum-property")
-                                    .PropertyName(nameof(NestedEnumTagHelper.NonEnumProperty))
+                                    .Metadata(PropertyName(nameof(NestedEnumTagHelper.NonEnumProperty)))
                                     .TypeName(typeof(int).FullName))
                             .BoundAttributeDescriptor(builder =>
                                 builder
                                     .Name("enum-property")
-                                    .PropertyName(nameof(NestedEnumTagHelper.EnumProperty))
+                                    .Metadata(PropertyName(nameof(NestedEnumTagHelper.EnumProperty)))
                                     .TypeName(typeof(CustomEnum).FullName)
                                     .AsEnum())
                             .Build()
@@ -618,7 +619,7 @@ public class DefaultTagHelperDescriptorFactoryTest
                             {
                                 builder => builder
                                     .Name("property")
-                                    .PropertyName(nameof(InheritedEditorBrowsableTagHelper.Property))
+                                    .Metadata(PropertyName(nameof(InheritedEditorBrowsableTagHelper.Property)))
                                     .TypeName(typeof(int).FullName),
                             })
                     },
@@ -636,7 +637,7 @@ public class DefaultTagHelperDescriptorFactoryTest
                             {
                                 builder => builder
                                     .Name("property")
-                                    .PropertyName(nameof(EditorBrowsableTagHelper.Property))
+                                    .Metadata(PropertyName(nameof(EditorBrowsableTagHelper.Property)))
                                     .TypeName(typeof(int).FullName),
                             })
                     },
@@ -663,7 +664,7 @@ public class DefaultTagHelperDescriptorFactoryTest
                             {
                                 builder => builder
                                     .Name("property")
-                                    .PropertyName(nameof(HiddenPropertyEditorBrowsableTagHelper.Property))
+                                    .Metadata(PropertyName(nameof(HiddenPropertyEditorBrowsableTagHelper.Property)))
                                     .TypeName(typeof(int).FullName),
                             })
                     },
@@ -680,7 +681,7 @@ public class DefaultTagHelperDescriptorFactoryTest
                             {
                                 builder => builder
                                     .Name("property")
-                                    .PropertyName(nameof(OverriddenEditorBrowsableTagHelper.Property))
+                                    .Metadata(PropertyName(nameof(OverriddenEditorBrowsableTagHelper.Property)))
                                     .TypeName(typeof(int).FullName),
                             })
                     },
@@ -697,7 +698,7 @@ public class DefaultTagHelperDescriptorFactoryTest
                             {
                                 builder => builder
                                     .Name("property2")
-                                    .PropertyName(nameof(MultiPropertyEditorBrowsableTagHelper.Property2))
+                                    .Metadata(PropertyName(nameof(MultiPropertyEditorBrowsableTagHelper.Property2)))
                                     .TypeName(typeof(int).FullName),
                             })
                     },
@@ -714,11 +715,11 @@ public class DefaultTagHelperDescriptorFactoryTest
                             {
                                 builder => builder
                                     .Name("property")
-                                    .PropertyName(nameof(MultiPropertyEditorBrowsableTagHelper.Property))
+                                    .Metadata(PropertyName(nameof(MultiPropertyEditorBrowsableTagHelper.Property)))
                                     .TypeName(typeof(int).FullName),
                                 builder => builder
                                     .Name("property2")
-                                    .PropertyName(nameof(MultiPropertyEditorBrowsableTagHelper.Property2))
+                                    .Metadata(PropertyName(nameof(MultiPropertyEditorBrowsableTagHelper.Property2)))
                                     .TypeName(typeof(int).FullName),
                             })
                     },
@@ -745,11 +746,11 @@ public class DefaultTagHelperDescriptorFactoryTest
                             {
                                 builder => builder
                                     .Name("property2")
-                                    .PropertyName(nameof(OverriddenPropertyEditorBrowsableTagHelper.Property2))
+                                    .Metadata(PropertyName(nameof(OverriddenPropertyEditorBrowsableTagHelper.Property2)))
                                     .TypeName(typeof(int).FullName),
                                 builder => builder
                                     .Name("property")
-                                    .PropertyName(nameof(OverriddenPropertyEditorBrowsableTagHelper.Property))
+                                    .Metadata(PropertyName(nameof(OverriddenPropertyEditorBrowsableTagHelper.Property)))
                                     .TypeName(typeof(int).FullName),
                             })
                     },
@@ -766,7 +767,7 @@ public class DefaultTagHelperDescriptorFactoryTest
                             {
                                 builder => builder
                                     .Name("property")
-                                    .PropertyName(nameof(DefaultEditorBrowsableTagHelper.Property))
+                                    .Metadata(PropertyName(nameof(DefaultEditorBrowsableTagHelper.Property)))
                                     .TypeName(typeof(int).FullName),
                             })
                     },
@@ -1071,14 +1072,14 @@ public class DefaultTagHelperDescriptorFactoryTest
                 typeNameIdentifier: nameof(OverriddenAttributeTagHelper),
                 new Action<BoundAttributeDescriptorBuilder>[]
                 {
-                        builder => builder
-                            .Name("SomethingElse")
-                            .PropertyName(validProperty1.Name)
-                            .TypeName(validProperty1.PropertyType.FullName),
-                        builder => builder
-                            .Name("Something-Else")
-                            .PropertyName(validProperty2.Name)
-                            .TypeName(validProperty2.PropertyType.FullName),
+                    builder => builder
+                        .Name("SomethingElse")
+                        .Metadata(PropertyName(validProperty1.Name))
+                        .TypeName(validProperty1.PropertyType.FullName),
+                    builder => builder
+                        .Name("Something-Else")
+                        .Metadata(PropertyName(validProperty2.Name))
+                        .TypeName(validProperty2.PropertyType.FullName),
                 });
         var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(typeof(OverriddenAttributeTagHelper).FullName);
@@ -1107,14 +1108,14 @@ public class DefaultTagHelperDescriptorFactoryTest
                 typeNameIdentifier: nameof(InheritedOverriddenAttributeTagHelper),
                 new Action<BoundAttributeDescriptorBuilder>[]
                 {
-                        builder => builder
-                            .Name("valid-attribute1")
-                            .PropertyName(validProperty1.Name)
-                            .TypeName(validProperty1.PropertyType.FullName),
-                        builder => builder
-                            .Name("Something-Else")
-                            .PropertyName(validProperty2.Name)
-                            .TypeName(validProperty2.PropertyType.FullName),
+                    builder => builder
+                        .Name("valid-attribute1")
+                        .Metadata(PropertyName(validProperty1.Name))
+                        .TypeName(validProperty1.PropertyType.FullName),
+                    builder => builder
+                        .Name("Something-Else")
+                        .Metadata(PropertyName(validProperty2.Name))
+                        .TypeName(validProperty2.PropertyType.FullName),
                 });
         var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(typeof(InheritedOverriddenAttributeTagHelper).FullName);
@@ -1143,14 +1144,14 @@ public class DefaultTagHelperDescriptorFactoryTest
                 typeNameIdentifier: nameof(InheritedNotOverriddenAttributeTagHelper),
                 new Action<BoundAttributeDescriptorBuilder>[]
                 {
-                        builder => builder
-                            .Name("SomethingElse")
-                            .PropertyName(validProperty1.Name)
-                            .TypeName(validProperty1.PropertyType.FullName),
-                        builder => builder
-                            .Name("Something-Else")
-                            .PropertyName(validProperty2.Name)
-                            .TypeName(validProperty2.PropertyType.FullName),
+                    builder => builder
+                        .Name("SomethingElse")
+                        .Metadata(PropertyName(validProperty1.Name))
+                        .TypeName(validProperty1.PropertyType.FullName),
+                    builder => builder
+                        .Name("Something-Else")
+                        .Metadata(PropertyName(validProperty2.Name))
+                        .TypeName(validProperty2.PropertyType.FullName),
                 });
         var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(typeof(InheritedNotOverriddenAttributeTagHelper).FullName);
@@ -1174,10 +1175,10 @@ public class DefaultTagHelperDescriptorFactoryTest
             typeNameIdentifier: nameof(InheritedSingleAttributeTagHelper),
             new Action<BoundAttributeDescriptorBuilder>[]
             {
-                    builder => builder
-                        .Name("int-attribute")
-                        .PropertyName(nameof(InheritedSingleAttributeTagHelper.IntAttribute))
-                        .TypeName(typeof(int).FullName)
+                builder => builder
+                    .Name("int-attribute")
+                    .Metadata(PropertyName(nameof(InheritedSingleAttributeTagHelper.IntAttribute)))
+                    .TypeName(typeof(int).FullName)
             });
         var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(typeof(InheritedSingleAttributeTagHelper).FullName);
@@ -1202,10 +1203,10 @@ public class DefaultTagHelperDescriptorFactoryTest
             typeNameIdentifier: nameof(SingleAttributeTagHelper),
             new Action<BoundAttributeDescriptorBuilder>[]
             {
-                    builder => builder
-                        .Name("int-attribute")
-                        .PropertyName(intProperty.Name)
-                        .TypeName(intProperty.PropertyType.FullName)
+                builder => builder
+                    .Name("int-attribute")
+                    .Metadata(PropertyName(intProperty.Name))
+                    .TypeName(intProperty.PropertyType.FullName)
             });
         var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(typeof(SingleAttributeTagHelper).FullName);
@@ -1231,10 +1232,10 @@ public class DefaultTagHelperDescriptorFactoryTest
             typeNameIdentifier: nameof(MissingAccessorTagHelper),
             new Action<BoundAttributeDescriptorBuilder>[]
             {
-                    builder => builder
-                        .Name("valid-attribute")
-                        .PropertyName(validProperty.Name)
-                        .TypeName(validProperty.PropertyType.FullName)
+                builder => builder
+                    .Name("valid-attribute")
+                    .Metadata(PropertyName(validProperty.Name))
+                    .TypeName(validProperty.PropertyType.FullName)
             });
         var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(typeof(MissingAccessorTagHelper).FullName);
@@ -1260,10 +1261,10 @@ public class DefaultTagHelperDescriptorFactoryTest
             typeNameIdentifier: nameof(NonPublicAccessorTagHelper),
             new Action<BoundAttributeDescriptorBuilder>[]
             {
-                    builder => builder
-                        .Name("valid-attribute")
-                        .PropertyName(validProperty.Name)
-                        .TypeName(validProperty.PropertyType.FullName)
+                builder => builder
+                    .Name("valid-attribute")
+                    .Metadata(PropertyName(validProperty.Name))
+                    .TypeName(validProperty.PropertyType.FullName)
             });
         var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(typeof(NonPublicAccessorTagHelper).FullName);
@@ -1287,10 +1288,10 @@ public class DefaultTagHelperDescriptorFactoryTest
             typeNameIdentifier: nameof(NotBoundAttributeTagHelper),
             new Action<BoundAttributeDescriptorBuilder>[]
             {
-                    builder => builder
-                        .Name("bound-property")
-                        .PropertyName(nameof(NotBoundAttributeTagHelper.BoundProperty))
-                        .TypeName(typeof(object).FullName)
+                builder => builder
+                    .Name("bound-property")
+                    .Metadata(PropertyName(nameof(NotBoundAttributeTagHelper.BoundProperty)))
+                    .TypeName(typeof(object).FullName)
             });
         var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(typeof(NotBoundAttributeTagHelper).FullName);
@@ -1315,15 +1316,15 @@ public class DefaultTagHelperDescriptorFactoryTest
                 typeNameIdentifier: nameof(MultiTagTagHelper),
                 new Action<BoundAttributeDescriptorBuilder>[]
                 {
-                        builder => builder
-                            .Name("valid-attribute")
-                            .PropertyName(nameof(MultiTagTagHelper.ValidAttribute))
-                            .TypeName(typeof(string).FullName),
+                    builder => builder
+                        .Name("valid-attribute")
+                        .Metadata(PropertyName(nameof(MultiTagTagHelper.ValidAttribute)))
+                        .TypeName(typeof(string).FullName),
                 },
                 new Action<TagMatchingRuleDescriptorBuilder>[]
                 {
-                        builder => builder.RequireTagName("p"),
-                        builder => builder.RequireTagName("div"),
+                    builder => builder.RequireTagName("p"),
+                    builder => builder.RequireTagName("div"),
                 });
         var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(typeof(MultiTagTagHelper).FullName);
@@ -1348,10 +1349,10 @@ public class DefaultTagHelperDescriptorFactoryTest
                 typeNameIdentifier: nameof(InheritedMultiTagTagHelper),
                 new Action<BoundAttributeDescriptorBuilder>[]
                 {
-                        builder => builder
-                            .Name("valid-attribute")
-                            .PropertyName(validProp.Name)
-                            .TypeName(validProp.PropertyType.FullName),
+                    builder => builder
+                        .Name("valid-attribute")
+                        .Metadata(PropertyName(validProp.Name))
+                        .TypeName(validProp.PropertyType.FullName),
                 });
         var factory = new DefaultTagHelperDescriptorFactory(Compilation, includeDocumentation: false, excludeHidden: false);
         var typeSymbol = Compilation.GetTypeByMetadataName(typeof(InheritedMultiTagTagHelper).FullName);
@@ -1498,9 +1499,9 @@ public class DefaultTagHelperDescriptorFactoryTest
                             CreateAttributeFor(typeof(InvalidBoundAttribute), attribute =>
                             {
                                 attribute
-                                .Name("data-something")
-                                .PropertyName(nameof(InvalidBoundAttribute.DataSomething))
-                                .TypeName(typeof(string).FullName);
+                                    .Name("data-something")
+                                    .Metadata(PropertyName(nameof(InvalidBoundAttribute.DataSomething)))
+                                    .TypeName(typeof(string).FullName);
                             }),
                         }
                     },
@@ -1511,15 +1512,15 @@ public class DefaultTagHelperDescriptorFactoryTest
                             CreateAttributeFor(typeof(InvalidBoundAttributeWithValid), attribute =>
                             {
                                 attribute
-                                .Name("data-something")
-                                .PropertyName(nameof(InvalidBoundAttributeWithValid.DataSomething))
-                                .TypeName(typeof(string).FullName); ;
+                                    .Name("data-something")
+                                    .Metadata(PropertyName(nameof(InvalidBoundAttributeWithValid.DataSomething)))
+                                    .TypeName(typeof(string).FullName); ;
                             }),
                             CreateAttributeFor(typeof(InvalidBoundAttributeWithValid), attribute =>
                             {
                                 attribute
                                 .Name("int-attribute")
-                                .PropertyName(nameof(InvalidBoundAttributeWithValid.IntAttribute))
+                                .Metadata(PropertyName(nameof(InvalidBoundAttributeWithValid.IntAttribute)))
                                 .TypeName(typeof(int).FullName);
                             }),
                         }
@@ -1532,7 +1533,7 @@ public class DefaultTagHelperDescriptorFactoryTest
                             {
                                 attribute
                                 .Name("valid-something")
-                                .PropertyName(nameof(OverriddenInvalidBoundAttributeWithValid.DataSomething))
+                                .Metadata(PropertyName(nameof(OverriddenInvalidBoundAttributeWithValid.DataSomething)))
                                 .TypeName(typeof(string).FullName);
                             }),
                         }
@@ -1545,7 +1546,7 @@ public class DefaultTagHelperDescriptorFactoryTest
                             {
                                 attribute
                                 .Name("data-something")
-                                .PropertyName(nameof(OverriddenValidBoundAttributeWithInvalid.ValidSomething))
+                                .Metadata(PropertyName(nameof(OverriddenValidBoundAttributeWithInvalid.ValidSomething)))
                                 .TypeName(typeof(string).FullName);
                             }),
                         }
@@ -1558,7 +1559,7 @@ public class DefaultTagHelperDescriptorFactoryTest
                             {
                                 attribute
                                 .Name("DATA-SOMETHING")
-                                .PropertyName(nameof(OverriddenValidBoundAttributeWithInvalidUpperCase.ValidSomething))
+                                .Metadata(PropertyName(nameof(OverriddenValidBoundAttributeWithInvalidUpperCase.ValidSomething)))
                                 .TypeName(typeof(string).FullName);
                             }),
                         }
@@ -1885,10 +1886,10 @@ public class DefaultTagHelperDescriptorFactoryTest
                             CreateAttributeFor(typeof(DefaultValidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .Name("dictionary-property")
-                                .PropertyName(nameof(DefaultValidHtmlAttributePrefix.DictionaryProperty))
-                                .TypeName($"{dictionaryNamespace}<System.String, System.String>")
-                                .AsDictionaryAttribute("dictionary-property-", typeof(string).FullName);
+                                    .Name("dictionary-property")
+                                    .Metadata(PropertyName(nameof(DefaultValidHtmlAttributePrefix.DictionaryProperty)))
+                                    .TypeName($"{dictionaryNamespace}<System.String, System.String>")
+                                    .AsDictionaryAttribute("dictionary-property-", typeof(string).FullName);
                             }),
                         },
                         Enumerable.Empty<RazorDiagnostic>()
@@ -1900,10 +1901,10 @@ public class DefaultTagHelperDescriptorFactoryTest
                             CreateAttributeFor(typeof(SingleValidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .Name("valid-name")
-                                .PropertyName(nameof(SingleValidHtmlAttributePrefix.DictionaryProperty))
-                                .TypeName($"{dictionaryNamespace}<System.String, System.String>")
-                                .AsDictionaryAttribute("valid-name-", typeof(string).FullName);
+                                    .Name("valid-name")
+                                    .Metadata(PropertyName(nameof(SingleValidHtmlAttributePrefix.DictionaryProperty)))
+                                    .TypeName($"{dictionaryNamespace}<System.String, System.String>")
+                                    .AsDictionaryAttribute("valid-name-", typeof(string).FullName);
                             }),
                         },
                         Enumerable.Empty<RazorDiagnostic>()
@@ -1915,63 +1916,63 @@ public class DefaultTagHelperDescriptorFactoryTest
                             CreateAttributeFor(typeof(MultipleValidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .Name("valid-name1")
-                                .PropertyName(nameof(MultipleValidHtmlAttributePrefix.DictionaryProperty))
-                                .TypeName($"{typeof(Dictionary<,>).Namespace}.Dictionary<System.String, System.Object>")
-                                .AsDictionaryAttribute("valid-prefix1-", typeof(object).FullName);
+                                    .Name("valid-name1")
+                                    .Metadata(PropertyName(nameof(MultipleValidHtmlAttributePrefix.DictionaryProperty)))
+                                    .TypeName($"{typeof(Dictionary<,>).Namespace}.Dictionary<System.String, System.Object>")
+                                    .AsDictionaryAttribute("valid-prefix1-", typeof(object).FullName);
                             }),
                             CreateAttributeFor(typeof(MultipleValidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .Name("valid-name2")
-                                .PropertyName(nameof(MultipleValidHtmlAttributePrefix.DictionarySubclassProperty))
-                                .TypeName(typeof(DictionarySubclass).FullName)
-                                .AsDictionaryAttribute("valid-prefix2-", typeof(string).FullName);
+                                    .Name("valid-name2")
+                                    .Metadata(PropertyName(nameof(MultipleValidHtmlAttributePrefix.DictionarySubclassProperty)))
+                                    .TypeName(typeof(DictionarySubclass).FullName)
+                                    .AsDictionaryAttribute("valid-prefix2-", typeof(string).FullName);
                             }),
                             CreateAttributeFor(typeof(MultipleValidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .Name("valid-name3")
-                                .PropertyName(nameof(MultipleValidHtmlAttributePrefix.DictionaryWithoutParameterlessConstructorProperty))
-                                .TypeName(typeof(DictionaryWithoutParameterlessConstructor).FullName)
-                                .AsDictionaryAttribute("valid-prefix3-", typeof(string).FullName);
+                                    .Name("valid-name3")
+                                    .Metadata(PropertyName(nameof(MultipleValidHtmlAttributePrefix.DictionaryWithoutParameterlessConstructorProperty)))
+                                    .TypeName(typeof(DictionaryWithoutParameterlessConstructor).FullName)
+                                    .AsDictionaryAttribute("valid-prefix3-", typeof(string).FullName);
                             }),
                             CreateAttributeFor(typeof(MultipleValidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .Name("valid-name4")
-                                .PropertyName(nameof(MultipleValidHtmlAttributePrefix.GenericDictionarySubclassProperty))
-                                .TypeName(typeof(GenericDictionarySubclass<object>).Namespace + ".GenericDictionarySubclass<System.Object>")
-                                .AsDictionaryAttribute("valid-prefix4-", typeof(object).FullName);
+                                    .Name("valid-name4")
+                                    .Metadata(PropertyName(nameof(MultipleValidHtmlAttributePrefix.GenericDictionarySubclassProperty)))
+                                    .TypeName(typeof(GenericDictionarySubclass<object>).Namespace + ".GenericDictionarySubclass<System.Object>")
+                                    .AsDictionaryAttribute("valid-prefix4-", typeof(object).FullName);
                             }),
                             CreateAttributeFor(typeof(MultipleValidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .Name("valid-name5")
-                                .PropertyName(nameof(MultipleValidHtmlAttributePrefix.SortedDictionaryProperty))
-                                .TypeName(typeof(SortedDictionary<string, int>).Namespace + ".SortedDictionary<System.String, System.Int32>")
-                                .AsDictionaryAttribute("valid-prefix5-", typeof(int).FullName);
+                                    .Name("valid-name5")
+                                    .Metadata(PropertyName(nameof(MultipleValidHtmlAttributePrefix.SortedDictionaryProperty)))
+                                    .TypeName(typeof(SortedDictionary<string, int>).Namespace + ".SortedDictionary<System.String, System.Int32>")
+                                    .AsDictionaryAttribute("valid-prefix5-", typeof(int).FullName);
                             }),
                             CreateAttributeFor(typeof(MultipleValidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .Name("valid-name6")
-                                .PropertyName(nameof(MultipleValidHtmlAttributePrefix.StringProperty))
-                                .TypeName(typeof(string).FullName);
+                                    .Name("valid-name6")
+                                    .Metadata(PropertyName(nameof(MultipleValidHtmlAttributePrefix.StringProperty)))
+                                    .TypeName(typeof(string).FullName);
                             }),
                             CreateAttributeFor(typeof(MultipleValidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .PropertyName(nameof(MultipleValidHtmlAttributePrefix.GetOnlyDictionaryProperty))
-                                .TypeName($"{dictionaryNamespace}<System.String, System.Int32>")
-                                .AsDictionaryAttribute("get-only-dictionary-property-", typeof(int).FullName);
+                                    .Metadata(PropertyName(nameof(MultipleValidHtmlAttributePrefix.GetOnlyDictionaryProperty)))
+                                    .TypeName($"{dictionaryNamespace}<System.String, System.Int32>")
+                                    .AsDictionaryAttribute("get-only-dictionary-property-", typeof(int).FullName);
                             }),
                             CreateAttributeFor(typeof(MultipleValidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .PropertyName(nameof(MultipleValidHtmlAttributePrefix.GetOnlyDictionaryPropertyWithAttributePrefix))
-                                .TypeName($"{dictionaryNamespace}<System.String, System.String>")
-                                .AsDictionaryAttribute("valid-prefix6", typeof(string).FullName);
+                                    .Metadata(PropertyName(nameof(MultipleValidHtmlAttributePrefix.GetOnlyDictionaryPropertyWithAttributePrefix)))
+                                    .TypeName($"{dictionaryNamespace}<System.String, System.String>")
+                                    .AsDictionaryAttribute("valid-prefix6", typeof(string).FullName);
                             }),
                         },
                         Enumerable.Empty<RazorDiagnostic>()
@@ -1983,12 +1984,12 @@ public class DefaultTagHelperDescriptorFactoryTest
                             CreateAttributeFor(typeof(SingleInvalidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .Name("valid-name")
-                                .PropertyName(nameof(SingleInvalidHtmlAttributePrefix.StringProperty))
-                                .TypeName(typeof(string).FullName)
-                                .AddDiagnostic(RazorDiagnosticFactory.CreateTagHelper_InvalidAttributePrefixNotNull(
-                                    typeof(SingleInvalidHtmlAttributePrefix).FullName,
-                                    nameof(SingleInvalidHtmlAttributePrefix.StringProperty)));
+                                    .Name("valid-name")
+                                    .Metadata(PropertyName(nameof(SingleInvalidHtmlAttributePrefix.StringProperty)))
+                                    .TypeName(typeof(string).FullName)
+                                    .AddDiagnostic(RazorDiagnosticFactory.CreateTagHelper_InvalidAttributePrefixNotNull(
+                                        typeof(SingleInvalidHtmlAttributePrefix).FullName,
+                                        nameof(SingleInvalidHtmlAttributePrefix.StringProperty)));
                             }),
                         },
                         new[]
@@ -2005,77 +2006,77 @@ public class DefaultTagHelperDescriptorFactoryTest
                             CreateAttributeFor(typeof(MultipleInvalidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .Name("valid-name1")
-                                .PropertyName(nameof(MultipleInvalidHtmlAttributePrefix.LongProperty))
-                                .TypeName(typeof(long).FullName);
+                                    .Name("valid-name1")
+                                    .Metadata(PropertyName(nameof(MultipleInvalidHtmlAttributePrefix.LongProperty)))
+                                    .TypeName(typeof(long).FullName);
                             }),
                             CreateAttributeFor(typeof(MultipleInvalidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .Name("valid-name2")
-                                .PropertyName(nameof(MultipleInvalidHtmlAttributePrefix.DictionaryOfIntProperty))
-                                .TypeName($"{typeof(Dictionary<,>).Namespace}.Dictionary<System.Int32, System.String>")
-                                .AsDictionaryAttribute("valid-prefix2-", typeof(string).FullName)
-                                .AddDiagnostic(
-                                    RazorDiagnosticFactory.CreateTagHelper_InvalidAttributePrefixNotNull(
-                                        typeof(MultipleInvalidHtmlAttributePrefix).FullName,
-                                        nameof(MultipleInvalidHtmlAttributePrefix.DictionaryOfIntProperty)));
+                                    .Name("valid-name2")
+                                    .Metadata(PropertyName(nameof(MultipleInvalidHtmlAttributePrefix.DictionaryOfIntProperty)))
+                                    .TypeName($"{typeof(Dictionary<,>).Namespace}.Dictionary<System.Int32, System.String>")
+                                    .AsDictionaryAttribute("valid-prefix2-", typeof(string).FullName)
+                                    .AddDiagnostic(
+                                        RazorDiagnosticFactory.CreateTagHelper_InvalidAttributePrefixNotNull(
+                                            typeof(MultipleInvalidHtmlAttributePrefix).FullName,
+                                            nameof(MultipleInvalidHtmlAttributePrefix.DictionaryOfIntProperty)));
                             }),
                             CreateAttributeFor(typeof(MultipleInvalidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .Name("valid-name3")
-                                .PropertyName(nameof(MultipleInvalidHtmlAttributePrefix.ReadOnlyDictionaryProperty))
-                                .TypeName($"{typeof(IReadOnlyDictionary<,>).Namespace}.IReadOnlyDictionary<System.String, System.Object>")
-                                .AddDiagnostic(
-                                    RazorDiagnosticFactory.CreateTagHelper_InvalidAttributePrefixNotNull(
-                                        typeof(MultipleInvalidHtmlAttributePrefix).FullName,
-                                        nameof(MultipleInvalidHtmlAttributePrefix.ReadOnlyDictionaryProperty)));
+                                    .Name("valid-name3")
+                                    .Metadata(PropertyName(nameof(MultipleInvalidHtmlAttributePrefix.ReadOnlyDictionaryProperty)))
+                                    .TypeName($"{typeof(IReadOnlyDictionary<,>).Namespace}.IReadOnlyDictionary<System.String, System.Object>")
+                                    .AddDiagnostic(
+                                        RazorDiagnosticFactory.CreateTagHelper_InvalidAttributePrefixNotNull(
+                                            typeof(MultipleInvalidHtmlAttributePrefix).FullName,
+                                            nameof(MultipleInvalidHtmlAttributePrefix.ReadOnlyDictionaryProperty)));
                             }),
                             CreateAttributeFor(typeof(MultipleInvalidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .Name("valid-name4")
-                                .PropertyName(nameof(MultipleInvalidHtmlAttributePrefix.IntProperty))
-                                .TypeName(typeof(int).FullName)
-                                .AddDiagnostic(
-                                    RazorDiagnosticFactory.CreateTagHelper_InvalidAttributePrefixNotNull(
-                                        typeof(MultipleInvalidHtmlAttributePrefix).FullName,
-                                        nameof(MultipleInvalidHtmlAttributePrefix.IntProperty)));
+                                    .Name("valid-name4")
+                                    .Metadata(PropertyName(nameof(MultipleInvalidHtmlAttributePrefix.IntProperty)))
+                                    .TypeName(typeof(int).FullName)
+                                    .AddDiagnostic(
+                                        RazorDiagnosticFactory.CreateTagHelper_InvalidAttributePrefixNotNull(
+                                            typeof(MultipleInvalidHtmlAttributePrefix).FullName,
+                                            nameof(MultipleInvalidHtmlAttributePrefix.IntProperty)));
                             }),
                             CreateAttributeFor(typeof(MultipleInvalidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .Name("valid-name5")
-                                .PropertyName(nameof(MultipleInvalidHtmlAttributePrefix.DictionaryOfIntSubclassProperty))
-                                .TypeName(typeof(DictionaryOfIntSubclass).FullName)
-                                .AsDictionaryAttribute("valid-prefix5-", typeof(string).FullName)
-                                .AddDiagnostic(
-                                    RazorDiagnosticFactory.CreateTagHelper_InvalidAttributePrefixNotNull(
-                                        typeof(MultipleInvalidHtmlAttributePrefix).FullName,
-                                        nameof(MultipleInvalidHtmlAttributePrefix.DictionaryOfIntSubclassProperty)));
+                                    .Name("valid-name5")
+                                    .Metadata(PropertyName(nameof(MultipleInvalidHtmlAttributePrefix.DictionaryOfIntSubclassProperty)))
+                                    .TypeName(typeof(DictionaryOfIntSubclass).FullName)
+                                    .AsDictionaryAttribute("valid-prefix5-", typeof(string).FullName)
+                                    .AddDiagnostic(
+                                        RazorDiagnosticFactory.CreateTagHelper_InvalidAttributePrefixNotNull(
+                                            typeof(MultipleInvalidHtmlAttributePrefix).FullName,
+                                            nameof(MultipleInvalidHtmlAttributePrefix.DictionaryOfIntSubclassProperty)));
                             }),
                             CreateAttributeFor(typeof(MultipleInvalidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .PropertyName(nameof(MultipleInvalidHtmlAttributePrefix.GetOnlyDictionaryAttributePrefix))
-                                .TypeName($"{dictionaryNamespace}<System.Int32, System.String>")
-                                .AsDictionaryAttribute("valid-prefix6", typeof(string).FullName)
-                                .AddDiagnostic(
-                                    RazorDiagnosticFactory.CreateTagHelper_InvalidAttributePrefixNotNull(
-                                        typeof(MultipleInvalidHtmlAttributePrefix).FullName,
-                                        nameof(MultipleInvalidHtmlAttributePrefix.GetOnlyDictionaryAttributePrefix)));
+                                    .Metadata(PropertyName(nameof(MultipleInvalidHtmlAttributePrefix.GetOnlyDictionaryAttributePrefix)))
+                                    .TypeName($"{dictionaryNamespace}<System.Int32, System.String>")
+                                    .AsDictionaryAttribute("valid-prefix6", typeof(string).FullName)
+                                    .AddDiagnostic(
+                                        RazorDiagnosticFactory.CreateTagHelper_InvalidAttributePrefixNotNull(
+                                            typeof(MultipleInvalidHtmlAttributePrefix).FullName,
+                                            nameof(MultipleInvalidHtmlAttributePrefix.GetOnlyDictionaryAttributePrefix)));
                             }),
                             CreateAttributeFor(typeof(MultipleInvalidHtmlAttributePrefix), attribute =>
                             {
                                 attribute
-                                .PropertyName(nameof(MultipleInvalidHtmlAttributePrefix.GetOnlyDictionaryPropertyWithAttributeName))
-                                .TypeName($"{dictionaryNamespace}<System.String, System.Object>")
-                                .AsDictionaryAttribute("invalid-name7-", typeof(object).FullName)
-                                .AddDiagnostic(
-                                    RazorDiagnosticFactory.CreateTagHelper_InvalidAttributePrefixNull(
-                                        typeof(MultipleInvalidHtmlAttributePrefix).FullName,
-                                        nameof(MultipleInvalidHtmlAttributePrefix.GetOnlyDictionaryPropertyWithAttributeName)));
+                                    .Metadata(PropertyName(nameof(MultipleInvalidHtmlAttributePrefix.GetOnlyDictionaryPropertyWithAttributeName)))
+                                    .TypeName($"{dictionaryNamespace}<System.String, System.Object>")
+                                    .AsDictionaryAttribute("invalid-name7-", typeof(object).FullName)
+                                    .AddDiagnostic(
+                                        RazorDiagnosticFactory.CreateTagHelper_InvalidAttributePrefixNull(
+                                            typeof(MultipleInvalidHtmlAttributePrefix).FullName,
+                                            nameof(MultipleInvalidHtmlAttributePrefix.GetOnlyDictionaryPropertyWithAttributeName)));
                             }),
                         },
                         new[]

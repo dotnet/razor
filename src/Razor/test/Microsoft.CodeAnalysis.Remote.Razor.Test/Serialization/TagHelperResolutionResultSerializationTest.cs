@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Test;
 
@@ -81,7 +82,7 @@ public class TagHelperResolutionResultSerializationTest : TestBase
             {
                 builder => builder
                     .Name("test-attribute")
-                    .PropertyName("TestAttribute")
+                    .Metadata(PropertyName("TestAttribute"))
                     .TypeName("string"),
             },
             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
@@ -127,7 +128,7 @@ public class TagHelperResolutionResultSerializationTest : TestBase
             {
                 builder => builder
                     .Name("test-attribute")
-                    .PropertyName("TestAttribute")
+                    .Metadata(PropertyName("TestAttribute"))
                     .TypeName("string"),
             },
             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
@@ -173,7 +174,7 @@ public class TagHelperResolutionResultSerializationTest : TestBase
             {
                 builder => builder
                     .Name("test-attribute")
-                    .PropertyName("TestAttribute")
+                    .Metadata(PropertyName("TestAttribute"))
                     .TypeName("string"),
             },
             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
@@ -217,13 +218,13 @@ public class TagHelperResolutionResultSerializationTest : TestBase
             {
                 builder => builder
                     .Name("test-attribute")
-                    .PropertyName("TestAttribute")
+                    .Metadata(PropertyName("TestAttribute"))
                     .TypeName("SomeEnum")
                     .AsEnum()
                     .Documentation("Summary"),
                 builder => builder
                     .Name("test-attribute2")
-                    .PropertyName("TestAttribute2")
+                    .Metadata(PropertyName("TestAttribute2"))
                     .TypeName("SomeDictionary")
                     .AsDictionaryAttribute("dict-prefix-", "string"),
             },

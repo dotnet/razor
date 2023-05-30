@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Xunit;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
@@ -49,13 +50,13 @@ public class ViewComponentTagHelperDescriptorProviderTest
             .BoundAttributeDescriptor(attribute =>
                 attribute
                 .Name("foo")
-                .PropertyName("foo")
+                .Metadata(PropertyName("foo"))
                 .TypeName(typeof(string).FullName)
                 .DisplayName("string StringParameterViewComponentTagHelper.foo"))
             .BoundAttributeDescriptor(attribute =>
                 attribute
                 .Name("bar")
-                .PropertyName("bar")
+                .Metadata(PropertyName("bar"))
                 .TypeName(typeof(string).FullName)
                 .DisplayName("string StringParameterViewComponentTagHelper.bar"))
             .AddMetadata(ViewComponentTagHelperMetadata.Name, "StringParameter")

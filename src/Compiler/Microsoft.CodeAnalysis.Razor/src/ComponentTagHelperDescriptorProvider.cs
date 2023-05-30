@@ -194,11 +194,16 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
     {
         builder.BindAttribute(pb =>
         {
+            using var _ = ListPool<KeyValuePair<string, string>>.GetPooledObject(out var metadataPairs);
+
             pb.Name = property.Name;
             pb.TypeName = property.Type.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat);
-            pb.SetPropertyName(property.Name);
-            pb.IsEditorRequired = property.GetAttributes().Any(static a => a.AttributeClass.HasFullName("Microsoft.AspNetCore.Components.EditorRequiredAttribute"));
-            pb.SetGloballyQualifiedTypeName(property.Type.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat));
+            pb.IsEditorRequired = property.GetAttributes().Any(
+                static a => a.AttributeClass.HasFullName("Microsoft.AspNetCore.Components.EditorRequiredAttribute"));
+
+            metadataPairs.Add(CommonMetadata.PropertyName(property.Name));
+            metadataPairs.Add(CommonMetadata.GloballyQualifiedTypeName(property.Type.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat)));
+
             if (kind == PropertyKind.Enum)
             {
                 pb.IsEnum = true;
@@ -206,29 +211,31 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
 
             if (kind == PropertyKind.ChildContent)
             {
-                pb.Metadata.Add(ComponentMetadata.Component.ChildContentKey, bool.TrueString);
+                metadataPairs.Add(CommonMetadata.IsTrue(ComponentMetadata.Component.ChildContentKey));
             }
 
             if (kind == PropertyKind.EventCallback)
             {
-                pb.Metadata.Add(ComponentMetadata.Component.EventCallbackKey, bool.TrueString);
+                metadataPairs.Add(CommonMetadata.IsTrue(ComponentMetadata.Component.EventCallbackKey));
             }
 
             if (kind == PropertyKind.Delegate)
             {
-                pb.Metadata.Add(ComponentMetadata.Component.DelegateSignatureKey, bool.TrueString);
-                pb.Metadata.Add(ComponentMetadata.Component.DelegateWithAwaitableResultKey, IsAwaitable(property));
+                metadataPairs.Add(CommonMetadata.IsTrue(ComponentMetadata.Component.DelegateSignatureKey));
+                metadataPairs.Add(new(ComponentMetadata.Component.DelegateWithAwaitableResultKey, IsAwaitable(property)));
             }
 
             if (HasTypeParameter(property.Type))
             {
-                pb.Metadata.Add(ComponentMetadata.Component.GenericTypedKey, bool.TrueString);
+                metadataPairs.Add(CommonMetadata.IsTrue(ComponentMetadata.Component.GenericTypedKey));
             }
 
             if (property.SetMethod.IsInitOnly)
             {
-                pb.Metadata.Add(ComponentMetadata.Component.InitOnlyProperty, bool.TrueString);
+                metadataPairs.Add(CommonMetadata.IsTrue(ComponentMetadata.Component.InitOnlyProperty));
             }
+
+            pb.SetMetadata(MetadataCollection.Create(metadataPairs));
 
             var xml = property.GetDocumentationCommentXml();
             if (!string.IsNullOrEmpty(xml))
@@ -391,10 +398,11 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             pb.DisplayName = typeParameter.Name;
             pb.Name = typeParameter.Name;
             pb.TypeName = typeof(Type).FullName;
-            pb.SetPropertyName(typeParameter.Name);
 
-            pb.Metadata[ComponentMetadata.Component.TypeParameterKey] = bool.TrueString;
-            pb.Metadata[ComponentMetadata.Component.TypeParameterIsCascadingKey] = cascade.ToString();
+            using var _ = ListPool<KeyValuePair<string, string>>.GetPooledObject(out var metadataPairs);
+            metadataPairs.Add(CommonMetadata.PropertyName(typeParameter.Name));
+            metadataPairs.Add(CommonMetadata.IsTrue(ComponentMetadata.Component.TypeParameterKey));
+            metadataPairs.Add(new(ComponentMetadata.Component.TypeParameterIsCascadingKey, cascade.ToString()));
 
             // Type constraints (like "Image" or "Foo") are stored independently of
             // things like constructor constraints and not null constraints in the
@@ -437,8 +445,10 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
 
             if (TryGetWhereClauseText(typeParameter, constraints, out var whereClauseText))
             {
-                pb.Metadata[ComponentMetadata.Component.TypeParameterConstraintsKey] = whereClauseText;
+                metadataPairs.Add(new(ComponentMetadata.Component.TypeParameterConstraintsKey, whereClauseText));
             }
+
+            pb.SetMetadata(MetadataCollection.Create(metadataPairs));
 
             pb.SetDocumentation(
                 DocumentationDescriptor.From(
@@ -539,8 +549,9 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
         {
             b.Name = ComponentMetadata.ChildContent.ParameterAttributeName;
             b.TypeName = typeof(string).FullName;
-            b.Metadata.Add(ComponentMetadata.Component.ChildContentParameterNameKey, bool.TrueString);
-            b.Metadata.Add(TagHelperMetadata.Common.PropertyName, b.Name);
+            b.SetMetadata(
+                CommonMetadata.IsTrue(ComponentMetadata.Component.ChildContentParameterNameKey),
+                CommonMetadata.PropertyName(b.Name));
 
             var documentation = childContentName == null
                 ? DocumentationDescriptor.ChildContentParameterName_TopLevel

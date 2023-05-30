@@ -84,11 +84,10 @@ internal class RefTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 attribute.SetDocumentation(DocumentationDescriptor.RefTagHelper);
                 attribute.Name = "@ref";
 
-                // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
-                // a C# property will crash trying to create the tooltips.
-                attribute.SetPropertyName("Ref");
                 attribute.TypeName = typeof(object).FullName;
-                attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                attribute.SetMetadata(
+                    CommonMetadata.PropertyName("Ref"),
+                    CommonMetadata.IsDirectiveAttribute);
             });
 
             return builder.Build();

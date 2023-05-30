@@ -208,7 +208,7 @@ internal class ViewComponentTagHelperDescriptorFactory
                 attributeBuilder.Name = lowerKebabName;
                 attributeBuilder.TypeName = typeName;
                 attributeBuilder.DisplayName = $"{simpleName} {containingDisplayName}.{parameter.Name}";
-                attributeBuilder.SetPropertyName(parameter.Name);
+                attributeBuilder.SetMetadata(CommonMetadata.PropertyName(parameter.Name));
 
                 if (parameter.Type.TypeKind == TypeKind.Enum)
                 {

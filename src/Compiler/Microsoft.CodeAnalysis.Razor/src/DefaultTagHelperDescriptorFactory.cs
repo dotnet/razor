@@ -204,7 +204,7 @@ internal class DefaultTagHelperDescriptorFactory
         var hasPublicSetter = property.SetMethod != null && property.SetMethod.DeclaredAccessibility == Accessibility.Public;
         var typeName = GetFullName(property.Type);
         builder.TypeName = typeName;
-        builder.SetPropertyName(property.Name);
+        builder.SetMetadata(CommonMetadata.PropertyName(property.Name));
 
         if (hasPublicSetter)
         {

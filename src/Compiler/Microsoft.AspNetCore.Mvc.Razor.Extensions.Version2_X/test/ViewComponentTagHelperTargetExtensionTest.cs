@@ -6,6 +6,7 @@
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Xunit;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 
@@ -21,7 +22,7 @@ public class ViewComponentTagHelperTargetExtensionTest
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("Foo")
                 .TypeName("System.Int32")
-                .PropertyName("Foo"))
+                .Metadata(PropertyName("Foo")))
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("tagcloud"))
             .AddMetadata(ViewComponentTagHelperMetadata.Name, "TagCloud")
             .Build();
@@ -74,7 +75,7 @@ public class __Generated__TagCloudViewComponentTagHelper : Microsoft.AspNetCore.
             .BoundAttributeDescriptor(attribute => attribute
                 .Name("Foo")
                 .TypeName("System.Collections.Generic.Dictionary<System.String, System.Int32>")
-                .PropertyName("Tags")
+                .Metadata(PropertyName("Tags"))
                 .AsDictionaryAttribute("foo-", "System.Int32"))
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("tagcloud"))
             .AddMetadata(ViewComponentTagHelperMetadata.Name, "TagCloud")

@@ -6,15 +6,28 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal static class CommonMetadata
+public static class CommonMetadata
 {
-    public static readonly KeyValuePair<string, string?> BindAttributeGetSet
-        = new(ComponentMetadata.Bind.BindAttributeGetSet, bool.TrueString);
+    internal static readonly KeyValuePair<string, string?> BindAttributeGetSet
+        = IsTrue(ComponentMetadata.Bind.BindAttributeGetSet);
+    internal static readonly KeyValuePair<string, string?> IsDirectiveAttribute
+        = IsTrue(ComponentMetadata.Common.DirectiveAttribute);
+    internal static readonly KeyValuePair<string, string?> IsWeaklyTyped
+        = IsTrue(ComponentMetadata.Component.WeaklyTypedKey);
 
+    internal static KeyValuePair<string, string?> IsTrue(string key)
+        => new(key, bool.TrueString);
+    internal static KeyValuePair<string, string?> GloballyQualifiedTypeName(string value)
+        => new(TagHelperMetadata.Common.GloballyQualifiedTypeName, value);
     public static KeyValuePair<string, string?> PropertyName(string value)
         => new(TagHelperMetadata.Common.PropertyName, value);
 
-    public static class Parameters
+    internal static class Attributes
+    {
+        public static readonly MetadataCollection IsDirectiveAttribute = MetadataCollection.Create(CommonMetadata.IsDirectiveAttribute);
+    }
+
+    internal static class Parameters
     {
         public static readonly MetadataCollection After = MetadataCollection.Create(PropertyName("After"));
         public static readonly MetadataCollection Culture = MetadataCollection.Create(PropertyName("Culture"));

@@ -17,8 +17,7 @@ public static class RequiredAttributeDescriptorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        return
-            builder.Metadata.TryGetValue(ComponentMetadata.Common.DirectiveAttribute, out var value) &&
-            string.Equals(bool.TrueString, value);
+        return builder.TryGetMetadataValue(ComponentMetadata.Common.DirectiveAttribute, out var value) &&
+               value == bool.TrueString;
     }
 }

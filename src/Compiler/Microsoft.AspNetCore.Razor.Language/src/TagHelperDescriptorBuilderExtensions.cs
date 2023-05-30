@@ -61,11 +61,8 @@ public static class TagHelperDescriptorBuilderExtensions
             throw new ArgumentNullException(nameof(builder));
         }
 
-        if (builder.Metadata.ContainsKey(TagHelperMetadata.Common.TypeName))
-        {
-            return builder.Metadata[TagHelperMetadata.Common.TypeName];
-        }
-
-        return null;
+        return builder.TryGetMetadataValue(TagHelperMetadata.Common.TypeName, out var value)
+            ? value
+            : null;
     }
 }

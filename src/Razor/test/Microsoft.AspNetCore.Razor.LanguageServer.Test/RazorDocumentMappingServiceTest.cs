@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -807,7 +808,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         {
             builder.Name = "asp-int";
             builder.TypeName = typeof(int).FullName;
-            builder.SetPropertyName("AspInt");
+            builder.SetMetadata(PropertyName("AspInt"));
         });
         descriptor.SetTypeName("TestTagHelper");
         var text = $"@addTagHelper *, TestAssembly{Environment.NewLine}<test asp-int='123'></test>";

@@ -4,6 +4,7 @@
 #nullable disable
 
 using Xunit;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -37,7 +38,7 @@ public class DefaultBoundAttributeDescriptorBuilderTest
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder
             .TypeName(typeof(int).FullName)
-            .PropertyName("SomeProperty");
+            .Metadata(PropertyName("SomeProperty"));
 
         // Act
         var descriptor = builder.Build();

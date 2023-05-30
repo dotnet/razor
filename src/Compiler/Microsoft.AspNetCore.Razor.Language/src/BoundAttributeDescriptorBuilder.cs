@@ -49,12 +49,12 @@ public abstract class BoundAttributeDescriptorBuilder
         throw new NotImplementedException();
     }
 
-    internal virtual void SetMetadata(MetadataCollection metadata)
+    public virtual void SetMetadata(MetadataCollection metadata)
     {
         throw new NotImplementedException();
     }
 
-    internal virtual bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string value)
+    public virtual bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string value)
     {
         throw new NotImplementedException();
     }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Xunit;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X;
 
@@ -38,13 +39,13 @@ public class ViewComponentTagHelperDescriptorFactoryTest
             .BoundAttributeDescriptor(attribute =>
                 attribute
                 .Name("foo")
-                .PropertyName("foo")
+                .Metadata(PropertyName("foo"))
                 .TypeName(typeof(string).FullName)
                 .DisplayName("string StringParameterViewComponentTagHelper.foo"))
             .BoundAttributeDescriptor(attribute =>
                 attribute
                 .Name("bar")
-                .PropertyName("bar")
+                .Metadata(PropertyName("bar"))
                 .TypeName(typeof(string).FullName)
                 .DisplayName("string StringParameterViewComponentTagHelper.bar"))
             .AddMetadata(ViewComponentTagHelperMetadata.Name, "StringParameter")
@@ -80,20 +81,20 @@ public class ViewComponentTagHelperDescriptorFactoryTest
             .BoundAttributeDescriptor(attribute =>
                 attribute
                 .Name("test-enum")
-                .PropertyName("testEnum")
+                .Metadata(PropertyName("testEnum"))
                 .TypeName(typeof(VariousParameterViewComponent).FullName + "." + nameof(VariousParameterViewComponent.TestEnum))
                 .AsEnum()
                 .DisplayName(typeof(VariousParameterViewComponent).FullName + "." + nameof(VariousParameterViewComponent.TestEnum) + " VariousParameterViewComponentTagHelper.testEnum"))
             .BoundAttributeDescriptor(attribute =>
                 attribute
                 .Name("test-string")
-                .PropertyName("testString")
+                .Metadata(PropertyName("testString"))
                 .TypeName(typeof(string).FullName)
                 .DisplayName("string VariousParameterViewComponentTagHelper.testString"))
             .BoundAttributeDescriptor(attribute =>
                 attribute
                 .Name("baz")
-                .PropertyName("baz")
+                .Metadata(PropertyName("baz"))
                 .TypeName(typeof(int).FullName)
                 .DisplayName("int VariousParameterViewComponentTagHelper.baz"))
             .AddMetadata(ViewComponentTagHelperMetadata.Name, "VariousParameter")
@@ -127,13 +128,13 @@ public class ViewComponentTagHelperDescriptorFactoryTest
             .BoundAttributeDescriptor(attribute =>
                 attribute
                 .Name("foo")
-                .PropertyName("Foo")
+                .Metadata(PropertyName("Foo"))
                 .TypeName("System.Collections.Generic.List<System.String>")
                 .DisplayName("System.Collections.Generic.List<System.String> GenericParameterViewComponentTagHelper.Foo"))
             .BoundAttributeDescriptor(attribute =>
                 attribute
                 .Name("bar")
-                .PropertyName("Bar")
+                .Metadata(PropertyName("Bar"))
                 .TypeName("System.Collections.Generic.Dictionary<System.String, System.Int32>")
                 .AsDictionaryAttribute("bar-", typeof(int).FullName)
                 .DisplayName("System.Collections.Generic.Dictionary<System.String, System.Int32> GenericParameterViewComponentTagHelper.Bar"))
@@ -168,13 +169,13 @@ public class ViewComponentTagHelperDescriptorFactoryTest
             .BoundAttributeDescriptor(attribute =>
                 attribute
                 .Name("foo")
-                .PropertyName("foo")
+                .Metadata(PropertyName("foo"))
                 .TypeName(typeof(string).FullName)
                 .DisplayName("string SyncDerivedViewComponentTagHelper.foo"))
             .BoundAttributeDescriptor(attribute =>
                 attribute
                 .Name("bar")
-                .PropertyName("bar")
+                .Metadata(PropertyName("bar"))
                 .TypeName(typeof(string).FullName)
                 .DisplayName("string SyncDerivedViewComponentTagHelper.bar"))
             .AddMetadata(ViewComponentTagHelperMetadata.Name, "SyncDerived")

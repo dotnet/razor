@@ -84,11 +84,10 @@ internal class KeyTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 attribute.SetDocumentation(DocumentationDescriptor.KeyTagHelper);
                 attribute.Name = "@key";
 
-                // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
-                // a C# property will crash trying to create the tooltips.
-                attribute.SetPropertyName("Key");
                 attribute.TypeName = typeof(object).FullName;
-                attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                attribute.SetMetadata(
+                    CommonMetadata.PropertyName("Key"),
+                    CommonMetadata.IsDirectiveAttribute);
             });
 
             return builder.Build();

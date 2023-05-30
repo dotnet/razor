@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
@@ -79,7 +80,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
             {
                 builder => builder
                     .Name("test-attribute")
-                    .PropertyName("TestAttribute")
+                    .Metadata(PropertyName("TestAttribute"))
                     .TypeName("string"),
             },
             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
@@ -123,7 +124,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
             {
                 builder => builder
                     .Name("test-attribute")
-                    .PropertyName("TestAttribute")
+                    .Metadata(PropertyName("TestAttribute"))
                     .TypeName("string"),
             },
             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
@@ -167,7 +168,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
             {
                 builder => builder
                     .Name("test-attribute")
-                    .PropertyName("TestAttribute")
+                    .Metadata(PropertyName("TestAttribute"))
                     .TypeName("string"),
             },
             ruleBuilders: new Action<TagMatchingRuleDescriptorBuilder>[]
@@ -209,13 +210,13 @@ public class TagHelperDescriptorSerializationTest : TestBase
             {
                 builder => builder
                     .Name("test-attribute")
-                    .PropertyName("TestAttribute")
+                    .Metadata(PropertyName("TestAttribute"))
                     .TypeName("SomeEnum")
                     .AsEnum()
                     .Documentation("Summary"),
                 builder => builder
                     .Name("test-attribute2")
-                    .PropertyName("TestAttribute2")
+                    .Metadata(PropertyName("TestAttribute2"))
                     .TypeName("SomeDictionary")
                     .AsDictionaryAttribute("dict-prefix-", "string"),
             },
@@ -254,7 +255,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
                 {
                     builder
                     .Name("test-attribute")
-                    .PropertyName("TestAttribute")
+                    .Metadata(PropertyName("TestAttribute"))
                     .TypeName("string");
                 },
             });
@@ -286,7 +287,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
                 {
                     builder
                     .Name("test-attribute")
-                    .PropertyName("TestAttribute")
+                    .Metadata(PropertyName("TestAttribute"))
                     .TypeName("string");
 
                     builder.IsEditorRequired = true;
