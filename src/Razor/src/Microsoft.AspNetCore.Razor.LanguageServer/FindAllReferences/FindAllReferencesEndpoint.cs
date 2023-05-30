@@ -53,10 +53,10 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(ReferenceParams request, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(ReferenceParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         // HTML doesn't need to do FAR
-        if (projection.LanguageKind != RazorLanguageKind.CSharp)
+        if (positionInfo.LanguageKind != RazorLanguageKind.CSharp)
         {
             return Task.FromResult<IDelegatedParams?>(null);
         }
@@ -64,11 +64,11 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
         var documentContext = requestContext.GetRequiredDocumentContext();
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
-                projection.Position,
-                projection.LanguageKind));
+                positionInfo.Position,
+                positionInfo.LanguageKind));
     }
 
-    protected override async Task<VSInternalReferenceItem[]> HandleDelegatedResponseAsync(VSInternalReferenceItem[] delegatedResponse, ReferenceParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken)
+    protected override async Task<VSInternalReferenceItem[]> HandleDelegatedResponseAsync(VSInternalReferenceItem[] delegatedResponse, ReferenceParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var remappedLocations = new List<VSInternalReferenceItem>();
 

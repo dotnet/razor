@@ -40,12 +40,12 @@ internal sealed class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<Si
         return new RegistrationExtensionResult(ServerCapability, option);
     }
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(SignatureHelpParams request, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(SignatureHelpParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
-                projection.Position,
-                projection.LanguageKind));
+                positionInfo.Position,
+                positionInfo.LanguageKind));
     }
 }

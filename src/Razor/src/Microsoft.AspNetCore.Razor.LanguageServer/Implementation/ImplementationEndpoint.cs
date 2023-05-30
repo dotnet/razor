@@ -42,16 +42,16 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
         return new RegistrationExtensionResult(ServerCapability, option);
     }
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
-                projection.Position,
-                projection.LanguageKind));
+                positionInfo.Position,
+                positionInfo.LanguageKind));
     }
 
-    protected async override Task<ImplementationResult> HandleDelegatedResponseAsync(ImplementationResult delegatedResponse, TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken)
+    protected async override Task<ImplementationResult> HandleDelegatedResponseAsync(ImplementationResult delegatedResponse, TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         // Not using .TryGetXXX because this does the null check for us too
         if (delegatedResponse.Value is Location[] locations)

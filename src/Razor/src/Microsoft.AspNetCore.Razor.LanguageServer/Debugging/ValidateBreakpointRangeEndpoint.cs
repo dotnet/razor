@@ -41,16 +41,16 @@ internal class ValidateBreakpointRangeEndpoint : AbstractRazorDelegatingEndpoint
         return new RegistrationExtensionResult(ServerCapability, true);
     }
 
-    protected override Task<Range?> TryHandleAsync(ValidateBreakpointRangeParams request, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken)
+    protected override Task<Range?> TryHandleAsync(ValidateBreakpointRangeParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         // no such thing as Razor breakpoints (yet?!)
         return Task.FromResult<Range?>(null);
     }
 
-    protected async override Task<IDelegatedParams?> CreateDelegatedParamsAsync(ValidateBreakpointRangeParams request, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken)
+    protected async override Task<IDelegatedParams?> CreateDelegatedParamsAsync(ValidateBreakpointRangeParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         // only C# supports breakpoints
-        if (projection.LanguageKind != RazorLanguageKind.CSharp)
+        if (positionInfo.LanguageKind != RazorLanguageKind.CSharp)
         {
             return null;
         }
@@ -67,10 +67,10 @@ internal class ValidateBreakpointRangeEndpoint : AbstractRazorDelegatingEndpoint
         return new DelegatedValidateBreakpointRangeParams(
             documentContext.Identifier,
             projectedRange,
-            projection.LanguageKind);
+            positionInfo.LanguageKind);
     }
 
-    protected async override Task<Range?> HandleDelegatedResponseAsync(Range? delegatedResponse, ValidateBreakpointRangeParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken)
+    protected async override Task<Range?> HandleDelegatedResponseAsync(Range? delegatedResponse, ValidateBreakpointRangeParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         if (delegatedResponse is null)
         {

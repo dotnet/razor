@@ -57,7 +57,7 @@ internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextD
         return new RegistrationExtensionResult(ServerCapability, option);
     }
 
-    protected async override Task<DefinitionResult?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken)
+    protected async override Task<DefinitionResult?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         requestContext.Logger.LogInformation("Starting go-to-def endpoint request.");
         var documentContext = requestContext.GetRequiredDocumentContext();
@@ -69,7 +69,7 @@ internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextD
         }
 
         // If single server support is on, then we ignore attributes, as they are better handled by delegating to Roslyn
-        var (originTagDescriptor, attributeDescriptor) = await GetOriginTagHelperBindingAsync(documentContext, projection.HostDocumentIndex, SingleServerSupport, requestContext.Logger, cancellationToken).ConfigureAwait(false);
+        var (originTagDescriptor, attributeDescriptor) = await GetOriginTagHelperBindingAsync(documentContext, positionInfo.HostDocumentIndex, SingleServerSupport, requestContext.Logger, cancellationToken).ConfigureAwait(false);
         if (originTagDescriptor is null)
         {
             requestContext.Logger.LogInformation("Origin TagHelper descriptor is null.");
@@ -106,16 +106,16 @@ internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextD
         };
     }
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
-                projection.Position,
-                projection.LanguageKind));
+                positionInfo.Position,
+                positionInfo.LanguageKind));
     }
 
-    protected async override Task<DefinitionResult?> HandleDelegatedResponseAsync(DefinitionResult? response, TextDocumentPositionParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken)
+    protected async override Task<DefinitionResult?> HandleDelegatedResponseAsync(DefinitionResult? response, TextDocumentPositionParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         if (response is null)
         {
