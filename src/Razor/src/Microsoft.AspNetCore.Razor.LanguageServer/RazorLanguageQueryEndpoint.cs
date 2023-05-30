@@ -4,7 +4,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Text;
@@ -38,8 +37,8 @@ internal class RazorLanguageQueryEndpoint : IRazorLanguageQueryHandler
         var documentSnapshot = documentContext.Snapshot;
         var documentVersion = documentContext.Version;
 
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
-        var sourceText = await documentSnapshot.GetTextAsync();
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
+        var sourceText = await documentSnapshot.GetTextAsync().ConfigureAwait(false);
         var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
         var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
         var responsePosition = request.Position;

@@ -148,7 +148,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
             }
         }
 
-        var delegatedParams = await CreateDelegatedParamsAsync(request, requestContext, projection, cancellationToken);
+        var delegatedParams = await CreateDelegatedParamsAsync(request, requestContext, projection, cancellationToken).ConfigureAwait(false);
 
         if (delegatedParams is null)
         {

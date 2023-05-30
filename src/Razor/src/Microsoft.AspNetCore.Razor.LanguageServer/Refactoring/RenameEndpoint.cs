@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -155,40 +154,37 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         var documentSnapshots = new List<IDocumentSnapshot?>();
         var documentPaths = new HashSet<string>();
 
-        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(GetAllDocumentSnapshotsInternalAsync, cancellationToken).ConfigureAwait(false);
+        var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => _projectSnapshotManager.Projects, cancellationToken).ConfigureAwait(false);
 
-        return documentSnapshots;
-
-        async Task GetAllDocumentSnapshotsInternalAsync()
+        foreach (var project in projects)
         {
-            foreach (var project in _projectSnapshotManager.Projects)
+            foreach (var documentPath in project.DocumentFilePaths)
             {
-                foreach (var documentPath in project.DocumentFilePaths)
+                // We've already added refactoring edits for our document snapshot
+                if (string.Equals(documentPath, skipDocumentContext.FilePath, FilePathComparison.Instance))
                 {
-                    // We've already added refactoring edits for our document snapshot
-                    if (string.Equals(documentPath, skipDocumentContext.FilePath, FilePathComparison.Instance))
-                    {
-                        continue;
-                    }
-
-                    // Don't add duplicates between projects
-                    if (documentPaths.Contains(documentPath))
-                    {
-                        continue;
-                    }
-
-                    // Add to the list and add the path to the set
-                    var documentContext = await _documentContextFactory.TryCreateAsync(new Uri(documentPath), cancellationToken).ConfigureAwait(false);
-                    if (documentContext is null)
-                    {
-                        throw new NotImplementedException($"{documentPath} in project {project.FilePath} but not retrievable");
-                    }
-
-                    documentSnapshots.Add(documentContext.Snapshot);
-                    documentPaths.Add(documentPath);
+                    continue;
                 }
+
+                // Don't add duplicates between projects
+                if (documentPaths.Contains(documentPath))
+                {
+                    continue;
+                }
+
+                // Add to the list and add the path to the set
+                var documentContext = await _documentContextFactory.TryCreateAsync(new Uri(documentPath), cancellationToken).ConfigureAwait(false);
+                if (documentContext is null)
+                {
+                    throw new NotImplementedException($"{documentPath} in project {project.FilePath} but not retrievable");
+                }
+
+                documentSnapshots.Add(documentContext.Snapshot);
+                documentPaths.Add(documentPath);
             }
         }
+
+        return documentSnapshots;
     }
 
     public void AddFileRenameForComponent(List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges, IDocumentSnapshot documentSnapshot, string newPath)
