@@ -27,7 +27,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentRange_Strict_StartOnlyMaps_ReturnsFalse()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
@@ -54,7 +54,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentRange_Strict_EndOnlyMaps_ReturnsFalse()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
@@ -81,7 +81,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentRange_Strict_StartAndEndMap_ReturnsTrue()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
@@ -113,7 +113,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentRange_Inclusive_DirectlyMaps_ReturnsTrue()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
@@ -145,7 +145,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentRange_Inclusive_StartSinglyIntersects_ReturnsTrue()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
@@ -177,7 +177,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentRange_Inclusive_EndSinglyIntersects_ReturnsTrue()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
@@ -209,7 +209,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentRange_Inclusive_StartDoublyIntersects_ReturnsFalse()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
@@ -240,7 +240,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentRange_Inclusive_EndDoublyIntersects_ReturnsFalse()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
@@ -271,7 +271,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentRange_Inclusive_OverlapsSingleMapping_ReturnsTrue()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
@@ -303,7 +303,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentRange_Inclusive_OverlapsTwoMappings_ReturnsFalse()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
@@ -334,7 +334,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentRange_Inferred_DirectlyMaps_ReturnsTrue()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "<p>@DateTime.Now</p>",
             "__o = DateTime.Now;",
@@ -366,7 +366,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentRange_Inferred_BeginningOfDocAndProjection_ReturnsFalse()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "@<unclosed></unclosed><p>@DateTime.Now</p>",
             "(__builder) => { };__o = DateTime.Now;",
@@ -393,7 +393,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentRange_Inferred_InbetweenProjections_ReturnsTrue()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "@{ var abc = @<unclosed></unclosed> }",
             " var abc =  (__builder) => { } ",
@@ -428,7 +428,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentRange_Inferred_InbetweenProjectionAndEndOfDoc_ReturnsTrue()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "@{ var abc = @<unclosed></unclosed>",
             " var abc =  (__builder) => { }",
@@ -460,7 +460,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapToProjectedDocumentPosition_NotMatchingAnyMapping()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "test razor source",
             "test C# source",
@@ -483,7 +483,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapToProjectedDocumentPosition_CSharp_OnLeadingEdge()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "Line 1\nLine 2 @{ var abc;\nvar def; }",
             "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -513,7 +513,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapToProjectedDocumentPosition_CSharp_InMiddle()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "Line 1\nLine 2 @{ var abc;\nvar def; }",
             "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -543,7 +543,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapToProjectedDocumentPosition_CSharp_OnTrailingEdge()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             "Line 1\nLine 2 @{ var abc;\nvar def; }",
             "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -573,7 +573,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentPosition_NotMatchingAnyMapping()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             razorSource: "test razor source",
             projectedCSharpSource: "projectedCSharpSource: test C# source",
@@ -596,7 +596,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentPosition_CSharp_OnLeadingEdge()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
             projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -626,7 +626,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentPosition_CSharp_InMiddle()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
             projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -656,7 +656,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapFromProjectedDocumentPosition_CSharp_OnTrailingEdge()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
             projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -686,7 +686,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapToProjectedDocumentRange_CSharp()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
             projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -717,7 +717,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapToProjectedDocumentRange_CSharp_MissingSourceMappings()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
             projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -741,7 +741,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     public void TryMapToProjectedDocumentRange_CSharp_End_LessThan_Start()
     {
         // Arrange
-        var service = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var service = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var codeDoc = CreateCodeDocumentWithCSharpProjection(
             razorSource: "Line 1\nLine 2 @{ var abc;\nvar def; }",
             projectedCSharpSource: "\n// Prefix\n var abc;\nvar def; \n// Suffix",
@@ -774,7 +774,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 32 + Environment.NewLine.Length, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 32 + Environment.NewLine.Length, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -791,7 +791,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 42 + Environment.NewLine.Length, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 42 + Environment.NewLine.Length, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Razor, languageKind);
@@ -814,7 +814,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 46 + Environment.NewLine.Length, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 46 + Environment.NewLine.Length, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -828,7 +828,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 5, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 5, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -842,7 +842,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 5, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 5, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -856,7 +856,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length + 1, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length + 1, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Razor, languageKind);
@@ -885,7 +885,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var tagHelperSpans = Array.Empty<TagHelperSpanInternal>();
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -899,7 +899,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -913,7 +913,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, text.Length, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -927,7 +927,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -941,7 +941,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 12, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 12, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -955,7 +955,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -969,7 +969,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 4, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 4, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -983,7 +983,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 1, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 1, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -997,7 +997,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 3, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 3, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -1011,7 +1011,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 2, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -1025,7 +1025,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 13, text.Length, rightAssociative: false);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 13, text.Length, rightAssociative: false);
 
         // Assert
         Assert.Equal(RazorLanguageKind.CSharp, languageKind);
@@ -1039,7 +1039,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text);
 
         // Act\
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 13, text.Length, rightAssociative: true);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 13, text.Length, rightAssociative: true);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Html, languageKind);
@@ -1061,7 +1061,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var (classifiedSpans, tagHelperSpans) = GetClassifiedSpans(text, new[] { descriptor.Build() });
 
         // Act\
-        var languageKind = DefaultRazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 40, text.Length, rightAssociative: true);
+        var languageKind = RazorDocumentMappingService.GetLanguageKindCore(classifiedSpans, tagHelperSpans, 40, text.Length, rightAssociative: true);
 
         // Assert
         Assert.Equal(RazorLanguageKind.Html, languageKind);

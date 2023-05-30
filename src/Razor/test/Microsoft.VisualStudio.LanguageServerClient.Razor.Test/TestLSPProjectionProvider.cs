@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 
 internal sealed class TestLSPProjectionProvider : LSPProjectionProvider
 {
-    private readonly DefaultRazorDocumentMappingService _mappingService ;
+    private readonly RazorDocumentMappingService _mappingService;
 
     public TestLSPProjectionProvider(ILoggerFactory loggerFactory)
     {

@@ -20,7 +20,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
     public RazorBreakpointSpanEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _mappingService = new DefaultRazorDocumentMappingService(
+        _mappingService = new RazorDocumentMappingService(
             TestLanguageServerFeatureOptions.Instance,
             new TestDocumentContextFactory(),
             LoggerFactory);
