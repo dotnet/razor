@@ -56,7 +56,8 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
     private string _kind;
     private List<DefaultBoundAttributeParameterDescriptorBuilder>? _attributeParameterBuilders;
     private DocumentationObject _documentationObject;
-    private Dictionary<string, string?>? _metadata;
+    private Dictionary<string, string?>? _metadataDictionary;
+    private MetadataCollection? _metadata;
     private RazorDiagnosticCollection? _diagnostics;
 
     private DefaultBoundAttributeDescriptorBuilder()
@@ -84,7 +85,7 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
 
     public override string? DisplayName { get; set; }
 
-    public override IDictionary<string, string?> Metadata => _metadata ??= new Dictionary<string, string?>();
+    public override IDictionary<string, string?> Metadata => _metadataDictionary ??= new Dictionary<string, string?>();
 
     public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
@@ -114,6 +115,27 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
         _documentationObject = new(documentation);
     }
 
+    internal override void SetMetadata(MetadataCollection metadata)
+    {
+        _metadata = metadata;
+    }
+
+    internal override bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
+    {
+        if (_metadata is { } metadata)
+        {
+            return metadata.TryGetValue(key, out value);
+        }
+
+        if (_metadataDictionary is { } metadataDictionary)
+        {
+            return metadataDictionary.TryGetValue(key, out value);
+        }
+
+        value = null;
+        return false;
+    }
+
     public BoundAttributeDescriptor Build()
     {
         var diagnostics = new PooledHashSet<RazorDiagnostic>();
@@ -124,6 +146,8 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
             diagnostics.UnionWith(_diagnostics);
 
             var parameters = _attributeParameterBuilders.BuildAllOrEmpty(s_boundAttributeParameterSetPool);
+
+            var metadata = _metadata ?? MetadataCollection.CreateOrEmpty(_metadataDictionary);
 
             var descriptor = new DefaultBoundAttributeDescriptor(
                 _kind,
@@ -138,7 +162,7 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
                 CaseSensitive,
                 IsEditorRequired,
                 parameters,
-                MetadataCollection.CreateOrEmpty(_metadata),
+                metadata,
                 diagnostics.ToArray());
 
             return descriptor;

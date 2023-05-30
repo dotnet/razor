@@ -16,6 +16,7 @@ internal partial class DefaultBoundAttributeParameterDescriptorBuilder
             builder._parent = null;
             builder._kind = null;
             builder._documentationObject = default;
+            builder._metadata = null;
 
             builder.Name = null;
             builder.TypeName = null;
@@ -24,7 +25,7 @@ internal partial class DefaultBoundAttributeParameterDescriptorBuilder
 
             ClearDiagnostics(builder._diagnostics);
 
-            builder._metadata?.Clear();
+            builder._metadataDictionary?.Clear();
 
             return true;
         }

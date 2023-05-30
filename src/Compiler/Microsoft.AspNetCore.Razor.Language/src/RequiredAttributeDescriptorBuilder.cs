@@ -3,7 +3,9 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -20,4 +22,14 @@ public abstract class RequiredAttributeDescriptorBuilder
     public abstract RazorDiagnosticCollection Diagnostics { get; }
 
     public virtual IDictionary<string, string> Metadata { get; }
+
+    internal virtual void SetMetadata(MetadataCollection metadata)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal virtual bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string value)
+    {
+        throw new NotImplementedException();
+    }
 }

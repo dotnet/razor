@@ -29,7 +29,8 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
     [AllowNull]
     private DefaultTagMatchingRuleDescriptorBuilder _parent;
     private RazorDiagnosticCollection? _diagnostics;
-    private Dictionary<string, string?>? _metadata;
+    private Dictionary<string, string?>? _metadataDictionary;
+    private MetadataCollection? _metadata;
 
     private DefaultRequiredAttributeDescriptorBuilder()
     {
@@ -47,9 +48,30 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
 
     public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
-    public override IDictionary<string, string?> Metadata => _metadata ??= new Dictionary<string, string?>();
+    public override IDictionary<string, string?> Metadata => _metadataDictionary ??= new Dictionary<string, string?>();
 
     internal bool CaseSensitive => _parent.CaseSensitive;
+
+    internal override void SetMetadata(MetadataCollection metadata)
+    {
+        _metadata = metadata;
+    }
+
+    internal override bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
+    {
+        if (_metadata is { } metadata)
+        {
+            return metadata.TryGetValue(key, out value);
+        }
+
+        if (_metadataDictionary is { } metadataDictionary)
+        {
+            return metadataDictionary.TryGetValue(key, out value);
+        }
+
+        value = null;
+        return false;
+    }
 
     public RequiredAttributeDescriptor Build()
     {
@@ -62,6 +84,8 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
 
             var displayName = GetDisplayName();
 
+            var metadata = _metadata ?? MetadataCollection.CreateOrEmpty(_metadataDictionary);
+
             var descriptor = new DefaultRequiredAttributeDescriptor(
                 Name,
                 NameComparisonMode,
@@ -70,7 +94,7 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
                 ValueComparisonMode,
                 displayName,
                 diagnostics.ToArray(),
-                MetadataCollection.CreateOrEmpty(_metadata));
+                metadata);
 
             return descriptor;
         }

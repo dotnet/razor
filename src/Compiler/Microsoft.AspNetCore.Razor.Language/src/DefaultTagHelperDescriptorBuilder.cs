@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
@@ -51,11 +52,12 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
     private List<DefaultBoundAttributeDescriptorBuilder>? _attributeBuilders;
     private List<DefaultTagMatchingRuleDescriptorBuilder>? _tagMatchingRuleBuilders;
     private RazorDiagnosticCollection? _diagnostics;
-    private readonly Dictionary<string, string?> _metadata;
+    private readonly Dictionary<string, string?> _metadataDictionary;
+    private MetadataCollection? _metadata;
 
     private DefaultTagHelperDescriptorBuilder()
     {
-        _metadata = new Dictionary<string, string?>(StringComparer.Ordinal);
+        _metadataDictionary = new Dictionary<string, string?>(StringComparer.Ordinal);
     }
 
     public DefaultTagHelperDescriptorBuilder(string kind, string name, string assemblyName)
@@ -81,7 +83,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         set => _documentationObject = new(value);
     }
 
-    public override IDictionary<string, string?> Metadata => _metadata;
+    public override IDictionary<string, string?> Metadata => _metadataDictionary;
     public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
     public override IReadOnlyList<AllowedChildTagDescriptorBuilder> AllowedChildTags
@@ -166,6 +168,31 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         _documentationObject = new(documentation);
     }
 
+    internal override void SetMetadata(MetadataCollection metadata)
+    {
+        Debug.Assert(
+            metadata.ContainsKey(TagHelperMetadata.Runtime.Name),
+            "TagHelperDescriptorBuilder.Metadata *must* contain a runtime name.");
+
+        _metadata = metadata;
+    }
+
+    internal override bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
+    {
+        if (_metadata is { } metadata)
+        {
+            return metadata.TryGetValue(key, out value);
+        }
+
+        if (_metadataDictionary is { } metadataDictionary)
+        {
+            return metadataDictionary.TryGetValue(key, out value);
+        }
+
+        value = null;
+        return false;
+    }
+
     public override TagHelperDescriptor Build()
     {
         using var diagnostics = new PooledHashSet<RazorDiagnostic>();
@@ -175,6 +202,8 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         var allowedChildTags = _allowedChildTags.BuildAllOrEmpty(s_allowedChildTagSetPool);
         var tagMatchingRules = _tagMatchingRuleBuilders.BuildAllOrEmpty(s_tagMatchingRuleSetPool);
         var attributes = _attributeBuilders.BuildAllOrEmpty(s_boundAttributeSetPool);
+
+        var metadata = _metadata ?? MetadataCollection.Create(_metadataDictionary);
 
         var descriptor = new DefaultTagHelperDescriptor(
             Kind,
@@ -187,7 +216,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
             tagMatchingRules,
             attributes,
             allowedChildTags,
-            MetadataCollection.Create(_metadata),
+            metadata,
             diagnostics.ToArray());
 
         return descriptor;
@@ -200,7 +229,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         _allowedChildTags?.Clear();
         _attributeBuilders?.Clear();
         _tagMatchingRuleBuilders?.Clear();
-        _metadata.Clear();
+        _metadataDictionary.Clear();
         _diagnostics?.Clear();
     }
 
@@ -228,6 +257,6 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
     {
         // Tells code generation that these tag helpers are compatible with ITagHelper.
         // For now that's all we support.
-        _metadata.Add(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
+        _metadataDictionary.Add(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
     }
 }
