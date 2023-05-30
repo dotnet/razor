@@ -65,6 +65,11 @@ internal static class RazorSyntaxFacts
         return false;
     }
 
+    /// <summary>
+    /// Gets the span of the entire "name" part of an attribute, if the <paramref name="absoluteIndex"/> is anywhere within it,
+    /// including any prefix or suffix
+    /// For example given "&lt;Goo @bi$$nd-Value:after="val" /&gt;" with the cursor at $$, it would return the span from "@" to "r".
+    /// </summary>
     public static bool TryGetFullAttributeNameSpan(RazorCodeDocument codeDocument, int absoluteIndex, out TextSpan attributeNameSpan)
     {
         var tree = codeDocument.GetSyntaxTree();
