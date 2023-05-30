@@ -72,8 +72,8 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
                 break;
             }
 
-            var mappedStart = this.TryMapFromProjectedDocumentPosition(generatedDocument, startIndex, out var hostDocumentStart, out _);
-            var mappedEnd = this.TryMapFromProjectedDocumentPosition(generatedDocument, endIndex, out var hostDocumentEnd, out _);
+            var mappedStart = this.TryMapToHostDocumentPosition(generatedDocument, startIndex, out var hostDocumentStart, out _);
+            var mappedEnd = this.TryMapToHostDocumentPosition(generatedDocument, endIndex, out var hostDocumentEnd, out _);
 
             // Ideal case, both start and end can be mapped so just return the edit
             if (mappedStart && mappedEnd)
@@ -127,8 +127,8 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
                     break;
                 }
 
-                mappedStart = this.TryMapFromProjectedDocumentPosition(generatedDocument, startIndex, out hostDocumentStart, out _);
-                mappedEnd = this.TryMapFromProjectedDocumentPosition(generatedDocument, endIndex, out hostDocumentEnd, out _);
+                mappedStart = this.TryMapToHostDocumentPosition(generatedDocument, startIndex, out hostDocumentStart, out _);
+                mappedEnd = this.TryMapToHostDocumentPosition(generatedDocument, endIndex, out hostDocumentEnd, out _);
 
                 if (mappedStart && mappedEnd)
                 {
@@ -182,7 +182,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
                 // Only do anything if the end of the line in question is a valid mapping point (ie, a transition)
                 var endOfLine = line.Span.End;
-                if (this.TryMapFromProjectedDocumentPosition(generatedDocument, endOfLine, out var hostDocumentIndex, out _))
+                if (this.TryMapToHostDocumentPosition(generatedDocument, endOfLine, out var hostDocumentIndex, out _))
                 {
                     if (range.Start.Line == lastNewLineAddedToLine)
                     {
@@ -313,7 +313,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         return true;
     }
 
-    public bool TryMapFromProjectedDocumentPosition(IRazorGeneratedDocument generatedDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Position? originalPosition, out int originalIndex)
+    public bool TryMapToHostDocumentPosition(IRazorGeneratedDocument generatedDocument, int generatedDocumentIndex, [NotNullWhen(true)] out Position? hostDocumentPosition, out int hostDocumentIndex)
     {
         if (generatedDocument is null)
         {
@@ -329,25 +329,25 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         {
             var generatedSpan = mapping.GeneratedSpan;
             var generatedAbsoluteIndex = generatedSpan.AbsoluteIndex;
-            if (generatedAbsoluteIndex <= csharpAbsoluteIndex)
+            if (generatedAbsoluteIndex <= generatedDocumentIndex)
             {
                 // Treat the mapping as owning the edge at its end (hence <= originalSpan.Length),
                 // otherwise we wouldn't handle the cursor being right after the final C# char
-                var distanceIntoGeneratedSpan = csharpAbsoluteIndex - generatedAbsoluteIndex;
+                var distanceIntoGeneratedSpan = generatedDocumentIndex - generatedAbsoluteIndex;
                 if (distanceIntoGeneratedSpan <= generatedSpan.Length)
                 {
-                    // Found the generated span that contains the csharp absolute index
+                    // Found the generated span that contains the generated absolute index
 
-                    originalIndex = mapping.OriginalSpan.AbsoluteIndex + distanceIntoGeneratedSpan;
-                    var originalLocation = codeDocument.Source.Lines.GetLocation(originalIndex);
-                    originalPosition = new Position(originalLocation.LineIndex, originalLocation.CharacterIndex);
+                    hostDocumentIndex = mapping.OriginalSpan.AbsoluteIndex + distanceIntoGeneratedSpan;
+                    var originalLocation = codeDocument.Source.Lines.GetLocation(hostDocumentIndex);
+                    hostDocumentPosition = new Position(originalLocation.LineIndex, originalLocation.CharacterIndex);
                     return true;
                 }
             }
         }
 
-        originalPosition = default;
-        originalIndex = default;
+        hostDocumentPosition = default;
+        hostDocumentIndex = default;
         return false;
     }
 
@@ -598,13 +598,13 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         }
 
         if (!range.Start.TryGetAbsoluteIndex(csharpSourceText, _logger, out var startIndex) ||
-            !TryMapFromProjectedDocumentPosition(generatedDocument, startIndex, out var hostDocumentStart, out _))
+            !TryMapToHostDocumentPosition(generatedDocument, startIndex, out var hostDocumentStart, out _))
         {
             return false;
         }
 
         if (!range.End.TryGetAbsoluteIndex(csharpSourceText, _logger, out var endIndex) ||
-            !TryMapFromProjectedDocumentPosition(generatedDocument, endIndex, out var hostDocumentEnd, out _))
+            !TryMapToHostDocumentPosition(generatedDocument, endIndex, out var hostDocumentEnd, out _))
         {
             return false;
         }
@@ -637,10 +637,10 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         var projectedRangeAsSpan = generatedDocumentRange.AsTextSpan(csharpSourceText);
         var range = generatedDocumentRange;
         var startIndex = projectedRangeAsSpan.Start;
-        var startMappedDirectly = TryMapFromProjectedDocumentPosition(generatedDocument, startIndex, out var hostDocumentStart, out _);
+        var startMappedDirectly = TryMapToHostDocumentPosition(generatedDocument, startIndex, out var hostDocumentStart, out _);
 
         var endIndex = projectedRangeAsSpan.End;
-        var endMappedDirectly = TryMapFromProjectedDocumentPosition(generatedDocument, endIndex, out var hostDocumentEnd, out _);
+        var endMappedDirectly = TryMapToHostDocumentPosition(generatedDocument, endIndex, out var hostDocumentEnd, out _);
 
         if (startMappedDirectly && endMappedDirectly)
         {

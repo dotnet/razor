@@ -19,7 +19,7 @@ internal interface IRazorDocumentMappingService
 
     bool TryMapToProjectedDocumentRange(IRazorGeneratedDocument generatedDocument, Range originalRange, [NotNullWhen(true)] out Range? projectedRange);
 
-    bool TryMapFromProjectedDocumentPosition(IRazorGeneratedDocument generatedDocument, int csharpAbsoluteIndex, [NotNullWhen(true)] out Position? originalPosition, out int originalIndex);
+    bool TryMapToHostDocumentPosition(IRazorGeneratedDocument generatedDocument, int generatedDocumentIndex, [NotNullWhen(true)] out Position? hostDocumentPosition, out int hostDocumentIndex);
 
     bool TryMapToProjectedDocumentPosition(IRazorGeneratedDocument generatedDocument, int absoluteIndex, [NotNullWhen(true)] out Position? projectedPosition, out int projectedIndex);
 

@@ -580,7 +580,7 @@ public class RazorDocumentMappingServiceTest : TestBase
             new[] { new SourceMapping(new SourceSpan(2, 100), new SourceSpan(2, 100)) });
 
         // Act
-        var result = service.TryMapFromProjectedDocumentPosition(
+        var result = service.TryMapToHostDocumentPosition(
             codeDoc.GetCSharpDocument(),
             1,
             out var hostDocumentPosition,
@@ -606,7 +606,7 @@ public class RazorDocumentMappingServiceTest : TestBase
             });
 
         // Act & Assert
-        if (service.TryMapFromProjectedDocumentPosition(
+        if (service.TryMapToHostDocumentPosition(
             codeDoc.GetCSharpDocument(),
             11, // @{|
             out var hostDocumentPosition,
@@ -618,7 +618,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         }
         else
         {
-            Assert.False(true, $"{nameof(service.TryMapFromProjectedDocumentPosition)} should have returned true");
+            Assert.False(true, $"{nameof(service.TryMapToHostDocumentPosition)} should have returned true");
         }
     }
 
@@ -636,7 +636,7 @@ public class RazorDocumentMappingServiceTest : TestBase
             });
 
         // Act & Assert
-        if (service.TryMapFromProjectedDocumentPosition(
+        if (service.TryMapToHostDocumentPosition(
             codeDoc.GetCSharpDocument(),
             21, // |var def
             out var hostDocumentPosition,
@@ -648,7 +648,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         }
         else
         {
-            Assert.False(true, $"{nameof(service.TryMapFromProjectedDocumentPosition)} should have returned true");
+            Assert.False(true, $"{nameof(service.TryMapToHostDocumentPosition)} should have returned true");
         }
     }
 
@@ -666,7 +666,7 @@ public class RazorDocumentMappingServiceTest : TestBase
             });
 
         // Act & Assert
-        if (service.TryMapFromProjectedDocumentPosition(
+        if (service.TryMapToHostDocumentPosition(
             codeDoc.GetCSharpDocument(),
             30, // def; |}
             out var hostDocumentPosition,
@@ -678,7 +678,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         }
         else
         {
-            Assert.False(true, $"{nameof(service.TryMapFromProjectedDocumentPosition)} should have returned true");
+            Assert.False(true, $"{nameof(service.TryMapToHostDocumentPosition)} should have returned true");
         }
     }
 
