@@ -20,13 +20,13 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
+internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly DocumentContextFactory _documentContextFactory;
     private readonly ILogger _logger;
 
-    public DefaultRazorDocumentMappingService(
+    public RazorDocumentMappingService(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         DocumentContextFactory documentContextFactory,
         ILoggerFactory loggerFactory)
@@ -48,7 +48,7 @@ internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
 
         _languageServerFeatureOptions = languageServerFeatureOptions;
         _documentContextFactory = documentContextFactory;
-        _logger = loggerFactory.CreateLogger<DefaultRazorDocumentMappingService>();
+        _logger = loggerFactory.CreateLogger<RazorDocumentMappingService>();
     }
 
     public TextEdit[] GetProjectedDocumentEdits(IRazorGeneratedDocument generatedDocument, TextEdit[] edits)
@@ -267,8 +267,8 @@ internal class DefaultRazorDocumentMappingService : IRazorDocumentMappingService
             (originalRange.End.Line == originalRange.Start.Line &&
              originalRange.End.Character < originalRange.Start.Character))
         {
-            _logger.LogWarning("DefaultRazorDocumentMappingService:TryMapToProjectedDocumentRange original range end < start '{originalRange}'", originalRange);
-            Debug.Fail($"DefaultRazorDocumentMappingService:TryMapToProjectedDocumentRange original range end < start '{originalRange}'");
+            _logger.LogWarning("RazorDocumentMappingService:TryMapToProjectedDocumentRange original range end < start '{originalRange}'", originalRange);
+            Debug.Fail($"RazorDocumentMappingService:TryMapToProjectedDocumentRange original range end < start '{originalRange}'");
             return false;
         }
 

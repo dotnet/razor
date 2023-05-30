@@ -16,9 +16,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-public class DefaultRazorDocumentMappingServiceTest : TestBase
+public class RazorDocumentMappingServiceTest : TestBase
 {
-    public DefaultRazorDocumentMappingServiceTest(ITestOutputHelper testOutput)
+    public RazorDocumentMappingServiceTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
     }
