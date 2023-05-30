@@ -12,6 +12,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -166,7 +167,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 {
                     attribute.Name = "@bind-";
                     attribute.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
-                    attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                    attribute.SetMetadata(Attributes.IsDirectiveAttribute);
                 });
             });
 
@@ -179,8 +180,8 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 attribute.AsDictionary("@bind-", typeof(object).FullName);
 
                 attribute.SetMetadata(
-                    CommonMetadata.PropertyName("Bind"),
-                    CommonMetadata.IsDirectiveAttribute);
+                    PropertyName("Bind"),
+                    IsDirectiveAttribute);
 
                 attribute.TypeName = "System.Collections.Generic.Dictionary<string, object>";
 
@@ -190,7 +191,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     parameter.TypeName = typeof(string).FullName;
                     parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Fallback_Format);
 
-                    parameter.SetMetadata(CommonMetadata.Parameters.Format);
+                    parameter.SetMetadata(Parameters.Format);
                 });
 
                 attribute.BindAttributeParameter(parameter =>
@@ -201,7 +202,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                         DocumentationDescriptor.From(
                             DocumentationId.BindTagHelper_Fallback_Event, attributeName));
 
-                    parameter.SetMetadata(CommonMetadata.Parameters.Event);
+                    parameter.SetMetadata(Parameters.Event);
                 });
 
                 attribute.BindAttributeParameter(parameter =>
@@ -210,7 +211,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     parameter.TypeName = typeof(CultureInfo).FullName;
                     parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Culture);
 
-                    parameter.SetMetadata(CommonMetadata.Parameters.Culture);
+                    parameter.SetMetadata(Parameters.Culture);
                 });
 
                 attribute.BindAttributeParameter(parameter =>
@@ -219,7 +220,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     parameter.TypeName = typeof(object).FullName;
                     parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Get);
 
-                    parameter.SetMetadata(CommonMetadata.Parameters.Get);
+                    parameter.SetMetadata(Parameters.Get);
                 });
 
                 attribute.BindAttributeParameter(parameter =>
@@ -228,7 +229,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     parameter.TypeName = typeof(Delegate).FullName;
                     parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Set);
 
-                    parameter.SetMetadata(CommonMetadata.Parameters.Set);
+                    parameter.SetMetadata(Parameters.Set);
                 });
 
                 attribute.BindAttributeParameter(parameter =>
@@ -237,7 +238,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     parameter.TypeName = typeof(Delegate).FullName;
                     parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_After);
 
-                    parameter.SetMetadata(CommonMetadata.Parameters.After);
+                    parameter.SetMetadata(Parameters.After);
                 });
             });
 
@@ -368,13 +369,26 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
         foreach (var entry in data)
         {
-            var name = entry.Suffix == null ? "Bind" : "Bind_" + entry.Suffix;
-            var attributeName = entry.Suffix == null ? "@bind" : "@bind-" + entry.Suffix;
+            string name, attributeName, formatName, formatAttributeName, eventName;
 
-            var formatName = entry.Suffix == null ? "Format_" + entry.ValueAttribute : "Format_" + entry.Suffix;
-            var formatAttributeName = entry.Suffix == null ? "format-" + entry.ValueAttribute : "format-" + entry.Suffix;
+            if (entry.Suffix is { } suffix)
+            {
+                name = "Bind_" + suffix;
+                attributeName = "@bind-" + suffix;
+                formatName = "Format_" + suffix;
+                formatAttributeName = "format-" + suffix;
+                eventName = "Event_" + suffix;
+            }
+            else
+            {
+                name = "Bind";
+                attributeName = "@bind";
 
-            var eventName = entry.Suffix == null ? "Event_" + entry.ValueAttribute : "Event_" + entry.Suffix;
+                suffix = entry.ValueAttribute;
+                formatName = "Format_" + suffix;
+                formatAttributeName = "format-" + suffix;
+                eventName = "Event_" + suffix;
+            }
 
             using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
                 ComponentMetadata.Bind.TagHelperKind, name, ComponentsApi.AssemblyName,
@@ -433,7 +447,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 {
                     a.Name = attributeName;
                     a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
-                    a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                    a.SetMetadata(Attributes.IsDirectiveAttribute);
                 });
             });
 
@@ -455,14 +469,14 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 {
                     a.Name = $"{attributeName}:get";
                     a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
-                    a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                    a.SetMetadata(Attributes.IsDirectiveAttribute);
                 });
 
                 rule.Attribute(a =>
                 {
                     a.Name = $"{attributeName}:set";
                     a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
-                    a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                    a.SetMetadata(Attributes.IsDirectiveAttribute);
                 });
             });
 
@@ -478,8 +492,8 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 a.TypeName = typeof(object).FullName;
 
                 a.SetMetadata(
-                    CommonMetadata.IsDirectiveAttribute,
-                    CommonMetadata.PropertyName(name));
+                    IsDirectiveAttribute,
+                    PropertyName(name));
 
                 a.BindAttributeParameter(parameter =>
                 {
@@ -490,7 +504,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                             DocumentationId.BindTagHelper_Element_Format,
                             attributeName));
 
-                    parameter.SetMetadata(CommonMetadata.PropertyName(formatName));
+                    parameter.SetMetadata(PropertyName(formatName));
                 });
 
                 a.BindAttributeParameter(parameter =>
@@ -502,7 +516,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                             DocumentationId.BindTagHelper_Element_Event,
                             attributeName));
 
-                    parameter.SetMetadata(CommonMetadata.PropertyName(eventName));
+                    parameter.SetMetadata(PropertyName(eventName));
                 });
 
                 a.BindAttributeParameter(parameter =>
@@ -511,7 +525,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     parameter.TypeName = typeof(CultureInfo).FullName;
                     parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Culture);
 
-                    parameter.SetMetadata(CommonMetadata.Parameters.Culture);
+                    parameter.SetMetadata(Parameters.Culture);
                 });
 
                 a.BindAttributeParameter(parameter =>
@@ -520,7 +534,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     parameter.TypeName = typeof(object).FullName;
                     parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Get);
 
-                    parameter.SetMetadata(CommonMetadata.Parameters.Get);
+                    parameter.SetMetadata(Parameters.Get);
                 });
 
                 a.BindAttributeParameter(parameter =>
@@ -529,7 +543,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     parameter.TypeName = typeof(Delegate).FullName;
                     parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Set);
 
-                    parameter.SetMetadata(CommonMetadata.Parameters.Set);
+                    parameter.SetMetadata(Parameters.Set);
                 });
 
                 a.BindAttributeParameter(parameter =>
@@ -538,7 +552,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     parameter.TypeName = typeof(Delegate).FullName;
                     parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_After);
 
-                    parameter.SetMetadata(CommonMetadata.Parameters.After);
+                    parameter.SetMetadata(Parameters.After);
                 });
             });
 
@@ -552,7 +566,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                         DocumentationId.BindTagHelper_Element_Format,
                         attributeName));
 
-                attribute.SetMetadata(CommonMetadata.PropertyName(formatName));
+                attribute.SetMetadata(PropertyName(formatName));
             });
 
             results.Add(builder.Build());
@@ -658,7 +672,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     {
                         attribute.Name = "@bind-" + valueAttribute.Name;
                         attribute.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
-                        attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                        attribute.SetMetadata(Attributes.IsDirectiveAttribute);
                     });
                 });
 
@@ -669,13 +683,13 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     {
                         attribute.Name = "@bind-" + valueAttribute.Name + ":get";
                         attribute.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
-                        attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                        attribute.SetMetadata(Attributes.IsDirectiveAttribute);
                     });
                     rule.Attribute(attribute =>
                     {
                         attribute.Name = "@bind-" + valueAttribute.Name + ":set";
                         attribute.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
-                        attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                        attribute.SetMetadata(Attributes.IsDirectiveAttribute);
                     });
                 });
 
@@ -692,8 +706,8 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     attribute.IsEnum = valueAttribute.IsEnum;
 
                     attribute.SetMetadata(
-                        CommonMetadata.PropertyName(valueAttribute.GetPropertyName()),
-                        CommonMetadata.IsDirectiveAttribute);
+                        PropertyName(valueAttribute.GetPropertyName()),
+                        IsDirectiveAttribute);
 
                     attribute.BindAttributeParameter(parameter =>
                     {
@@ -701,7 +715,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                         parameter.TypeName = typeof(object).FullName;
                         parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Get);
 
-                        parameter.SetMetadata(CommonMetadata.Parameters.Get);
+                        parameter.SetMetadata(Parameters.Get);
                     });
 
                     attribute.BindAttributeParameter(parameter =>
@@ -710,7 +724,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                         parameter.TypeName = typeof(Delegate).FullName;
                         parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_Set);
 
-                        parameter.SetMetadata(CommonMetadata.Parameters.Set);
+                        parameter.SetMetadata(Parameters.Set);
                     });
 
                     attribute.BindAttributeParameter(parameter =>
@@ -719,10 +733,9 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                         parameter.TypeName = typeof(Delegate).FullName;
                         parameter.SetDocumentation(DocumentationDescriptor.BindTagHelper_Element_After);
 
-                        parameter.SetMetadata(CommonMetadata.Parameters.After);
+                        parameter.SetMetadata(Parameters.After);
                     });
                 });
-
 
                 if (tagHelper.IsComponentFullyQualifiedNameMatch())
                 {

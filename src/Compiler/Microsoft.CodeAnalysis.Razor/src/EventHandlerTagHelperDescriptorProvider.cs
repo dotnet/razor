@@ -6,10 +6,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -169,7 +169,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                 {
                     a.Name = attributeName;
                     a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
-                    a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                    a.SetMetadata(Attributes.IsDirectiveAttribute);
                 });
             });
 
@@ -183,7 +183,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                     {
                         a.Name = attributeName + ":preventDefault";
                         a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
-                        a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                        a.SetMetadata(Attributes.IsDirectiveAttribute);
                     });
                 });
             }
@@ -198,7 +198,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                     {
                         a.Name = attributeName + ":stopPropagation";
                         a.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.FullMatch;
-                        a.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                        a.SetMetadata(Attributes.IsDirectiveAttribute);
                     });
                 });
             }
@@ -219,9 +219,9 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                 a.SetMetadata(
                     // Make this weakly typed (don't type check) - delegates have their own type-checking
                     // logic that we don't want to interfere with.
-                    CommonMetadata.IsWeaklyTyped,
-                    CommonMetadata.IsDirectiveAttribute,
-                    CommonMetadata.PropertyName(entry.Attribute));
+                    IsWeaklyTyped,
+                    IsDirectiveAttribute,
+                    PropertyName(entry.Attribute));
 
                 if (entry.EnablePreventDefault)
                 {
@@ -234,7 +234,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                                 DocumentationId.EventHandlerTagHelper_PreventDefault,
                                 attributeName));
 
-                        parameter.SetMetadata(CommonMetadata.Parameters.PreventDefault);
+                        parameter.SetMetadata(Parameters.PreventDefault);
                     });
                 }
 
@@ -249,7 +249,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                                 DocumentationId.EventHandlerTagHelper_StopPropagation,
                                 attributeName));
 
-                        parameter.SetMetadata(CommonMetadata.Parameters.StopPropagation);
+                        parameter.SetMetadata(Parameters.StopPropagation);
                     });
                 }
             });

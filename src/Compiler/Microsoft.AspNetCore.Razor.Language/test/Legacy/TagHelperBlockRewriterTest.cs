@@ -251,7 +251,7 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                             .RequireAttributeDescriptor(b =>
                             {
                                 b.Name = "@onclick";
-                                b.Metadata.Add(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString);
+                                b.SetMetadata(Attributes.IsDirectiveAttribute);
                             });
                     })
                     .AddMetadata(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind)
@@ -276,7 +276,7 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                             .RequireAttributeDescriptor(b =>
                             {
                                 b.Name = "@onclick";
-                                b.Metadata.Add(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString);
+                                b.SetMetadata(Attributes.IsDirectiveAttribute);
                             });
 
                     })
@@ -2235,7 +2235,7 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                             {
                                 r.Name = "@bind-";
                                 r.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
-                                r.Metadata.Add(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString);
+                                r.SetMetadata(Attributes.IsDirectiveAttribute);
                             }))
                     .BoundAttributeDescriptor(attribute =>
                         attribute
@@ -2278,7 +2278,7 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                             {
                                 r.Name = "@bind-";
                                 r.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
-                                r.Metadata.Add(ComponentMetadata.Common.DirectiveAttribute, bool.TrueString);
+                                r.SetMetadata(Attributes.IsDirectiveAttribute);
                             }))
                     .BoundAttributeDescriptor(attribute =>
                         attribute

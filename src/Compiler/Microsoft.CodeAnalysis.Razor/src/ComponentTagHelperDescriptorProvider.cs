@@ -7,11 +7,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -201,8 +201,8 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             pb.IsEditorRequired = property.GetAttributes().Any(
                 static a => a.AttributeClass.HasFullName("Microsoft.AspNetCore.Components.EditorRequiredAttribute"));
 
-            metadataPairs.Add(CommonMetadata.PropertyName(property.Name));
-            metadataPairs.Add(CommonMetadata.GloballyQualifiedTypeName(property.Type.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat)));
+            metadataPairs.Add(PropertyName(property.Name));
+            metadataPairs.Add(GloballyQualifiedTypeName(property.Type.ToDisplayString(GloballyQualifiedFullNameTypeDisplayFormat)));
 
             if (kind == PropertyKind.Enum)
             {
@@ -211,28 +211,28 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
 
             if (kind == PropertyKind.ChildContent)
             {
-                metadataPairs.Add(CommonMetadata.IsTrue(ComponentMetadata.Component.ChildContentKey));
+                metadataPairs.Add(IsTrue(ComponentMetadata.Component.ChildContentKey));
             }
 
             if (kind == PropertyKind.EventCallback)
             {
-                metadataPairs.Add(CommonMetadata.IsTrue(ComponentMetadata.Component.EventCallbackKey));
+                metadataPairs.Add(IsTrue(ComponentMetadata.Component.EventCallbackKey));
             }
 
             if (kind == PropertyKind.Delegate)
             {
-                metadataPairs.Add(CommonMetadata.IsTrue(ComponentMetadata.Component.DelegateSignatureKey));
+                metadataPairs.Add(IsTrue(ComponentMetadata.Component.DelegateSignatureKey));
                 metadataPairs.Add(new(ComponentMetadata.Component.DelegateWithAwaitableResultKey, IsAwaitable(property)));
             }
 
             if (HasTypeParameter(property.Type))
             {
-                metadataPairs.Add(CommonMetadata.IsTrue(ComponentMetadata.Component.GenericTypedKey));
+                metadataPairs.Add(IsTrue(ComponentMetadata.Component.GenericTypedKey));
             }
 
             if (property.SetMethod.IsInitOnly)
             {
-                metadataPairs.Add(CommonMetadata.IsTrue(ComponentMetadata.Component.InitOnlyProperty));
+                metadataPairs.Add(IsTrue(ComponentMetadata.Component.InitOnlyProperty));
             }
 
             pb.SetMetadata(MetadataCollection.Create(metadataPairs));
@@ -400,8 +400,8 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             pb.TypeName = typeof(Type).FullName;
 
             using var _ = ListPool<KeyValuePair<string, string>>.GetPooledObject(out var metadataPairs);
-            metadataPairs.Add(CommonMetadata.PropertyName(typeParameter.Name));
-            metadataPairs.Add(CommonMetadata.IsTrue(ComponentMetadata.Component.TypeParameterKey));
+            metadataPairs.Add(PropertyName(typeParameter.Name));
+            metadataPairs.Add(IsTrue(ComponentMetadata.Component.TypeParameterKey));
             metadataPairs.Add(new(ComponentMetadata.Component.TypeParameterIsCascadingKey, cascade.ToString()));
 
             // Type constraints (like "Image" or "Foo") are stored independently of
@@ -550,8 +550,8 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             b.Name = ComponentMetadata.ChildContent.ParameterAttributeName;
             b.TypeName = typeof(string).FullName;
             b.SetMetadata(
-                CommonMetadata.IsTrue(ComponentMetadata.Component.ChildContentParameterNameKey),
-                CommonMetadata.PropertyName(b.Name));
+                IsTrue(ComponentMetadata.Component.ChildContentParameterNameKey),
+                PropertyName(b.Name));
 
             var documentation = childContentName == null
                 ? DocumentationDescriptor.ChildContentParameterName_TopLevel

@@ -6,6 +6,7 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -75,7 +76,7 @@ internal class RefTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 rule.Attribute(attribute =>
                 {
                     attribute.Name = "@ref";
-                    attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                    attribute.SetMetadata(Attributes.IsDirectiveAttribute);
                 });
             });
 
@@ -86,8 +87,8 @@ internal class RefTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
                 attribute.TypeName = typeof(object).FullName;
                 attribute.SetMetadata(
-                    CommonMetadata.PropertyName("Ref"),
-                    CommonMetadata.IsDirectiveAttribute);
+                    PropertyName("Ref"),
+                    IsDirectiveAttribute);
             });
 
             return builder.Build();

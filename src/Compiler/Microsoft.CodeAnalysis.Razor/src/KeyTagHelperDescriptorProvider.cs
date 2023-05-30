@@ -6,6 +6,7 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -75,7 +76,7 @@ internal class KeyTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 rule.Attribute(attribute =>
                 {
                     attribute.Name = "@key";
-                    attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                    attribute.SetMetadata(Attributes.IsDirectiveAttribute);
                 });
             });
 
@@ -86,8 +87,8 @@ internal class KeyTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
                 attribute.TypeName = typeof(object).FullName;
                 attribute.SetMetadata(
-                    CommonMetadata.PropertyName("Key"),
-                    CommonMetadata.IsDirectiveAttribute);
+                    PropertyName("Key"),
+                    IsDirectiveAttribute);
             });
 
             return builder.Build();
