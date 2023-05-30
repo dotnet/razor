@@ -146,7 +146,7 @@ internal class DelegatedCompletionListProvider
     private async Task<ProvisionalCompletionInfo?> TryGetProvisionalCompletionInfoAsync(
         VersionedDocumentContext documentContext,
         VSInternalCompletionContext completionContext,
-        Projection projection,
+        DocumentPositionInfo projection,
         CancellationToken cancellationToken)
     {
         if (projection.LanguageKind != RazorLanguageKind.Html ||
@@ -164,7 +164,7 @@ internal class DelegatedCompletionListProvider
         }
 
         var previousCharacterProjection = await _documentMappingService
-            .GetProjectionAsync(documentContext, projection.AbsoluteIndex - 1, cancellationToken)
+            .GetProjectionAsync(documentContext, projection.HostDocumentIndex - 1, cancellationToken)
             .ConfigureAwait(false);
 
         if (previousCharacterProjection.LanguageKind != RazorLanguageKind.CSharp)
@@ -186,15 +186,15 @@ internal class DelegatedCompletionListProvider
             NewText = ".",
         };
 
-        var provisionalProjection = new Projection(
+        var provisionalProjection = new DocumentPositionInfo(
             RazorLanguageKind.CSharp,
             new Position(
                 previousPosition.Line,
                 previousPosition.Character + 1),
-            previousCharacterProjection.AbsoluteIndex + 1);
+            previousCharacterProjection.HostDocumentIndex + 1);
 
         return new ProvisionalCompletionInfo(addProvisionalDot, provisionalProjection);
     }
 
-    private record class ProvisionalCompletionInfo(TextEdit ProvisionalTextEdit, Projection ProvisionalProjection);
+    private record class ProvisionalCompletionInfo(TextEdit ProvisionalTextEdit, DocumentPositionInfo ProvisionalProjection);
 }

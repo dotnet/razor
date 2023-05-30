@@ -25,16 +25,14 @@ internal interface IRazorDocumentMappingService
 
     bool TryMapToGeneratedDocumentOrNextCSharpPosition(IRazorGeneratedDocument generatedDocument, int hostDocumentIndex, [NotNullWhen(true)] out Position? generatedPosition, out int generatedIndex);
 
-    RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex, bool rightAssociative);
+    RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int hostDocumentIndex, bool rightAssociative);
 
     Task<WorkspaceEdit> RemapWorkspaceEditAsync(WorkspaceEdit workspaceEdit, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Maps a range in the specified virtual document uri to a range in the Razor document that owns the
-    /// virtual document. If the uri passed in is not for a virtual document, or the range cannot be mapped
+    /// Maps a range in the specified generated document uri to a range in the Razor document that owns the
+    /// generated document. If the uri passed in is not for a generated document, or the range cannot be mapped
     /// for some other reason, the original passed in range is returned unchanged.
     /// </summary>
-    Task<(Uri MappedDocumentUri, Range MappedRange)> MapFromProjectedDocumentRangeAsync(Uri virtualDocumentUri, Range projectedRange, CancellationToken cancellationToken);
+    Task<(Uri MappedDocumentUri, Range MappedRange)> MapToHostDocumentUriAndRangeAsync(Uri generatedDocumentUri, Range generatedDocumentRange, CancellationToken cancellationToken);
 }
-
-internal record Projection(RazorLanguageKind LanguageKind, Position Position, int AbsoluteIndex);

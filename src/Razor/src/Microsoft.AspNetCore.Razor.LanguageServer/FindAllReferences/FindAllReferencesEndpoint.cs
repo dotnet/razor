@@ -53,7 +53,7 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(ReferenceParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(ReferenceParams request, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken)
     {
         // HTML doesn't need to do FAR
         if (projection.LanguageKind != RazorLanguageKind.CSharp)
@@ -68,7 +68,7 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
                 projection.LanguageKind));
     }
 
-    protected override async Task<VSInternalReferenceItem[]> HandleDelegatedResponseAsync(VSInternalReferenceItem[] delegatedResponse, ReferenceParams originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override async Task<VSInternalReferenceItem[]> HandleDelegatedResponseAsync(VSInternalReferenceItem[] delegatedResponse, ReferenceParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken)
     {
         var remappedLocations = new List<VSInternalReferenceItem>();
 
@@ -95,7 +95,7 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
                 continue;
             }
 
-            var (itemUri, mappedRange) = await _documentMappingService.MapFromProjectedDocumentRangeAsync(referenceItem.Location.Uri, referenceItem.Location.Range, cancellationToken).ConfigureAwait(false);
+            var (itemUri, mappedRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(referenceItem.Location.Uri, referenceItem.Location.Range, cancellationToken).ConfigureAwait(false);
 
             referenceItem.Location.Uri = itemUri;
             referenceItem.DisplayPath = itemUri.AbsolutePath;

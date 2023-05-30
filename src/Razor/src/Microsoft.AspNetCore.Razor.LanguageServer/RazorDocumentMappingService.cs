@@ -53,7 +53,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
     public TextEdit[] GetHostDocumentEdits(IRazorGeneratedDocument generatedDocument, TextEdit[] generatedDocumentEdits)
     {
-        var projectedEdits = new List<TextEdit>();
+        var hostDocumentEdits = new List<TextEdit>();
         var generatedDocumentSourceText = GetGeneratedSourceText(generatedDocument);
         var lastNewLineAddedToLine = 0;
 
@@ -82,7 +82,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
                 // between this edit and the previous one, because the normalization will have swallowed it. See
                 // below for a more info.
                 var newText = (lastNewLineAddedToLine == range.Start.Line ? " " : "") + edit.NewText;
-                projectedEdits.Add(new TextEdit()
+                hostDocumentEdits.Add(new TextEdit()
                 {
                     NewText = newText,
                     Range = new Range { Start = hostDocumentStart!, End = hostDocumentEnd! },
@@ -132,7 +132,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
                 if (mappedStart && mappedEnd)
                 {
-                    projectedEdits.Add(new TextEdit()
+                    hostDocumentEdits.Add(new TextEdit()
                     {
                         NewText = edit.NewText[lastNewLine..],
                         Range = new Range { Start = hostDocumentStart!, End = hostDocumentEnd! },
@@ -189,7 +189,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
                         // If we already added a newline to this line, then we don't want to add another one, but
                         // we do need to add a space between this edit and the previous one, because the normalization
                         // will have swallowed it.
-                        projectedEdits.Add(new TextEdit()
+                        hostDocumentEdits.Add(new TextEdit()
                         {
                             NewText = " " + edit.NewText,
                             Range = new Range { Start = hostDocumentIndex, End = hostDocumentIndex }
@@ -199,7 +199,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
                     {
                         // Otherwise, add a newline and the real content, and remember where we added it
                         lastNewLineAddedToLine = range.Start.Line;
-                        projectedEdits.Add(new TextEdit()
+                        hostDocumentEdits.Add(new TextEdit()
                         {
                             NewText = Environment.NewLine + new string(' ', range.Start.Character) + edit.NewText,
                             Range = new Range { Start = hostDocumentIndex, End = hostDocumentIndex }
@@ -211,7 +211,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             }
         }
 
-        return projectedEdits.ToArray();
+        return hostDocumentEdits.ToArray();
     }
 
     public bool TryMapToHostDocumentRange(IRazorGeneratedDocument generatedDocument, Range generatedDocumentRange, MappingBehavior mappingBehavior, [NotNullWhen(true)] out Range? hostDocumentRange)
@@ -292,10 +292,10 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         }
 
         // Ensures a valid range is returned.
-        // As we're doing two separate TryMapToProjectedDocumentPosition calls,
-        // it's possible the projectedStart and projectedEnd positions are in completely
+        // As we're doing two separate TryMapToGeneratedDocumentPosition calls,
+        // it's possible the generatedRangeStart and generatedRangeEnd positions are in completely
         // different places in the document, including the possibility that the
-        // projectedEnd position occurs before the projectedStart position.
+        // generatedRangeEnd position occurs before the generatedRangeStart position.
         // We explicitly disallow such ranges where the end < start.
         if ((generatedRangeEnd.Line < generatedRangeStart.Line) ||
             (generatedRangeEnd.Line == generatedRangeStart.Line &&
@@ -406,16 +406,16 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         generatedIndex = default;
         return false;
 
-        static Position GetGeneratedPosition(IRazorGeneratedDocument generatedDocument, int projectedIndex)
+        static Position GetGeneratedPosition(IRazorGeneratedDocument generatedDocument, int generatedIndex)
         {
             var generatedSource = GetGeneratedSourceText(generatedDocument);
-            var generatedLinePosition = generatedSource.Lines.GetLinePosition(projectedIndex);
+            var generatedLinePosition = generatedSource.Lines.GetLinePosition(generatedIndex);
             var generatedPosition = new Position(generatedLinePosition.Line, generatedLinePosition.Character);
             return generatedPosition;
         }
     }
 
-    public RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int originalIndex, bool rightAssociative)
+    public RazorLanguageKind GetLanguageKind(RazorCodeDocument codeDocument, int hostDocumentIndex, bool rightAssociative)
     {
         if (codeDocument is null)
         {
@@ -425,7 +425,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         var classifiedSpans = GetClassifiedSpans(codeDocument);
         var tagHelperSpans = GetTagHelperSpans(codeDocument);
         var documentLength = codeDocument.Source.Length;
-        var languageKind = GetLanguageKindCore(classifiedSpans, tagHelperSpans, originalIndex, documentLength, rightAssociative);
+        var languageKind = GetLanguageKindCore(classifiedSpans, tagHelperSpans, hostDocumentIndex, documentLength, rightAssociative);
 
         return languageKind;
     }
@@ -453,48 +453,48 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         return workspaceEdit;
     }
 
-    public async Task<(Uri MappedDocumentUri, Range MappedRange)> MapFromProjectedDocumentRangeAsync(Uri virtualDocumentUri, Range projectedRange, CancellationToken cancellationToken)
+    public async Task<(Uri MappedDocumentUri, Range MappedRange)> MapToHostDocumentUriAndRangeAsync(Uri generatedDocumentUri, Range generatedDocumentRange, CancellationToken cancellationToken)
     {
-        var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(virtualDocumentUri);
+        var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(generatedDocumentUri);
 
         // For Html we just map the Uri, the range will be the same
-        if (_languageServerFeatureOptions.IsVirtualHtmlFile(virtualDocumentUri))
+        if (_languageServerFeatureOptions.IsVirtualHtmlFile(generatedDocumentUri))
         {
-            return (razorDocumentUri, projectedRange);
+            return (razorDocumentUri, generatedDocumentRange);
         }
 
         // We only map from C# files
-        if (!_languageServerFeatureOptions.IsVirtualCSharpFile(virtualDocumentUri))
+        if (!_languageServerFeatureOptions.IsVirtualCSharpFile(generatedDocumentUri))
         {
-            return (virtualDocumentUri, projectedRange);
+            return (generatedDocumentUri, generatedDocumentRange);
         }
 
         var documentContext = await _documentContextFactory.TryCreateAsync(razorDocumentUri, cancellationToken).ConfigureAwait(false);
         if (documentContext is null)
         {
-            return (virtualDocumentUri, projectedRange);
+            return (generatedDocumentUri, generatedDocumentRange);
         }
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        var generatedDocument = GetGeneratedDocumentFromVirtualDocumentUri(virtualDocumentUri, codeDocument);
+        var generatedDocument = GetGeneratedDocumentFromGeneratedDocumentUri(generatedDocumentUri, codeDocument);
 
-        // We already checked that the uri was for a virtual document, above
+        // We already checked that the uri was for a generated document, above
         Assumes.NotNull(generatedDocument);
 
-        if (TryMapToHostDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out var mappedRange))
+        if (TryMapToHostDocumentRange(generatedDocument, generatedDocumentRange, MappingBehavior.Strict, out var mappedRange))
         {
             return (razorDocumentUri, mappedRange);
         }
 
-        return (virtualDocumentUri, projectedRange);
+        return (generatedDocumentUri, generatedDocumentRange);
     }
 
     // Internal for testing
     internal static RazorLanguageKind GetLanguageKindCore(
         IReadOnlyList<ClassifiedSpanInternal> classifiedSpans,
         IReadOnlyList<TagHelperSpanInternal> tagHelperSpans,
-        int absoluteIndex,
-        int documentLength,
+        int hostDocumentIndex,
+        int hostDocumentLength,
         bool rightAssociative)
     {
         for (var i = 0; i < classifiedSpans.Count; i++)
@@ -502,12 +502,12 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             var classifiedSpan = classifiedSpans[i];
             var span = classifiedSpan.Span;
 
-            if (span.AbsoluteIndex <= absoluteIndex)
+            if (span.AbsoluteIndex <= hostDocumentIndex)
             {
                 var end = span.AbsoluteIndex + span.Length;
-                if (end >= absoluteIndex)
+                if (end >= hostDocumentIndex)
                 {
-                    if (end == absoluteIndex)
+                    if (end == hostDocumentIndex)
                     {
                         // We're at an edge.
 
@@ -522,7 +522,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
                         // of, if we're also at the start of the next one
                         if (rightAssociative)
                         {
-                            if (i < classifiedSpans.Count - 1 && classifiedSpans[i + 1].Span.AbsoluteIndex == absoluteIndex)
+                            if (i < classifiedSpans.Count - 1 && classifiedSpans[i + 1].Span.AbsoluteIndex == hostDocumentIndex)
                             {
                                 // If we're at the start of the next span, then use that span
                                 return GetLanguageFromClassifiedSpan(classifiedSpans[i + 1]);
@@ -543,12 +543,12 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             var tagHelperSpan = tagHelperSpans[i];
             var span = tagHelperSpan.Span;
 
-            if (span.AbsoluteIndex <= absoluteIndex)
+            if (span.AbsoluteIndex <= hostDocumentIndex)
             {
                 var end = span.AbsoluteIndex + span.Length;
-                if (end >= absoluteIndex)
+                if (end >= hostDocumentIndex)
                 {
-                    if (end == absoluteIndex)
+                    if (end == hostDocumentIndex)
                     {
                         // We're at an edge. TagHelper spans never own their edge and aren't represented by marker spans
                         continue;
@@ -562,7 +562,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
         // Use the language of the last classified span if we're at the end
         // of the document.
-        if (classifiedSpans.Count != 0 && absoluteIndex == documentLength)
+        if (classifiedSpans.Count != 0 && hostDocumentIndex == hostDocumentLength)
         {
             var lastClassifiedSpan = classifiedSpans.Last();
             return GetLanguageFromClassifiedSpan(lastClassifiedSpan);
@@ -634,17 +634,17 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             return false;
         }
 
-        var projectedRangeAsSpan = generatedDocumentRange.AsTextSpan(csharpSourceText);
+        var generatedRangeAsSpan = generatedDocumentRange.AsTextSpan(csharpSourceText);
         var range = generatedDocumentRange;
-        var startIndex = projectedRangeAsSpan.Start;
+        var startIndex = generatedRangeAsSpan.Start;
         var startMappedDirectly = TryMapToHostDocumentPosition(generatedDocument, startIndex, out var hostDocumentStart, out _);
 
-        var endIndex = projectedRangeAsSpan.End;
+        var endIndex = generatedRangeAsSpan.End;
         var endMappedDirectly = TryMapToHostDocumentPosition(generatedDocument, endIndex, out var hostDocumentEnd, out _);
 
         if (startMappedDirectly && endMappedDirectly)
         {
-            // We strictly mapped the start/end of the projected range.
+            // We strictly mapped the start/end of the generated range.
             hostDocumentRange = new Range
             {
                 Start = hostDocumentStart!,
@@ -656,18 +656,18 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         List<SourceMapping> candidateMappings;
         if (startMappedDirectly)
         {
-            // Start of projected range intersects with a mapping
+            // Start of generated range intersects with a mapping
             candidateMappings = generatedDocument.SourceMappings.Where(mapping => IntersectsWith(startIndex, mapping.GeneratedSpan)).ToList();
         }
         else if (endMappedDirectly)
         {
-            // End of projected range intersects with a mapping
+            // End of generated range intersects with a mapping
             candidateMappings = generatedDocument.SourceMappings.Where(mapping => IntersectsWith(endIndex, mapping.GeneratedSpan)).ToList();
         }
         else
         {
             // Our range does not intersect with any mapping; we should see if it overlaps generated locations
-            candidateMappings = generatedDocument.SourceMappings.Where(mapping => Overlaps(projectedRangeAsSpan, mapping.GeneratedSpan)).ToList();
+            candidateMappings = generatedDocument.SourceMappings.Where(mapping => Overlaps(generatedRangeAsSpan, mapping.GeneratedSpan)).ToList();
         }
 
         if (candidateMappings.Count == 1)
@@ -684,10 +684,10 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             return false;
         }
 
-        bool Overlaps(TextSpan projectedRangeAsSpan, SourceSpan span)
+        bool Overlaps(TextSpan generatedRangeAsSpan, SourceSpan span)
         {
-            var overlapStart = Math.Max(projectedRangeAsSpan.Start, span.AbsoluteIndex);
-            var overlapEnd = Math.Min(projectedRangeAsSpan.End, span.AbsoluteIndex + span.Length);
+            var overlapStart = Math.Max(generatedRangeAsSpan.Start, span.AbsoluteIndex);
+            var overlapEnd = Math.Min(generatedRangeAsSpan.End, span.AbsoluteIndex + span.Length);
 
             return overlapStart < overlapEnd;
         }
@@ -727,48 +727,48 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
         hostDocumentRange = default;
         var csharpSourceText = GetGeneratedSourceText(generatedDocument);
-        var projectedRangeAsSpan = generatedDocumentRange.AsTextSpan(csharpSourceText);
-        SourceMapping? mappingBeforeProjectedRange = null;
-        SourceMapping? mappingAfterProjectedRange = null;
+        var generatedRangeAsSpan = generatedDocumentRange.AsTextSpan(csharpSourceText);
+        SourceMapping? mappingBeforeGeneratedRange = null;
+        SourceMapping? mappingAfterGeneratedRange = null;
 
         for (var i = generatedDocument.SourceMappings.Count - 1; i >= 0; i--)
         {
             var sourceMapping = generatedDocument.SourceMappings[i];
             var sourceMappingEnd = sourceMapping.GeneratedSpan.AbsoluteIndex + sourceMapping.GeneratedSpan.Length;
-            if (projectedRangeAsSpan.Start >= sourceMappingEnd)
+            if (generatedRangeAsSpan.Start >= sourceMappingEnd)
             {
                 // This is the source mapping that's before us!
-                mappingBeforeProjectedRange = sourceMapping;
+                mappingBeforeGeneratedRange = sourceMapping;
 
                 if (i + 1 < generatedDocument.SourceMappings.Count)
                 {
                     // We're not at the end of the document there's another source mapping after us
-                    mappingAfterProjectedRange = generatedDocument.SourceMappings[i + 1];
+                    mappingAfterGeneratedRange = generatedDocument.SourceMappings[i + 1];
                 }
 
                 break;
             }
         }
 
-        if (mappingBeforeProjectedRange == null)
+        if (mappingBeforeGeneratedRange == null)
         {
             // Could not find a mapping before
             return false;
         }
 
         var sourceDocument = codeDocument.Source;
-        var originalSpanBeforeProjectedRange = mappingBeforeProjectedRange.OriginalSpan;
-        var originalEndBeforeProjectedRange = originalSpanBeforeProjectedRange.AbsoluteIndex + originalSpanBeforeProjectedRange.Length;
-        var originalEndPositionBeforeProjectedRange = sourceDocument.Lines.GetLocation(originalEndBeforeProjectedRange);
-        var inferredStartPosition = new Position(originalEndPositionBeforeProjectedRange.LineIndex, originalEndPositionBeforeProjectedRange.CharacterIndex);
+        var originalSpanBeforeGeneratedRange = mappingBeforeGeneratedRange.OriginalSpan;
+        var originalEndBeforeGeneratedRange = originalSpanBeforeGeneratedRange.AbsoluteIndex + originalSpanBeforeGeneratedRange.Length;
+        var originalEndPositionBeforeGeneratedRange = sourceDocument.Lines.GetLocation(originalEndBeforeGeneratedRange);
+        var inferredStartPosition = new Position(originalEndPositionBeforeGeneratedRange.LineIndex, originalEndPositionBeforeGeneratedRange.CharacterIndex);
 
-        if (mappingAfterProjectedRange != null)
+        if (mappingAfterGeneratedRange != null)
         {
-            // There's a mapping after the "projected range" lets use its start position as our inferred end position.
+            // There's a mapping after the "generated range" lets use its start position as our inferred end position.
 
-            var originalSpanAfterProjectedRange = mappingAfterProjectedRange.OriginalSpan;
-            var originalStartPositionAfterProjectedRange = sourceDocument.Lines.GetLocation(originalSpanAfterProjectedRange.AbsoluteIndex);
-            var inferredEndPosition = new Position(originalStartPositionAfterProjectedRange.LineIndex, originalStartPositionAfterProjectedRange.CharacterIndex);
+            var originalSpanAfterGeneratedRange = mappingAfterGeneratedRange.OriginalSpan;
+            var originalStartPositionAfterGeneratedRange = sourceDocument.Lines.GetLocation(originalSpanAfterGeneratedRange.AbsoluteIndex);
+            var inferredEndPosition = new Position(originalStartPositionAfterGeneratedRange.LineIndex, originalStartPositionAfterGeneratedRange.CharacterIndex);
 
             hostDocumentRange = new Range()
             {
@@ -778,7 +778,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             return true;
         }
 
-        // There was no projection after the "projected range". Therefore, lets fallback to the end-document location.
+        // There was no projection after the "generated range". Therefore, lets fallback to the end-document location.
 
         Debug.Assert(sourceDocument.Length > 0, "Source document length should be greater than 0 here because there's a mapping before us");
 
@@ -820,17 +820,17 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         var remappedDocumentEdits = new List<TextDocumentEdit>();
         foreach (var entry in documentEdits)
         {
-            var virtualDocumentUri = entry.TextDocument.Uri;
+            var generatedDocumentUri = entry.TextDocument.Uri;
 
             // Check if the edit is actually for a generated document, because if not we don't need to do anything
-            if (!_languageServerFeatureOptions.IsVirtualDocumentUri(virtualDocumentUri))
+            if (!_languageServerFeatureOptions.IsVirtualDocumentUri(generatedDocumentUri))
             {
                 // This location doesn't point to a background razor file. No need to remap.
                 remappedDocumentEdits.Add(entry);
                 continue;
             }
 
-            var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(virtualDocumentUri);
+            var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(generatedDocumentUri);
             var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(razorDocumentUri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
@@ -839,7 +839,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-            var remappedEdits = RemapTextEditsCore(virtualDocumentUri, codeDocument, entry.Edits);
+            var remappedEdits = RemapTextEditsCore(generatedDocumentUri, codeDocument, entry.Edits);
             if (remappedEdits is null || remappedEdits.Length == 0)
             {
                 // Nothing to do.
@@ -896,9 +896,9 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         return remappedChanges;
     }
 
-    private TextEdit[] RemapTextEditsCore(Uri virtualDocumentUri, RazorCodeDocument codeDocument, TextEdit[] edits)
+    private TextEdit[] RemapTextEditsCore(Uri generatedDocumentUri, RazorCodeDocument codeDocument, TextEdit[] edits)
     {
-        var generatedDocument = GetGeneratedDocumentFromVirtualDocumentUri(virtualDocumentUri, codeDocument);
+        var generatedDocument = GetGeneratedDocumentFromGeneratedDocumentUri(generatedDocumentUri, codeDocument);
         if (generatedDocument is null)
         {
             return edits;
@@ -907,8 +907,8 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         var remappedEdits = new List<TextEdit>();
         for (var i = 0; i < edits.Length; i++)
         {
-            var projectedRange = edits[i].Range;
-            if (!TryMapToHostDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out var originalRange))
+            var generatedRange = edits[i].Range;
+            if (!TryMapToHostDocumentRange(generatedDocument, generatedRange, MappingBehavior.Strict, out var originalRange))
             {
                 // Can't map range. Discard this edit.
                 continue;
@@ -926,13 +926,13 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         return remappedEdits.ToArray();
     }
 
-    private IRazorGeneratedDocument? GetGeneratedDocumentFromVirtualDocumentUri(Uri virtualDocumentUri, RazorCodeDocument codeDocument)
+    private IRazorGeneratedDocument? GetGeneratedDocumentFromGeneratedDocumentUri(Uri generatedDocumentUri, RazorCodeDocument codeDocument)
     {
-        if (_languageServerFeatureOptions.IsVirtualCSharpFile(virtualDocumentUri))
+        if (_languageServerFeatureOptions.IsVirtualCSharpFile(generatedDocumentUri))
         {
             return codeDocument.GetCSharpDocument();
         }
-        else if (_languageServerFeatureOptions.IsVirtualHtmlFile(virtualDocumentUri))
+        else if (_languageServerFeatureOptions.IsVirtualHtmlFile(generatedDocumentUri))
         {
             return codeDocument.GetHtmlDocument();
         }

@@ -17,25 +17,36 @@ internal static class IRazorDocumentMappingServiceExtensions
     public static bool TryMapToHostDocumentRange(this IRazorDocumentMappingService service, IRazorGeneratedDocument generatedDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange)
         => service.TryMapToHostDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out originalRange);
 
-    public static async Task<Projection> GetProjectionAsync(this IRazorDocumentMappingService service, DocumentContext documentContext, int absoluteIndex, CancellationToken cancellationToken)
+    public static async Task<DocumentPositionInfo?> TryGetPositionInfoAsync(this IRazorDocumentMappingService service, DocumentContext documentContext, Position position, ILogger logger, CancellationToken cancellationToken)
+    {
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
+        {
+            return null;
+        }
+
+        return await GetProjectionAsync(service, documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
+    }
+
+    public static async Task<DocumentPositionInfo> GetProjectionAsync(this IRazorDocumentMappingService service, DocumentContext documentContext, int hostDocumentIndex, CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
-        sourceText.GetLineAndOffset(absoluteIndex, out var line, out var character);
-        var projectedPosition = new Position(line, character);
+        sourceText.GetLineAndOffset(hostDocumentIndex, out var line, out var character);
+        var position = new Position(line, character);
 
-        var languageKind = service.GetLanguageKind(codeDocument, absoluteIndex, rightAssociative: false);
+        var languageKind = service.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: false);
         if (languageKind is not RazorLanguageKind.Razor)
         {
             var generatedDocument = languageKind is RazorLanguageKind.CSharp
                 ? (IRazorGeneratedDocument)codeDocument.GetCSharpDocument()
                 : codeDocument.GetHtmlDocument();
-            if (service.TryMapToGeneratedDocumentPosition(generatedDocument, absoluteIndex, out var mappedPosition, out _))
+            if (service.TryMapToGeneratedDocumentPosition(generatedDocument, hostDocumentIndex, out var mappedPosition, out _))
             {
                 // For C# locations, we attempt to return the corresponding position
                 // within the projected document
-                projectedPosition = mappedPosition;
+                position = mappedPosition;
             }
             else
             {
@@ -46,17 +57,12 @@ internal static class IRazorDocumentMappingServiceExtensions
             }
         }
 
-        return new Projection(languageKind, projectedPosition, absoluteIndex);
-    }
-
-    public static async Task<Projection?> TryGetProjectionAsync(this IRazorDocumentMappingService service, DocumentContext documentContext, Position position, ILogger logger, CancellationToken cancellationToken)
-    {
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
-        {
-            return null;
-        }
-
-        return await GetProjectionAsync(service, documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
+        return new DocumentPositionInfo(languageKind, position, hostDocumentIndex);
     }
 }
+
+/// <summary>
+/// Represents a position in a document. If <see cref="LanguageKind"/> is Razor then the position will be
+/// in the host document, otherwise it will be in the corresponding generated document.
+/// </summary>
+internal record DocumentPositionInfo(RazorLanguageKind LanguageKind, Position Position, int HostDocumentIndex);

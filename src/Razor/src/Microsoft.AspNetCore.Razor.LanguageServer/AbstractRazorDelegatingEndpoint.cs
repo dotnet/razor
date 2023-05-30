@@ -61,12 +61,12 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
     /// <summary>
     /// The delegated object to send to the <see cref="CustomMessageTarget"/>
     /// </summary>
-    protected abstract Task<IDelegatedParams?> CreateDelegatedParamsAsync(TRequest request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken);
+    protected abstract Task<IDelegatedParams?> CreateDelegatedParamsAsync(TRequest request, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken);
 
     /// <summary>
     /// If the response needs to be handled, such as for remapping positions back, override and handle here
     /// </summary>
-    protected virtual Task<TResponse> HandleDelegatedResponseAsync(TResponse delegatedResponse, TRequest originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected virtual Task<TResponse> HandleDelegatedResponseAsync(TResponse delegatedResponse, TRequest originalRequest, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken)
         => Task.FromResult(delegatedResponse);
 
     /// <summary>
@@ -74,7 +74,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
     /// value is returned the request will be delegated to C#/HTML servers, otherwise the response
     /// will be used in <see cref="HandleRequestAsync(TRequest, RazorRequestContext, CancellationToken)"/>
     /// </summary>
-    protected virtual Task<TResponse?> TryHandleAsync(TRequest request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected virtual Task<TResponse?> TryHandleAsync(TRequest request, RazorRequestContext requestContext, DocumentPositionInfo projection, CancellationToken cancellationToken)
         => Task.FromResult<TResponse?>(default);
 
     /// <summary>
@@ -105,7 +105,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
             return default;
         }
 
-        var projection = await _documentMappingService.TryGetProjectionAsync(documentContext, request.Position, requestContext.Logger, cancellationToken).ConfigureAwait(false);
+        var projection = await _documentMappingService.TryGetPositionInfoAsync(documentContext, request.Position, requestContext.Logger, cancellationToken).ConfigureAwait(false);
         if (projection is null)
         {
             return default;
@@ -134,11 +134,11 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
             // C# properties, even though they appear entirely in a Html context. Since remapping is pretty cheap
             // it's easier to just try mapping, and see what happens, rather than checking for specific syntax nodes.
             var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-            if (_documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), projection.AbsoluteIndex, out var csharpPosition, out _))
+            if (_documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), projection.HostDocumentIndex, out var csharpPosition, out _))
             {
                 // We're just gonna pretend this mapped perfectly normally onto C#. Moving this logic to the actual projection
                 // calculating code is possible, but could have untold effects, so opt-in is better (for now?)
-                projection = new Projection(RazorLanguageKind.CSharp, csharpPosition, projection.AbsoluteIndex);
+                projection = new DocumentPositionInfo(RazorLanguageKind.CSharp, csharpPosition, projection.HostDocumentIndex);
             }
         }
 
