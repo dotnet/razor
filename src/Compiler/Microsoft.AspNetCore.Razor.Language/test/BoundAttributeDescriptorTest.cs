@@ -16,7 +16,7 @@ public class BoundAttributeDescriptorTest
         var expectedPropertyName = "PropertyName";
 
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        _ = tagHelperBuilder.TypeName("TestTagHelper");
+        _ = tagHelperBuilder.Metadata(TypeName("TestTagHelper"));
 
         var intBuilder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         _ = intBuilder

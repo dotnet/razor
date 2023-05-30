@@ -62,13 +62,11 @@ internal class KeyTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             builder.CaseSensitive = true;
             builder.SetDocumentation(DocumentationDescriptor.KeyTagHelper);
 
-            builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Key.TagHelperKind);
-            builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
-            builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.Key.RuntimeName;
-
-            // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
-            // a C# property will crash trying to create the tooltips.
-            builder.SetTypeName("Microsoft.AspNetCore.Components.Key");
+            builder.SetMetadata(
+                new(ComponentMetadata.SpecialKindKey, ComponentMetadata.Key.TagHelperKind),
+                IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
+                RuntimeName(ComponentMetadata.Key.RuntimeName),
+                TypeName("Microsoft.AspNetCore.Components.Key"));
 
             builder.TagMatchingRule(rule =>
             {

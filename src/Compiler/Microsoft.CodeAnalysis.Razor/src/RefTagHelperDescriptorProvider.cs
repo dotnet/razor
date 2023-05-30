@@ -62,13 +62,11 @@ internal class RefTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             builder.CaseSensitive = true;
             builder.SetDocumentation(DocumentationDescriptor.RefTagHelper);
 
-            builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Ref.TagHelperKind);
-            builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
-            builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.Ref.RuntimeName;
-
-            // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
-            // a C# property will crash trying to create the tooltips.
-            builder.SetTypeName("Microsoft.AspNetCore.Components.Ref");
+            builder.SetMetadata(
+                new(ComponentMetadata.SpecialKindKey, ComponentMetadata.Ref.TagHelperKind),
+                IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
+                RuntimeName(ComponentMetadata.Ref.RuntimeName),
+                TypeName("Microsoft.AspNetCore.Components.Ref"));
 
             builder.TagMatchingRule(rule =>
             {

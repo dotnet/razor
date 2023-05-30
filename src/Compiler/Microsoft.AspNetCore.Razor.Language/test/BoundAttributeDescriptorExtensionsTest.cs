@@ -17,7 +17,7 @@ public class BoundAttributeDescriptorExtensionsTest
         var expectedPropertyName = "IntProperty";
 
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        tagHelperBuilder.TypeName("TestTagHelper");
+        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder
@@ -39,7 +39,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        tagHelperBuilder.TypeName("TestTagHelper");
+        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder
@@ -60,7 +60,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        tagHelperBuilder.TypeName("TestTagHelper");
+        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder
@@ -82,7 +82,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder("other-kind", "TestTagHelper", "Test");
-        tagHelperBuilder.TypeName("TestTagHelper");
+        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, "other-kind");
         builder
@@ -104,7 +104,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        tagHelperBuilder.TypeName("TestTagHelper");
+        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder
@@ -126,7 +126,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        tagHelperBuilder.TypeName("TestTagHelper");
+        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder
@@ -148,7 +148,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        tagHelperBuilder.TypeName("TestTagHelper");
+        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder
@@ -171,7 +171,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        tagHelperBuilder.TypeName("TestTagHelper");
+        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder
@@ -194,7 +194,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        tagHelperBuilder.TypeName("TestTagHelper");
+        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder
@@ -216,7 +216,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        tagHelperBuilder.TypeName("TestTagHelper");
+        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder
@@ -238,7 +238,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        tagHelperBuilder.TypeName("TestTagHelper");
+        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder
@@ -261,7 +261,7 @@ public class BoundAttributeDescriptorExtensionsTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        tagHelperBuilder.TypeName("TestTagHelper");
+        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder

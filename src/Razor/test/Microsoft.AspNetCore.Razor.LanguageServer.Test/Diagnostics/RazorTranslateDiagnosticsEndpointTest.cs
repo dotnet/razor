@@ -1193,7 +1193,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     private static TagHelperDescriptorBuilder GetButtonTagHelperDescriptor()
     {
         var descriptor = TagHelperDescriptorBuilder.Create("ButtonTagHelper", "TestAssembly");
-        descriptor.SetTypeName("TestNamespace.ButtonTagHelper");
+        descriptor.SetMetadata(TypeName("TestNamespace.ButtonTagHelper"));
         descriptor.TagMatchingRule(builder => builder.RequireTagName("button"));
         descriptor.BindAttribute(builder =>
             builder

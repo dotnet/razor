@@ -100,7 +100,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
             configureAction: builder =>
             {
                 builder.AllowChildTag("allowed-child-one");
-                builder.AddMetadata("foo", "bar");
+                builder.Metadata("foo", "bar");
             });
 
         // Act
@@ -144,7 +144,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
             configureAction: builder =>
             {
                 builder.AllowChildTag("allowed-child-one");
-                builder.AddMetadata("foo", "bar");
+                builder.Metadata("foo", "bar");
             });
 
         // Act
@@ -185,7 +185,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
                     .RequireParentTag("parent-name"),
             },
             configureAction: builder => builder.AllowChildTag("allowed-child-one")
-                    .AddMetadata("foo", "bar")
+                    .Metadata("foo", "bar")
                     .AddDiagnostic(RazorDiagnostic.Create(
                         new RazorDiagnosticDescriptor("id", () => "Test Message", RazorDiagnosticSeverity.Error), new SourceSpan(null, 10, 20, 30, 40))));
 
@@ -229,7 +229,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
             },
             configureAction: builder => builder
                     .AllowChildTag("allowed-child-one")
-                    .AddMetadata("foo", "bar")
+                    .Metadata("foo", "bar")
                     .TagOutputHint("Hint"));
 
         // Act
@@ -316,7 +316,7 @@ public class TagHelperDescriptorSerializationTest : TestBase
         Action<TagHelperDescriptorBuilder>? configureAction = null)
     {
         var builder = TagHelperDescriptorBuilder.Create(kind, typeName, assemblyName);
-        builder.SetTypeName(typeName);
+        builder.Metadata(TypeName(typeName));
 
         if (attributes != null)
         {

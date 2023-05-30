@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
 using static Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor;
@@ -48,12 +50,26 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
 
     public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
-    public override IDictionary<string, string?> Metadata => _metadataDictionary ??= new Dictionary<string, string?>();
+    public override IDictionary<string, string?> Metadata
+    {
+        get
+        {
+            Debug.Assert(
+                _metadata is null || _metadata.Count == 0,
+                $"{nameof(SetMetadata)} and {nameof(Metadata)} should not both be used for a single builder.");
+
+            return _metadataDictionary ??= new Dictionary<string, string?>();
+        }
+    }
 
     internal bool CaseSensitive => _parent.CaseSensitive;
 
     public override void SetMetadata(MetadataCollection metadata)
     {
+        Debug.Assert(
+            _metadataDictionary is null || _metadataDictionary.Count == 0,
+            $"{nameof(SetMetadata)} and {nameof(Metadata)} should not both be used for a single builder.");
+
         _metadata = metadata;
     }
 
@@ -108,6 +124,10 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
     {
         return (NameComparisonMode == NameComparisonMode.PrefixMatch ? string.Concat(Name, "...") : Name) ?? string.Empty;
     }
+
+    private bool IsDirectiveAttribute()
+        => TryGetMetadataValue(ComponentMetadata.Common.DirectiveAttribute, out var value) &&
+           value == bool.TrueString;
 
     private void Validate(ref PooledHashSet<RazorDiagnostic> diagnostics)
     {

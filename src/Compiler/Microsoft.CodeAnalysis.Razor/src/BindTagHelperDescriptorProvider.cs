@@ -149,16 +149,14 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             builder.CaseSensitive = true;
             builder.SetDocumentation(DocumentationDescriptor.BindTagHelper_Fallback);
 
-            builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind);
-            builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
-            builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.Bind.RuntimeName;
-            builder.Metadata[ComponentMetadata.Bind.FallbackKey] = bool.TrueString;
-
-            // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
-            // a C# property will crash trying to create the toolips.
-            builder.SetTypeName("Microsoft.AspNetCore.Components.Bind");
-            builder.SetTypeNamespace("Microsoft.AspNetCore.Components");
-            builder.SetTypeNameIdentifier("Bind");
+            builder.SetMetadata(
+                new(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind),
+                IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
+                RuntimeName(ComponentMetadata.Bind.RuntimeName),
+                IsTrue(ComponentMetadata.Bind.FallbackKey),
+                TypeName("Microsoft.AspNetCore.Components.Bind"),
+                TypeNamespace("Microsoft.AspNetCore.Components"),
+                TypeNameIdentifier("Bind"));
 
             builder.TagMatchingRule(rule =>
             {
@@ -390,9 +388,11 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 eventName = "Event_" + suffix;
             }
 
-            using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
+            using var _1 = TagHelperDescriptorBuilder.GetPooledInstance(
                 ComponentMetadata.Bind.TagHelperKind, name, ComponentsApi.AssemblyName,
                 out var builder);
+
+            using var _2 = ListPool<KeyValuePair<string, string>>.GetPooledObject(out var metadataPairs);
 
             builder.CaseSensitive = true;
             builder.SetDocumentation(
@@ -401,13 +401,13 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     entry.ValueAttribute,
                     entry.ChangeAttribute));
 
-            builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind);
-            builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
-            builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.Bind.RuntimeName;
-            builder.Metadata[ComponentMetadata.Bind.ValueAttribute] = entry.ValueAttribute;
-            builder.Metadata[ComponentMetadata.Bind.ChangeAttribute] = entry.ChangeAttribute;
-            builder.Metadata[ComponentMetadata.Bind.IsInvariantCulture] = entry.IsInvariantCulture ? bool.TrueString : bool.FalseString;
-            builder.Metadata[ComponentMetadata.Bind.Format] = entry.Format;
+            metadataPairs.Add(new(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind));
+            metadataPairs.Add(IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly));
+            metadataPairs.Add(new(TagHelperMetadata.Runtime.Name, ComponentMetadata.Bind.RuntimeName));
+            metadataPairs.Add(new(ComponentMetadata.Bind.ValueAttribute, entry.ValueAttribute));
+            metadataPairs.Add(new(ComponentMetadata.Bind.ChangeAttribute, entry.ChangeAttribute));
+            metadataPairs.Add(new(ComponentMetadata.Bind.IsInvariantCulture, entry.IsInvariantCulture ? bool.TrueString : bool.FalseString));
+            metadataPairs.Add(new(ComponentMetadata.Bind.Format, entry.Format));
 
             if (entry.TypeAttribute != null)
             {
@@ -420,14 +420,14 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 //
                 // Therefore we use this metadata to know which one is more specific when two
                 // tag helpers match.
-                builder.Metadata[ComponentMetadata.Bind.TypeAttribute] = entry.TypeAttribute;
+                metadataPairs.Add(new(ComponentMetadata.Bind.TypeAttribute, entry.TypeAttribute));
             }
 
-            // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
-            // a C# property will crash trying to create the toolips.
-            builder.SetTypeName(entry.TypeName);
-            builder.SetTypeNamespace(entry.TypeNamespace);
-            builder.SetTypeNameIdentifier(entry.TypeNameIdentifier);
+            metadataPairs.Add(TypeName(entry.TypeName));
+            metadataPairs.Add(TypeNamespace(entry.TypeNamespace));
+            metadataPairs.Add(TypeNameIdentifier(entry.TypeNameIdentifier));
+
+            builder.SetMetadata(metadataPairs);
 
             builder.TagMatchingRule(rule =>
             {
@@ -636,9 +636,11 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     continue;
                 }
 
-                using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
+                using var _1 = TagHelperDescriptorBuilder.GetPooledInstance(
                     ComponentMetadata.Bind.TagHelperKind, tagHelper.Name, tagHelper.AssemblyName,
                     out var builder);
+
+                using var _2 = ListPool<KeyValuePair<string, string>>.GetPooledObject(out var metadataPairs);
 
                 builder.DisplayName = tagHelper.DisplayName;
                 builder.CaseSensitive = true;
@@ -648,21 +650,19 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                         valueAttribute.Name,
                         changeAttribute.Name));
 
-                builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind);
-                builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.Bind.RuntimeName;
-                builder.Metadata[ComponentMetadata.Bind.ValueAttribute] = valueAttribute.Name;
-                builder.Metadata[ComponentMetadata.Bind.ChangeAttribute] = changeAttribute.Name;
+                metadataPairs.Add(new(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind));
+                metadataPairs.Add(RuntimeName(ComponentMetadata.Bind.RuntimeName));
+                metadataPairs.Add(new(ComponentMetadata.Bind.ValueAttribute, valueAttribute.Name));
+                metadataPairs.Add(new(ComponentMetadata.Bind.ChangeAttribute, changeAttribute.Name));
 
                 if (expressionAttribute != null)
                 {
-                    builder.Metadata[ComponentMetadata.Bind.ExpressionAttribute] = expressionAttribute.Name;
+                    metadataPairs.Add(new(ComponentMetadata.Bind.ExpressionAttribute, expressionAttribute.Name));
                 }
 
-                // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
-                // a C# property will crash trying to create the toolips.
-                builder.SetTypeName(tagHelper.GetTypeName());
-                builder.SetTypeNamespace(tagHelper.GetTypeNamespace());
-                builder.SetTypeNameIdentifier(tagHelper.GetTypeNameIdentifier());
+                metadataPairs.Add(TypeName(tagHelper.GetTypeName()));
+                metadataPairs.Add(TypeNamespace(tagHelper.GetTypeNamespace()));
+                metadataPairs.Add(TypeNameIdentifier(tagHelper.GetTypeNameIdentifier()));
 
                 // Match the component and attribute name
                 builder.TagMatchingRule(rule =>
@@ -739,8 +739,10 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
                 if (tagHelper.IsComponentFullyQualifiedNameMatch())
                 {
-                    builder.Metadata[ComponentMetadata.Component.NameMatchKey] = ComponentMetadata.Component.FullyQualifiedNameMatch;
+                    metadataPairs.Add(new(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch));
                 }
+
+                builder.SetMetadata(metadataPairs);
 
                 results.Add(builder.Build());
             }

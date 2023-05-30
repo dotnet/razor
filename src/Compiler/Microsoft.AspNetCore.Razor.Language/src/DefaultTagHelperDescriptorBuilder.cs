@@ -83,7 +83,17 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         set => _documentationObject = new(value);
     }
 
-    public override IDictionary<string, string?> Metadata => _metadataDictionary;
+    public override IDictionary<string, string?> Metadata
+    {
+        get
+        {
+            Debug.Assert(
+                _metadata is null || _metadata.Count == 0,
+                $"{nameof(SetMetadata)} and {nameof(Metadata)} should not both be used for a single builder.");
+
+            return _metadataDictionary;
+        }
+    }
     public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
     public override IReadOnlyList<AllowedChildTagDescriptorBuilder> AllowedChildTags
@@ -171,8 +181,25 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
     public override void SetMetadata(MetadataCollection metadata)
     {
         Debug.Assert(
-            metadata.ContainsKey(TagHelperMetadata.Runtime.Name),
-            "TagHelperDescriptorBuilder.Metadata *must* contain a runtime name.");
+            _metadataDictionary is null ||
+            _metadataDictionary.Count == 0 ||
+            (_metadataDictionary.Count == 1 && _metadataDictionary.ContainsKey(TagHelperMetadata.Runtime.Name)),
+            $"{nameof(SetMetadata)} and {nameof(Metadata)} should not both be used for a single builder.");
+
+        if (!metadata.ContainsKey(TagHelperMetadata.Runtime.Name))
+        {
+            using var _ = ListPool<KeyValuePair<string, string?>>.GetPooledObject(out var pairs);
+            pairs.SetCapacityIfLarger(metadata.Count + 1);
+
+            pairs.Add(new(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind));
+
+            foreach (var pair in metadata)
+            {
+                pairs.Add(pair);
+            }
+
+            metadata = MetadataCollection.Create(pairs);
+        }
 
         _metadata = metadata;
     }
@@ -233,7 +260,17 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         _diagnostics?.Clear();
     }
 
-    public string GetDisplayName() => DisplayName ?? this.GetTypeName() ?? Name;
+    public string GetDisplayName()
+    {
+        return DisplayName ?? GetTypeName() ?? Name;
+
+        string? GetTypeName()
+        {
+            return TryGetMetadataValue(TagHelperMetadata.Common.TypeName, out var value)
+                ? value
+                : null;
+        }
+    }
 
     [MemberNotNull(nameof(_allowedChildTags))]
     private void EnsureAllowedChildTags()

@@ -22,15 +22,15 @@ public class DefaultTagHelperOptimizationPassTest
 
         var tagHelpers = new[]
         {
-                TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly")
-                    .TypeName("TestTagHelper")
-                    .BoundAttributeDescriptor(attribute => attribute
-                        .Name("Foo")
-                        .TypeName("System.Int32")
-                        .Metadata(PropertyName("FooProp")))
-                    .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
-                    .Build()
-            };
+            TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly")
+                .Metadata(TypeName("TestTagHelper"))
+                .BoundAttributeDescriptor(attribute => attribute
+                    .Name("Foo")
+                    .TypeName("System.Int32")
+                    .Metadata(PropertyName("FooProp")))
+                .TagMatchingRuleDescriptor(rule => rule.RequireTagName("p"))
+                .Build()
+        };
 
         var engine = CreateEngine(tagHelpers);
         var pass = new DefaultTagHelperOptimizationPass()

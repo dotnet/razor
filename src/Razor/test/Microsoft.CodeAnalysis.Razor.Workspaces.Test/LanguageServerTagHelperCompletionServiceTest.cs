@@ -691,11 +691,11 @@ public class LanguageServerTagHelperCompletionServiceTest : TestBase
                 .Build(),
             TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly")
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("TestAssembly.Test"))
-                .AddMetadata(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch)
+                .Metadata(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch)
                 .Build(),
             TagHelperDescriptorBuilder.Create("Test2TagHelper", "TestAssembly")
                 .TagMatchingRuleDescriptor(rule => rule.RequireTagName("Test2Assembly.Test"))
-                .AddMetadata(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch)
+                .Metadata(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch)
                 .Build(),
         };
         var expectedCompletions = ElementCompletionResult.Create(new Dictionary<string, HashSet<TagHelperDescriptor>>()

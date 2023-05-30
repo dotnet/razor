@@ -1193,7 +1193,7 @@ private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeMana
         IEnumerable<Action<BoundAttributeDescriptorBuilder>> attributes = null)
     {
         var builder = TagHelperDescriptorBuilder.Create(typeName, assemblyName);
-        builder.TypeName(typeName);
+        builder.Metadata(TypeName(typeName));
 
         if (attributes != null)
         {

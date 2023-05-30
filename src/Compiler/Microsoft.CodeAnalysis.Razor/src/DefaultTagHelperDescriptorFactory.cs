@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -47,9 +48,10 @@ internal class DefaultTagHelperDescriptorFactory
             typeName, assemblyName,
             out var descriptorBuilder);
 
-        descriptorBuilder.SetTypeName(typeName);
-        descriptorBuilder.SetTypeNamespace(type.ContainingNamespace.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat));
-        descriptorBuilder.SetTypeNameIdentifier(type.Name);
+        descriptorBuilder.SetMetadata(
+            TypeName(typeName),
+            TypeNamespace(type.ContainingNamespace.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat)),
+            TypeNameIdentifier(type.Name));
 
         AddBoundAttributes(type, descriptorBuilder);
         AddTagMatchingRules(type, descriptorBuilder);

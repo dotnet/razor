@@ -150,16 +150,14 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                     attributeName,
                     eventArgType));
 
-            builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind);
-            builder.Metadata.Add(ComponentMetadata.EventHandler.EventArgsType, eventArgType);
-            builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
-            builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.EventHandler.RuntimeName;
-
-            // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
-            // a C# property will crash trying to create the tooltips.
-            builder.SetTypeName(entry.TypeName);
-            builder.SetTypeNamespace(entry.TypeNamespace);
-            builder.SetTypeNameIdentifier(entry.TypeNameIdentifier);
+            builder.SetMetadata(
+                new(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind),
+                new(ComponentMetadata.EventHandler.EventArgsType, eventArgType),
+                IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
+                RuntimeName(ComponentMetadata.EventHandler.RuntimeName),
+                TypeName(entry.TypeName),
+                TypeNamespace(entry.TypeNamespace),
+                TypeNameIdentifier(entry.TypeNameIdentifier));
 
             builder.TagMatchingRule(rule =>
             {

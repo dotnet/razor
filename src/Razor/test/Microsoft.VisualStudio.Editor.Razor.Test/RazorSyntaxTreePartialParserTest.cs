@@ -46,7 +46,7 @@ public class RazorSyntaxTreePartialParserTest : ParserTestBase
         // Arrange
         var edit = (TestEdit)objectEdit;
         var builder = TagHelperDescriptorBuilder.Create("PTagHelper", "TestAssembly");
-        builder.SetTypeName("PTagHelper");
+        builder.Metadata(TypeName("PTagHelper"));
         builder.TagMatchingRule(rule => rule.TagName = "p");
         var descriptors = new[]
         {
@@ -107,7 +107,7 @@ public class RazorSyntaxTreePartialParserTest : ParserTestBase
         var edit = (TestEdit)editObject;
         var partialParseResult = (PartialParseResultInternal)partialParseResultObject;
         var builder = TagHelperDescriptorBuilder.Create("PTagHelper", "Test");
-        builder.SetTypeName("PTagHelper");
+        builder.Metadata(TypeName("PTagHelper"));
         builder.TagMatchingRule(rule => rule.TagName = "p");
         builder.BindAttribute(attribute =>
         {

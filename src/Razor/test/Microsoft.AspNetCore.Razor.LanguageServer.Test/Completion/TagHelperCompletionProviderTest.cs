@@ -377,7 +377,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
         tagHelper.TagMatchingRule(rule => rule.TagName = "test");
-        tagHelper.SetTypeName("TestTagHelper");
+        tagHelper.SetMetadata(TypeName("TestTagHelper"));
         tagHelper.BindAttribute(attribute =>
         {
             attribute.Name = "bool-val";
@@ -420,7 +420,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
         tagHelper.TagMatchingRule(rule => rule.TagName = "test");
-        tagHelper.SetTypeName("TestTagHelper");
+        tagHelper.SetMetadata(TypeName("TestTagHelper"));
         tagHelper.BindAttribute(attribute =>
         {
             attribute.Name = "int-val";

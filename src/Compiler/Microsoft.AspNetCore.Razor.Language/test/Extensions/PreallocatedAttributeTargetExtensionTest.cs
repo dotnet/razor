@@ -128,7 +128,7 @@ public class PreallocatedAttributeTargetExtensionTest
         var context = TestCodeRenderingContext.CreateRuntime();
 
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "FooTagHelper", "Test");
-        tagHelperBuilder.TypeName("FooTagHelper");
+        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder
@@ -171,7 +171,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(_tagHelper1);
         var context = TestCodeRenderingContext.CreateRuntime();
 
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "FooTagHelper", "Test");
-        tagHelperBuilder.TypeName("FooTagHelper");
+        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder
@@ -221,7 +221,7 @@ __tagHelperExecutionContext.AddTagHelperAttribute(_tagHelper1);
         var context = TestCodeRenderingContext.CreateRuntime();
 
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "FooTagHelper", "Test");
-        tagHelperBuilder.TypeName("FooTagHelper");
+        tagHelperBuilder.Metadata(TypeName("FooTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder

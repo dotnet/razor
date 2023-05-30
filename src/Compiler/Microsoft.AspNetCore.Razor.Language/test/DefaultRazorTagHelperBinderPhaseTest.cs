@@ -9,7 +9,9 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Xunit;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -1451,10 +1453,13 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         bool componentFullyQualified = false,
         bool componentChildContent = false)
     {
+        using var _ = ListPool<KeyValuePair<string, string>>.GetPooledObject(out var metadataPairs);
+
         var builder = TagHelperDescriptorBuilder.Create(kind, typeName, assemblyName);
-        builder.TypeName(typeName);
-        builder.SetTypeNamespace(typeNamespace ?? (typeName.LastIndexOf('.') == -1 ? "" : typeName.Substring(0, typeName.LastIndexOf('.'))));
-        builder.SetTypeNameIdentifier(typeNameIdentifier ?? (typeName.LastIndexOf('.') == -1 ? typeName : typeName.Substring(typeName.LastIndexOf('.') + 1)));
+
+        metadataPairs.Add(TypeName(typeName));
+        metadataPairs.Add(TypeNamespace(typeNamespace ?? (typeName.LastIndexOf('.') == -1 ? "" : typeName.Substring(0, typeName.LastIndexOf('.')))));
+        metadataPairs.Add(TypeNameIdentifier(typeNameIdentifier ?? (typeName.LastIndexOf('.') == -1 ? typeName : typeName[(typeName.LastIndexOf('.') + 1)..])));
 
         if (attributes != null)
         {
@@ -1482,13 +1487,15 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         if (componentFullyQualified)
         {
-            builder.Metadata[ComponentMetadata.Component.NameMatchKey] = ComponentMetadata.Component.FullyQualifiedNameMatch;
+            metadataPairs.Add(new(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch));
         }
 
         if (componentChildContent)
         {
-            builder.Metadata[ComponentMetadata.SpecialKindKey] = ComponentMetadata.ChildContent.TagHelperKind;
+            metadataPairs.Add(new(ComponentMetadata.SpecialKindKey, ComponentMetadata.ChildContent.TagHelperKind));
         }
+
+        builder.SetMetadata(metadataPairs);
 
         var descriptor = builder.Build();
 

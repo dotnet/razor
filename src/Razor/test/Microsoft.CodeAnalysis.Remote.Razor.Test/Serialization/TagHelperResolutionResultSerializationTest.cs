@@ -102,7 +102,7 @@ public class TagHelperResolutionResultSerializationTest : TestBase
             configureAction: builder =>
             {
                 builder.AllowChildTag("allowed-child-one");
-                builder.AddMetadata("foo", "bar");
+                builder.Metadata("foo", "bar");
             });
 
         var expectedResult = new TagHelperResolutionResult(ImmutableArray.Create(descriptor));
@@ -148,7 +148,7 @@ public class TagHelperResolutionResultSerializationTest : TestBase
             configureAction: builder =>
             {
                 builder.AllowChildTag("allowed-child-one");
-                builder.AddMetadata("foo", "bar");
+                builder.Metadata("foo", "bar");
             });
 
         var expectedResult = new TagHelperResolutionResult(ImmutableArray.Create(descriptor));
@@ -191,9 +191,9 @@ public class TagHelperResolutionResultSerializationTest : TestBase
                     .RequireParentTag("parent-name"),
             },
             configureAction: builder => builder.AllowChildTag("allowed-child-one")
-                    .AddMetadata("foo", "bar")
-                    .AddDiagnostic(RazorDiagnostic.Create(
-                        new RazorDiagnosticDescriptor("id", () => "Test Message", RazorDiagnosticSeverity.Error), new SourceSpan(null, 10, 20, 30, 40))));
+                .Metadata("foo", "bar")
+                .AddDiagnostic(RazorDiagnostic.Create(
+                    new RazorDiagnosticDescriptor("id", () => "Test Message", RazorDiagnosticSeverity.Error), new SourceSpan(null, 10, 20, 30, 40))));
 
         var expectedResult = new TagHelperResolutionResult(ImmutableArray.Create(descriptor));
 
@@ -236,9 +236,9 @@ public class TagHelperResolutionResultSerializationTest : TestBase
                         .NameComparisonMode(RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch))
             },
             configureAction: builder => builder
-                    .AllowChildTag("allowed-child-one")
-                    .AddMetadata("foo", "bar")
-                    .TagOutputHint("Hint"));
+                .AllowChildTag("allowed-child-one")
+                .Metadata("foo", "bar")
+                .TagOutputHint("Hint"));
 
         var expectedResult = new TagHelperResolutionResult(ImmutableArray.Create(descriptor));
 
@@ -260,7 +260,7 @@ public class TagHelperResolutionResultSerializationTest : TestBase
         Action<TagHelperDescriptorBuilder>? configureAction = null)
     {
         var builder = TagHelperDescriptorBuilder.Create(kind, typeName, assemblyName);
-        builder.SetTypeName(typeName);
+        builder.Metadata(TypeName(typeName));
 
         if (attributes != null)
         {

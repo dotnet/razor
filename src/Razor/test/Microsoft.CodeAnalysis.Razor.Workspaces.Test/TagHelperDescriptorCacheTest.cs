@@ -29,7 +29,7 @@ public class TagHelperDescriptorCacheTest : TestBase
         var expectedPropertyName = "PropertyName";
 
         var intTagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        _ = intTagHelperBuilder.TypeName("TestTagHelper");
+        _ = intTagHelperBuilder.Metadata(TypeName("TestTagHelper"));
         intTagHelperBuilder.BoundAttributeDescriptor(intBuilder =>
             intBuilder
                 .Name("test")
@@ -39,7 +39,7 @@ public class TagHelperDescriptorCacheTest : TestBase
         var intTagHelper = intTagHelperBuilder.Build();
 
         var stringTagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        _ = stringTagHelperBuilder.TypeName("TestTagHelper");
+        _ = stringTagHelperBuilder.Metadata(TypeName("TestTagHelper"));
         stringTagHelperBuilder.BoundAttributeDescriptor(stringBuilder =>
             stringBuilder
                 .Name("test")

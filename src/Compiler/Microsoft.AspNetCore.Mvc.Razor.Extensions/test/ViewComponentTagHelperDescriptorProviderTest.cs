@@ -40,7 +40,9 @@ public class ViewComponentTagHelperDescriptorProviderTest
             ViewComponentTagHelperConventions.Kind,
             "__Generated__StringParameterViewComponentTagHelper",
             TestCompilation.AssemblyName)
-            .TypeName("__Generated__StringParameterViewComponentTagHelper")
+            .Metadata(
+                TypeName("__Generated__StringParameterViewComponentTagHelper"),
+                new(ViewComponentTagHelperMetadata.Name, "StringParameter"))
             .DisplayName("StringParameterViewComponentTagHelper")
             .TagMatchingRuleDescriptor(rule =>
                 rule
@@ -59,7 +61,6 @@ public class ViewComponentTagHelperDescriptorProviderTest
                 .Metadata(PropertyName("bar"))
                 .TypeName(typeof(string).FullName)
                 .DisplayName("string StringParameterViewComponentTagHelper.bar"))
-            .AddMetadata(ViewComponentTagHelperMetadata.Name, "StringParameter")
             .Build();
 
         // Act

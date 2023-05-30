@@ -254,7 +254,7 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                                 b.SetMetadata(Attributes.IsDirectiveAttribute);
                             });
                     })
-                    .AddMetadata(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind)
+                    .Metadata(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind)
                     .Build(),
         };
 
@@ -280,7 +280,7 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                             });
 
                     })
-                    .AddMetadata(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind)
+                    .Metadata(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind)
                     .Build(),
         };
 
@@ -2222,34 +2222,35 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
         var document = @"<input @bind-value=""Message"" @bind-value:event=""onchange"" />";
         var descriptors = new TagHelperDescriptor[]
         {
-                TagHelperDescriptorBuilder.Create(ComponentMetadata.Bind.TagHelperKind, "Bind", ComponentsApi.AssemblyName)
-                    .AddMetadata(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind)
-                    .AddMetadata(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString)
-                    .AddMetadata(TagHelperMetadata.Runtime.Name, ComponentMetadata.Bind.RuntimeName)
-                    .TypeName("Microsoft.AspNetCore.Components.Bind")
-                    .AddMetadata(ComponentMetadata.Bind.FallbackKey, bool.TrueString)
-                    .TagMatchingRuleDescriptor(rule =>
-                        rule
-                            .RequireTagName("*")
-                            .RequireAttributeDescriptor(r =>
-                            {
-                                r.Name = "@bind-";
-                                r.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
-                                r.SetMetadata(Attributes.IsDirectiveAttribute);
-                            }))
-                    .BoundAttributeDescriptor(attribute =>
-                        attribute
-                        .Name("@bind-...")
-                        .Metadata(PropertyName("Bind"), IsDirectiveAttribute)
-                        .AsDictionaryAttribute("@bind-", typeof(object).FullName)
-                        .TypeName("System.Collections.Generic.Dictionary<string, object>")
-                        .BindAttributeParameter(p =>
+            TagHelperDescriptorBuilder.Create(ComponentMetadata.Bind.TagHelperKind, "Bind", ComponentsApi.AssemblyName)
+                .Metadata(
+                    new(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind),
+                    IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
+                    RuntimeName(ComponentMetadata.Bind.RuntimeName),
+                    TypeName("Microsoft.AspNetCore.Components.Bind"),
+                    IsTrue(ComponentMetadata.Bind.FallbackKey))
+                .TagMatchingRuleDescriptor(rule =>
+                    rule
+                        .RequireTagName("*")
+                        .RequireAttributeDescriptor(r =>
                         {
-                            p.Name = "event";
-                            p.TypeName = typeof(string).FullName;
-                            p.SetMetadata(PropertyName("Event"));
+                            r.Name = "@bind-";
+                            r.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                            r.SetMetadata(Attributes.IsDirectiveAttribute);
                         }))
-                    .Build(),
+                .BoundAttributeDescriptor(attribute =>
+                    attribute
+                    .Name("@bind-...")
+                    .Metadata(PropertyName("Bind"), IsDirectiveAttribute)
+                    .AsDictionaryAttribute("@bind-", typeof(object).FullName)
+                    .TypeName("System.Collections.Generic.Dictionary<string, object>")
+                    .BindAttributeParameter(p =>
+                    {
+                        p.Name = "event";
+                        p.TypeName = typeof(string).FullName;
+                        p.SetMetadata(PropertyName("Event"));
+                    }))
+                .Build(),
         };
 
         var featureFlags = new TestRazorParserFeatureFlags(allowCSharpInMarkupAttributeArea: false);
@@ -2265,35 +2266,36 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
         var document = @"<input @bind-foo @bind-foo:param />";
         var descriptors = new TagHelperDescriptor[]
         {
-                TagHelperDescriptorBuilder.Create(ComponentMetadata.Bind.TagHelperKind, "Bind", ComponentsApi.AssemblyName)
-                    .AddMetadata(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind)
-                    .AddMetadata(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString)
-                    .AddMetadata(TagHelperMetadata.Runtime.Name, ComponentMetadata.Bind.RuntimeName)
-                    .TypeName("Microsoft.AspNetCore.Components.Bind")
-                    .AddMetadata(ComponentMetadata.Bind.FallbackKey, bool.TrueString)
-                    .TagMatchingRuleDescriptor(rule =>
-                        rule
-                            .RequireTagName("*")
-                            .RequireAttributeDescriptor(r =>
-                            {
-                                r.Name = "@bind-";
-                                r.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
-                                r.SetMetadata(Attributes.IsDirectiveAttribute);
-                            }))
-                    .BoundAttributeDescriptor(attribute =>
-                        attribute
-                        .Name("@bind-...")
-                        .Metadata(PropertyName("Bind"), IsDirectiveAttribute)
-                        .AsDictionaryAttribute("@bind-", typeof(object).FullName)
-                        .TypeName("System.Collections.Generic.Dictionary<string, object>")
-                        .Metadata(IsDirectiveAttribute)
-                        .BindAttributeParameter(p =>
+            TagHelperDescriptorBuilder.Create(ComponentMetadata.Bind.TagHelperKind, "Bind", ComponentsApi.AssemblyName)
+                .Metadata(
+                    new(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind),
+                    IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
+                    RuntimeName(ComponentMetadata.Bind.RuntimeName),
+                    TypeName("Microsoft.AspNetCore.Components.Bind"),
+                    IsTrue(ComponentMetadata.Bind.FallbackKey))
+                .TagMatchingRuleDescriptor(rule =>
+                    rule
+                        .RequireTagName("*")
+                        .RequireAttributeDescriptor(r =>
                         {
-                            p.Name = "param";
-                            p.TypeName = typeof(string).FullName;
-                            p.SetMetadata(PropertyName("Param"));
+                            r.Name = "@bind-";
+                            r.NameComparisonMode = RequiredAttributeDescriptor.NameComparisonMode.PrefixMatch;
+                            r.SetMetadata(Attributes.IsDirectiveAttribute);
                         }))
-                    .Build(),
+                .BoundAttributeDescriptor(attribute =>
+                    attribute
+                    .Name("@bind-...")
+                    .Metadata(PropertyName("Bind"), IsDirectiveAttribute)
+                    .AsDictionaryAttribute("@bind-", typeof(object).FullName)
+                    .TypeName("System.Collections.Generic.Dictionary<string, object>")
+                    .Metadata(IsDirectiveAttribute)
+                    .BindAttributeParameter(p =>
+                    {
+                        p.Name = "param";
+                        p.TypeName = typeof(string).FullName;
+                        p.SetMetadata(PropertyName("Param"));
+                    }))
+                .Build(),
         };
 
         var featureFlags = new TestRazorParserFeatureFlags(allowCSharpInMarkupAttributeArea: false);

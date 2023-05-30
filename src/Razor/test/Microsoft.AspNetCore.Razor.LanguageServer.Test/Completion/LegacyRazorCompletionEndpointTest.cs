@@ -412,7 +412,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         var documentPath = new Uri("C:/path/to/document.razor");
         var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
         builder.TagMatchingRule(rule => rule.TagName = "Test");
-        builder.SetTypeName("TestNamespace.TestTagHelper");
+        builder.Metadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
         var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
         var codeDocument = CreateCodeDocument("@in");
@@ -455,7 +455,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         var documentPath = new Uri("C:/path/to/document.razor");
         var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
         builder.TagMatchingRule(rule => rule.TagName = "Test");
-        builder.SetTypeName("TestNamespace.TestTagHelper");
+        builder.Metadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
         var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
         var codeDocument = CreateCodeDocument("@inje");
@@ -492,7 +492,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         var documentPath = new Uri("C:/path/to/document.razor");
         var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
         builder.TagMatchingRule(rule => rule.TagName = "Test");
-        builder.SetTypeName("TestNamespace.TestTagHelper");
+        builder.Metadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
         var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
         var codeDocument = CreateCodeDocument("@inje");
@@ -536,7 +536,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         var documentPath = new Uri("C:/path/to/document.cshtml");
         var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestTagHelper", "TestAssembly");
         builder.TagMatchingRule(rule => rule.TagName = "Test");
-        builder.SetTypeName("TestNamespace.TestTagHelper");
+        builder.Metadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
         var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
         var codeDocument = CreateCodeDocument("<");
@@ -576,7 +576,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
             attribute.TypeName = typeof(string).FullName;
             attribute.SetMetadata(PropertyName("TestAttribute"));
         });
-        builder.SetTypeName("TestNamespace.TestTagHelper");
+        builder.Metadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
         var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
         var codeDocument = CreateCodeDocument("<test  ");

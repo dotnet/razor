@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
@@ -85,7 +86,17 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
 
     public override string? DisplayName { get; set; }
 
-    public override IDictionary<string, string?> Metadata => _metadataDictionary ??= new Dictionary<string, string?>();
+    public override IDictionary<string, string?> Metadata
+    {
+        get
+        {
+            Debug.Assert(
+                _metadata is null || _metadata.Count == 0,
+                $"{nameof(SetMetadata)} and {nameof(Metadata)} should not both be used for a single builder.");
+
+            return _metadataDictionary ??= new Dictionary<string, string?>();
+        }
+    }
 
     public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
@@ -117,6 +128,10 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
 
     public override void SetMetadata(MetadataCollection metadata)
     {
+        Debug.Assert(
+            _metadataDictionary is null || _metadataDictionary.Count == 0,
+            $"{nameof(SetMetadata)} and {nameof(Metadata)} should not both be used for a single builder.");
+
         _metadata = metadata;
     }
 
@@ -180,7 +195,10 @@ internal partial class DefaultBoundAttributeDescriptorBuilder : BoundAttributeDe
             return DisplayName;
         }
 
-        var parentTypeName = _parent.GetTypeName();
+        if (!_parent.TryGetMetadataValue(TagHelperMetadata.Common.TypeName, out var parentTypeName))
+        {
+            parentTypeName = null;
+        }
 
         if (!TryGetMetadataValue(TagHelperMetadata.Common.PropertyName, out var propertyName))
         {

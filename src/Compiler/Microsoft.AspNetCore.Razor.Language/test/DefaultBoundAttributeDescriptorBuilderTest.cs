@@ -33,7 +33,7 @@ public class DefaultBoundAttributeDescriptorBuilderTest
     {
         // Arrange
         var tagHelperBuilder = new DefaultTagHelperDescriptorBuilder(TagHelperConventions.DefaultKind, "TestTagHelper", "Test");
-        tagHelperBuilder.TypeName("TestTagHelper");
+        tagHelperBuilder.Metadata(TypeName("TestTagHelper"));
 
         var builder = new DefaultBoundAttributeDescriptorBuilder(tagHelperBuilder, TagHelperConventions.DefaultKind);
         builder

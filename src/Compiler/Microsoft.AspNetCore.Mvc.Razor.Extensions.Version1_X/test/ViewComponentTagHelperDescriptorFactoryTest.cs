@@ -29,7 +29,9 @@ public class ViewComponentTagHelperDescriptorFactoryTest
             ViewComponentTagHelperConventions.Kind,
             "__Generated__StringParameterViewComponentTagHelper",
             typeof(StringParameterViewComponent).GetTypeInfo().Assembly.GetName().Name)
-            .TypeName("__Generated__StringParameterViewComponentTagHelper")
+            .Metadata(
+                TypeName("__Generated__StringParameterViewComponentTagHelper"),
+                new(ViewComponentTagHelperMetadata.Name, "StringParameter"))
             .DisplayName("StringParameterViewComponentTagHelper")
             .TagMatchingRuleDescriptor(rule =>
                 rule
@@ -48,7 +50,6 @@ public class ViewComponentTagHelperDescriptorFactoryTest
                 .Metadata(PropertyName("bar"))
                 .TypeName(typeof(string).FullName)
                 .DisplayName("string StringParameterViewComponentTagHelper.bar"))
-            .AddMetadata(ViewComponentTagHelperMetadata.Name, "StringParameter")
             .Build();
 
         // Act
@@ -70,7 +71,9 @@ public class ViewComponentTagHelperDescriptorFactoryTest
             ViewComponentTagHelperConventions.Kind,
             "__Generated__VariousParameterViewComponentTagHelper",
             typeof(VariousParameterViewComponent).GetTypeInfo().Assembly.GetName().Name)
-            .TypeName("__Generated__VariousParameterViewComponentTagHelper")
+            .Metadata(
+                TypeName("__Generated__VariousParameterViewComponentTagHelper"),
+                new(ViewComponentTagHelperMetadata.Name, "VariousParameter"))
             .DisplayName("VariousParameterViewComponentTagHelper")
             .TagMatchingRuleDescriptor(rule =>
                 rule
@@ -97,7 +100,6 @@ public class ViewComponentTagHelperDescriptorFactoryTest
                 .Metadata(PropertyName("baz"))
                 .TypeName(typeof(int).FullName)
                 .DisplayName("int VariousParameterViewComponentTagHelper.baz"))
-            .AddMetadata(ViewComponentTagHelperMetadata.Name, "VariousParameter")
             .Build();
 
         // Act
@@ -119,7 +121,9 @@ public class ViewComponentTagHelperDescriptorFactoryTest
             ViewComponentTagHelperConventions.Kind,
             "__Generated__GenericParameterViewComponentTagHelper",
             typeof(GenericParameterViewComponent).GetTypeInfo().Assembly.GetName().Name)
-            .TypeName("__Generated__GenericParameterViewComponentTagHelper")
+            .Metadata(
+                TypeName("__Generated__GenericParameterViewComponentTagHelper"),
+                new(ViewComponentTagHelperMetadata.Name, "GenericParameter"))
             .DisplayName("GenericParameterViewComponentTagHelper")
             .TagMatchingRuleDescriptor(rule =>
                 rule
@@ -138,7 +142,6 @@ public class ViewComponentTagHelperDescriptorFactoryTest
                 .TypeName("System.Collections.Generic.Dictionary<System.String, System.Int32>")
                 .AsDictionaryAttribute("bar-", typeof(int).FullName)
                 .DisplayName("System.Collections.Generic.Dictionary<System.String, System.Int32> GenericParameterViewComponentTagHelper.Bar"))
-            .AddMetadata(ViewComponentTagHelperMetadata.Name, "GenericParameter")
             .Build();
 
         // Act

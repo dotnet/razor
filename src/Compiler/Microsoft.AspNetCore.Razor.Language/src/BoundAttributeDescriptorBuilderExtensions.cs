@@ -36,6 +36,7 @@ public static class BoundAttributeDescriptorBuilderExtensions
         builder.SetMetadata(MetadataCollection.Create(pair1, pair2, pair3));
     }
 
+    [Obsolete($"Do not use this method. {nameof(BoundAttributeDescriptorBuilder.SetMetadata)} should be used instead.")]
     public static void SetPropertyName(this BoundAttributeDescriptorBuilder builder, string propertyName)
     {
         if (builder == null)
@@ -53,6 +54,7 @@ public static class BoundAttributeDescriptorBuilderExtensions
         builder.Metadata[TagHelperMetadata.Common.PropertyName] = propertyName;
     }
 
+    [Obsolete($"Do not use this method. {nameof(BoundAttributeDescriptorBuilder.TryGetMetadataValue)} should be used instead.")]
     public static string GetPropertyName(this BoundAttributeDescriptorBuilder builder)
     {
         if (builder == null)
@@ -101,6 +103,7 @@ public static class BoundAttributeDescriptorBuilderExtensions
         builder.SetMetadata(MetadataCollection.Create(pair));
     }
 
+    [Obsolete($"Do not use this method. {nameof(BoundAttributeParameterDescriptorBuilder.SetMetadata)} should be used instead.")]
     public static void SetPropertyName(this BoundAttributeParameterDescriptorBuilder builder, string propertyName)
     {
         if (builder == null)
@@ -118,6 +121,7 @@ public static class BoundAttributeDescriptorBuilderExtensions
         builder.Metadata[TagHelperMetadata.Common.PropertyName] = propertyName;
     }
 
+    [Obsolete($"Do not use this method. {nameof(BoundAttributeParameterDescriptorBuilder.SetMetadata)} should be used instead.")]
     public static void SetBindAttributeGetSet(this BoundAttributeParameterDescriptorBuilder builder)
     {
         if (builder == null)
@@ -130,6 +134,7 @@ public static class BoundAttributeDescriptorBuilderExtensions
         builder.Metadata[ComponentMetadata.Bind.BindAttributeGetSet] = bool.TrueString;
     }
 
+    [Obsolete($"Do not use this method. {nameof(BoundAttributeParameterDescriptorBuilder.TryGetMetadataValue)} should be used instead.")]
     public static string GetPropertyName(this BoundAttributeParameterDescriptorBuilder builder)
     {
         if (builder == null)
@@ -147,6 +152,7 @@ public static class BoundAttributeDescriptorBuilderExtensions
         return null;
     }
 
+    [Obsolete($"Do not use this method. {nameof(BoundAttributeDescriptorBuilder.SetMetadata)} should be used instead.")]
     public static void SetGloballyQualifiedTypeName(this BoundAttributeDescriptorBuilder builder, string globallyQualifiedTypeName)
     {
         Debug.Fail($"Do not use this method. {nameof(BoundAttributeDescriptorBuilder.SetMetadata)} should be used instead.");
