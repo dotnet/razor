@@ -78,7 +78,7 @@ public class TextDocumentTextPresentationEndpointTests : LanguageServerTestBase
         var projectedRange = It.IsAny<Range>();
         var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp &&
-            s.TryMapToProjectedDocumentRange(csharpDocument, It.IsAny<Range>(), out projectedRange) == true, MockBehavior.Strict);
+            s.TryMapToGeneratedDocumentRange(csharpDocument, It.IsAny<Range>(), out projectedRange) == true, MockBehavior.Strict);
 
         var response = (WorkspaceEdit?)null;
 

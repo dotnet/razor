@@ -244,16 +244,16 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         }
     }
 
-    public bool TryMapToProjectedDocumentRange(IRazorGeneratedDocument generatedDocument, Range originalRange, [NotNullWhen(true)] out Range? projectedRange)
+    public bool TryMapToGeneratedDocumentRange(IRazorGeneratedDocument generatedDocument, Range hostDocumentRange, [NotNullWhen(true)] out Range? generatedDocumentRange)
     {
         if (generatedDocument is null)
         {
             throw new ArgumentNullException(nameof(generatedDocument));
         }
 
-        if (originalRange is null)
+        if (hostDocumentRange is null)
         {
-            throw new ArgumentNullException(nameof(originalRange));
+            throw new ArgumentNullException(nameof(hostDocumentRange));
         }
 
         if (generatedDocument.CodeDocument is not { } codeDocument)
@@ -261,32 +261,32 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             throw new InvalidOperationException("Cannot use document mapping service on a generated document that has a null CodeDocument.");
         }
 
-        projectedRange = default;
+        generatedDocumentRange = default;
 
-        if ((originalRange.End.Line < originalRange.Start.Line) ||
-            (originalRange.End.Line == originalRange.Start.Line &&
-             originalRange.End.Character < originalRange.Start.Character))
+        if ((hostDocumentRange.End.Line < hostDocumentRange.Start.Line) ||
+            (hostDocumentRange.End.Line == hostDocumentRange.Start.Line &&
+             hostDocumentRange.End.Character < hostDocumentRange.Start.Character))
         {
-            _logger.LogWarning("RazorDocumentMappingService:TryMapToProjectedDocumentRange original range end < start '{originalRange}'", originalRange);
-            Debug.Fail($"RazorDocumentMappingService:TryMapToProjectedDocumentRange original range end < start '{originalRange}'");
+            _logger.LogWarning("RazorDocumentMappingService:TryMapToGeneratedDocumentRange original range end < start '{originalRange}'", hostDocumentRange);
+            Debug.Fail($"RazorDocumentMappingService:TryMapToGeneratedDocumentRange original range end < start '{hostDocumentRange}'");
             return false;
         }
 
         var sourceText = codeDocument.GetSourceText();
-        var range = originalRange;
+        var range = hostDocumentRange;
         if (!IsRangeWithinDocument(range, sourceText))
         {
             return false;
         }
 
         if (!range.Start.TryGetAbsoluteIndex(sourceText, _logger, out var startIndex) ||
-            !TryMapToProjectedDocumentPosition(generatedDocument, startIndex, out var projectedStart, out var _))
+            !TryMapToProjectedDocumentPosition(generatedDocument, startIndex, out var generatedRangeStart, out var _))
         {
             return false;
         }
 
         if (!range.End.TryGetAbsoluteIndex(sourceText, _logger, out var endIndex) ||
-            !TryMapToProjectedDocumentPosition(generatedDocument, endIndex, out var projectedEnd, out var _))
+            !TryMapToProjectedDocumentPosition(generatedDocument, endIndex, out var generatedRangeEnd, out var _))
         {
             return false;
         }
@@ -297,17 +297,17 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         // different places in the document, including the possibility that the
         // projectedEnd position occurs before the projectedStart position.
         // We explicitly disallow such ranges where the end < start.
-        if ((projectedEnd.Line < projectedStart.Line) ||
-            (projectedEnd.Line == projectedStart.Line &&
-             projectedEnd.Character < projectedStart.Character))
+        if ((generatedRangeEnd.Line < generatedRangeStart.Line) ||
+            (generatedRangeEnd.Line == generatedRangeStart.Line &&
+             generatedRangeEnd.Character < generatedRangeStart.Character))
         {
             return false;
         }
 
-        projectedRange = new Range
+        generatedDocumentRange = new Range
         {
-            Start = projectedStart,
-            End = projectedEnd,
+            Start = generatedRangeStart,
+            End = generatedRangeEnd,
         };
 
         return true;

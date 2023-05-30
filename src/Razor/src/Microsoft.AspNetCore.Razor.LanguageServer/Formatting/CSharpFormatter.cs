@@ -57,7 +57,7 @@ internal class CSharpFormatter
             throw new ArgumentNullException(nameof(rangeToFormat));
         }
 
-        if (!_documentMappingService.TryMapToProjectedDocumentRange(context.CodeDocument.GetCSharpDocument(), rangeToFormat, out var projectedRange))
+        if (!_documentMappingService.TryMapToGeneratedDocumentRange(context.CodeDocument.GetCSharpDocument(), rangeToFormat, out var projectedRange))
         {
             return Array.Empty<TextEdit>();
         }

@@ -140,7 +140,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
     {
         var documentMappingService = new RazorDocumentMappingService(
             TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
-        if (!documentMappingService.TryMapToProjectedDocumentRange(codeDocument.GetCSharpDocument(), razorRange, out var csharpRange) &&
+        if (!documentMappingService.TryMapToGeneratedDocumentRange(codeDocument.GetCSharpDocument(), razorRange, out var csharpRange) &&
             !RazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
         {
             // No C# in the range.

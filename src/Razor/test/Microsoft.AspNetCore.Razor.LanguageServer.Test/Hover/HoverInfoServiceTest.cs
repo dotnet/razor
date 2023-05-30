@@ -611,7 +611,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
 
         var outRange = new Range();
         documentMappingServiceMock
-            .Setup(c => c.TryMapToProjectedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<Range>(), out outRange))
+            .Setup(c => c.TryMapToGeneratedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<Range>(), out outRange))
             .Returns(true);
 
         var projectedPosition = new Position(1, 1);

@@ -697,7 +697,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var range = new Range { Start = new Position(1, 10), End = new Position(1, 13) };
 
         // Act & Assert
-        if (service.TryMapToProjectedDocumentRange(
+        if (service.TryMapToGeneratedDocumentRange(
             codeDoc.GetCSharpDocument(),
             range, // |var| abc
             out var projectedRange))
@@ -709,7 +709,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         }
         else
         {
-            Assert.False(true, $"{nameof(service.TryMapToProjectedDocumentRange)} should have returned true");
+            Assert.False(true, $"{nameof(service.TryMapToGeneratedDocumentRange)} should have returned true");
         }
     }
 
@@ -727,7 +727,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var range = new Range { Start = new Position(1, 10), End = new Position(1, 13) };
 
         // Act
-        var result = service.TryMapToProjectedDocumentRange(
+        var result = service.TryMapToGeneratedDocumentRange(
             codeDoc.GetCSharpDocument(),
             range, // |var| abc
             out var projectedRange);
@@ -753,7 +753,7 @@ public class RazorDocumentMappingServiceTest : TestBase
         var range = new Range { Start = new Position(1, 10), End = new Position(1, 13) };
 
         // Act
-        var result = service.TryMapToProjectedDocumentRange(
+        var result = service.TryMapToGeneratedDocumentRange(
             codeDoc.GetCSharpDocument(),
             range, // |var| abc
             out var projectedRange);
