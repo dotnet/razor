@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
@@ -35,6 +36,11 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
 
         Logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
+
+    /// <summary>
+    /// The strategy to use to project the incoming caret position onto the generated C#/Html document
+    /// </summary>
+    protected virtual IProjectionStrategy ProjectionStrategy { get; } = DefaultProjectionStrategy.Instance;
 
     protected bool SingleServerSupport => _languageServerFeatureOptions.SingleServerSupport;
 
@@ -105,7 +111,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
             return default;
         }
 
-        var projection = await _documentMappingService.TryGetProjectionAsync(documentContext, request.Position, requestContext.Logger, cancellationToken).ConfigureAwait(false);
+        var projection = await ProjectionStrategy.TryGetProjectionAsync(_documentMappingService, documentContext, request.Position, requestContext.Logger, cancellationToken).ConfigureAwait(false);
         if (projection is null)
         {
             return default;

@@ -71,17 +71,6 @@ internal abstract class RazorDocumentMappingService
 
         return new Projection(languageKind, projectedPosition, absoluteIndex);
     }
-
-    public async Task<Projection?> TryGetProjectionAsync(DocumentContext documentContext, Position position, ILogger logger, CancellationToken cancellationToken)
-    {
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
-        {
-            return null;
-        }
-
-        return await GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
-    }
 }
 
 internal record Projection(RazorLanguageKind LanguageKind, Position Position, int AbsoluteIndex);
