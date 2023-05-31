@@ -17,17 +17,6 @@ internal static class IRazorDocumentMappingServiceExtensions
     public static bool TryMapToHostDocumentRange(this IRazorDocumentMappingService service, IRazorGeneratedDocument generatedDocument, Range projectedRange, [NotNullWhen(true)] out Range? originalRange)
         => service.TryMapToHostDocumentRange(generatedDocument, projectedRange, MappingBehavior.Strict, out originalRange);
 
-    public static async Task<DocumentPositionInfo?> TryGetPositionInfoAsync(this IRazorDocumentMappingService service, DocumentContext documentContext, Position position, ILogger logger, CancellationToken cancellationToken)
-    {
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
-        if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
-        {
-            return null;
-        }
-
-        return await GetPositionInfoAsync(service, documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
-    }
-
     public static async Task<DocumentPositionInfo> GetPositionInfoAsync(this IRazorDocumentMappingService service, DocumentContext documentContext, int hostDocumentIndex, CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
