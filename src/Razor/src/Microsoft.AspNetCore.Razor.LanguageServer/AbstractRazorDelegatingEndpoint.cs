@@ -40,7 +40,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
     /// <summary>
     /// The strategy to use to project the incoming caret position onto the generated C#/Html document
     /// </summary>
-    protected virtual IProjectionStrategy ProjectionStrategy { get; } = DefaultProjectionStrategy.Instance;
+    protected virtual IDocumentPositionInfoStrategy DocumentPositionInfoStrategy { get; } = DefaultDocumentPositionInfoStrategy.Instance;
 
     protected bool SingleServerSupport => _languageServerFeatureOptions.SingleServerSupport;
 
@@ -111,7 +111,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
             return default;
         }
 
-        var positionInfo = await ProjectionStrategy.TryGetProjectionAsync(_documentMappingService, documentContext, request.Position, requestContext.Logger, cancellationToken).ConfigureAwait(false);
+        var positionInfo = await DocumentPositionInfoStrategy.TryGetPositionInfoAsync(_documentMappingService, documentContext, request.Position, requestContext.Logger, cancellationToken).ConfigureAwait(false);
         if (positionInfo is null)
         {
             return default;
