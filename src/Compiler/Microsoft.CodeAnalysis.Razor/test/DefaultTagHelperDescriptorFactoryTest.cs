@@ -2421,6 +2421,7 @@ public class DefaultTagHelperDescriptorFactoryTest
         var builder = TagHelperDescriptorBuilder.Create(typeName, assemblyName);
 
         builder.SetMetadata(
+            RuntimeName(TagHelperConventions.DefaultKind),
             TypeName(typeName),
             TypeNamespace(typeNamespace),
             TypeNameIdentifier(typeNameIdentifier));

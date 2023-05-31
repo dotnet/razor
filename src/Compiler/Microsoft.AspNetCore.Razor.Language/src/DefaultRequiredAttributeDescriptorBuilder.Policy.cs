@@ -14,7 +14,6 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder
         public override bool Return(DefaultRequiredAttributeDescriptorBuilder builder)
         {
             builder._parent = null;
-            builder._metadata = null;
 
             builder.Name = null;
             builder.NameComparisonMode = default;
@@ -23,7 +22,7 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder
 
             ClearDiagnostics(builder._diagnostics);
 
-            builder._metadataDictionary?.Clear();
+            builder._metadata.Clear();
 
             return true;
         }

@@ -145,4 +145,9 @@ public abstract partial class TagHelperDescriptorBuilder
     {
         throw new NotImplementedException();
     }
+
+    internal virtual MetadataBuilder GetMetadataBuilder(string runtimeName = null)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -254,7 +254,7 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                                 b.SetMetadata(Attributes.IsDirectiveAttribute);
                             });
                     })
-                    .Metadata(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind)
+                    .Metadata(SpecialKind(ComponentMetadata.EventHandler.TagHelperKind))
                     .Build(),
         };
 
@@ -280,7 +280,7 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
                             });
 
                     })
-                    .Metadata(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind)
+                    .Metadata(SpecialKind(ComponentMetadata.EventHandler.TagHelperKind))
                     .Build(),
         };
 
@@ -2224,7 +2224,7 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
         {
             TagHelperDescriptorBuilder.Create(ComponentMetadata.Bind.TagHelperKind, "Bind", ComponentsApi.AssemblyName)
                 .Metadata(
-                    new(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind),
+                    SpecialKind(ComponentMetadata.Bind.TagHelperKind),
                     IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
                     RuntimeName(ComponentMetadata.Bind.RuntimeName),
                     TypeName("Microsoft.AspNetCore.Components.Bind"),
@@ -2268,7 +2268,7 @@ public class TagHelperBlockRewriterTest : TagHelperRewritingTestBase
         {
             TagHelperDescriptorBuilder.Create(ComponentMetadata.Bind.TagHelperKind, "Bind", ComponentsApi.AssemblyName)
                 .Metadata(
-                    new(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind),
+                    SpecialKind(ComponentMetadata.Bind.TagHelperKind),
                     IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
                     RuntimeName(ComponentMetadata.Bind.RuntimeName),
                     TypeName("Microsoft.AspNetCore.Components.Bind"),

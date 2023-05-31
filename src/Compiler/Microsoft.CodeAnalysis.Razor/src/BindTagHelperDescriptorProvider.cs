@@ -150,7 +150,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             builder.SetDocumentation(DocumentationDescriptor.BindTagHelper_Fallback);
 
             builder.SetMetadata(
-                new(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind),
+                SpecialKind(ComponentMetadata.Bind.TagHelperKind),
                 IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
                 RuntimeName(ComponentMetadata.Bind.RuntimeName),
                 IsTrue(ComponentMetadata.Bind.FallbackKey),
@@ -388,11 +388,11 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 eventName = "Event_" + suffix;
             }
 
-            using var _1 = TagHelperDescriptorBuilder.GetPooledInstance(
+            using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
                 ComponentMetadata.Bind.TagHelperKind, name, ComponentsApi.AssemblyName,
                 out var builder);
 
-            using var _2 = ListPool<KeyValuePair<string, string>>.GetPooledObject(out var metadataPairs);
+            using var metadata = builder.GetMetadataBuilder(ComponentMetadata.Bind.RuntimeName);
 
             builder.CaseSensitive = true;
             builder.SetDocumentation(
@@ -401,13 +401,12 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     entry.ValueAttribute,
                     entry.ChangeAttribute));
 
-            metadataPairs.Add(new(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind));
-            metadataPairs.Add(IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly));
-            metadataPairs.Add(new(TagHelperMetadata.Runtime.Name, ComponentMetadata.Bind.RuntimeName));
-            metadataPairs.Add(new(ComponentMetadata.Bind.ValueAttribute, entry.ValueAttribute));
-            metadataPairs.Add(new(ComponentMetadata.Bind.ChangeAttribute, entry.ChangeAttribute));
-            metadataPairs.Add(new(ComponentMetadata.Bind.IsInvariantCulture, entry.IsInvariantCulture ? bool.TrueString : bool.FalseString));
-            metadataPairs.Add(new(ComponentMetadata.Bind.Format, entry.Format));
+            metadata.Add(SpecialKind(ComponentMetadata.Bind.TagHelperKind));
+            metadata.Add(IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly));
+            metadata.Add(ComponentMetadata.Bind.ValueAttribute, entry.ValueAttribute);
+            metadata.Add(ComponentMetadata.Bind.ChangeAttribute, entry.ChangeAttribute);
+            metadata.Add(ComponentMetadata.Bind.IsInvariantCulture, entry.IsInvariantCulture ? bool.TrueString : bool.FalseString);
+            metadata.Add(ComponentMetadata.Bind.Format, entry.Format);
 
             if (entry.TypeAttribute != null)
             {
@@ -420,14 +419,14 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                 //
                 // Therefore we use this metadata to know which one is more specific when two
                 // tag helpers match.
-                metadataPairs.Add(new(ComponentMetadata.Bind.TypeAttribute, entry.TypeAttribute));
+                metadata.Add(ComponentMetadata.Bind.TypeAttribute, entry.TypeAttribute);
             }
 
-            metadataPairs.Add(TypeName(entry.TypeName));
-            metadataPairs.Add(TypeNamespace(entry.TypeNamespace));
-            metadataPairs.Add(TypeNameIdentifier(entry.TypeNameIdentifier));
+            metadata.Add(TypeName(entry.TypeName));
+            metadata.Add(TypeNamespace(entry.TypeNamespace));
+            metadata.Add(TypeNameIdentifier(entry.TypeNameIdentifier));
 
-            builder.SetMetadata(metadataPairs);
+            builder.SetMetadata(metadata.Build());
 
             builder.TagMatchingRule(rule =>
             {
@@ -636,11 +635,11 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     continue;
                 }
 
-                using var _1 = TagHelperDescriptorBuilder.GetPooledInstance(
+                using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
                     ComponentMetadata.Bind.TagHelperKind, tagHelper.Name, tagHelper.AssemblyName,
                     out var builder);
 
-                using var _2 = ListPool<KeyValuePair<string, string>>.GetPooledObject(out var metadataPairs);
+                using var metadata = builder.GetMetadataBuilder(ComponentMetadata.Bind.RuntimeName);
 
                 builder.DisplayName = tagHelper.DisplayName;
                 builder.CaseSensitive = true;
@@ -650,19 +649,18 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                         valueAttribute.Name,
                         changeAttribute.Name));
 
-                metadataPairs.Add(new(ComponentMetadata.SpecialKindKey, ComponentMetadata.Bind.TagHelperKind));
-                metadataPairs.Add(RuntimeName(ComponentMetadata.Bind.RuntimeName));
-                metadataPairs.Add(new(ComponentMetadata.Bind.ValueAttribute, valueAttribute.Name));
-                metadataPairs.Add(new(ComponentMetadata.Bind.ChangeAttribute, changeAttribute.Name));
+                metadata.Add(SpecialKind(ComponentMetadata.Bind.TagHelperKind));
+                metadata.Add(ComponentMetadata.Bind.ValueAttribute, valueAttribute.Name);
+                metadata.Add(ComponentMetadata.Bind.ChangeAttribute, changeAttribute.Name);
 
                 if (expressionAttribute != null)
                 {
-                    metadataPairs.Add(new(ComponentMetadata.Bind.ExpressionAttribute, expressionAttribute.Name));
+                    metadata.Add(ComponentMetadata.Bind.ExpressionAttribute, expressionAttribute.Name);
                 }
 
-                metadataPairs.Add(TypeName(tagHelper.GetTypeName()));
-                metadataPairs.Add(TypeNamespace(tagHelper.GetTypeNamespace()));
-                metadataPairs.Add(TypeNameIdentifier(tagHelper.GetTypeNameIdentifier()));
+                metadata.Add(TypeName(tagHelper.GetTypeName()));
+                metadata.Add(TypeNamespace(tagHelper.GetTypeNamespace()));
+                metadata.Add(TypeNameIdentifier(tagHelper.GetTypeNameIdentifier()));
 
                 // Match the component and attribute name
                 builder.TagMatchingRule(rule =>
@@ -739,10 +737,10 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
                 if (tagHelper.IsComponentFullyQualifiedNameMatch())
                 {
-                    metadataPairs.Add(new(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch));
+                    metadata.Add(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch);
                 }
 
-                builder.SetMetadata(metadataPairs);
+                builder.SetMetadata(metadata.Build());
 
                 results.Add(builder.Build());
             }

@@ -9,7 +9,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Xunit;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
@@ -1067,21 +1066,6 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         Assert.Same(legacyDescriptor, match);
     }
 
-    private static TagHelperDescriptor CreatePrefixedValidPlainDescriptor(string prefix)
-    {
-        return Valid_PlainTagHelperDescriptor;
-    }
-
-    private static TagHelperDescriptor CreatePrefixedValidInheritedDescriptor(string prefix)
-    {
-        return Valid_InheritedTagHelperDescriptor;
-    }
-
-    private static TagHelperDescriptor CreatePrefixedStringDescriptor(string prefix)
-    {
-        return String_TagHelperDescriptor;
-    }
-
     private static RazorSourceDocument CreateTestSourceDocument()
     {
         var content =
@@ -1436,7 +1420,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         bool fullyQualified = false,
         bool childContent = false)
     {
-        kind = kind ?? ComponentMetadata.Component.TagHelperKind;
+        kind ??= ComponentMetadata.Component.TagHelperKind;
         return CreateDescriptor(kind, tagName, typeName, assemblyName, typeNamespace, typeNameIdentifier, attributes, ruleBuilders, fullyQualified, childContent);
     }
     #endregion
@@ -1453,13 +1437,12 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         bool componentFullyQualified = false,
         bool componentChildContent = false)
     {
-        using var _ = ListPool<KeyValuePair<string, string>>.GetPooledObject(out var metadataPairs);
-
         var builder = TagHelperDescriptorBuilder.Create(kind, typeName, assemblyName);
+        using var metadata = builder.GetMetadataBuilder();
 
-        metadataPairs.Add(TypeName(typeName));
-        metadataPairs.Add(TypeNamespace(typeNamespace ?? (typeName.LastIndexOf('.') == -1 ? "" : typeName.Substring(0, typeName.LastIndexOf('.')))));
-        metadataPairs.Add(TypeNameIdentifier(typeNameIdentifier ?? (typeName.LastIndexOf('.') == -1 ? typeName : typeName[(typeName.LastIndexOf('.') + 1)..])));
+        metadata.Add(TypeName(typeName));
+        metadata.Add(TypeNamespace(typeNamespace ?? (typeName.LastIndexOf('.') == -1 ? "" : typeName[..typeName.LastIndexOf('.')])));
+        metadata.Add(TypeNameIdentifier(typeNameIdentifier ?? (typeName.LastIndexOf('.') == -1 ? typeName : typeName[(typeName.LastIndexOf('.') + 1)..])));
 
         if (attributes != null)
         {
@@ -1487,15 +1470,15 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         if (componentFullyQualified)
         {
-            metadataPairs.Add(new(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch));
+            metadata.Add(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch);
         }
 
         if (componentChildContent)
         {
-            metadataPairs.Add(new(ComponentMetadata.SpecialKindKey, ComponentMetadata.ChildContent.TagHelperKind));
+            metadata.Add(SpecialKind(ComponentMetadata.ChildContent.TagHelperKind));
         }
 
-        builder.SetMetadata(metadataPairs);
+        builder.SetMetadata(metadata.Build());
 
         var descriptor = builder.Build();
 

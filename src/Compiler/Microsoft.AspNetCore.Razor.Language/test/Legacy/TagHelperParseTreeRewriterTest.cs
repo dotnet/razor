@@ -163,7 +163,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
                 {
                     b.Name = "onclick";
                 }))
-            .Metadata(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.EventArgsType)
+            .Metadata(SpecialKind(ComponentMetadata.EventHandler.EventArgsType))
             .Build(),
     };
 

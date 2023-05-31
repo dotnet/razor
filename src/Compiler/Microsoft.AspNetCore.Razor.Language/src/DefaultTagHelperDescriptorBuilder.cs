@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
@@ -24,8 +23,6 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         builder._kind = kind;
         builder._name = name;
         builder._assemblyName = assemblyName;
-
-        builder.InitializeMetadata();
 
         return builder;
     }
@@ -52,12 +49,10 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
     private List<DefaultBoundAttributeDescriptorBuilder>? _attributeBuilders;
     private List<DefaultTagMatchingRuleDescriptorBuilder>? _tagMatchingRuleBuilders;
     private RazorDiagnosticCollection? _diagnostics;
-    private readonly Dictionary<string, string?> _metadataDictionary;
-    private MetadataCollection? _metadata;
+    private MetadataHolder _metadata;
 
     private DefaultTagHelperDescriptorBuilder()
     {
-        _metadataDictionary = new Dictionary<string, string?>(StringComparer.Ordinal);
     }
 
     public DefaultTagHelperDescriptorBuilder(string kind, string name, string assemblyName)
@@ -66,8 +61,6 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         _kind = kind;
         _name = name;
         _assemblyName = assemblyName;
-
-        InitializeMetadata();
     }
 
     public override string Kind => _kind.AssumeNotNull();
@@ -83,17 +76,13 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         set => _documentationObject = new(value);
     }
 
-    public override IDictionary<string, string?> Metadata
-    {
-        get
-        {
-            Debug.Assert(
-                _metadata is null || _metadata.Count == 0,
-                $"{nameof(SetMetadata)} and {nameof(Metadata)} should not both be used for a single builder.");
+    public override IDictionary<string, string?> Metadata => _metadata.MetadataDictionary;
 
-            return _metadataDictionary;
-        }
-    }
+    public override void SetMetadata(MetadataCollection metadata) => _metadata.SetMetadataCollection(metadata);
+
+    public override bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
+        => _metadata.TryGetMetadataValue(key, out value);
+
     public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
     public override IReadOnlyList<AllowedChildTagDescriptorBuilder> AllowedChildTags
@@ -178,48 +167,6 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         _documentationObject = new(documentation);
     }
 
-    public override void SetMetadata(MetadataCollection metadata)
-    {
-        Debug.Assert(
-            _metadataDictionary is null ||
-            _metadataDictionary.Count == 0 ||
-            (_metadataDictionary.Count == 1 && _metadataDictionary.ContainsKey(TagHelperMetadata.Runtime.Name)),
-            $"{nameof(SetMetadata)} and {nameof(Metadata)} should not both be used for a single builder.");
-
-        if (!metadata.ContainsKey(TagHelperMetadata.Runtime.Name))
-        {
-            using var _ = ListPool<KeyValuePair<string, string?>>.GetPooledObject(out var pairs);
-            pairs.SetCapacityIfLarger(metadata.Count + 1);
-
-            pairs.Add(new(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind));
-
-            foreach (var pair in metadata)
-            {
-                pairs.Add(pair);
-            }
-
-            metadata = MetadataCollection.Create(pairs);
-        }
-
-        _metadata = metadata;
-    }
-
-    public override bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
-    {
-        if (_metadata is { } metadata)
-        {
-            return metadata.TryGetValue(key, out value);
-        }
-
-        if (_metadataDictionary is { } metadataDictionary)
-        {
-            return metadataDictionary.TryGetValue(key, out value);
-        }
-
-        value = null;
-        return false;
-    }
-
     public override TagHelperDescriptor Build()
     {
         using var diagnostics = new PooledHashSet<RazorDiagnostic>();
@@ -230,7 +177,8 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         var tagMatchingRules = _tagMatchingRuleBuilders.BuildAllOrEmpty(s_tagMatchingRuleSetPool);
         var attributes = _attributeBuilders.BuildAllOrEmpty(s_boundAttributeSetPool);
 
-        var metadata = _metadata ?? MetadataCollection.Create(_metadataDictionary);
+        _metadata.AddIfMissing(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
+        var metadata = _metadata.GetMetadataCollection();
 
         var descriptor = new DefaultTagHelperDescriptor(
             Kind,
@@ -256,7 +204,7 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         _allowedChildTags?.Clear();
         _attributeBuilders?.Clear();
         _tagMatchingRuleBuilders?.Clear();
-        _metadataDictionary.Clear();
+        _metadata.Clear();
         _diagnostics?.Clear();
     }
 
@@ -290,10 +238,12 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         _tagMatchingRuleBuilders ??= new List<DefaultTagMatchingRuleDescriptorBuilder>();
     }
 
-    private void InitializeMetadata()
+    internal override MetadataBuilder GetMetadataBuilder(string? runtimeName = null)
     {
-        // Tells code generation that these tag helpers are compatible with ITagHelper.
-        // For now that's all we support.
-        _metadataDictionary.Add(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
+        var metadataBuilder = new MetadataBuilder();
+
+        metadataBuilder.Add(TagHelperMetadata.Runtime.Name, runtimeName ?? TagHelperConventions.DefaultKind);
+
+        return metadataBuilder;
     }
 }

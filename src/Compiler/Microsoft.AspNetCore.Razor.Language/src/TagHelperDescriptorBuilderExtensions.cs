@@ -12,10 +12,20 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public static class TagHelperDescriptorBuilderExtensions
 {
     public static void SetMetadata(
-       this TagHelperDescriptorBuilder builder,
-       KeyValuePair<string, string> pair)
+        this TagHelperDescriptorBuilder builder,
+        KeyValuePair<string, string> pair)
     {
-        builder.SetMetadata(MetadataCollection.Create(pair));
+        if (pair.Key == TagHelperMetadata.Runtime.Name)
+        {
+            builder.SetMetadata(MetadataCollection.Create(pair));
+        }
+        else
+        {
+            builder.SetMetadata(
+                MetadataCollection.Create(
+                    pair,
+                    new(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind)));
+        }
     }
 
     public static void SetMetadata(
@@ -23,7 +33,19 @@ public static class TagHelperDescriptorBuilderExtensions
         KeyValuePair<string, string> pair1,
         KeyValuePair<string, string> pair2)
     {
-        builder.SetMetadata(MetadataCollection.Create(pair1, pair2));
+        if (pair1.Key == TagHelperMetadata.Runtime.Name ||
+            pair2.Key == TagHelperMetadata.Runtime.Name)
+        {
+            builder.SetMetadata(MetadataCollection.Create(pair1, pair2));
+        }
+        else
+        {
+            builder.SetMetadata(
+                MetadataCollection.Create(
+                    pair1,
+                    pair2,
+                    new(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind)));
+        }
     }
 
     internal static void SetMetadata(
@@ -32,21 +54,39 @@ public static class TagHelperDescriptorBuilderExtensions
         KeyValuePair<string, string> pair2,
         KeyValuePair<string, string> pair3)
     {
-        builder.SetMetadata(MetadataCollection.Create(pair1, pair2, pair3));
+        if (pair1.Key == TagHelperMetadata.Runtime.Name ||
+            pair2.Key == TagHelperMetadata.Runtime.Name ||
+            pair3.Key == TagHelperMetadata.Runtime.Name)
+        {
+            builder.SetMetadata(MetadataCollection.Create(pair1, pair2, pair3));
+        }
+        else
+        {
+            builder.SetMetadata(
+                MetadataCollection.Create(
+                    pair1,
+                    pair2,
+                    pair3,
+                    new(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind)));
+        }
     }
 
     internal static void SetMetadata(
         this TagHelperDescriptorBuilder builder,
         params KeyValuePair<string, string>[] pairs)
     {
-        builder.SetMetadata(MetadataCollection.Create(pairs));
-    }
+        if (Array.Exists(pairs, static pair => pair.Key == TagHelperMetadata.Runtime.Name))
+        {
+            builder.SetMetadata(MetadataCollection.Create(pairs));
+        }
+        else
+        {
+            var newPairs = new KeyValuePair<string, string>[pairs.Length + 1];
+            newPairs[0] = new(TagHelperMetadata.Runtime.Name, TagHelperConventions.DefaultKind);
+            Array.Copy(pairs, 0, newPairs, 1, pairs.Length);
 
-    internal static void SetMetadata(
-        this TagHelperDescriptorBuilder builder,
-        IReadOnlyList<KeyValuePair<string, string>> pairs)
-    {
-        builder.SetMetadata(MetadataCollection.Create(pairs));
+            builder.SetMetadata(MetadataCollection.Create(newPairs));
+        }
     }
 
     [Obsolete($"Do not use this method. {nameof(TagHelperDescriptorBuilder.SetMetadata)} should be used instead.")]

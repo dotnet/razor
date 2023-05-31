@@ -17,7 +17,6 @@ internal partial class DefaultTagHelperDescriptorBuilder
             builder._name = null;
             builder._assemblyName = null;
             builder._documentationObject = default;
-            builder._metadata = null;
 
             builder.DisplayName = null;
             builder.TagOutputHint = null;
@@ -58,7 +57,7 @@ internal partial class DefaultTagHelperDescriptorBuilder
 
             ClearDiagnostics(builder._diagnostics);
 
-            builder._metadataDictionary.Clear();
+            builder._metadata.Clear();
 
             return true;
         }

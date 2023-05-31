@@ -23,6 +23,8 @@ public static class CommonMetadata
         => new(TagHelperMetadata.Common.PropertyName, value);
     internal static KeyValuePair<string, string?> RuntimeName(string value)
         => new(TagHelperMetadata.Runtime.Name, value);
+    internal static KeyValuePair<string, string?> SpecialKind(string value)
+        => new(ComponentMetadata.SpecialKindKey, value);
     public static KeyValuePair<string, string?> TypeName(string value)
         => new(TagHelperMetadata.Common.TypeName, value);
     internal static KeyValuePair<string, string?> TypeNamespace(string value)

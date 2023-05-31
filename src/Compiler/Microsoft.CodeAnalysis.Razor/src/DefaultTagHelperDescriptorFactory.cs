@@ -49,6 +49,7 @@ internal class DefaultTagHelperDescriptorFactory
             out var descriptorBuilder);
 
         descriptorBuilder.SetMetadata(
+            RuntimeName(TagHelperConventions.DefaultKind),
             TypeName(typeName),
             TypeNamespace(type.ContainingNamespace.ToDisplayString(SymbolExtensions.FullNameTypeDisplayFormat)),
             TypeNameIdentifier(type.Name));
@@ -206,7 +207,7 @@ internal class DefaultTagHelperDescriptorFactory
         var hasPublicSetter = property.SetMethod != null && property.SetMethod.DeclaredAccessibility == Accessibility.Public;
         var typeName = GetFullName(property.Type);
         builder.TypeName = typeName;
-        builder.SetMetadata(CommonMetadata.PropertyName(property.Name));
+        builder.SetMetadata(PropertyName(property.Name));
 
         if (hasPublicSetter)
         {

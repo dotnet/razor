@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -31,8 +30,7 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
     [AllowNull]
     private DefaultTagMatchingRuleDescriptorBuilder _parent;
     private RazorDiagnosticCollection? _diagnostics;
-    private Dictionary<string, string?>? _metadataDictionary;
-    private MetadataCollection? _metadata;
+    private MetadataHolder _metadata;
 
     private DefaultRequiredAttributeDescriptorBuilder()
     {
@@ -48,46 +46,16 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
     public override string? Value { get; set; }
     public override ValueComparisonMode ValueComparisonMode { get; set; }
 
-    public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
-
-    public override IDictionary<string, string?> Metadata
-    {
-        get
-        {
-            Debug.Assert(
-                _metadata is null || _metadata.Count == 0,
-                $"{nameof(SetMetadata)} and {nameof(Metadata)} should not both be used for a single builder.");
-
-            return _metadataDictionary ??= new Dictionary<string, string?>();
-        }
-    }
-
     internal bool CaseSensitive => _parent.CaseSensitive;
 
-    public override void SetMetadata(MetadataCollection metadata)
-    {
-        Debug.Assert(
-            _metadataDictionary is null || _metadataDictionary.Count == 0,
-            $"{nameof(SetMetadata)} and {nameof(Metadata)} should not both be used for a single builder.");
+    public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
-        _metadata = metadata;
-    }
+    public override IDictionary<string, string?> Metadata => _metadata.MetadataDictionary;
+
+    public override void SetMetadata(MetadataCollection metadata) => _metadata.SetMetadataCollection(metadata);
 
     public override bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
-    {
-        if (_metadata is { } metadata)
-        {
-            return metadata.TryGetValue(key, out value);
-        }
-
-        if (_metadataDictionary is { } metadataDictionary)
-        {
-            return metadataDictionary.TryGetValue(key, out value);
-        }
-
-        value = null;
-        return false;
-    }
+        => _metadata.TryGetMetadataValue(key, out value);
 
     public RequiredAttributeDescriptor Build()
     {
@@ -99,8 +67,7 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
             diagnostics.UnionWith(_diagnostics);
 
             var displayName = GetDisplayName();
-
-            var metadata = _metadata ?? MetadataCollection.CreateOrEmpty(_metadataDictionary);
+            var metadata = _metadata.GetMetadataCollection();
 
             var descriptor = new DefaultRequiredAttributeDescriptor(
                 Name,
@@ -140,7 +107,7 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
         else
         {
             var name = new StringSegment(Name);
-            var isDirectiveAttribute = this.IsDirectiveAttribute();
+            var isDirectiveAttribute = IsDirectiveAttribute();
             if (isDirectiveAttribute && name.StartsWith("@", StringComparison.Ordinal))
             {
                 name = name.Subsegment(1);

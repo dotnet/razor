@@ -151,7 +151,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
                     eventArgType));
 
             builder.SetMetadata(
-                new(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind),
+                SpecialKind(ComponentMetadata.EventHandler.TagHelperKind),
                 new(ComponentMetadata.EventHandler.EventArgsType, eventArgType),
                 IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
                 RuntimeName(ComponentMetadata.EventHandler.RuntimeName),

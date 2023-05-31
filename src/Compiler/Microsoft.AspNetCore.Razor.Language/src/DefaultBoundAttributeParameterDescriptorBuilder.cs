@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
@@ -32,8 +31,7 @@ internal partial class DefaultBoundAttributeParameterDescriptorBuilder : BoundAt
     [AllowNull]
     private string _kind;
     private DocumentationObject _documentationObject;
-    private Dictionary<string, string?>? _metadataDictionary;
-    private MetadataCollection? _metadata;
+    private MetadataHolder _metadata;
 
     private RazorDiagnosticCollection? _diagnostics;
 
@@ -59,17 +57,12 @@ internal partial class DefaultBoundAttributeParameterDescriptorBuilder : BoundAt
 
     public override string? DisplayName { get; set; }
 
-    public override IDictionary<string, string?> Metadata
-    {
-        get
-        {
-            Debug.Assert(
-                _metadata is null || _metadata.Count == 0,
-                $"{nameof(SetMetadata)} and {nameof(Metadata)} should not both be used for a single builder.");
+    public override IDictionary<string, string?> Metadata => _metadata.MetadataDictionary;
 
-            return _metadataDictionary ??= new Dictionary<string, string?>();
-        }
-    }
+    public override void SetMetadata(MetadataCollection metadata) => _metadata.SetMetadataCollection(metadata);
+
+    public override bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
+        => _metadata.TryGetMetadataValue(key, out value);
 
     public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
@@ -85,31 +78,6 @@ internal partial class DefaultBoundAttributeParameterDescriptorBuilder : BoundAt
         _documentationObject = new(documentation);
     }
 
-    public override void SetMetadata(MetadataCollection metadata)
-    {
-        Debug.Assert(
-            _metadataDictionary is null || _metadataDictionary.Count == 0,
-            $"{nameof(SetMetadata)} and {nameof(Metadata)} should not both be used for a single builder.");
-
-        _metadata = metadata;
-    }
-
-    public override bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
-    {
-        if (_metadata is { } metadata)
-        {
-            return metadata.TryGetValue(key, out value);
-        }
-
-        if (_metadataDictionary is { } metadataDictionary)
-        {
-            return metadataDictionary.TryGetValue(key, out value);
-        }
-
-        value = null;
-        return false;
-    }
-
     public BoundAttributeParameterDescriptor Build()
     {
         var diagnostics = new PooledHashSet<RazorDiagnostic>();
@@ -119,7 +87,7 @@ internal partial class DefaultBoundAttributeParameterDescriptorBuilder : BoundAt
 
             diagnostics.UnionWith(_diagnostics);
 
-            var metadata = _metadata ?? MetadataCollection.CreateOrEmpty(_metadataDictionary);
+            var metadata = _metadata.GetMetadataCollection();
 
             var descriptor = new DefaultBoundAttributeParameterDescriptor(
                 _kind,
