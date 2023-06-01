@@ -117,7 +117,7 @@ public sealed class CodeWriter
 
     internal CodeWriter Write(StringSegment value)
     {
-        return WriteCore(value.Buffer, value.Offset, value.Length);
+        return WriteCore(value.Buffer.AsSpan(value.Offset, value.Length));
     }
 
     public CodeWriter Write(string value, int startIndex, int count)
@@ -142,84 +142,62 @@ public sealed class CodeWriter
             throw new ArgumentOutOfRangeException(nameof(startIndex));
         }
 
-        return WriteCore(value, startIndex, count);
+        return WriteCore(value.AsSpan(startIndex, count));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private CodeWriter WriteCore(string value, int startIndex, int count)
+    private unsafe CodeWriter WriteCore(ReadOnlySpan<char> span)
     {
-        if (count == 0)
+        if (span.Length == 0)
         {
             return this;
         }
 
         Indent(CurrentIndent);
 
-        _builder.Append(value, startIndex, count);
+        char? lastChar = _builder.Length > 0
+            ? _builder[^1]
+            : null;
 
-        _absoluteIndex += count;
-
-        // The data string might contain a partial newline where the previously
-        // written string has part of the newline.
-        var i = startIndex;
-        int? trailingPartStart = null;
-
-        if (
-            // Check the last character of the previous write operation.
-            _builder.Length - count - 1 >= 0 &&
-            _builder[_builder.Length - count - 1] == '\r' &&
-
-            // Check the first character of the current write operation.
-            _builder[_builder.Length - count] == '\n')
+        fixed (char* ptr = span)
         {
-            // This is newline that's spread across two writes. Skip the first character of the
-            // current write operation.
-            //
-            // We don't need to increment our newline counter because we already did that when we
-            // saw the \r.
-            i += 1;
-            trailingPartStart = 1;
+            _builder.Append(ptr, span.Length);
         }
 
-        // Iterate the string, stopping at each occurrence of a newline character. This lets us count the
-        // newline occurrences and keep the index of the last one.
-        var endIndex = startIndex + count;
-        while (i < endIndex)
+        _absoluteIndex += span.Length;
+
+        // Check the last character *before* the write and the first character of the span that
+        // was written to determine whether this is a new-line that is spread across two writes.
+        if (lastChar == '\r' && span[0] == '\n')
         {
-            var ch = value[i];
+            // Skip the first character of span to ensure that it isn't considered in the following
+            // line break detection loop.
+            span = span[1..];
+        }
 
-            i++;
+        // Iterate the span, stopping at each occurrence of a new-line character.
+        // This let's us count the new-line occurrences and keep the index of the last one.
+        int charIndex;
+        while ((charIndex = span.IndexOfAny('\r', '\n')) >= 0)
+        {
+            _currentLineIndex++;
+            _currentLineCharacterIndex = 0;
 
-            if (ch is '\r' or '\n')
+            charIndex++;
+
+            // We might have stopped at a \r, so check if it's followed by \n and then advance the index.
+            // Otherwise, we'll count this line break twice.
+            if (charIndex < span.Length &&
+                span[charIndex - 1] == '\r' &&
+                span[charIndex] == '\n')
             {
-                // Newline found.
-                _currentLineIndex++;
-                _currentLineCharacterIndex = 0;
-
-                // We might have stopped at a \r, so check if it's followed by \n and then advance the index.
-                // Otherwise, we'll count this line break twice.
-                if (ch == '\r' &&
-                    i < endIndex &&
-                    value[i] == '\n')
-                {
-                    i++;
-                }
-
-                // The 'suffix' of the current line starts after this newline token.
-                trailingPartStart = i;
+                charIndex++;
             }
+
+            span = span[charIndex..];
         }
 
-        if (trailingPartStart == null)
-        {
-            // No newlines, just add the length of the data buffer
-            _currentLineCharacterIndex += count;
-        }
-        else
-        {
-            // Newlines found, add the trailing part of 'data'
-            _currentLineCharacterIndex += endIndex - trailingPartStart.Value;
-        }
+        _currentLineCharacterIndex += span.Length;
 
         return this;
     }
