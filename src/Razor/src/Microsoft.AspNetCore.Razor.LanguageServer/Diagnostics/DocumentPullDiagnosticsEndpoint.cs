@@ -62,13 +62,14 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
             return default;
         }
 
-        using (Track("diagnostics"))
+        var correlationId = Guid.NewGuid();
+        using (Track("diagnostics", correlationId))
         {
             var documentContext = context.GetRequiredDocumentContext();
 
             var razorDiagnostics = await GetRazorDiagnosticsAsync(documentContext, cancellationToken).ConfigureAwait(false);
 
-            var (csharpDiagnostics, htmlDiagnostics) = await GetHtmlCSharpDiagnosticsAsync(documentContext, cancellationToken).ConfigureAwait(false);
+            var (csharpDiagnostics, htmlDiagnostics) = await GetHtmlCSharpDiagnosticsAsync(documentContext, correlationId, cancellationToken).ConfigureAwait(false);
 
             using var _ = ListPool<VSInternalDiagnosticReport>.GetPooledObject(out var allDiagnostics);
             allDiagnostics.SetCapacityIfLarger(
@@ -114,18 +115,13 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         }
     }
 
-    private IDisposable? Track(string name)
+    private IDisposable? Track(string name, Guid correlationId)
     {
-        if (!System.Diagnostics.Debugger.IsAttached)
-        {
-            System.Diagnostics.Debugger.Launch();
-            System.Diagnostics.Debugger.Break();
-        }
         return _telemetryReporter.BeginBlock(name, Severity.Normal, ImmutableDictionary.CreateRange(new KeyValuePair<string, object?>[]
         {
             new("eventscope.method", "textdocument/_vs_diagnostic"),
             new("eventscope.languageservername", "Razor Language Server"),
-            new("eventscope.activityid", System.Diagnostics.Trace.CorrelationManager.ActivityId),
+            new("eventscope.correlationid", correlationId),
         }));
     }
 
@@ -154,9 +150,9 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         return razorDiagnostics;
     }
 
-    private async Task<(VSInternalDiagnosticReport[]? CSharpDiagnostics, VSInternalDiagnosticReport[]? HtmlDiagnostics)> GetHtmlCSharpDiagnosticsAsync(VersionedDocumentContext documentContext, CancellationToken cancellationToken)
+    private async Task<(VSInternalDiagnosticReport[]? CSharpDiagnostics, VSInternalDiagnosticReport[]? HtmlDiagnostics)> GetHtmlCSharpDiagnosticsAsync(VersionedDocumentContext documentContext, Guid correlationId, CancellationToken cancellationToken)
     {
-        var delegatedParams = new DelegatedDiagnosticParams(documentContext.Identifier);
+        var delegatedParams = new DelegatedDiagnosticParams(documentContext.Identifier, correlationId);
         var delegatedResponse = await _languageServer.SendRequestAsync<DelegatedDiagnosticParams, RazorPullDiagnosticResponse?>(
             RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName,
             delegatedParams,

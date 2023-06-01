@@ -130,7 +130,7 @@ internal class TelemetryReporter : ITelemetryReporter
     {
         try
         {
-#if DEBUG
+#if !DEBUG
             foreach (var session in _telemetrySessions)
             {
                 session.PostEvent(telemetryEvent);

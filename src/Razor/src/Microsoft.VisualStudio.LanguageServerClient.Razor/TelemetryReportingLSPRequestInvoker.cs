@@ -12,6 +12,8 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Newtonsoft.Json.Linq;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
@@ -78,13 +80,16 @@ internal class TelemetryReportingLSPRequestInvoker : LSPRequestInvoker
         }
     }
 
-    private IDisposable? Track(string name, string method, string languageServerName)
+    internal IDisposable? Track(string name, string method, string languageServerName, Guid correlationId = default)
     {
+        if (correlationId == default)
+            return default;
+
         return _telemetryReporter.BeginBlock(name, Severity.Normal, ImmutableDictionary.CreateRange(new KeyValuePair<string, object?>[]
         {
             new("eventscope.method", method),
             new("eventscope.languageservername", languageServerName),
-            new("eventscope.activityid", System.Diagnostics.Trace.CorrelationManager.ActivityId),
+            new("eventscope.correlationid", correlationId),
         }));
     }
 }
