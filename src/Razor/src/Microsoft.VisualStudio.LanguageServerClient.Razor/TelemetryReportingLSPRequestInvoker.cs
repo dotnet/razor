@@ -80,9 +80,9 @@ internal class TelemetryReportingLSPRequestInvoker : LSPRequestInvoker
         }
     }
 
-    internal IDisposable? Track(string name, string method, string languageServerName, Guid correlationId = default)
+    internal IDisposable? Track(string name, string method, string languageServerName, Guid correlationId = default(Guid))
     {
-        if (correlationId == default)
+        if (correlationId == Guid.Empty)
             return default;
 
         return _telemetryReporter.BeginBlock(name, Severity.Normal, ImmutableDictionary.CreateRange(new KeyValuePair<string, object?>[]

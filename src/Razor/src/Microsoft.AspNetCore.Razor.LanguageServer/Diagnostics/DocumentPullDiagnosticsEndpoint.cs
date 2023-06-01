@@ -24,18 +24,18 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly RazorTranslateDiagnosticsService _translateDiagnosticsService;
-    private readonly ITelemetryReporter _telemetryReporter;
+    private readonly ITelemetryReporter? _telemetryReporter;
 
     public DocumentPullDiagnosticsEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         RazorTranslateDiagnosticsService translateDiagnosticsService,
         ClientNotifierServiceBase languageServer,
-        ITelemetryReporter telemetryReporter)
+        ITelemetryReporter? telemetryReporter)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
         _translateDiagnosticsService = translateDiagnosticsService ?? throw new ArgumentNullException(nameof(translateDiagnosticsService));
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
-        _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
+        _telemetryReporter = telemetryReporter;
     }
 
     public bool MutatesSolutionState => false;
@@ -63,61 +63,59 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         }
 
         var correlationId = Guid.NewGuid();
-        using (Track("diagnostics", correlationId))
+        using var __ = Track("diagnostics", correlationId);
+        var documentContext = context.GetRequiredDocumentContext();
+
+        var razorDiagnostics = await GetRazorDiagnosticsAsync(documentContext, cancellationToken).ConfigureAwait(false);
+
+        var (csharpDiagnostics, htmlDiagnostics) = await GetHtmlCSharpDiagnosticsAsync(documentContext, correlationId, cancellationToken).ConfigureAwait(false);
+
+        using var _ = ListPool<VSInternalDiagnosticReport>.GetPooledObject(out var allDiagnostics);
+        allDiagnostics.SetCapacityIfLarger(
+            (razorDiagnostics?.Length ?? 0) +
+            (csharpDiagnostics?.Length ?? 0) +
+            (htmlDiagnostics?.Length ?? 0));
+
+        if (razorDiagnostics is not null)
         {
-            var documentContext = context.GetRequiredDocumentContext();
-
-            var razorDiagnostics = await GetRazorDiagnosticsAsync(documentContext, cancellationToken).ConfigureAwait(false);
-
-            var (csharpDiagnostics, htmlDiagnostics) = await GetHtmlCSharpDiagnosticsAsync(documentContext, correlationId, cancellationToken).ConfigureAwait(false);
-
-            using var _ = ListPool<VSInternalDiagnosticReport>.GetPooledObject(out var allDiagnostics);
-            allDiagnostics.SetCapacityIfLarger(
-                (razorDiagnostics?.Length ?? 0) +
-                (csharpDiagnostics?.Length ?? 0) +
-                (htmlDiagnostics?.Length ?? 0));
-
-            if (razorDiagnostics is not null)
-            {
-                // No extra work to do for Razor diagnostics
-                allDiagnostics.AddRange(razorDiagnostics);
-            }
-
-            if (csharpDiagnostics is not null)
-            {
-                foreach (var report in csharpDiagnostics)
-                {
-                    if (report.Diagnostics is not null)
-                    {
-                        var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, report.Diagnostics, documentContext, cancellationToken).ConfigureAwait(false);
-                        report.Diagnostics = mappedDiagnostics;
-                    }
-
-                    allDiagnostics.Add(report);
-                }
-            }
-
-            if (htmlDiagnostics is not null)
-            {
-                foreach (var report in htmlDiagnostics)
-                {
-                    if (report.Diagnostics is not null)
-                    {
-                        var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, report.Diagnostics, documentContext, cancellationToken).ConfigureAwait(false);
-                        report.Diagnostics = mappedDiagnostics;
-                    }
-
-                    allDiagnostics.Add(report);
-                }
-            }
-
-            return allDiagnostics.ToArray();
+            // No extra work to do for Razor diagnostics
+            allDiagnostics.AddRange(razorDiagnostics);
         }
+
+        if (csharpDiagnostics is not null)
+        {
+            foreach (var report in csharpDiagnostics)
+            {
+                if (report.Diagnostics is not null)
+                {
+                    var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, report.Diagnostics, documentContext, cancellationToken).ConfigureAwait(false);
+                    report.Diagnostics = mappedDiagnostics;
+                }
+
+                allDiagnostics.Add(report);
+            }
+        }
+
+        if (htmlDiagnostics is not null)
+        {
+            foreach (var report in htmlDiagnostics)
+            {
+                if (report.Diagnostics is not null)
+                {
+                    var mappedDiagnostics = await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, report.Diagnostics, documentContext, cancellationToken).ConfigureAwait(false);
+                    report.Diagnostics = mappedDiagnostics;
+                }
+
+                allDiagnostics.Add(report);
+            }
+        }
+
+        return allDiagnostics.ToArray();
     }
 
     private IDisposable? Track(string name, Guid correlationId)
     {
-        return _telemetryReporter.BeginBlock(name, Severity.Normal, ImmutableDictionary.CreateRange(new KeyValuePair<string, object?>[]
+        return _telemetryReporter?.BeginBlock(name, Severity.Normal, ImmutableDictionary.CreateRange(new KeyValuePair<string, object?>[]
         {
             new("eventscope.method", "textdocument/_vs_diagnostic"),
             new("eventscope.languageservername", "Razor Language Server"),

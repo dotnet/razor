@@ -48,7 +48,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         DocumentPullDiagnosticsEndpoint = new DocumentPullDiagnosticsEndpoint(
             languageServerFeatureOptions: languageServer.GetRequiredService<LanguageServerFeatureOptions>(),
             translateDiagnosticsService: languageServer.GetRequiredService<RazorTranslateDiagnosticsService>(),
-            languageServer: new ClientNotifierService(BuildDiagnostics(N)), null!);
+            languageServer: new ClientNotifierService(BuildDiagnostics(N)), null);
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
         _filePath = Path.Combine(projectRoot, "Components", "Pages", $"Generated.razor");
