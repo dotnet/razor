@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -346,7 +346,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             {
                 var state = entry.State.WithChangedHostDocument(
                     older.HostDocument,
-                    async () => await textLoader.LoadTextAndVersionAsync(LoadTextOptions, cancellationToken: default));
+                    async () => await textLoader.LoadTextAndVersionAsync(LoadTextOptions, cancellationToken: default).ConfigureAwait(false));
 
                 _openDocuments.Remove(documentFilePath);
 
@@ -458,7 +458,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             {
                 var state = entry.State.WithChangedHostDocument(
                     older.HostDocument,
-                    async () => await textLoader.LoadTextAndVersionAsync(LoadTextOptions, cancellationToken: default));
+                    async () => await textLoader.LoadTextAndVersionAsync(LoadTextOptions, cancellationToken: default).ConfigureAwait(false));
 
                 // Document updates can no-op.
                 if (!ReferenceEquals(state, entry.State))

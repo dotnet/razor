@@ -34,6 +34,10 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName;
 
+    protected override bool PreferCSharpOverHtmlIfPossible => true;
+
+    protected override IProjectionStrategy ProjectionStrategy => PreferAttributeNameProjectionStrategy.Instance;
+
     public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
     {
         const string ServerCapability = "implementationProvider";

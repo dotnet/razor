@@ -45,11 +45,10 @@ internal class RazorRequestContextFactory : IRequestContextFactory<RazorRequestC
         if (uri is not null)
         {
             var documentContextFactory = _lspServices.GetRequiredService<DocumentContextFactory>();
-            documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, cancellationToken);
+            documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, cancellationToken).ConfigureAwait(false);
         }
 
         var loggerAdapter = _lspServices.GetRequiredService<LoggerAdapter>();
-        loggerAdapter.LogDebug("Entering method {methodName}.", queueItem.MethodName);
 
         var requestContext = new RazorRequestContext(documentContext, loggerAdapter, _lspServices);
 

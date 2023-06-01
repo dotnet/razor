@@ -14,7 +14,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -102,7 +101,14 @@ public abstract class RazorSourceGeneratorTestsBase
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out _);
 
         var actualDiagnostics = outputCompilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
-        Assert.Collection(actualDiagnostics, expectedDiagnostics);
+        if (expectedDiagnostics.Length == 0 && actualDiagnostics.Any())
+        {
+            Assert.Fail($"Compilation failed: {string.Join(Environment.NewLine, actualDiagnostics)}");
+        }
+        else
+        {
+            Assert.Collection(actualDiagnostics, expectedDiagnostics);
+        }
 
         var result = driver.GetRunResult();
         return result.Results.Single();
@@ -171,25 +177,54 @@ public abstract class RazorSourceGeneratorTestsBase
             writer,
             new HtmlHelperOptions());
 
-        page.ViewContext = viewContext;
-        page.HtmlEncoder = HtmlEncoder.Default;
+        // Find `_ViewStart.cshtml`s.
+        var viewStarts = GetViewStartNames(name)
+            .Select(n => assembly.GetType($"{generatedNamespace}.{n}"))
+            .Where(t => t is not null)
+            .Select(t => (IRazorPage)Activator.CreateInstance(t!)!)
+            .ToImmutableArray();
 
         // Render the page.
         var view = ActivatorUtilities.CreateInstance<RazorView>(app.Services,
-             /* IReadOnlyList<IRazorPage> viewStartPages */ Array.Empty<IRazorPage>(),
-             /* IRazorPage razorPage */ page);
+            /* IReadOnlyList<IRazorPage> viewStartPages */ viewStarts,
+            /* IRazorPage razorPage */ page);
         await view.RenderAsync(viewContext);
 
         assemblyLoadContext.Unload();
 
         return writer.ToString();
+
+        // Inspired by Microsoft.AspNetCore.Mvc.Razor.RazorFileHierarchy.GetViewStartPaths.
+        static IEnumerable<string> GetViewStartNames(string name)
+        {
+            var builder = new StringBuilder(name);
+            var index = name.Length;
+            for (var currentIteration = 0; currentIteration < 255; currentIteration++)
+            {
+                if (index <= 1 || (index = name.LastIndexOf('_', index - 1)) < 0)
+                {
+                    break;
+                }
+
+                builder.Length = index + 1;
+                builder.Append("_ViewStart");
+
+                var itemPath = builder.ToString();
+                yield return itemPath;
+            }
+        }
     }
 
     protected static async Task VerifyRazorPageMatchesBaselineAsync(Compilation compilation, string name,
-        [CallerFilePath] string testPath = null!, [CallerMemberName] string testName = null!)
+        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
     {
         var html = await RenderRazorPageAsync(compilation, name);
-        Extensions.VerifyTextMatchesBaseline(html, "html", testPath: testPath, testName: testName);
+        Extensions.VerifyTextMatchesBaseline(
+            actualText: html,
+            fileName: name,
+            extension: "html",
+            testPath: testPath,
+            testName: testName);
     }
 
     protected static Project CreateTestProject(
@@ -389,8 +424,7 @@ internal static class Extensions
         return result;
     }
 
-    public static GeneratorRunResult VerifyOutputsMatchBaseline(this GeneratorRunResult result,
-        [CallerFilePath] string testPath = null!, [CallerMemberName] string testName = null!)
+    private static string CreateBaselineDirectory(string testPath, string testName)
     {
         var baselineDirectory = Path.Join(
             _testProjectRoot,
@@ -398,6 +432,13 @@ internal static class Extensions
             Path.GetFileNameWithoutExtension(testPath)!,
             testName);
         Directory.CreateDirectory(baselineDirectory);
+        return baselineDirectory;
+    }
+
+    public static GeneratorRunResult VerifyOutputsMatchBaseline(this GeneratorRunResult result,
+        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
+    {
+        var baselineDirectory = CreateBaselineDirectory(testPath, testName);
         var touchedFiles = new HashSet<string>();
 
         foreach (var source in result.GeneratedSources)
@@ -410,29 +451,19 @@ internal static class Extensions
             Assert.True(touchedFiles.Add(baselinePath));
         }
 
-        foreach (var file in Directory.EnumerateFiles(baselineDirectory))
-        {
-            if (!touchedFiles.Contains(file))
-            {
-                File.Delete(file);
-            }
-        }
+        DeleteUnusedBaselines(baselineDirectory, touchedFiles);
 
         return result;
     }
 
-    public static void VerifyTextMatchesBaseline(string actualText, string extension,
+    public static void VerifyTextMatchesBaseline(string actualText, string fileName, string extension,
         [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
     {
         // Create output directory.
-        var baselineDirectory = Path.Join(
-            _testProjectRoot,
-            "TestFiles",
-            Path.GetFileNameWithoutExtension(testPath)!);
-        Directory.CreateDirectory(baselineDirectory);
+        var baselineDirectory = CreateBaselineDirectory(testPath, testName);
 
         // Generate baseline if enabled.
-        var baselinePath = Path.Join(baselineDirectory, $"{testName}.{extension}");
+        var baselinePath = Path.Join(baselineDirectory, $"{fileName}.{extension}");
         GenerateOutputBaseline(baselinePath, actualText);
 
         // Verify actual against baseline.
@@ -445,6 +476,18 @@ internal static class Extensions
     {
         text = text.Replace("\r", "").Replace("\n", "\r\n");
         File.WriteAllText(baselinePath, text, _baselineEncoding);
+    }
+
+    [Conditional("GENERATE_BASELINES")]
+    private static void DeleteUnusedBaselines(string baselineDirectory, HashSet<string> touchedFiles)
+    {
+        foreach (var file in Directory.EnumerateFiles(baselineDirectory))
+        {
+            if (!touchedFiles.Contains(file))
+            {
+                File.Delete(file);
+            }
+        }
     }
 
     private static string GenerateExpectedOutput(GeneratorRunResult result)

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -49,6 +50,8 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
+    protected override IProjectionStrategy ProjectionStrategy => PreferAttributeNameProjectionStrategy.Instance;
+
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
@@ -70,9 +73,11 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
             return null;
         }
 
-        // Sometimes what looks like a html attribute can actually map to C#, in which case its better to let Roslyn try to handle this.
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        if (_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument.GetCSharpDocument(), projection.AbsoluteIndex, out _, out _))
+
+        // Sometimes what looks like a html attribute can actually map to C#, in which case its better to let Roslyn try to handle this.
+        // We can only do this if we're in single server mode though, otherwise we won't be delegating to Roslyn at all
+        if (SingleServerSupport && _documentMappingService.TryMapToProjectedDocumentPosition(codeDocument.GetCSharpDocument(), projection.AbsoluteIndex, out _, out _))
         {
             return null;
         }
@@ -91,7 +96,15 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
         var documentContext = requestContext.GetRequiredDocumentContext();
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-        if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), response.Range, out var projectedRange))
+        // If we don't include the originally requested position in our response, the client may not show it, so we extend the range to ensure it is in there.
+        // eg for hovering at @bind-Value:af$$ter, we want to show people the hover for the Value property, so Roslyn will return to us the range for just the
+        // portion of the attribute that says "Value".
+        if (RazorSyntaxFacts.TryGetFullAttributeNameSpan(codeDocument, projection.AbsoluteIndex, out var originalAttributeRange))
+        {
+            var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+            response.Range = originalAttributeRange.AsRange(sourceText);
+        }
+        else if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), response.Range, out var projectedRange))
         {
             response.Range = projectedRange;
         }

@@ -8,7 +8,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
@@ -130,7 +130,7 @@ internal class MonitorProjectConfigurationFilePathEndpoint : IMonitorProjectConf
         }
 
         _logger.LogInformation("Starting new configuration monitor for project '{0}' for directory '{1}'.", request.ProjectFilePath, configurationDirectory);
-        await entry.Detector.StartAsync(configurationDirectory, cancellationToken);
+        await entry.Detector.StartAsync(configurationDirectory, cancellationToken).ConfigureAwait(false);
 
         if (cancellationToken.IsCancellationRequested)
         {
