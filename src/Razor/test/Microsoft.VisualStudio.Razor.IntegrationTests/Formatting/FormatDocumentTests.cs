@@ -34,7 +34,7 @@ public class FormatDocumentTests : AbstractRazorEditorTest
     [InlineData("BadlyFormattedCounter.razor")]
     [InlineData("FormatCommentWithKeyword.cshtml")]
     [InlineData("FormatDocument.cshtml")]
-    [InlineData("FormatDocumentAfterEdit.cshtml")]
+    [InlineData("FormatDocumentAfterEdit.cshtml", Skip = "https://github.com/dotnet/razor/issues/8793")]
     [InlineData("FormatDocumentWithTextAreaAttributes.cshtml")]
     [InlineData("FormatIfBlockInsideForBlock.cshtml")]
     [InlineData("FormatOnPaste.cshtml")]
