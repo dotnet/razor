@@ -432,7 +432,7 @@ public class RenameEndpointTest : LanguageServerTestBase
             .Setup(c => c.SendRequestAsync<IDelegatedParams, WorkspaceEdit>(RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName, It.IsAny<DelegatedRenameParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(delegatedEdit);
 
-        var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
+        var documentMappingServiceMock = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
         documentMappingServiceMock
             .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
             .Returns(RazorLanguageKind.CSharp);
@@ -442,7 +442,7 @@ public class RenameEndpointTest : LanguageServerTestBase
 
         var projectedPosition = new Position(1, 1);
         var projectedIndex = 1;
-        documentMappingServiceMock.Setup(c => c.TryMapToProjectedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex)).Returns(true);
+        documentMappingServiceMock.Setup(c => c.TryMapToGeneratedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex)).Returns(true);
 
         var endpoint = CreateEndpoint(languageServerFeatureOptions, documentMappingServiceMock.Object, languageServerMock.Object);
 
@@ -474,7 +474,7 @@ public class RenameEndpointTest : LanguageServerTestBase
         var languageServerFeatureOptions = Mock.Of<LanguageServerFeatureOptions>(
             options => options.SupportsFileManipulation == true && options.SingleServerSupport == true && options.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false, MockBehavior.Strict);
         var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
+        var documentMappingServiceMock = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
         documentMappingServiceMock
             .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
             .Returns(RazorLanguageKind.Razor);
@@ -558,7 +558,7 @@ public class RenameEndpointTest : LanguageServerTestBase
         return documentSnapshot;
     }
 
-    private RenameEndpoint CreateEndpoint(LanguageServerFeatureOptions languageServerFeatureOptions = null, RazorDocumentMappingService documentMappingService = null, ClientNotifierServiceBase languageServer = null)
+    private RenameEndpoint CreateEndpoint(LanguageServerFeatureOptions languageServerFeatureOptions = null, IRazorDocumentMappingService documentMappingService = null, ClientNotifierServiceBase languageServer = null)
     {
         using var _ = ArrayBuilderPool<TagHelperDescriptor>.GetPooledObject(out var builder);
         builder.AddRange(CreateRazorComponentTagHelperDescriptors("First", "First.Components", "Component1"));
@@ -647,14 +647,14 @@ public class RenameEndpointTest : LanguageServerTestBase
         languageServerFeatureOptions ??= Mock.Of<LanguageServerFeatureOptions>(
             options => options.SupportsFileManipulation == true && options.SingleServerSupport == false && options.ReturnCodeActionAndRenamePathsWithPrefixedSlash == false, MockBehavior.Strict);
 
-        var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
+        var documentMappingServiceMock = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
         documentMappingServiceMock
             .Setup(c => c.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()))
             .Returns(Protocol.RazorLanguageKind.Html);
         var projectedPosition = new Position(1, 1);
         var projectedIndex = 1;
         documentMappingServiceMock
-            .Setup(c => c.TryMapToProjectedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex))
+            .Setup(c => c.TryMapToGeneratedDocumentPosition(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<int>(), out projectedPosition, out projectedIndex))
             .Returns(true);
         documentMappingService ??= documentMappingServiceMock.Object;
 

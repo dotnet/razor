@@ -9,11 +9,11 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class DefaultProjectionStrategy : IProjectionStrategy
+internal class DefaultDocumentPositionInfoStrategy : IDocumentPositionInfoStrategy
 {
-    public static IProjectionStrategy Instance { get; } = new DefaultProjectionStrategy();
+    public static IDocumentPositionInfoStrategy Instance { get; } = new DefaultDocumentPositionInfoStrategy();
 
-    public async Task<Projection?> TryGetProjectionAsync(RazorDocumentMappingService documentMappingService, DocumentContext documentContext, Position position, ILogger logger, CancellationToken cancellationToken)
+    public async Task<DocumentPositionInfo?> TryGetPositionInfoAsync(IRazorDocumentMappingService documentMappingService, DocumentContext documentContext, Position position, ILogger logger, CancellationToken cancellationToken)
     {
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         if (!position.TryGetAbsoluteIndex(sourceText, logger, out var absoluteIndex))
@@ -21,6 +21,6 @@ internal class DefaultProjectionStrategy : IProjectionStrategy
             return null;
         }
 
-        return await documentMappingService.GetProjectionAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
+        return await documentMappingService.GetPositionInfoAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
     }
 }

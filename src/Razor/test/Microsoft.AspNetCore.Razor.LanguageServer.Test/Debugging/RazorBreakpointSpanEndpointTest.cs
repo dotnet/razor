@@ -15,12 +15,12 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 
 public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
 {
-    private readonly RazorDocumentMappingService _mappingService;
+    private readonly IRazorDocumentMappingService _mappingService;
 
     public RazorBreakpointSpanEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _mappingService = new DefaultRazorDocumentMappingService(
+        _mappingService = new RazorDocumentMappingService(
             TestLanguageServerFeatureOptions.Instance,
             new TestDocumentContextFactory(),
             LoggerFactory);

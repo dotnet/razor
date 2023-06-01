@@ -14,11 +14,11 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 /// for the position at the start of the attribute name, ignoring any prefix or suffix. eg given any location within the
 /// attribute "@bind-Value:after", it will return the projection at the point of the word "Value" therein.
 /// </summary>
-internal class PreferAttributeNameProjectionStrategy : IProjectionStrategy
+internal class PreferAttributeNameDocumentPositionInfoStrategy : IDocumentPositionInfoStrategy
 {
-    public static IProjectionStrategy Instance { get; } = new PreferAttributeNameProjectionStrategy();
+    public static IDocumentPositionInfoStrategy Instance { get; } = new PreferAttributeNameDocumentPositionInfoStrategy();
 
-    public async Task<Projection?> TryGetProjectionAsync(RazorDocumentMappingService documentMappingService, DocumentContext documentContext, Position position, ILogger logger, CancellationToken cancellationToken)
+    public async Task<DocumentPositionInfo?> TryGetPositionInfoAsync(IRazorDocumentMappingService documentMappingService, DocumentContext documentContext, Position position, ILogger logger, CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
@@ -35,6 +35,6 @@ internal class PreferAttributeNameProjectionStrategy : IProjectionStrategy
         }
 
         // We actually don't need a different projection strategy, we just wanted to move the caret position
-        return await DefaultProjectionStrategy.Instance.TryGetProjectionAsync(documentMappingService, documentContext, position, logger, cancellationToken).ConfigureAwait(false);
+        return await DefaultDocumentPositionInfoStrategy.Instance.TryGetPositionInfoAsync(documentMappingService, documentContext, position, logger, cancellationToken).ConfigureAwait(false);
     }
 }
