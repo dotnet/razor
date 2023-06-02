@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
 internal record DelegatedDiagnosticParams(
     VersionedTextDocumentIdentifier HostDocument,
-    System.Guid CorrelationId);
+    Guid CorrelationId);
 
 internal record DelegatedPositionParams(
     VersionedTextDocumentIdentifier HostDocument,
