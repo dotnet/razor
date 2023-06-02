@@ -190,7 +190,7 @@ public sealed class CodeWriter
 
             i++;
 
-            if (ch == '\r' || ch == '\n')
+            if (ch is '\r' or '\n')
             {
                 // Newline found.
                 _currentLineIndex++;
