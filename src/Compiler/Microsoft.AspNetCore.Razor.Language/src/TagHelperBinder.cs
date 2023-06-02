@@ -24,8 +24,12 @@ internal sealed class TagHelperBinder
     /// <param name="descriptors">The descriptors that the <see cref="TagHelperBinder"/> will pull from.</param>
     public TagHelperBinder(string tagHelperPrefix, IEnumerable<TagHelperDescriptor> descriptors)
     {
+        // To prevent creating a dictionary that gets resized many times, we attempt to guess at a
+        // suitable capacity.
+        var descriptorCount = (descriptors is ICollection<TagHelperDescriptor> bounded) ? bounded.Count : descriptors.Count();
+
         _tagHelperPrefix = tagHelperPrefix;
-        _registrations = new Dictionary<string, HashSet<TagHelperDescriptor>>(StringComparer.OrdinalIgnoreCase);
+        _registrations = new Dictionary<string, HashSet<TagHelperDescriptor>>(descriptorCount, StringComparer.OrdinalIgnoreCase);
 
         // Populate our registrations
         foreach (var descriptor in descriptors)
