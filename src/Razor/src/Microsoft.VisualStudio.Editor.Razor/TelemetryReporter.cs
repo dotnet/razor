@@ -261,7 +261,7 @@ internal class TelemetryReporter : ITelemetryReporter
 
             _stopwatch.Stop();
             var values = _values.Add("eventscope.ellapsedms", _stopwatch.ElapsedMilliseconds);
-            _telemetryReporter.ReportEvent(_name, _severity, _values);
+            _telemetryReporter.ReportEvent(_name, _severity, values);
             StopwatchPool.Default.Return(_stopwatch);
         }
     }

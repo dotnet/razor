@@ -1165,9 +1165,8 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             },
         };
 
-        ReinvocationResponse<VSInternalDiagnosticReport[]?>? response;
         using var _ = _telemetryReporter.TrackLspRequest(nameof(_requestInvoker.ReinvokeRequestOnServerAsync), VSInternalMethods.DocumentPullDiagnosticName, delegatedLanguageServerName, correlationId);
-        response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
             virtualDocument.Snapshot.TextBuffer,
             VSInternalMethods.DocumentPullDiagnosticName,
             delegatedLanguageServerName,
