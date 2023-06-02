@@ -77,6 +77,9 @@
     <MicrosoftVisualStudioLanguageServicesPackageVersion>4.7.0-2.23301.2</MicrosoftVisualStudioLanguageServicesPackageVersion>
     <MicrosoftSourceLinkGitHubPackageVersion>8.0.0-beta.23252.2</MicrosoftSourceLinkGitHubPackageVersion>
     <MicrosoftDotNetXliffTasksPackageVersion>1.0.0-beta.23266.1</MicrosoftDotNetXliffTasksPackageVersion>
+    <!-- Exception - this version is not updated by automation, but is in Version.Details due to source-build.
+        See its entry in Version.Details for more information. -->
+    <MicrosoftExtensionsObjectPoolPackageVersion>6.0.0</MicrosoftExtensionsObjectPoolPackageVersion>
   </PropertyGroup>
   <!--
 
@@ -95,8 +98,6 @@
     <MicrosoftVisualStudioShellPackagesVersion>17.6.35829</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftVisualStudioPackagesVersion>17.6.252</MicrosoftVisualStudioPackagesVersion>
     <VisualStudioLanguageServerProtocolVersion>17.6.22</VisualStudioLanguageServerProtocolVersion>
-    <!-- dotnet/aspnetcore packages -->
-    <MicrosoftExtensionsObjectPoolPackageVersion>6.0.0</MicrosoftExtensionsObjectPoolPackageVersion>
     <!-- dotnet/runtime packages -->
     <MicrosoftExtensionsPackageVersion>6.0.0</MicrosoftExtensionsPackageVersion>
     <SystemCollectionsImmutablePackageVersion>6.0.0</SystemCollectionsImmutablePackageVersion>
