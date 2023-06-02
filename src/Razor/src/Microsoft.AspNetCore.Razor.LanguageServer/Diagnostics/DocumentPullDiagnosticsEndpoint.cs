@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -63,7 +62,7 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         }
 
         var correlationId = Guid.NewGuid();
-        using var __ = Track("diagnostics", correlationId);
+        using var __ = _telemetryReporter?.TrackLspRequest("diagnostics", VSInternalMethods.DocumentPullDiagnosticName, RazorLSPConstants.RazorLanguageServerName, correlationId);
         var documentContext = context.GetRequiredDocumentContext();
 
         var razorDiagnostics = await GetRazorDiagnosticsAsync(documentContext, cancellationToken).ConfigureAwait(false);
@@ -111,16 +110,6 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         }
 
         return allDiagnostics.ToArray();
-    }
-
-    private IDisposable? Track(string name, Guid correlationId)
-    {
-        return _telemetryReporter?.BeginBlock(name, Severity.Normal, ImmutableDictionary.CreateRange(new KeyValuePair<string, object?>[]
-        {
-            new("eventscope.method", VSInternalMethods.DocumentPullDiagnosticName),
-            new("eventscope.languageservername", RazorLSPConstants.RazorLanguageServerName),
-            new("eventscope.correlationid", correlationId),
-        }));
     }
 
     private static async Task<VSInternalDiagnosticReport[]?> GetRazorDiagnosticsAsync(VersionedDocumentContext documentContext, CancellationToken cancellationToken)

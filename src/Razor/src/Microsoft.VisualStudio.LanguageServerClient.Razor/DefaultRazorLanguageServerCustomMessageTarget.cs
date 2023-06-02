@@ -45,7 +45,8 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 {
     private readonly TrackingLSPDocumentManager _documentManager;
     private readonly JoinableTaskFactory _joinableTaskFactory;
-    private readonly TelemetryReportingLSPRequestInvoker _requestInvoker;
+    private readonly LSPRequestInvoker _requestInvoker;
+    private readonly ITelemetryReporter _telemetryReporter;
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
     private readonly IClientSettingsManager _editorSettingsManager;
     private readonly LSPDocumentSynchronizer _documentSynchronizer;
@@ -106,10 +107,11 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         _joinableTaskFactory = joinableTaskContext.Factory;
 
-        _requestInvoker = new TelemetryReportingLSPRequestInvoker(requestInvoker, telemetryReporter);
+        _requestInvoker = requestInvoker;
         _formattingOptionsProvider = formattingOptionsProvider;
         _editorSettingsManager = editorSettingsManager;
         _documentSynchronizer = documentSynchronizer;
+        _telemetryReporter = telemetryReporter;
         _outputWindowLogger = outputWindowLogger;
     }
 
@@ -1164,16 +1166,13 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         };
 
         ReinvocationResponse<VSInternalDiagnosticReport[]?>? response;
-        using (_requestInvoker.Track(nameof(_requestInvoker.ReinvokeRequestOnServerAsync), VSInternalMethods.DocumentPullDiagnosticName, delegatedLanguageServerName, correlationId))
-        {
-            response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
-                virtualDocument.Snapshot.TextBuffer,
-                VSInternalMethods.DocumentPullDiagnosticName,
-                delegatedLanguageServerName,
-                request,
-                cancellationToken).ConfigureAwait(false);
-        }
-
+        using var _ = _telemetryReporter.TrackLspRequest(nameof(_requestInvoker.ReinvokeRequestOnServerAsync), VSInternalMethods.DocumentPullDiagnosticName, delegatedLanguageServerName, correlationId);
+        response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
+            virtualDocument.Snapshot.TextBuffer,
+            VSInternalMethods.DocumentPullDiagnosticName,
+            delegatedLanguageServerName,
+            request,
+            cancellationToken).ConfigureAwait(false);
 
         // If the delegated server wants to remove all diagnostics about a document, they will send back a response with an item, but that
         // item will have null diagnostics (and every other property). We don't want to propagate that back out to the client, because
