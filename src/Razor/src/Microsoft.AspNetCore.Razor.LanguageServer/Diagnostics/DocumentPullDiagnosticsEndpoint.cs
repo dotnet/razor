@@ -118,7 +118,7 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         return _telemetryReporter?.BeginBlock(name, Severity.Normal, ImmutableDictionary.CreateRange(new KeyValuePair<string, object?>[]
         {
             new("eventscope.method", VSInternalMethods.DocumentPullDiagnosticName),
-            new("eventscope.languageservername", "Razor Language Server"),
+            new("eventscope.languageservername", RazorLSPConstants.RazorLanguageServerName),
             new("eventscope.correlationid", correlationId),
         }));
     }
