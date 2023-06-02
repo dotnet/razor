@@ -40,6 +40,11 @@ internal static class ParserHelpers
     {
         var span = value.AsSpan();
 
+        if (span.Length == 0)
+        {
+            return false;
+        }
+
         if (requireIdentifierStart)
         {
             if (!IsIdentifierStart(span[0]))
