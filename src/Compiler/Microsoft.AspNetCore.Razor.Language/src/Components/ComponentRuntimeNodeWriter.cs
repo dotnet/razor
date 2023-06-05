@@ -649,7 +649,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 context.CodeWriter.Write(".");
                 context.CodeWriter.Write(ComponentsApi.EventCallbackFactory.CreateMethod);
 
-                if (isInferred != true && node.TryParseEventCallbackTypeArgument(out StringSegment argument))
+                if (isInferred != true && node.TryParseEventCallbackTypeArgument(out ReadOnlySpan<char> argument))
                 {
                     context.CodeWriter.Write("<");
                     if (explicitType == true)

@@ -120,6 +120,16 @@ public sealed class CodeWriter
         return WriteCore(value.Buffer.AsSpan(value.Offset, value.Length));
     }
 
+    internal CodeWriter Write(ReadOnlySpan<char> span)
+    {
+        return WriteCore(span);
+    }
+
+    internal CodeWriter Write(ReadOnlyMemory<char> memory)
+    {
+        return WriteCore(memory.Span);
+    }
+
     public CodeWriter Write(string value, int startIndex, int count)
     {
         if (value == null)

@@ -155,7 +155,7 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
         }
     }
 
-    private IntermediateNode RewriteUsage(IntermediateNode parent, TagHelperDirectiveAttributeIntermediateNode node)
+    private static IntermediateNode RewriteUsage(IntermediateNode parent, TagHelperDirectiveAttributeIntermediateNode node)
     {
         var original = GetAttributeContent(node);
         if (original.Count == 0)
@@ -173,18 +173,18 @@ internal class ComponentEventHandlerLoweringPass : ComponentIntermediateNodePass
         // correct context for intellisense when typing in the attribute.
         var eventArgsType = node.TagHelper.GetEventArgsType();
         var tokens = new List<IntermediateToken>(original.Count + 2)
+        {
+            new IntermediateToken()
             {
-                new IntermediateToken()
-                {
-                    Content = $"global::{ComponentsApi.EventCallback.FactoryAccessor}.{ComponentsApi.EventCallbackFactory.CreateMethod}<{TypeNameHelper.GetGloballyQualifiedNameIfNeeded(eventArgsType)}>(this, ",
-                    Kind = TokenKind.CSharp
-                },
-                new IntermediateToken()
-                {
-                    Content = $")",
-                    Kind = TokenKind.CSharp
-                }
-            };
+                Content = $"global::{ComponentsApi.EventCallback.FactoryAccessor}.{ComponentsApi.EventCallbackFactory.CreateMethod}<{TypeNameHelper.GetGloballyQualifiedNameIfNeeded(eventArgsType)}>(this, ",
+                Kind = TokenKind.CSharp
+            },
+            new IntermediateToken()
+            {
+                Content = $")",
+                Kind = TokenKind.CSharp
+            }
+        };
 
         for (var i = 0; i < original.Count; i++)
         {

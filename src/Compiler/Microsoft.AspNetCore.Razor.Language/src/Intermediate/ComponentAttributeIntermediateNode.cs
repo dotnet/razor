@@ -182,9 +182,9 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
 
     public bool TryParseEventCallbackTypeArgument(out string argument)
     {
-        if (TryParseEventCallbackTypeArgument(out StringSegment stringSegment))
+        if (TryParseEventCallbackTypeArgument(out ReadOnlySpan<char> stringSegment))
         {
-            argument = stringSegment.Value;
+            argument = stringSegment.ToString();
             return true;
         }
 
@@ -192,7 +192,7 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
         return false;
     }
 
-    internal bool TryParseEventCallbackTypeArgument(out StringSegment argument)
+    internal bool TryParseEventCallbackTypeArgument(out ReadOnlySpan<char> argument)
     {
         // This is ugly and ad-hoc, but for various layering reasons we can't just use Roslyn APIs
         // to parse this. We need to parse this just before we write it out to the code generator,
@@ -206,26 +206,35 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
         return TryGetEventCallbackArgument(TypeName, out argument);
     }
 
-    internal static bool TryGetEventCallbackArgument(string candidate, out StringSegment argument)
+    internal static bool TryGetEventCallbackArgument(string candidate, out ReadOnlySpan<char> argument)
     {
-        var typeName = new StringSegment(candidate, candidate.StartsWith("global::", StringComparison.Ordinal) ? 8 : 0);
-        if (typeName.Equals(ComponentsApi.EventCallback.FullTypeName, StringComparison.Ordinal))
+        var span = candidate.AsSpan();
+
+        // Strip 'global::' from the candidate.
+        if (span.StartsWith("global::".AsSpan()))
         {
-            // Non-Generic
+            span = span["global::".Length..];
+        }
+
+        var eventCallbackName = ComponentsApi.EventCallback.FullTypeName.AsSpan();
+
+        // Check to see if this is the non-generic form. If so, there's no argument to retrieve.
+        if (span.Equals(eventCallbackName, StringComparison.Ordinal))
+        {
             argument = default;
             return false;
         }
 
-        if (typeName != null &&
-            typeName.Length > ComponentsApi.EventCallback.FullTypeName.Length + "<>".Length &&
-            typeName.StartsWith(ComponentsApi.EventCallback.FullTypeName, StringComparison.Ordinal) &&
-            typeName[ComponentsApi.EventCallback.FullTypeName.Length] == '<' &&
-            typeName[typeName.Length - 1] == '>')
+        if (span.Length <= eventCallbackName.Length + "<>".Length ||
+            !span.StartsWith(eventCallbackName, StringComparison.Ordinal))
         {
-            // OK this is promising.
-            //
-            // Chop off leading `...EventCallback<` and let the length so the ending `>` is cut off as well.
-            argument = typeName.Subsegment(ComponentsApi.EventCallback.FullTypeName.Length + 1, typeName.Length - (ComponentsApi.EventCallback.FullTypeName.Length + "<>".Length));
+            argument = default;
+            return false;
+        }
+
+        if (span[eventCallbackName.Length..] is ['<', ..var middle, '>'])
+        {
+            argument = middle;
             return true;
         }
 
