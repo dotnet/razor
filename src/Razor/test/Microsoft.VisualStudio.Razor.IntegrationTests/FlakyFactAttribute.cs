@@ -23,7 +23,7 @@ public class FlakyFactAttribute : IdeFactAttribute
         {
             _issue = value;
 
-            if (_runFlakyTests.Value)
+            if (!_runFlakyTests.Value)
             {
                 #pragma warning disable CS0618
                 Skip = _issue;
