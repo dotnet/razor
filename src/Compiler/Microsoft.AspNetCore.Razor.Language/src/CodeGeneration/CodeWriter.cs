@@ -167,9 +167,29 @@ public sealed class CodeWriter
             ? _builder[^1]
             : null;
 
-        fixed (char* ptr = span)
+        // Internally, StringBuilder can create char arrays that are large
+        // enough to end up on the LOH. This can happen when appending chars at the
+        // end of the StringBuilder's internal array block and there are a lot of
+        // remaining chars to append onto the next block. In this case, the StringBuilder
+        // will allocate the next block to be large enough to contain all of the remaining
+        // chars, which could end up on the LOH. To avoid this problem, we write in a loop
+        // and break large writes into multiple chunks.
+
+        var toWrite = span;
+        while (!toWrite.IsEmpty)
         {
-            _builder.Append(ptr, span.Length);
+            const int MaxChunkSize = 32768;
+
+            var chunk = toWrite.Length >= MaxChunkSize
+                ? toWrite[..MaxChunkSize]
+                : toWrite;
+
+            fixed (char* ptr = chunk)
+            {
+                _builder.Append(ptr, chunk.Length);
+            }
+
+            toWrite = toWrite[chunk.Length..];
         }
 
         _absoluteIndex += span.Length;
