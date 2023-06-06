@@ -32,7 +32,7 @@ internal readonly struct StringTokenizer
         _separators = separators;
     }
 
-    public Enumerator GetEnumerator() => new Enumerator(in _value, _separators);
+    public Enumerator GetEnumerator() => new(in _value, _separators);
 
     public struct Enumerator
     {
@@ -52,7 +52,7 @@ internal readonly struct StringTokenizer
         {
             _value = tokenizer._value;
             _separators = tokenizer._separators;
-            Current = default(StringSegment);
+            Current = default;
             _index = 0;
         }
 
@@ -66,7 +66,7 @@ internal readonly struct StringTokenizer
         {
             if (!_value.HasValue || _index > _value.Length)
             {
-                Current = default(StringSegment);
+                Current = default;
                 return false;
             }
 

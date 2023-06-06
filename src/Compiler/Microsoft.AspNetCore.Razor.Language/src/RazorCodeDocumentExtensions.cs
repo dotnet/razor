@@ -405,8 +405,7 @@ public static class RazorCodeDocumentExtensions
                     builder.Append('.');
                 }
 
-                CSharpIdentifier.AppendSanitized(builder, token);
-
+                CSharpIdentifier.AppendSanitized(builder, token.AsSpan());
             }
 
             if (appendSuffix)
@@ -424,7 +423,7 @@ public static class RazorCodeDocumentExtensions
                     previousLength = builder.Length;
 
                     builder.Append('.');
-                    CSharpIdentifier.AppendSanitized(builder, token);
+                    CSharpIdentifier.AppendSanitized(builder, token.AsSpan());
                 }
 
                 // Trim the last segment because it's the FileName.

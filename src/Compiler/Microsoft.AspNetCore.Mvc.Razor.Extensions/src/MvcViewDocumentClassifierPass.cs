@@ -92,19 +92,20 @@ public class MvcViewDocumentClassifierPass : DocumentClassifierPassBase
 
     private static string GetClassNameFromPath(string path)
     {
-        const string cshtmlExtension = ".cshtml";
+        var span = path.AsSpanOrDefault();
 
-        if (string.IsNullOrEmpty(path))
+        if (span.Length == 0)
         {
             return path;
         }
 
-        var pathSegment = new StringSegment(path);
-        if (path.EndsWith(cshtmlExtension, StringComparison.OrdinalIgnoreCase))
+        const string cshtmlExtension = ".cshtml";
+
+        if (span.EndsWith(cshtmlExtension.AsSpan(), StringComparison.OrdinalIgnoreCase))
         {
-            pathSegment = pathSegment.Subsegment(0, path.Length - cshtmlExtension.Length);
+            span = span[..^cshtmlExtension.Length];
         }
 
-        return CSharpIdentifier.SanitizeIdentifier(pathSegment);
+        return CSharpIdentifier.SanitizeIdentifier(span);
     }
 }

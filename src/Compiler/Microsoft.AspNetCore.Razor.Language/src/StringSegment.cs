@@ -6,7 +6,6 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Razor;
 
@@ -94,7 +93,7 @@ internal readonly struct StringSegment : IEquatable<StringSegment>, IEquatable<s
     /// <inheritdoc />
     public override bool Equals(object obj)
     {
-        if (ReferenceEquals(null, obj))
+        if (obj is null)
         {
             return false;
         }
@@ -178,6 +177,9 @@ internal readonly struct StringSegment : IEquatable<StringSegment>, IEquatable<s
 
         return Value.GetHashCode();
     }
+
+    public ReadOnlySpan<char> AsSpan()
+        => HasValue ? Buffer.AsSpan(Offset, Length) : default;
 
     /// <summary>
     /// Checks if two specified <see cref="StringSegment"/> have the same value.
