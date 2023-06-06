@@ -115,11 +115,6 @@ public sealed class CodeWriter
         return Write(value, 0, value.Length);
     }
 
-    internal CodeWriter Write(StringSegment value)
-    {
-        return WriteCore(value.Buffer.AsSpan(value.Offset, value.Length));
-    }
-
     internal CodeWriter Write(ReadOnlySpan<char> span)
     {
         return WriteCore(span);
