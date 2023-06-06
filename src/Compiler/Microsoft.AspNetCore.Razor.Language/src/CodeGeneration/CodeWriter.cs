@@ -1,9 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -19,13 +18,14 @@ public sealed class CodeWriter
     private int _currentLineIndex;
     private int _currentLineCharacterIndex;
 
-    public CodeWriter() : this(Environment.NewLine, RazorCodeGenerationOptions.CreateDefault())
+    public CodeWriter()
+        : this(Environment.NewLine, RazorCodeGenerationOptions.CreateDefault())
     {
     }
 
     public CodeWriter(string newLine, RazorCodeGenerationOptions options)
     {
-        NewLine = newLine;
+        SetName(newLine);
         IndentWithTabs = options.IndentWithTabs;
         TabSize = options.IndentSize;
         _builder = new StringBuilder();
@@ -38,20 +38,23 @@ public sealed class CodeWriter
     public string NewLine
     {
         get => _newLine;
-        set
+        set => SetName(value);
+    }
+
+    [MemberNotNull(nameof(_newLine))]
+    private void SetName(string value)
+    {
+        if (value == null)
         {
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
-            if (value != "\r\n" && value != "\n")
-            {
-                throw new ArgumentException(Resources.FormatCodeWriter_InvalidNewLine(value), nameof(value));
-            }
-
-            _newLine = value;
+            throw new ArgumentNullException(nameof(value));
         }
+
+        if (value != "\r\n" && value != "\n")
+        {
+            throw new ArgumentException(Resources.FormatCodeWriter_InvalidNewLine(value), nameof(value));
+        }
+
+        _newLine = value;
     }
 
     public bool IndentWithTabs { get; }
@@ -112,15 +115,15 @@ public sealed class CodeWriter
             throw new ArgumentNullException(nameof(value));
         }
 
-        return Write(value, 0, value.Length);
+        return WriteCore(value.AsSpan());
     }
 
-    internal CodeWriter Write(ReadOnlySpan<char> span)
+    public CodeWriter Write(ReadOnlySpan<char> span)
     {
         return WriteCore(span);
     }
 
-    internal CodeWriter Write(ReadOnlyMemory<char> memory)
+    public CodeWriter Write(ReadOnlyMemory<char> memory)
     {
         return WriteCore(memory.Span);
     }

@@ -12,6 +12,7 @@ using System.Text;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -1003,12 +1004,14 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
     private static string GetHtmlContent(HtmlContentIntermediateNode node)
     {
-        var builder = new StringBuilder();
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
         var htmlTokens = node.Children.OfType<IntermediateToken>().Where(t => t.IsHtml);
         foreach (var htmlToken in htmlTokens)
         {
             builder.Append(htmlToken.Content);
         }
+
         return builder.ToString();
     }
 

@@ -18,16 +18,16 @@ internal static class CodeWriterExtensions
 
     private static readonly char[] CStyleStringLiteralEscapeChars =
     {
-            '\r',
-            '\t',
-            '\"',
-            '\'',
-            '\\',
-            '\0',
-            '\n',
-            '\u2028',
-            '\u2029',
-        };
+        '\r',
+        '\t',
+        '\"',
+        '\'',
+        '\\',
+        '\0',
+        '\n',
+        '\u2028',
+        '\u2029',
+    };
 
     public static bool IsAtBeginningOfLine(this CodeWriter writer)
     {
@@ -117,6 +117,9 @@ internal static class CodeWriterExtensions
     }
 
     public static CodeWriter WriteStringLiteral(this CodeWriter writer, string literal)
+        => writer.WriteStringLiteral(literal.AsSpan());
+
+    public static CodeWriter WriteStringLiteral(this CodeWriter writer, ReadOnlySpan<char> literal)
     {
         if (literal.Length >= 256 && literal.Length <= 1500 && literal.IndexOf('\0') == -1)
         {
@@ -511,50 +514,47 @@ internal static class CodeWriterExtensions
         return new LinePragmaWriter(writer, span.Value, context, characterOffset, useEnhancedLinePragma: true);
     }
 
-    private static void WriteVerbatimStringLiteral(CodeWriter writer, string literal)
+    private static void WriteVerbatimStringLiteral(CodeWriter writer, ReadOnlySpan<char> literal)
     {
         writer.Write("@\"");
 
         // We need to suppress indenting during the writing of the string's content. A
         // verbatim string literal could contain newlines that don't get escaped.
-        var indent = writer.CurrentIndent;
+        var oldIndent = writer.CurrentIndent;
         writer.CurrentIndent = 0;
 
         // We need to find the index of each '"' (double-quote) to escape it.
-        var start = 0;
-        int end;
-        while ((end = literal.IndexOf('\"', start)) > -1)
+        int index;
+        while ((index = literal.IndexOf('"')) >= 0)
         {
-            writer.Write(literal, start, end - start);
-
+            writer.Write(literal[..index]);
             writer.Write("\"\"");
 
-            start = end + 1;
+            literal = literal[(index + 1)..];
         }
 
-        Debug.Assert(end == -1); // We've hit all of the double-quotes.
+        Debug.Assert(index == -1); // We've hit all of the double-quotes.
 
         // Write the remainder after the last double-quote.
-        writer.Write(literal, start, literal.Length - start);
+        writer.Write(literal);
 
         writer.Write("\"");
 
-        writer.CurrentIndent = indent;
+        writer.CurrentIndent = oldIndent;
     }
 
-    private static void WriteCStyleStringLiteral(CodeWriter writer, string literal)
+    private static void WriteCStyleStringLiteral(CodeWriter writer, ReadOnlySpan<char> literal)
     {
         // From CSharpCodeGenerator.QuoteSnippetStringCStyle in CodeDOM
         writer.Write("\"");
 
         // We need to find the index of each escapable character to escape it.
-        var start = 0;
-        int end;
-        while ((end = literal.IndexOfAny(CStyleStringLiteralEscapeChars, start)) > -1)
+        int index;
+        while ((index = literal.IndexOfAny(CStyleStringLiteralEscapeChars)) >= 0)
         {
-            writer.Write(literal, start, end - start);
+            writer.Write(literal[..index]);
 
-            switch (literal[end])
+            switch (literal[index])
             {
                 case '\r':
                     writer.Write("\\r");
@@ -578,22 +578,23 @@ internal static class CodeWriterExtensions
                     writer.Write("\\n");
                     break;
                 case '\u2028':
+                    writer.Write("\\u2028");
+                    break;
                 case '\u2029':
-                    writer.Write("\\u");
-                    writer.Write(((int)literal[end]).ToString("X4", CultureInfo.InvariantCulture));
+                    writer.Write("\\u2029");
                     break;
                 default:
                     Debug.Assert(false, "Unknown escape character.");
                     break;
             }
 
-            start = end + 1;
+            literal = literal[(index + 1)..];
         }
 
-        Debug.Assert(end == -1); // We've hit all of chars that need escaping.
+        Debug.Assert(index == -1); // We've hit all of chars that need escaping.
 
         // Write the remainder after the last escaped char.
-        writer.Write(literal, start, literal.Length - start);
+        writer.Write(literal);
 
         writer.Write("\"");
     }

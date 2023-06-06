@@ -11,6 +11,17 @@ abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.this[string! key
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.TryGetValue(string! key, out string? value) -> bool
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.Values.get -> System.Collections.Generic.IEnumerable<string?>!
 Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.IsDirectiveAttribute.get -> bool
+Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.CodeWriter(string! newLine, Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions! options) -> void
+Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.GenerateCode() -> string!
+Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.Indent(int size) -> Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter!
+Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.NewLine.get -> string!
+Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.NewLine.set -> void
+Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.Write(string! value) -> Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter!
+Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.Write(string! value, int startIndex, int count) -> Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter!
+Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.Write(System.ReadOnlyMemory<char> memory) -> Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter!
+Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.Write(System.ReadOnlySpan<char> span) -> Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter!
+Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.WriteLine() -> Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter!
+Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.WriteLine(string! value) -> Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter!
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.LinePragma.LinePragma() -> void
 Microsoft.AspNetCore.Razor.Language.CommonMetadata
 Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeCollection.Enumerator.Enumerator() -> void
