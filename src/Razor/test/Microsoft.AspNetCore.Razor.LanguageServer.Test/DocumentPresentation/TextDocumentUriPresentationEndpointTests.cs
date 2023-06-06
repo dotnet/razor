@@ -405,7 +405,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
         var droppedUri1 = new Uri("file:///c:/path/fetchdata.razor.cs");
         var droppedUri2 = new Uri("file:///c:/path/fetchdata.razor");
         var builder = TagHelperDescriptorBuilder.Create("FetchData", "MyAssembly");
-        builder.SetMetadata(new KeyValuePair<string, string>("Common.TypeNameIdentifier", "FetchData"));
+        builder.SetMetadata(TypeNameIdentifier("FetchData"));
         var tagHelperDescriptor = builder.Build();
 
         var uri = new Uri("file://path/index.razor");
