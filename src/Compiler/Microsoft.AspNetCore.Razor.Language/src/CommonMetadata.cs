@@ -9,13 +9,13 @@ namespace Microsoft.AspNetCore.Razor.Language;
 public static class CommonMetadata
 {
     internal static readonly KeyValuePair<string, string?> BindAttributeGetSet
-        = IsTrue(ComponentMetadata.Bind.BindAttributeGetSet);
+        = MakeTrue(ComponentMetadata.Bind.BindAttributeGetSet);
     internal static readonly KeyValuePair<string, string?> IsDirectiveAttribute
-        = IsTrue(ComponentMetadata.Common.DirectiveAttribute);
+        = MakeTrue(ComponentMetadata.Common.DirectiveAttribute);
     internal static readonly KeyValuePair<string, string?> IsWeaklyTyped
-        = IsTrue(ComponentMetadata.Component.WeaklyTypedKey);
+        = MakeTrue(ComponentMetadata.Component.WeaklyTypedKey);
 
-    internal static KeyValuePair<string, string?> IsTrue(string key)
+    internal static KeyValuePair<string, string?> MakeTrue(string key)
         => new(key, bool.TrueString);
     internal static KeyValuePair<string, string?> GloballyQualifiedTypeName(string value)
         => new(TagHelperMetadata.Common.GloballyQualifiedTypeName, value);

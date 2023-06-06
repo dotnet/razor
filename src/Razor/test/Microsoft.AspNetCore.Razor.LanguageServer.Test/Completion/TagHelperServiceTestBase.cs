@@ -126,7 +126,7 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
             });
         });
         directiveAttribute1.SetMetadata(
-            IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
+            MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
             new(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch),
             TypeName("TestDirectiveAttribute"));
 
@@ -164,7 +164,7 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
             });
         });
         directiveAttribute2.SetMetadata(
-            IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
+            MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
             new(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch),
             TypeName("TestDirectiveAttribute"));
 

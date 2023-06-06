@@ -139,7 +139,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
 
         if (type.IsGenericType)
         {
-            metadata.Add(IsTrue(ComponentMetadata.Component.GenericTypedKey));
+            metadata.Add(MakeTrue(ComponentMetadata.Component.GenericTypedKey));
 
             using var cascadeGenericTypeAttributes = new PooledHashSet<string>(StringHashSetPool.Ordinal);
 
@@ -213,28 +213,28 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
 
             if (kind == PropertyKind.ChildContent)
             {
-                metadata.Add(IsTrue(ComponentMetadata.Component.ChildContentKey));
+                metadata.Add(MakeTrue(ComponentMetadata.Component.ChildContentKey));
             }
 
             if (kind == PropertyKind.EventCallback)
             {
-                metadata.Add(IsTrue(ComponentMetadata.Component.EventCallbackKey));
+                metadata.Add(MakeTrue(ComponentMetadata.Component.EventCallbackKey));
             }
 
             if (kind == PropertyKind.Delegate)
             {
-                metadata.Add(IsTrue(ComponentMetadata.Component.DelegateSignatureKey));
+                metadata.Add(MakeTrue(ComponentMetadata.Component.DelegateSignatureKey));
                 metadata.Add(ComponentMetadata.Component.DelegateWithAwaitableResultKey, IsAwaitable(property));
             }
 
             if (HasTypeParameter(property.Type))
             {
-                metadata.Add(IsTrue(ComponentMetadata.Component.GenericTypedKey));
+                metadata.Add(MakeTrue(ComponentMetadata.Component.GenericTypedKey));
             }
 
             if (property.SetMethod.IsInitOnly)
             {
-                metadata.Add(IsTrue(ComponentMetadata.Component.InitOnlyProperty));
+                metadata.Add(MakeTrue(ComponentMetadata.Component.InitOnlyProperty));
             }
 
             pb.SetMetadata(metadata.Build());
@@ -403,7 +403,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
 
             using var _ = ListPool<KeyValuePair<string, string>>.GetPooledObject(out var metadataPairs);
             metadataPairs.Add(PropertyName(typeParameter.Name));
-            metadataPairs.Add(IsTrue(ComponentMetadata.Component.TypeParameterKey));
+            metadataPairs.Add(MakeTrue(ComponentMetadata.Component.TypeParameterKey));
             metadataPairs.Add(new(ComponentMetadata.Component.TypeParameterIsCascadingKey, cascade.ToString()));
 
             // Type constraints (like "Image" or "Foo") are stored independently of
@@ -555,7 +555,7 @@ internal class ComponentTagHelperDescriptorProvider : RazorEngineFeatureBase, IT
             b.Name = ComponentMetadata.ChildContent.ParameterAttributeName;
             b.TypeName = typeof(string).FullName;
             b.SetMetadata(
-                IsTrue(ComponentMetadata.Component.ChildContentParameterNameKey),
+                MakeTrue(ComponentMetadata.Component.ChildContentParameterNameKey),
                 PropertyName(b.Name));
 
             var documentation = childContentName == null

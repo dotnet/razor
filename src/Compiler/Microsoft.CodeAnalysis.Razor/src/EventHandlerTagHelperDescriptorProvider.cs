@@ -153,7 +153,7 @@ internal class EventHandlerTagHelperDescriptorProvider : ITagHelperDescriptorPro
             builder.SetMetadata(
                 SpecialKind(ComponentMetadata.EventHandler.TagHelperKind),
                 new(ComponentMetadata.EventHandler.EventArgsType, eventArgType),
-                IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
+                MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
                 RuntimeName(ComponentMetadata.EventHandler.RuntimeName),
                 TypeName(entry.TypeName),
                 TypeNamespace(entry.TypeNamespace),

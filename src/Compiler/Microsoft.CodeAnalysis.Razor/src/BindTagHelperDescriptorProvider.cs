@@ -151,9 +151,9 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
             builder.SetMetadata(
                 SpecialKind(ComponentMetadata.Bind.TagHelperKind),
-                IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
+                MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
                 RuntimeName(ComponentMetadata.Bind.RuntimeName),
-                IsTrue(ComponentMetadata.Bind.FallbackKey),
+                MakeTrue(ComponentMetadata.Bind.FallbackKey),
                 TypeName("Microsoft.AspNetCore.Components.Bind"),
                 TypeNamespace("Microsoft.AspNetCore.Components"),
                 TypeNameIdentifier("Bind"));
@@ -402,7 +402,7 @@ internal class BindTagHelperDescriptorProvider : ITagHelperDescriptorProvider
                     entry.ChangeAttribute));
 
             metadata.Add(SpecialKind(ComponentMetadata.Bind.TagHelperKind));
-            metadata.Add(IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly));
+            metadata.Add(MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly));
             metadata.Add(ComponentMetadata.Bind.ValueAttribute, entry.ValueAttribute);
             metadata.Add(ComponentMetadata.Bind.ChangeAttribute, entry.ChangeAttribute);
             metadata.Add(ComponentMetadata.Bind.IsInvariantCulture, entry.IsInvariantCulture ? bool.TrueString : bool.FalseString);

@@ -64,7 +64,7 @@ internal class RefTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
             builder.SetMetadata(
                 SpecialKind(ComponentMetadata.Ref.TagHelperKind),
-                IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
+                MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
                 RuntimeName(ComponentMetadata.Ref.RuntimeName),
                 TypeName("Microsoft.AspNetCore.Components.Ref"));
 

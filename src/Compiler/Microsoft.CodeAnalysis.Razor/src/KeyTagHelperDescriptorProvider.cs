@@ -64,7 +64,7 @@ internal class KeyTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 
             builder.SetMetadata(
                 SpecialKind(ComponentMetadata.Key.TagHelperKind),
-                IsTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
+                MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
                 RuntimeName(ComponentMetadata.Key.RuntimeName),
                 TypeName("Microsoft.AspNetCore.Components.Key"));
 
