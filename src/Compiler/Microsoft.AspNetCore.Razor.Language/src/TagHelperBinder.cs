@@ -77,11 +77,17 @@ internal sealed class TagHelperBinder
             descriptors = matchingDescriptors.Concat(descriptors);
         }
 
-        var tagNameWithoutPrefix = _tagHelperPrefix != null ? new StringSegment(tagName, _tagHelperPrefix.Length) : tagName;
-        StringSegment parentTagNameWithoutPrefix = parentTagName;
-        if (_tagHelperPrefix != null && parentIsTagHelper)
+        var tagNameWithoutPrefix = tagName.AsSpanOrDefault();
+        var parentTagNameWithoutPrefix = parentTagName.AsSpanOrDefault();
+
+        if (_tagHelperPrefix is { Length: var length } && length > 0)
         {
-            parentTagNameWithoutPrefix = new StringSegment(parentTagName, _tagHelperPrefix.Length);
+            tagNameWithoutPrefix = tagNameWithoutPrefix[length..];
+
+            if (parentIsTagHelper)
+            {
+                parentTagNameWithoutPrefix = parentTagNameWithoutPrefix[length..];
+            }
         }
 
         Dictionary<TagHelperDescriptor, IReadOnlyList<TagMatchingRuleDescriptor>> applicableDescriptorMappings = null;
@@ -95,22 +101,14 @@ internal sealed class TagHelperBinder
                 var rule = descriptor.TagMatchingRules[i];
                 if (TagHelperMatchingConventions.SatisfiesRule(tagNameWithoutPrefix, parentTagNameWithoutPrefix, attributes, rule))
                 {
-                    if (applicableRules is null)
-                    {
-                        applicableRules = new List<TagMatchingRuleDescriptor>();
-                    }
-
+                    applicableRules ??= new List<TagMatchingRuleDescriptor>();
                     applicableRules.Add(rule);
                 }
             }
 
             if (applicableRules != null && applicableRules.Count > 0)
             {
-                if (applicableDescriptorMappings == null)
-                {
-                    applicableDescriptorMappings = new Dictionary<TagHelperDescriptor, IReadOnlyList<TagMatchingRuleDescriptor>>();
-                }
-
+                applicableDescriptorMappings ??= new Dictionary<TagHelperDescriptor, IReadOnlyList<TagMatchingRuleDescriptor>>();
                 applicableDescriptorMappings[descriptor] = applicableRules;
             }
         }
