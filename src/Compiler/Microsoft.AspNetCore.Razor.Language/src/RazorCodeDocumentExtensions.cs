@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -346,7 +347,7 @@ public static class RazorCodeDocumentExtensions
                 lastNamespaceLocation = namespaceLocation;
             }
 
-            StringSegment relativePath = document.Source.RelativePath;
+            var relativePath = document.Source.RelativePath.AsSpan();
 
             // If there are multiple @namespace directives in the hierarchy,
             // we want to pick the closest one to the current document.
@@ -355,7 +356,7 @@ public static class RazorCodeDocumentExtensions
                 baseNamespace = lastNamespaceContent;
                 var directiveLocationDirectory = NormalizeDirectory(lastNamespaceLocation.FilePath);
 
-                var sourceFilePath = new StringSegment(document.Source.FilePath);
+                var sourceFilePath = document.Source.FilePath.AsSpan();
                 // We're specifically using OrdinalIgnoreCase here because Razor treats all paths as case-insensitive.
                 if (!sourceFilePath.StartsWith(directiveLocationDirectory, StringComparison.OrdinalIgnoreCase) ||
                     sourceFilePath.Length <= directiveLocationDirectory.Length)
@@ -367,7 +368,7 @@ public static class RazorCodeDocumentExtensions
                 {
                     // We know that the document containing the namespace directive is in the current document's hierarchy.
                     // Let's compute the actual relative path that we'll use to compute the namespace suffix.
-                    relativePath = sourceFilePath.Subsegment(directiveLocationDirectory.Length);
+                    relativePath = sourceFilePath.Slice(directiveLocationDirectory.Length);
                 }
             }
             else if (fallbackToRootNamespace)
@@ -384,7 +385,7 @@ public static class RazorCodeDocumentExtensions
                 return false;
             }
 
-            var builder = new StringBuilder();
+            using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
             // Sanitize the base namespace, but leave the dots.
             var segments = new StringTokenizer(baseNamespace, NamespaceSeparators);
@@ -405,7 +406,7 @@ public static class RazorCodeDocumentExtensions
                     builder.Append('.');
                 }
 
-                CSharpIdentifier.AppendSanitized(builder, token.AsSpan());
+                CSharpIdentifier.AppendSanitized(builder, token);
             }
 
             if (appendSuffix)
@@ -423,7 +424,7 @@ public static class RazorCodeDocumentExtensions
                     previousLength = builder.Length;
 
                     builder.Append('.');
-                    CSharpIdentifier.AppendSanitized(builder, token.AsSpan());
+                    CSharpIdentifier.AppendSanitized(builder, token);
                 }
 
                 // Trim the last segment because it's the FileName.
@@ -444,21 +445,23 @@ public static class RazorCodeDocumentExtensions
         // We also don't normalize the separators here. We expect that all documents are using a consistent style of path.
         //
         // If we can't normalize the path, we just return null so it will be ignored.
-        StringSegment NormalizeDirectory(string path)
+        ReadOnlySpan<char> NormalizeDirectory(string path)
         {
-            if (string.IsNullOrEmpty(path))
+            var span = path.AsSpanOrDefault();
+
+            if (span.IsEmpty)
             {
                 return default;
             }
 
-            var lastSeparator = path.LastIndexOfAny(PathSeparators);
-            if (lastSeparator == -1)
+            var lastSeparator = span.LastIndexOfAny(PathSeparators);
+            if (lastSeparator < 0)
             {
                 return default;
             }
 
             // Includes the separator
-            return new StringSegment(path, 0, lastSeparator + 1);
+            return span[..(lastSeparator + 1)];
         }
     }
 
