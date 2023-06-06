@@ -68,12 +68,12 @@ internal partial class DefaultBoundAttributeParameterDescriptorBuilder : BoundAt
 
     internal bool CaseSensitive => _parent.CaseSensitive;
 
-    internal override void SetDocumentation(string text)
+    internal override void SetDocumentation(string? text)
     {
         _documentationObject = new(text);
     }
 
-    internal override void SetDocumentation(DocumentationDescriptor documentation)
+    internal override void SetDocumentation(DocumentationDescriptor? documentation)
     {
         _documentationObject = new(documentation);
     }

@@ -23,12 +23,14 @@ public abstract class RequiredAttributeDescriptorBuilder
 
     public virtual IDictionary<string, string> Metadata { get; }
 
+#nullable enable
+
     public virtual void SetMetadata(MetadataCollection metadata)
     {
         throw new NotImplementedException();
     }
 
-    public virtual bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string value)
+    public virtual bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
     {
         throw new NotImplementedException();
     }

@@ -25,12 +25,14 @@ public abstract class BoundAttributeParameterDescriptorBuilder
 
     public abstract RazorDiagnosticCollection Diagnostics { get; }
 
-    internal virtual void SetDocumentation(string text)
+#nullable enable
+
+    internal virtual void SetDocumentation(string? text)
     {
         throw new NotImplementedException();
     }
 
-    internal virtual void SetDocumentation(DocumentationDescriptor documentation)
+    internal virtual void SetDocumentation(DocumentationDescriptor? documentation)
     {
         throw new NotImplementedException();
     }
@@ -40,7 +42,7 @@ public abstract class BoundAttributeParameterDescriptorBuilder
         throw new NotImplementedException();
     }
 
-    public virtual bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string value)
+    public virtual bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
     {
         throw new NotImplementedException();
     }

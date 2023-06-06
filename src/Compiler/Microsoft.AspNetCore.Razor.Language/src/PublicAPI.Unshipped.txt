@@ -42,6 +42,14 @@ static Microsoft.AspNetCore.Razor.Language.MetadataCollection.Create(System.Coll
 static Microsoft.AspNetCore.Razor.Language.MetadataCollection.CreateOrEmpty(System.Collections.Generic.IReadOnlyDictionary<string!, string?>? map) -> Microsoft.AspNetCore.Razor.Language.MetadataCollection!
 static Microsoft.AspNetCore.Razor.Language.MetadataCollection.CreateOrEmpty(System.Collections.Generic.IReadOnlyList<System.Collections.Generic.KeyValuePair<string!, string?>>? pairs) -> Microsoft.AspNetCore.Razor.Language.MetadataCollection!
 static readonly Microsoft.AspNetCore.Razor.Language.MetadataCollection.Empty -> Microsoft.AspNetCore.Razor.Language.MetadataCollection!
+virtual Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder.SetMetadata(Microsoft.AspNetCore.Razor.Language.MetadataCollection! metadata) -> void
+virtual Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder.TryGetMetadataValue(string! key, out string? value) -> bool
+virtual Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.SetMetadata(Microsoft.AspNetCore.Razor.Language.MetadataCollection! metadata) -> void
+virtual Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.TryGetMetadataValue(string! key, out string? value) -> bool
+virtual Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptorBuilder.SetMetadata(Microsoft.AspNetCore.Razor.Language.MetadataCollection! metadata) -> void
+virtual Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptorBuilder.TryGetMetadataValue(string! key, out string? value) -> bool
+virtual Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.SetMetadata(Microsoft.AspNetCore.Razor.Language.MetadataCollection! metadata) -> void
+virtual Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.TryGetMetadataValue(string! key, out string? value) -> bool
 ~abstract Microsoft.AspNetCore.Razor.Language.RazorCSharpDocument.CodeDocument.get -> Microsoft.AspNetCore.Razor.Language.RazorCodeDocument
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetBindAttributeGetSet(this Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder builder) -> void
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetGloballyQualifiedTypeName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder, string globallyQualifiedTypeName) -> void
@@ -66,11 +74,3 @@ static readonly Microsoft.AspNetCore.Razor.Language.MetadataCollection.Empty -> 
 ~static readonly Microsoft.AspNetCore.Razor.Language.TagHelperMetadata.Common.GloballyQualifiedTypeName -> string
 ~static readonly Microsoft.AspNetCore.Razor.Language.TagHelperMetadata.Common.TypeNameIdentifier -> string
 ~static readonly Microsoft.AspNetCore.Razor.Language.TagHelperMetadata.Common.TypeNamespace -> string
-~virtual Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder.SetMetadata(Microsoft.AspNetCore.Razor.Language.MetadataCollection metadata) -> void
-~virtual Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder.TryGetMetadataValue(string key, out string value) -> bool
-~virtual Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.SetMetadata(Microsoft.AspNetCore.Razor.Language.MetadataCollection metadata) -> void
-~virtual Microsoft.AspNetCore.Razor.Language.BoundAttributeParameterDescriptorBuilder.TryGetMetadataValue(string key, out string value) -> bool
-~virtual Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptorBuilder.SetMetadata(Microsoft.AspNetCore.Razor.Language.MetadataCollection metadata) -> void
-~virtual Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptorBuilder.TryGetMetadataValue(string key, out string value) -> bool
-~virtual Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.SetMetadata(Microsoft.AspNetCore.Razor.Language.MetadataCollection metadata) -> void
-~virtual Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.TryGetMetadataValue(string key, out string value) -> bool

@@ -157,12 +157,12 @@ internal partial class DefaultTagHelperDescriptorBuilder : TagHelperDescriptorBu
         _tagMatchingRuleBuilders.Add(builder);
     }
 
-    internal override void SetDocumentation(string text)
+    internal override void SetDocumentation(string? text)
     {
         _documentationObject = new(text);
     }
 
-    internal override void SetDocumentation(DocumentationDescriptor documentation)
+    internal override void SetDocumentation(DocumentationDescriptor? documentation)
     {
         _documentationObject = new(documentation);
     }
