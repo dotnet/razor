@@ -80,7 +80,7 @@ internal struct MetadataHolder
                 // we will require that the SetMetadata APIs *always* include TagHelperMetadata.Runtime.Name, and
                 // throw if they don't.
                 throw new InvalidOperationException(
-                    Resources.FormatCannot_add_item_to_an_existing_0(nameof(MetadataCollection)));
+                    Resources.FormatCannot_add_item_with_key_0_to_an_existing_1(key, nameof(MetadataCollection)));
             }
         }
         else // _metadataCollection is null
