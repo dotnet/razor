@@ -1,4 +1,5 @@
 #nullable enable
+*REMOVED*Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptorBuilderExtensions
 abstract Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeRenderingContext.AddSourceMappingFor(Microsoft.AspNetCore.Razor.Language.SourceSpan node) -> void
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.ComputeHashCode() -> int
 abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.ContainsKey(string! key) -> bool
