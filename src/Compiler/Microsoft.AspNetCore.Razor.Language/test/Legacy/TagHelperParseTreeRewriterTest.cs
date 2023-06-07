@@ -56,7 +56,7 @@ public class TagHelperParseTreeRewriterTest : TagHelperRewritingTestBase
         var parseTreeRewriter = new TagHelperParseTreeRewriter.Rewriter(
             parseResult.Source,
             null,
-            Enumerable.Empty<TagHelperDescriptor>(),
+            Array.Empty<TagHelperDescriptor>(),
             parseResult.Options.FeatureFlags,
             errorSink);
 
