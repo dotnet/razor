@@ -78,17 +78,19 @@ internal static class TypeNameHelper
             throw new ArgumentNullException(nameof(typeName));
         }
 
-        WriteGloballyQualifiedName(codeWriter, typeName.AsSpan());
+        WriteGloballyQualifiedName(codeWriter, typeName.AsMemory());
     }
 
-    internal static void WriteGloballyQualifiedName(CodeWriter codeWriter, ReadOnlySpan<char> typeName)
+    internal static void WriteGloballyQualifiedName(CodeWriter codeWriter, ReadOnlyMemory<char> typeName)
     {
         if (typeName.Length == 0)
         {
             return;
         }
 
-        if (typeName.StartsWith(GlobalPrefix.AsSpan(), StringComparison.Ordinal))
+        var typeNameSpan = typeName.Span;
+
+        if (typeNameSpan.StartsWith(GlobalPrefix.AsSpan(), StringComparison.Ordinal))
         {
             codeWriter.Write(typeName);
             return;
@@ -97,7 +99,7 @@ internal static class TypeNameHelper
         // Mitigation for https://github.com/dotnet/razor-compiler/issues/332. When we add a reference to Roslyn
         // at this layer, we can do this property by using ParseTypeName and then rewriting the tree. For now, we
         // just skip prefixing tuples.
-        if (typeName[0] == '(')
+        if (typeNameSpan[0] == '(')
         {
             codeWriter.Write(typeName);
             return;
@@ -105,7 +107,7 @@ internal static class TypeNameHelper
 
         // Fast path, if the length doesn't fall within that of the
         // builtin c# types, then we can add global without further checks.
-        if (typeName.Length < 3 || typeName.Length > 7)
+        if (typeNameSpan.Length < 3 || typeNameSpan.Length > 7)
         {
             codeWriter.Write(GlobalPrefix);
             codeWriter.Write(typeName);
@@ -114,7 +116,7 @@ internal static class TypeNameHelper
 
         foreach (var predefinedTypeName in PredefinedTypeNames)
         {
-            if (typeName.Equals(predefinedTypeName.AsSpan(), StringComparison.Ordinal))
+            if (typeNameSpan.Equals(predefinedTypeName.AsSpan(), StringComparison.Ordinal))
             {
                 codeWriter.Write(typeName);
                 return;

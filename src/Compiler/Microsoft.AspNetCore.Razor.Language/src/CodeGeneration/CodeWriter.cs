@@ -2,17 +2,31 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
-using System.Text;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 public sealed class CodeWriter
 {
-    private readonly StringBuilder _builder;
+    private const int PageSize = 1000;
 
-    private string _newLine;
+    // Rather than using a StringBuilder, we maintain a list of pages of ReadOnlyMemory<char> arrays.
+    // This avoids copying strings into a StringBuilder's internal char arrays only to copy them
+    // out later in StringBuilder.ToString(). This also avoids string duplication by holding onto
+    // the strings themselves. So, if the same string instance is added multiple times, we won't
+    // duplicate it each time. Instead, we'll hold a ReadOnlyMemory<char> for the string.
+    private readonly List<ReadOnlyMemory<char>[]> _pages;
+    private int _pageIndex;
+    private int _pageOffset;
+    private char? _lastChar;
+
+    private ReadOnlyMemory<char> _newLine;
+    private int _indentSize;
+    private ReadOnlyMemory<char> _indentString;
 
     private int _absoluteIndex;
     private int _currentLineIndex;
@@ -28,16 +42,62 @@ public sealed class CodeWriter
         SetNewLine(newLine);
         IndentWithTabs = options.IndentWithTabs;
         TabSize = options.IndentSize;
-        _builder = new StringBuilder();
+
+        _indentSize = 0;
+        _indentString = ReadOnlyMemory<char>.Empty;
+
+        _pages = new();
     }
 
-    public int CurrentIndent { get; set; }
+    private void AddChars(ReadOnlyMemory<char> value)
+    {
+        if (value.Length == 0)
+        {
+            return;
+        }
 
-    public int Length => _builder.Length;
+        if (_pageIndex == _pages.Count)
+        {
+            _pages.Add(new ReadOnlyMemory<char>[PageSize]);
+        }
+
+        _pages[_pageIndex][_pageOffset] = value;
+        _pageOffset++;
+
+        if (_pageOffset == PageSize)
+        {
+            _pageIndex++;
+            _pageOffset = 0;
+        }
+
+        _lastChar = value.Span[^1];
+    }
+
+    public int CurrentIndent
+    {
+        get => _indentSize;
+        set
+        {
+            if (value < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value));
+            }
+
+            if (_indentSize != value)
+            {
+                _indentSize = value;
+                _indentString = ComputeIndent(value, IndentWithTabs, TabSize);
+            }
+        }
+    }
+
+    // Because of the how _absoluteIndex is computed, it is effectively the length
+    // of what has been written.
+    public int Length => _absoluteIndex;
 
     public string NewLine
     {
-        get => _newLine;
+        get => _newLine.ToString();
         set => SetNewLine(value);
     }
 
@@ -54,7 +114,7 @@ public sealed class CodeWriter
             throw new ArgumentException(Resources.FormatCodeWriter_InvalidNewLine(value), nameof(value));
         }
 
-        _newLine = value;
+        _newLine = value.AsMemory();
     }
 
     public bool IndentWithTabs { get; }
@@ -67,45 +127,84 @@ public sealed class CodeWriter
     {
         get
         {
-            if (index < 0 || index >= _builder.Length)
+            foreach (var page in _pages)
             {
-                throw new IndexOutOfRangeException(nameof(index));
+                foreach (var chars in page)
+                {
+                    if (index < chars.Length)
+                    {
+                        return chars.Span[index];
+                    }
+
+                    index -= chars.Length;
+                }
             }
 
-            return _builder[index];
+            throw new IndexOutOfRangeException(nameof(index));
         }
     }
 
+    public char? LastChar => _lastChar;
+
     public CodeWriter Indent(int size)
     {
-        if (size == 0 || (Length != 0 && this[Length - 1] != '\n'))
+        if (size == 0 || LastChar is not '\n')
         {
             return this;
         }
 
-        var actualSize = 0;
-        if (IndentWithTabs)
-        {
-            // Avoid writing directly to the StringBuilder here, that will throw off the manual indexing
-            // done by the base class.
-            var tabs = size / TabSize;
-            actualSize += tabs;
-            _builder.Append('\t', tabs);
+        var indentString = size == _indentSize
+            ? _indentString
+            : ComputeIndent(size, IndentWithTabs, TabSize);
 
-            var spaces = size % TabSize;
-            actualSize += spaces;
-            _builder.Append(' ', spaces);
-        }
-        else
-        {
-            actualSize = size;
-            _builder.Append(' ', size);
-        }
+        AddChars(indentString);
 
-        _currentLineCharacterIndex += actualSize;
-        _absoluteIndex += actualSize;
+        var indentLength = indentString.Length;
+        _currentLineCharacterIndex += indentLength;
+        _absoluteIndex += indentLength;
 
         return this;
+    }
+
+    public CodeWriter Indent()
+    {
+        if (_indentSize == 0 || LastChar is not '\n')
+        {
+            return this;
+        }
+
+        var indentString = _indentString;
+        AddChars(indentString);
+
+        var indentLength = indentString.Length;
+        _currentLineCharacterIndex += indentLength;
+        _absoluteIndex += indentLength;
+
+        return this;
+    }
+
+    private static ReadOnlyMemory<char> ComputeIndent(int size, bool useTabs, int tabSize)
+    {
+        if (size == 0)
+        {
+            return ReadOnlyMemory<char>.Empty;
+        }
+
+        if (useTabs)
+        {
+            var tabCount = size / tabSize;
+            var spaceCount = size % tabSize;
+
+            using var _ = StringBuilderPool.GetPooledObject(out var builder);
+            builder.SetCapacityIfLarger(tabCount + spaceCount);
+
+            builder.Append('\t', tabCount);
+            builder.Append(' ', spaceCount);
+
+            return builder.ToString().AsMemory();
+        }
+
+        return new string(' ', size).AsMemory();
     }
 
     public CodeWriter Write(string value)
@@ -115,17 +214,12 @@ public sealed class CodeWriter
             throw new ArgumentNullException(nameof(value));
         }
 
-        return WriteCore(value.AsSpan());
-    }
-
-    public CodeWriter Write(ReadOnlySpan<char> span)
-    {
-        return WriteCore(span);
+        return WriteCore(value.AsMemory());
     }
 
     public CodeWriter Write(ReadOnlyMemory<char> memory)
     {
-        return WriteCore(memory.Span);
+        return WriteCore(memory);
     }
 
     public CodeWriter Write(string value, int startIndex, int count)
@@ -150,7 +244,7 @@ public sealed class CodeWriter
             throw new ArgumentOutOfRangeException(nameof(startIndex));
         }
 
-        return WriteCore(value.AsSpan(startIndex, count));
+        return WriteCore(value.AsMemory(startIndex, count));
     }
 
     [InterpolatedStringHandler]
@@ -183,43 +277,23 @@ public sealed class CodeWriter
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private unsafe CodeWriter WriteCore(ReadOnlySpan<char> span)
+    private unsafe CodeWriter WriteCore(ReadOnlyMemory<char> chars, bool allowIndent = true)
     {
-        if (span.Length == 0)
+        if (chars.IsEmpty)
         {
             return this;
         }
 
-        Indent(CurrentIndent);
-
-        char? lastChar = _builder.Length > 0
-            ? _builder[^1]
-            : null;
-
-        // Internally, StringBuilder can create char arrays that are large
-        // enough to end up on the LOH. This can happen when appending chars at the
-        // end of the StringBuilder's internal array block and there are a lot of
-        // remaining chars to append onto the next block. In this case, the StringBuilder
-        // will allocate the next block to be large enough to contain all of the remaining
-        // chars, which could end up on the LOH. To avoid this problem, we write in a loop
-        // and break large writes into multiple chunks.
-
-        var toWrite = span;
-        while (!toWrite.IsEmpty)
+        if (allowIndent)
         {
-            const int MaxChunkSize = 32768;
-
-            var chunk = toWrite.Length >= MaxChunkSize
-                ? toWrite[..MaxChunkSize]
-                : toWrite;
-
-            fixed (char* ptr = chunk)
-            {
-                _builder.Append(ptr, chunk.Length);
-            }
-
-            toWrite = toWrite[chunk.Length..];
+            Indent();
         }
+
+        var lastChar = _lastChar;
+
+        AddChars(chars);
+
+        var span = chars.Span;
 
         _absoluteIndex += span.Length;
 
@@ -234,24 +308,24 @@ public sealed class CodeWriter
 
         // Iterate the span, stopping at each occurrence of a new-line character.
         // This let's us count the new-line occurrences and keep the index of the last one.
-        int charIndex;
-        while ((charIndex = span.IndexOfAny('\r', '\n')) >= 0)
+        int newLineIndex;
+        while ((newLineIndex = span.IndexOfAny('\r', '\n')) >= 0)
         {
             _currentLineIndex++;
             _currentLineCharacterIndex = 0;
 
-            charIndex++;
+            newLineIndex++;
 
             // We might have stopped at a \r, so check if it's followed by \n and then advance the index.
             // Otherwise, we'll count this line break twice.
-            if (charIndex < span.Length &&
-                span[charIndex - 1] == '\r' &&
-                span[charIndex] == '\n')
+            if (newLineIndex < span.Length &&
+                span[newLineIndex - 1] == '\r' &&
+                span[newLineIndex] == '\n')
             {
-                charIndex++;
+                newLineIndex++;
             }
 
-            span = span[charIndex..];
+            span = span[newLineIndex..];
         }
 
         _currentLineCharacterIndex += span.Length;
@@ -261,11 +335,7 @@ public sealed class CodeWriter
 
     public CodeWriter WriteLine()
     {
-        _builder.Append(NewLine);
-
-        _currentLineIndex++;
-        _currentLineCharacterIndex = 0;
-        _absoluteIndex += NewLine.Length;
+        WriteCore(_newLine, allowIndent: false);
 
         return this;
     }
@@ -282,6 +352,49 @@ public sealed class CodeWriter
 
     public string GenerateCode()
     {
-        return _builder.ToString();
+        unsafe
+        {
+            // This might look a bit scary, but it's pretty simple. We allocate our string
+            // with the correct length up front and then use simple pointer math to copy
+            // the pages of ReadOnlyMemory<char> directly into it.
+
+            // Eventually, we need to remove this and not return a giant string, which can
+            // easily be allocated on the LOH. The work to remove this is tracked by
+            // https://github.com/dotnet/razor/issues/8076.
+
+            var length = Length;
+            var result = new string('\0', length);
+
+            fixed (char* stringPtr = result)
+            {
+                var destination = stringPtr;
+
+                // destinationSize and sourceSize track the number of bytes (not chars).
+                var destinationSize = length * sizeof(char);
+
+                foreach (var page in _pages)
+                {
+                    foreach (var chars in page)
+                    {
+                        var source = chars.Span;
+                        var sourceSize = source.Length * sizeof(char);
+
+                        fixed (char* srcPtr = source)
+                        {
+                            Buffer.MemoryCopy(srcPtr, destination, destinationSize, sourceSize);
+                        }
+
+                        destination += source.Length;
+                        destinationSize -= sourceSize;
+
+                        Debug.Assert(destinationSize >= 0);
+                    }
+                }
+
+                Debug.Assert(destinationSize == 0, "We didn't exhaust our destination pointer!");
+            }
+
+            return result;
+        }
     }
 }

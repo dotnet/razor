@@ -182,9 +182,9 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
 
     public bool TryParseEventCallbackTypeArgument(out string argument)
     {
-        if (TryParseEventCallbackTypeArgument(out ReadOnlySpan<char> stringSegment))
+        if (TryParseEventCallbackTypeArgument(out ReadOnlyMemory<char> memory))
         {
-            argument = stringSegment.ToString();
+            argument = memory.ToString();
             return true;
         }
 
@@ -192,7 +192,7 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
         return false;
     }
 
-    internal bool TryParseEventCallbackTypeArgument(out ReadOnlySpan<char> argument)
+    internal bool TryParseEventCallbackTypeArgument(out ReadOnlyMemory<char> argument)
     {
         // This is ugly and ad-hoc, but for various layering reasons we can't just use Roslyn APIs
         // to parse this. We need to parse this just before we write it out to the code generator,
@@ -203,38 +203,37 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
             throw new InvalidOperationException("This attribute is not an EventCallback attribute.");
         }
 
-        return TryGetEventCallbackArgument(TypeName, out argument);
+        return TryGetEventCallbackArgument(TypeName.AsMemory(), out argument);
     }
 
-    internal static bool TryGetEventCallbackArgument(string candidate, out ReadOnlySpan<char> argument)
+    internal static bool TryGetEventCallbackArgument(ReadOnlyMemory<char> candidate, out ReadOnlyMemory<char> argument)
     {
-        var span = candidate.AsSpan();
-
         // Strip 'global::' from the candidate.
-        if (span.StartsWith("global::".AsSpan()))
+        if (candidate.Span.StartsWith("global::".AsSpan()))
         {
-            span = span["global::".Length..];
+            candidate = candidate["global::".Length..];
         }
 
         var eventCallbackName = ComponentsApi.EventCallback.FullTypeName.AsSpan();
 
         // Check to see if this is the non-generic form. If so, there's no argument to retrieve.
-        if (span.Equals(eventCallbackName, StringComparison.Ordinal))
+        if (candidate.Span.Equals(eventCallbackName, StringComparison.Ordinal))
         {
             argument = default;
             return false;
         }
 
-        if (span.Length <= eventCallbackName.Length + "<>".Length ||
-            !span.StartsWith(eventCallbackName, StringComparison.Ordinal))
+        if (candidate.Length <= eventCallbackName.Length + "<>".Length ||
+            !candidate.Span.StartsWith(eventCallbackName, StringComparison.Ordinal))
         {
             argument = default;
             return false;
         }
 
-        if (span[eventCallbackName.Length..] is ['<', ..var middle, '>'])
+        var afterCallbackName = candidate[eventCallbackName.Length..];
+        if (afterCallbackName.Span is ['<', .., '>'])
         {
-            argument = middle;
+            argument = afterCallbackName[1..^1];
             return true;
         }
 

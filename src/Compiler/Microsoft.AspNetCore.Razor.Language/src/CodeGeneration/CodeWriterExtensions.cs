@@ -31,7 +31,7 @@ internal static class CodeWriterExtensions
 
     public static bool IsAtBeginningOfLine(this CodeWriter writer)
     {
-        return writer.Length == 0 || writer[writer.Length - 1] == '\n';
+        return writer.LastChar is '\n';
     }
 
     public static CodeWriter WritePadding(this CodeWriter writer, int offset, SourceSpan? span, CodeRenderingContext context)
@@ -117,11 +117,11 @@ internal static class CodeWriterExtensions
     }
 
     public static CodeWriter WriteStringLiteral(this CodeWriter writer, string literal)
-        => writer.WriteStringLiteral(literal.AsSpan());
+        => writer.WriteStringLiteral(literal.AsMemory());
 
-    public static CodeWriter WriteStringLiteral(this CodeWriter writer, ReadOnlySpan<char> literal)
+    public static CodeWriter WriteStringLiteral(this CodeWriter writer, ReadOnlyMemory<char> literal)
     {
-        if (literal.Length >= 256 && literal.Length <= 1500 && literal.IndexOf('\0') == -1)
+        if (literal.Length >= 256 && literal.Length <= 1500 && literal.Span.IndexOf('\0') == -1)
         {
             WriteVerbatimStringLiteral(writer, literal);
         }
@@ -514,7 +514,7 @@ internal static class CodeWriterExtensions
         return new LinePragmaWriter(writer, span.Value, context, characterOffset, useEnhancedLinePragma: true);
     }
 
-    private static void WriteVerbatimStringLiteral(CodeWriter writer, ReadOnlySpan<char> literal)
+    private static void WriteVerbatimStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal)
     {
         writer.Write("@\"");
 
@@ -525,7 +525,7 @@ internal static class CodeWriterExtensions
 
         // We need to find the index of each '"' (double-quote) to escape it.
         int index;
-        while ((index = literal.IndexOf('"')) >= 0)
+        while ((index = literal.Span.IndexOf('"')) >= 0)
         {
             writer.Write(literal[..index]);
             writer.Write("\"\"");
@@ -543,18 +543,18 @@ internal static class CodeWriterExtensions
         writer.CurrentIndent = oldIndent;
     }
 
-    private static void WriteCStyleStringLiteral(CodeWriter writer, ReadOnlySpan<char> literal)
+    private static void WriteCStyleStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal)
     {
         // From CSharpCodeGenerator.QuoteSnippetStringCStyle in CodeDOM
         writer.Write("\"");
 
         // We need to find the index of each escapable character to escape it.
         int index;
-        while ((index = literal.IndexOfAny(CStyleStringLiteralEscapeChars)) >= 0)
+        while ((index = literal.Span.IndexOfAny(CStyleStringLiteralEscapeChars)) >= 0)
         {
             writer.Write(literal[..index]);
 
-            switch (literal[index])
+            switch (literal.Span[index])
             {
                 case '\r':
                     writer.Write("\\r");
@@ -646,8 +646,8 @@ internal static class CodeWriterExtensions
         private void TryAutoSpace(string spaceCharacter)
         {
             if (_autoSpace &&
-                _writer.Length > 0 &&
-                !char.IsWhiteSpace(_writer[_writer.Length - 1]))
+                _writer.LastChar is char ch &&
+                !char.IsWhiteSpace(ch))
             {
                 _writer.Write(spaceCharacter);
             }
@@ -684,7 +684,7 @@ internal static class CodeWriterExtensions
 
             if (!_context.Options.SuppressNullabilityEnforcement)
             {
-                var endsWithNewline = _writer.Length > 0 && _writer[_writer.Length - 1] == '\n';
+                var endsWithNewline = _writer.LastChar is '\n';
                 if (!endsWithNewline)
                 {
                     _writer.WriteLine();
@@ -710,7 +710,7 @@ internal static class CodeWriterExtensions
         {
             // Need to add an additional line at the end IF there wasn't one already written.
             // This is needed to work with the C# editor's handling of #line ...
-            var endsWithNewline = _writer.Length > 0 && _writer[_writer.Length - 1] == '\n';
+            var endsWithNewline = _writer.LastChar is '\n';
 
             // Always write at least 1 empty line to potentially separate code from pragmas.
             _writer.WriteLine();
