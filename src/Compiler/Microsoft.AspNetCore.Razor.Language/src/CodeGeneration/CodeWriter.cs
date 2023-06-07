@@ -25,7 +25,7 @@ public sealed class CodeWriter
 
     public CodeWriter(string newLine, RazorCodeGenerationOptions options)
     {
-        SetName(newLine);
+        SetNewLine(newLine);
         IndentWithTabs = options.IndentWithTabs;
         TabSize = options.IndentSize;
         _builder = new StringBuilder();
@@ -38,11 +38,11 @@ public sealed class CodeWriter
     public string NewLine
     {
         get => _newLine;
-        set => SetName(value);
+        set => SetNewLine(value);
     }
 
     [MemberNotNull(nameof(_newLine))]
-    private void SetName(string value)
+    private void SetNewLine(string value)
     {
         if (value == null)
         {
