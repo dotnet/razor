@@ -29,7 +29,7 @@
 
   <ItemGroup>
     <Content Include="build\**\*.*" PackagePath="build\" />
-    <Content Include="build\**\*.*" PackagePath="buildMultiTarget\" PackageCopyToOutput="true" PackageFlatten="true" />
+    <Content Include="buildMultiTargeting\**\*.*" PackagePath="buildMultiTargeting\" />
   </ItemGroup>
 
   <Target Name="PackLayout" BeforeTargets="$(GenerateNuspecDependsOn)">
