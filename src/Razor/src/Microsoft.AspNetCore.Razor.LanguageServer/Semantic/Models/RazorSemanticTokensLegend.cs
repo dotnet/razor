@@ -12,6 +12,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 internal class RazorSemanticTokensLegend
 {
+#pragma warning disable IDE1006 // Naming Styles - These names are queried with reflection below
     private static readonly string MarkupAttributeQuoteType = "markupAttributeQuote";
     private static readonly string MarkupAttributeType = "markupAttribute";
     private static readonly string MarkupAttributeValueType = "markupAttributeValue";
@@ -33,6 +34,7 @@ internal class RazorSemanticTokensLegend
     private static readonly string RazorTagHelperAttributeType = "razorTagHelperAttribute";
     private static readonly string RazorTagHelperElementType = "razorTagHelperElement";
     private static readonly string RazorTransitionType = "razorTransition";
+#pragma warning restore IDE1006 // Naming Styles
 
     public int MarkupAttribute => _razorTokenTypeMap[MarkupAttributeType];
     public int MarkupAttributeQuote => _razorTokenTypeMap[MarkupAttributeQuoteType];
