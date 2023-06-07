@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -79,15 +78,17 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
             return false;
         }
 
-        if (typePattern.EndsWith("*", StringComparison.Ordinal))
+        var typePatternSpan = typePattern.AsSpan();
+
+        if (typePatternSpan[^1] == '*')
         {
-            if (typePattern.Length == 1)
+            if (typePatternSpan.Length == 1)
             {
                 // TypePattern is "*".
                 return true;
             }
 
-            return new StringSegment(descriptor.Name).StartsWith(new StringSegment(typePattern, 0, typePattern.Length - 1), StringComparison.Ordinal);
+            return descriptor.Name.AsSpan().StartsWith(typePatternSpan[..^1], StringComparison.Ordinal);
         }
 
         return string.Equals(descriptor.Name, typePattern, StringComparison.Ordinal);
