@@ -1,10 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
@@ -12,21 +10,23 @@ using Microsoft.CodeAnalysis.Remote.Razor;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 
-public class RemoteTagHelperDeltaProviderBenchmark : TagHelperBenchmarkBase
+public class RemoteTagHelperDeltaProviderBenchmark
 {
     public RemoteTagHelperDeltaProviderBenchmark()
     {
-        DefaultTagHelperSet = DefaultTagHelpers.ToHashSet();
+        DefaultTagHelperSet = CommonResources.LegacyTagHelpers.ToHashSet().ToImmutableArray();
 
         Added50PercentMoreDefaultTagHelpers = DefaultTagHelperSet
-            .Take(DefaultTagHelperSet.Count / 2)
+            .Take(DefaultTagHelperSet.Length / 2)
             .Select(th => new RenamedTagHelperDescriptor(th.Name + "Added", th))
             .Concat(DefaultTagHelperSet)
-            .ToHashSet();
+            .ToHashSet()
+            .ToImmutableArray();
 
         RemovedHalfOfDefaultTagHelpers = DefaultTagHelperSet
-            .Take(DefaultTagHelpers.Count / 2)
-            .ToHashSet();
+            .Take(CommonResources.LegacyTagHelpers.Length / 2)
+            .ToHashSet()
+            .ToImmutableArray();
 
         var tagHelpersToMutate = DefaultTagHelperSet
             .Take(2)
@@ -34,19 +34,21 @@ public class RemoteTagHelperDeltaProviderBenchmark : TagHelperBenchmarkBase
         MutatedTwoDefaultTagHelpers = DefaultTagHelperSet
             .Skip(2)
             .Concat(tagHelpersToMutate)
-            .ToHashSet();
+            .ToHashSet()
+            .ToImmutableArray();
     }
 
-    private IReadOnlyCollection<TagHelperDescriptor> DefaultTagHelperSet { get; }
+    private ImmutableArray<TagHelperDescriptor> DefaultTagHelperSet { get; }
 
-    private IReadOnlyCollection<TagHelperDescriptor> Added50PercentMoreDefaultTagHelpers { get; }
+    private ImmutableArray<TagHelperDescriptor> Added50PercentMoreDefaultTagHelpers { get; }
 
-    private IReadOnlyCollection<TagHelperDescriptor> RemovedHalfOfDefaultTagHelpers { get; }
+    private ImmutableArray<TagHelperDescriptor> RemovedHalfOfDefaultTagHelpers { get; }
 
-    private IReadOnlyCollection<TagHelperDescriptor> MutatedTwoDefaultTagHelpers { get; }
+    private ImmutableArray<TagHelperDescriptor> MutatedTwoDefaultTagHelpers { get; }
 
     private string ProjectFilePath { get; } = "C:/path/to/project.csproj";
 
+    [AllowNull]
     private RemoteTagHelperDeltaProvider Provider { get; set; }
 
     private int LastResultId { get; set; }
@@ -68,7 +70,7 @@ public class RemoteTagHelperDeltaProviderBenchmark : TagHelperBenchmarkBase
     [Benchmark(Description = "Calculate Delta - Remove project")]
     public void TagHelper_GetTagHelpersDelta_RemoveProject()
     {
-        _ = Provider.GetTagHelpersDelta(ProjectFilePath, LastResultId, Array.Empty<TagHelperDescriptor>());
+        _ = Provider.GetTagHelpersDelta(ProjectFilePath, LastResultId, ImmutableArray<TagHelperDescriptor>.Empty);
     }
 
     [Benchmark(Description = "Calculate Delta - Add lots of TagHelpers")]

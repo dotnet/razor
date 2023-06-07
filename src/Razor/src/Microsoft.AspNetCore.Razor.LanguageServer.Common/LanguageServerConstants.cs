@@ -19,6 +19,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
         public const string RazorProximityExpressionsEndpoint = "razor/proximityExpressions";
 
+        public const string RazorLanguageServerName = "Razor Language Server Client";
+
         public const string RazorMonitorProjectConfigurationFilePathEndpoint = "razor/monitorProjectConfigurationFilePath";
 
         public const string RazorMapToDocumentRangesEndpoint = "razor/mapToDocumentRanges";
@@ -28,10 +30,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
         public const string RazorMapToDocumentEditsEndpoint = "razor/mapToDocumentEdits";
 
         public const string RazorCodeActionRunnerCommand = "razor/runCodeAction";
-
-        public const string RazorDocumentFormattingEndpoint = "textDocument/formatting";
-
-        public const string RazorDocumentOnTypeFormattingEndpoint = "textDocument/onTypeFormatting";
 
         public const string RazorCompletionEndpointName = "razor/completion";
 

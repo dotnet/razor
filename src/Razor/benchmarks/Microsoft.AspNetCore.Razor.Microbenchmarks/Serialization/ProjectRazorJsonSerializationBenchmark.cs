@@ -2,48 +2,84 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.IO;
+using System.Text;
 using BenchmarkDotNet.Attributes;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
-using Microsoft.CodeAnalysis.Razor;
-using Newtonsoft.Json;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Serialization;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization;
 
 public class ProjectRazorJsonSerializationBenchmark
 {
-    // Hardcoded expectations from `Resources\project.razor.json`
-    private const string ExpectedFilePath = @"C:\Users\admin\location\blazorserver\blazorserver.csproj";
-    private const int ExpectedTagHelperCount = 228;
+    [ParamsAllValues]
+    public ResourceSet ResourceSet { get; set; }
 
-    private JsonSerializer? _serializer;
-    private byte[]? _projectRazorJsonBytes;
+    private ProjectRazorJson ProjectRazorJson
+        => ResourceSet switch
+        {
+            ResourceSet.Telerik => CommonResources.TelerikProjectRazorJson,
+            _ => CommonResources.LegacyProjectRazorJson
+        };
 
-    private JsonSerializer Serializer => _serializer.AssumeNotNull();
-    private byte[] ProjectRazorJsonBytes => _projectRazorJsonBytes.AssumeNotNull();
+    private byte[] ProjectRazorJsonBytes
+        => ResourceSet switch
+        {
+            ResourceSet.Telerik => CommonResources.TelerikProjectRazorJsonBytes,
+            _ => CommonResources.LegacyProjectRazorJsonBytes
+        };
 
-    [GlobalSetup]
-    public void Setup()
+    private static ProjectRazorJson DeserializeProjectRazorJson(TextReader reader)
     {
-        _projectRazorJsonBytes = Resources.GetResourceBytes("project.razor.json");
-
-        _serializer = new JsonSerializer();
-        _serializer.Converters.RegisterRazorConverters();
-        _serializer.Converters.Add(ProjectRazorJsonJsonConverter.Instance);
+        return JsonDataConvert.DeserializeData(reader,
+            static r => r.ReadNonNullObject(ObjectReaders.ReadProjectRazorJsonFromProperties));
     }
 
-    [Benchmark(Description = "Razor ProjectRazorJson Roundtrip JsonConverter Serialization")]
-    public void ProjectRazorJson_JsonConverter_Serialization_RoundTrip()
+    private static void SerializeProjectRazorJson(TextWriter writer, ProjectRazorJson projectRazorJson)
+    {
+        JsonDataConvert.SerializeObject(writer, projectRazorJson, ObjectWriters.WriteProperties);
+    }
+
+    [Benchmark(Description = "Serialize ProjectRazorJson")]
+    public void Serialize()
+    {
+        using var stream = new MemoryStream();
+        using var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 4096);
+
+        SerializeProjectRazorJson(writer, ProjectRazorJson);
+    }
+
+    [Benchmark(Description = "Deserialize ProjectRazorJson")]
+    public void Deserialize()
     {
         using var stream = new MemoryStream(ProjectRazorJsonBytes);
-        using var reader = new JsonTextReader(new StreamReader(stream));
+        using var reader = new StreamReader(stream);
 
-        reader.Read();
+        var projectRazorJson = DeserializeProjectRazorJson(reader);
 
-        var result = ProjectRazorJsonJsonConverter.Instance.ReadJson(reader, typeof(ProjectRazorJson), null, Serializer) as ProjectRazorJson;
+        if (projectRazorJson.ProjectWorkspaceState is null ||
+            projectRazorJson.ProjectWorkspaceState.TagHelpers.Length != ProjectRazorJson.ProjectWorkspaceState?.TagHelpers.Length)
+        {
+            throw new InvalidDataException();
+        }
+    }
 
-        if (result is null ||
-            result.FilePath != ExpectedFilePath ||
-            result.ProjectWorkspaceState?.TagHelpers.Count != ExpectedTagHelperCount)
+    [Benchmark(Description = "RoundTrip ProjectRazorJson")]
+    public void RoundTrip()
+    {
+        using var stream = new MemoryStream();
+        using (var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 4096, leaveOpen: true))
+        {
+            SerializeProjectRazorJson(writer, ProjectRazorJson);
+        }
+
+        stream.Seek(0, SeekOrigin.Begin);
+
+        using var reader = new StreamReader(stream);
+
+        var projectRazorJson = DeserializeProjectRazorJson(reader);
+
+        if (projectRazorJson.ProjectWorkspaceState is null ||
+            projectRazorJson.ProjectWorkspaceState.TagHelpers.Length != ProjectRazorJson.ProjectWorkspaceState?.TagHelpers.Length)
         {
             throw new InvalidDataException();
         }

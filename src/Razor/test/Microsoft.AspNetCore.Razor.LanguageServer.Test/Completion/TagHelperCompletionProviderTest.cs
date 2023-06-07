@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
@@ -375,11 +377,11 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
         tagHelper.TagMatchingRule(rule => rule.TagName = "test");
-        tagHelper.SetTypeName("TestTagHelper");
+        tagHelper.SetMetadata(TypeName("TestTagHelper"));
         tagHelper.BindAttribute(attribute =>
         {
             attribute.Name = "bool-val";
-            attribute.SetPropertyName("BoolVal");
+            attribute.SetMetadata(PropertyName("BoolVal"));
             attribute.TypeName = "System.Collections.Generic.IDictionary<System.String, System.Boolean>";
             attribute.AsDictionary("bool-val-", typeof(bool).FullName);
         });
@@ -390,7 +392,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
                 <test $$/>
                 """,
             isRazorFile: false,
-            tagHelpers: tagHelper.Build());
+            tagHelpers: ImmutableArray.Create(tagHelper.Build()));
 
         // Act
         var completions = service.GetCompletionItems(context);
@@ -418,11 +420,11 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
         // Arrange
         var tagHelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly");
         tagHelper.TagMatchingRule(rule => rule.TagName = "test");
-        tagHelper.SetTypeName("TestTagHelper");
+        tagHelper.SetMetadata(TypeName("TestTagHelper"));
         tagHelper.BindAttribute(attribute =>
         {
             attribute.Name = "int-val";
-            attribute.SetPropertyName("IntVal");
+            attribute.SetMetadata(PropertyName("IntVal"));
             attribute.TypeName = "System.Collections.Generic.IDictionary<System.String, System.Int32>";
             attribute.AsDictionary("int-val-", typeof(int).FullName);
         });
@@ -433,7 +435,7 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
                 <test $$/>
                 """,
             isRazorFile: false,
-            tagHelpers: tagHelper.Build());
+            tagHelpers: ImmutableArray.Create(tagHelper.Build()));
 
         // Act
         var completions = service.GetCompletionItems(context);
@@ -760,8 +762,10 @@ public class TagHelperCompletionProviderTest : TagHelperServiceTestBase
         );
     }
 
-    private static RazorCompletionContext CreateRazorCompletionContext(string markup, bool isRazorFile, RazorCompletionOptions options = default, params TagHelperDescriptor[] tagHelpers)
+    private static RazorCompletionContext CreateRazorCompletionContext(string markup, bool isRazorFile, RazorCompletionOptions options = default, ImmutableArray<TagHelperDescriptor> tagHelpers = default)
     {
+        tagHelpers = tagHelpers.NullToEmpty();
+
         TestFileMarkupParser.GetPosition(markup, out var documentContent, out var position);
         var codeDocument = CreateCodeDocument(documentContent, isRazorFile, tagHelpers);
         var syntaxTree = codeDocument.GetSyntaxTree();

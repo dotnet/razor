@@ -46,6 +46,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     private readonly TrackingLSPDocumentManager _documentManager;
     private readonly JoinableTaskFactory _joinableTaskFactory;
     private readonly LSPRequestInvoker _requestInvoker;
+    private readonly ITelemetryReporter _telemetryReporter;
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
     private readonly IClientSettingsManager _editorSettingsManager;
     private readonly LSPDocumentSynchronizer _documentSynchronizer;
@@ -106,10 +107,11 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         _joinableTaskFactory = joinableTaskContext.Factory;
 
-        _requestInvoker = new TelemetryReportingLSPRequestInvoker(requestInvoker, telemetryReporter);
+        _requestInvoker = requestInvoker;
         _formattingOptionsProvider = formattingOptionsProvider;
         _editorSettingsManager = editorSettingsManager;
         _documentSynchronizer = documentSynchronizer;
+        _telemetryReporter = telemetryReporter;
         _outputWindowLogger = outputWindowLogger;
     }
 
@@ -179,9 +181,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             state: null);
     }
 
-    public override async Task<RazorDocumentRangeFormattingResponse> RazorDocumentFormattingAsync(VersionedDocumentFormattingParams request, CancellationToken cancellationToken)
+    public override async Task<RazorDocumentFormattingResponse> HtmlFormattingAsync(RazorDocumentFormattingParams request, CancellationToken cancellationToken)
     {
-        var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<TextEdit>() };
+        var response = new RazorDocumentFormattingResponse() { Edits = Array.Empty<TextEdit>() };
 
         await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -218,9 +220,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         return response;
     }
 
-    public override async Task<RazorDocumentRangeFormattingResponse> HtmlOnTypeFormattingAsync(RazorDocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
+    public override async Task<RazorDocumentFormattingResponse> HtmlOnTypeFormattingAsync(RazorDocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
     {
-        var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<TextEdit>() };
+        var response = new RazorDocumentFormattingResponse() { Edits = Array.Empty<TextEdit>() };
 
         var hostDocumentUri = request.TextDocument.Uri;
 
@@ -245,63 +247,6 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         var edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentOnTypeFormattingParams, TextEdit[]>(
             textBuffer,
             Methods.TextDocumentOnTypeFormattingName,
-            languageServerName,
-            formattingParams,
-            cancellationToken).ConfigureAwait(false);
-
-        response.Edits = edits?.Response ?? Array.Empty<TextEdit>();
-
-        return response;
-    }
-
-    public override async Task<RazorDocumentRangeFormattingResponse> RazorRangeFormattingAsync(RazorDocumentRangeFormattingParams request, CancellationToken cancellationToken)
-    {
-        var response = new RazorDocumentRangeFormattingResponse() { Edits = Array.Empty<TextEdit>() };
-
-        if (request.Kind == RazorLanguageKind.Razor)
-        {
-            return response;
-        }
-
-        await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        var hostDocumentUri = new Uri(request.HostDocumentFilePath);
-        var (synchronized, csharpDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
-            request.HostDocumentVersion,
-            hostDocumentUri,
-            cancellationToken);
-
-        string languageServerName;
-        Uri projectedUri;
-
-        if (!synchronized)
-        {
-            // Document could not be synchronized
-            return response;
-        }
-
-        if (request.Kind == RazorLanguageKind.CSharp)
-        {
-            languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
-            projectedUri = csharpDocument.Uri;
-        }
-        else
-        {
-            Debug.Fail("Unexpected RazorLanguageKind. This can't really happen in a real scenario.");
-            return response;
-        }
-
-        var formattingParams = new DocumentRangeFormattingParams()
-        {
-            TextDocument = new TextDocumentIdentifier() { Uri = projectedUri },
-            Range = request.ProjectedRange,
-            Options = request.Options
-        };
-
-        var textBuffer = csharpDocument.Snapshot.TextBuffer;
-        var edits = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentRangeFormattingParams, TextEdit[]>(
-            textBuffer,
-            Methods.TextDocumentRangeFormattingName,
             languageServerName,
             formattingParams,
             cancellationToken).ConfigureAwait(false);
@@ -1174,8 +1119,8 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
     public override async Task<RazorPullDiagnosticResponse?> DiagnosticsAsync(DelegatedDiagnosticParams request, CancellationToken cancellationToken)
     {
-        var csharpTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<CSharpVirtualDocumentSnapshot>(request.HostDocument, RazorLSPConstants.RazorCSharpLanguageServerName, cancellationToken), cancellationToken);
-        var htmlTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<HtmlVirtualDocumentSnapshot>(request.HostDocument, RazorLSPConstants.HtmlLanguageServerName, cancellationToken), cancellationToken);
+        var csharpTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<CSharpVirtualDocumentSnapshot>(request.HostDocument, request.CorrelationId, RazorLSPConstants.RazorCSharpLanguageServerName, cancellationToken), cancellationToken);
+        var htmlTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<HtmlVirtualDocumentSnapshot>(request.HostDocument, request.CorrelationId, RazorLSPConstants.HtmlLanguageServerName, cancellationToken), cancellationToken);
 
         try
         {
@@ -1200,7 +1145,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         return new RazorPullDiagnosticResponse(csharpDiagnostics, htmlDiagnostics);
     }
 
-    private async Task<VSInternalDiagnosticReport[]?> GetVirtualDocumentPullDiagnosticsAsync<TVirtualDocumentSnapshot>(VersionedTextDocumentIdentifier hostDocument, string delegatedLanguageServerName, CancellationToken cancellationToken)
+    private async Task<VSInternalDiagnosticReport[]?> GetVirtualDocumentPullDiagnosticsAsync<TVirtualDocumentSnapshot>(VersionedTextDocumentIdentifier hostDocument, Guid correlationId, string delegatedLanguageServerName, CancellationToken cancellationToken)
         where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
     {
         var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
@@ -1219,6 +1164,8 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
                 Uri = virtualDocument.Uri,
             },
         };
+
+        using var _ = _telemetryReporter.TrackLspRequest(nameof(_requestInvoker.ReinvokeRequestOnServerAsync), VSInternalMethods.DocumentPullDiagnosticName, delegatedLanguageServerName, correlationId);
         var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
             virtualDocument.Snapshot.TextBuffer,
             VSInternalMethods.DocumentPullDiagnosticName,

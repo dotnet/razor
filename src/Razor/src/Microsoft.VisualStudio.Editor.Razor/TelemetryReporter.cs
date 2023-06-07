@@ -6,14 +6,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.Linq;
-using System.Threading;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
-using Newtonsoft.Json.Linq;
-using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.Telemetry;
 
@@ -145,6 +141,8 @@ internal class TelemetryReporter : ITelemetryReporter
             var name = telemetryEvent.Name;
             var propertyString = string.Join(",", telemetryEvent.Properties.Select(kvp => $"[ {kvp.Key}:{kvp.Value} ]"));
             _logger?.LogTrace("Telemetry Event: {name} \n Properties: {propertyString}\n", name, propertyString);
+
+            Debug.Assert(telemetryEvent is not FaultEvent, $"Fault Event: {name} \n Properties: {propertyString}");
 #endif
         }
         catch (Exception e)
@@ -221,6 +219,28 @@ internal class TelemetryReporter : ITelemetryReporter
     public IDisposable BeginBlock(string name, Severity severity, ImmutableDictionary<string, object?> values)
     {
         return new TelemetryScope(this, name, severity, values.ToImmutableDictionary((tuple) => tuple.Key, (tuple) => (object?)tuple.Value));
+    }
+
+    public IDisposable TrackLspRequest(string name, string lspMethodName, string languageServerName, Guid correlationId)
+    {
+        if (correlationId == Guid.Empty)
+        {
+            return NullTelemetryScope.Instance;
+        }
+
+        return BeginBlock(name, Severity.Normal, ImmutableDictionary.CreateRange(new KeyValuePair<string, object?>[]
+        {
+            new("eventscope.method", lspMethodName),
+            new("eventscope.languageservername", languageServerName),
+            new("eventscope.correlationid", correlationId),
+        }));
+    }
+
+    private class NullTelemetryScope : IDisposable
+    {
+        public static NullTelemetryScope Instance { get; } = new NullTelemetryScope();
+        private NullTelemetryScope() { }
+        public void Dispose() { }
     }
 
     private class TelemetryScope : IDisposable

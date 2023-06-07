@@ -48,7 +48,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         DocumentPullDiagnosticsEndpoint = new DocumentPullDiagnosticsEndpoint(
             languageServerFeatureOptions: languageServer.GetRequiredService<LanguageServerFeatureOptions>(),
             translateDiagnosticsService: languageServer.GetRequiredService<RazorTranslateDiagnosticsService>(),
-            languageServer: new ClientNotifierService(BuildDiagnostics(N)));
+            languageServer: new ClientNotifierService(BuildDiagnostics(N)), telemetryReporter: null);
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
         _filePath = Path.Combine(projectRoot, "Components", "Pages", $"Generated.razor");
@@ -191,6 +191,8 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         public override bool SupportsDelegatedCodeActions => true;
 
         public override bool SupportsDelegatedDiagnostics => false;
+
+        public override bool UpdateBuffersForClosedDocuments => false;
 
         // Code action and rename paths in Windows VS Code need to be prefixed with '/':
         // https://github.com/dotnet/razor/issues/8131
