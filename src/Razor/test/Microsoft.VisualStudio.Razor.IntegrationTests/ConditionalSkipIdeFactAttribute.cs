@@ -7,11 +7,11 @@ using Xunit;
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-public class FlakyFactAttribute : IdeFactAttribute
+public class ConditionalSkipIdeFactAttribute : IdeFactAttribute
 {
-    private readonly Lazy<bool> _runFlakyTests = new(() => Environment.GetEnvironmentVariable("RAZOR_RUN_FLAKY_TESTS")?.ToLower() == "true");
+    private readonly Lazy<bool> _runFlakyTests = new(() => Environment.GetEnvironmentVariable("RAZOR_RUN_ALL_TESTS")?.ToLower() == "true");
 
-    public FlakyFactAttribute()
+    public ConditionalSkipIdeFactAttribute()
     {
     }
 
