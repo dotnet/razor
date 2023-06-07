@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -55,7 +56,6 @@ internal class RazorSemanticTokensLegend
     public int RazorTagHelperElement => _razorTokenTypeMap[RazorTagHelperElementType];
     public int RazorTransition => _razorTokenTypeMap[RazorTransitionType];
 
-
     public SemanticTokensLegend Legend => _legend;
 
     private readonly SemanticTokensLegend _legend;
@@ -63,7 +63,7 @@ internal class RazorSemanticTokensLegend
 
     public RazorSemanticTokensLegend(ClientCapabilities clientCapabilities)
     {
-        var builder = ImmutableArray.CreateBuilder<string>();
+        var _ = ArrayBuilderPool<string>.GetPooledObject(out var builder);
 
         builder.AddRange(RazorSemanticTokensAccessor.GetTokenTypes(clientCapabilities));
 
@@ -83,7 +83,7 @@ internal class RazorSemanticTokensLegend
 
     private static ImmutableArray<string> GetRazorSemanticTokenTypes()
     {
-        var builder = ImmutableArray.CreateBuilder<string>();
+        var _ = ArrayBuilderPool<string>.GetPooledObject(out var builder);
 
         foreach (var field in typeof(RazorSemanticTokensLegend).GetFields(BindingFlags.NonPublic | BindingFlags.Static))
         {
