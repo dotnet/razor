@@ -153,6 +153,35 @@ public sealed class CodeWriter
         return WriteCore(value.AsSpan(startIndex, count));
     }
 
+    [InterpolatedStringHandler]
+    internal readonly ref struct CodeWriterInterpolatedStringHandler
+    {
+        private readonly CodeWriter _writer;
+
+        public CodeWriterInterpolatedStringHandler(int literalLength, int formattedCount, CodeWriter writer)
+        {
+            _writer = writer;
+        }
+
+        public void AppendLiteral(string value)
+            => _writer.Write(value);
+
+        public void AppendFormatted<T>(T value)
+        {
+            if (value is null)
+            {
+                return;
+            }
+
+            _writer.Write(value.ToString());
+        }
+    }
+
+    internal CodeWriter Write([InterpolatedStringHandlerArgument("")] ref CodeWriterInterpolatedStringHandler handler)
+    {
+        return this;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private unsafe CodeWriter WriteCore(ReadOnlySpan<char> span)
     {
