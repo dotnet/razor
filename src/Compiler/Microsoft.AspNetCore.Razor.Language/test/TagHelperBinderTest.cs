@@ -168,8 +168,8 @@ public class TagHelperBinderTest
             return new TheoryData<
                 string, // tagName
                 string, // parentTagName
-                IEnumerable<TagHelperDescriptor>, // availableDescriptors
-                IEnumerable<TagHelperDescriptor>> // expectedDescriptors
+                IReadOnlyList<TagHelperDescriptor>, // availableDescriptors
+                IReadOnlyList<TagHelperDescriptor>> // expectedDescriptors
                 {
                     {
                         "strong",
@@ -208,7 +208,7 @@ public class TagHelperBinderTest
         object expectedDescriptors)
     {
         // Arrange
-        var tagHelperBinder = new TagHelperBinder(null, (IEnumerable<TagHelperDescriptor>)availableDescriptors);
+        var tagHelperBinder = new TagHelperBinder(null, (IReadOnlyList<TagHelperDescriptor>)availableDescriptors);
 
         // Act
         var bindingResult = tagHelperBinder.GetBinding(
