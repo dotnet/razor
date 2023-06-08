@@ -76,7 +76,7 @@
     <MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>4.7.0-2.23301.2</MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>
     <MicrosoftVisualStudioLanguageServicesPackageVersion>4.7.0-2.23301.2</MicrosoftVisualStudioLanguageServicesPackageVersion>
     <MicrosoftSourceLinkGitHubPackageVersion>8.0.0-beta.23252.2</MicrosoftSourceLinkGitHubPackageVersion>
-    <MicrosoftDotNetXliffTasksPackageVersion>1.0.0-beta.23279.1</MicrosoftDotNetXliffTasksPackageVersion>
+    <MicrosoftDotNetXliffTasksPackageVersion>1.0.0-beta.23305.1</MicrosoftDotNetXliffTasksPackageVersion>
     <!-- Exception - this version is not updated by automation, but is in Version.Details due to source-build.
         See its entry in Version.Details for more information. -->
     <MicrosoftExtensionsObjectPoolPackageVersion>6.0.0</MicrosoftExtensionsObjectPoolPackageVersion>
