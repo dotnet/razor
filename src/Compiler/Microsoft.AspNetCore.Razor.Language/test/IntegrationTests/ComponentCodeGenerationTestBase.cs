@@ -5887,7 +5887,7 @@ namespace Test
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/8467")]
-    public void ChildComponent_AtSpecifiedAtInRazorFileForTypeParameter()
+    public void ChildComponent_AtSpecifiedInRazorFileForTypeParameter()
     {
         AdditionalSyntaxTrees.Add(Parse("""
             using Microsoft.AspNetCore.Components;
