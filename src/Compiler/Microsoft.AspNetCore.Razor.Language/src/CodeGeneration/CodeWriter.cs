@@ -14,13 +14,13 @@ public sealed class CodeWriter
 {
     private const int PageSize = 1000;
 
-    // Rather than using a StringBuilder, we maintain a list of pages of ReadOnlyMemory<char> arrays.
-    // This avoids copying strings into a StringBuilder's internal char arrays only to copy them
-    // out later in StringBuilder.ToString(). This also avoids string duplication by holding onto
-    // the strings themselves. So, if the same string instance is added multiple times, we won't
-    // duplicate it each time. Instead, we'll hold a ReadOnlyMemory<char> for the string.
-    private readonly List<ReadOnlyMemory<char>[]> _pages;
-    private int _pageIndex;
+    // Rather than using a StringBuilder, we maintain a linked list of pages, which are arrays
+    // of "chunks of text", represented by ReadOnlyMemory<char>. This avoids copying strings
+    // into a StringBuilder's internal char arrays only to copy them out later in
+    // StringBuilder.ToString(). This also avoids string duplication by holding onto the strings
+    // themselves. So, if the same string instance is added multiple times, we won't duplicate it
+    // each time. Instead, we'll hold a ReadOnlyMemory<char> for the string.
+    private readonly LinkedList<ReadOnlyMemory<char>[]> _pages;
     private int _pageOffset;
     private char? _lastChar;
 
@@ -49,27 +49,30 @@ public sealed class CodeWriter
         _pages = new();
     }
 
-    private void AddChars(ReadOnlyMemory<char> value)
+    private void AddTextChunk(ReadOnlyMemory<char> value)
     {
         if (value.Length == 0)
         {
             return;
         }
 
-        if (_pageIndex == _pages.Count)
-        {
-            _pages.Add(new ReadOnlyMemory<char>[PageSize]);
-        }
+        // If we're at the start of a page, we need to add the page first.
+        var lastPage = _pageOffset == 0
+            ? _pages.AddLast(new ReadOnlyMemory<char>[PageSize]).Value
+            : _pages.Last.Value;
 
-        _pages[_pageIndex][_pageOffset] = value;
+        // Add our chunk of text (the ReadOnlyMemory<char>) and increment the offset.
+        lastPage[_pageOffset] = value;
         _pageOffset++;
 
+        // We've reached the end of a page, so we reset the offset to 0.
+        // This will cause a new page to be added next time.
         if (_pageOffset == PageSize)
         {
-            _pageIndex++;
             _pageOffset = 0;
         }
 
+        // Remember the last character of the text chunk we just added.
         _lastChar = value.Span[^1];
     }
 
@@ -127,6 +130,11 @@ public sealed class CodeWriter
     {
         get
         {
+            // This Debug.Fail(...) is present because no Razor code currently accesses this
+            // indexer and it isn't implemented efficiently. All Razor code that previously
+            // used the indexer were really just inspecting the last char, which is now exposed separately.
+            Debug.Fail("Do not use this indexer without reimplementing it more efficiently.");
+
             foreach (var page in _pages)
             {
                 foreach (var chars in page)
@@ -157,7 +165,7 @@ public sealed class CodeWriter
             ? _indentString
             : ComputeIndent(size, IndentWithTabs, TabSize);
 
-        AddChars(indentString);
+        AddTextChunk(indentString);
 
         var indentLength = indentString.Length;
         _currentLineCharacterIndex += indentLength;
@@ -174,7 +182,7 @@ public sealed class CodeWriter
         }
 
         var indentString = _indentString;
-        AddChars(indentString);
+        AddTextChunk(indentString);
 
         var indentLength = indentString.Length;
         _currentLineCharacterIndex += indentLength;
@@ -291,7 +299,7 @@ public sealed class CodeWriter
 
         var lastChar = _lastChar;
 
-        AddChars(chars);
+        AddTextChunk(chars);
 
         var span = chars.Span;
 
