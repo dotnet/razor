@@ -8,31 +8,44 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 public sealed class ThrowingTraceListener : TraceListener
 {
+    private static bool s_listenerReplaced;
+    private static readonly object s_gate = new();
+
     public static void ReplaceDefaultListener()
     {
-        // Remove the default trace listener so that Debug.Assert and Debug.Fail don't diplay
-        // assert dialog during test runs.
-
-        var sawThrowingTraceListener = false;
-        var listeners = Trace.Listeners;
-        for (var i = listeners.Count - 1; i >= 0; i--)
+        lock (s_gate)
         {
-            switch (listeners[i])
+            if (s_listenerReplaced)
             {
-                case DefaultTraceListener:
-                    listeners.RemoveAt(i);
-                    break;
-                case ThrowingTraceListener:
-                    sawThrowingTraceListener = true;
-                    break;
+                return;
             }
-        }
 
-        if (!sawThrowingTraceListener)
-        {
-            // Add an instance of the ThrowingTraceListener so that Debug.Assert and Debug.Fail
-            // throw exceptions during test runs.
-            listeners.Add(new ThrowingTraceListener());
+            // Remove the default trace listener so that Debug.Assert and Debug.Fail don't diplay
+            // assert dialog during test runs.
+
+            var sawThrowingTraceListener = false;
+            var listeners = Trace.Listeners;
+            for (var i = listeners.Count - 1; i >= 0; i--)
+            {
+                switch (listeners[i])
+                {
+                    case DefaultTraceListener:
+                        listeners.RemoveAt(i);
+                        break;
+                    case ThrowingTraceListener:
+                        sawThrowingTraceListener = true;
+                        break;
+                }
+            }
+
+            if (!sawThrowingTraceListener)
+            {
+                // Add an instance of the ThrowingTraceListener so that Debug.Assert and Debug.Fail
+                // throw exceptions during test runs.
+                listeners.Add(new ThrowingTraceListener());
+            }
+
+            s_listenerReplaced = true;
         }
     }
 
