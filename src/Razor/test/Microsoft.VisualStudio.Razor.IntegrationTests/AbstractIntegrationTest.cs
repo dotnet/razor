@@ -39,7 +39,7 @@ public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
 
     public override async Task InitializeAsync()
     {
-        ThrowingTraceListener.ReplaceDefaultListener();
+        ThrowingTraceListener.AddToListeners();
 
         await base.InitializeAsync();
     }

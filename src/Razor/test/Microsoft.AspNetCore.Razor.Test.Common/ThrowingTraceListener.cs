@@ -8,20 +8,17 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 public sealed class ThrowingTraceListener : TraceListener
 {
-    private static bool s_listenerReplaced;
+    private static bool s_throwingTraceListenerAdded;
     private static readonly object s_gate = new();
 
-    public static void ReplaceDefaultListener()
+    public static void AddToListeners()
     {
         lock (s_gate)
         {
-            if (s_listenerReplaced)
+            if (s_throwingTraceListenerAdded)
             {
                 return;
             }
-
-            // Remove the default trace listener so that Debug.Assert and Debug.Fail don't diplay
-            // assert dialog during test runs.
 
             var sawThrowingTraceListener = false;
             var listeners = Trace.Listeners;
@@ -29,8 +26,9 @@ public sealed class ThrowingTraceListener : TraceListener
             {
                 switch (listeners[i])
                 {
-                    case DefaultTraceListener:
-                        listeners.RemoveAt(i);
+                    case DefaultTraceListener listener:
+                        // Don't show assert UI during test runs
+                        listener.AssertUiEnabled = false;
                         break;
                     case ThrowingTraceListener:
                         sawThrowingTraceListener = true;
@@ -45,7 +43,7 @@ public sealed class ThrowingTraceListener : TraceListener
                 listeners.Add(new ThrowingTraceListener());
             }
 
-            s_listenerReplaced = true;
+            s_throwingTraceListenerAdded = true;
         }
     }
 

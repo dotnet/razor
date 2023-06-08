@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
@@ -92,7 +91,7 @@ public abstract partial class TestBase : IAsyncLifetime
         // Give this thread a name, so it's easier to find in the VS Threads window.
         Thread.CurrentThread.Name ??= "Main Thread";
 
-        ThrowingTraceListener.ReplaceDefaultListener();
+        ThrowingTraceListener.AddToListeners();
     }
 
     Task IAsyncLifetime.InitializeAsync() => InitializeAsync();
