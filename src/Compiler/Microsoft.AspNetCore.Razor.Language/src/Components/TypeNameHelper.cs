@@ -7,31 +7,31 @@ using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-internal static class TypeNameHelper
+internal static partial class TypeNameHelper
 {
     private const string GlobalPrefix = "global::";
 
-    private static readonly ImmutableArray<string> PredefinedTypeNames = new[]
+    private static readonly ImmutableHashSet<ReadOnlyMemory<char>> PredefinedTypeNames = new[]
     {
-        "bool",
-        "int",
-        "string",
-        "float",
-        "double",
-        "decimal",
-        "byte",
-        "short",
-        "long",
-        "char",
-        "object",
-        "dynamic",
-        "uint",
-        "ushort",
-        "ulong",
-        "sbyte",
-        "nint",
-        "nuint",
-    }.ToImmutableArray();
+        "bool".AsMemory(),
+        "int".AsMemory(),
+        "string".AsMemory(),
+        "float".AsMemory(),
+        "double".AsMemory(),
+        "decimal".AsMemory(),
+        "byte".AsMemory(),
+        "short".AsMemory(),
+        "long".AsMemory(),
+        "char".AsMemory(),
+        "object".AsMemory(),
+        "dynamic".AsMemory(),
+        "uint".AsMemory(),
+        "ushort".AsMemory(),
+        "ulong".AsMemory(),
+        "sbyte".AsMemory(),
+        "nint".AsMemory(),
+        "nuint".AsMemory(),
+    }.ToImmutableHashSet(NameComparer.Instance);
 
     internal static string GetGloballyQualifiedNameIfNeeded(string typeName)
     {
@@ -60,12 +60,9 @@ internal static class TypeNameHelper
             return GlobalPrefix + typeName;
         }
 
-        foreach (var predefinedTypeName in PredefinedTypeNames)
+        if (PredefinedTypeNames.Contains(typeName.AsMemory()))
         {
-            if (typeName.Equals(predefinedTypeName, StringComparison.Ordinal))
-            {
-                return typeName;
-            }
+            return typeName;
         }
 
         return GlobalPrefix + typeName;
@@ -114,13 +111,10 @@ internal static class TypeNameHelper
             return;
         }
 
-        foreach (var predefinedTypeName in PredefinedTypeNames)
+        if (PredefinedTypeNames.Contains(typeName))
         {
-            if (typeNameSpan.Equals(predefinedTypeName.AsSpan(), StringComparison.Ordinal))
-            {
-                codeWriter.Write(typeName);
-                return;
-            }
+            codeWriter.Write(typeName);
+            return;
         }
 
         codeWriter.Write(GlobalPrefix);

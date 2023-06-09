@@ -24,7 +24,7 @@ public sealed class CodeWriter
     private int _pageOffset;
     private char? _lastChar;
 
-    private ReadOnlyMemory<char> _newLine;
+    private string _newLine;
     private int _indentSize;
     private ReadOnlyMemory<char> _indentString;
 
@@ -94,13 +94,13 @@ public sealed class CodeWriter
         }
     }
 
-    // Because of the how _absoluteIndex is computed, it is effectively the length
+    // Because of how _absoluteIndex is computed, it is effectively the length
     // of what has been written.
     public int Length => _absoluteIndex;
 
     public string NewLine
     {
-        get => _newLine.ToString();
+        get => _newLine;
         set => SetNewLine(value);
     }
 
@@ -117,7 +117,7 @@ public sealed class CodeWriter
             throw new ArgumentException(Resources.FormatCodeWriter_InvalidNewLine(value), nameof(value));
         }
 
-        _newLine = value.AsMemory();
+        _newLine = value;
     }
 
     public bool IndentWithTabs { get; }
@@ -165,23 +165,6 @@ public sealed class CodeWriter
             ? _indentString
             : ComputeIndent(size, IndentWithTabs, TabSize);
 
-        AddTextChunk(indentString);
-
-        var indentLength = indentString.Length;
-        _currentLineCharacterIndex += indentLength;
-        _absoluteIndex += indentLength;
-
-        return this;
-    }
-
-    public CodeWriter Indent()
-    {
-        if (_indentSize == 0 || LastChar is not '\n')
-        {
-            return this;
-        }
-
-        var indentString = _indentString;
         AddTextChunk(indentString);
 
         var indentLength = indentString.Length;
@@ -294,7 +277,7 @@ public sealed class CodeWriter
 
         if (allowIndent)
         {
-            Indent();
+            Indent(_indentSize);
         }
 
         var lastChar = _lastChar;
@@ -315,7 +298,7 @@ public sealed class CodeWriter
         }
 
         // Iterate the span, stopping at each occurrence of a new-line character.
-        // This let's us count the new-line occurrences and keep the index of the last one.
+        // This lets us count the new-line occurrences and keep the index of the last one.
         int newLineIndex;
         while ((newLineIndex = span.IndexOfAny('\r', '\n')) >= 0)
         {
@@ -343,7 +326,7 @@ public sealed class CodeWriter
 
     public CodeWriter WriteLine()
     {
-        WriteCore(_newLine, allowIndent: false);
+        WriteCore(_newLine.AsMemory(), allowIndent: false);
 
         return this;
     }

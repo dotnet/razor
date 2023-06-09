@@ -13,7 +13,6 @@ abstract Microsoft.AspNetCore.Razor.Language.MetadataCollection.Values.get -> Sy
 Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor.IsDirectiveAttribute.get -> bool
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.CodeWriter(string! newLine, Microsoft.AspNetCore.Razor.Language.RazorCodeGenerationOptions! options) -> void
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.GenerateCode() -> string!
-Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.Indent() -> Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter!
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.Indent(int size) -> Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter!
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.LastChar.get -> char?
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.NewLine.get -> string!
