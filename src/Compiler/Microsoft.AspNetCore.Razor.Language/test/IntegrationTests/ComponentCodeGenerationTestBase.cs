@@ -5886,6 +5886,27 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8467")]
+    public void ChildComponent_AtSpecifiedInRazorFileForTypeParameter()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            namespace Test
+            {
+                public class C<T> : ComponentBase
+                {
+                    [Parameter] public int Item { get; set; }
+                }
+            }
+            """));
+
+        var generated = CompileToCSharp("""<C T="@string" Item="1" />""");
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [Fact]
     public void GenericComponent_NonPrimitiveType()
     {
