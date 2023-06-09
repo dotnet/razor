@@ -10,6 +10,25 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 internal static class CSharpIdentifier
 {
+    public static string GetClassNameFromPath(string path)
+    {
+        var span = path.AsSpanOrDefault();
+
+        if (span.Length == 0)
+        {
+            return path;
+        }
+
+        const string cshtmlExtension = ".cshtml";
+
+        if (span.EndsWith(cshtmlExtension.AsSpan(), StringComparison.OrdinalIgnoreCase))
+        {
+            span = span[..^cshtmlExtension.Length];
+        }
+
+        return SanitizeIdentifier(span);
+    }
+
     // CSharp Spec §2.4.2
     private static bool IsIdentifierStart(char character)
     {

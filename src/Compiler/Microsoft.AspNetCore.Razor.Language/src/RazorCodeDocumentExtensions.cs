@@ -6,7 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -281,6 +281,21 @@ public static class RazorCodeDocumentExtensions
 
         document.Items[CssScopeKey] = cssScope;
     }
+
+#nullable enable
+    public static bool TryComputeClassName(this RazorCodeDocument codeDocument, [NotNullWhen(true)] out string? className)
+    {
+        var filePath = codeDocument.Source.RelativePath ?? codeDocument.Source.FilePath;
+        if (string.IsNullOrEmpty(filePath))
+        {
+            className = null;
+            return false;
+        }
+
+        className = CSharpIdentifier.GetClassNameFromPath(filePath);
+        return className is not null;
+    }
+#nullable disable
 
     // In general documents will have a relative path (relative to the project root).
     // We can only really compute a nice namespace when we know a relative path.
