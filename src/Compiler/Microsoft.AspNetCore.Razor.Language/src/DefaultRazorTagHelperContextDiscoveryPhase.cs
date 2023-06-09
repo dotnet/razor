@@ -5,11 +5,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -216,13 +217,16 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
 
     internal sealed class ComponentDirectiveVisitor : DirectiveVisitor
     {
-        private readonly List<TagHelperDescriptor> _notFullyQualifiedComponents;
+        private readonly ImmutableArray<TagHelperDescriptor> _notFullyQualifiedComponents;
         private readonly string _filePath;
         private RazorSourceDocument _source;
 
         public ComponentDirectiveVisitor(string filePath, IReadOnlyList<TagHelperDescriptor> tagHelpers, string currentNamespace)
         {
             _filePath = filePath;
+
+            using var _ = ArrayBuilderPool<TagHelperDescriptor>.GetPooledObject(out var builder);
+            builder.SetCapacityIfNeeded(tagHelpers.Count);
 
             for (var i = 0; i < tagHelpers.Count; i++)
             {
@@ -240,8 +244,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
                     continue;
                 }
 
-                _notFullyQualifiedComponents ??= new();
-                _notFullyQualifiedComponents.Add(tagHelper);
+                builder.Add(tagHelper);
 
                 if (currentNamespace is null)
                 {
@@ -263,6 +266,8 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
                     Matches.Add(tagHelper);
                 }
             }
+
+            _notFullyQualifiedComponents = builder.ToImmutable();
         }
 
         public override HashSet<TagHelperDescriptor> Matches { get; } = new HashSet<TagHelperDescriptor>();
@@ -324,7 +329,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
                             continue;
                         }
 
-                        for (var i = 0; _notFullyQualifiedComponents is not null && i < _notFullyQualifiedComponents.Count; i++)
+                        for (var i = 0; i < _notFullyQualifiedComponents.Length; i++)
                         {
                             var tagHelper = _notFullyQualifiedComponents[i];
                             Debug.Assert(!tagHelper.IsComponentFullyQualifiedNameMatch(), "We've already processed these.");
