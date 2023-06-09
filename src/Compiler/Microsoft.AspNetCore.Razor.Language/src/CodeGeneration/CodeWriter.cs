@@ -12,6 +12,10 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 public sealed class CodeWriter
 {
+    // This is the size of each "page", which are arrays of ReadOnlySpan<char>.
+    // This number was chosen arbitrarily as a "best guess". If changed, care should be
+    // taken to ensure that pages are not allocated on the LOH. ReadOnlySpan<char>
+    // takes up 16 bytes, so a page size of 1000 is 16k.
     private const int PageSize = 1000;
 
     // Rather than using a StringBuilder, we maintain a linked list of pages, which are arrays
@@ -20,6 +24,10 @@ public sealed class CodeWriter
     // StringBuilder.ToString(). This also avoids string duplication by holding onto the strings
     // themselves. So, if the same string instance is added multiple times, we won't duplicate it
     // each time. Instead, we'll hold a ReadOnlyMemory<char> for the string.
+    //
+    // Note that LinkedList<T> was chosen to avoid copying for especially large generated code files.
+    // In addition, because LinkedList<T> provides direct access to the last element, appending
+    // is extremely efficient.
     private readonly LinkedList<ReadOnlyMemory<char>[]> _pages;
     private int _pageOffset;
     private char? _lastChar;
