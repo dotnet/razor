@@ -20,12 +20,12 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 internal class TestLSPDocumentMappingProvider : LSPDocumentMappingProvider
 {
     private readonly Dictionary<Uri, (int hostDocumentVersion, RazorCodeDocument codeDocument)> _uriToVersionAndCodeDocumentMap;
-    private readonly DefaultRazorDocumentMappingService _documentMappingService;
+    private readonly RazorDocumentMappingService _documentMappingService;
 
     public TestLSPDocumentMappingProvider(ILoggerFactory loggerFactory)
     {
         _uriToVersionAndCodeDocumentMap = new();
-        _documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory);
+        _documentMappingService = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory);
     }
 
     public int TextEditRemapCount { get; set; } = 0;
@@ -33,7 +33,7 @@ internal class TestLSPDocumentMappingProvider : LSPDocumentMappingProvider
     public TestLSPDocumentMappingProvider(Dictionary<Uri, (int, RazorCodeDocument)> uriToVersionAndCodeDocumentMap, ILoggerFactory loggerFactory)
     {
         _uriToVersionAndCodeDocumentMap = uriToVersionAndCodeDocumentMap;
-        _documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory);
+        _documentMappingService = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory);
     }
 
     public override Task<RazorMapToDocumentRangesResponse?> MapToDocumentRangesAsync(
@@ -67,7 +67,7 @@ internal class TestLSPDocumentMappingProvider : LSPDocumentMappingProvider
         {
             var projectedRange = projectedRanges[i];
             if (result.codeDocument.IsUnsupported() ||
-                !_documentMappingService.TryMapFromProjectedDocumentRange(result.codeDocument.GetCSharpDocument(), projectedRange, mappedMappingBehavior, out var originalRange))
+                !_documentMappingService.TryMapToHostDocumentRange(result.codeDocument.GetCSharpDocument(), projectedRange, mappedMappingBehavior, out var originalRange))
             {
                 ranges[i] = RangeExtensions.UndefinedRange;
                 continue;

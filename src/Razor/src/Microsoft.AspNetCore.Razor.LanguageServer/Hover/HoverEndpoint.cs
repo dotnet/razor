@@ -20,13 +20,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, VSInternalHover?>, IRegistrationExtension
 {
     private readonly IHoverInfoService _hoverInfoService;
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
     private VSInternalClientCapabilities? _clientCapabilities;
 
     public HoverEndpoint(
         IHoverInfoService hoverInfoService,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         ILoggerFactory loggerFactory)
         : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<HoverEndpoint>())
@@ -50,25 +50,25 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
-    protected override IProjectionStrategy ProjectionStrategy => PreferAttributeNameProjectionStrategy.Instance;
+    protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
-                projection.Position,
-                projection.LanguageKind));
+                positionInfo.Position,
+                positionInfo.LanguageKind));
     }
 
-    protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
         // HTML can still sometimes be handled by razor. For example hovering over
         // a component tag like <Counter /> will still be in an html context
-        if (projection.LanguageKind == RazorLanguageKind.CSharp)
+        if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
         {
             return null;
         }
@@ -77,16 +77,16 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
 
         // Sometimes what looks like a html attribute can actually map to C#, in which case its better to let Roslyn try to handle this.
         // We can only do this if we're in single server mode though, otherwise we won't be delegating to Roslyn at all
-        if (SingleServerSupport && _documentMappingService.TryMapToProjectedDocumentPosition(codeDocument.GetCSharpDocument(), projection.AbsoluteIndex, out _, out _))
+        if (SingleServerSupport && _documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), positionInfo.HostDocumentIndex, out _, out _))
         {
             return null;
         }
 
-        var location = new SourceLocation(projection.AbsoluteIndex, request.Position.Line, request.Position.Character);
+        var location = new SourceLocation(positionInfo.HostDocumentIndex, request.Position.Line, request.Position.Character);
         return _hoverInfoService.GetHoverInfo(codeDocument, location, _clientCapabilities!);
     }
 
-    protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParams originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override async Task<VSInternalHover?> HandleDelegatedResponseAsync(VSInternalHover? response, TextDocumentPositionParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         if (response?.Range is null)
         {
@@ -99,12 +99,12 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
         // If we don't include the originally requested position in our response, the client may not show it, so we extend the range to ensure it is in there.
         // eg for hovering at @bind-Value:af$$ter, we want to show people the hover for the Value property, so Roslyn will return to us the range for just the
         // portion of the attribute that says "Value".
-        if (RazorSyntaxFacts.TryGetFullAttributeNameSpan(codeDocument, projection.AbsoluteIndex, out var originalAttributeRange))
+        if (RazorSyntaxFacts.TryGetFullAttributeNameSpan(codeDocument, positionInfo.HostDocumentIndex, out var originalAttributeRange))
         {
             var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
             response.Range = originalAttributeRange.AsRange(sourceText);
         }
-        else if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), response.Range, out var projectedRange))
+        else if (_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), response.Range, out var projectedRange))
         {
             response.Range = projectedRange;
         }

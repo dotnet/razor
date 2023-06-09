@@ -22,13 +22,13 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 {
     private const int TokenSize = 5;
 
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly ILogger _logger;
 
     public RazorSemanticTokensInfoService(
         ClientNotifierServiceBase languageServer,
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ILoggerFactory loggerFactory)
     {
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
@@ -46,12 +46,13 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         TextDocumentIdentifier textDocumentIdentifier,
         Range range,
         VersionedDocumentContext documentContext,
+        RazorSemanticTokensLegend razorSemanticTokensLegend,
         CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
-        var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range);
+        var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range, razorSemanticTokensLegend);
         List<SemanticRange>? csharpSemanticRanges = null;
 
         try
@@ -112,7 +113,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     {
         // We'll try to call into the mapping service to map to the projected range for us. If that doesn't work,
         // we'll try to find the minimal range ourselves.
-        if (!_documentMappingService.TryMapToProjectedDocumentRange(codeDocument.GetCSharpDocument(), razorRange, out var csharpRange) &&
+        if (!_documentMappingService.TryMapToGeneratedDocumentRange(codeDocument.GetCSharpDocument(), razorRange, out var csharpRange) &&
             !TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
         {
             // There's no C# in the range.
@@ -143,7 +144,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
             var semanticRange = DataToSemanticRange(
                 lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
-            if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), semanticRange.Range, out var originalRange))
+            if (_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), semanticRange.Range, out var originalRange))
             {
                 var razorSemanticRange = new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers);
                 if (razorRange is null || razorRange.OverlapsWith(razorSemanticRange.Range))
