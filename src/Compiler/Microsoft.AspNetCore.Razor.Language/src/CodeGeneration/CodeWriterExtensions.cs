@@ -16,6 +16,9 @@ internal static class CodeWriterExtensions
 {
     private const string InstanceMethodFormat = "{0}.{1}";
 
+    private static readonly ReadOnlyMemory<char> s_true = "true".AsMemory();
+    private static readonly ReadOnlyMemory<char> s_false = "false".AsMemory();
+
     private static readonly char[] CStyleStringLiteralEscapeChars =
     {
         '\r',
@@ -98,7 +101,7 @@ internal static class CodeWriterExtensions
 
     public static CodeWriter WriteBooleanLiteral(this CodeWriter writer, bool value)
     {
-        return writer.Write(value.ToString().ToLowerInvariant());
+        return writer.Write(value ? s_true : s_false);
     }
 
     public static CodeWriter WriteStartAssignment(this CodeWriter writer, string name)
