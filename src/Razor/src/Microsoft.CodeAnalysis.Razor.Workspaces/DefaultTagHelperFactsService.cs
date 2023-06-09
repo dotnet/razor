@@ -116,13 +116,13 @@ internal class DefaultTagHelperFactsService : TagHelperFactsService
             return matchingDescriptors;
         }
 
-        var tagNameWithoutPrefix = tagName[prefix.Length..];
+        var tagNameWithoutPrefix = tagName.AsSpan()[prefix.Length..];
         for (var i = 0; i < descriptors.Count; i++)
         {
             var descriptor = descriptors[i];
             foreach (var rule in descriptor.TagMatchingRules)
             {
-                if (TagHelperMatchingConventions.SatisfiesTagName(tagNameWithoutPrefix.AsSpanOrDefault(), rule) &&
+                if (TagHelperMatchingConventions.SatisfiesTagName(tagNameWithoutPrefix, rule) &&
                     TagHelperMatchingConventions.SatisfiesParentTag(parentTag.AsSpanOrDefault(), rule))
                 {
                     matchingDescriptors.Add(descriptor);
