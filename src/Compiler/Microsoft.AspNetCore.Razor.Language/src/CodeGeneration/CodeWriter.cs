@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
-public sealed class CodeWriter
+public sealed partial class CodeWriter
 {
     // This is the size of each "page", which are arrays of ReadOnlySpan<char>.
     // This number was chosen arbitrarily as a "best guess". If changed, care should be
@@ -216,10 +216,8 @@ public sealed class CodeWriter
         return WriteCore(value.AsMemory());
     }
 
-    public CodeWriter Write(ReadOnlyMemory<char> memory)
-    {
-        return WriteCore(memory);
-    }
+    public CodeWriter Write(ReadOnlyMemory<char> value)
+        => WriteCore(value);
 
     public CodeWriter Write(string value, int startIndex, int count)
     {
@@ -246,39 +244,13 @@ public sealed class CodeWriter
         return WriteCore(value.AsMemory(startIndex, count));
     }
 
-    [InterpolatedStringHandler]
-    internal readonly ref struct CodeWriterInterpolatedStringHandler
-    {
-        private readonly CodeWriter _writer;
-
-        public CodeWriterInterpolatedStringHandler(int literalLength, int formattedCount, CodeWriter writer)
-        {
-            _writer = writer;
-        }
-
-        public void AppendLiteral(string value)
-            => _writer.Write(value);
-
-        public void AppendFormatted<T>(T value)
-        {
-            if (value is null)
-            {
-                return;
-            }
-
-            _writer.Write(value.ToString());
-        }
-    }
-
-    internal CodeWriter Write([InterpolatedStringHandlerArgument("")] ref CodeWriterInterpolatedStringHandler handler)
-    {
-        return this;
-    }
+    public CodeWriter Write([InterpolatedStringHandlerArgument("")] ref WriteInterpolatedStringHandler handler)
+        => this;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private unsafe CodeWriter WriteCore(ReadOnlyMemory<char> chars, bool allowIndent = true)
+    private unsafe CodeWriter WriteCore(ReadOnlyMemory<char> value, bool allowIndent = true)
     {
-        if (chars.IsEmpty)
+        if (value.IsEmpty)
         {
             return this;
         }
@@ -290,9 +262,9 @@ public sealed class CodeWriter
 
         var lastChar = _lastChar;
 
-        AddTextChunk(chars);
+        AddTextChunk(value);
 
-        var span = chars.Span;
+        var span = value.Span;
 
         _absoluteIndex += span.Length;
 
@@ -333,11 +305,10 @@ public sealed class CodeWriter
     }
 
     public CodeWriter WriteLine()
-    {
-        WriteCore(_newLine.AsMemory(), allowIndent: false);
+        => WriteCore(_newLine.AsMemory(), allowIndent: false);
 
-        return this;
-    }
+    public CodeWriter WriteLine(ReadOnlyMemory<char> value)
+        => WriteCore(value).WriteLine();
 
     public CodeWriter WriteLine(string value)
     {
@@ -346,8 +317,11 @@ public sealed class CodeWriter
             throw new ArgumentNullException(nameof(value));
         }
 
-        return Write(value).WriteLine();
+        return WriteCore(value.AsMemory()).WriteLine();
     }
+
+    public CodeWriter WriteLine([InterpolatedStringHandlerArgument("")] ref WriteInterpolatedStringHandler handler)
+        => WriteLine();
 
     public string GenerateCode()
     {
