@@ -16,15 +16,17 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 internal ref struct PooledArrayBuilder<T>
 {
     private readonly ObjectPool<ImmutableArray<T>.Builder> _pool;
+    private readonly int? _capacity;
     private ImmutableArray<T>.Builder? _builder;
 
-    public PooledArrayBuilder()
-        : this(ArrayBuilderPool<T>.Default)
+    public PooledArrayBuilder(int? capacity = null)
+        : this(ArrayBuilderPool<T>.Default, capacity)
     {
     }
 
-    public PooledArrayBuilder(ObjectPool<ImmutableArray<T>.Builder> pool)
+    public PooledArrayBuilder(ObjectPool<ImmutableArray<T>.Builder> pool, int? capacity = null)
     {
+        _capacity = capacity;
         _pool = pool;
     }
 
@@ -38,9 +40,10 @@ internal ref struct PooledArrayBuilder<T>
 
     public void Add(T item)
     {
-        _builder ??= _pool.Get();
+        _builder ??= CreateBuilder();
         _builder.Add(item);
     }
+
 
     public void AddRange(IReadOnlyList<T> items)
     {
@@ -49,13 +52,13 @@ internal ref struct PooledArrayBuilder<T>
             return;
         }
 
-        _builder ??= _pool.Get();
+        _builder ??= CreateBuilder();
         _builder.AddRange(items);
     }
 
     public void AddRange(IEnumerable<T> items)
     {
-        _builder ??= _pool.Get();
+        _builder ??= CreateBuilder();
         _builder.AddRange(items);
     }
 
@@ -66,6 +69,16 @@ internal ref struct PooledArrayBuilder<T>
             _pool.Return(builder);
             _builder = null;
         }
+    }
+
+    private readonly ImmutableArray<T>.Builder CreateBuilder()
+    {
+        var result = _pool.Get();   
+        if (_capacity.HasValue)
+        {
+            result.SetCapacityIfNeeded(_capacity.Value);
+        }
+        return result;
     }
 
     /// <summary>
