@@ -225,8 +225,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
         {
             _filePath = filePath;
 
-            using var _ = ArrayBuilderPool<TagHelperDescriptor>.GetPooledObject(out var builder);
-            builder.SetCapacityIfNeeded(tagHelpers.Count);
+            using var builder = new PooledArrayBuilder<TagHelperDescriptor>(tagHelpers.Count);
 
             for (var i = 0; i < tagHelpers.Count; i++)
             {
@@ -267,7 +266,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
                 }
             }
 
-            _notFullyQualifiedComponents = builder.ToImmutable();
+            _notFullyQualifiedComponents = builder.DrainToImmutable();
         }
 
         public override HashSet<TagHelperDescriptor> Matches { get; } = new HashSet<TagHelperDescriptor>();
@@ -329,9 +328,8 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
                             continue;
                         }
 
-                        for (var i = 0; i < _notFullyQualifiedComponents.Length; i++)
+                        foreach (var tagHelper in _notFullyQualifiedComponents)
                         {
-                            var tagHelper = _notFullyQualifiedComponents[i];
                             Debug.Assert(!tagHelper.IsComponentFullyQualifiedNameMatch(), "We've already processed these.");
 
                             if (tagHelper.IsChildContentTagHelper())
