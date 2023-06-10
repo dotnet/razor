@@ -19,15 +19,15 @@ internal ref struct PooledArrayBuilder<T>
     private readonly int? _capacity;
     private ImmutableArray<T>.Builder? _builder;
 
-    public PooledArrayBuilder(int? capacity = null)
-        : this(ArrayBuilderPool<T>.Default, capacity)
+    public PooledArrayBuilder()
+        :this(null, null)
     {
     }
 
-    public PooledArrayBuilder(ObjectPool<ImmutableArray<T>.Builder> pool, int? capacity = null)
+    public PooledArrayBuilder(ObjectPool<ImmutableArray<T>.Builder>? pool = null, int? capacity = null)
     {
+        _pool = pool ?? ArrayBuilderPool<T>.Default;
         _capacity = capacity;
-        _pool = pool;
     }
 
     public void Dispose()
@@ -43,7 +43,6 @@ internal ref struct PooledArrayBuilder<T>
         _builder ??= CreateBuilder();
         _builder.Add(item);
     }
-
 
     public void AddRange(IReadOnlyList<T> items)
     {
@@ -73,7 +72,7 @@ internal ref struct PooledArrayBuilder<T>
 
     private readonly ImmutableArray<T>.Builder CreateBuilder()
     {
-        var result = _pool.Get();   
+        var result = _pool.Get();
         if (_capacity.HasValue)
         {
             result.SetCapacityIfNeeded(_capacity.Value);

@@ -225,7 +225,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
         {
             _filePath = filePath;
 
-            using var builder = new PooledArrayBuilder<TagHelperDescriptor>(tagHelpers.Count);
+            using var builder = new PooledArrayBuilder<TagHelperDescriptor>(capacity: tagHelpers.Count);
 
             for (var i = 0; i < tagHelpers.Count; i++)
             {
