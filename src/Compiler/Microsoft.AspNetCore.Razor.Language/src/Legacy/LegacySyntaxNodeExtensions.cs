@@ -341,7 +341,6 @@ internal static partial class LegacySyntaxNodeExtensions
         }
     }
 
-    [Obsolete("This API does not have good performance, and should be avoided")]
     public static SyntaxNode? PreviousSpan(this SyntaxNode node)
     {
         if (node is null)

@@ -295,7 +295,6 @@ internal class BraceSmartIndenter : IDisposable
         return false;
     }
 
-#pragma warning disable CS0618 // Type or member is obsolete
     // Internal for testing
     internal static bool IsUnlinkedSpan([NotNullWhen(false)] SyntaxNode? owner)
     {
@@ -310,7 +309,6 @@ internal class BraceSmartIndenter : IDisposable
         return !(owner.NextSpan()?.IsMetaCodeSpanKind() ?? false) ||
                !(owner.PreviousSpan()?.IsMetaCodeSpanKind() ?? false);
     }
-#pragma warning restore CS0618 // Type or member is obsolete
 
     internal static bool BeforeClosingBrace(int linePosition, ITextSnapshotLine lineSnapshot)
     {
