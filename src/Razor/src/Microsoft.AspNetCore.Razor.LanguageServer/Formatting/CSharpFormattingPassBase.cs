@@ -496,7 +496,6 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             outerNode.TryGetPreviousSibling(out var whiteSpace) && whiteSpace.ContainsOnlyWhitespace() &&
             whiteSpace.TryGetPreviousSibling(out var comment) && comment is MarkupCommentBlockSyntax)
         {
-
             return whiteSpace;
         }
 
