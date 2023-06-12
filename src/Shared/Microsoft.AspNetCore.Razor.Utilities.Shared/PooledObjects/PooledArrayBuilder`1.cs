@@ -20,7 +20,7 @@ internal ref struct PooledArrayBuilder<T>
     private ImmutableArray<T>.Builder? _builder;
 
     public PooledArrayBuilder()
-        :this(null, null)
+        : this(null, null)
     {
     }
 
@@ -40,7 +40,7 @@ internal ref struct PooledArrayBuilder<T>
 
     public void Add(T item)
     {
-        _builder ??= CreateBuilder();
+        _builder ??= GetBuilder();
         _builder.Add(item);
     }
 
@@ -51,13 +51,13 @@ internal ref struct PooledArrayBuilder<T>
             return;
         }
 
-        _builder ??= CreateBuilder();
+        _builder ??= GetBuilder();
         _builder.AddRange(items);
     }
 
     public void AddRange(IEnumerable<T> items)
     {
-        _builder ??= CreateBuilder();
+        _builder ??= GetBuilder();
         _builder.AddRange(items);
     }
 
@@ -70,13 +70,14 @@ internal ref struct PooledArrayBuilder<T>
         }
     }
 
-    private readonly ImmutableArray<T>.Builder CreateBuilder()
+    private readonly ImmutableArray<T>.Builder GetBuilder()
     {
         var result = _pool.Get();
-        if (_capacity.HasValue)
+        if (_capacity is int capacity)
         {
-            result.SetCapacityIfNeeded(_capacity.Value);
+            result.SetCapacityIfNeeded(capacity);
         }
+
         return result;
     }
 
