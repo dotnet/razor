@@ -17,7 +17,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
 
-    <!-- IMPORTANT: Ensure all dependencies are embedded in the transport package. -->
+    <!-- IMPORTANT: Ensure all dependencies are embedded in the transport and toolset package. -->
     <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler" />
   </ItemGroup>
 
