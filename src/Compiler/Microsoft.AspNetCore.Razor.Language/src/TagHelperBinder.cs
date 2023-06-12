@@ -80,7 +80,7 @@ internal sealed class TagHelperBinder
         var tagNameWithoutPrefix = tagName.AsSpanOrDefault();
         var parentTagNameWithoutPrefix = parentTagName.AsSpanOrDefault();
 
-        if (_tagHelperPrefix is { Length: var length } && length > 0)
+        if (_tagHelperPrefix is { Length: var length and > 0 })
         {
             tagNameWithoutPrefix = tagNameWithoutPrefix[length..];
 
@@ -93,8 +93,8 @@ internal sealed class TagHelperBinder
         Dictionary<TagHelperDescriptor, IReadOnlyList<TagMatchingRuleDescriptor>> applicableDescriptorMappings = null;
         foreach (var descriptor in descriptors)
         {
-            // We're avoiding desccriptor.TagMatchingRules.Where and applicableRules.Any() to avoid
-            // Enumerator allocations on this hotpath
+            // We're avoiding descriptor.TagMatchingRules.Where and applicableRules.Any() to avoid
+            // Enumerator allocations on this hot path
             List<TagMatchingRuleDescriptor> applicableRules = null;
             for (var i = 0; i < descriptor.TagMatchingRules.Count; i++)
             {

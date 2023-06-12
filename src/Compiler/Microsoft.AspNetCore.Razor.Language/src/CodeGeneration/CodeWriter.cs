@@ -12,9 +12,9 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 public sealed partial class CodeWriter
 {
-    // This is the size of each "page", which are arrays of ReadOnlySpan<char>.
+    // This is the size of each "page", which are arrays of ReadOnlyMemory<char>.
     // This number was chosen arbitrarily as a "best guess". If changed, care should be
-    // taken to ensure that pages are not allocated on the LOH. ReadOnlySpan<char>
+    // taken to ensure that pages are not allocated on the LOH. ReadOnlyMemory<char>
     // takes up 16 bytes, so a page size of 1000 is 16k.
     private const int PageSize = 1000;
 
