@@ -15,9 +15,11 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Text;
 using System.Threading.Tasks;
+using DiffPlex;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
@@ -406,56 +408,15 @@ internal static class Extensions
 
     // UTF-8 with BOM
     private static readonly Encoding _baselineEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
-
-    public static GeneratorRunResult VerifyPageOutput(this GeneratorRunResult result, params string[] expectedOutput)
-    {
-        if (expectedOutput.Length == 1 && string.IsNullOrWhiteSpace(expectedOutput[0]))
-        {
-            Assert.True(false, GenerateExpectedPageOutput(result));
-        }
-        else
-        {
-            Assert.Equal(expectedOutput.Length, result.GeneratedSources.Length);
-            for (int i = 0; i < result.GeneratedSources.Length; i++)
-            {
-                var text = TrimChecksum(result.GeneratedSources[i].SourceText.ToString());
-                Assert.Equal(text, TrimChecksum(expectedOutput[i]), ignoreWhiteSpaceDifferences: true);
-            }
-        }
-
-        return result;
-    }
-
-    public static GeneratorRunResult VerifyHostOutput(this GeneratorRunResult result, params (string hintName, string text)[] expectedOutputs)
-    {
-        if (expectedOutputs.Length == 1 && string.IsNullOrWhiteSpace(expectedOutputs[0].text))
-        {
-            Assert.True(false, GenerateExpectedHostOutput(result));
-        }
-        else
-        {
-            var hostOutputs = result.GetHostOutputs();
-            Assert.Equal(expectedOutputs.Length, hostOutputs.Length);
-            for (int i = 0; i < hostOutputs.Length; i++)
-            {
-                var expectedOutput = expectedOutputs[i];
-                var actualOutput = hostOutputs[i];
-
-                Assert.Equal(expectedOutput.hintName, actualOutput.Key);
-                Assert.Equal(expectedOutput.text, actualOutput.Value, ignoreWhiteSpaceDifferences: true);
-            }
-        }
-
-        return result;
-    }
     
-    private static string CreateBaselineDirectory(string testPath, string testName)
+    private static string CreateBaselineDirectory(string testPath, string testName, string? subdir = null)
     {
         var baselineDirectory = Path.Join(
             _testProjectRoot,
             "TestFiles",
             Path.GetFileNameWithoutExtension(testPath)!,
-            testName);
+            testName,
+            subdir);
         Directory.CreateDirectory(baselineDirectory);
         return baselineDirectory;
     }
@@ -468,12 +429,12 @@ internal static class Extensions
 
         foreach (var source in result.GeneratedSources)
         {
-            var baselinePath = Path.Join(baselineDirectory, source.HintName);
-            var sourceText = source.SourceText.ToString();
-            GenerateOutputBaseline(baselinePath, sourceText);
-            var baselineText = File.ReadAllText(baselinePath);
-            AssertEx.EqualOrDiff(TrimChecksum(baselineText), TrimChecksum(sourceText));
-            Assert.True(touchedFiles.Add(baselinePath));
+            VerifyOutput(baselineDirectory, touchedFiles, source);
+        }
+
+        foreach (var source in result.GetHostOutputs())
+        {
+            VerifyHostOutput(baselineDirectory, touchedFiles, source);
         }
 
         DeleteUnusedBaselines(baselineDirectory, touchedFiles);
@@ -515,54 +476,81 @@ internal static class Extensions
         }
     }
 
-    private static string GenerateExpectedPageOutput(GeneratorRunResult result)
-    {
-        StringBuilder sb = new StringBuilder("Generated Page Output:").AppendLine().AppendLine();
-        for (int i = 0; i < result.GeneratedSources.Length; i++)
-        {
-            if (i > 0)
-            {
-                sb.AppendLine(",");
-            }
-            sb.Append("@\"").Append(result.GeneratedSources[i].SourceText.ToString().Replace("\"", "\"\"")).Append('"');
-        }
-        return sb.ToString();
-    }
-
-    private static string GenerateExpectedHostOutput(GeneratorRunResult result)
-    {
-        StringBuilder sb = new StringBuilder("Generated Host Output:").AppendLine().AppendLine();
-        var hostOutputs = result.GetHostOutputs();
-        for (int i = 0; i < hostOutputs.Length; i++)
-        {
-            if (i > 0)
-            {
-                sb.AppendLine(",");
-            }
-            sb.Append("(@\"").Append(hostOutputs[i].Key.Replace("\"", "\"\"")).Append("\", ");
-            sb.Append("@\"").Append(hostOutputs[i].Value.Replace("\"", "\"\"")).Append("\")");
-        }
-        return sb.ToString();
-    }
-
-    public static GeneratorRunResult VerifyOutputsMatch(this GeneratorRunResult actual, GeneratorRunResult expected, params (int index, string replacement)[] diffs)
+    public static GeneratorRunResult VerifyOutputsMatch(this GeneratorRunResult actual, GeneratorRunResult expected)
     {
         Assert.Equal(actual.GeneratedSources.Length, expected.GeneratedSources.Length);
         for (int i = 0; i < actual.GeneratedSources.Length; i++)
         {
-            var diff = diffs.FirstOrDefault(p => p.index == i).replacement;
-            if (diff is null)
-            {
-                var actualText = actual.GeneratedSources[i].SourceText.ToString();
-                Assert.True(expected.GeneratedSources[i].SourceText.ToString() == actualText, $"No diff supplied. But index {i} was:\r\n\r\n{actualText.Replace("\"", "\"\"")}");
-            }
-            else
-            {
-                AssertEx.EqualOrDiff(TrimChecksum(diff), TrimChecksum(actual.GeneratedSources[i].SourceText.ToString()));
-            }
+            AssertEx.EqualOrDiff(expected.GeneratedSources[i].SourceText.ToString(), actual.GeneratedSources[i].SourceText.ToString(), $"Index {i}");
         }
 
         return actual;
+    }
+
+    public static GeneratorRunResult VerifyOutputsMatch(this GeneratorRunResult actual, GeneratorRunResult expected,
+        int n, int[]? diffs = null, int[]? hostDiffs = null, bool expectedHost = true,
+        [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
+    {
+        var baselineDirectory = CreateBaselineDirectory(testPath, testName, subdir: n.ToString());
+        var touchedFiles = new HashSet<string>();
+
+        Assert.Equal(expected.GeneratedSources.Length, actual.GeneratedSources.Length);
+        for (int i = 0; i < actual.GeneratedSources.Length; i++)
+        {
+            if (diffs?.Contains(i) != true)
+            {
+                AssertEx.EqualOrDiff(expected.GeneratedSources[i].SourceText.ToString(), actual.GeneratedSources[i].SourceText.ToString(), $"Index {i}");
+            }
+            else
+            {
+                VerifyOutput(baselineDirectory, touchedFiles, actual.GeneratedSources[i]);
+            }
+        }
+
+        var actualHostOutputs = actual.GetHostOutputs();
+        if (!expectedHost)
+        {
+            Assert.Empty(actualHostOutputs);
+        }
+        else
+        {
+            var expectedHostOutputs = expected.GetHostOutputs();
+            Assert.Equal(expectedHostOutputs.Length, actualHostOutputs.Length);
+            for (int i = 0; i < actualHostOutputs.Length; i++)
+            {
+                if (hostDiffs?.Contains(i) != true)
+                {
+                    AssertEx.EqualOrDiff(expectedHostOutputs[i].Value, actualHostOutputs[i].Value, $"Host index {i}");
+                }
+                else
+                {
+                    VerifyHostOutput(baselineDirectory, touchedFiles, actualHostOutputs[i]);
+                }
+            }
+        }
+
+        DeleteUnusedBaselines(baselineDirectory, touchedFiles);
+
+        return actual;
+    }
+
+    private static void VerifyOutput(string baselineDirectory, HashSet<string> touchedFiles, GeneratedSourceResult source)
+    {
+        var baselinePath = Path.Join(baselineDirectory, source.HintName);
+        var sourceText = source.SourceText.ToString();
+        GenerateOutputBaseline(baselinePath, sourceText);
+        var baselineText = File.ReadAllText(baselinePath);
+        AssertEx.EqualOrDiff(TrimChecksum(baselineText), TrimChecksum(sourceText));
+        Assert.True(touchedFiles.Add(baselinePath));
+    }
+
+    private static void VerifyHostOutput(string baselineDirectory, HashSet<string> touchedFiles, (string Key, string Value) source)
+    {
+        var baselinePath = Path.Join(baselineDirectory, "__host__" + source.Key);
+        GenerateOutputBaseline(baselinePath, source.Value);
+        var baselineText = File.ReadAllText(baselinePath);
+        AssertEx.EqualOrDiff(baselineText, source.Value);
+        Assert.True(touchedFiles.Add(baselinePath));
     }
 
     private static string TrimChecksum(string text)
