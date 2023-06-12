@@ -503,6 +503,8 @@ internal static class Extensions
             }
             else
             {
+                Assert.True(expected.GeneratedSources[i].SourceText.ToString() != actual.GeneratedSources[i].SourceText.ToString(),
+                    $"Sources at {i} expected to be different, but they are not");
                 VerifyOutput(baselineDirectory, touchedFiles, actual.GeneratedSources[i]);
             }
         }
@@ -524,6 +526,8 @@ internal static class Extensions
                 }
                 else
                 {
+                    Assert.True(expectedHostOutputs[i].Value != actualHostOutputs[i].Value,
+                        $"Host outputs at {i} expected to be different, but they are not");
                     VerifyHostOutput(baselineDirectory, touchedFiles, actualHostOutputs[i]);
                 }
             }
