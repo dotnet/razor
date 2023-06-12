@@ -71,7 +71,8 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
             node.ClassName,
             TagHelperTypeName,
             interfaces: null,
-            typeParameters: null))
+            typeParameters: null,
+            context))
         {
             // Add view component helper.
             context.CodeWriter.WriteVariableDeclaration(

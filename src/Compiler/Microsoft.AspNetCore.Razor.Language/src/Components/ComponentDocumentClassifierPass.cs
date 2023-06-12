@@ -123,10 +123,12 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
                     continue;
                 }
 
+                var constraints = typeParamNode.Tokens.Skip(1).FirstOrDefault();
                 @class.TypeParameters.Add(new TypeParameter()
                 {
                     ParameterName = typeParamNode.Tokens.First().Content,
-                    Constraints = typeParamNode.Tokens.Skip(1).FirstOrDefault()?.Content
+                    Constraints = constraints?.Content,
+                    ConstraintsSource = constraints?.Source,
                 });
             }
 
