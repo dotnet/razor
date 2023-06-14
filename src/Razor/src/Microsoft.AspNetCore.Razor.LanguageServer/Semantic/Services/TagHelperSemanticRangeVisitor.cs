@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -485,13 +484,35 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
             var childNodes = node.ChildNodes();
             if (childNodes.Count == 0)
             {
-                var content = node.GetContent();
-                var lines = content.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
                 var charPosition = range.Start.Character;
-                for (var i = 0; i < lines.Length; i++)
+                var lineStartAbsoluteIndex = node.SpanStart - charPosition;
+                for (var i = range.Start.Line; i <= range.End.Line; i++)
                 {
-                    var startPosition = new Position(range.Start.Line + i, charPosition);
-                    var endPosition = new Position(range.Start.Line + i, charPosition + lines[i].Length);
+                    var startPosition = new Position(i, charPosition);
+
+                    // NOTE: GetLineLength includes newlines but we don't report tokens for newlines so
+                    // need to account for them.
+                    var lineLength = source.Lines.GetLineLength(i);
+
+                    // For the last line, we end where the syntax tree tells us to. For all other lines, we end at the
+                    // last non-newline character
+                    var endChar = i == range.End.Line
+                       ? range.End.Character
+                       : GetLastNonWhitespaceCharacterOffset(source, lineStartAbsoluteIndex, lineLength);
+
+                    // Make sure we move our line start index pointer on, before potentially skipping out on the loop
+                    lineStartAbsoluteIndex += lineLength;
+                    charPosition = 0;
+
+                    // Blank line. The less than check is important because we could have seen two newline characters, but
+                    // be in a situation where we have an LF file with multiple blank lines, so endChar would be -1. Still
+                    // a blank line though :)
+                    if (endChar <= 0)
+                    {
+                        continue;
+                    }
+
+                    var endPosition = new Position(i, endChar);
                     var lineRange = new Range
                     {
                         Start = startPosition,
@@ -499,7 +520,6 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
                     };
                     var semantic = new SemanticRange(semanticKind, lineRange, modifier: 0);
                     AddRange(semantic);
-                    charPosition = 0;
                 }
             }
             else
@@ -532,6 +552,22 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
             {
                 _semanticRanges.Add(semanticRange);
             }
+        }
+
+        static int GetLastNonWhitespaceCharacterOffset(RazorSourceDocument source, int lineStartAbsoluteIndex, int lineLength)
+        {
+            // lineStartAbsoluteIndex + lineLength is the first character of the next line, so move back one to get to the end of the line
+            lineLength--;
+
+            var lineEndAbsoluteIndex = lineStartAbsoluteIndex + lineLength;
+            if (lineEndAbsoluteIndex == 0)
+            {
+                return lineLength;
+            }
+
+            return source[lineEndAbsoluteIndex - 1] is '\n' or '\r'
+                ? lineLength - 1
+                : lineLength;
         }
     }
 }
