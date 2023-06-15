@@ -1178,7 +1178,7 @@ public class CompletionHandlerTest : HandlerTestBase
         };
 
         var result = CompletionHandler.TranslateTextEdits(razorDocPosition, cSharpDocPosition, wordRange.Span.AsRange(), completionList);
-        var actualRange = result.Items.First().TextEdit.Range;
+        var actualRange = result.Items.First().TextEdit.Value.First.Range;
         Assert.Equal(expectedRange, actualRange);
     }
 
