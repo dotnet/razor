@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -13,7 +14,7 @@ internal abstract class ProjectSnapshotManager : ILanguageService
 {
     public abstract event EventHandler<ProjectChangeEventArgs> Changed;
 
-    public abstract IReadOnlyList<IProjectSnapshot> Projects { get; }
+    public abstract ImmutableArray<IProjectSnapshot> Projects { get; }
 
     public abstract bool IsDocumentOpen(string documentFilePath);
 

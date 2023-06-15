@@ -200,10 +200,10 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
     {
         public TestProjectSnapshotManager(params IProjectSnapshot[] projects)
         {
-            Projects = projects;
+            Projects = projects.ToImmutableArray();
         }
 
-        public override IReadOnlyList<IProjectSnapshot> Projects { get; }
+        public override ImmutableArray<IProjectSnapshot> Projects { get; }
 
         public override event EventHandler<ProjectChangeEventArgs> Changed;
 

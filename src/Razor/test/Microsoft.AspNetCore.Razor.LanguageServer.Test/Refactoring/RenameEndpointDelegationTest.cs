@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
@@ -21,7 +22,7 @@ using Xunit.Abstractions;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 
 [UseExportProvider]
-public class RenameEndpointDelegationTest: SingleServerDelegatingEndpointTestBase
+public class RenameEndpointDelegationTest : SingleServerDelegatingEndpointTestBase
 {
     public RenameEndpointDelegationTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -60,7 +61,7 @@ public class RenameEndpointDelegationTest: SingleServerDelegatingEndpointTestBas
 
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
-        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == new[] { Mock.Of<IProjectSnapshot>(MockBehavior.Strict) }, MockBehavior.Strict);
+        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == ImmutableArray<IProjectSnapshot>.Empty.Add(Mock.Of<IProjectSnapshot>(MockBehavior.Strict)), MockBehavior.Strict);
         var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
         using var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
         var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);

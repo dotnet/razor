@@ -50,7 +50,7 @@ internal class DefaultProjectResolver : ProjectResolver
 
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
         var projects = _projectSnapshotManagerAccessor.Instance.Projects;
-        for (var i = 0; i < projects.Count; i++)
+        for (var i = 0; i < projects.Length; i++)
         {
             projectSnapshot = projects[i];
 

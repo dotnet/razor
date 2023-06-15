@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -10,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -226,40 +228,24 @@ internal class DefaultRazorProjectService : RazorProjectService
 
     public override void AddProject(string filePath, string? rootNamespace)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
 
-        var project = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(normalizedPath);
-
-        if (project != null)
+        var existingProject = _projectSnapshotManagerAccessor.Instance.GetOrAddLoadedProject(normalizedPath, RazorDefaults.Configuration, rootNamespace ?? RazorDefaults.RootNamespace);
+        if (existingProject is null)
         {
-            // Project already exists, noop.
-            return;
+            _logger.LogInformation("Added project '{filePath}' to project system.", filePath);
         }
-
-        var hostProject = new HostProject(normalizedPath, RazorDefaults.Configuration, rootNamespace ?? RazorDefaults.RootNamespace);
-        _projectSnapshotManagerAccessor.Instance.ProjectAdded(hostProject);
-        _logger.LogInformation("Added project '{filePath}' to project system.", filePath);
 
         TryMigrateMiscellaneousDocumentsToProject();
     }
 
     public override void RemoveProject(string filePath)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
-        var project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(normalizedPath);
-
-        if (project is null)
+        if (_projectSnapshotManagerAccessor.Instance.TryRemoveLoadedProject(normalizedPath, out var project))
         {
-            // Never tracked the project to begin with, noop.
-            return;
+            _logger.LogInformation("Removing project '{filePath}' from project system.", filePath);
         }
-
-        _logger.LogInformation("Removing project '{filePath}' from project system.", filePath);
-        _projectSnapshotManagerAccessor.Instance.ProjectRemoved(project.HostProject);
 
         TryMigrateDocumentsFromRemovedProject(project);
     }
@@ -274,16 +260,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
-        var project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(normalizedPath);
-
-        if (project is null)
-        {
-            // Never tracked the project to begin with, noop.
-            _logger.LogInformation("Failed to update untracked project '{filePath}'.", filePath);
-            return;
-        }
-
-        UpdateProjectDocuments(documents, project.FilePath);
+        var documentMap = documents.ToImmutableDictionary(document => EnsureFullPath(document.FilePath, normalizedPath), FilePathComparer.Instance);
 
         if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
         {
@@ -291,47 +268,20 @@ internal class DefaultRazorProjectService : RazorProjectService
                 filePath, projectWorkspaceState.TagHelpers.Length, projectWorkspaceState.CSharpLanguageVersion);
         }
 
-        _projectSnapshotManagerAccessor.Instance.ProjectWorkspaceStateChanged(project.FilePath, projectWorkspaceState);
-
-        var currentHostProject = project.HostProject;
-        var currentConfiguration = currentHostProject.Configuration;
-        if (currentConfiguration.ConfigurationName == configuration?.ConfigurationName &&
-            currentHostProject.RootNamespace == rootNamespace)
-        {
-            _logger.LogTrace("Updating project '{filePath}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}'.",
-                filePath, configuration.ConfigurationName, rootNamespace);
-            return;
-        }
-
-        if (configuration is null)
-        {
-            configuration = RazorDefaults.Configuration;
-            _logger.LogInformation("Updating project '{filePath}' to use Razor's default configuration ('{configuration.ConfigurationName}')'.", filePath, configuration.ConfigurationName);
-        }
-        else if (currentConfiguration.ConfigurationName != configuration.ConfigurationName)
-        {
-            _logger.LogInformation("Updating project '{filePath}' to Razor configuration '{configuration.ConfigurationName}' with language version '{configuration.LanguageVersion}'.",
-                filePath, configuration.ConfigurationName, configuration.LanguageVersion);
-        }
-
-        if (currentHostProject.RootNamespace != rootNamespace)
-        {
-            _logger.LogInformation("Updating project '{filePath}''s root namespace to '{rootNamespace}'.", filePath, rootNamespace);
-        }
-
-        var hostProject = new HostProject(project.FilePath, configuration, rootNamespace);
-        _projectSnapshotManagerAccessor.Instance.ProjectConfigurationChanged(hostProject);
+        _projectSnapshotManagerAccessor.Instance.UpdateProject(normalizedPath,
+            configuration,
+            projectWorkspaceState,
+            rootNamespace,
+            project => CalculateRemovedDocuments(project, documentMap),
+            project => CalculateAddedDocuments(project, documentMap),
+            project => CalculateMovedToMiscDocuments(project, documentMap));
     }
 
-    private void UpdateProjectDocuments(IReadOnlyList<DocumentSnapshotHandle> documents, string projectFilePath)
+    private ImmutableArray<(IProjectSnapshot destinationproject, (HostDocument originalDocument, HostDocument newDocument, TextLoader newTextLoader))> CalculateMovedToMiscDocuments(IProjectSnapshot project, ImmutableDictionary<string, DocumentSnapshotHandle> documentMap)
     {
-        var project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectFilePath);
-        var currentHostProject = project.HostProject;
-        var projectDirectory = FilePathNormalizer.GetDirectory(project.FilePath);
-        var documentMap = documents.ToDictionary(document => EnsureFullPath(document.FilePath, projectDirectory), FilePathComparer.Instance);
-        var miscellaneousProject = (ProjectSnapshot)_projectResolver.GetMiscellaneousProject();
+        var miscellaneousProject = _projectResolver.GetMiscellaneousProject();
+        using var _ = ArrayBuilderPool<(IProjectSnapshot, (HostDocument originalDocument, HostDocument newDocument, TextLoader))>.GetPooledObject(out var builder);
 
-        // "Remove" any unnecessary documents by putting them into the misc project
         foreach (var documentFilePath in project.DocumentFilePaths)
         {
             if (documentMap.ContainsKey(documentFilePath))
@@ -340,10 +290,29 @@ internal class DefaultRazorProjectService : RazorProjectService
                 continue;
             }
 
-            MoveDocument(documentFilePath, project, miscellaneousProject);
+            if (project.GetDocument(documentFilePath) is not DocumentSnapshot documentSnapshot)
+            {
+                continue;
+            }
+
+            var currentHostDocument = documentSnapshot.State.HostDocument;
+
+            var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
+            var newDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
+
+            _logger.LogInformation("Moving '{documentFilePath}' from the '{project.FilePath}' project to '{miscellaneousProject.FilePath}' project.",
+                documentFilePath, project.FilePath, miscellaneousProject.FilePath);
+
+            builder.Add((miscellaneousProject, (currentHostDocument, newDocument, textLoader)));
         }
 
-        project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectFilePath);
+        return builder.ToImmutableArray();
+    }
+
+    private ImmutableArray<(HostDocument, TextLoader)> CalculateAddedDocuments(IProjectSnapshot project, ImmutableDictionary<string, DocumentSnapshotHandle> documentMap)
+    {
+        using var _ = ArrayBuilderPool<(HostDocument, TextLoader)>.GetPooledObject(out var builder);
+        var projectDirectory = FilePathNormalizer.Normalize(project.FilePath);
 
         // Update existing documents
         foreach (var documentFilePath in project.DocumentFilePaths)
@@ -373,39 +342,47 @@ internal class DefaultRazorProjectService : RazorProjectService
             _logger.LogTrace("Updating document '{newHostDocument.FilePath}''s file kind to '{newHostDocument.FileKind}' and target path to '{newHostDocument.TargetPath}'.",
                 newHostDocument.FilePath, newHostDocument.FileKind, newHostDocument.TargetPath);
 
-            _projectSnapshotManagerAccessor.Instance.DocumentRemoved(currentHostProject, currentHostDocument);
-
             var remoteTextLoader = _remoteTextLoaderFactory.Create(newFilePath);
-            _projectSnapshotManagerAccessor.Instance.DocumentAdded(currentHostProject, newHostDocument, remoteTextLoader);
+            builder.Add((newHostDocument, remoteTextLoader));
         }
 
-        project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(project.FilePath);
-        miscellaneousProject = (ProjectSnapshot)_projectResolver.GetMiscellaneousProject();
+        return builder.ToImmutable();
+    }
 
-        // Add (or migrate from misc) any new documents
-        foreach (var documentKvp in documentMap)
+    private ImmutableArray<HostDocument> CalculateRemovedDocuments(IProjectSnapshot project, ImmutableDictionary<string, DocumentSnapshotHandle> documentMap)
+    {
+        using var _ = ArrayBuilderPool<HostDocument>.GetPooledObject(out var builder);
+        var projectDirectory = FilePathNormalizer.Normalize(project.FilePath);
+
+        // Update existing documents
+        foreach (var documentFilePath in project.DocumentFilePaths)
         {
-            var documentFilePath = documentKvp.Key;
-            if (project.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance))
+            if (!documentMap.TryGetValue(documentFilePath, out var documentHandle))
             {
-                // Already know about this document
+                // Document exists in the project but not in the configured documents. Chances are the project configuration is from a fallback
+                // configuration case (< 2.1) or the project isn't fully loaded yet.
                 continue;
             }
 
-            if (miscellaneousProject.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance))
+            if (project.GetDocument(documentFilePath) is not DocumentSnapshot documentSnapshot)
             {
-                MoveDocument(documentFilePath, miscellaneousProject, project);
+                continue;
             }
-            else
-            {
-                var documentHandle = documentKvp.Value;
-                var remoteTextLoader = _remoteTextLoaderFactory.Create(documentFilePath);
-                var newHostDocument = new HostDocument(documentFilePath, documentHandle.TargetPath, documentHandle.FileKind);
 
-                _logger.LogInformation("Adding new document '{documentFilePath}' to project '{projectFilePath}'.", documentFilePath, projectFilePath);
-                _projectSnapshotManagerAccessor.Instance.DocumentAdded(currentHostProject, newHostDocument, remoteTextLoader);
+            var currentHostDocument = documentSnapshot.State.HostDocument;
+            var newFilePath = EnsureFullPath(documentHandle.FilePath, projectDirectory);
+            var newHostDocument = new HostDocument(newFilePath, documentHandle.TargetPath, documentHandle.FileKind);
+
+            if (HostDocumentComparer.Instance.Equals(currentHostDocument, newHostDocument))
+            {
+                // Current and "new" host documents are equivalent
+                continue;
             }
+
+            builder.Add(currentHostDocument);
         }
+
+        return builder.ToImmutable();
     }
 
     private void MoveDocument(string documentFilePath, ProjectSnapshot fromProject, ProjectSnapshot toProject)

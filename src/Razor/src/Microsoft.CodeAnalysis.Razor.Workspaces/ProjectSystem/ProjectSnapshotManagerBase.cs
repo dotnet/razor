@@ -1,10 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -32,9 +32,9 @@ internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
 
     internal abstract void ProjectAdded(HostProject hostProject);
 
-    internal abstract void ProjectConfigurationChanged(HostProject hostProject);
+    internal abstract void ProjectConfigurationChanged(HostProject? hostProject);
 
-    internal abstract void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState projectWorkspaceState);
+    internal abstract void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState? projectWorkspaceState);
 
     internal abstract void ProjectRemoved(HostProject hostProject);
 
@@ -47,4 +47,20 @@ internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
     internal abstract void SolutionOpened();
 
     internal abstract void SolutionClosed();
+
+    /// <summary>
+    /// Gets a project if it's already loaded, or calls <see cref="ProjectAdded(HostProject)" /> with a new host project
+    /// </summary>
+    /// <returns>Loaded instance, or null if a new one was added</returns>
+    internal abstract IProjectSnapshot? GetOrAddLoadedProject(string normalizedPath, RazorConfiguration configuration, string? rootNamespace);
+
+    internal abstract bool TryRemoveLoadedProject(string normalizedPath, out IProjectSnapshot project);
+    internal abstract void UpdateProject(
+        string normalizedPath,
+        RazorConfiguration? configuration,
+        ProjectWorkspaceState projectWorkspaceState,
+        string? rootNamespace,
+        Func<IProjectSnapshot, ImmutableArray<HostDocument>> removeFunc,
+        Func<IProjectSnapshot, ImmutableArray<(HostDocument, TextLoader)>> addFunc,
+        Func<IProjectSnapshot, ImmutableArray<(IProjectSnapshot destinationProject, (HostDocument originalDocument, HostDocument newDocument, TextLoader textLoader))>> moveFunc);
 }

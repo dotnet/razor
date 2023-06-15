@@ -210,6 +210,11 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
 
     protected void AddDocumentUnsafe(HostDocument document)
     {
+        if (Current is null)
+        {
+            throw new InvalidOperationException($"Adding a document to a null project");
+        }
+
         var projectManager = GetProjectManager();
 
         if (_currentDocuments.ContainsKey(document.FilePath))
@@ -224,6 +229,11 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
 
     protected void RemoveDocumentUnsafe(HostDocument document)
     {
+        if (Current is null)
+        {
+            throw new InvalidOperationException($"Removing a document to a null project");
+        }
+
         var projectManager = GetProjectManager();
 
         projectManager.DocumentRemoved(Current, document);
@@ -232,6 +242,11 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
 
     protected void ClearDocumentsUnsafe()
     {
+        if (Current is null)
+        {
+            throw new InvalidOperationException($"Clear documents to a null project");
+        }
+
         var projectManager = GetProjectManager();
 
         foreach (var kvp in _currentDocuments)

@@ -5,8 +5,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -19,17 +24,17 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 // (language version, extensions, named configuration).
 //
 // The implementation will create a ProjectSnapshot for each HostProject.
-internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
+internal partial class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 {
     public override event EventHandler<ProjectChangeEventArgs> Changed;
 
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly ProjectSnapshotChangeTrigger[] _triggers;
 
     // Each entry holds a ProjectState and an optional ProjectSnapshot. ProjectSnapshots are
     // created lazily.
-    private readonly Dictionary<string, Entry> _projects;
-    private readonly HashSet<string> _openDocuments;
+    private readonly LockFactory _locksFactory = new();
+    private readonly Dictionary<string, Entry> _projects_needsLock;
+    private readonly HashSet<string> _openDocuments_needsLock;
     private readonly LoadTextOptions LoadTextOptions = new LoadTextOptions(SourceHashAlgorithm.Sha256);
 
     // We have a queue for changes because if one change results in another change aka, add -> open we want to make sure the "add" finishes running first before "open" is notified.
@@ -41,56 +46,19 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         IEnumerable<ProjectSnapshotChangeTrigger> triggers,
         Workspace workspace)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
+        _triggers = triggers?.OrderByDescending(trigger => trigger.InitializePriority).ToArray() ?? throw new ArgumentNullException(nameof(triggers));
+        Workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
+        ErrorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
 
-        if (errorReporter is null)
-        {
-            throw new ArgumentNullException(nameof(errorReporter));
-        }
-
-        if (triggers is null)
-        {
-            throw new ArgumentNullException(nameof(triggers));
-        }
-
-        if (workspace is null)
-        {
-            throw new ArgumentNullException(nameof(workspace));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _triggers = triggers.OrderByDescending(trigger => trigger.InitializePriority).ToArray();
-        Workspace = workspace;
-        ErrorReporter = errorReporter;
-
-        _projects = new Dictionary<string, Entry>(FilePathComparer.Instance);
-        _openDocuments = new HashSet<string>(FilePathComparer.Instance);
+        _projects_needsLock = new Dictionary<string, Entry>(FilePathComparer.Instance);
+        _openDocuments_needsLock = new HashSet<string>(FilePathComparer.Instance);
         _notificationWork = new Queue<ProjectChangeEventArgs>();
 
-        // All methods involving the project snapshot manager need to be run on the
-        // project snapshot manager's specialized thread. The LSP editor should already
-        // be on the specialized thread, however the old editor may be calling this
-        // constructor on the UI thread.
-        if (_projectSnapshotManagerDispatcher.IsDispatcherThread)
+        using (var _ = _locksFactory.GetReadLock())
         {
-            InitializeTriggers(this, _triggers);
-        }
-        else
-        {
-            _ = _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(
-                () => InitializeTriggers(this, _triggers), CancellationToken.None);
-        }
-
-        static void InitializeTriggers(
-            DefaultProjectSnapshotManager snapshotManager,
-            ProjectSnapshotChangeTrigger[] triggers)
-        {
-            for (var i = 0; i < triggers.Length; i++)
+            for (var i = 0; i < _triggers.Length; i++)
             {
-                triggers[i].Initialize(snapshotManager);
+                _triggers[i].Initialize(this);
             }
         }
     }
@@ -98,20 +66,12 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     // internal for testing
     internal bool IsSolutionClosing { get; private set; }
 
-    public override IReadOnlyList<IProjectSnapshot> Projects
+    public override ImmutableArray<IProjectSnapshot> Projects
     {
         get
         {
-            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
-            var i = 0;
-            var projects = new IProjectSnapshot[_projects.Count];
-            foreach (var entry in _projects)
-            {
-                projects[i++] = entry.Value.GetSnapshot();
-            }
-
-            return projects;
+            using var _ = _locksFactory.GetReadLock();
+            return _projects_needsLock.Select(e => e.Value.GetSnapshot()).ToImmutableArray();
         }
     }
 
@@ -119,9 +79,8 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     {
         get
         {
-            _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
-            return _openDocuments;
+            using var _ = _locksFactory.GetReadLock();
+            return _openDocuments_needsLock;
         }
     }
 
@@ -136,9 +95,8 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(filePath));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
-        if (_projects.TryGetValue(filePath, out var entry))
+        using var _ = _locksFactory.GetReadLock();
+        if (_projects_needsLock.TryGetValue(filePath, out var entry))
         {
             return entry.GetSnapshot();
         }
@@ -153,8 +111,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(filePath));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
+        using var _ = _locksFactory.GetReadLock();
         return GetLoadedProject(filePath) ?? new EphemeralProjectSnapshot(Workspace.Services, filePath);
     }
 
@@ -165,9 +122,8 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(documentFilePath));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
-        return _openDocuments.Contains(documentFilePath);
+        using var _ = _locksFactory.GetReadLock();
+        return _openDocuments_needsLock.Contains(documentFilePath);
     }
 
     internal override void DocumentAdded(HostProject hostProject, HostDocument document, TextLoader textLoader)
@@ -182,9 +138,9 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(document));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        using var upgradeableLock = _locksFactory.GetUpgradeAbleReadLock();
 
-        if (_projects.TryGetValue(hostProject.FilePath, out var entry))
+        if (_projects_needsLock.TryGetValue(hostProject.FilePath, out var entry))
         {
             // if the solution is closing we don't need to bother computing new state
             if (IsSolutionClosing)
@@ -194,9 +150,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             }
             else
             {
-                var loader = textLoader is null
-                    ? DocumentState.EmptyLoader
-                    : (() => textLoader.LoadTextAndVersionAsync(LoadTextOptions, CancellationToken.None));
+                var loader = CreateTextAndVersionFunc(textLoader);
                 var state = entry.State.WithAddedHostDocument(document, loader);
 
                 // Document updates can no-op.
@@ -204,7 +158,12 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     entry = new Entry(state);
-                    _projects[hostProject.FilePath] = entry;
+
+                    using (var _ = upgradeableLock.GetWriteLock())
+                    {
+                        _projects_needsLock[hostProject.FilePath] = entry;
+                    }
+
                     NotifyListeners(oldSnapshot, entry.GetSnapshot(), document.FilePath, ProjectChangeKind.DocumentAdded);
                 }
             }
@@ -223,9 +182,13 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(document));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        using var upgradeableLock = _locksFactory.GetUpgradeAbleReadLock();
+        DocumentRemoved(hostProject, document, upgradeableLock);
+    }
 
-        if (_projects.TryGetValue(hostProject.FilePath, out var entry))
+    private void DocumentRemoved(HostProject hostProject, HostDocument document, LockFactory.UpgradeAbleReadLock upgradeableLock)
+    {
+        if (_projects_needsLock.TryGetValue(hostProject.FilePath, out var entry))
         {
             // if the solution is closing we don't need to bother computing new state
             if (IsSolutionClosing)
@@ -242,7 +205,12 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     entry = new Entry(state);
-                    _projects[hostProject.FilePath] = entry;
+
+                    using (var _ = upgradeableLock.GetWriteLock())
+                    {
+                        _projects_needsLock[hostProject.FilePath] = entry;
+                    }
+
                     NotifyListeners(oldSnapshot, entry.GetSnapshot(), document.FilePath, ProjectChangeKind.DocumentRemoved);
                 }
             }
@@ -266,10 +234,10 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(sourceText));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        using var upgradeableLock = _locksFactory.GetUpgradeAbleReadLock();
 
-        if (_projects.TryGetValue(projectFilePath, out var entry) &&
-            entry.State.Documents.TryGetValue(documentFilePath, out var older))
+        if (_projects_needsLock.TryGetValue(projectFilePath, out var entry) &&
+                    entry.State.Documents.TryGetValue(documentFilePath, out var older))
         {
             // if the solution is closing we don't need to bother computing new state
             if (IsSolutionClosing)
@@ -300,15 +268,26 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                     });
                 }
 
-                _openDocuments.Add(documentFilePath);
+                ProjectChangeEventArgs eventArgs = null;
 
-                // Document updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
+                using (var _ = upgradeableLock.GetWriteLock())
                 {
-                    var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[projectFilePath] = entry;
-                    NotifyListeners(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged);
+                    _openDocuments_needsLock.Add(documentFilePath);
+
+                    // Document updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects_needsLock[projectFilePath] = entry;
+                        eventArgs = new(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged, IsSolutionClosing);
+                    }
+                }
+
+                // Don't notify with a write lock to avoid reentrancy problems
+                if (eventArgs is not null)
+                {
+                    NotifyListeners(eventArgs);
                 }
             }
         }
@@ -331,10 +310,10 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(textLoader));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        using var upgradeableLock = _locksFactory.GetUpgradeAbleReadLock();
 
-        if (_projects.TryGetValue(projectFilePath, out var entry) &&
-            entry.State.Documents.TryGetValue(documentFilePath, out var older))
+        if (_projects_needsLock.TryGetValue(projectFilePath, out var entry) &&
+                entry.State.Documents.TryGetValue(documentFilePath, out var older))
         {
             // if the solution is closing we don't need to bother computing new state
             if (IsSolutionClosing)
@@ -348,15 +327,24 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                     older.HostDocument,
                     async () => await textLoader.LoadTextAndVersionAsync(LoadTextOptions, cancellationToken: default).ConfigureAwait(false));
 
-                _openDocuments.Remove(documentFilePath);
-
-                // Document updates can no-op.
-                if (!object.ReferenceEquals(state, entry.State))
+                ProjectChangeEventArgs eventArgs = null;
+                using (var _ = upgradeableLock.GetWriteLock())
                 {
-                    var oldSnapshot = entry.GetSnapshot();
-                    entry = new Entry(state);
-                    _projects[projectFilePath] = entry;
-                    NotifyListeners(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged);
+                    _openDocuments_needsLock.Remove(documentFilePath);
+
+                    // Document updates can no-op.
+                    if (!object.ReferenceEquals(state, entry.State))
+                    {
+                        var oldSnapshot = entry.GetSnapshot();
+                        entry = new Entry(state);
+                        _projects_needsLock[projectFilePath] = entry;
+                        eventArgs = new(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged, IsSolutionClosing);
+                    }
+                }
+
+                if (eventArgs is not null)
+                {
+                    NotifyListeners(eventArgs);
                 }
             }
         }
@@ -379,10 +367,10 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(sourceText));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        using var upgradeableLock = _locksFactory.GetUpgradeAbleReadLock();
 
-        if (_projects.TryGetValue(projectFilePath, out var entry) &&
-            entry.State.Documents.TryGetValue(documentFilePath, out var older))
+        if (_projects_needsLock.TryGetValue(projectFilePath, out var entry) &&
+                    entry.State.Documents.TryGetValue(documentFilePath, out var older))
         {
             ProjectState state;
 
@@ -419,7 +407,12 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     entry = new Entry(state);
-                    _projects[projectFilePath] = entry;
+
+                    using (var _ = upgradeableLock.GetWriteLock())
+                    {
+                        _projects_needsLock[projectFilePath] = entry;
+                    }
+
                     NotifyListeners(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged);
                 }
             }
@@ -443,10 +436,10 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(textLoader));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        using var upgradeableLock = _locksFactory.GetUpgradeAbleReadLock();
 
-        if (_projects.TryGetValue(projectFilePath, out var entry) &&
-            entry.State.Documents.TryGetValue(documentFilePath, out var older))
+        if (_projects_needsLock.TryGetValue(projectFilePath, out var entry) &&
+                    entry.State.Documents.TryGetValue(documentFilePath, out var older))
         {
             // if the solution is closing we don't need to bother computing new state
             if (IsSolutionClosing)
@@ -465,7 +458,12 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     entry = new Entry(state);
-                    _projects[projectFilePath] = entry;
+
+                    using (var _ = upgradeableLock.GetWriteLock())
+                    {
+                        _projects_needsLock[projectFilePath] = entry;
+                    }
+
                     NotifyListeners(oldSnapshot, entry.GetSnapshot(), documentFilePath, ProjectChangeKind.DocumentChanged);
                 }
             }
@@ -479,17 +477,41 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(hostProject));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        using var upgradeableLock = _locksFactory.GetUpgradeAbleReadLock();
+        ProjectAdded(hostProject, upgradeableLock);
+    }
 
+    internal override IProjectSnapshot GetOrAddLoadedProject(string normalizedPath, RazorConfiguration configuration, string rootNamespace)
+    {
+        using var upgradeableReadLock = _locksFactory.GetUpgradeAbleReadLock();
+        var project = GetLoadedProject(normalizedPath);
+
+        if (project is not null)
+        {
+            return project;
+        }
+
+        var newProject = new HostProject(normalizedPath, configuration, rootNamespace);
+        ProjectAdded(newProject, upgradeableReadLock);
+
+        return null;
+    }
+
+    private void ProjectAdded(HostProject hostProject, LockFactory.UpgradeAbleReadLock upgradeableLock)
+    {
         // We don't expect to see a HostProject initialized multiple times for the same path. Just ignore it.
-        if (_projects.ContainsKey(hostProject.FilePath))
+        if (_projects_needsLock.ContainsKey(hostProject.FilePath))
         {
             return;
         }
 
         var state = ProjectState.Create(Workspace.Services, hostProject);
         var entry = new Entry(state);
-        _projects[hostProject.FilePath] = entry;
+
+        using (var _ = upgradeableLock.GetWriteLock())
+        {
+            _projects_needsLock[hostProject.FilePath] = entry;
+        }
 
         // We need to notify listeners about every project add.
         NotifyListeners(older: null, entry.GetSnapshot(), documentFilePath: null, ProjectChangeKind.ProjectAdded);
@@ -502,9 +524,9 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(hostProject));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        using var upgradeableLock = _locksFactory.GetUpgradeAbleReadLock();
 
-        if (_projects.TryGetValue(hostProject.FilePath, out var entry))
+        if (_projects_needsLock.TryGetValue(hostProject.FilePath, out var entry))
         {
             // if the solution is closing we don't need to bother computing new state
             if (IsSolutionClosing)
@@ -521,7 +543,12 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     entry = new Entry(state);
-                    _projects[hostProject.FilePath] = entry;
+
+                    using (var _ = upgradeableLock.GetWriteLock())
+                    {
+                        _projects_needsLock[hostProject.FilePath] = entry;
+                    }
+
                     NotifyListeners(oldSnapshot, entry.GetSnapshot(), documentFilePath: null, ProjectChangeKind.ProjectChanged);
                 }
             }
@@ -540,9 +567,9 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(projectWorkspaceState));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        using var upgradeableLock = _locksFactory.GetUpgradeAbleReadLock();
 
-        if (_projects.TryGetValue(projectFilePath, out var entry))
+        if (_projects_needsLock.TryGetValue(projectFilePath, out var entry))
         {
             // if the solution is closing we don't need to bother computing new state
             if (IsSolutionClosing)
@@ -559,7 +586,12 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     entry = new Entry(state);
-                    _projects[projectFilePath] = entry;
+
+                    using (var _ = upgradeableLock.GetWriteLock())
+                    {
+                        _projects_needsLock[projectFilePath] = entry;
+                    }
+
                     NotifyListeners(oldSnapshot, entry.GetSnapshot(), documentFilePath: null, ProjectChangeKind.ProjectChanged);
                 }
             }
@@ -573,15 +605,39 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(hostProject));
         }
 
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        using var upgradeableLock = _locksFactory.GetUpgradeAbleReadLock();
+        ProjectRemoved(hostProject, upgradeableLock);
+    }
 
-        if (_projects.TryGetValue(hostProject.FilePath, out var entry))
+    private void ProjectRemoved(HostProject hostProject, LockFactory.UpgradeAbleReadLock upgradeableLock)
+    {
+        if (_projects_needsLock.TryGetValue(hostProject.FilePath, out var entry))
         {
             // We need to notify listeners about every project removal.
             var oldSnapshot = entry.GetSnapshot();
-            _projects.Remove(hostProject.FilePath);
+
+            using (var _ = upgradeableLock.GetWriteLock())
+            {
+                _projects_needsLock[hostProject.FilePath] = entry;
+            }
+
             NotifyListeners(oldSnapshot, newer: null, documentFilePath: null, ProjectChangeKind.ProjectRemoved);
         }
+    }
+
+    internal override bool TryRemoveLoadedProject(string normalizedPath, out IProjectSnapshot project)
+    {
+        using var upgradeableLock = _locksFactory.GetUpgradeAbleReadLock();
+
+        project = GetLoadedProject(normalizedPath);
+
+        if (project is HostProject hostProject)
+        {
+            ProjectRemoved(hostProject, upgradeableLock);
+            return true;
+        }
+
+        return false;
     }
 
     internal override void SolutionOpened()
@@ -633,7 +689,11 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     // virtual so it can be overridden in tests
     protected virtual void NotifyListeners(ProjectChangeEventArgs e)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+        _locksFactory.EnsureNoWriteLock();
+
+        // Get a read lock to make sure nothing changes while notifications
+        // are going out.
+        using var _ = _locksFactory.GetReadLock();
 
         _notificationWork.Enqueue(e);
 
@@ -656,6 +716,118 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             while (_notificationWork.Count > 0);
         }
     }
+
+    internal override void UpdateProject(
+        string filePath,
+        RazorConfiguration configuration,
+        ProjectWorkspaceState projectWorkspaceState,
+        string rootNamespace,
+        Func<IProjectSnapshot, ImmutableArray<HostDocument>> removeFunc,
+        Func<IProjectSnapshot, ImmutableArray<(HostDocument, TextLoader)>> addFunc,
+        Func<IProjectSnapshot, ImmutableArray<(IProjectSnapshot destinationProject, (HostDocument originalDocument, HostDocument newDocument, TextLoader textLoader))>> moveFunc)
+    {
+        // Get an upgradeableLock, which will keep a read lock while we compute the changes
+        // and then get a write lock to actually apply them. Only one upgradeable lock
+        // can be held at any given time. Write lock must be retrieved on the same
+        // thread that the lock was acquired
+        using var upgradeableLock = _locksFactory.GetUpgradeAbleReadLock();
+
+        var project = GetLoadedProject(filePath);
+        if (project is not ProjectSnapshot projectSnapshot)
+        {
+            return;
+        }
+
+        var originalHostProject = projectSnapshot.HostProject;
+        var docsToRemove = removeFunc(project);
+        var docsToAdd = addFunc(project);
+        var docsToMove = moveFunc(project);
+
+        var originalEntry = _projects_needsLock[filePath];
+        var newEntry = new Entry(originalEntry.State);
+        using var _ = ListPool<ProjectChangeEventArgs>.GetPooledObject(out var changesToNotify);
+
+        foreach (var removedDoc in docsToRemove)
+        {
+            var stateWithRemoved = newEntry.State.WithRemovedHostDocument(removedDoc);
+            if (!stateWithRemoved.Equals(newEntry.State))
+            {
+                var beforeEntry = newEntry;
+                newEntry = new Entry(stateWithRemoved);
+                changesToNotify.Add(new ProjectChangeEventArgs(beforeEntry.GetSnapshot(), newEntry.GetSnapshot(), ProjectChangeKind.DocumentRemoved));
+            }
+        }
+
+        foreach (var (addedDoc, textLoader) in docsToAdd)
+        {
+            var stateWithAdded = newEntry.State.WithAddedHostDocument(addedDoc, CreateTextAndVersionFunc(textLoader));
+            if (!stateWithAdded.Equals(newEntry.State))
+            {
+                var beforeEntry = newEntry;
+                newEntry = new Entry(stateWithAdded);
+                changesToNotify.Add(new ProjectChangeEventArgs(beforeEntry.GetSnapshot(), newEntry.GetSnapshot(), ProjectChangeKind.DocumentAdded));
+            }
+        }
+
+        Dictionary<string, Entry> otherUpdatedProjectsMap = new(docsToMove.Length, FilePathComparer.Instance);
+
+        foreach (var (destinationProject, moveInfo) in docsToMove)
+        {
+            var stateWithRemoved = newEntry.State.WithRemovedHostDocument(moveInfo.originalDocument);
+            if (!stateWithRemoved.Equals(newEntry.State))
+            {
+                var beforeEntry = newEntry;
+                newEntry = new Entry(stateWithRemoved);
+                changesToNotify.Add(new ProjectChangeEventArgs(beforeEntry.GetSnapshot(), newEntry.GetSnapshot(), ProjectChangeKind.DocumentRemoved));
+            }
+
+            if (!otherUpdatedProjectsMap.TryGetValue(destinationProject.FilePath, out var destinationEntry))
+            {
+                if (_projects_needsLock.TryGetValue(destinationProject.FilePath, out destinationEntry))
+                {
+                    continue;
+                }
+            }
+
+            var changedDestinationState = destinationEntry.State.WithAddedHostDocument(moveInfo.newDocument, CreateTextAndVersionFunc(moveInfo.textLoader));
+            if (!changedDestinationState.Equals(destinationEntry.State))
+            {
+                var beforeEntry = destinationEntry;
+                destinationEntry = new Entry(changedDestinationState);
+                changesToNotify.Add(new ProjectChangeEventArgs(beforeEntry.GetSnapshot(), destinationEntry.GetSnapshot(), ProjectChangeKind.DocumentAdded));
+            }
+        }
+
+        var newHostProject = new HostProject(filePath, configuration, rootNamespace);
+        var stateWithHostProject = newEntry.State.WithHostProject(newHostProject);
+
+        var notifyOfHostProjectChange = !stateWithHostProject.Equals(newEntry.State);
+        if (notifyOfHostProjectChange)
+        {
+            newEntry = new Entry(stateWithHostProject);
+        }
+
+        // Update current state first so we can get rid of the write lock and downgrade
+        // back to a read lock when notifying changes
+        using (upgradeableLock.GetWriteLock())
+        {
+            _projects_needsLock[filePath] = newEntry;
+            foreach (var (path, entry) in otherUpdatedProjectsMap)
+            {
+                _projects_needsLock[path] = entry;
+            }
+        }
+
+        foreach (var notification in changesToNotify)
+        {
+            NotifyListeners(notification);
+        }
+    }
+
+    private Func<Task<TextAndVersion>> CreateTextAndVersionFunc(TextLoader textLoader)
+        => textLoader is null
+            ? DocumentState.EmptyLoader
+            : (() => textLoader.LoadTextAndVersionAsync(LoadTextOptions, CancellationToken.None));
 
     private class Entry
     {

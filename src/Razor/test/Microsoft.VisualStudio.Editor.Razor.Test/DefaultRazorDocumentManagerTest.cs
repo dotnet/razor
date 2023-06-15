@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -44,8 +45,14 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
             c => c.IsOfType(It.IsAny<string>()) == false,
             MockBehavior.Strict);
 
+        _projectManager = new DefaultProjectSnapshotManager(
+            new TestProjectSnapshotManagerDispatcher(),
+            ErrorReporter,
+            Array.Empty<ProjectSnapshotChangeTrigger>(),
+            TestWorkspace.Create());
+
         _projectManager = Mock.Of<ProjectSnapshotManager>(
-            p => p.Projects == new List<IProjectSnapshot>() && p.GetOrCreateProject(It.IsAny<string>()) == null,
+            p => p.GetOrCreateProject(It.IsAny<string>()) == null,
             MockBehavior.Strict);
 
         _workspaceEditorSettings = new DefaultWorkspaceEditorSettings(
