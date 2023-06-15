@@ -486,33 +486,31 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
             {
                 var charPosition = range.Start.Character;
                 var lineStartAbsoluteIndex = node.SpanStart - charPosition;
-                for (var i = range.Start.Line; i <= range.End.Line; i++)
+                for (var lineNumber = range.Start.Line; lineNumber <= range.End.Line; lineNumber++)
                 {
-                    var startPosition = new Position(i, charPosition);
+                    var startPosition = new Position(lineNumber, charPosition);
 
                     // NOTE: GetLineLength includes newlines but we don't report tokens for newlines so
                     // need to account for them.
-                    var lineLength = source.Lines.GetLineLength(i);
+                    var lineLength = source.Lines.GetLineLength(lineNumber);
 
                     // For the last line, we end where the syntax tree tells us to. For all other lines, we end at the
                     // last non-newline character
-                    var endChar = i == range.End.Line
+                    var endChar = lineNumber == range.End.Line
                        ? range.End.Character
                        : GetLastNonWhitespaceCharacterOffset(source, lineStartAbsoluteIndex, lineLength);
 
-                    // Make sure we move our line start index pointer on, before potentially skipping out on the loop
+                    // Make sure we move our line start index pointer on, before potentially breaking out of the loop
                     lineStartAbsoluteIndex += lineLength;
                     charPosition = 0;
 
-                    // Blank line. The less than check is important because we could have seen two newline characters, but
-                    // be in a situation where we have an LF file with multiple blank lines, so endChar would be -1. Still
-                    // a blank line though :)
-                    if (endChar <= 0)
+                    // No tokens for blank lines
+                    if (endChar == 0)
                     {
                         continue;
                     }
 
-                    var endPosition = new Position(i, endChar);
+                    var endPosition = new Position(lineNumber, endChar);
                     var lineRange = new Range
                     {
                         Start = startPosition,
@@ -560,7 +558,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
             lineLength--;
 
             var lineEndAbsoluteIndex = lineStartAbsoluteIndex + lineLength;
-            if (lineEndAbsoluteIndex == 0)
+            if (lineEndAbsoluteIndex == 0 || lineLength == 0)
             {
                 return lineLength;
             }
