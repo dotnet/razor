@@ -18,6 +18,12 @@ internal static class JsonReaderExtensions
         return reader.TokenType == expectedTokenType && reader.Read();
     }
 
+    public static bool AssertTokenAndAdvance(this JsonReader reader, JsonToken expectedTokenType)
+    {
+        Debug.Assert(reader.TokenType == expectedTokenType);
+        return reader.Read();
+    }
+
     public static void ReadProperties(this JsonReader reader, Action<string> onProperty)
     {
         while (reader.Read())
@@ -55,5 +61,27 @@ internal static class JsonReaderExtensions
         }
 
         throw new JsonSerializationException($"Could not find string property '{propertyName}'.");
+    }
+
+    public static JsonReader ReadPropertyName(this JsonReader reader, string propertyName)
+    {
+        string found;
+        if (!reader.Read())
+        {
+            found = "EOF";
+        }
+        else if (reader.TokenType != JsonToken.PropertyName)
+        {
+            found = reader.TokenType.ToString();
+        }
+        else if ((string)reader.Value != propertyName)
+        {
+            found = $"'{reader.Value}'";
+        }
+        else
+        {
+            return reader;
+        }
+        throw new JsonSerializationException($"Expected property '{propertyName}' at '{reader.Path}', found {found}.");
     }
 }

@@ -1,0 +1,3382 @@
+﻿{"FileKind":"component","DocumentIntermediateNode": {
+    "Children": [
+      {
+        "$type": "NamespaceDeclarationIntermediateNode",
+        "Children": [
+          {
+            "$type": "UsingDirectiveIntermediateNode",
+            "Children": [],
+            "Content": "global::System",
+            "Annotations": {},
+            "Diagnostics": [],
+            "Source": {
+              "FilePath": null,
+              "AbsoluteIndex": 3,
+              "LineIndex": 1,
+              "CharacterIndex": 1,
+              "Length": 20,
+              "LineCount": 0,
+              "EndCharacterIndex": 21
+            }
+          },
+          {
+            "$type": "UsingDirectiveIntermediateNode",
+            "Children": [],
+            "Content": "global::System.Collections.Generic",
+            "Annotations": {},
+            "Diagnostics": [],
+            "Source": {
+              "FilePath": null,
+              "AbsoluteIndex": 26,
+              "LineIndex": 2,
+              "CharacterIndex": 1,
+              "Length": 40,
+              "LineCount": 0,
+              "EndCharacterIndex": 41
+            }
+          },
+          {
+            "$type": "UsingDirectiveIntermediateNode",
+            "Children": [],
+            "Content": "global::System.Linq",
+            "Annotations": {},
+            "Diagnostics": [],
+            "Source": {
+              "FilePath": null,
+              "AbsoluteIndex": 69,
+              "LineIndex": 3,
+              "CharacterIndex": 1,
+              "Length": 25,
+              "LineCount": 0,
+              "EndCharacterIndex": 26
+            }
+          },
+          {
+            "$type": "UsingDirectiveIntermediateNode",
+            "Children": [],
+            "Content": "global::System.Threading.Tasks",
+            "Annotations": {},
+            "Diagnostics": [],
+            "Source": {
+              "FilePath": null,
+              "AbsoluteIndex": 97,
+              "LineIndex": 4,
+              "CharacterIndex": 1,
+              "Length": 36,
+              "LineCount": 0,
+              "EndCharacterIndex": 37
+            }
+          },
+          {
+            "$type": "UsingDirectiveIntermediateNode",
+            "Children": [],
+            "Content": "global::Microsoft.AspNetCore.Components",
+            "Annotations": {},
+            "Diagnostics": [],
+            "Source": {
+              "FilePath": null,
+              "AbsoluteIndex": 136,
+              "LineIndex": 5,
+              "CharacterIndex": 1,
+              "Length": 45,
+              "LineCount": 0,
+              "EndCharacterIndex": 46
+            }
+          },
+          {
+            "$type": "ClassDeclarationIntermediateNode",
+            "Children": [
+              {
+                "$type": "DesignTimeDirectiveIntermediateNode",
+                "Children": [],
+                "Annotations": {},
+                "Diagnostics": []
+              },
+              {
+                "$type": "CSharpCodeIntermediateNode",
+                "Children": [
+                  {
+                    "$type": "IntermediateToken",
+                    "Children": [],
+                    "Content": "#pragma warning disable 0414",
+                    "IsCSharp": true,
+                    "Kind": 1,
+                    "Annotations": {},
+                    "Diagnostics": []
+                  }
+                ],
+                "Annotations": {},
+                "Diagnostics": []
+              },
+              {
+                "$type": "CSharpCodeIntermediateNode",
+                "Children": [
+                  {
+                    "$type": "IntermediateToken",
+                    "Children": [],
+                    "Content": "private static object __o = null;",
+                    "IsCSharp": true,
+                    "Kind": 1,
+                    "Annotations": {},
+                    "Diagnostics": []
+                  }
+                ],
+                "Annotations": {},
+                "Diagnostics": []
+              },
+              {
+                "$type": "CSharpCodeIntermediateNode",
+                "Children": [
+                  {
+                    "$type": "IntermediateToken",
+                    "Children": [],
+                    "Content": "#pragma warning restore 0414",
+                    "IsCSharp": true,
+                    "Kind": 1,
+                    "Annotations": {},
+                    "Diagnostics": []
+                  }
+                ],
+                "Annotations": {},
+                "Diagnostics": []
+              },
+              {
+                "$type": "MethodDeclarationIntermediateNode",
+                "Children": [
+                  {
+                    "$type": "MarkupElementIntermediateNode",
+                    "Attributes": {
+                      "$type": "",
+                      "$values": []
+                    },
+                    "Captures": {
+                      "$type": "",
+                      "$values": []
+                    },
+                    "SetKeys": {
+                      "$type": "",
+                      "$values": []
+                    },
+                    "Body": {
+                      "$type": "",
+                      "$values": [
+                        {
+                          "$type": "HtmlContentIntermediateNode",
+                          "Children": [
+                            {
+                              "$type": "LazyIntermediateToken",
+                              "Content": "Hello world",
+                              "Children": [],
+                              "IsHtml": true,
+                              "Kind": 2,
+                              "Annotations": {},
+                              "Diagnostics": [],
+                              "Source": {
+                                "FilePath": "Pages/Index.razor",
+                                "AbsoluteIndex": 4,
+                                "LineIndex": 0,
+                                "CharacterIndex": 4,
+                                "Length": 11,
+                                "LineCount": 0,
+                                "EndCharacterIndex": 15
+                              }
+                            }
+                          ],
+                          "Annotations": {},
+                          "Diagnostics": [],
+                          "Source": {
+                            "FilePath": "Pages/Index.razor",
+                            "AbsoluteIndex": 4,
+                            "LineIndex": 0,
+                            "CharacterIndex": 4,
+                            "Length": 11,
+                            "LineCount": 0,
+                            "EndCharacterIndex": 15
+                          }
+                        }
+                      ]
+                    },
+                    "Children": [
+                      {
+                        "$type": "HtmlContentIntermediateNode",
+                        "Children": [
+                          {
+                            "$type": "LazyIntermediateToken",
+                            "Content": "Hello world",
+                            "Children": [],
+                            "IsHtml": true,
+                            "Kind": 2,
+                            "Annotations": {},
+                            "Diagnostics": [],
+                            "Source": {
+                              "FilePath": "Pages/Index.razor",
+                              "AbsoluteIndex": 4,
+                              "LineIndex": 0,
+                              "CharacterIndex": 4,
+                              "Length": 11,
+                              "LineCount": 0,
+                              "EndCharacterIndex": 15
+                            }
+                          }
+                        ],
+                        "Annotations": {},
+                        "Diagnostics": [],
+                        "Source": {
+                          "FilePath": "Pages/Index.razor",
+                          "AbsoluteIndex": 4,
+                          "LineIndex": 0,
+                          "CharacterIndex": 4,
+                          "Length": 11,
+                          "LineCount": 0,
+                          "EndCharacterIndex": 15
+                        }
+                      }
+                    ],
+                    "TagName": "h1",
+                    "Annotations": {},
+                    "Diagnostics": [],
+                    "Source": {
+                      "FilePath": "Pages/Index.razor",
+                      "AbsoluteIndex": 0,
+                      "LineIndex": 0,
+                      "CharacterIndex": 0,
+                      "Length": 20,
+                      "LineCount": 0,
+                      "EndCharacterIndex": 20
+                    }
+                  }
+                ],
+                "Modifiers": [
+                  "protected",
+                  "override"
+                ],
+                "MethodName": "BuildRenderTree",
+                "Parameters": [
+                  {
+                    "Modifiers": [],
+                    "TypeName": "global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder",
+                    "ParameterName": "__builder"
+                  }
+                ],
+                "ReturnType": "void",
+                "Annotations": {
+                  "PrimaryMethod": "PrimaryMethod"
+                },
+                "Diagnostics": []
+              }
+            ],
+            "Modifiers": [
+              "public",
+              "partial"
+            ],
+            "ClassName": "Index",
+            "BaseType": "global::Microsoft.AspNetCore.Components.ComponentBase",
+            "Interfaces": [],
+            "TypeParameters": [],
+            "Annotations": {
+              "PrimaryClass": "PrimaryClass"
+            },
+            "Diagnostics": []
+          }
+        ],
+        "Content": "MyApp.Pages",
+        "Annotations": {
+          "PrimaryNamespace": "PrimaryNamespace"
+        },
+        "Diagnostics": []
+      }
+    ],
+    "DocumentKind": "component.1.0",
+    "Options": {
+      "DesignTime": true,
+      "_": {
+        "IndentWithTabs": false,
+        "IndentSize": 4,
+        "RootNamespace": "MyApp",
+        "SuppressChecksum": true,
+        "SuppressNullabilityEnforcement": false,
+        "OmitMinimizedComponentAttributeValues": true,
+        "UseEnhancedLinePragma": true,
+        "SuppressMetadataAttributes": true,
+        "SuppressPrimaryMethodBody": false,
+        "SupportLocalizedComponentNames": false
+      }
+    },
+    "Annotations": {},
+    "Diagnostics": []
+  },"TagHelperContext":{"TagHelpers": [
+      {
+        "Kind": "Components.Component",
+        "Name": "MyApp.Pages.Index",
+        "AssemblyName": "TestProject",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Index"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "MyApp.Pages.Index",
+          "Common.TypeNameIdentifier": "Index",
+          "Common.TypeNamespace": "MyApp.Pages",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "MyApp.Pages.Index",
+        "AssemblyName": "TestProject",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "MyApp.Pages.Index"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "MyApp.Pages.Index",
+          "Common.TypeNameIdentifier": "Index",
+          "Common.TypeNamespace": "MyApp.Pages",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Authorization",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "NotAuthorized",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>",
+            "Metadata": {
+              "Common.PropertyName": "NotAuthorized",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment<global::Microsoft.AspNetCore.Components.Authorization.AuthenticationState>",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Authorizing",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment",
+            "Metadata": {
+              "Common.PropertyName": "Authorizing",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Resource",
+            "TypeName": "System.Object",
+            "Metadata": {
+              "Common.PropertyName": "Resource",
+              "Common.GloballyQualifiedTypeName": "global::System.Object"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "RouteData",
+            "TypeName": "Microsoft.AspNetCore.Components.RouteData",
+            "IsEditorRequired": true,
+            "Metadata": {
+              "Common.PropertyName": "RouteData",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RouteData"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "DefaultLayout",
+            "TypeName": "System.Type",
+            "Metadata": {
+              "Common.PropertyName": "DefaultLayout",
+              "Common.GloballyQualifiedTypeName": "global::System.Type"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for all child content expressions.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView",
+          "Common.TypeNameIdentifier": "AuthorizeRouteView",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Authorization",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView.NotAuthorized",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Authorization",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "NotAuthorized",
+            "ParentTag": "Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.ChildContent",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for the 'NotAuthorized' child content expression.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView.NotAuthorized",
+          "Common.TypeNameIdentifier": "AuthorizeRouteView",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Authorization",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView.Authorizing",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Authorization",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Authorizing",
+            "ParentTag": "Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Authorization.AuthorizeRouteView.Authorizing",
+          "Common.TypeNameIdentifier": "AuthorizeRouteView",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Authorization",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Authorization",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "Policy",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "Policy",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Roles",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "Roles",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ChildContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>",
+            "Metadata": {
+              "Common.PropertyName": "ChildContent",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment<global::Microsoft.AspNetCore.Components.Authorization.AuthenticationState>",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "NotAuthorized",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>",
+            "Metadata": {
+              "Common.PropertyName": "NotAuthorized",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment<global::Microsoft.AspNetCore.Components.Authorization.AuthenticationState>",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Authorized",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment<Microsoft.AspNetCore.Components.Authorization.AuthenticationState>",
+            "Metadata": {
+              "Common.PropertyName": "Authorized",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment<global::Microsoft.AspNetCore.Components.Authorization.AuthenticationState>",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Authorizing",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment",
+            "Metadata": {
+              "Common.PropertyName": "Authorizing",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Resource",
+            "TypeName": "System.Object",
+            "Metadata": {
+              "Common.PropertyName": "Resource",
+              "Common.GloballyQualifiedTypeName": "global::System.Object"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for all child content expressions.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView",
+          "Common.TypeNameIdentifier": "AuthorizeView",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Authorization",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView.ChildContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Authorization",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ChildContent",
+            "ParentTag": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.ChildContent",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for the 'ChildContent' child content expression.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView.ChildContent",
+          "Common.TypeNameIdentifier": "AuthorizeView",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Authorization",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView.NotAuthorized",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Authorization",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "NotAuthorized",
+            "ParentTag": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.ChildContent",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for the 'NotAuthorized' child content expression.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView.NotAuthorized",
+          "Common.TypeNameIdentifier": "AuthorizeView",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Authorization",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView.Authorized",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Authorization",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Authorized",
+            "ParentTag": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.ChildContent",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for the 'Authorized' child content expression.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView.Authorized",
+          "Common.TypeNameIdentifier": "AuthorizeView",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Authorization",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView.Authorizing",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Authorization",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Authorizing",
+            "ParentTag": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Authorization.AuthorizeView.Authorizing",
+          "Common.TypeNameIdentifier": "AuthorizeView",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Authorization",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Authorization.CascadingAuthenticationState",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Authorization",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Authorization.CascadingAuthenticationState"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "ChildContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment",
+            "Metadata": {
+              "Common.PropertyName": "ChildContent",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment",
+              "Components.ChildContent": "True"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Authorization.CascadingAuthenticationState",
+          "Common.TypeNameIdentifier": "CascadingAuthenticationState",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Authorization",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Authorization.CascadingAuthenticationState.ChildContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Authorization",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ChildContent",
+            "ParentTag": "Microsoft.AspNetCore.Components.Authorization.CascadingAuthenticationState"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Authorization.CascadingAuthenticationState.ChildContent",
+          "Common.TypeNameIdentifier": "CascadingAuthenticationState",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Authorization",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.CascadingValue<TValue>",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.CascadingValue"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "TValue",
+            "TypeName": "System.Type",
+            "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.CascadingValue<TValue> component.",
+            "Metadata": {
+              "Common.PropertyName": "TValue",
+              "Components.TypeParameter": "True",
+              "Components.TypeParameterIsCascading": "False"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ChildContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment",
+            "Metadata": {
+              "Common.PropertyName": "ChildContent",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Value",
+            "TypeName": "TValue",
+            "Metadata": {
+              "Common.PropertyName": "Value",
+              "Common.GloballyQualifiedTypeName": "TValue",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Name",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "Name",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "IsFixed",
+            "TypeName": "System.Boolean",
+            "Metadata": {
+              "Common.PropertyName": "IsFixed",
+              "Common.GloballyQualifiedTypeName": "global::System.Boolean"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.CascadingValue<TValue>",
+          "Common.TypeNameIdentifier": "CascadingValue",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components",
+          "Components.GenericTyped": "True",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.CascadingValue<TValue>.ChildContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ChildContent",
+            "ParentTag": "Microsoft.AspNetCore.Components.CascadingValue"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.CascadingValue<TValue>.ChildContent",
+          "Common.TypeNameIdentifier": "CascadingValue",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.DynamicComponent",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.DynamicComponent"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "Type",
+            "TypeName": "System.Type",
+            "IsEditorRequired": true,
+            "Metadata": {
+              "Common.PropertyName": "Type",
+              "Common.GloballyQualifiedTypeName": "global::System.Type"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Parameters",
+            "TypeName": "System.Collections.Generic.IDictionary<System.String, System.Object>",
+            "Metadata": {
+              "Common.PropertyName": "Parameters",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IDictionary<global::System.String, global::System.Object>"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.DynamicComponent",
+          "Common.TypeNameIdentifier": "DynamicComponent",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.LayoutView",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.LayoutView"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "ChildContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment",
+            "Metadata": {
+              "Common.PropertyName": "ChildContent",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Layout",
+            "TypeName": "System.Type",
+            "Metadata": {
+              "Common.PropertyName": "Layout",
+              "Common.GloballyQualifiedTypeName": "global::System.Type"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.LayoutView",
+          "Common.TypeNameIdentifier": "LayoutView",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.LayoutView.ChildContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ChildContent",
+            "ParentTag": "Microsoft.AspNetCore.Components.LayoutView"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.LayoutView.ChildContent",
+          "Common.TypeNameIdentifier": "LayoutView",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.RouteView",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.RouteView"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "RouteData",
+            "TypeName": "Microsoft.AspNetCore.Components.RouteData",
+            "IsEditorRequired": true,
+            "Metadata": {
+              "Common.PropertyName": "RouteData",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RouteData"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "DefaultLayout",
+            "TypeName": "System.Type",
+            "Metadata": {
+              "Common.PropertyName": "DefaultLayout",
+              "Common.GloballyQualifiedTypeName": "global::System.Type"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.RouteView",
+          "Common.TypeNameIdentifier": "RouteView",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Routing.Router",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Routing.Router"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "AppAssembly",
+            "TypeName": "System.Reflection.Assembly",
+            "IsEditorRequired": true,
+            "Metadata": {
+              "Common.PropertyName": "AppAssembly",
+              "Common.GloballyQualifiedTypeName": "global::System.Reflection.Assembly"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "AdditionalAssemblies",
+            "TypeName": "System.Collections.Generic.IEnumerable<System.Reflection.Assembly>",
+            "Metadata": {
+              "Common.PropertyName": "AdditionalAssemblies",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IEnumerable<global::System.Reflection.Assembly>"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "NotFound",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment",
+            "IsEditorRequired": true,
+            "Metadata": {
+              "Common.PropertyName": "NotFound",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Found",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment<Microsoft.AspNetCore.Components.RouteData>",
+            "IsEditorRequired": true,
+            "Metadata": {
+              "Common.PropertyName": "Found",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment<global::Microsoft.AspNetCore.Components.RouteData>",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Navigating",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment",
+            "Metadata": {
+              "Common.PropertyName": "Navigating",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "OnNavigateAsync",
+            "TypeName": "Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Routing.NavigationContext>",
+            "Metadata": {
+              "Common.PropertyName": "OnNavigateAsync",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.EventCallback<global::Microsoft.AspNetCore.Components.Routing.NavigationContext>",
+              "Components.EventCallback": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "PreferExactMatches",
+            "TypeName": "System.Boolean",
+            "Metadata": {
+              "Common.PropertyName": "PreferExactMatches",
+              "Common.GloballyQualifiedTypeName": "global::System.Boolean"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for all child content expressions.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Routing.Router",
+          "Common.TypeNameIdentifier": "Router",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Routing",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Routing.Router.NotFound",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "NotFound",
+            "ParentTag": "Microsoft.AspNetCore.Components.Routing.Router"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Routing.Router.NotFound",
+          "Common.TypeNameIdentifier": "Router",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Routing",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Routing.Router.Found",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Found",
+            "ParentTag": "Microsoft.AspNetCore.Components.Routing.Router"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.ChildContent",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for the 'Found' child content expression.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Routing.Router.Found",
+          "Common.TypeNameIdentifier": "Router",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Routing",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Routing.Router.Navigating",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Navigating",
+            "ParentTag": "Microsoft.AspNetCore.Components.Routing.Router"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Routing.Router.Navigating",
+          "Common.TypeNameIdentifier": "Router",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Routing",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Splat",
+        "Name": "Attributes",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "Documentation": "Merges a collection of attributes into the current element or component.",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "*",
+            "Attributes": [
+              {
+                "Name": "@attributes",
+                "Metadata": {
+                  "Common.DirectiveAttribute": "True"
+                }
+              }
+            ]
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Splat",
+            "Name": "@attributes",
+            "TypeName": "System.Object",
+            "Documentation": "Merges a collection of attributes into the current element or component.",
+            "Metadata": {
+              "Common.PropertyName": "Attributes",
+              "Common.DirectiveAttribute": "True"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.ClassifyAttributesOnly": "True",
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Attributes",
+          "Components.IsSpecialKind": "Components.Splat",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Ref",
+        "Name": "Ref",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "Documentation": "Populates the specified field or property with a reference to the element or component.",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "*",
+            "Attributes": [
+              {
+                "Name": "@ref",
+                "Metadata": {
+                  "Common.DirectiveAttribute": "True"
+                }
+              }
+            ]
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Ref",
+            "Name": "@ref",
+            "TypeName": "System.Object",
+            "Documentation": "Populates the specified field or property with a reference to the element or component.",
+            "Metadata": {
+              "Common.PropertyName": "Ref",
+              "Common.DirectiveAttribute": "True"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.ClassifyAttributesOnly": "True",
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Ref",
+          "Components.IsSpecialKind": "Components.Ref",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Key",
+        "Name": "Key",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "Documentation": "Ensures that the component or element will be preserved across renders if (and only if) the supplied key value matches.",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "*",
+            "Attributes": [
+              {
+                "Name": "@key",
+                "Metadata": {
+                  "Common.DirectiveAttribute": "True"
+                }
+              }
+            ]
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Key",
+            "Name": "@key",
+            "TypeName": "System.Object",
+            "Documentation": "Ensures that the component or element will be preserved across renders if (and only if) the supplied key value matches.",
+            "Metadata": {
+              "Common.PropertyName": "Key",
+              "Common.DirectiveAttribute": "True"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.ClassifyAttributesOnly": "True",
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Key",
+          "Components.IsSpecialKind": "Components.Key",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Forms.DataAnnotationsValidator",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Forms",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Forms.DataAnnotationsValidator"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.DataAnnotationsValidator",
+          "Common.TypeNameIdentifier": "DataAnnotationsValidator",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Forms.EditForm",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Forms.EditForm"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "AdditionalAttributes",
+            "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String, System.Object>",
+            "Metadata": {
+              "Common.PropertyName": "AdditionalAttributes",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object>"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "EditContext",
+            "TypeName": "Microsoft.AspNetCore.Components.Forms.EditContext",
+            "Metadata": {
+              "Common.PropertyName": "EditContext",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.Forms.EditContext"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Model",
+            "TypeName": "System.Object",
+            "Metadata": {
+              "Common.PropertyName": "Model",
+              "Common.GloballyQualifiedTypeName": "global::System.Object"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ChildContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment<Microsoft.AspNetCore.Components.Forms.EditContext>",
+            "Metadata": {
+              "Common.PropertyName": "ChildContent",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment<global::Microsoft.AspNetCore.Components.Forms.EditContext>",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "OnSubmit",
+            "TypeName": "Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Forms.EditContext>",
+            "Metadata": {
+              "Common.PropertyName": "OnSubmit",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.EventCallback<global::Microsoft.AspNetCore.Components.Forms.EditContext>",
+              "Components.EventCallback": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "OnValidSubmit",
+            "TypeName": "Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Forms.EditContext>",
+            "Metadata": {
+              "Common.PropertyName": "OnValidSubmit",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.EventCallback<global::Microsoft.AspNetCore.Components.Forms.EditContext>",
+              "Components.EventCallback": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "OnInvalidSubmit",
+            "TypeName": "Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Forms.EditContext>",
+            "Metadata": {
+              "Common.PropertyName": "OnInvalidSubmit",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.EventCallback<global::Microsoft.AspNetCore.Components.Forms.EditContext>",
+              "Components.EventCallback": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for all child content expressions.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.EditForm",
+          "Common.TypeNameIdentifier": "EditForm",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Forms.EditForm.ChildContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ChildContent",
+            "ParentTag": "Microsoft.AspNetCore.Components.Forms.EditForm"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.ChildContent",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for the 'ChildContent' child content expression.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.EditForm.ChildContent",
+          "Common.TypeNameIdentifier": "EditForm",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Forms.InputCheckbox",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Forms.InputCheckbox"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "AdditionalAttributes",
+            "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String, System.Object>",
+            "Metadata": {
+              "Common.PropertyName": "AdditionalAttributes",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object>"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Value",
+            "TypeName": "System.Boolean",
+            "Metadata": {
+              "Common.PropertyName": "Value",
+              "Common.GloballyQualifiedTypeName": "global::System.Boolean"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ValueChanged",
+            "TypeName": "Microsoft.AspNetCore.Components.EventCallback<System.Boolean>",
+            "Metadata": {
+              "Common.PropertyName": "ValueChanged",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.EventCallback<global::System.Boolean>",
+              "Components.EventCallback": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ValueExpression",
+            "TypeName": "System.Linq.Expressions.Expression<System.Func<System.Boolean>>",
+            "Metadata": {
+              "Common.PropertyName": "ValueExpression",
+              "Common.GloballyQualifiedTypeName": "global::System.Linq.Expressions.Expression<global::System.Func<global::System.Boolean>>"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "DisplayName",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "DisplayName",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.InputCheckbox",
+          "Common.TypeNameIdentifier": "InputCheckbox",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Forms.InputDate<TValue>",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Forms.InputDate"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "TValue",
+            "TypeName": "System.Type",
+            "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.Forms.InputDate<TValue> component.",
+            "Metadata": {
+              "Common.PropertyName": "TValue",
+              "Components.TypeParameter": "True",
+              "Components.TypeParameterIsCascading": "False"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Type",
+            "TypeName": "Microsoft.AspNetCore.Components.Forms.InputDateType",
+            "IsEnum": true,
+            "Metadata": {
+              "Common.PropertyName": "Type",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.Forms.InputDateType"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ParsingErrorMessage",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "ParsingErrorMessage",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "AdditionalAttributes",
+            "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String, System.Object>",
+            "Metadata": {
+              "Common.PropertyName": "AdditionalAttributes",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object>"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Value",
+            "TypeName": "TValue",
+            "Metadata": {
+              "Common.PropertyName": "Value",
+              "Common.GloballyQualifiedTypeName": "TValue",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ValueChanged",
+            "TypeName": "Microsoft.AspNetCore.Components.EventCallback<TValue>",
+            "Metadata": {
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.EventCallback<TValue>",
+              "Common.PropertyName": "ValueChanged",
+              "Components.EventCallback": "True",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ValueExpression",
+            "TypeName": "System.Linq.Expressions.Expression<System.Func<TValue>>",
+            "Metadata": {
+              "Common.PropertyName": "ValueExpression",
+              "Common.GloballyQualifiedTypeName": "global::System.Linq.Expressions.Expression<global::System.Func<TValue>>",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "DisplayName",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "DisplayName",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.InputDate<TValue>",
+          "Common.TypeNameIdentifier": "InputDate",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.GenericTyped": "True",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Forms.InputFile",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Forms.InputFile"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "OnChange",
+            "TypeName": "Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Forms.InputFileChangeEventArgs>",
+            "Metadata": {
+              "Common.PropertyName": "OnChange",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.EventCallback<global::Microsoft.AspNetCore.Components.Forms.InputFileChangeEventArgs>",
+              "Components.EventCallback": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "AdditionalAttributes",
+            "TypeName": "System.Collections.Generic.IDictionary<System.String, System.Object>",
+            "Metadata": {
+              "Common.PropertyName": "AdditionalAttributes",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IDictionary<global::System.String, global::System.Object>"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.InputFile",
+          "Common.TypeNameIdentifier": "InputFile",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Forms.InputNumber<TValue>",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Forms.InputNumber"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "TValue",
+            "TypeName": "System.Type",
+            "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.Forms.InputNumber<TValue> component.",
+            "Metadata": {
+              "Common.PropertyName": "TValue",
+              "Components.TypeParameter": "True",
+              "Components.TypeParameterIsCascading": "False"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ParsingErrorMessage",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "ParsingErrorMessage",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "AdditionalAttributes",
+            "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String, System.Object>",
+            "Metadata": {
+              "Common.PropertyName": "AdditionalAttributes",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object>"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Value",
+            "TypeName": "TValue",
+            "Metadata": {
+              "Common.PropertyName": "Value",
+              "Common.GloballyQualifiedTypeName": "TValue",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ValueChanged",
+            "TypeName": "Microsoft.AspNetCore.Components.EventCallback<TValue>",
+            "Metadata": {
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.EventCallback<TValue>",
+              "Common.PropertyName": "ValueChanged",
+              "Components.EventCallback": "True",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ValueExpression",
+            "TypeName": "System.Linq.Expressions.Expression<System.Func<TValue>>",
+            "Metadata": {
+              "Common.PropertyName": "ValueExpression",
+              "Common.GloballyQualifiedTypeName": "global::System.Linq.Expressions.Expression<global::System.Func<TValue>>",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "DisplayName",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "DisplayName",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.InputNumber<TValue>",
+          "Common.TypeNameIdentifier": "InputNumber",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.GenericTyped": "True",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Forms.InputRadio<TValue>",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Forms.InputRadio"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "TValue",
+            "TypeName": "System.Type",
+            "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.Forms.InputRadio<TValue> component.",
+            "Metadata": {
+              "Common.PropertyName": "TValue",
+              "Components.TypeParameter": "True",
+              "Components.TypeParameterIsCascading": "False"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "AdditionalAttributes",
+            "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String, System.Object>",
+            "Metadata": {
+              "Common.PropertyName": "AdditionalAttributes",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object>"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Value",
+            "TypeName": "TValue",
+            "Metadata": {
+              "Common.PropertyName": "Value",
+              "Common.GloballyQualifiedTypeName": "TValue",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Name",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "Name",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.InputRadio<TValue>",
+          "Common.TypeNameIdentifier": "InputRadio",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.GenericTyped": "True",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Forms.InputRadioGroup<TValue>",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Forms.InputRadioGroup"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "TValue",
+            "TypeName": "System.Type",
+            "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.Forms.InputRadioGroup<TValue> component.",
+            "Metadata": {
+              "Common.PropertyName": "TValue",
+              "Components.TypeParameter": "True",
+              "Components.TypeParameterIsCascading": "False"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ChildContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment",
+            "Metadata": {
+              "Common.PropertyName": "ChildContent",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Name",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "Name",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "AdditionalAttributes",
+            "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String, System.Object>",
+            "Metadata": {
+              "Common.PropertyName": "AdditionalAttributes",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object>"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Value",
+            "TypeName": "TValue",
+            "Metadata": {
+              "Common.PropertyName": "Value",
+              "Common.GloballyQualifiedTypeName": "TValue",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ValueChanged",
+            "TypeName": "Microsoft.AspNetCore.Components.EventCallback<TValue>",
+            "Metadata": {
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.EventCallback<TValue>",
+              "Common.PropertyName": "ValueChanged",
+              "Components.EventCallback": "True",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ValueExpression",
+            "TypeName": "System.Linq.Expressions.Expression<System.Func<TValue>>",
+            "Metadata": {
+              "Common.PropertyName": "ValueExpression",
+              "Common.GloballyQualifiedTypeName": "global::System.Linq.Expressions.Expression<global::System.Func<TValue>>",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "DisplayName",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "DisplayName",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.InputRadioGroup<TValue>",
+          "Common.TypeNameIdentifier": "InputRadioGroup",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.GenericTyped": "True",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Forms.InputRadioGroup<TValue>.ChildContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ChildContent",
+            "ParentTag": "Microsoft.AspNetCore.Components.Forms.InputRadioGroup"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.InputRadioGroup<TValue>.ChildContent",
+          "Common.TypeNameIdentifier": "InputRadioGroup",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Forms.InputSelect<TValue>",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Forms.InputSelect"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "TValue",
+            "TypeName": "System.Type",
+            "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.Forms.InputSelect<TValue> component.",
+            "Metadata": {
+              "Common.PropertyName": "TValue",
+              "Components.TypeParameter": "True",
+              "Components.TypeParameterIsCascading": "False"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ChildContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment",
+            "Metadata": {
+              "Common.PropertyName": "ChildContent",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "AdditionalAttributes",
+            "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String, System.Object>",
+            "Metadata": {
+              "Common.PropertyName": "AdditionalAttributes",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object>"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Value",
+            "TypeName": "TValue",
+            "Metadata": {
+              "Common.PropertyName": "Value",
+              "Common.GloballyQualifiedTypeName": "TValue",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ValueChanged",
+            "TypeName": "Microsoft.AspNetCore.Components.EventCallback<TValue>",
+            "Metadata": {
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.EventCallback<TValue>",
+              "Common.PropertyName": "ValueChanged",
+              "Components.EventCallback": "True",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ValueExpression",
+            "TypeName": "System.Linq.Expressions.Expression<System.Func<TValue>>",
+            "Metadata": {
+              "Common.PropertyName": "ValueExpression",
+              "Common.GloballyQualifiedTypeName": "global::System.Linq.Expressions.Expression<global::System.Func<TValue>>",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "DisplayName",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "DisplayName",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.InputSelect<TValue>",
+          "Common.TypeNameIdentifier": "InputSelect",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.GenericTyped": "True",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Forms.InputSelect<TValue>.ChildContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ChildContent",
+            "ParentTag": "Microsoft.AspNetCore.Components.Forms.InputSelect"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.InputSelect<TValue>.ChildContent",
+          "Common.TypeNameIdentifier": "InputSelect",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Forms.InputText",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Forms.InputText"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "AdditionalAttributes",
+            "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String, System.Object>",
+            "Metadata": {
+              "Common.PropertyName": "AdditionalAttributes",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object>"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Value",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "Value",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ValueChanged",
+            "TypeName": "Microsoft.AspNetCore.Components.EventCallback<System.String>",
+            "Metadata": {
+              "Common.PropertyName": "ValueChanged",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.EventCallback<global::System.String>",
+              "Components.EventCallback": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ValueExpression",
+            "TypeName": "System.Linq.Expressions.Expression<System.Func<System.String>>",
+            "Metadata": {
+              "Common.PropertyName": "ValueExpression",
+              "Common.GloballyQualifiedTypeName": "global::System.Linq.Expressions.Expression<global::System.Func<global::System.String>>"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "DisplayName",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "DisplayName",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.InputText",
+          "Common.TypeNameIdentifier": "InputText",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Forms.InputTextArea",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Forms.InputTextArea"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "AdditionalAttributes",
+            "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String, System.Object>",
+            "Metadata": {
+              "Common.PropertyName": "AdditionalAttributes",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object>"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Value",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "Value",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ValueChanged",
+            "TypeName": "Microsoft.AspNetCore.Components.EventCallback<System.String>",
+            "Metadata": {
+              "Common.PropertyName": "ValueChanged",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.EventCallback<global::System.String>",
+              "Components.EventCallback": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ValueExpression",
+            "TypeName": "System.Linq.Expressions.Expression<System.Func<System.String>>",
+            "Metadata": {
+              "Common.PropertyName": "ValueExpression",
+              "Common.GloballyQualifiedTypeName": "global::System.Linq.Expressions.Expression<global::System.Func<global::System.String>>"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "DisplayName",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "DisplayName",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.InputTextArea",
+          "Common.TypeNameIdentifier": "InputTextArea",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Forms.ValidationMessage<TValue>",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Forms.ValidationMessage"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "TValue",
+            "TypeName": "System.Type",
+            "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.Forms.ValidationMessage<TValue> component.",
+            "Metadata": {
+              "Common.PropertyName": "TValue",
+              "Components.TypeParameter": "True",
+              "Components.TypeParameterIsCascading": "False"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "AdditionalAttributes",
+            "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String, System.Object>",
+            "Metadata": {
+              "Common.PropertyName": "AdditionalAttributes",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object>"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "For",
+            "TypeName": "System.Linq.Expressions.Expression<System.Func<TValue>>",
+            "Metadata": {
+              "Common.PropertyName": "For",
+              "Common.GloballyQualifiedTypeName": "global::System.Linq.Expressions.Expression<global::System.Func<TValue>>",
+              "Components.GenericTyped": "True"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.ValidationMessage<TValue>",
+          "Common.TypeNameIdentifier": "ValidationMessage",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.GenericTyped": "True",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Forms.ValidationSummary",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Forms.ValidationSummary"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "Model",
+            "TypeName": "System.Object",
+            "Metadata": {
+              "Common.PropertyName": "Model",
+              "Common.GloballyQualifiedTypeName": "global::System.Object"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "AdditionalAttributes",
+            "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String, System.Object>",
+            "Metadata": {
+              "Common.PropertyName": "AdditionalAttributes",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object>"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Forms.ValidationSummary",
+          "Common.TypeNameIdentifier": "ValidationSummary",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Forms",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Routing.FocusOnNavigate",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Routing.FocusOnNavigate"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "RouteData",
+            "TypeName": "Microsoft.AspNetCore.Components.RouteData",
+            "Metadata": {
+              "Common.PropertyName": "RouteData",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RouteData"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Selector",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "Selector",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Routing.FocusOnNavigate",
+          "Common.TypeNameIdentifier": "FocusOnNavigate",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Routing",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Routing.NavigationLock",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Routing.NavigationLock"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "OnBeforeInternalNavigation",
+            "TypeName": "Microsoft.AspNetCore.Components.EventCallback<Microsoft.AspNetCore.Components.Routing.LocationChangingContext>",
+            "Metadata": {
+              "Common.PropertyName": "OnBeforeInternalNavigation",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.EventCallback<global::Microsoft.AspNetCore.Components.Routing.LocationChangingContext>",
+              "Components.EventCallback": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ConfirmExternalNavigation",
+            "TypeName": "System.Boolean",
+            "Metadata": {
+              "Common.PropertyName": "ConfirmExternalNavigation",
+              "Common.GloballyQualifiedTypeName": "global::System.Boolean"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Routing.NavigationLock",
+          "Common.TypeNameIdentifier": "NavigationLock",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Routing",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Routing.NavLink",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Routing.NavLink"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "ActiveClass",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "ActiveClass",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "AdditionalAttributes",
+            "TypeName": "System.Collections.Generic.IReadOnlyDictionary<System.String, System.Object>",
+            "Metadata": {
+              "Common.PropertyName": "AdditionalAttributes",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IReadOnlyDictionary<global::System.String, global::System.Object>"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ChildContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment",
+            "Metadata": {
+              "Common.PropertyName": "ChildContent",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Match",
+            "TypeName": "Microsoft.AspNetCore.Components.Routing.NavLinkMatch",
+            "IsEnum": true,
+            "Metadata": {
+              "Common.PropertyName": "Match",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.Routing.NavLinkMatch"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Routing.NavLink",
+          "Common.TypeNameIdentifier": "NavLink",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Routing",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Routing.NavLink.ChildContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ChildContent",
+            "ParentTag": "Microsoft.AspNetCore.Components.Routing.NavLink"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Routing.NavLink.ChildContent",
+          "Common.TypeNameIdentifier": "NavLink",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Routing",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Web.HeadContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Web.HeadContent"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "ChildContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment",
+            "Metadata": {
+              "Common.PropertyName": "ChildContent",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment",
+              "Components.ChildContent": "True"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Web.HeadContent",
+          "Common.TypeNameIdentifier": "HeadContent",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Web",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Web.HeadContent.ChildContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ChildContent",
+            "ParentTag": "Microsoft.AspNetCore.Components.Web.HeadContent"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Web.HeadContent.ChildContent",
+          "Common.TypeNameIdentifier": "HeadContent",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Web",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Web.HeadOutlet",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Web.HeadOutlet"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Web.HeadOutlet",
+          "Common.TypeNameIdentifier": "HeadOutlet",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Web",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Web.PageTitle",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Web.PageTitle"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "ChildContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment",
+            "Metadata": {
+              "Common.PropertyName": "ChildContent",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment",
+              "Components.ChildContent": "True"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Web.PageTitle",
+          "Common.TypeNameIdentifier": "PageTitle",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Web",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Web.PageTitle.ChildContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ChildContent",
+            "ParentTag": "Microsoft.AspNetCore.Components.Web.PageTitle"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Web.PageTitle.ChildContent",
+          "Common.TypeNameIdentifier": "PageTitle",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Web",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Web.ErrorBoundary",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Web.ErrorBoundary"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "ChildContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment",
+            "Metadata": {
+              "Common.PropertyName": "ChildContent",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ErrorContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment<System.Exception>",
+            "Metadata": {
+              "Common.PropertyName": "ErrorContent",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment<global::System.Exception>",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "MaximumErrorCount",
+            "TypeName": "System.Int32",
+            "Metadata": {
+              "Common.PropertyName": "MaximumErrorCount",
+              "Common.GloballyQualifiedTypeName": "global::System.Int32"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for all child content expressions.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Web.ErrorBoundary",
+          "Common.TypeNameIdentifier": "ErrorBoundary",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Web",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Web.ErrorBoundary.ChildContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ChildContent",
+            "ParentTag": "Microsoft.AspNetCore.Components.Web.ErrorBoundary"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Web.ErrorBoundary.ChildContent",
+          "Common.TypeNameIdentifier": "ErrorBoundary",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Web",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Web.ErrorBoundary.ErrorContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ErrorContent",
+            "ParentTag": "Microsoft.AspNetCore.Components.Web.ErrorBoundary"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.ChildContent",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for the 'ErrorContent' child content expression.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Web.ErrorBoundary.ErrorContent",
+          "Common.TypeNameIdentifier": "ErrorBoundary",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Web",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize<TItem>",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "TItem",
+            "TypeName": "System.Type",
+            "Documentation": "Specifies the type of the type parameter TItem for the Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize<TItem> component.",
+            "Metadata": {
+              "Common.PropertyName": "TItem",
+              "Components.TypeParameter": "True",
+              "Components.TypeParameterIsCascading": "False"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ChildContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment<TItem>",
+            "Metadata": {
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment<TItem>",
+              "Common.PropertyName": "ChildContent",
+              "Components.ChildContent": "True",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ItemContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment<TItem>",
+            "Metadata": {
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment<TItem>",
+              "Common.PropertyName": "ItemContent",
+              "Components.ChildContent": "True",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Placeholder",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment<Microsoft.AspNetCore.Components.Web.Virtualization.PlaceholderContext>",
+            "Metadata": {
+              "Common.PropertyName": "Placeholder",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment<global::Microsoft.AspNetCore.Components.Web.Virtualization.PlaceholderContext>",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ItemSize",
+            "TypeName": "System.Single",
+            "Metadata": {
+              "Common.PropertyName": "ItemSize",
+              "Common.GloballyQualifiedTypeName": "global::System.Single"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ItemsProvider",
+            "TypeName": "Microsoft.AspNetCore.Components.Web.Virtualization.ItemsProviderDelegate<TItem>",
+            "Metadata": {
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.Web.Virtualization.ItemsProviderDelegate<TItem>",
+              "Common.PropertyName": "ItemsProvider",
+              "Components.DelegateSignature": "True",
+              "Components.GenericTyped": "True",
+              "Components.IsDelegateAwaitableResult": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Items",
+            "TypeName": "System.Collections.Generic.ICollection<TItem>",
+            "Metadata": {
+              "Common.PropertyName": "Items",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.ICollection<TItem>",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "OverscanCount",
+            "TypeName": "System.Int32",
+            "Metadata": {
+              "Common.PropertyName": "OverscanCount",
+              "Common.GloballyQualifiedTypeName": "global::System.Int32"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "SpacerElement",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "SpacerElement",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for all child content expressions.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize<TItem>",
+          "Common.TypeNameIdentifier": "Virtualize",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Web.Virtualization",
+          "Components.GenericTyped": "True",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize<TItem>.ChildContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ChildContent",
+            "ParentTag": "Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.ChildContent",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for the 'ChildContent' child content expression.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize<TItem>.ChildContent",
+          "Common.TypeNameIdentifier": "Virtualize",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Web.Virtualization",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize<TItem>.ItemContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ItemContent",
+            "ParentTag": "Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.ChildContent",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for the 'ItemContent' child content expression.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize<TItem>.ItemContent",
+          "Common.TypeNameIdentifier": "Virtualize",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Web.Virtualization",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize<TItem>.Placeholder",
+        "AssemblyName": "Microsoft.AspNetCore.Components.Web",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "Placeholder",
+            "ParentTag": "Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.ChildContent",
+            "Name": "Context",
+            "TypeName": "System.String",
+            "Documentation": "Specifies the parameter name for the 'Placeholder' child content expression.",
+            "Metadata": {
+              "Components.ChildContentParameterName": "True",
+              "Common.PropertyName": "Context"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Web.Virtualization.Virtualize<TItem>.Placeholder",
+          "Common.TypeNameIdentifier": "Virtualize",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components.Web.Virtualization",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Components.NameMatch": "Components.FullyQualifiedNameMatch",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.CascadingValue<TValue>",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "CascadingValue"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "TValue",
+            "TypeName": "System.Type",
+            "Documentation": "Specifies the type of the type parameter TValue for the Microsoft.AspNetCore.Components.CascadingValue<TValue> component.",
+            "Metadata": {
+              "Common.PropertyName": "TValue",
+              "Components.TypeParameter": "True",
+              "Components.TypeParameterIsCascading": "False"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "ChildContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment",
+            "Metadata": {
+              "Common.PropertyName": "ChildContent",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Value",
+            "TypeName": "TValue",
+            "Metadata": {
+              "Common.PropertyName": "Value",
+              "Common.GloballyQualifiedTypeName": "TValue",
+              "Components.GenericTyped": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Name",
+            "TypeName": "System.String",
+            "Metadata": {
+              "Common.PropertyName": "Name",
+              "Common.GloballyQualifiedTypeName": "global::System.String"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "IsFixed",
+            "TypeName": "System.Boolean",
+            "Metadata": {
+              "Common.PropertyName": "IsFixed",
+              "Common.GloballyQualifiedTypeName": "global::System.Boolean"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.CascadingValue<TValue>",
+          "Common.TypeNameIdentifier": "CascadingValue",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components",
+          "Components.GenericTyped": "True",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.CascadingValue<TValue>.ChildContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ChildContent",
+            "ParentTag": "CascadingValue"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.CascadingValue<TValue>.ChildContent",
+          "Common.TypeNameIdentifier": "CascadingValue",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.DynamicComponent",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "DynamicComponent"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "Type",
+            "TypeName": "System.Type",
+            "IsEditorRequired": true,
+            "Metadata": {
+              "Common.PropertyName": "Type",
+              "Common.GloballyQualifiedTypeName": "global::System.Type"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Parameters",
+            "TypeName": "System.Collections.Generic.IDictionary<System.String, System.Object>",
+            "Metadata": {
+              "Common.PropertyName": "Parameters",
+              "Common.GloballyQualifiedTypeName": "global::System.Collections.Generic.IDictionary<global::System.String, global::System.Object>"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.DynamicComponent",
+          "Common.TypeNameIdentifier": "DynamicComponent",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.LayoutView",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "LayoutView"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "ChildContent",
+            "TypeName": "Microsoft.AspNetCore.Components.RenderFragment",
+            "Metadata": {
+              "Common.PropertyName": "ChildContent",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RenderFragment",
+              "Components.ChildContent": "True"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "Layout",
+            "TypeName": "System.Type",
+            "Metadata": {
+              "Common.PropertyName": "Layout",
+              "Common.GloballyQualifiedTypeName": "global::System.Type"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.LayoutView",
+          "Common.TypeNameIdentifier": "LayoutView",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.ChildContent",
+        "Name": "Microsoft.AspNetCore.Components.LayoutView.ChildContent",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "ChildContent",
+            "ParentTag": "LayoutView"
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.LayoutView.ChildContent",
+          "Common.TypeNameIdentifier": "LayoutView",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components",
+          "Components.IsSpecialKind": "Components.ChildContent",
+          "Runtime.Name": "Components.None"
+        }
+      },
+      {
+        "Kind": "Components.Component",
+        "Name": "Microsoft.AspNetCore.Components.RouteView",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "RouteView"
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Component",
+            "Name": "RouteData",
+            "TypeName": "Microsoft.AspNetCore.Components.RouteData",
+            "IsEditorRequired": true,
+            "Metadata": {
+              "Common.PropertyName": "RouteData",
+              "Common.GloballyQualifiedTypeName": "global::Microsoft.AspNetCore.Components.RouteData"
+            }
+          },
+          {
+            "Kind": "Components.Component",
+            "Name": "DefaultLayout",
+            "TypeName": "System.Type",
+            "Metadata": {
+              "Common.PropertyName": "DefaultLayout",
+              "Common.GloballyQualifiedTypeName": "global::System.Type"
+            }
+          }
+        ],
+        "Metadata": {
+          "Common.TypeName": "Microsoft.AspNetCore.Components.RouteView",
+          "Common.TypeNameIdentifier": "RouteView",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components",
+          "Runtime.Name": "Components.IComponent"
+        }
+      },
+      {
+        "Kind": "Components.Bind",
+        "Name": "Bind",
+        "AssemblyName": "Microsoft.AspNetCore.Components",
+        "Documentation": "Binds the provided expression to an attribute and a change event, based on the naming of the bind attribute. For example: <code>@bind-value=\"...\"</code> and <code>@bind-value:event=\"onchange\"</code> will assign the current value of the expression to the 'value' attribute, and assign a delegate that attempts to set the value to the 'onchange' attribute.",
+        "CaseSensitive": true,
+        "TagMatchingRules": [
+          {
+            "TagName": "*",
+            "Attributes": [
+              {
+                "Name": "@bind-",
+                "NameComparison": 1,
+                "Metadata": {
+                  "Common.DirectiveAttribute": "True"
+                }
+              }
+            ]
+          }
+        ],
+        "BoundAttributes": [
+          {
+            "Kind": "Components.Bind",
+            "Name": "@bind-...",
+            "TypeName": "System.Collections.Generic.Dictionary<string, object>",
+            "IndexerNamePrefix": "@bind-",
+            "IndexerTypeName": "System.Object",
+            "Documentation": "Binds the provided expression to an attribute and a change event, based on the naming of the bind attribute. For example: <code>@bind-value=\"...\"</code> and <code>@bind-value:event=\"onchange\"</code> will assign the current value of the expression to the 'value' attribute, and assign a delegate that attempts to set the value to the 'onchange' attribute.",
+            "Metadata": {
+              "Common.PropertyName": "Bind",
+              "Common.DirectiveAttribute": "True"
+            },
+            "BoundAttributeParameters": [
+              {
+                "Name": "format",
+                "TypeName": "System.String",
+                "Documentation": "Specifies a format to convert the value specified by the corresponding bind attribute. For example: <code>@bind-value:format=\"...\"</code> will apply a format string to the value specified in <code>@bind-value=\"...\"</code>. The format string can currently only be used with expressions of type <code>DateTime</code>.",
+                "Metadata": {
+                  "Common.PropertyName": "Format"
+                }
+              },
+              {
+                "Name": "event",
+                "TypeName": "System.String",
+                "Documentation": "Specifies the event handler name to attach for change notifications for the value provided by the '@bind-...' attribute.",
+                "Metadata": {
+                  "Common.PropertyName": "Event"
+                }
+              },
+              {
+                "Name": "culture",
+                "TypeName": "System.Globalization.CultureInfo",
+                "Documentation": "Specifies the culture to use for conversions.",
+                "Metadata": {
+                  "Common.PropertyName": "Culture"
+                }
+              },
+              {
+                "Name": "get",
+                "TypeName": "System.Object",
+                "Documentation": "Specifies the expression to use for binding the value to the attribute.",
+                "Metadata": {
+                  "Common.PropertyName": "Get",
+                  "Components.Bind.AlternativeNotation": "True"
+                }
+              },
+              {
+                "Name": "set",
+                "TypeName": "System.Delegate",
+                "Documentation": "Specifies the expression to use for updating the bound value when a new value is available.",
+                "Metadata": {
+                  "Common.PropertyName": "Set"
+                }
+              },
+              {
+                "Name": "after",
+                "TypeName": "System.Delegate",
+                "Documentation": "Specifies an action to run after the new value has been set.",
+                "Metadata": {
+                  "Common.PropertyName": "After"
+                }
+              }
+            ]
+          }
+        ],
+        "Metadata": {
+          "Common.ClassifyAttributesOnly": "True",
+          "Common.TypeName": "Microsoft.AspNetCore.Components.Bind",
+          "Common.TypeNameIdentifier": "Bind",
+          "Common.TypeNamespace": "Microsoft.AspNetCore.Components",
+          "Components.Bind.Fallback": "True",
+          "Components.IsSpecialKind": "Components.Bind",
+          "Runtime.Name": "Components.None"
+        }
+      }
+    ]},"SyntaxTree":{"Options": {
+      "DesignTime": true,
+      "FileKind": "component",
+      "_": {
+        "ParseLeadingDirectives": false,
+        "Version": "8.0",
+        "Directives": [
+          {
+            "Directive": "functions",
+            "Kind": "CodeBlock",
+            "_": {
+              "Description": "Specify a C# code block.",
+              "DisplayName": null,
+              "Usage": "Unrestricted",
+              "Tokens": []
+            }
+          },
+          {
+            "Directive": "implements",
+            "Kind": "SingleLine",
+            "_": {
+              "Description": "Declares an interface implementation for the current class.",
+              "DisplayName": null,
+              "Usage": "FileScopedMultipleOccurring",
+              "Tokens": [
+                {
+                  "Kind": "Type",
+                  "Optional": false,
+                  "Name": "TypeName",
+                  "Description": "The interface type implemented by the current class."
+                }
+              ]
+            }
+          },
+          {
+            "Directive": "inherits",
+            "Kind": "SingleLine",
+            "_": {
+              "Description": "Specify the base class for the current document.",
+              "DisplayName": null,
+              "Usage": "FileScopedSinglyOccurring",
+              "Tokens": [
+                {
+                  "Kind": "Type",
+                  "Optional": false,
+                  "Name": "TypeName",
+                  "Description": "The base type that the current page inherits."
+                }
+              ]
+            }
+          },
+          {
+            "Directive": "namespace",
+            "Kind": "SingleLine",
+            "_": {
+              "Description": "Specify the base namespace for the document.",
+              "DisplayName": null,
+              "Usage": "FileScopedSinglyOccurring",
+              "Tokens": [
+                {
+                  "Kind": "Namespace",
+                  "Optional": false,
+                  "Name": "Namespace",
+                  "Description": "The namespace for the document."
+                }
+              ]
+            }
+          },
+          {
+            "Directive": "attribute",
+            "Kind": "SingleLine",
+            "_": {
+              "Description": "Specifies the C# attribute that will be applied to the current class.",
+              "DisplayName": null,
+              "Usage": "FileScopedMultipleOccurring",
+              "Tokens": [
+                {
+                  "Kind": "Attribute",
+                  "Optional": false,
+                  "Name": "Attribute",
+                  "Description": "The C# attribute that will be applied to the current class."
+                }
+              ]
+            }
+          },
+          {
+            "Directive": "code",
+            "Kind": "CodeBlock",
+            "_": {
+              "Description": "Specify a C# code block.",
+              "DisplayName": null,
+              "Usage": "Unrestricted",
+              "Tokens": []
+            }
+          },
+          {
+            "Directive": "inject",
+            "Kind": "SingleLine",
+            "_": {
+              "Description": "Inject a service from the application's service container into a property.",
+              "DisplayName": null,
+              "Usage": "FileScopedMultipleOccurring",
+              "Tokens": [
+                {
+                  "Kind": "Type",
+                  "Optional": false,
+                  "Name": "TypeName",
+                  "Description": "The type of the service to inject."
+                },
+                {
+                  "Kind": "Member",
+                  "Optional": false,
+                  "Name": "PropertyName",
+                  "Description": "The name of the property."
+                }
+              ]
+            }
+          },
+          {
+            "Directive": "layout",
+            "Kind": "SingleLine",
+            "_": {
+              "Description": "Declares a layout type for the current document.",
+              "DisplayName": null,
+              "Usage": "FileScopedSinglyOccurring",
+              "Tokens": [
+                {
+                  "Kind": "Type",
+                  "Optional": false,
+                  "Name": "TypeName",
+                  "Description": "The interface type implemented by the current document."
+                }
+              ]
+            }
+          },
+          {
+            "Directive": "page",
+            "Kind": "SingleLine",
+            "_": {
+              "Description": "Mark the page as a routable component.",
+              "DisplayName": null,
+              "Usage": "FileScopedMultipleOccurring",
+              "Tokens": [
+                {
+                  "Kind": "String",
+                  "Optional": false,
+                  "Name": "route template",
+                  "Description": "An optional route template for the component."
+                }
+              ]
+            }
+          },
+          {
+            "Directive": "typeparam",
+            "Kind": "SingleLine",
+            "_": {
+              "Description": "Declares a generic type parameter for the generated component class.",
+              "DisplayName": null,
+              "Usage": "FileScopedMultipleOccurring",
+              "Tokens": [
+                {
+                  "Kind": "Member",
+                  "Optional": false,
+                  "Name": "type parameter",
+                  "Description": "The name of the type parameter."
+                },
+                {
+                  "Kind": "GenericTypeConstraint",
+                  "Optional": true,
+                  "Name": "type parameter constraint",
+                  "Description": "The constraints applied to the type parameter."
+                }
+              ]
+            }
+          },
+          {
+            "Directive": "preservewhitespace",
+            "Kind": "SingleLine",
+            "_": {
+              "Description": "Specifies whether or not whitespace should be preserved exactly. Defaults to false for better performance.",
+              "DisplayName": null,
+              "Usage": "FileScopedSinglyOccurring",
+              "Tokens": [
+                {
+                  "Kind": "Boolean",
+                  "Optional": false,
+                  "Name": "Preserve",
+                  "Description": "True if whitespace should be preserved, otherwise false."
+                }
+              ]
+            }
+          },
+          {
+            "Directive": "section",
+            "Kind": "RazorBlock",
+            "_": {
+              "Description": "Define a section to be rendered in the configured layout page.",
+              "DisplayName": null,
+              "Usage": "Unrestricted",
+              "Tokens": [
+                {
+                  "Kind": "Member",
+                  "Optional": false,
+                  "Name": "SectionName",
+                  "Description": "The name of the section."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }},"CSharpDocument":{"GeneratedCode":"// <auto-generated/>\r\n#pragma warning disable 1591\r\nnamespace MyApp.Pages\r\n{\r\n    #line hidden\r\n    using global::System;\r\n    using global::System.Collections.Generic;\r\n    using global::System.Linq;\r\n    using global::System.Threading.Tasks;\r\n    using global::Microsoft.AspNetCore.Components;\r\n    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase\r\n    {\r\n        #pragma warning disable 219\r\n        private void __RazorDirectiveTokenHelpers__() {\r\n        }\r\n        #pragma warning restore 219\r\n        #pragma warning disable 0414\r\n        private static object __o = null;\r\n        #pragma warning restore 0414\r\n        #pragma warning disable 1998\r\n        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)\r\n        {\r\n        }\r\n        #pragma warning restore 1998\r\n    }\r\n}\r\n#pragma warning restore 1591\r\n","Options": {
+      "DesignTime": true,
+      "_": {
+        "IndentWithTabs": false,
+        "IndentSize": 4,
+        "RootNamespace": "MyApp",
+        "SuppressChecksum": true,
+        "SuppressNullabilityEnforcement": false,
+        "OmitMinimizedComponentAttributeValues": true,
+        "UseEnhancedLinePragma": true,
+        "SuppressMetadataAttributes": true,
+        "SuppressPrimaryMethodBody": false,
+        "SupportLocalizedComponentNames": false
+      }
+    },"Diagnostics": [],"SourceMappings": [],"LinePragmas": []},"HtmlDocument":{"GeneratedCode":"<h1>Hello world</h1>","Options": {
+      "DesignTime": true,
+      "_": {
+        "IndentWithTabs": false,
+        "IndentSize": 4,
+        "RootNamespace": "MyApp",
+        "SuppressChecksum": true,
+        "SuppressNullabilityEnforcement": false,
+        "OmitMinimizedComponentAttributeValues": true,
+        "UseEnhancedLinePragma": true,
+        "SuppressMetadataAttributes": true,
+        "SuppressPrimaryMethodBody": false,
+        "SupportLocalizedComponentNames": false
+      }
+    },"SourceMappings": [
+      {
+        "OriginalSpan": {
+          "FilePath": "Pages/Index.razor",
+          "AbsoluteIndex": 0,
+          "LineIndex": 0,
+          "CharacterIndex": 0,
+          "Length": 20,
+          "LineCount": 0,
+          "EndCharacterIndex": 20
+        },
+        "GeneratedSpan": {
+          "FilePath": null,
+          "AbsoluteIndex": 0,
+          "LineIndex": 0,
+          "CharacterIndex": 0,
+          "Length": 20,
+          "LineCount": 1,
+          "EndCharacterIndex": 20
+        }
+      }
+    ]},"Namespace":"MyApp.Pages"}

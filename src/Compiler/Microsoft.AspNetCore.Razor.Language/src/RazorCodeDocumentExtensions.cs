@@ -20,6 +20,7 @@ public static class RazorCodeDocumentExtensions
     private static readonly char[] NamespaceSeparators = new char[] { '.' };
     private static readonly object CssScopeKey = new object();
     private static readonly object NamespaceKey = new object();
+    private static readonly object NoNamespaceToken = new object();
 
     public static TagHelperDocumentContext GetTagHelperContext(this RazorCodeDocument document)
     {
@@ -282,6 +283,16 @@ public static class RazorCodeDocumentExtensions
         document.Items[CssScopeKey] = cssScope;
     }
 
+    internal static void SetNamespace(this RazorCodeDocument document, string @namespace)
+    {
+        if (document == null)
+        {
+            throw new ArgumentNullException(nameof(document));
+        }
+
+        document.Items[NamespaceKey] = @namespace;
+    }
+
 #nullable enable
     public static bool TryComputeClassName(this RazorCodeDocument codeDocument, [NotNullWhen(true)] out string? className)
     {
@@ -303,10 +314,20 @@ public static class RazorCodeDocumentExtensions
     // However all kinds of thing are possible in tools. We shouldn't barf here if the document isn't
     // set up correctly.
     public static bool TryComputeNamespace(this RazorCodeDocument document, bool fallbackToRootNamespace, out string @namespace)
+        => TryComputeNamespace(document, fallbackToRootNamespace, check: true, out @namespace);
+
+    internal static bool TryComputeNamespace(this RazorCodeDocument document, bool fallbackToRootNamespace, bool check, out string @namespace)
     {
         if (document == null)
         {
             throw new ArgumentNullException(nameof(document));
+        }
+
+        var namespaceValue = document.Items[NamespaceKey];
+        if (namespaceValue == NoNamespaceToken)
+        {
+            @namespace = null;
+            return false;
         }
 
         @namespace = (string)document.Items[NamespaceKey];
@@ -318,11 +339,14 @@ public static class RazorCodeDocumentExtensions
         }
 
 #if DEBUG
-        // In debug mode, even if we're cached, lets take the hit to run this again and make sure the cached value is correct.
-        // This is to help us find issues with caching logic during development.
-        var validateResult = TryComputeNamespaceCore(document, fallbackToRootNamespace, out var validateNamespace);
-        Debug.Assert(validateResult, "We couldn't compute the namespace, but have a cached value, so something has gone wrong");
-        Debug.Assert(validateNamespace == @namespace, $"We cached a namespace of {@namespace} but calculated that it should be {validateNamespace}");
+        if (check)
+        {
+            // In debug mode, even if we're cached, lets take the hit to run this again and make sure the cached value is correct.
+            // This is to help us find issues with caching logic during development.
+            var validateResult = TryComputeNamespaceCore(document, fallbackToRootNamespace, out var validateNamespace);
+            Debug.Assert(validateResult, "We couldn't compute the namespace, but have a cached value, so something has gone wrong");
+            Debug.Assert(validateNamespace == @namespace, $"We cached a namespace of {@namespace} but calculated that it should be {validateNamespace}");
+        }
 #endif
 
         return true;

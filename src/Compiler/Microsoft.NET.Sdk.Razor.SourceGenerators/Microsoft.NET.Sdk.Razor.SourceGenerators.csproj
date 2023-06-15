@@ -15,10 +15,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\shared\JsonReaderExtensions.cs" LinkBase="Shared" />
+    <Compile Include="..\shared\RazorDiagnosticJsonConverter.cs" LinkBase="Shared" />
+    <Compile Include="..\shared\TagHelperDescriptorJsonConverter.cs" LinkBase="Shared" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
 
     <!-- IMPORTANT: Ensure all dependencies are embedded in the transport and toolset package. -->
     <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler" />
+    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
 
   <ItemGroup>

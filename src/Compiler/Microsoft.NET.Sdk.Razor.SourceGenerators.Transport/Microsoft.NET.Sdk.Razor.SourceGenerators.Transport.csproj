@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler" ExcludeAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="Newtonsoft.Json" ExcludeAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +25,7 @@
   <Target Name="PackLayout" BeforeTargets="$(GenerateNuspecDependsOn)">
     <ItemGroup>
       <Content Include="$(PkgMicrosoft_CodeAnalysis_ExternalAccess_RazorCompiler)\lib\netstandard2.0\*.dll" PackagePath="\source-generators" />
+      <Content Include="$(PkgNewtonsoft_Json)\lib\netstandard2.0\*.dll" PackagePath="\source-generators" />
       <Content Include="$(ArtifactsBinDir)Microsoft.NET.Sdk.Razor.SourceGenerators\$(Configuration)\netstandard2.0\*.*" Exclude="$(ArtifactsBinDir)**\*.pdb" PackagePath="\source-generators" />
       <Content Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Tooling.Internal\$(Configuration)\netstandard2.0\Microsoft.Extensions.ObjectPool.dll" PackagePath="\source-generators" />
       <Content Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Tooling.Internal\$(Configuration)\netstandard2.0\System.Collections.Immutable.dll" PackagePath="\source-generators" />

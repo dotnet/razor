@@ -223,8 +223,7 @@ public abstract class RazorSourceGeneratorTestsBase
         var html = await RenderRazorPageAsync(compilation, name);
         Extensions.VerifyTextMatchesBaseline(
             actualText: html,
-            fileName: name,
-            extension: "html",
+            fileName: $"{name}.html",
             testPath: testPath,
             testName: testName);
     }
@@ -481,14 +480,14 @@ internal static class Extensions
         return result;
     }
 
-    public static void VerifyTextMatchesBaseline(string actualText, string fileName, string extension,
+    public static void VerifyTextMatchesBaseline(string actualText, string fileName,
         [CallerFilePath] string testPath = "", [CallerMemberName] string testName = "")
     {
         // Create output directory.
         var baselineDirectory = CreateBaselineDirectory(testPath, testName);
 
         // Generate baseline if enabled.
-        var baselinePath = Path.Join(baselineDirectory, $"{fileName}.{extension}");
+        var baselinePath = Path.Join(baselineDirectory, fileName);
         GenerateOutputBaseline(baselinePath, actualText);
 
         // Verify actual against baseline.
