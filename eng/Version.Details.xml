@@ -87,6 +87,11 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>f6725f6f04ce03574fcf89faa4b20b72ef83e4dd</Sha>
     </Dependency>
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-externals" Version="8.0.0-alpha.1.23312.1">
+      <Uri>https://github.com/dotnet/source-build-externals</Uri>
+      <Sha>50600f7fcd6e56a496233a859ed7d4d90c173b0d</Sha>
+      <SourceBuild RepoName="source-build-externals" ManagedOnly="true" />
+    </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
     <!-- Listed as a dependency to workaround https://github.com/dotnet/cli/issues/10528 -->
