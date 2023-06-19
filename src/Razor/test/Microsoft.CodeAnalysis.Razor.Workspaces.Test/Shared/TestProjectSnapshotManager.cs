@@ -12,25 +12,11 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
 {
     public TestProjectSnapshotManager(Workspace workspace)
-        : base(CreateProjectSnapshotManagerDispatcher(), Mock.Of<IErrorReporter>(MockBehavior.Strict), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
-    {
-    }
-
-    public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher, Workspace workspace)
-        : base(projectSnapshotManagerDispatcher, Mock.Of<IErrorReporter>(MockBehavior.Strict), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
+        : base(Mock.Of<IErrorReporter>(MockBehavior.Strict), Enumerable.Empty<ProjectSnapshotChangeTrigger>(), workspace)
     {
     }
 
     public bool AllowNotifyListeners { get; set; }
-
-    private static ProjectSnapshotManagerDispatcher CreateProjectSnapshotManagerDispatcher()
-    {
-        var dispatcher = new Mock<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict);
-        dispatcher.Setup(d => d.AssertDispatcherThread(It.IsAny<string>())).Verifiable();
-        dispatcher.Setup(d => d.IsDispatcherThread).Returns(true);
-        dispatcher.Setup(d => d.DispatcherScheduler).Returns(TaskScheduler.FromCurrentSynchronizationContext());
-        return dispatcher.Object;
-    }
 
     public ProjectSnapshot GetSnapshot(HostProject hostProject)
     {

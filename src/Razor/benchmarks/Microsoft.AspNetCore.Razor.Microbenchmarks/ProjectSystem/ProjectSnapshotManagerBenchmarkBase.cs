@@ -75,7 +75,6 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
             Array.Empty<ILanguageService>());
 
         return new DefaultProjectSnapshotManager(
-            new TestProjectSnapshotManagerDispatcher(),
             new TestErrorReporter(),
             Array.Empty<ProjectSnapshotChangeTrigger>(),
 #pragma warning disable CA2000 // Dispose objects before losing scope

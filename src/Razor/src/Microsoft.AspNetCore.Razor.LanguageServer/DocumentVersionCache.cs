@@ -12,7 +12,5 @@ internal abstract class DocumentVersionCache : ProjectSnapshotChangeTrigger
 {
     public abstract bool TryGetDocumentVersion(IDocumentSnapshot documentSnapshot, [NotNullWhen(true)] out int? version);
 
-    public abstract Task<int?> TryGetDocumentVersionAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken);
-
     public abstract void TrackDocumentVersion(IDocumentSnapshot documentSnapshot, int version);
 }

@@ -55,7 +55,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         _hostProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
         _hostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
 
-        _projectManager = new TestProjectSnapshotManager(Dispatcher, Enumerable.Empty<ProjectSnapshotChangeTrigger>(), Workspace);
+        _projectManager = new TestProjectSnapshotManager(Enumerable.Empty<ProjectSnapshotChangeTrigger>(), Workspace);
 
         _projectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(_tagHelperResolver.TagHelpers, default);
 
@@ -84,7 +84,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         var triggers = new[] { defaultPriorityTrigger, highPriorityTrigger };
 
         // Act
-        var projectManager = new TestProjectSnapshotManager(Dispatcher, triggers, Workspace);
+        var projectManager = new TestProjectSnapshotManager(triggers, Workspace);
 
         // Assert
         Assert.Equal(new[] { "highPriority", "lowPriority" }, initializedOrder);
@@ -661,8 +661,8 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
 
     private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
     {
-        public TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, IEnumerable<ProjectSnapshotChangeTrigger> triggers, Workspace workspace)
-            : base(dispatcher, Mock.Of<IErrorReporter>(MockBehavior.Strict), triggers, workspace)
+        public TestProjectSnapshotManager(IEnumerable<ProjectSnapshotChangeTrigger> triggers, Workspace workspace)
+            : base(Mock.Of<IErrorReporter>(MockBehavior.Strict), triggers, workspace)
         {
         }
 

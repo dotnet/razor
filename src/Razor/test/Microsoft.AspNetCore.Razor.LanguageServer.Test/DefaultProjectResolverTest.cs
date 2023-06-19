@@ -212,7 +212,7 @@ public class DocumentProjectResolverTest : LanguageServerTestBase
         snapshotManager.Setup(manager => manager.ProjectAdded(It.IsAny<HostProject>()))
             .Callback<HostProject>(hostProject => projects.Add(Mock.Of<IProjectSnapshot>(p => p.FilePath == hostProject.FilePath, MockBehavior.Strict)));
         var snapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(accessor => accessor.Instance == snapshotManager.Object, MockBehavior.Strict);
-        projectResolver = new DefaultProjectResolver(LegacyDispatcher, snapshotManagerAccessor);
+        projectResolver = new DefaultProjectResolver(snapshotManagerAccessor);
 
         // Act
         var project = projectResolver.GetMiscellaneousProject();
@@ -230,7 +230,7 @@ public class DocumentProjectResolverTest : LanguageServerTestBase
         snapshotManager.Setup(manager => manager.GetLoadedProject(It.IsAny<string>()))
             .Returns<string>(filePath => projectFactory().FirstOrDefault(project => project.FilePath == filePath));
         var snapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(accessor => accessor.Instance == snapshotManager.Object, MockBehavior.Strict);
-        var projectResolver = new DefaultProjectResolver(LegacyDispatcher, snapshotManagerAccessor);
+        var projectResolver = new DefaultProjectResolver(snapshotManagerAccessor);
 
         return projectResolver;
     }

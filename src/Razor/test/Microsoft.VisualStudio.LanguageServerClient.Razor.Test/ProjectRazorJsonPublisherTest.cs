@@ -552,7 +552,7 @@ public class ProjectRazorJsonPublisherTest : LanguageServerTestBase
 
     internal ProjectSnapshotManagerBase CreateProjectSnapshotManager(bool allowNotifyListeners = false)
     {
-        var snapshotManager = TestProjectSnapshotManager.Create(LegacyDispatcher, ErrorReporter);
+        var snapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         snapshotManager.AllowNotifyListeners = allowNotifyListeners;
 
         return snapshotManager;

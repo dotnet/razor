@@ -42,7 +42,6 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     private readonly Queue<ProjectChangeEventArgs> _notificationWork;
 
     public DefaultProjectSnapshotManager(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IErrorReporter errorReporter,
         IEnumerable<ProjectSnapshotChangeTrigger> triggers,
         Workspace workspace)

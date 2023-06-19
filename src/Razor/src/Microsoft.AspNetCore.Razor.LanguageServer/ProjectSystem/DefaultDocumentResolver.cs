@@ -11,31 +11,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
 internal class DefaultDocumentResolver : DocumentResolver
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly ProjectResolver _projectResolver;
 
-    public DefaultDocumentResolver(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
-        ProjectResolver projectResolver)
+    public DefaultDocumentResolver(ProjectResolver projectResolver)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (projectResolver is null)
-        {
-            throw new ArgumentNullException(nameof(projectResolver));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _projectResolver = projectResolver;
+        _projectResolver = projectResolver ?? throw new ArgumentNullException(nameof(projectResolver));
     }
 
     public override bool TryResolveDocument(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? document)
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
         var normalizedPath = FilePathNormalizer.Normalize(documentFilePath);
         if (!_projectResolver.TryResolveProject(normalizedPath, out var project))
         {

@@ -15,25 +15,12 @@ internal class DefaultProjectResolver : ProjectResolver
     // Internal for testing
     protected internal readonly HostProject MiscellaneousHostProject;
 
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
 
     public DefaultProjectResolver(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (projectSnapshotManagerAccessor is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
+        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
 
         var miscellaneousProjectPath = Path.Combine(TempDirectory.Instance.DirectoryPath, "__MISC_RAZOR_PROJECT__");
         MiscellaneousHostProject = new HostProject(miscellaneousProjectPath, RazorDefaults.Configuration, RazorDefaults.RootNamespace);
@@ -45,8 +32,6 @@ internal class DefaultProjectResolver : ProjectResolver
         {
             throw new ArgumentNullException(nameof(documentFilePath));
         }
-
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
         var projects = _projectSnapshotManagerAccessor.Instance.Projects;
@@ -84,8 +69,6 @@ internal class DefaultProjectResolver : ProjectResolver
 
     public override IProjectSnapshot GetMiscellaneousProject()
     {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
         var miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(MiscellaneousHostProject.FilePath);
         if (miscellaneousProject is null)
         {

@@ -52,7 +52,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     public RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        var testProjectManager = TestProjectSnapshotManager.Create(LegacyDispatcher, ErrorReporter);
+        var testProjectManager = TestProjectSnapshotManager.Create(ErrorReporter);
         var hostProject = new HostProject("C:/project/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
         testProjectManager.ProjectAdded(hostProject);
         var sourceText = SourceText.From(string.Empty);

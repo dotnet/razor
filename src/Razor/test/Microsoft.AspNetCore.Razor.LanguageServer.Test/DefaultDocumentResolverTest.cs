@@ -29,7 +29,7 @@ public class DocumentDocumentResolverTest : LanguageServerTestBase
         var expectedDocument = Mock.Of<IDocumentSnapshot>(MockBehavior.Strict);
         var project = Mock.Of<IProjectSnapshot>(shim => shim.GetDocument(normalizedFilePath) == expectedDocument, MockBehavior.Strict);
         var projectResolver = Mock.Of<ProjectResolver>(resolver => resolver.TryResolveProject(normalizedFilePath, out project, true) == true, MockBehavior.Strict);
-        var documentResolver = new DefaultDocumentResolver(LegacyDispatcher, projectResolver);
+        var documentResolver = new DefaultDocumentResolver(projectResolver);
 
         // Act
         var result = documentResolver.TryResolveDocument(documentFilePath, out var document);
@@ -48,7 +48,7 @@ public class DocumentDocumentResolverTest : LanguageServerTestBase
         var expectedDocument = Mock.Of<IDocumentSnapshot>(MockBehavior.Strict);
         var project = Mock.Of<IProjectSnapshot>(shim => shim.GetDocument(normalizedFilePath) == expectedDocument, MockBehavior.Strict);
         var projectResolver = Mock.Of<ProjectResolver>(resolver => resolver.TryResolveProject(normalizedFilePath, out project, true) == true, MockBehavior.Strict);
-        var documentResolver = new DefaultDocumentResolver(LegacyDispatcher, projectResolver);
+        var documentResolver = new DefaultDocumentResolver(projectResolver);
 
         // Act
         var result = documentResolver.TryResolveDocument(documentFilePath, out var document);
@@ -69,7 +69,7 @@ public class DocumentDocumentResolverTest : LanguageServerTestBase
         IProjectSnapshot noProject = null;
         var projectResolver = Mock.Of<ProjectResolver>(resolver =>
             resolver.TryResolveProject(normalizedFilePath, out noProject, true) == false, MockBehavior.Strict);
-        var documentResolver = new DefaultDocumentResolver(LegacyDispatcher, projectResolver);
+        var documentResolver = new DefaultDocumentResolver(projectResolver);
 
         // Act
         var result = documentResolver.TryResolveDocument(documentFilePath, out var document);
@@ -90,7 +90,7 @@ public class DocumentDocumentResolverTest : LanguageServerTestBase
         var miscProject = Mock.Of<IProjectSnapshot>(shim => shim.GetDocument(normalizedFilePath) == expectedDocument, MockBehavior.Strict);
         var projectResolver = Mock.Of<ProjectResolver>(resolver =>
             resolver.TryResolveProject(normalizedFilePath, out miscProject, true) == true, MockBehavior.Strict);
-        var documentResolver = new DefaultDocumentResolver(LegacyDispatcher, projectResolver);
+        var documentResolver = new DefaultDocumentResolver(projectResolver);
 
         // Act
         var result = documentResolver.TryResolveDocument(documentFilePath, out var document);

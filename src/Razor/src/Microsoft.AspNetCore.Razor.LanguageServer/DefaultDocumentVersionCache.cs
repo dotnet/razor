@@ -17,15 +17,14 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
 
     // Internal for testing
     internal readonly Dictionary<string, List<DocumentEntry>> DocumentLookup;
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private ProjectSnapshotManagerBase? _projectSnapshotManager;
+    private LockFactory _documentLockFactory = new();
 
     private ProjectSnapshotManagerBase ProjectSnapshotManager
         => _projectSnapshotManager ?? throw new InvalidOperationException("ProjectSnapshotManager accessed before Initialized was called.");
 
-    public DefaultDocumentVersionCache(ProjectSnapshotManagerDispatcher dispatcher)
+    public DefaultDocumentVersionCache()
     {
-        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         DocumentLookup = new Dictionary<string, List<DocumentEntry>>(FilePathComparer.Instance);
     }
 
@@ -36,9 +35,10 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
             throw new ArgumentNullException(nameof(documentSnapshot));
         }
 
-        _dispatcher.AssertDispatcherThread();
-
         var filePath = documentSnapshot.FilePath.AssumeNotNull();
+
+        // Everything beyond this point is holding onto to a write lock.
+        using var _ = _documentLockFactory.GetWriteLock();
 
         if (!DocumentLookup.TryGetValue(filePath, out var documentEntries))
         {
@@ -66,7 +66,7 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
             throw new ArgumentNullException(nameof(documentSnapshot));
         }
 
-        _dispatcher.AssertDispatcherThread();
+        using var _ = _documentLockFactory.GetReadLock();
 
         var filePath = documentSnapshot.FilePath.AssumeNotNull();
 
@@ -98,22 +98,6 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
         return true;
     }
 
-    public override Task<int?> TryGetDocumentVersionAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
-    {
-        if (documentSnapshot is null)
-        {
-            throw new ArgumentNullException(nameof(documentSnapshot));
-        }
-
-        return _dispatcher.RunOnDispatcherThreadAsync(
-            () =>
-            {
-                TryGetDocumentVersion(documentSnapshot, out var version);
-                return version;
-            },
-            cancellationToken);
-    }
-
     public override void Initialize(ProjectSnapshotManagerBase projectManager)
     {
         if (projectManager is null)
@@ -132,8 +116,6 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
         {
             return;
         }
-
-        _dispatcher.AssertDispatcherThread();
 
         switch (args.Kind)
         {
@@ -156,7 +138,7 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
             return;
         }
 
-        var project = ProjectSnapshotManager.GetLoadedProject(args.ProjectFilePath);
+        var project = args.Newer;
         if (project is null)
         {
             // Project no longer loaded, wait for document removed event.

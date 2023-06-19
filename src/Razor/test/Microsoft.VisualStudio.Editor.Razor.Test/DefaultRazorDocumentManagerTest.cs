@@ -46,7 +46,6 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
             MockBehavior.Strict);
 
         _projectManager = new DefaultProjectSnapshotManager(
-            new TestProjectSnapshotManagerDispatcher(),
             ErrorReporter,
             Array.Empty<ProjectSnapshotChangeTrigger>(),
             TestWorkspace.Create());
