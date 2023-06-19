@@ -618,7 +618,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
             using (var _ = upgradeableLock.GetWriteLock())
             {
-                _projects_needsLock[hostProject.FilePath] = entry;
+                _projects_needsLock.Remove(hostProject.FilePath);
             }
 
             NotifyListeners(oldSnapshot, newer: null, documentFilePath: null, ProjectChangeKind.ProjectRemoved);

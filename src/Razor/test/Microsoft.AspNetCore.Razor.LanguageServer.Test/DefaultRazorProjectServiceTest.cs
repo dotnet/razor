@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -1079,6 +1080,18 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         }
 
         public override IProjectSnapshot GetMiscellaneousProject() => _miscellaneousProject;
+
+        public override bool TryResolve(string normalizedPath, [NotNullWhen(true)] out IProjectSnapshot project, [NotNullWhen(true)] out IDocumentSnapshot document)
+        {
+            if (!TryResolveProject(normalizedPath, out project))
+            {
+                document = null;
+                return false;
+            }
+
+            document = project.GetDocument(normalizedPath);
+            return document != null;
+        }
 
         public override bool TryResolveProject(string documentFilePath, out IProjectSnapshot projectSnapshot)
         {
