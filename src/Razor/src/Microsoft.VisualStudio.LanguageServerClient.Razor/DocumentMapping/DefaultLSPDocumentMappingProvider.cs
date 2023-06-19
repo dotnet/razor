@@ -2,10 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
@@ -13,10 +10,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping;
 
 [Shared]
 [Export(typeof(LSPDocumentMappingProvider))]

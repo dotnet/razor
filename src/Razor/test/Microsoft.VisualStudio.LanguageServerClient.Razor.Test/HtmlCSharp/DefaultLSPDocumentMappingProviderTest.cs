@@ -4,8 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
@@ -21,7 +19,7 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping;
 
 public class DefaultLSPDocumentMappingProviderTest : TestBase
 {
