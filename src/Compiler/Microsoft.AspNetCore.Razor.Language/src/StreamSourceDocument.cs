@@ -59,7 +59,7 @@ internal sealed class StreamSourceDocument : RazorSourceDocument
 
     private static byte[] ComputeChecksum(Stream stream)
     {
-        using (var hashAlgorithm = SHA1.Create())
+        using (var hashAlgorithm = SHA256.Create())
         {
             var checksum = hashAlgorithm.ComputeHash(stream);
             stream.Position = 0;

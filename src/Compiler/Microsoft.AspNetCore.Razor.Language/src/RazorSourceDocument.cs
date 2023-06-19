@@ -89,7 +89,7 @@ public abstract class RazorSourceDocument
     /// </remarks>
     public virtual string GetChecksumAlgorithm()
     {
-        return HashAlgorithmName.SHA1.Name;
+        return HashAlgorithmName.SHA256.Name;
     }
 
     /// <summary>

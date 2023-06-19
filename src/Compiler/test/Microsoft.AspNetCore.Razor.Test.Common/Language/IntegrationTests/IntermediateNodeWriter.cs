@@ -336,11 +336,11 @@ public class IntermediateNodeWriter :
 
                 // Purposefully not writing out the entire message to ensure readable IR and because messages
                 // can span multiple lines. Not using string.GetHashCode because we can't have any collisions.
-                using (var md5 = MD5.Create())
+                using (var sha256 = SHA256.Create())
                 {
                     var diagnosticMessage = diagnostic.GetMessage(CultureInfo.InvariantCulture);
                     var messageBytes = Encoding.UTF8.GetBytes(diagnosticMessage);
-                    var messageHash = md5.ComputeHash(messageBytes);
+                    var messageHash = sha256.ComputeHash(messageBytes);
                     var stringHashBuilder = new StringBuilder();
 
                     for (var j = 0; j < messageHash.Length; j++)
