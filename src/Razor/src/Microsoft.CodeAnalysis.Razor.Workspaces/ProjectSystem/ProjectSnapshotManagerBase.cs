@@ -51,8 +51,7 @@ internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
     /// <summary>
     /// Gets a project if it's already loaded, or calls <see cref="ProjectAdded(HostProject)" /> with a new host project
     /// </summary>
-    /// <returns>Loaded instance, or null if a new one was added</returns>
-    internal abstract IProjectSnapshot? GetOrAddLoadedProject(string normalizedPath, RazorConfiguration configuration, string? rootNamespace);
+    internal abstract IProjectSnapshot GetOrAddLoadedProject(string normalizedPath, RazorConfiguration configuration, string? rootNamespace);
 
     internal abstract bool TryRemoveLoadedProject(string normalizedPath, out IProjectSnapshot project);
     internal abstract void UpdateProject(

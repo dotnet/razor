@@ -98,7 +98,7 @@ internal class DefaultRazorProjectService : RazorProjectService
             return;
         }
 
-        if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot, enforceDocumentInProject: false))
+        if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
         {
             projectSnapshot = _projectResolver.GetMiscellaneousProject();
         }
@@ -432,7 +432,7 @@ internal class DefaultRazorProjectService : RazorProjectService
                 continue;
             }
 
-            if (!_projectResolver.TryResolveProject(documentFilePath, out var toProject, enforceDocumentInProject: false))
+            if (!_projectResolver.TryResolveProject(documentFilePath, out var toProject))
             {
                 // This is the common case. It'd be rare for a project to be nested but we need to protect against it anyhow.
                 toProject = miscellaneousProject;
@@ -457,7 +457,7 @@ internal class DefaultRazorProjectService : RazorProjectService
 
         foreach (var documentFilePath in miscellaneousProject.DocumentFilePaths)
         {
-            if (!_projectResolver.TryResolveProject(documentFilePath, out var projectSnapshot, enforceDocumentInProject: false))
+            if (!_projectResolver.TryResolveProject(documentFilePath, out var projectSnapshot))
             {
                 continue;
             }

@@ -484,7 +484,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var documentFilePath = "C:/path/to/document.cshtml";
         var project = Mock.Of<IProjectSnapshot>(MockBehavior.Strict);
         var projectResolver = new Mock<ProjectResolver>(MockBehavior.Strict);
-        projectResolver.Setup(resolver => resolver.TryResolveProject(It.IsAny<string>(), out project, It.IsAny<bool>()))
+        projectResolver.Setup(resolver => resolver.TryResolveProject(It.IsAny<string>(), out project))
             .Throws(new InvalidOperationException("This shouldn't have been called."));
         var alreadyOpenDoc = Mock.Of<IDocumentSnapshot>(MockBehavior.Strict);
         var documentResolver = Mock.Of<DocumentResolver>(resolver => resolver.TryResolveDocument(It.IsAny<string>(), out alreadyOpenDoc), MockBehavior.Strict);
@@ -1080,7 +1080,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
 
         public override IProjectSnapshot GetMiscellaneousProject() => _miscellaneousProject;
 
-        public override bool TryResolveProject(string documentFilePath, out IProjectSnapshot projectSnapshot, bool enforceDocumentInProject = true)
+        public override bool TryResolveProject(string documentFilePath, out IProjectSnapshot projectSnapshot)
         {
             return _projectMappings.TryGetValue(documentFilePath, out projectSnapshot);
         }

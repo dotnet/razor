@@ -26,12 +26,17 @@ internal class DefaultProjectResolver : ProjectResolver
         MiscellaneousHostProject = new HostProject(miscellaneousProjectPath, RazorDefaults.Configuration, RazorDefaults.RootNamespace);
     }
 
-    public override bool TryResolveProject(string documentFilePath, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot, bool enforceDocumentInProject = true)
+    public override bool TryResolveProject(string documentFilePath, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot)
+        => TryResolve(documentFilePath, out projectSnapshot, out var _);
+
+    public override bool TryResolve(string documentFilePath, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot, [NotNullWhen(true)] out IDocumentSnapshot? document)
     {
         if (documentFilePath is null)
         {
             throw new ArgumentNullException(nameof(documentFilePath));
         }
+
+        document = null;
 
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
         var projects = _projectSnapshotManagerAccessor.Instance.Projects;
@@ -41,8 +46,8 @@ internal class DefaultProjectResolver : ProjectResolver
 
             if (projectSnapshot.FilePath == MiscellaneousHostProject.FilePath)
             {
-                if (enforceDocumentInProject &&
-                    IsDocumentInProject(projectSnapshot, documentFilePath))
+                document = projectSnapshot.GetDocument(documentFilePath);
+                if (document is not null)
                 {
                     return true;
                 }
@@ -51,8 +56,13 @@ internal class DefaultProjectResolver : ProjectResolver
             }
 
             var projectDirectory = FilePathNormalizer.GetDirectory(projectSnapshot.FilePath);
-            if (normalizedDocumentPath.StartsWith(projectDirectory, FilePathComparison.Instance) &&
-                (!enforceDocumentInProject || IsDocumentInProject(projectSnapshot, documentFilePath)))
+            if (normalizedDocumentPath.StartsWith(projectDirectory, FilePathComparison.Instance))
+            {
+                continue;
+            }
+
+            document = projectSnapshot.GetDocument(documentFilePath);
+            if (document is not null)
             {
                 return true;
             }
@@ -60,22 +70,11 @@ internal class DefaultProjectResolver : ProjectResolver
 
         projectSnapshot = null;
         return false;
-
-        static bool IsDocumentInProject(IProjectSnapshot projectSnapshot, string documentFilePath)
-        {
-            return projectSnapshot.GetDocument(documentFilePath) != null;
-        }
     }
 
     public override IProjectSnapshot GetMiscellaneousProject()
-    {
-        var miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(MiscellaneousHostProject.FilePath);
-        if (miscellaneousProject is null)
-        {
-            _projectSnapshotManagerAccessor.Instance.ProjectAdded(MiscellaneousHostProject);
-            miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(MiscellaneousHostProject.FilePath);
-        }
-
-        return miscellaneousProject;
-    }
+        => _projectSnapshotManagerAccessor.Instance.GetOrAddLoadedProject(
+            MiscellaneousHostProject.FilePath,
+            MiscellaneousHostProject.Configuration,
+            MiscellaneousHostProject.RootNamespace);
 }

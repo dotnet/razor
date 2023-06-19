@@ -494,7 +494,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         var newProject = new HostProject(normalizedPath, configuration, rootNamespace);
         ProjectAdded(newProject, upgradeableReadLock);
 
-        return null;
+        return GetLoadedProject(normalizedPath);
     }
 
     private void ProjectAdded(HostProject hostProject, LockFactory.UpgradeAbleReadLock upgradeableLock)

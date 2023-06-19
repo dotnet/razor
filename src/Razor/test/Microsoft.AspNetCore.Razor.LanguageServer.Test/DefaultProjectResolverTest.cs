@@ -131,7 +131,7 @@ public class DocumentProjectResolverTest : LanguageServerTestBase
         projectResolver = CreateProjectResolver(() => new[] { miscProject.Object, ownerProject });
 
         // Act
-        var result = projectResolver.TryResolveProject(documentFilePath, out var project, enforceDocumentInProject: true);
+        var result = projectResolver.TryResolveProject(documentFilePath, out var project);
 
         // Assert
         Assert.True(result);
@@ -155,7 +155,7 @@ public class DocumentProjectResolverTest : LanguageServerTestBase
         projectResolver = CreateProjectResolver(() => new[] { miscProject.Object, ownerProject });
 
         // Act
-        var result = projectResolver.TryResolveProject(documentFilePath, out var project, enforceDocumentInProject: false);
+        var result = projectResolver.TryResolveProject(documentFilePath, out var project);
 
         // Assert
         Assert.True(result);

@@ -28,7 +28,7 @@ public class DocumentDocumentResolverTest : LanguageServerTestBase
         var normalizedFilePath = "C:/path/to/document.cshtml";
         var expectedDocument = Mock.Of<IDocumentSnapshot>(MockBehavior.Strict);
         var project = Mock.Of<IProjectSnapshot>(shim => shim.GetDocument(normalizedFilePath) == expectedDocument, MockBehavior.Strict);
-        var projectResolver = Mock.Of<ProjectResolver>(resolver => resolver.TryResolveProject(normalizedFilePath, out project, true) == true, MockBehavior.Strict);
+        var projectResolver = Mock.Of<ProjectResolver>(resolver => resolver.TryResolveProject(normalizedFilePath, out project) == true, MockBehavior.Strict);
         var documentResolver = new DefaultDocumentResolver(projectResolver);
 
         // Act
@@ -47,7 +47,7 @@ public class DocumentDocumentResolverTest : LanguageServerTestBase
         var normalizedFilePath = "C:/path/to/document.cshtml";
         var expectedDocument = Mock.Of<IDocumentSnapshot>(MockBehavior.Strict);
         var project = Mock.Of<IProjectSnapshot>(shim => shim.GetDocument(normalizedFilePath) == expectedDocument, MockBehavior.Strict);
-        var projectResolver = Mock.Of<ProjectResolver>(resolver => resolver.TryResolveProject(normalizedFilePath, out project, true) == true, MockBehavior.Strict);
+        var projectResolver = Mock.Of<ProjectResolver>(resolver => resolver.TryResolveProject(normalizedFilePath, out project) == true, MockBehavior.Strict);
         var documentResolver = new DefaultDocumentResolver(projectResolver);
 
         // Act
@@ -68,7 +68,7 @@ public class DocumentDocumentResolverTest : LanguageServerTestBase
         var miscProject = Mock.Of<IProjectSnapshot>(shim => shim.DocumentFilePaths == Array.Empty<string>(), MockBehavior.Strict);
         IProjectSnapshot noProject = null;
         var projectResolver = Mock.Of<ProjectResolver>(resolver =>
-            resolver.TryResolveProject(normalizedFilePath, out noProject, true) == false, MockBehavior.Strict);
+            resolver.TryResolveProject(normalizedFilePath, out noProject) == false, MockBehavior.Strict);
         var documentResolver = new DefaultDocumentResolver(projectResolver);
 
         // Act
@@ -89,7 +89,7 @@ public class DocumentDocumentResolverTest : LanguageServerTestBase
         var project = Mock.Of<IProjectSnapshot>(shim => shim.DocumentFilePaths == Array.Empty<string>(), MockBehavior.Strict);
         var miscProject = Mock.Of<IProjectSnapshot>(shim => shim.GetDocument(normalizedFilePath) == expectedDocument, MockBehavior.Strict);
         var projectResolver = Mock.Of<ProjectResolver>(resolver =>
-            resolver.TryResolveProject(normalizedFilePath, out miscProject, true) == true, MockBehavior.Strict);
+            resolver.TryResolveProject(normalizedFilePath, out miscProject) == true, MockBehavior.Strict);
         var documentResolver = new DefaultDocumentResolver(projectResolver);
 
         // Act
