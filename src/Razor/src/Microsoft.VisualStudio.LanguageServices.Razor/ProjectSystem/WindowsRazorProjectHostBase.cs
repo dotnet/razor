@@ -244,7 +244,8 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     {
         if (Current is null)
         {
-            throw new InvalidOperationException($"Clear documents to a null project");
+            // If project is no longer available, or never initialized, nothing to clear
+            return;
         }
 
         var projectManager = GetProjectManager();

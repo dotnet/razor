@@ -640,7 +640,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         await Task.Run(async () => await host.DisposeAsync());
         Assert.Empty(_projectManager.Projects);
     }
-
+    
     [UIFact] // This can happen if the .xaml files aren't included correctly.
     public async Task DefaultRazorProjectHost_OnProjectChanged_NoRulesDefined()
     {
