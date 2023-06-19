@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 // (language version, extensions, named configuration).
 //
 // The implementation will create a ProjectSnapshot for each HostProject.
-internal partial class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
+internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 {
     public override event EventHandler<ProjectChangeEventArgs> Changed;
 
