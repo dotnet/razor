@@ -244,8 +244,6 @@ stages:
             -configuration $(_BuildConfig)
             -prepareMachine
             -integrationTest
-            /p:IncludeRoslynDeps=true
-            /p:BuildDependencyVsix=true
           name: Run_Integration_Tests
           displayName: Run Integration Tests
           condition: and(succeeded(), in(variables['Build.Reason'], 'PullRequest'))
