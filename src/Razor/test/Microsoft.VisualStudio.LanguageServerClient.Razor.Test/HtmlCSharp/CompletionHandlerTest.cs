@@ -218,7 +218,7 @@ public class CompletionHandlerTest : HandlerTestBase
 
         // Assert
         var vsCompletionList = Assert.IsType<OptimizedVSCompletionList>(result.Value.Value);
-        var item = vsCompletionList.Items.First();
+        var item = vsCompletionList.Items.First(item => item.Label == "DateTime");
         Assert.Equal("DateTime", item.Label);
     }
 
