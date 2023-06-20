@@ -100,12 +100,12 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
             return resolvedCompletionItem;
         }
 
-        if (resolvedCompletionItem.TextEdit is not null)
+        if (resolvedCompletionItem.TextEdit is { First: var textEdit })
         {
             var formattedTextEdit = await _formattingService.FormatSnippetAsync(
                 documentContext,
                 RazorLanguageKind.CSharp,
-                new[] { resolvedCompletionItem.TextEdit },
+                new[] { textEdit },
                 formattingOptions,
                 cancellationToken).ConfigureAwait(false);
 

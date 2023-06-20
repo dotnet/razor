@@ -154,12 +154,12 @@ internal class CompletionResolveHandler : IRequestHandler<CompletionItem, Comple
             return resolvedCompletionItem;
         }
 
-        if (resolvedCompletionItem.TextEdit != null)
+        if (resolvedCompletionItem.TextEdit is { First: var textEdit })
         {
             var containsSnippet = resolvedCompletionItem.InsertTextFormat == InsertTextFormat.Snippet;
             var remappedEdits = await _documentMappingProvider.RemapFormattedTextEditsAsync(
                 requestContext.ProjectedDocumentUri,
-                new[] { resolvedCompletionItem.TextEdit },
+                new[] { textEdit },
                 formattingOptions,
                 containsSnippet,
                 cancellationToken).ConfigureAwait(false);

@@ -231,9 +231,9 @@ internal class CompletionHandler : IRequestHandler<CompletionParams, SumType<Com
             var wordRange = wordExtent.HasValue && wordExtent.Value.IsSignificant ? wordExtent?.Span.AsRange() : null;
             completionList = TranslateTextEdits(request.Position, projectedPosition, wordRange, completionList);
 
-            if (completionList.ItemDefaults?.EditRange != null)
+            if (completionList.ItemDefaults?.EditRange is { First: var editRange })
             {
-                completionList.ItemDefaults.EditRange = TranslateRange(request.Position, projectedPosition, completionList.ItemDefaults.EditRange);
+                completionList.ItemDefaults.EditRange = TranslateRange(request.Position, projectedPosition, editRange);
             }
 
             var requestContext = new CompletionRequestContext(documentSnapshot.Uri, projectedDocumentUri, serverKind);
@@ -687,12 +687,12 @@ internal class CompletionHandler : IRequestHandler<CompletionParams, SumType<Com
 
         static CompletionItem TranslateTextEdits(Position hostDocumentPosition, Position projectedPosition, Range? wordRange, CompletionItem item)
         {
-            if (item.TextEdit != null)
+            if (item.TextEdit is { First: var textEdit })
             {
-                var translatedRange = TranslateRange(hostDocumentPosition, projectedPosition, item.TextEdit.Range);
+                var translatedRange = TranslateRange(hostDocumentPosition, projectedPosition, textEdit.Range);
                 item.TextEdit = new TextEdit
                 {
-                    NewText = item.TextEdit.NewText,
+                    NewText = textEdit.NewText,
                     Range = translatedRange,
                 };
             }

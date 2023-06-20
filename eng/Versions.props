@@ -96,7 +96,7 @@
     <Tooling_MicrosoftCodeAnalysisTestingVersion>1.1.2-beta1.22512.1</Tooling_MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.6.35829</MicrosoftVisualStudioShellPackagesVersion>
     <MicrosoftVisualStudioPackagesVersion>17.6.252</MicrosoftVisualStudioPackagesVersion>
-    <VisualStudioLanguageServerProtocolVersion>17.6.22</VisualStudioLanguageServerProtocolVersion>
+    <VisualStudioLanguageServerProtocolVersion>17.7.8-preview-g8c33dc3a76</VisualStudioLanguageServerProtocolVersion>
     <!-- dotnet/runtime packages -->
     <MicrosoftExtensionsPackageVersion>6.0.0</MicrosoftExtensionsPackageVersion>
     <SystemCompositionPackageVersion>7.0.0</SystemCompositionPackageVersion>
