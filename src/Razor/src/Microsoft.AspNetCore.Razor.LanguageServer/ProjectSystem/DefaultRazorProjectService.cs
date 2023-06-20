@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 
@@ -28,62 +29,24 @@ internal class DefaultRazorProjectService : RazorProjectService
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly RemoteTextLoaderFactory _remoteTextLoaderFactory;
-    private readonly ProjectResolver _projectResolver;
+    private readonly SnapshotResolver _snapshotResolver;
     private readonly DocumentVersionCache _documentVersionCache;
-    private readonly DocumentResolver _documentResolver;
     private readonly ILogger _logger;
 
     public DefaultRazorProjectService(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         RemoteTextLoaderFactory remoteTextLoaderFactory,
-        DocumentResolver documentResolver,
-        ProjectResolver projectResolver,
+        SnapshotResolver snapshotResolver,
         DocumentVersionCache documentVersionCache,
         ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
         ILoggerFactory loggerFactory)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (remoteTextLoaderFactory is null)
-        {
-            throw new ArgumentNullException(nameof(remoteTextLoaderFactory));
-        }
-
-        if (documentResolver is null)
-        {
-            throw new ArgumentNullException(nameof(documentResolver));
-        }
-
-        if (projectResolver is null)
-        {
-            throw new ArgumentNullException(nameof(projectResolver));
-        }
-
-        if (documentVersionCache is null)
-        {
-            throw new ArgumentNullException(nameof(documentVersionCache));
-        }
-
-        if (projectSnapshotManagerAccessor is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
-        }
-
-        if (loggerFactory is null)
-        {
-            throw new ArgumentNullException(nameof(loggerFactory));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _remoteTextLoaderFactory = remoteTextLoaderFactory;
-        _documentResolver = documentResolver;
-        _projectResolver = projectResolver;
-        _documentVersionCache = documentVersionCache;
-        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
-        _logger = loggerFactory.CreateLogger<DefaultRazorProjectService>();
+        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+        _remoteTextLoaderFactory = remoteTextLoaderFactory ?? throw new ArgumentNullException(nameof(remoteTextLoaderFactory));
+        _snapshotResolver = snapshotResolver ?? throw new ArgumentNullException(nameof(snapshotResolver));
+        _documentVersionCache = documentVersionCache ?? throw new ArgumentNullException(nameof(documentVersionCache));
+        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
+        _logger = loggerFactory?.CreateLogger<DefaultRazorProjectService>() ?? throw new ArgumentNullException(nameof(loggerFactory));
     }
 
     public override void AddDocument(string filePath)
@@ -91,16 +54,16 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (_documentResolver.TryResolveDocument(textDocumentPath, out var _))
+        if (_snapshotResolver.TryResolveDocument(textDocumentPath, out var _))
         {
             // Document already added. This usually occurs when VSCode has already pre-initialized
             // open documents and then we try to manually add all known razor documents.
             return;
         }
 
-        if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
+        if (!_snapshotResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
         {
-            projectSnapshot = _projectResolver.GetMiscellaneousProject();
+            projectSnapshot = _snapshotResolver.GetMiscellaneousProject();
         }
 
         var targetFilePath = textDocumentPath;
@@ -127,16 +90,16 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_documentResolver.TryResolveDocument(textDocumentPath, out _))
+        if (!_snapshotResolver.TryResolveDocument(textDocumentPath, out _))
         {
             // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
             // processes and pre-initializes already open documents.
             AddDocument(filePath);
         }
 
-        if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
+        if (!_snapshotResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
         {
-            projectSnapshot = _projectResolver.GetMiscellaneousProject();
+            projectSnapshot = _snapshotResolver.GetMiscellaneousProject();
         }
 
         var defaultProject = (ProjectSnapshot)projectSnapshot;
@@ -146,7 +109,7 @@ internal class DefaultRazorProjectService : RazorProjectService
 
         TrackDocumentVersion(textDocumentPath, version);
 
-        if (_documentResolver.TryResolveDocument(textDocumentPath, out var documentSnapshot))
+        if (_snapshotResolver.TryResolveDocument(textDocumentPath, out var documentSnapshot))
         {
             // Start generating the C# for the document so it can immediately be ready for incoming requests.
             _ = documentSnapshot.GetGeneratedOutputAsync();
@@ -158,9 +121,9 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
+        if (!_snapshotResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
         {
-            projectSnapshot = _projectResolver.GetMiscellaneousProject();
+            projectSnapshot = _snapshotResolver.GetMiscellaneousProject();
         }
 
         var textLoader = _remoteTextLoaderFactory.Create(filePath);
@@ -174,9 +137,9 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
+        if (!_snapshotResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
         {
-            projectSnapshot = _projectResolver.GetMiscellaneousProject();
+            projectSnapshot = _snapshotResolver.GetMiscellaneousProject();
         }
 
         if (!projectSnapshot.DocumentFilePaths.Contains(textDocumentPath, FilePathComparer.Instance))
@@ -199,7 +162,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         if (_projectSnapshotManagerAccessor.Instance.IsDocumentOpen(textDocumentPath))
         {
             _logger.LogInformation("Moving document '{textDocumentPath}' from project '{projectSnapshotFilePath}' to misc files because it is open.", textDocumentPath, projectSnapshot.FilePath);
-            var miscellaneousProject = (ProjectSnapshot)_projectResolver.GetMiscellaneousProject();
+            var miscellaneousProject = (ProjectSnapshot)_snapshotResolver.GetMiscellaneousProject();
             MoveDocument(textDocumentPath, defaultProject, miscellaneousProject);
         }
         else
@@ -214,9 +177,9 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_projectResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
+        if (!_snapshotResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
         {
-            projectSnapshot = _projectResolver.GetMiscellaneousProject();
+            projectSnapshot = _snapshotResolver.GetMiscellaneousProject();
         }
 
         var defaultProject = (ProjectSnapshot)projectSnapshot;
@@ -260,7 +223,8 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
-        var documentMap = documents.ToImmutableDictionary(document => EnsureFullPath(document.FilePath, normalizedPath), FilePathComparer.Instance);
+        var projectDirectory = FilePathNormalizer.GetDirectory(normalizedPath);
+        var documentMap = documents.ToImmutableDictionary(document => EnsureFullPath(document.FilePath, projectDirectory), FilePathComparer.Instance);
 
         if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
         {
@@ -272,16 +236,15 @@ internal class DefaultRazorProjectService : RazorProjectService
             configuration,
             projectWorkspaceState,
             rootNamespace,
-            project => CalculateRemovedDocuments(project, documentMap),
-            project => CalculateAddedDocuments(project, documentMap),
-            project => CalculateMovedToMiscDocuments(project, documentMap));
+            project => CalculateUpdates(project, documentMap, projectDirectory));
     }
 
-    private ImmutableArray<(IProjectSnapshot destinationproject, (HostDocument originalDocument, HostDocument newDocument, TextLoader newTextLoader))> CalculateMovedToMiscDocuments(IProjectSnapshot project, ImmutableDictionary<string, DocumentSnapshotHandle> documentMap)
+    private ImmutableArray<IUpdateProjectAction> CalculateUpdates(IProjectSnapshot project, ImmutableDictionary<string, DocumentSnapshotHandle> documentMap, string projectDirectory)
     {
-        var miscellaneousProject = _projectResolver.GetMiscellaneousProject();
-        using var _ = ArrayBuilderPool<(IProjectSnapshot, (HostDocument originalDocument, HostDocument newDocument, TextLoader))>.GetPooledObject(out var builder);
+        using var _ = ArrayBuilderPool<IUpdateProjectAction>.GetPooledObject(out var builder);
+        var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
 
+        // "Remove" any unnecessary documents by putting them into the misc project
         foreach (var documentFilePath in project.DocumentFilePaths)
         {
             if (documentMap.ContainsKey(documentFilePath))
@@ -292,27 +255,12 @@ internal class DefaultRazorProjectService : RazorProjectService
 
             if (project.GetDocument(documentFilePath) is not DocumentSnapshot documentSnapshot)
             {
+                // Document isn't in the project? (Or we should throw)?
                 continue;
             }
 
-            var currentHostDocument = documentSnapshot.State.HostDocument;
-
-            var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
-            var newDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
-
-            _logger.LogInformation("Moving '{documentFilePath}' from the '{project.FilePath}' project to '{miscellaneousProject.FilePath}' project.",
-                documentFilePath, project.FilePath, miscellaneousProject.FilePath);
-
-            builder.Add((miscellaneousProject, (currentHostDocument, newDocument, textLoader)));
+            builder.Add(CreateMoveAction(project, miscellaneousProject, documentSnapshot));
         }
-
-        return builder.ToImmutableArray();
-    }
-
-    private ImmutableArray<(HostDocument, TextLoader)> CalculateAddedDocuments(IProjectSnapshot project, ImmutableDictionary<string, DocumentSnapshotHandle> documentMap)
-    {
-        using var _ = ArrayBuilderPool<(HostDocument, TextLoader)>.GetPooledObject(out var builder);
-        var projectDirectory = FilePathNormalizer.Normalize(project.FilePath);
 
         // Update existing documents
         foreach (var documentFilePath in project.DocumentFilePaths)
@@ -343,46 +291,51 @@ internal class DefaultRazorProjectService : RazorProjectService
                 newHostDocument.FilePath, newHostDocument.FileKind, newHostDocument.TargetPath);
 
             var remoteTextLoader = _remoteTextLoaderFactory.Create(newFilePath);
-            builder.Add((newHostDocument, remoteTextLoader));
+            builder.Add(new UpdateDocumentAction(currentHostDocument, newHostDocument, remoteTextLoader));
+        }
+
+        // Add (or migrate from misc) any new documents
+        foreach (var documentKvp in documentMap)
+        {
+            var documentFilePath = documentKvp.Key;
+            if (project.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance))
+            {
+                // Already know about this document
+                continue;
+            }
+
+            if (miscellaneousProject.DocumentFilePaths.Contains(documentFilePath, FilePathComparer.Instance))
+            {
+                if (miscellaneousProject.GetDocument(documentFilePath) is not DocumentSnapshot documentSnapshot)
+                {
+                    continue;
+                }
+
+                builder.Add(CreateMoveAction(miscellaneousProject, project, documentSnapshot));
+            }
+            else
+            {
+                var documentHandle = documentKvp.Value;
+                var remoteTextLoader = _remoteTextLoaderFactory.Create(documentFilePath);
+                var newHostDocument = new HostDocument(documentFilePath, documentHandle.TargetPath, documentHandle.FileKind);
+
+                _logger.LogInformation("Adding new document '{documentFilePath}' to project '{projectFilePath}'.", documentFilePath, project.FilePath);
+                builder.Add(new AddDocumentAction(newHostDocument, remoteTextLoader));
+            }
         }
 
         return builder.ToImmutable();
     }
 
-    private ImmutableArray<HostDocument> CalculateRemovedDocuments(IProjectSnapshot project, ImmutableDictionary<string, DocumentSnapshotHandle> documentMap)
+    private MoveDocumentAction CreateMoveAction(IProjectSnapshot original, IProjectSnapshot destination, DocumentSnapshot documentSnapshot)
     {
-        using var _ = ArrayBuilderPool<HostDocument>.GetPooledObject(out var builder);
-        var projectDirectory = FilePathNormalizer.Normalize(project.FilePath);
+        var hostDocument = documentSnapshot.State.HostDocument;
+        var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
 
-        // Update existing documents
-        foreach (var documentFilePath in project.DocumentFilePaths)
-        {
-            if (!documentMap.TryGetValue(documentFilePath, out var documentHandle))
-            {
-                // Document exists in the project but not in the configured documents. Chances are the project configuration is from a fallback
-                // configuration case (< 2.1) or the project isn't fully loaded yet.
-                continue;
-            }
+        _logger.LogInformation("Moving '{documentFilePath}' to '{toProject.FilePath}' project.",
+            hostDocument.FilePath, destination.FilePath);
 
-            if (project.GetDocument(documentFilePath) is not DocumentSnapshot documentSnapshot)
-            {
-                continue;
-            }
-
-            var currentHostDocument = documentSnapshot.State.HostDocument;
-            var newFilePath = EnsureFullPath(documentHandle.FilePath, projectDirectory);
-            var newHostDocument = new HostDocument(newFilePath, documentHandle.TargetPath, documentHandle.FileKind);
-
-            if (HostDocumentComparer.Instance.Equals(currentHostDocument, newHostDocument))
-            {
-                // Current and "new" host documents are equivalent
-                continue;
-            }
-
-            builder.Add(currentHostDocument);
-        }
-
-        return builder.ToImmutable();
+        return new MoveDocumentAction(original, destination, documentSnapshot.State.HostDocument, textLoader);
     }
 
     private void MoveDocument(string documentFilePath, ProjectSnapshot fromProject, ProjectSnapshot toProject)
@@ -423,7 +376,7 @@ internal class DefaultRazorProjectService : RazorProjectService
     {
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-        var miscellaneousProject = _projectResolver.GetMiscellaneousProject();
+        var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
 
         foreach (var documentFilePath in project.DocumentFilePaths)
         {
@@ -432,7 +385,7 @@ internal class DefaultRazorProjectService : RazorProjectService
                 continue;
             }
 
-            if (!_projectResolver.TryResolveProject(documentFilePath, out var toProject))
+            if (!_snapshotResolver.TryResolveProject(documentFilePath, out var toProject))
             {
                 // This is the common case. It'd be rare for a project to be nested but we need to protect against it anyhow.
                 toProject = miscellaneousProject;
@@ -453,11 +406,11 @@ internal class DefaultRazorProjectService : RazorProjectService
     {
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-        var miscellaneousProject = _projectResolver.GetMiscellaneousProject();
+        var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
 
         foreach (var documentFilePath in miscellaneousProject.DocumentFilePaths)
         {
-            if (!_projectResolver.TryResolveProject(documentFilePath, out var projectSnapshot))
+            if (!_snapshotResolver.TryResolveProject(documentFilePath, out var projectSnapshot))
             {
                 continue;
             }
@@ -484,7 +437,7 @@ internal class DefaultRazorProjectService : RazorProjectService
 
     private void TrackDocumentVersion(string textDocumentPath, int version)
     {
-        if (!_documentResolver.TryResolveDocument(textDocumentPath, out var documentSnapshot))
+        if (!_snapshotResolver.TryResolveDocument(textDocumentPath, out var documentSnapshot))
         {
             return;
         }

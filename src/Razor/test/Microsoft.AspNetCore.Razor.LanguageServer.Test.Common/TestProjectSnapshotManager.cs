@@ -5,6 +5,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
@@ -42,5 +43,21 @@ internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
         {
             base.NotifyListeners(e);
         }
+    }
+
+    public TestDocumentSnapshot CreateAndAddDocument(ProjectSnapshot projectSnapshot, string filePath)
+    {
+        var documentSnapshot = TestDocumentSnapshot.Create(Workspace, projectSnapshot, filePath);
+        DocumentAdded(projectSnapshot.HostProject, documentSnapshot.HostDocument, new DocumentSnapshotTextLoader(documentSnapshot));
+
+        return documentSnapshot;
+    }
+
+    internal TestProjectSnapshot CreateAndAddProject(string filePath)
+    {
+        var projectSnapshot = TestProjectSnapshot.Create(filePath);
+        ProjectAdded(projectSnapshot.HostProject);
+
+        return projectSnapshot;
     }
 }

@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
@@ -30,7 +31,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     {
         // Arrange
         var uri = new Uri("C:/path/to/file.cshtml");
-        var factory = new DefaultDocumentContextFactory(Dispatcher, new TestDocumentResolver(), _documentVersionCache, LoggerFactory);
+        var factory = new DefaultDocumentContextFactory(Dispatcher, CreateSnapshotResolver(), _documentVersionCache, LoggerFactory);
 
         // Act
         var documentContext = await factory.TryCreateAsync(uri, DisposalToken);
@@ -44,7 +45,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     {
         // Arrange
         var uri = new Uri("C:/path/to/file.cshtml");
-        var factory = new DefaultDocumentContextFactory(Dispatcher, new TestDocumentResolver(), _documentVersionCache, LoggerFactory);
+        var factory = new DefaultDocumentContextFactory(Dispatcher, CreateSnapshotResolver(), _documentVersionCache, LoggerFactory);
 
         // Act
         var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
@@ -59,7 +60,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         // Arrange
         var uri = new Uri("C:/path/to/file.cshtml");
         var documentSnapshot = TestDocumentSnapshot.Create(uri.GetAbsoluteOrUNCPath());
-        var documentResolver = new TestDocumentResolver(documentSnapshot);
+        var documentResolver = CreateSnapshotResolver(documentSnapshot);
         var factory = new DefaultDocumentContextFactory(Dispatcher, documentResolver, _documentVersionCache, LoggerFactory);
 
         // Act
@@ -77,7 +78,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         var documentSnapshot = TestDocumentSnapshot.Create(uri.GetAbsoluteOrUNCPath());
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
-        var documentResolver = new TestDocumentResolver(documentSnapshot);
+        var documentResolver = CreateSnapshotResolver(documentSnapshot);
         var factory = new DefaultDocumentContextFactory(Dispatcher, documentResolver, _documentVersionCache, LoggerFactory);
 
         // Act
@@ -97,7 +98,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         var documentSnapshot = TestDocumentSnapshot.Create(uri.GetAbsoluteOrUNCPath());
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
-        var documentResolver = new TestDocumentResolver(documentSnapshot);
+        var documentResolver = CreateSnapshotResolver(documentSnapshot);
         await Dispatcher.RunOnDispatcherThreadAsync(() => _documentVersionCache.TrackDocumentVersion(documentSnapshot, version: 1337), DisposalToken);
         var factory = new DefaultDocumentContextFactory(Dispatcher, documentResolver, _documentVersionCache, LoggerFactory);
 
@@ -111,29 +112,21 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         Assert.Same(documentSnapshot, documentContext.Snapshot);
     }
 
-    private class TestDocumentResolver : DocumentResolver
+    private SnapshotResolver CreateSnapshotResolver(params TestDocumentSnapshot[] snapshots)
     {
-        private readonly IDocumentSnapshot _documentSnapshot;
+        var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(TestProjectSnapshotManager.Create(ErrorReporter));
 
-        public TestDocumentResolver()
+        foreach (var project in snapshots.Select(s => s.Project).Cast<TestProjectSnapshot>().Distinct())
         {
+            projectSnapshotManagerAccessor.Instance.ProjectAdded(project.HostProject);
         }
 
-        public TestDocumentResolver(IDocumentSnapshot documentSnapshot)
+        foreach (var document in snapshots)
         {
-            _documentSnapshot = documentSnapshot;
+            var project = (TestProjectSnapshot)document.ProjectInternal;
+            projectSnapshotManagerAccessor.Instance.DocumentAdded(project.HostProject, document.HostDocument, new EmptyTextLoader(document.FilePath));
         }
 
-        public override bool TryResolveDocument(string documentFilePath, out IDocumentSnapshot document)
-        {
-            if (documentFilePath == _documentSnapshot?.FilePath)
-            {
-                document = _documentSnapshot;
-                return true;
-            }
-
-            document = null;
-            return false;
-        }
+        return new SnapshotResolver(projectSnapshotManagerAccessor);
     }
 }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -59,7 +60,5 @@ internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
         RazorConfiguration? configuration,
         ProjectWorkspaceState projectWorkspaceState,
         string? rootNamespace,
-        Func<IProjectSnapshot, ImmutableArray<HostDocument>> removeFunc,
-        Func<IProjectSnapshot, ImmutableArray<(HostDocument, TextLoader)>> addFunc,
-        Func<IProjectSnapshot, ImmutableArray<(IProjectSnapshot destinationProject, (HostDocument originalDocument, HostDocument newDocument, TextLoader textLoader))>> moveFunc);
+        Func<IProjectSnapshot, ImmutableArray<IUpdateProjectAction>> calculateUpdates);
 }

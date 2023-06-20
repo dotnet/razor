@@ -13,9 +13,9 @@ internal class LockFactory
     protected readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.SupportsRecursion);
     private static readonly TimeSpan s_timeout = TimeSpan.FromMinutes(2);
 
-    public IDisposable GetReadLock() => new ReadOnlyLock(_lock);
-    public IDisposable GetWriteLock() => new WriteOnlyLock(_lock);
-    public UpgradeAbleReadLock GetUpgradeAbleReadLock() => new UpgradeAbleReadLock(_lock);
+    public ReadOnlyLock EnterReadLock() => new ReadOnlyLock(_lock);
+    public WriteOnlyLock EnterWriteLock() => new WriteOnlyLock(_lock);
+    public UpgradeAbleReadLock EnterUpgradeAbleReadLock() => new UpgradeAbleReadLock(_lock);
 
     public void EnsureNoWriteLock()
     {
@@ -25,7 +25,7 @@ internal class LockFactory
         }
     }
 
-    private class ReadOnlyLock : IDisposable
+    public ref struct ReadOnlyLock
     {
         private readonly ReaderWriterLockSlim _rwLock;
         private bool _disposed;
@@ -51,7 +51,7 @@ internal class LockFactory
         }
     }
 
-    private class WriteOnlyLock : IDisposable
+    public ref struct WriteOnlyLock
     {
         private readonly ReaderWriterLockSlim _rwLock;
         private bool _disposed;
@@ -77,7 +77,7 @@ internal class LockFactory
         }
     }
 
-    public class UpgradeAbleReadLock : IDisposable
+    public ref struct UpgradeAbleReadLock
     {
         private readonly ReaderWriterLockSlim _rwLock;
         private bool _disposed;
@@ -102,7 +102,7 @@ internal class LockFactory
             _rwLock.ExitUpgradeableReadLock();
         }
 
-        public IDisposable GetWriteLock()
+        public WriteOnlyLock GetWriteLock()
         {
             return new WriteOnlyLock(_rwLock);
         }

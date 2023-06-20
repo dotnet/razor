@@ -10,15 +10,14 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
-internal class DefaultProjectResolver : ProjectResolver
+internal sealed class SnapshotResolver
 {
-    // Internal for testing
-    protected internal readonly HostProject MiscellaneousHostProject;
-
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
 
-    public DefaultProjectResolver(
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
+    // Internal for testing
+    internal readonly HostProject MiscellaneousHostProject;
+
+    public SnapshotResolver(ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
     {
         _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
 
@@ -26,10 +25,13 @@ internal class DefaultProjectResolver : ProjectResolver
         MiscellaneousHostProject = new HostProject(miscellaneousProjectPath, RazorDefaults.Configuration, RazorDefaults.RootNamespace);
     }
 
-    public override bool TryResolveProject(string documentFilePath, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot)
+    public bool TryResolveProject(string documentFilePath, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot)
         => TryResolve(documentFilePath, out projectSnapshot, out var _);
 
-    public override bool TryResolve(string documentFilePath, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot, [NotNullWhen(true)] out IDocumentSnapshot? document)
+    public bool TryResolveDocument(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)
+        => TryResolve(documentFilePath, out var _, out documentSnapshot);
+
+    public bool TryResolve(string documentFilePath, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot, [NotNullWhen(true)] out IDocumentSnapshot? document)
     {
         if (documentFilePath is null)
         {
@@ -46,7 +48,7 @@ internal class DefaultProjectResolver : ProjectResolver
 
             if (projectSnapshot.FilePath == MiscellaneousHostProject.FilePath)
             {
-                document = projectSnapshot.GetDocument(documentFilePath);
+                document = projectSnapshot.GetDocument(normalizedDocumentPath);
                 if (document is not null)
                 {
                     return true;
@@ -56,12 +58,12 @@ internal class DefaultProjectResolver : ProjectResolver
             }
 
             var projectDirectory = FilePathNormalizer.GetDirectory(projectSnapshot.FilePath);
-            if (normalizedDocumentPath.StartsWith(projectDirectory, FilePathComparison.Instance))
+            if (!normalizedDocumentPath.StartsWith(projectDirectory, FilePathComparison.Instance))
             {
                 continue;
             }
 
-            document = projectSnapshot.GetDocument(documentFilePath);
+            document = projectSnapshot.GetDocument(normalizedDocumentPath);
             if (document is not null)
             {
                 return true;
@@ -72,7 +74,7 @@ internal class DefaultProjectResolver : ProjectResolver
         return false;
     }
 
-    public override IProjectSnapshot GetMiscellaneousProject()
+    public IProjectSnapshot GetMiscellaneousProject()
         => _projectSnapshotManagerAccessor.Instance.GetOrAddLoadedProject(
             MiscellaneousHostProject.FilePath,
             MiscellaneousHostProject.Configuration,

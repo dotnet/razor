@@ -38,7 +38,7 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
         var filePath = documentSnapshot.FilePath.AssumeNotNull();
 
         // Everything beyond this point is holding onto to a write lock.
-        using var _ = _documentLockFactory.GetWriteLock();
+        using var _ = _documentLockFactory.EnterWriteLock();
 
         if (!DocumentLookup.TryGetValue(filePath, out var documentEntries))
         {
@@ -66,7 +66,7 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
             throw new ArgumentNullException(nameof(documentSnapshot));
         }
 
-        using var _ = _documentLockFactory.GetReadLock();
+        using var _ = _documentLockFactory.EnterReadLock();
 
         var filePath = documentSnapshot.FilePath.AssumeNotNull();
 
