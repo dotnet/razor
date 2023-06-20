@@ -48,12 +48,9 @@
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(MicrosoftVisualStudioLanguageServerProtocolPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(MicrosoftVisualStudioLanguageServerProtocolExtensionsPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="$(MicrosoftVisualStudioLanguageServerProtocolInternalPackageVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="$(MicrosoftVisualStudioLanguageServerClientImplementationPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Client.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Client.Implementation.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll" />
@@ -69,7 +66,6 @@
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices.CSharp.Symbols" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices.Implementation.Symbols" Version="$(Tooling_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(IncludeRoslynDeps)' == 'true'">
@@ -89,7 +85,6 @@
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServices.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServices.CSharp.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServices.Implementation.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.Threading.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.VisualBasic.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.VisualBasic.Features.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" />
