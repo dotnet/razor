@@ -65,7 +65,7 @@ internal class RazorSemanticTokensLegend
 
     public RazorSemanticTokensLegend(ClientCapabilities clientCapabilities)
     {
-        using var _ = ArrayBuilderPool<string>.GetPooledObject(out var builder);
+        var _ = ArrayBuilderPool<string>.GetPooledObject(out var builder);
 
         builder.AddRange(RazorSemanticTokensAccessor.GetTokenTypes(clientCapabilities));
 
@@ -85,7 +85,7 @@ internal class RazorSemanticTokensLegend
 
     private static ImmutableArray<string> GetRazorSemanticTokenTypes()
     {
-        using var _ = ArrayBuilderPool<string>.GetPooledObject(out var builder);
+        var _ = ArrayBuilderPool<string>.GetPooledObject(out var builder);
 
         foreach (var field in typeof(RazorSemanticTokensLegend).GetFields(BindingFlags.NonPublic | BindingFlags.Static))
         {
