@@ -37,6 +37,8 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 
     private ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
 
+    private RazorSemanticTokensLegend SemanticTokensLegend { get; set; }
+
     private string PagesDirectory { get; set; }
 
     private string ProjectFilePath { get; set; }
@@ -78,6 +80,8 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
                 Character = text.Lines.Last().Span.Length - 1
             }
         };
+
+        SemanticTokensLegend = new RazorSemanticTokensLegend(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true });
     }
 
     [Benchmark(Description = "Razor Semantic Tokens Range Handling")]
@@ -92,7 +96,7 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 
         await UpdateDocumentAsync(documentVersion, DocumentSnapshot, cancellationToken).ConfigureAwait(false);
         await RazorSemanticTokenService.GetSemanticTokensAsync(
-            textDocumentIdentifier, Range, DocumentContext, cancellationToken).ConfigureAwait(false);
+            textDocumentIdentifier, Range, DocumentContext, SemanticTokensLegend, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task UpdateDocumentAsync(int newVersion, IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
