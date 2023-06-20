@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor.Test" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.WebTools.Languages.Razor.Core" Key="$(VisualStudioKey)" />
   </ItemGroup>
 
