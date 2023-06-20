@@ -181,7 +181,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Razor.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Net.Compilers.Razor.Toolset", "src\Compiler\Microsoft.Net.Compilers.Razor.Toolset\Microsoft.Net.Compilers.Razor.Toolset.csproj", "{6117D32B-DDAE-4654-8260-783B27153E0B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Razor.ExternalAccess.WebTools", "src\Razor\src\Microsoft.AspNetCore.Razor.ExternalAccess.WebTools\Microsoft.AspNetCore.Razor.ExternalAccess.WebTools.csproj", "{53977089-1A87-4521-8368-0D50DFDA1279}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor", "src\Razor\src\Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor\Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor.csproj", "{53977089-1A87-4521-8368-0D50DFDA1279}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
