@@ -619,6 +619,35 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
     }
 
     [Fact]
+    public async Task GetSemanticTokens_Razor_MultiLineCommentWithBlankLines()
+    {
+        var documentText =
+            """
+                @* kdl
+
+                skd
+                    
+                        sdfasdfasdf
+                slf*@
+                """;
+
+        var razorRange = GetRange(documentText);
+        var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
+        await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/8176")]
+    public async Task GetSemanticTokens_Razor_MultiLineCommentWithBlankLines_LF()
+    {
+        var documentText = "@* kdl\n\nskd\n    \n        sdfasdfasdf\nslf*@";
+
+        var razorRange = GetRange(documentText);
+        var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
+        await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+    }
+
+    [Fact]
     public async Task GetSemanticTokens_Razor_MultiLineCommentAsync()
     {
         var documentText =
