@@ -67,7 +67,9 @@ internal class RazorSemanticTokensLegend
     {
         using var _ = ArrayBuilderPool<string>.GetPooledObject(out var builder);
 
-        builder.AddRange(RazorSemanticTokensAccessor.GetTokenTypes(clientCapabilities));
+#pragma warning disable CS0618 // Type or member is obsolete
+        builder.AddRange(RazorSemanticTokensAccessor.RoslynTokenTypes);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         _razorTokenTypeMap = new Dictionary<string, int>();
         foreach (var razorTokenType in GetRazorSemanticTokenTypes())
