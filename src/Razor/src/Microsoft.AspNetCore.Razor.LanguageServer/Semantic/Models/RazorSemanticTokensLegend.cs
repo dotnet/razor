@@ -63,7 +63,9 @@ internal class RazorSemanticTokensLegend
     private readonly SemanticTokensLegend _legend;
     private readonly Dictionary<string, int> _razorTokenTypeMap;
 
+#pragma warning disable IDE0060 // Remove unused parameter
     public RazorSemanticTokensLegend(ClientCapabilities clientCapabilities)
+#pragma warning restore IDE0060 // Remove unused parameter
     {
         using var _ = ArrayBuilderPool<string>.GetPooledObject(out var builder);
 
