@@ -1215,18 +1215,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             spellCheckParams,
             cancellationToken).ConfigureAwait(false);
 
-        // If the delegated server wants to remove all diagnostics about a document, they will send back a response with an item, but that
-        // item will have null diagnostics (and every other property). We don't want to propagate that back out to the client, because
-        // it would make the client remove all diagnostics for the .razor file, including potentially any returned from other delegated
-        // servers.
-        if (response?.Response is null)
-        {
-            // Important that we send back an empty list here, because null would result it the above method throwing away any other
-            // diagnostics it receives from the other delegated server
-            return Array.Empty<VSInternalSpellCheckableRangeReport>();
-        }
-
-        return response.Response;
+        return response?.Response ?? Array.Empty<VSInternalSpellCheckableRangeReport>();
     }
 
     private static bool SupportsSpellCheck(JToken token)

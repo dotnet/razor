@@ -133,7 +133,7 @@ internal sealed class DocumentSpellCheckEndpoint : IRazorRequestHandler<VSIntern
 
         foreach (var report in delegatedResponse)
         {
-            if (report.Ranges is null)
+            if (report.Ranges is not { } csharpRanges)
             {
                 continue;
             }
@@ -141,11 +141,11 @@ internal sealed class DocumentSpellCheckEndpoint : IRazorRequestHandler<VSIntern
             // Since we get C# tokens that have relative starts, we need to convert them back to absolute indexes
             // so we can sort them with the Razor tokens later
             var absoluteCSharpStartIndex = 0;
-            for (var i = 0; i < report.Ranges.Length; i += 3)
+            for (var i = 0; i < csharpRanges.Length; i += 3)
             {
-                var kind = report.Ranges[i];
-                var start = report.Ranges[i + 1];
-                var length = report.Ranges[i + 2];
+                var kind = csharpRanges[i];
+                var start = csharpRanges[i + 1];
+                var length = csharpRanges[i + 2];
 
                 absoluteCSharpStartIndex += start;
 
