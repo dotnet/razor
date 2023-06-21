@@ -61,7 +61,10 @@ internal class DefaultRazorProjectService : RazorProjectService
             return;
         }
 
-        if (!_snapshotResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
+        // Check for a project other than misc that could contain the document (based on path).
+        // Otherwise, use the misc project
+        var projectSnapshot = _snapshotResolver.FindPotentialProjects(textDocumentPath, includeMiscellaneous: false).FirstOrDefault();
+        if (projectSnapshot is null)
         {
             projectSnapshot = _snapshotResolver.GetMiscellaneousProject();
         }
@@ -208,9 +211,8 @@ internal class DefaultRazorProjectService : RazorProjectService
         if (_projectSnapshotManagerAccessor.Instance.TryRemoveLoadedProject(normalizedPath, out var project))
         {
             _logger.LogInformation("Removing project '{filePath}' from project system.", filePath);
+            TryMigrateDocumentsFromRemovedProject(project);
         }
-
-        TryMigrateDocumentsFromRemovedProject(project);
     }
 
     public override void UpdateProject(
@@ -222,18 +224,17 @@ internal class DefaultRazorProjectService : RazorProjectService
     {
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
+        if (projectWorkspaceState is null)
+        {
+            throw new ArgumentNullException(nameof(projectWorkspaceState));
+        }
+
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
         var projectDirectory = FilePathNormalizer.GetDirectory(normalizedPath);
         var documentMap = documents.ToImmutableDictionary(document => EnsureFullPath(document.FilePath, projectDirectory), FilePathComparer.Instance);
 
-        if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
-        {
-            _logger.LogInformation("Updating project '{filePath}' TagHelpers ({projectWorkspaceState.TagHelpers.Count}) and C# Language Version ({projectWorkspaceState.CSharpLanguageVersion}).",
-                filePath, projectWorkspaceState.TagHelpers.Length, projectWorkspaceState.CSharpLanguageVersion);
-        }
-
         _projectSnapshotManagerAccessor.Instance.UpdateProject(normalizedPath,
-            configuration,
+            configuration ?? RazorDefaults.Configuration,
             projectWorkspaceState,
             rootNamespace,
             project => CalculateUpdates(project, documentMap, projectDirectory));
@@ -374,6 +375,11 @@ internal class DefaultRazorProjectService : RazorProjectService
     // Internal for testing
     internal void TryMigrateDocumentsFromRemovedProject(IProjectSnapshot project)
     {
+        if (project is null)
+        {
+            throw new ArgumentNullException(nameof(project));
+        }
+
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var miscellaneousProject = _snapshotResolver.GetMiscellaneousProject();
@@ -385,11 +391,9 @@ internal class DefaultRazorProjectService : RazorProjectService
                 continue;
             }
 
-            if (!_snapshotResolver.TryResolveProject(documentFilePath, out var toProject))
-            {
-                // This is the common case. It'd be rare for a project to be nested but we need to protect against it anyhow.
-                toProject = miscellaneousProject;
-            }
+            // Find the first viable project to Move to, or default to the miscellaneous project.
+            var toProject = _snapshotResolver.FindPotentialProjects(documentFilePath, includeMiscellaneous: false).FirstOrDefault()
+                ?? miscellaneousProject;
 
             var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
             var defaultToProject = (ProjectSnapshot)toProject;

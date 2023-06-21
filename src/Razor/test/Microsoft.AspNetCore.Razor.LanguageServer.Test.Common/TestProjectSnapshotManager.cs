@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;

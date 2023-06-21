@@ -628,9 +628,9 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
         project = GetLoadedProject(normalizedPath);
 
-        if (project is HostProject hostProject)
+        if (project is ProjectSnapshot projectSnapshot)
         {
-            ProjectRemoved(hostProject, upgradeableLock);
+            ProjectRemoved(projectSnapshot.HostProject, upgradeableLock);
             return true;
         }
 
@@ -721,6 +721,11 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         string rootNamespace,
         Func<IProjectSnapshot, ImmutableArray<IUpdateProjectAction>> calculate)
     {
+        if (projectWorkspaceState is null)
+        {
+            throw new ArgumentNullException(nameof(projectWorkspaceState));
+        }
+
         // Get an upgradeableLock, which will keep a read lock while we compute the changes
         // and then get a write lock to actually apply them. Only one upgradeable lock
         // can be held at any given time. Write lock must be retrieved on the same
@@ -789,14 +794,22 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             }
         }
 
-        var newHostProject = new HostProject(filePath, configuration, rootNamespace);
-        var entryBeforeHostProject = GetCurrentEntry(project);
-        var stateWithHostProject = entryBeforeHostProject.State.WithHostProject(newHostProject);
-        TryAddNotificationAndUpdate(entryBeforeHostProject, stateWithHostProject, ProjectChangeKind.ProjectChanged);
+        if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
+        {
+            var entryBeforeWorkspaceState = GetCurrentEntry(project);
+            var stateWithProjectWorkspaceState = entryBeforeWorkspaceState.State.WithProjectWorkspaceState(projectWorkspaceState);
+            TryAddNotificationAndUpdate(entryBeforeWorkspaceState, stateWithProjectWorkspaceState, ProjectChangeKind.ProjectChanged);
+        }
 
-        var entryBeforeWorkspaceState = GetCurrentEntry(project);
-        var stateWithProjectWorkspaceState = entryBeforeWorkspaceState.State.WithProjectWorkspaceState(projectWorkspaceState);
-        TryAddNotificationAndUpdate(entryBeforeWorkspaceState, stateWithProjectWorkspaceState, ProjectChangeKind.ProjectChanged);
+        if (originalHostProject.RootNamespace != rootNamespace || configuration != originalHostProject.Configuration)
+        {
+            var currentEntry = GetCurrentEntry(project);
+            var currentHostProject = currentEntry.State.HostProject;
+            var newHostProject = new HostProject(currentHostProject.FilePath, configuration, rootNamespace);
+            var newEntry = new Entry(currentEntry.State.WithHostProject(newHostProject));
+            updatedProjectsMap[project.FilePath] = newEntry;
+            changesToNotify.Add(new ProjectChangeEventArgs(currentEntry.GetSnapshot(), newEntry.GetSnapshot(), ProjectChangeKind.ProjectChanged));
+        }
 
         // Update current state first so we can get rid of the write lock and downgrade
         // back to a read lock when notifying changes
