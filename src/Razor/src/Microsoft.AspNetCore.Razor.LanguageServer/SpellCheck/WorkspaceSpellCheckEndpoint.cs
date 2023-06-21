@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.SpellCheck;
 
 [LanguageServerEndpoint(VSInternalMethods.WorkspaceSpellCheckableRangesName)]
-internal class WorkspaceSpellCheckEndpoint : IRazorDocumentlessRequestHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport[]>
+internal sealed class WorkspaceSpellCheckEndpoint : IRazorDocumentlessRequestHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport[]>
 {
     public bool MutatesSolutionState => false;
 

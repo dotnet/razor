@@ -2,7 +2,8 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -58,30 +59,40 @@ internal sealed class DocumentSpellCheckEndpoint : IRazorRequestHandler<VSIntern
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
 
-        var razorRanges = await GetRazorSpellCheckRangesAsync(documentContext, cancellationToken).ConfigureAwait(false);
-        var csharpRanges = await GetCSharpSpellCheckRangesAsync(documentContext, cancellationToken).ConfigureAwait(false);
+        using var _ = ListPool<SpellCheckRange>.GetPooledObject(out var ranges);
 
-        return razorRanges.Concat(csharpRanges).ToArray();
+        await AddRazorSpellCheckRangesAsync(ranges, documentContext, cancellationToken).ConfigureAwait(false);
+
+        if (_languageServerFeatureOptions.SingleServerSupport)
+        {
+            await AddCSharpSpellCheckRangesAsync(ranges, documentContext, cancellationToken).ConfigureAwait(false);
+        }
+
+        return new[]
+            {
+                new VSInternalSpellCheckableRangeReport
+                {
+                    Ranges = ConvertSpellCheckRangesToIntTriples(ranges),
+                    ResultId = Guid.NewGuid().ToString()
+                }
+            };
     }
 
-    private static async Task<VSInternalSpellCheckableRangeReport[]> GetRazorSpellCheckRangesAsync(VersionedDocumentContext documentContext, CancellationToken cancellationToken)
+    private static async Task AddRazorSpellCheckRangesAsync(List<SpellCheckRange> ranges, VersionedDocumentContext documentContext, CancellationToken cancellationToken)
     {
         var tree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
-        using var _ = ListPool<VSInternalSpellCheckableRange>.GetPooledObject(out var ranges);
-
-        foreach (var node in tree.Root.DescendantNodes())
+        // We don't want to report spelling errors in script or style tags, so we avoid descending into them at all, which
+        // means we don't need complicated logic, and it performs a bit better. We assume any C# in them will still be reported
+        // by Roslyn.
+        // In an ideal world we wouldn't need this logic at all, as we would defer to the Html LSP server to provide spell checking
+        // but it doesn't currently support it. When that support is added, we can remove all of this bug the RazorCommentBlockSyntax
+        // handling.
+        foreach (var node in tree.Root.DescendantNodes(n => n is not MarkupElementSyntax { StartTag.Name.Content: "script" or "style" }))
         {
             if (node is RazorCommentBlockSyntax commentBlockSyntax)
             {
-                var range = commentBlockSyntax.Comment.Span.AsRange(sourceText);
-                ranges.Add(new VSInternalSpellCheckableRange
-                {
-                    Kind = VSInternalSpellCheckableRangeKind.Comment,
-                    Start = range.Start,
-                    End = range.End
-                });
+                ranges.Add(new((int)VSInternalSpellCheckableRangeKind.Comment, commentBlockSyntax.Comment.SpanStart, commentBlockSyntax.Comment.Span.Length));
             }
             else if (node is MarkupTextLiteralSyntax textLiteralSyntax)
             {
@@ -99,26 +110,12 @@ internal sealed class DocumentSpellCheckEndpoint : IRazorRequestHandler<VSIntern
                     continue;
                 }
 
-                var range = textLiteralSyntax.Span.AsRange(sourceText);
-                ranges.Add(new VSInternalSpellCheckableRange
-                {
-                    Kind = VSInternalSpellCheckableRangeKind.String,
-                    Start = range.Start,
-                    End = range.End
-                });
+                ranges.Add(new((int)VSInternalSpellCheckableRangeKind.String, textLiteralSyntax.SpanStart, textLiteralSyntax.Span.Length));
             }
         }
-
-        return new[] {
-            new VSInternalSpellCheckableRangeReport
-            {
-                Ranges = ranges.ToArray(),
-                ResultId = Guid.NewGuid().ToString()
-            }
-        };
     }
 
-    private async Task<VSInternalSpellCheckableRangeReport[]> GetCSharpSpellCheckRangesAsync(VersionedDocumentContext documentContext, CancellationToken cancellationToken)
+    private async Task AddCSharpSpellCheckRangesAsync(List<SpellCheckRange> ranges, VersionedDocumentContext documentContext, CancellationToken cancellationToken)
     {
         var delegatedParams = new DelegatedSpellCheckParams(documentContext.Identifier);
         var delegatedResponse = await _languageServer.SendRequestAsync<DelegatedSpellCheckParams, VSInternalSpellCheckableRangeReport[]?>(
@@ -128,13 +125,11 @@ internal sealed class DocumentSpellCheckEndpoint : IRazorRequestHandler<VSIntern
 
         if (delegatedResponse is null)
         {
-            return Array.Empty<VSInternalSpellCheckableRangeReport>();
+            return;
         }
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var csharpDocument = codeDocument.GetCSharpDocument();
-
-        using var _ = ListPool<VSInternalSpellCheckableRange>.GetPooledObject(out var ranges);
 
         foreach (var report in delegatedResponse)
         {
@@ -143,21 +138,72 @@ internal sealed class DocumentSpellCheckEndpoint : IRazorRequestHandler<VSIntern
                 continue;
             }
 
-            ranges.SetCapacityIfLarger(report.Ranges.Length);
-            foreach (var range in report.Ranges)
+            // Since we get C# tokens that have relative starts, we need to convert them back to absolute indexes
+            // so we can sort them with the Razor tokens later
+            var absoluteCSharpStartIndex = 0;
+            for (var i = 0; i < report.Ranges.Length; i += 3)
             {
-                if (_documentMappingService.TryMapToHostDocumentRange(csharpDocument, range, out var hostDocumentRange))
+                var kind = report.Ranges[i];
+                var start = report.Ranges[i + 1];
+                var length = report.Ranges[i + 2];
+
+                absoluteCSharpStartIndex += start;
+
+                // We need to map the start index to produce results, and we validate that we can map the end index so we don't have
+                // squiggles that go from C# into Razor/Html.
+                if (_documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteCSharpStartIndex, out var _1, out var hostDocumentIndex) &&
+                    _documentMappingService.TryMapToHostDocumentPosition(csharpDocument, absoluteCSharpStartIndex + length, out var _2, out var _3))
                 {
-                    range.Start = hostDocumentRange.Start;
-                    range.End = hostDocumentRange.End;
-                    ranges.Add(range);
+                    ranges.Add(new(kind, hostDocumentIndex, length));
                 }
+
+                absoluteCSharpStartIndex += length;
+            }
+        }
+    }
+
+    private static int[] ConvertSpellCheckRangesToIntTriples(List<SpellCheckRange> ranges)
+    {
+        // Important to sort first, or the client will just ignore anything we say
+        ranges.Sort(AbsoluteStartIndexComparer.Instance);
+
+        using var _ = ListPool<int>.GetPooledObject(out var data);
+        data.SetCapacityIfLarger(ranges.Count * 3);
+
+        var lastAbsoluteEndIndex = 0;
+        foreach (var range in ranges)
+        {
+            if (range.Length == 0)
+            {
+                continue;
             }
 
-            report.Ranges = ranges.ToArray();
-            ranges.Clear();
+            data.Add(range.Kind);
+            data.Add(range.AbsoluteStartIndex - lastAbsoluteEndIndex);
+            data.Add(range.Length);
+
+            lastAbsoluteEndIndex = range.AbsoluteStartIndex + range.Length;
         }
 
-        return delegatedResponse;
+        return data.ToArray();
+    }
+
+    private sealed record SpellCheckRange(int Kind, int AbsoluteStartIndex, int Length);
+
+    private sealed class AbsoluteStartIndexComparer : IComparer<SpellCheckRange>
+    {
+        public static readonly AbsoluteStartIndexComparer Instance = new();
+
+        public int Compare(SpellCheckRange? x, SpellCheckRange? y)
+        {
+            if (x is null || y is null)
+            {
+                Debug.Fail("There shouldn't be a null in the list of spell check ranges.");
+
+                return 0;
+            }
+
+            return x.AbsoluteStartIndex.CompareTo(y.AbsoluteStartIndex);
+        }
     }
 }
