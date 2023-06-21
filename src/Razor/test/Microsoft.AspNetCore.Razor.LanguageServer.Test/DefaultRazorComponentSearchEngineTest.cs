@@ -178,7 +178,7 @@ public class DefaultRazorComponentSearchEngineTest : LanguageServerTestBase
             p.DocumentFilePaths == new[] { "c:/Second/Component3.razor" } &&
             p.GetDocument("c:/Second/Component3.razor") == CreateRazorDocumentSnapshot("", "c:/Second/Component3.razor", "Second.Components"), MockBehavior.Strict);
 
-        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == ImmutableArray<IProjectSnapshot>.Empty.AddRange(firstProject, secondProject), MockBehavior.Strict);
+        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == ImmutableArray<IProjectSnapshot>.Empty.AddRange(firstProject, secondProject), MockBehavior.Strict);
         return new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
     }
 

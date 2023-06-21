@@ -227,7 +227,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
         var project = snapshotResolver.GetMiscellaneousProject();
 
         // Assert
-        Assert.Single(snapshotManager.Projects);
+        Assert.Single(snapshotManager.GetProjects());
         Assert.Equal(snapshotResolver.MiscellaneousHostProject.FilePath, project.FilePath);
     }
 

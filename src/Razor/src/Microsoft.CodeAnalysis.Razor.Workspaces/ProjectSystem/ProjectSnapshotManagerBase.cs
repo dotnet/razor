@@ -17,7 +17,7 @@ internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
 
     internal abstract IErrorReporter ErrorReporter { get; }
 
-    internal abstract IReadOnlyCollection<string> OpenDocuments { get; }
+    internal abstract ImmutableArray<string> GetOpenDocuments();
 
     internal abstract void DocumentAdded(HostProject hostProject, HostDocument hostDocument, TextLoader textLoader);
 

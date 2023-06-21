@@ -63,7 +63,7 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
             JoinableTaskFactory);
 
         // Act
-        var state = await JoinableTaskFactory.RunAsync(() => proxy.CalculateUpdatedStateAsync(projectSnapshotManager.Projects));
+        var state = await JoinableTaskFactory.RunAsync(() => proxy.CalculateUpdatedStateAsync(projectSnapshotManager.GetProjects()));
 
         // Assert
         Assert.Collection(
@@ -200,10 +200,11 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
     {
         public TestProjectSnapshotManager(params IProjectSnapshot[] projects)
         {
-            Projects = projects.ToImmutableArray();
+            _projects = projects;
         }
 
-        public override ImmutableArray<IProjectSnapshot> Projects { get; }
+        private IProjectSnapshot[] _projects;
+        public override ImmutableArray<IProjectSnapshot> GetProjects() => _projects.ToImmutableArray();
 
         public override event EventHandler<ProjectChangeEventArgs> Changed;
 

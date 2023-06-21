@@ -41,7 +41,7 @@ internal sealed class SnapshotResolver
         document = null;
 
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
-        var projects = _projectSnapshotManagerAccessor.Instance.Projects;
+        var projects = _projectSnapshotManagerAccessor.Instance.GetProjects();
         for (var i = 0; i < projects.Length; i++)
         {
             projectSnapshot = projects[i];

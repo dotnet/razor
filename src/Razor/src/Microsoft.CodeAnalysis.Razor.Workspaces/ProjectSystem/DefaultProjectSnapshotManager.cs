@@ -69,22 +69,16 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     // internal for testing
     internal bool IsSolutionClosing { get; private set; }
 
-    public override ImmutableArray<IProjectSnapshot> Projects
+    public override ImmutableArray<IProjectSnapshot> GetProjects()
     {
-        get
-        {
-            using var _ = _locksFactory.EnterReadLock();
-            return _projects_needsLock.Select(e => e.Value.GetSnapshot()).ToImmutableArray();
-        }
+        using var _ = _locksFactory.EnterReadLock();
+        return _projects_needsLock.Select(e => e.Value.GetSnapshot()).ToImmutableArray();
     }
 
-    internal override IReadOnlyCollection<string> OpenDocuments
+    internal override ImmutableArray<string> GetOpenDocuments()
     {
-        get
-        {
-            using var _ = _locksFactory.EnterReadLock();
-            return _openDocuments_needsLock;
-        }
+        using var _ = _locksFactory.EnterReadLock();
+        return _openDocuments_needsLock.ToImmutableArray();
     }
 
     internal override Workspace Workspace { get; }

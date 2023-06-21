@@ -10,7 +10,7 @@ internal class LockFactory
 {
     // Specify recursion is supported, since an item with an upgradeable lock can still
     // get another read lock on the same thread
-    protected readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.SupportsRecursion);
+    private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.SupportsRecursion);
     private static readonly TimeSpan s_timeout = TimeSpan.FromMinutes(2);
 
     public ReadOnlyLock EnterReadLock() => new ReadOnlyLock(_lock);

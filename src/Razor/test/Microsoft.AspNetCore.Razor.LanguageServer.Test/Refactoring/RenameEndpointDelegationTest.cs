@@ -61,7 +61,7 @@ public class RenameEndpointDelegationTest : SingleServerDelegatingEndpointTestBa
 
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
-        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == ImmutableArray<IProjectSnapshot>.Empty.Add(Mock.Of<IProjectSnapshot>(MockBehavior.Strict)), MockBehavior.Strict);
+        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == ImmutableArray<IProjectSnapshot>.Empty.Add(Mock.Of<IProjectSnapshot>(MockBehavior.Strict)), MockBehavior.Strict);
         var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
         using var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
         var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);

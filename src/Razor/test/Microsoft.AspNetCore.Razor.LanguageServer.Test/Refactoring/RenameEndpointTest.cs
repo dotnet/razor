@@ -643,7 +643,7 @@ public class RenameEndpointTest : LanguageServerTestBase
             p.GetDocument("c:/Second/ComponentWithParam.razor") == componentWithParam.Snapshot &&
             p.GetDocument(index.FilePath) == index.Snapshot, MockBehavior.Strict);
 
-        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == ImmutableArray<IProjectSnapshot>.Empty.AddRange(firstProject, secondProject), MockBehavior.Strict);
+        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == ImmutableArray<IProjectSnapshot>.Empty.AddRange(firstProject, secondProject), MockBehavior.Strict);
         var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
 
         var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);

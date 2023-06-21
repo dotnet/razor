@@ -544,7 +544,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         _projectManager.ProjectConfigurationChanged(_hostProject);
 
         // Assert
-        Assert.Empty(_projectManager.Projects);
+        Assert.Empty(_projectManager.GetProjects());
 
         Assert.Null(_projectManager.ListenersNotifiedOf);
     }
@@ -560,7 +560,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         _projectManager.ProjectRemoved(_hostProject);
 
         // Assert
-        Assert.Empty(_projectManager.Projects);
+        Assert.Empty(_projectManager.GetProjects());
 
         Assert.Equal(ProjectChangeKind.ProjectRemoved, _projectManager.ListenersNotifiedOf);
     }
@@ -574,7 +574,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         _projectManager.ProjectWorkspaceStateChanged(_hostProject.FilePath, _projectWorkspaceStateWithTagHelpers);
 
         // Assert
-        Assert.Empty(_projectManager.Projects);
+        Assert.Empty(_projectManager.GetProjects());
 
         Assert.Null(_projectManager.ListenersNotifiedOf);
     }
@@ -672,12 +672,12 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
 
         public ProjectSnapshot GetSnapshot(HostProject hostProject)
         {
-            return Projects.Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == hostProject.FilePath);
+            return GetProjects().Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == hostProject.FilePath);
         }
 
         public ProjectSnapshot GetSnapshot(Project workspaceProject)
         {
-            return Projects.Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == workspaceProject.FilePath);
+            return GetProjects().Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == workspaceProject.FilePath);
         }
 
         public void Reset()

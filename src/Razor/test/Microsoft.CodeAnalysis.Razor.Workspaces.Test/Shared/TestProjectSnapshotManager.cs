@@ -20,12 +20,12 @@ internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
 
     public ProjectSnapshot GetSnapshot(HostProject hostProject)
     {
-        return Projects.Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == hostProject.FilePath);
+        return GetProjects().Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == hostProject.FilePath);
     }
 
     public ProjectSnapshot GetSnapshot(Project workspaceProject)
     {
-        return Projects.Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == workspaceProject.FilePath);
+        return GetProjects().Cast<ProjectSnapshot>().FirstOrDefault(s => s.FilePath == workspaceProject.FilePath);
     }
 
     protected override void NotifyListeners(ProjectChangeEventArgs e)

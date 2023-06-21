@@ -208,7 +208,7 @@ public class DefinitionEndpointDelegationTest : SingleServerDelegatingEndpointTe
     {
         await CreateLanguageServerAsync(codeDocument, razorFilePath, additionalRazorDocuments);
 
-        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == ImmutableArray<IProjectSnapshot>.Empty.Add(Mock.Of<IProjectSnapshot>(MockBehavior.Strict)), MockBehavior.Strict);
+        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == ImmutableArray<IProjectSnapshot>.Empty.Add(Mock.Of<IProjectSnapshot>(MockBehavior.Strict)), MockBehavior.Strict);
         var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
         var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
         var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);

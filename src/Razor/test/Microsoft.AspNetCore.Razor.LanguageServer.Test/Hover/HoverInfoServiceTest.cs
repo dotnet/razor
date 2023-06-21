@@ -735,7 +735,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
             , MockBehavior.Strict);
         var languageServer = new HoverLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
         var documentMappingService = new RazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
-        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == ImmutableArray<IProjectSnapshot>.Empty.Add(Mock.Of<IProjectSnapshot>(MockBehavior.Strict)), MockBehavior.Strict);
+        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == ImmutableArray<IProjectSnapshot>.Empty.Add(Mock.Of<IProjectSnapshot>(MockBehavior.Strict)), MockBehavior.Strict);
         var hoverInfoService = GetHoverInfoService();
 
         var endpoint = new HoverEndpoint(
