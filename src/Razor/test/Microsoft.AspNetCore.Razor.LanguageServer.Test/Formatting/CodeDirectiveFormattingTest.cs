@@ -43,6 +43,36 @@ public class CodeDirectiveFormattingTest : FormattingTestBase
     }
 
     [Fact]
+    public async Task FormatCSharpInsideHtmlTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    <html>
+                    <body>
+                    <div>
+                    @{
+                    <span>foo</span>
+                    <span>foo</span>
+                    }
+                    </div>
+                    </body>
+                    </html>
+                    """,
+            expected: """
+                    <html>
+                    <body>
+                        <div>
+                            @{
+                                <span>foo</span>
+                                <span>foo</span>
+                            }
+                        </div>
+                    </body>
+                    </html>
+                    """);
+    }
+
+    [Fact]
     public async Task Format_DocumentWithDiagnostics()
     {
         await RunFormattingTestAsync(

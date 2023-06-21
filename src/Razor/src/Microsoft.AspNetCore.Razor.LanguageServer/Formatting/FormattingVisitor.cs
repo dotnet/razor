@@ -16,6 +16,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal class FormattingVisitor : SyntaxWalker
 {
+    private const string HtmlTag = "html";
+
     private readonly List<FormattingSpan> _spans;
     private FormattingBlockKind _currentBlockKind;
     private SyntaxNode? _currentBlock;
@@ -125,10 +127,13 @@ internal class FormattingVisitor : SyntaxWalker
     {
         Visit(node.StartTag);
 
-        // Void elements, like <meta> or <input> which don't need an end tag don't cause indentation
-        var causesIndentation = node.StartTag is null || !node.StartTag.IsVoidElement();
+        // Void elements, like <meta> or <input> which don't need an end tag don't cause indentation.
+        // We also cheat and treat the <html> tag as a void element, so it doesn't cause indentation,
+        // as that's what the Html formatter does, to avoid one level of indentation in every html file.
+        var voidElement = node.StartTag is { } startTag &&
+            (startTag.IsVoidElement() || string.Equals(startTag.Name.Content, HtmlTag, StringComparison.OrdinalIgnoreCase));
 
-        if (causesIndentation)
+        if (!voidElement)
         {
             _currentHtmlIndentationLevel++;
         }
@@ -138,7 +143,7 @@ internal class FormattingVisitor : SyntaxWalker
             Visit(child);
         }
 
-        if (causesIndentation)
+        if (!voidElement)
         {
             _currentHtmlIndentationLevel--;
         }
