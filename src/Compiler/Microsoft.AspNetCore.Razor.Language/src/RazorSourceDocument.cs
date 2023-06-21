@@ -5,7 +5,6 @@
 
 using System;
 using System.IO;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -89,7 +88,7 @@ public abstract class RazorSourceDocument
     /// </remarks>
     public virtual string GetChecksumAlgorithm()
     {
-        return HashAlgorithmName.SHA256.Name;
+        return HashAlgorithmOperations.GetRecommendedAlgorithm().Name;
     }
 
     /// <summary>

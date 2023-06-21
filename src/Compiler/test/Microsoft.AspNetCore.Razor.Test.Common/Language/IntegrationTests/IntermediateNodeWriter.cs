@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
@@ -336,7 +335,7 @@ public class IntermediateNodeWriter :
 
                 // Purposefully not writing out the entire message to ensure readable IR and because messages
                 // can span multiple lines. Not using string.GetHashCode because we can't have any collisions.
-                using (var sha256 = SHA256.Create())
+                using (var sha256 = HashAlgorithmOperations.Create())
                 {
                     var diagnosticMessage = diagnostic.GetMessage(CultureInfo.InvariantCulture);
                     var messageBytes = Encoding.UTF8.GetBytes(diagnosticMessage);
