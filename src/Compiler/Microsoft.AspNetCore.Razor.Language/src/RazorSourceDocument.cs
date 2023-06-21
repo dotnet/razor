@@ -88,7 +88,7 @@ public abstract class RazorSourceDocument
     /// </remarks>
     public virtual string GetChecksumAlgorithm()
     {
-        return HashAlgorithmOperations.GetRecommendedAlgorithm().Name;
+        return HashAlgorithmOperations.GetAlgorithmName();
     }
 
     /// <summary>

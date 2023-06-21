@@ -91,7 +91,7 @@ internal class StringSourceDocument : RazorSourceDocument
             var bytes = new byte[byteCount];
             encoder.GetBytes(charBuffer, 0, charBuffer.Length, bytes, 0, flush: true);
 
-            using (var hashAlgorithm = HashFunctionExtensions.Create())
+            using (var hashAlgorithm = HashAlgorithmOperations.Create())
             {
                 _checksum = hashAlgorithm.ComputeHash(bytes);
             }

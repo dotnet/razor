@@ -10,8 +10,8 @@ internal static class HashAlgorithmOperations
 {
     public static HashAlgorithm Create()
         => SHA256.Create();
-    public static HashAlgorithmName GetRecommendedAlgorithm()
-        => HashAlgorithmName.SHA256;
-    public static HashAlgorithmName GetOutdatedAlgorithm()
-        => HashAlgorithmName.SHA1;
+    public static string? GetAlgorithmName()
+        => HashAlgorithmName.SHA256.Name;
+    public static string? GetOutdatedAlgorithmName()
+        => HashAlgorithmName.SHA1.Name;
 }
