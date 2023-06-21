@@ -5,6 +5,7 @@
 
 using System;
 using System.Linq;
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -78,11 +79,11 @@ internal class DefaultDocumentWriter : DocumentWriter
 
                 string algorithmId;
                 var algorithm = Context.SourceDocument.GetChecksumAlgorithm();
-                if (string.Equals(algorithm, HashAlgorithmOperations.GetAlgorithmName(), StringComparison.Ordinal))
+                if (string.Equals(algorithm, HashAlgorithmName.SHA256.Name, StringComparison.Ordinal))
                 {
                     algorithmId = "{8829d00f-11b8-4213-878b-770e8597ac16}";
                 }
-                else if (string.Equals(algorithm, HashAlgorithmOperations.GetOutdatedAlgorithmName(), StringComparison.Ordinal) ||
+                else if (string.Equals(algorithm, HashAlgorithmName.SHA1.Name, StringComparison.Ordinal) ||
 
                     // In 2.0, we didn't actually expose the name of the algorithm, so it's possible we could get null here.
                     // If that's the case, we just assume SHA1 since that's the only thing we supported in 2.0.
@@ -94,8 +95,8 @@ internal class DefaultDocumentWriter : DocumentWriter
                 {
                     var supportedAlgorithms = string.Join(" ", new string[]
                     {
-                        HashAlgorithmOperations.GetOutdatedAlgorithmName(),
-                        HashAlgorithmOperations.GetAlgorithmName()
+                        HashAlgorithmName.SHA1.Name,
+                        HashAlgorithmName.SHA256.Name
                     });
 
                     var message = Resources.FormatUnsupportedChecksumAlgorithm(
