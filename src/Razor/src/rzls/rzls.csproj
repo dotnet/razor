@@ -49,6 +49,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
+    <PackageReference Include="System.Private.Uri" Version="$(SystemPrivateUriPackageVersion)" />
   </ItemGroup>
 
   <Target Name="PublishAllRids">

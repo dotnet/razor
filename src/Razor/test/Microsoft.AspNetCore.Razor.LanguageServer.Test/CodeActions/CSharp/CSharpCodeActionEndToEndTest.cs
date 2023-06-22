@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
@@ -59,10 +60,276 @@ public class CSharpCodeActionEndToEndTest : SingleServerDelegatingEndpointTestBa
 
             """;
 
-        await ValidateCodeActionAsync(input, "Generate Default Constructors Code Action Provider", expected);
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors);
     }
 
-    private async Task ValidateCodeActionAsync(string input, string codeAction, string expected)
+    [Fact]
+    public async Task Handle_IntroduceLocal()
+    {
+        var input = """
+            @using System.Linq
+
+            <div></div>
+
+            @functions
+            {
+                void M(string[] args)
+                {
+                    if ([|args.First()|].Length > 0)
+                    {
+                    }
+                    if (args.First().Length > 0)
+                    {
+                    }
+                }
+            }
+
+            """;
+
+        var expected = """
+            @using System.Linq
+
+            <div></div>
+            
+            @functions
+            {
+                void M(string[] args)
+                {
+                    string v = args.First();
+                    if (v.Length > 0)
+                    {
+                    }
+                    if (args.First().Length > 0)
+                    {
+                    }
+                }
+            }
+
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.IntroduceVariable);
+    }
+
+    [Fact]
+    public async Task Handle_IntroduceLocal_All()
+    {
+        var input = """
+            @using System.Linq
+
+            <div></div>
+
+            @functions
+            {
+                void M(string[] args)
+                {
+                    if ([|args.First()|].Length > 0)
+                    {
+                    }
+                    if (args.First().Length > 0)
+                    {
+                    }
+                }
+            }
+
+            """;
+
+        var expected = """
+            @using System.Linq
+
+            <div></div>
+            
+            @functions
+            {
+                void M(string[] args)
+                {
+                    string v = args.First();
+                    if (v.Length > 0)
+                    {
+                    }
+                    if (v.Length > 0)
+                    {
+                    }
+                }
+            }
+
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.IntroduceVariable, childActionIndex: 1);
+    }
+
+    [Fact]
+    public async Task Handle_ConvertConcatenationToInterpolatedString_CSharpStatement()
+    {
+        var input = """
+            @{
+                var x = "he[||]l" + "lo" + Environment.NewLine + "world";
+            }
+            """;
+
+        var expected = """
+            @{
+                var x = $"hello{Environment.NewLine}world";
+            }
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
+    }
+
+    [Fact]
+    public async Task Handle_ConvertConcatenationToInterpolatedString_ExplicitExpression()
+    {
+        var input = """
+            @("he[||]l" + "lo" + Environment.NewLine + "world")
+            """;
+
+        var expected = """
+            @($"hello{Environment.NewLine}world")
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
+    }
+
+    [Fact]
+    public async Task Handle_ConvertConcatenationToInterpolatedString_CodeBlock()
+    {
+        var input = """
+            @functions
+            {
+                private string _x = "he[||]l" + "lo" + Environment.NewLine + "world";
+            }
+            """;
+
+        var expected = """
+            @functions
+            {
+                private string _x = $"hello{Environment.NewLine}world";
+            }
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString);
+    }
+
+    [Fact]
+    public async Task Handle_ConvertBetweenRegularAndVerbatimInterpolatedString_CodeBlock()
+    {
+        var input = """
+            @functions
+            {
+                private string _x = $@"h[||]ello world";
+            }
+            """;
+
+        var expected = """
+            @functions
+            {
+                private string _x = $"hello world";
+            }
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString);
+    }
+
+    [Fact]
+    public async Task Handle_ConvertBetweenRegularAndVerbatimInterpolatedString_CodeBlock2()
+    {
+        var input = """
+            @functions
+            {
+                private string _x = $"h[||]ello\\nworld";
+            }
+            """;
+
+        var expected = """
+            @functions
+            {
+                private string _x = $@"hello\nworld";
+            }
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimInterpolatedString);
+    }
+
+    [Fact]
+    public async Task Handle_ConvertBetweenRegularAndVerbatimString_CodeBlock()
+    {
+        var input = """
+            @functions
+            {
+                private string _x = @"h[||]ello world";
+            }
+            """;
+
+        var expected = """
+            @functions
+            {
+                private string _x = "hello world";
+            }
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString);
+    }
+
+    [Fact]
+    public async Task Handle_ConvertBetweenRegularAndVerbatimString_CodeBlock2()
+    {
+        var input = """
+            @functions
+            {
+                private string _x = "h[||]ello\\nworld";
+            }
+            """;
+
+        var expected = """
+            @functions
+            {
+                private string _x = @"hello\nworld";
+            }
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertBetweenRegularAndVerbatimString);
+    }
+
+    [Fact]
+    public async Task Handle_ConvertPlaceholderToInterpolatedString_CodeBlock()
+    {
+        var input = """
+            @functions
+            {
+                private string _x = [|string.Format("hello{0}world", Environment.NewLine)|];
+            }
+            """;
+
+        var expected = """
+            @functions
+            {
+                private string _x = $"hello{Environment.NewLine}world";
+            }
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertPlaceholderToInterpolatedString);
+    }
+
+    [Fact]
+    public async Task Handle_ConvertToInterpolatedString_CodeBlock()
+    {
+        var input = """
+            @functions
+            {
+                private string _x = [||]"hello {";
+            }
+            """;
+
+        var expected = """
+            @functions
+            {
+                private string _x = $"hello {{";
+            }
+            """;
+
+        await ValidateCodeActionAsync(input, expected, RazorPredefinedCodeRefactoringProviderNames.ConvertToInterpolatedString);
+    }
+
+    private async Task ValidateCodeActionAsync(string input, string expected, string codeAction, int childActionIndex = 0)
     {
         TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
 
@@ -108,7 +375,12 @@ public class CSharpCodeActionEndToEndTest : SingleServerDelegatingEndpointTestBa
         Assert.NotNull(result);
         Assert.NotEmpty(result);
 
-        var codeActionToRun = (RazorVSInternalCodeAction)result.Single(e => ((RazorVSInternalCodeAction)e.Value!).Name == codeAction);
+        var codeActionToRun = (VSInternalCodeAction)result.Single(e => ((RazorVSInternalCodeAction)e.Value!).Name == codeAction);
+
+        if (codeActionToRun.Children?.Length > 0)
+        {
+            codeActionToRun = codeActionToRun.Children[childActionIndex];
+        }
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync();
 
