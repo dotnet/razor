@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -12,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 internal class ClassifiedSpanVisitor : SyntaxWalker
 {
     private readonly RazorSourceDocument _source;
-    private readonly List<ClassifiedSpanInternal> _spans;
+    private readonly ImmutableArray<ClassifiedSpanInternal>.Builder _spans;
 
     private readonly Action<CSharpCodeBlockSyntax> _baseVisitCSharpCodeBlock;
     private readonly Action<CSharpStatementSyntax> _baseVisitCSharpStatement;
@@ -29,15 +30,10 @@ internal class ClassifiedSpanVisitor : SyntaxWalker
     private BlockKindInternal _currentBlockKind;
     private SyntaxNode? _currentBlock;
 
-    public ClassifiedSpanVisitor(RazorSourceDocument source)
+    public ClassifiedSpanVisitor(RazorSourceDocument source, ImmutableArray<ClassifiedSpanInternal>.Builder spans)
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        _source = source;
-        _spans = new List<ClassifiedSpanInternal>();
+        _source = source ?? throw new ArgumentNullException(nameof(source));
+        _spans = spans ?? throw new ArgumentNullException(nameof(spans));
 
         _baseVisitCSharpCodeBlock = base.VisitCSharpCodeBlock;
         _baseVisitCSharpStatement = base.VisitCSharpStatement;
