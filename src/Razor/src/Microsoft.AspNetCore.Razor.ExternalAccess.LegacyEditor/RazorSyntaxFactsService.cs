@@ -23,8 +23,8 @@ internal class RazorSyntaxFactsService : ILanguageService
         foreach (var item in result)
         {
             builder.Add(new ClassifiedSpan(
-                ConvertSpan(item.Span),
-                ConvertSpan(item.BlockSpan),
+                RazorWrapperFactory.ConvertSourceSpan(item.Span),
+                RazorWrapperFactory.ConvertSourceSpan(item.BlockSpan),
                 (SpanKind)item.SpanKind,
                 (BlockKind)item.BlockKind,
                 (AcceptedCharacters)item.AcceptedCharacters));
@@ -42,22 +42,10 @@ internal class RazorSyntaxFactsService : ILanguageService
         foreach (var item in result)
         {
             builder.Add(new TagHelperSpan(
-                ConvertSpan(item.Span),
+                RazorWrapperFactory.ConvertSourceSpan(item.Span),
                 item.Binding));
         }
 
         return builder.DrainToImmutable();
-    }
-
-    private static RazorSourceSpan ConvertSpan(SourceSpan span)
-    {
-        return new(
-            FilePath: span.FilePath,
-            AbsoluteIndex: span.AbsoluteIndex,
-            LineIndex: span.LineIndex,
-            CharacterIndex: span.CharacterIndex,
-            Length: span.Length,
-            LineCount: span.LineCount,
-            EndCharacterIndex: span.EndCharacterIndex);
     }
 }
