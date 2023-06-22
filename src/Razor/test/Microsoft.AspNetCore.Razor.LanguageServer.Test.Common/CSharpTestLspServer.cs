@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
+using Newtonsoft.Json;
 using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
@@ -34,7 +35,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
     private CSharpTestLspServer(
         AdhocWorkspace testWorkspace,
         ExportProvider exportProvider,
-        ServerCapabilities serverCapabilities,
+        VSInternalServerCapabilities serverCapabilities,
         CancellationToken cancellationToken)
     {
         _testWorkspace = testWorkspace;
@@ -71,9 +72,9 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
             StreamJsonRpc.JsonRpc serverRpc,
             Workspace workspace,
             ExportProvider exportProvider,
-            ServerCapabilities serverCapabilities)
+            VSInternalServerCapabilities serverCapabilities)
         {
-            var capabilitiesProvider = new RazorCapabilitiesProvider(serverCapabilities);
+            var capabilitiesProvider = new RazorTestCapabilitiesProvider(serverCapabilities);
 
             var registrationService = exportProvider.GetExportedValue<RazorTestWorkspaceRegistrationService>();
             registrationService.Register(workspace);
@@ -91,7 +92,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
         AdhocWorkspace testWorkspace,
         ExportProvider exportProvider,
         ClientCapabilities clientCapabilities,
-        ServerCapabilities serverCapabilities,
+        VSInternalServerCapabilities serverCapabilities,
         CancellationToken cancellationToken)
     {
         var server = new CSharpTestLspServer(testWorkspace, exportProvider, serverCapabilities, cancellationToken);
@@ -187,16 +188,20 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
     #endregion
 
-    private class RazorCapabilitiesProvider : IRazorCapabilitiesProvider
+    private class RazorTestCapabilitiesProvider : IRazorTestCapabilitiesProvider
     {
-        private readonly ServerCapabilities _serverCapabilities;
+        private readonly VSInternalServerCapabilities _serverCapabilities;
 
-        public RazorCapabilitiesProvider(ServerCapabilities serverCapabilities)
+        public RazorTestCapabilitiesProvider(VSInternalServerCapabilities serverCapabilities)
         {
             _serverCapabilities = serverCapabilities;
         }
 
-        public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
-            => _serverCapabilities;
+        public string GetServerCapabilitiesJson(string clientCapabilitiesJson)
+        {
+            // To avoid exposing types from VS.LSP.Protocol across the Razor <-> Roslyn API boundary, and therefore
+            // requiring us to agree on dependency versions, we use JSON as a transport mechanism.
+            return JsonConvert.SerializeObject(_serverCapabilities);
+        }
     }
 }
