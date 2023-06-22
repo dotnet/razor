@@ -499,7 +499,8 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         int hostDocumentLength,
         bool rightAssociative)
     {
-        for (var i = 0; i < classifiedSpans.Length; i++)
+        var length = classifiedSpans.Length;
+        for (var i = 0; i < length; i++)
         {
             var classifiedSpan = classifiedSpans[i];
             var span = classifiedSpan.Span;
@@ -961,11 +962,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         if (!document.Items.TryGetValue(typeof(ClassifiedSpanInternal), out ImmutableArray<ClassifiedSpanInternal> classifiedSpans))
         {
             var syntaxTree = document.GetSyntaxTree();
-
-            using var _ = ArrayBuilderPool<ClassifiedSpanInternal>.GetPooledObject(out var builder);
-            var visitor = new ClassifiedSpanVisitor(syntaxTree.Source, builder);
-            visitor.Visit(syntaxTree.Root);
-            classifiedSpans = builder.DrainToImmutable();
+            classifiedSpans = ClassifiedSpanVisitor.VisitRoot(syntaxTree);
 
             document.Items[typeof(ClassifiedSpanInternal)] = classifiedSpans;
         }
@@ -981,11 +978,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
         if (!document.Items.TryGetValue(typeof(TagHelperSpanInternal), out ImmutableArray<TagHelperSpanInternal> tagHelperSpans))
         {
             var syntaxTree = document.GetSyntaxTree();
-
-            using var _ = ArrayBuilderPool<TagHelperSpanInternal>.GetPooledObject(out var builder);
-            var visitor = new TagHelperSpanVisitor(syntaxTree.Source, builder);
-            visitor.Visit(syntaxTree.Root);
-            tagHelperSpans = builder.DrainToImmutable();
+            tagHelperSpans = TagHelperSpanVisitor.VisitRoot(syntaxTree);
 
             document.Items[typeof(TagHelperSpanInternal)] = tagHelperSpans;
         }

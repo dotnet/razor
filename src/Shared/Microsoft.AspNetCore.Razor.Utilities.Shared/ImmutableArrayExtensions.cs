@@ -74,6 +74,7 @@ internal static class ImmutableArrayExtensions
         static ImmutableArray<TResult> BuildResult(ImmutableArray<T> items, Func<T, TResult> selector)
         {
             using var _ = ArrayBuilderPool<TResult>.GetPooledObject(out var result);
+            result.SetCapacityIfLarger(items.Length);
 
             foreach (var item in items)
             {

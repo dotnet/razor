@@ -4,6 +4,7 @@
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -12,10 +13,20 @@ internal class TagHelperSpanVisitor : SyntaxWalker
     private readonly RazorSourceDocument _source;
     private readonly ImmutableArray<TagHelperSpanInternal>.Builder _spans;
 
-    public TagHelperSpanVisitor(RazorSourceDocument source, ImmutableArray<TagHelperSpanInternal>.Builder spans)
+    private TagHelperSpanVisitor(RazorSourceDocument source, ImmutableArray<TagHelperSpanInternal>.Builder spans)
     {
         _source = source;
         _spans = spans;
+    }
+
+    public static ImmutableArray<TagHelperSpanInternal> VisitRoot(RazorSyntaxTree syntaxTree)
+    {
+        using var _ = ArrayBuilderPool<TagHelperSpanInternal>.GetPooledObject(out var builder);
+
+        var visitor = new TagHelperSpanVisitor(syntaxTree.Source, builder);
+        visitor.Visit(syntaxTree.Root);
+
+        return builder.DrainToImmutable();
     }
 
     public override void VisitMarkupTagHelperElement(MarkupTagHelperElementSyntax node)
