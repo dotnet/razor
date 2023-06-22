@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable enable
@@ -2649,6 +2649,28 @@ namespace MyApp
 
             Assert.Empty(result.Diagnostics);
             Assert.Single(result.GeneratedSources);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/8850")]
+        public async Task SystemFolder()
+        {
+            var project = CreateTestProject(new()
+            {
+                ["Pages/__Host.cshtml"] = """
+                    @page "/"
+                    @namespace MyApp.Pages
+                    """,
+                ["Pages/System/MyComponent.razor"] = """
+                    <h1>My component</h1>
+                    """,
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project);
+
+            var result = RunGenerator(compilation!, ref driver);
+
+            Assert.Empty(result.Diagnostics);
+            Assert.Equal(2, result.GeneratedSources.Length);
         }
     }
 }
