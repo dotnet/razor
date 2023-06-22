@@ -23,4 +23,37 @@ internal static class ImmutableArrayExtensions
             builder.Capacity = newCapacity;
         }
     }
+
+    /// <summary>
+    ///  Returns the current contents as an <see cref="ImmutableArray{T}"/> and sets
+    ///  the collection to a zero length array.
+    /// </summary>
+    /// <remarks>
+    ///  If <see cref="ImmutableArray{T}.Builder.Capacity"/> equals
+    ///  <see cref="ImmutableArray{T}.Builder.Count"/>, the internal array will be extracted
+    ///  as an <see cref="ImmutableArray{T}"/> without copying the contents. Otherwise, the
+    ///  contents will be copied into a new array. The collection will then be set to a
+    ///  zero-length array.
+    /// </remarks>
+    /// <returns>An immutable array.</returns>
+    public static ImmutableArray<T> DrainToImmutable<T>(this ImmutableArray<T>.Builder builder)
+    {
+#if NET8_0_OR_GREATER
+        return builder.DrainToImmutable();
+#else
+        if (builder.Count == 0)
+        {
+            return ImmutableArray<T>.Empty;
+        }
+
+        if (builder.Count == builder.Capacity)
+        {
+            return builder.MoveToImmutable();
+        }
+
+        var result = builder.ToImmutable();
+        builder.Clear();
+        return result;
+#endif
+    }
 }
