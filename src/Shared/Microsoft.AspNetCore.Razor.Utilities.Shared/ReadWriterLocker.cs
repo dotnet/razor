@@ -2,16 +2,16 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 
 namespace Microsoft.AspNetCore.Razor;
 
-internal class LockFactory
+internal class ReadWriterLocker
 {
     // Specify recursion is supported, since an item with an upgradeable lock can still
     // get another read lock on the same thread
     private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.SupportsRecursion);
-    private static readonly TimeSpan s_timeout = TimeSpan.FromMinutes(2);
 
     public ReadOnlyLock EnterReadLock() => new ReadOnlyLock(_lock);
     public WriteOnlyLock EnterWriteLock() => new WriteOnlyLock(_lock);
@@ -25,6 +25,20 @@ internal class LockFactory
         }
     }
 
+    private static TimeSpan GetTimeout()
+    {
+        if (Debugger.IsAttached)
+        {
+            return TimeSpan.MaxValue;
+        }
+
+#if DEBUG
+        return TimeSpan.MaxValue;
+#else 
+        return TimeSpan.FromSeconds(30);
+#endif
+    }
+
     public ref struct ReadOnlyLock
     {
         private readonly ReaderWriterLockSlim _rwLock;
@@ -33,7 +47,7 @@ internal class LockFactory
         public ReadOnlyLock(ReaderWriterLockSlim rwLock)
         {
             _rwLock = rwLock;
-            if (!_rwLock.TryEnterReadLock(s_timeout))
+            if (!_rwLock.TryEnterReadLock(GetTimeout()))
             {
                 throw new InvalidOperationException("Failed getting a read lock");
             }
@@ -59,7 +73,7 @@ internal class LockFactory
         public WriteOnlyLock(ReaderWriterLockSlim rwLock)
         {
             _rwLock = rwLock;
-            if (!_rwLock.TryEnterWriteLock(s_timeout))
+            if (!_rwLock.TryEnterWriteLock(GetTimeout()))
             {
                 throw new InvalidOperationException("Failed getting a write lock");
             }
@@ -85,7 +99,7 @@ internal class LockFactory
         public UpgradeAbleReadLock(ReaderWriterLockSlim rwLock)
         {
             _rwLock = rwLock;
-            if (!_rwLock.TryEnterUpgradeableReadLock(s_timeout))
+            if (!_rwLock.TryEnterUpgradeableReadLock(GetTimeout()))
             {
                 throw new InvalidOperationException("Failed getting an upgradeable read lock");
             }
