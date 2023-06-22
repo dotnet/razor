@@ -75,7 +75,7 @@ internal ref struct PooledArrayBuilder<T>
         var result = _pool.Get();
         if (_capacity is int capacity)
         {
-            result.SetCapacityIfNeeded(capacity);
+            result.SetCapacityIfLarger(capacity);
         }
 
         return result;
