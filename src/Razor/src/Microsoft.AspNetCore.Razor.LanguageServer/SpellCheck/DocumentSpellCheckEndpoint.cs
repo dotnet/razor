@@ -86,7 +86,7 @@ internal sealed class DocumentSpellCheckEndpoint : IRazorRequestHandler<VSIntern
         // means we don't need complicated logic, and it performs a bit better. We assume any C# in them will still be reported
         // by Roslyn.
         // In an ideal world we wouldn't need this logic at all, as we would defer to the Html LSP server to provide spell checking
-        // but it doesn't currently support it. When that support is added, we can remove all of this bug the RazorCommentBlockSyntax
+        // but it doesn't currently support it. When that support is added, we can remove all of this but the RazorCommentBlockSyntax
         // handling.
         foreach (var node in tree.Root.DescendantNodes(n => n is not MarkupElementSyntax { StartTag.Name.Content: "script" or "style" }))
         {
