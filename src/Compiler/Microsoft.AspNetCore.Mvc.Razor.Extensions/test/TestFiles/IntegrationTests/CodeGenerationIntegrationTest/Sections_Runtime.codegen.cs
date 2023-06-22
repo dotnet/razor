@@ -47,7 +47,7 @@ namespace AspNetCore
             WriteLiteral("\r\n");
 #nullable restore
 #line 5 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Sections.cshtml"
-
+   
     Layout = "_SectionTestLayout.cshtml";
 
 #line default

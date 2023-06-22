@@ -49,7 +49,7 @@ namespace AspNetCore
         {
 #nullable restore
 #line 2 "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml"
-
+  
     ViewData["Title"] = "Home page";
 
 #line default

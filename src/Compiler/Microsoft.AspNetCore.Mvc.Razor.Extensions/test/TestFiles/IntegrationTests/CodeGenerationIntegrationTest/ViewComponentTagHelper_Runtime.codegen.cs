@@ -47,7 +47,7 @@ namespace AspNetCore
         {
 #nullable restore
 #line 2 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ViewComponentTagHelper.cshtml"
-
+  
     var foo = "Hello";
 
 #line default

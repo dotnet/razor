@@ -43,7 +43,7 @@ Write(string.Format("{0}", "Hello"));
             WriteLiteral("\r\n</div>\r\n");
 #nullable restore
 #line 5 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
-
+   
     var cls = "foo";
 
 #line default
@@ -55,7 +55,7 @@ Write(string.Format("{0}", "Hello"));
                 PushWriter(__razor_attribute_value_writer);
 #nullable restore
 #line 8 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Basic.cshtml"
-           if(cls != null) {
+           if(cls != null) { 
 
 #line default
 #line hidden
