@@ -362,7 +362,8 @@ stages:
           options: --init # This ensures all the stray defunct processes are reaped.
         pool:
           ${{ if eq(variables['System.TeamProject'], 'public') }}:
-            vmImage: ubuntu-latest
+            name: NetCore-Public
+            demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
           ${{ if eq(variables['System.TeamProject'], 'internal') }}:
             name: $(DncEngInternalBuildPool)
             demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
