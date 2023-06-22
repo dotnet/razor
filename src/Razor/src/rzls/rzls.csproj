@@ -59,7 +59,7 @@
 
       <!-- Transform RuntimeIdentifierForPublish items to project items to pass to MSBuild task -->
       <ProjectToPublish Include="@(RuntimeIdentifierForPublish->'$(MSBuildProjectFullPath)')">
-        <AdditionalProperties>RuntimeIdentifier=%(RuntimeIdentifierForPublish.Identity);PublishDir=$(RidsPublishDir)%(RuntimeIdentifierForPublish.Identity)\;TargetFramework=$(PublishTargetFramework)</AdditionalProperties>
+        <AdditionalProperties>RuntimeIdentifier=%(RuntimeIdentifierForPublish.Identity);PublishDir=$(RidsPublishDir)%(RuntimeIdentifierForPublish.Identity)\;TargetFramework=$(PublishTargetFramework);_SelfContainedWasSpecified=true</AdditionalProperties>
       </ProjectToPublish>
 
       <ProjectToPublish_PlatformAgnostic Include="$(MSBuildProjectFullPath)">
