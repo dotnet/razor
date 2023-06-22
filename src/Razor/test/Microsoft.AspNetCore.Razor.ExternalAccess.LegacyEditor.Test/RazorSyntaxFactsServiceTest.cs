@@ -1,24 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using Microsoft.AspNetCore.Razor.Language;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor.Test;
 
-public class DefaultRazorSyntaxFactsServiceTest : RazorProjectEngineTestBase
+public class RazorSyntaxFactsServiceTest(ITestOutputHelper testOutput) : RazorProjectEngineTestBase(testOutput)
 {
-    protected override RazorLanguageVersion Version { get; }
-
-    public DefaultRazorSyntaxFactsServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-        Version = RazorLanguageVersion.Latest;
-    }
+    protected override RazorLanguageVersion Version => RazorLanguageVersion.Latest;
 
     [Fact]
     public void GetClassifiedSpans_ReturnsExpectedSpans()
@@ -26,20 +18,21 @@ public class DefaultRazorSyntaxFactsServiceTest : RazorProjectEngineTestBase
         // Arrange
         var expectedSpans = new[]
         {
-            new ClassifiedSpan(new SourceSpan("test.cshtml", 0, 0, 0, 5), new SourceSpan("test.cshtml", 0, 0, 0, 5), SpanKind.Markup, BlockKind.Tag, AcceptedCharacters.Any),
-            new ClassifiedSpan(new SourceSpan("test.cshtml", 5, 0, 5, 6), new SourceSpan("test.cshtml", 0, 0, 0, 42), SpanKind.Markup, BlockKind.Markup, AcceptedCharacters.Any),
-            new ClassifiedSpan(new SourceSpan("test.cshtml", 34, 1, 27, 2), new SourceSpan("test.cshtml", 0, 0, 0, 42), SpanKind.Markup, BlockKind.Markup, AcceptedCharacters.Any),
-            new ClassifiedSpan(new SourceSpan("test.cshtml", 36, 2, 0, 6), new SourceSpan("test.cshtml", 36, 2, 0, 6), SpanKind.Markup, BlockKind.Tag, AcceptedCharacters.Any),
+            new ClassifiedSpan(new RazorSourceSpan("test.cshtml", 0, 0, 0, 5), new RazorSourceSpan("test.cshtml", 0, 0, 0, 5), SpanKind.Markup, BlockKind.Tag, AcceptedCharacters.Any),
+            new ClassifiedSpan(new RazorSourceSpan("test.cshtml", 5, 0, 5, 6), new RazorSourceSpan("test.cshtml", 0, 0, 0, 42), SpanKind.Markup, BlockKind.Markup, AcceptedCharacters.Any),
+            new ClassifiedSpan(new RazorSourceSpan("test.cshtml", 34, 1, 27, 2), new RazorSourceSpan("test.cshtml", 0, 0, 0, 42), SpanKind.Markup, BlockKind.Markup, AcceptedCharacters.Any),
+            new ClassifiedSpan(new RazorSourceSpan("test.cshtml", 36, 2, 0, 6), new RazorSourceSpan("test.cshtml", 36, 2, 0, 6), SpanKind.Markup, BlockKind.Tag, AcceptedCharacters.Any),
         };
+
         var codeDocument = GetCodeDocument(
 @"<div>
     <taghelper></taghelper>
 </div>");
-        var syntaxTree = codeDocument.GetSyntaxTree();
-        var service = new DefaultRazorSyntaxFactsService();
+
+        var service = new RazorSyntaxFactsService();
 
         // Act
-        var spans = service.GetClassifiedSpans(syntaxTree);
+        var spans = service.GetClassifiedSpans(codeDocument);
 
         // Assert
         Assert.Equal(expectedSpans, spans);
@@ -51,17 +44,17 @@ public class DefaultRazorSyntaxFactsServiceTest : RazorProjectEngineTestBase
         // Arrange
         var expectedSpans = new[]
         {
-            new ClassifiedSpan(new SourceSpan("test.cshtml", 14, 0, 14, 1), new SourceSpan("test.cshtml", 0, 0, 0, 49), SpanKind.Code, BlockKind.Tag, AcceptedCharacters.AnyExceptNewline),
-            new ClassifiedSpan(new SourceSpan("test.cshtml", 23, 0, 23, 2), new SourceSpan("test.cshtml", 0, 0, 0, 49), SpanKind.Markup, BlockKind.Tag, AcceptedCharacters.Any),
-            new ClassifiedSpan(new SourceSpan("test.cshtml", 32, 0, 32, 4), new SourceSpan("test.cshtml", 0, 0, 0, 49), SpanKind.Code, BlockKind.Tag, AcceptedCharacters.AnyExceptNewline),
+            new ClassifiedSpan(new RazorSourceSpan("test.cshtml", 14, 0, 14, 1), new RazorSourceSpan("test.cshtml", 0, 0, 0, 49), SpanKind.Code, BlockKind.Tag, AcceptedCharacters.AnyExceptNewline),
+            new ClassifiedSpan(new RazorSourceSpan("test.cshtml", 23, 0, 23, 2), new RazorSourceSpan("test.cshtml", 0, 0, 0, 49), SpanKind.Markup, BlockKind.Tag, AcceptedCharacters.Any),
+            new ClassifiedSpan(new RazorSourceSpan("test.cshtml", 32, 0, 32, 4), new RazorSourceSpan("test.cshtml", 0, 0, 0, 49), SpanKind.Code, BlockKind.Tag, AcceptedCharacters.AnyExceptNewline),
         };
+
         var codeDocument = GetCodeDocument(
 @"<taghelper id=1 class=""th"" show=true></taghelper>");
-        var syntaxTree = codeDocument.GetSyntaxTree();
-        var service = new DefaultRazorSyntaxFactsService();
+        var service = new RazorSyntaxFactsService();
 
         // Act
-        var spans = service.GetClassifiedSpans(syntaxTree);
+        var spans = service.GetClassifiedSpans(codeDocument);
 
         // Assert
         Assert.Equal(expectedSpans, spans);
@@ -75,13 +68,13 @@ public class DefaultRazorSyntaxFactsServiceTest : RazorProjectEngineTestBase
 @"<div>
     <taghelper></taghelper>
 </div>");
+
         var tagHelperContext = codeDocument.GetTagHelperContext();
-        var expectedSourceSpan = new SourceSpan("test.cshtml", 11, 1, 4, 23);
-        var syntaxTree = codeDocument.GetSyntaxTree();
-        var service = new DefaultRazorSyntaxFactsService();
+        var expectedSourceSpan = new RazorSourceSpan("test.cshtml", 11, 1, 4, 23);
+        var service = new RazorSyntaxFactsService();
 
         // Act
-        var spans = service.GetTagHelperSpans(syntaxTree);
+        var spans = service.GetTagHelperSpans(codeDocument);
 
         // Assert
         var actualSpan = Assert.Single(spans);
@@ -99,6 +92,7 @@ public class DefaultRazorSyntaxFactsServiceTest : RazorProjectEngineTestBase
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("taghelper"))
             .Metadata(TypeName("TestTagHelper"))
             .Build();
+
         var engine = CreateProjectEngine();
 
         var sourceDocument = TestRazorSourceDocument.Create(source, normalizeNewLines: true);

@@ -1,12 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
-
-namespace Microsoft.VisualStudio.Editor.Razor;
+namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 
 [Flags]
-public enum AcceptedCharacters
+internal enum AcceptedCharacters
 {
     None = 0,
     NewLine = 1,
