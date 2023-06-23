@@ -5,6 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -48,7 +49,14 @@ internal class TestDocumentSnapshot : DocumentSnapshot
     {
         version ??= VersionStamp.Default;
 
-        var hostDocument = new HostDocument(filePath, filePath);
+        var targetPath = FilePathNormalizer.Normalize(filePath);
+        var projectDirectory = FilePathNormalizer.GetDirectory(projectSnapshot.FilePath);
+        if (targetPath.StartsWith(projectDirectory))
+        {
+            targetPath = targetPath[projectDirectory.Length..];
+        }
+
+        var hostDocument = new HostDocument(filePath, targetPath);
         var sourceText = SourceText.From(text);
         var documentState = new DocumentState(
             workspace.Services,
@@ -61,7 +69,7 @@ internal class TestDocumentSnapshot : DocumentSnapshot
         return testDocument;
     }
 
-    private TestDocumentSnapshot(ProjectSnapshot projectSnapshot, DocumentState documentState)
+    public TestDocumentSnapshot(ProjectSnapshot projectSnapshot, DocumentState documentState)
         : base(projectSnapshot, documentState)
     {
     }

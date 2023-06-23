@@ -355,7 +355,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
     {
         // Arrange
         var projectSnapshotManager = CreateSnapshotManagerWithDocumentInMisc(out var expectedDocumentFilePath, out var _);
-        
+
         var projectService = CreateProjectService(projectSnapshotManager);
         var sourceText = SourceText.From("Hello World");
 
@@ -736,16 +736,17 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         // Assert
         var project = projectSnapshotManager.GetLoadedProject(miscellaneousProject.FilePath);
         Assert.Contains(documentFilePath1, project.DocumentFilePaths);
-        Assert.Contains(documentFilePath2 , project.DocumentFilePaths);
+        Assert.Contains(documentFilePath2, project.DocumentFilePaths);
     }
 
     [Fact]
     public void TryMigrateMiscellaneousDocumentsToProject_DoesNotMigrateDocumentsIfNoOwnerProject()
     {
         // Arrange
-        var documentFilePath1 = "C:/path/to/document1.cshtml";
-        var documentFilePath2 = "C:/path/to/document2.cshtml";
         var projectSnapshotManager = CreateSnapshotManagerWithDocumentInMisc(out var _, out var miscellaneousProject);
+        var miscProjectDirectory = FilePathNormalizer.GetDirectory(miscellaneousProject.FilePath);
+        var documentFilePath1 = miscProjectDirectory + "document1.cshtml";
+        var documentFilePath2 = miscProjectDirectory + "document2.cshtml";
         projectSnapshotManager.CreateAndAddDocument(miscellaneousProject, documentFilePath1);
         projectSnapshotManager.CreateAndAddDocument(miscellaneousProject, documentFilePath2);
         var projectService = CreateProjectService(projectSnapshotManager);
@@ -763,9 +764,10 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
     public void TryMigrateMiscellaneousDocumentsToProject_MigratesDocumentsToNewOwnerProject()
     {
         // Arrange
-        var documentFilePath1 = "C:/path/to/document1.cshtml";
-        var documentFilePath2 = "C:/path/to/document2.cshtml";
         var projectSnapshotManager = CreateSnapshotManagerWithDocumentInMisc(out var _, out var miscellaneousProject);
+        var miscProjectDirectory = FilePathNormalizer.GetDirectory(miscellaneousProject.FilePath);
+        var documentFilePath1 = miscProjectDirectory + "document1.cshtml";
+        var documentFilePath2 = miscProjectDirectory + "document2.cshtml";
         projectSnapshotManager.CreateAndAddDocument(miscellaneousProject, documentFilePath1);
         projectSnapshotManager.CreateAndAddDocument(miscellaneousProject, documentFilePath2);
         var projectToBeMigratedTo = projectSnapshotManager.CreateAndAddProject("C:/path/to/project.csproj");
@@ -796,7 +798,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
             Mock.Get(documentVersionCache).Setup(c => c.TrackDocumentVersion(It.IsAny<IDocumentSnapshot>(), It.IsAny<int>())).Verifiable();
         }
 
-        var accessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == projectSnapshotManager, MockBehavior.Strict);
+        var accessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
         snapshotResolver = new SnapshotResolver(accessor);
 
         var remoteTextLoaderFactory = Mock.Of<RemoteTextLoaderFactory>(factory => factory.Create(It.IsAny<string>()) == Mock.Of<TextLoader>(MockBehavior.Strict), MockBehavior.Strict);
@@ -813,14 +815,13 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
 
     private TestProjectSnapshotManager CreateSnapshotManagerWithDocumentInMisc(out string documentFilePath, out TestProjectSnapshot miscellaneousProject)
     {
+        using var workspace = TestWorkspace.Create();
         var projectDirectory = TempDirectory.Instance.DirectoryPath;
-        documentFilePath = FilePathNormalizer.Normalize(Path.Join(projectDirectory, "document.cshtml"));
-        var projectPath = FilePathNormalizer.Normalize(Path.Join(projectDirectory, "__MISC_RAZOR_PROJECT__"));
-        miscellaneousProject = TestProjectSnapshot.Create(projectPath);
+        documentFilePath = Path.Join(projectDirectory, "document.cshtml");
+        var projectPath = Path.Join(projectDirectory, "__MISC_RAZOR_PROJECT__");
+        miscellaneousProject = TestProjectSnapshot.Create(projectPath, new[] { documentFilePath });
         var snapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         snapshotManager.ProjectAdded(miscellaneousProject.HostProject);
-        snapshotManager.CreateAndAddDocument(miscellaneousProject, documentFilePath);
-
         return snapshotManager;
     }
 }

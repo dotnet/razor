@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -38,9 +39,17 @@ internal class TestProjectSnapshot : ProjectSnapshot
         using var workspace = TestWorkspace.Create(hostServices);
         var hostProject = new HostProject(filePath, configuration, "TestRootNamespace");
         var state = ProjectState.Create(workspace.Services, hostProject);
+        var projectDirectory = FilePathNormalizer.GetDirectory(filePath);
+
         foreach (var documentFilePath in documentFilePaths)
         {
-            var hostDocument = new HostDocument(documentFilePath, documentFilePath);
+            var targetPath = FilePathNormalizer.Normalize(documentFilePath);
+            if (targetPath.StartsWith(projectDirectory))
+            {
+                targetPath = targetPath[projectDirectory.Length..];
+            }
+
+            var hostDocument = new HostDocument(documentFilePath, targetPath);
             state = state.WithAddedHostDocument(hostDocument, () => Task.FromResult(TextAndVersion.Create(SourceText.From(string.Empty), VersionStamp.Default)));
         }
 
