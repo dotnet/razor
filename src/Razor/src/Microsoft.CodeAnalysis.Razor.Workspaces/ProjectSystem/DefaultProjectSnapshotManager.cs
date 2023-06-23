@@ -36,7 +36,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     // Each entry holds a ProjectState and an optional ProjectSnapshot. ProjectSnapshots are
     // created lazily.
-    private readonly LockFactory _locksFactory = new();
+    private readonly ReadWriterLocker _locksFactory = new();
     private readonly Dictionary<string, Entry> _projects_needsLock;
     private readonly HashSet<string> _openDocuments_needsLock;
     private readonly LoadTextOptions LoadTextOptions = new LoadTextOptions(SourceHashAlgorithm.Sha256);
@@ -183,7 +183,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         DocumentRemoved(hostProject, document, upgradeableLock);
     }
 
-    private void DocumentRemoved(HostProject hostProject, HostDocument document, LockFactory.UpgradeAbleReadLock upgradeableLock)
+    private void DocumentRemoved(HostProject hostProject, HostDocument document, ReadWriterLocker.UpgradeableReadLock upgradeableLock)
     {
         if (_projects_needsLock.TryGetValue(hostProject.FilePath, out var entry))
         {
@@ -494,7 +494,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         return GetLoadedProject(normalizedPath);
     }
 
-    private void ProjectAdded(HostProject hostProject, LockFactory.UpgradeAbleReadLock upgradeableLock)
+    private void ProjectAdded(HostProject hostProject, ReadWriterLocker.UpgradeableReadLock upgradeableLock)
     {
         // We don't expect to see a HostProject initialized multiple times for the same path. Just ignore it.
         if (_projects_needsLock.ContainsKey(hostProject.FilePath))
@@ -606,7 +606,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         ProjectRemoved(hostProject, upgradeableLock);
     }
 
-    private void ProjectRemoved(HostProject hostProject, LockFactory.UpgradeAbleReadLock upgradeableLock)
+    private void ProjectRemoved(HostProject hostProject, ReadWriterLocker.UpgradeableReadLock upgradeableLock)
     {
         if (_projects_needsLock.TryGetValue(hostProject.FilePath, out var entry))
         {

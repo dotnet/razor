@@ -15,7 +15,7 @@ internal class ReadWriterLocker
 
     public ReadOnlyLock EnterReadLock() => new ReadOnlyLock(_lock);
     public WriteOnlyLock EnterWriteLock() => new WriteOnlyLock(_lock);
-    public UpgradeAbleReadLock EnterUpgradeAbleReadLock() => new UpgradeAbleReadLock(_lock);
+    public UpgradeableReadLock EnterUpgradeAbleReadLock() => new UpgradeableReadLock(_lock);
 
     public void EnsureNoWriteLock()
     {
@@ -25,18 +25,22 @@ internal class ReadWriterLocker
         }
     }
 
+    private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
+    private static readonly TimeSpan s_timeout =
+#if DEBUG
+        s_maxTimeout;
+#else
+        TimeSpan.FromSeconds(30);
+#endif
+
     private static TimeSpan GetTimeout()
     {
         if (Debugger.IsAttached)
         {
-            return TimeSpan.MaxValue;
+            return s_maxTimeout;
         }
 
-#if DEBUG
-        return TimeSpan.MaxValue;
-#else 
-        return TimeSpan.FromSeconds(30);
-#endif
+        return s_timeout;
     }
 
     public ref struct ReadOnlyLock
@@ -91,12 +95,12 @@ internal class ReadWriterLocker
         }
     }
 
-    public ref struct UpgradeAbleReadLock
+    public ref struct UpgradeableReadLock
     {
         private readonly ReaderWriterLockSlim _rwLock;
         private bool _disposed;
 
-        public UpgradeAbleReadLock(ReaderWriterLockSlim rwLock)
+        public UpgradeableReadLock(ReaderWriterLockSlim rwLock)
         {
             _rwLock = rwLock;
             if (!_rwLock.TryEnterUpgradeableReadLock(GetTimeout()))

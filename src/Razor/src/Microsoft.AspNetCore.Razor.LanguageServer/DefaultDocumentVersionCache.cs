@@ -4,8 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -18,7 +16,7 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
     // Internal for testing
     internal readonly Dictionary<string, List<DocumentEntry>> DocumentLookup;
     private ProjectSnapshotManagerBase? _projectSnapshotManager;
-    private LockFactory _documentLockFactory = new();
+    private ReadWriterLocker _documentLockFactory = new();
 
     private ProjectSnapshotManagerBase ProjectSnapshotManager
         => _projectSnapshotManager ?? throw new InvalidOperationException("ProjectSnapshotManager accessed before Initialized was called.");
