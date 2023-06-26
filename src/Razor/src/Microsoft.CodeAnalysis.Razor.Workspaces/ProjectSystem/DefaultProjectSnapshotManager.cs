@@ -1,12 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 // The implementation will create a ProjectSnapshot for each HostProject.
 internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 {
-    public override event EventHandler<ProjectChangeEventArgs> Changed;
+    public override event EventHandler<ProjectChangeEventArgs>? Changed;
 
     private readonly ProjectSnapshotChangeTrigger[] _triggers;
 
@@ -72,7 +71,14 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     public override ImmutableArray<IProjectSnapshot> GetProjects()
     {
         using var _ = _locksFactory.EnterReadLock();
-        return _projects_needsLock.Select(e => e.Value.GetSnapshot()).ToImmutableArray();
+        using var _1 = ListPool<IProjectSnapshot>.GetPooledObject(out var builder);
+
+        foreach (var (_, entry) in _projects_needsLock)
+        {
+            builder.Add(entry.GetSnapshot());
+        }
+
+        return builder.ToImmutableArray();
     }
 
     internal override ImmutableArray<string> GetOpenDocuments()
@@ -85,7 +91,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     internal override IErrorReporter ErrorReporter { get; }
 
-    public override IProjectSnapshot GetLoadedProject(string filePath)
+    public override IProjectSnapshot? GetLoadedProject(string filePath)
     {
         if (filePath is null)
         {
@@ -265,7 +271,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                     });
                 }
 
-                ProjectChangeEventArgs eventArgs = null;
+                ProjectChangeEventArgs? eventArgs = null;
 
                 using (var _ = upgradeableLock.GetWriteLock())
                 {
@@ -324,7 +330,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                     older.HostDocument,
                     async () => await textLoader.LoadTextAndVersionAsync(LoadTextOptions, cancellationToken: default).ConfigureAwait(false));
 
-                ProjectChangeEventArgs eventArgs = null;
+                ProjectChangeEventArgs? eventArgs = null;
                 using (var _ = upgradeableLock.GetWriteLock())
                 {
                     _openDocuments_needsLock.Remove(documentFilePath);
@@ -478,7 +484,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         ProjectAdded(hostProject, upgradeableLock);
     }
 
-    internal override IProjectSnapshot GetOrAddLoadedProject(string normalizedPath, RazorConfiguration configuration, string rootNamespace)
+    internal override IProjectSnapshot GetOrAddLoadedProject(string normalizedPath, RazorConfiguration configuration, string? rootNamespace)
     {
         using var upgradeableReadLock = _locksFactory.EnterUpgradeAbleReadLock();
         var project = GetLoadedProject(normalizedPath);
@@ -491,7 +497,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         var newProject = new HostProject(normalizedPath, configuration, rootNamespace);
         ProjectAdded(newProject, upgradeableReadLock);
 
-        return GetLoadedProject(normalizedPath);
+        return _projects_needsLock[normalizedPath].GetSnapshot();
     }
 
     private void ProjectAdded(HostProject hostProject, ReadWriterLocker.UpgradeableReadLock upgradeableLock)
@@ -552,7 +558,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    internal override void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState projectWorkspaceState)
+    internal override void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState? projectWorkspaceState)
     {
         if (projectFilePath is null)
         {
@@ -622,7 +628,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    internal override bool TryRemoveLoadedProject(string normalizedPath, out IProjectSnapshot project)
+    internal override bool TryRemoveLoadedProject(string normalizedPath, [NotNullWhen(true)] out IProjectSnapshot? project)
     {
         using var upgradeableLock = _locksFactory.EnterUpgradeAbleReadLock();
 
@@ -678,7 +684,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         ErrorReporter.ReportError(exception, snapshot);
     }
 
-    private void NotifyListeners(IProjectSnapshot older, IProjectSnapshot newer, string documentFilePath, ProjectChangeKind kind)
+    private void NotifyListeners(IProjectSnapshot? older, IProjectSnapshot? newer, string? documentFilePath, ProjectChangeKind kind)
     {
         NotifyListeners(new ProjectChangeEventArgs(older, newer, documentFilePath, kind, IsSolutionClosing));
     }
@@ -718,7 +724,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         string filePath,
         RazorConfiguration configuration,
         ProjectWorkspaceState projectWorkspaceState,
-        string rootNamespace,
+        string? rootNamespace,
         Func<IProjectSnapshot, ImmutableArray<IUpdateProjectAction>> calculate)
     {
         if (projectWorkspaceState is null)
@@ -857,7 +863,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     private class Entry
     {
-        private IProjectSnapshot _snapshotUnsafe;
+        private IProjectSnapshot? _snapshotUnsafe;
         public readonly ProjectState State;
 
         public Entry(ProjectState state)

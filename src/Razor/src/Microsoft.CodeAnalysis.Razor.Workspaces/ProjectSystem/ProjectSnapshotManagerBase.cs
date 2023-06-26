@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.ProjectSystem;
@@ -33,7 +34,7 @@ internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
 
     internal abstract void ProjectAdded(HostProject hostProject);
 
-    internal abstract void ProjectConfigurationChanged(HostProject? hostProject);
+    internal abstract void ProjectConfigurationChanged(HostProject hostProject);
 
     internal abstract void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState? projectWorkspaceState);
 
@@ -54,10 +55,11 @@ internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
     /// </summary>
     internal abstract IProjectSnapshot GetOrAddLoadedProject(string normalizedPath, RazorConfiguration configuration, string? rootNamespace);
 
-    internal abstract bool TryRemoveLoadedProject(string normalizedPath, out IProjectSnapshot project);
+    internal abstract bool TryRemoveLoadedProject(string normalizedPath, [NotNullWhen(true)] out IProjectSnapshot? project);
+
     internal abstract void UpdateProject(
         string normalizedPath,
-        RazorConfiguration? configuration,
+        RazorConfiguration configuration,
         ProjectWorkspaceState projectWorkspaceState,
         string? rootNamespace,
         Func<IProjectSnapshot, ImmutableArray<IUpdateProjectAction>> calculateUpdates);

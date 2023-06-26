@@ -173,7 +173,7 @@ internal abstract class MacRazorProjectHostBase
         }
         else
         {
-            _projectSnapshotManager.ProjectConfigurationChanged(newHostProject);
+            _projectSnapshotManager.ProjectConfigurationChanged(newHostProject!);
         }
 
         HostProject = newHostProject;

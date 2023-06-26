@@ -202,7 +202,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         }
         else
         {
-            projectManager.ProjectConfigurationChanged(project);
+            projectManager.ProjectConfigurationChanged(project!);
         }
 
         Current = project;

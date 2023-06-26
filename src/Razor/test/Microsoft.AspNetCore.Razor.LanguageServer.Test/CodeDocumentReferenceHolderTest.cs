@@ -59,7 +59,7 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
             var unrelatedTextLoader = new SourceTextLoader("<p>Unrelated</p>", unrelatedHostDocument.FilePath);
             _projectManager.DocumentAdded(_hostProject, unrelatedHostDocument, unrelatedTextLoader);
             var project = _projectManager.GetLoadedProject(_hostProject.FilePath);
-            var document = project.GetDocument(unrelatedHostDocument.FilePath);
+            var document = project?.GetDocument(unrelatedHostDocument.FilePath);
             return document;
         }, DisposalToken);
 
@@ -157,7 +157,7 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
         Assert.False(codeDocumentReference.TryGetTarget(out _));
     }
 
-    private Task<IDocumentSnapshot> CreateDocumentSnapshotAsync(CancellationToken cancellationToken)
+    private Task<IDocumentSnapshot?> CreateDocumentSnapshotAsync(CancellationToken cancellationToken)
     {
         return Dispatcher.RunOnDispatcherThreadAsync(() =>
         {
@@ -165,13 +165,15 @@ public class CodeDocumentReferenceHolderTest : LanguageServerTestBase
             var textLoader = new SourceTextLoader("<p>Hello World</p>", _hostDocument.FilePath);
             _projectManager.DocumentAdded(_hostProject, _hostDocument, textLoader);
             var project = _projectManager.GetLoadedProject(_hostProject.FilePath);
-            return project.GetDocument(_hostDocument.FilePath).AssumeNotNull();
+            return project?.GetDocument(_hostDocument.FilePath).AssumeNotNull();
         }, cancellationToken);
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private async Task<WeakReference<RazorCodeDocument>> ProcessDocumentAndRetrieveOutputAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+    private async Task<WeakReference<RazorCodeDocument>> ProcessDocumentAndRetrieveOutputAsync(IDocumentSnapshot? documentSnapshot, CancellationToken cancellationToken)
     {
+        Assert.NotNull(documentSnapshot);
+
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
         await Dispatcher.RunOnDispatcherThreadAsync(() =>
         {
