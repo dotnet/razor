@@ -30,15 +30,15 @@ internal sealed class SnapshotResolver
     /// Resolves a project that contains the given document path.
     /// </summary>
     /// <returns><see langword="true"/> if a project is found</returns>
-    public bool TryResolveProject(string documentFilePath, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot)
-        => TryResolve(documentFilePath, out projectSnapshot, out var _);
+    public bool TryResolveProject(string documentFilePath, bool includeMiscellaneous, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot)
+        => TryResolve(documentFilePath, includeMiscellaneous, out projectSnapshot, out var _);
 
     /// <summary>
     /// Resolves a document that is contained in a project
     /// </summary>
     /// <returns><see langword="true"/> if a document is found</returns>
-    public bool TryResolveDocument(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)
-        => TryResolve(documentFilePath, out var _, out documentSnapshot);
+    public bool TryResolveDocument(string documentFilePath, bool includeMiscellaneous,[NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)
+        => TryResolve(documentFilePath, includeMiscellaneous, out var _, out documentSnapshot);
 
     /// <summary>
     /// Finds all the projects with a directory that contains the document path. 
@@ -74,7 +74,7 @@ internal sealed class SnapshotResolver
     /// Resolves a document and containing project given a document path
     /// </summary>
     /// <returns><see langword="true"/> if a document is found and contained in a project</returns>
-    public bool TryResolve(string documentFilePath, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot, [NotNullWhen(true)] out IDocumentSnapshot? document)
+    public bool TryResolve(string documentFilePath, bool includeMiscellaneous, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot, [NotNullWhen(true)] out IDocumentSnapshot? document)
     {
         if (documentFilePath is null)
         {
@@ -84,7 +84,7 @@ internal sealed class SnapshotResolver
         document = null;
 
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
-        var potentialProjects = FindPotentialProjects(documentFilePath, includeMiscellaneous: true);
+        var potentialProjects = FindPotentialProjects(documentFilePath, includeMiscellaneous);
         foreach (var project in potentialProjects)
         {
             document = project.GetDocument(normalizedDocumentPath);

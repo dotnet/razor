@@ -43,7 +43,7 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
 
         var documentAndVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
         {
-            if (_snapshotResolver.TryResolveDocument(filePath, out var documentSnapshot))
+            if (_snapshotResolver.TryResolveDocument(filePath, includeMiscellaneous: true, out var documentSnapshot))
             {
                 if (!versioned)
                 {

@@ -817,11 +817,12 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
     {
         using var workspace = TestWorkspace.Create();
         var projectDirectory = TempDirectory.Instance.DirectoryPath;
-        documentFilePath = Path.Join(projectDirectory, "document.cshtml");
-        var projectPath = Path.Join(projectDirectory, "__MISC_RAZOR_PROJECT__");
+        documentFilePath = FilePathNormalizer.Normalize(Path.Join(projectDirectory, "document.cshtml"));
+        var projectPath = FilePathNormalizer.Normalize(Path.Join(projectDirectory, "__MISC_RAZOR_PROJECT__"));
         miscellaneousProject = TestProjectSnapshot.Create(projectPath, new[] { documentFilePath });
         var snapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         snapshotManager.ProjectAdded(miscellaneousProject.HostProject);
+        snapshotManager.CreateAndAddDocument(miscellaneousProject, documentFilePath);
         return snapshotManager;
     }
 }

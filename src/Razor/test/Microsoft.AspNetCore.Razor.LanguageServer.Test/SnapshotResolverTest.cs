@@ -22,8 +22,8 @@ public class SnapshotResolverTest : LanguageServerTestBase
     {
     }
 
-    [Fact]
-    public void TryResolveDocument_AsksPotentialParentProjectForDocumentItsTracking_ReturnsTrue()
+    [Theory, CombinatorialData]
+    public void TryResolveDocument_AsksPotentialParentProjectForDocumentItsTracking_ReturnsTrue(bool includeMiscellaneous)
     {
         // Arrange
         var documentFilePath = @"C:\path\to\document.cshtml";
@@ -31,7 +31,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
         var snapshotResolver = CreateSnapshotResolver(normalizedFilePath);
 
         // Act
-        var result = snapshotResolver.TryResolveDocument(documentFilePath, out var document);
+        var result = snapshotResolver.TryResolveDocument(documentFilePath, includeMiscellaneous, out var document);
 
         // Assert
         Assert.True(result);
@@ -54,7 +54,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
             new EmptyTextLoader(normalizedFilePath));
 
         // Act
-        var result = snapshotResolver.TryResolveDocument(documentFilePath, out var document);
+        var result = snapshotResolver.TryResolveDocument(documentFilePath, includeMiscellaneous: true, out var document);
 
         // Assert
         Assert.True(result);
@@ -63,7 +63,30 @@ public class SnapshotResolverTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void TryResolveDocument_AsksPotentialParentProjectForDocumentItsNotTrackingAndMiscellaneousProjectIsNotTrackingEither_ReturnsFalse()
+    public void TryResolveDocument_AsksMiscellaneousProjectForDocumentItIsTracking_InclueMiscFalse_ReturnsFalse()
+    {
+        // Arrange
+        var documentFilePath = @"C:\path\to\document.cshtml";
+        var normalizedFilePath = "C:/path/to/document.cshtml";
+        var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(TestProjectSnapshotManager.Create(ErrorReporter));
+        var snapshotResolver = new SnapshotResolver(projectSnapshotManagerAccessor);
+        var miscProject = snapshotResolver.GetMiscellaneousProject();
+
+        projectSnapshotManagerAccessor.Instance.DocumentAdded(
+            new HostProject(miscProject.FilePath, RazorDefaults.Configuration, miscProject.RootNamespace),
+            new HostDocument(normalizedFilePath, "document.cshtml"),
+            new EmptyTextLoader(normalizedFilePath));
+
+        // Act
+        var result = snapshotResolver.TryResolveDocument(documentFilePath, includeMiscellaneous: false, out var document);
+
+        // Assert
+        Assert.False(result);
+        Assert.Null(document);
+    }
+
+    [Theory, CombinatorialData]
+    public void TryResolveDocument_AsksPotentialParentProjectForDocumentItsNotTrackingAndMiscellaneousProjectIsNotTrackingEither_ReturnsFalse(bool includeMiscellaneous)
     {
         // Arrange
         var documentFilePath = @"C:\path\to\document.cshtml";
@@ -71,30 +94,30 @@ public class SnapshotResolverTest : LanguageServerTestBase
         var snapshotResolver = new SnapshotResolver(projectSnapshotManagerAccessor);
 
         // Act
-        var result = snapshotResolver.TryResolveDocument(documentFilePath, out var document);
+        var result = snapshotResolver.TryResolveDocument(documentFilePath, includeMiscellaneous, out var document);
 
         // Assert
         Assert.False(result);
         Assert.Null(document);
     }
 
-    [Fact]
-    public void TryResolveProject_NoProjects_ReturnsFalse()
+    [Theory, CombinatorialData]
+    public void TryResolveProject_NoProjects_ReturnsFalse(bool includeMiscellaneous)
     {
         // Arrange
         var documentFilePath = "C:/path/to/document.cshtml";
         var snapshotResolver = new SnapshotResolver(new TestProjectSnapshotManagerAccessor(TestProjectSnapshotManager.Create(ErrorReporter)));
 
         // Act
-        var result = snapshotResolver.TryResolveProject(documentFilePath, out var project);
+        var result = snapshotResolver.TryResolveProject(documentFilePath, includeMiscellaneous, out var project);
 
         // Assert
         Assert.False(result);
         Assert.Null(project);
     }
 
-    [Fact]
-    public void TryResolveProject_OnlyMiscellaneousProjectDoesNotContainDocument_ReturnsFalse()
+    [Theory, CombinatorialData]
+    public void TryResolveProject_OnlyMiscellaneousProjectDoesNotContainDocument_ReturnsFalse(bool includeMiscellaneous)
     {
         // Arrange
         var documentFilePath = "C:/path/to/document.cshtml";
@@ -102,7 +125,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
         _ = snapshotResolver.GetMiscellaneousProject();
 
         // Act
-        var result = snapshotResolver.TryResolveProject(documentFilePath, out var project);
+        var result = snapshotResolver.TryResolveProject(documentFilePath, includeMiscellaneous, out var project);
 
         // Assert
         Assert.False(result);
@@ -117,15 +140,15 @@ public class SnapshotResolverTest : LanguageServerTestBase
         var snapshotResolver = CreateSnapshotResolver(documentFilePath, addToMiscellaneous: true);
 
         // Act
-        var result = snapshotResolver.TryResolveProject(documentFilePath, out var project);
+        var result = snapshotResolver.TryResolveProject(documentFilePath, includeMiscellaneous: true, out var project);
 
         // Assert
         Assert.True(result);
         Assert.Equal(snapshotResolver.GetMiscellaneousProject(), project);
     }
 
-    [Fact]
-    public void TryResolveProject_UnrelatedProject_ReturnsFalse()
+    [Theory, CombinatorialData]
+    public void TryResolveProject_UnrelatedProject_ReturnsFalse(bool includeMiscellaneous)
     {
         // Arrange
         var documentFilePath = "C:/path/to/document.cshtml";
@@ -134,15 +157,15 @@ public class SnapshotResolverTest : LanguageServerTestBase
         snapshotManager.ProjectAdded(TestProjectSnapshot.Create("C:/other/path/to/project.csproj").HostProject);
 
         // Act
-        var result = snapshotResolver.TryResolveProject(documentFilePath, out var project);
+        var result = snapshotResolver.TryResolveProject(documentFilePath, includeMiscellaneous, out var project);
 
         // Assert
         Assert.False(result);
         Assert.Null(project);
     }
 
-    [Fact]
-    public void TryResolveProject_OwnerProjectWithOthers_ReturnsTrue()
+    [Theory, CombinatorialData]
+    public void TryResolveProject_OwnerProjectWithOthers_ReturnsTrue(bool includeMiscellaneous)
     {
         // Arrange
         var documentFilePath = "C:/path/to/document.cshtml";
@@ -154,7 +177,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
         var snapshotResolver = new SnapshotResolver(new TestProjectSnapshotManagerAccessor(snapshotManager));
 
         // Act
-        var result = snapshotResolver.TryResolveProject(documentFilePath, out var project);
+        var result = snapshotResolver.TryResolveProject(documentFilePath, includeMiscellaneous, out var project);
 
         // Assert
         Assert.True(result);
@@ -175,7 +198,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
         snapshotManager.CreateAndAddProject("C:/path/to/project.csproj");
 
         // Act
-        var result = snapshotResolver.TryResolveProject(documentFilePath, out var project);
+        var result = snapshotResolver.TryResolveProject(documentFilePath, includeMiscellaneous: true, out var project);
 
         // Assert
         Assert.True(result);
@@ -194,7 +217,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
         snapshotManager.CreateAndAddDocument(ownerProject, documentFilePath);
 
         // Act
-        var result = snapshotResolver.TryResolveProject(documentFilePath, out var project);
+        var result = snapshotResolver.TryResolveProject(documentFilePath, includeMiscellaneous: true, out var project);
 
         // Assert
         Assert.True(result);

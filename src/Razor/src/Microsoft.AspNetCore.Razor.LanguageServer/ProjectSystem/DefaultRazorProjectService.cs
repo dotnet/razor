@@ -54,7 +54,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (_snapshotResolver.TryResolveDocument(textDocumentPath, out var _))
+        if (_snapshotResolver.TryResolveDocument(textDocumentPath, includeMiscellaneous: true, out var _))
         {
             // Document already added. This usually occurs when VSCode has already pre-initialized
             // open documents and then we try to manually add all known razor documents.
@@ -93,18 +93,16 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_snapshotResolver.TryResolveDocument(textDocumentPath, out _))
+        if (!_snapshotResolver.TryResolveProject(textDocumentPath, includeMiscellaneous: true, out var projectSnapshot))
         {
             // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
             // processes and pre-initializes already open documents.
             AddDocument(filePath);
+
+            _snapshotResolver.TryResolveProject(textDocumentPath, includeMiscellaneous: true, out projectSnapshot);
         }
 
-        if (!_snapshotResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
-        {
-            projectSnapshot = _snapshotResolver.GetMiscellaneousProject();
-        }
-
+        projectSnapshot.AssumeNotNull();
         var defaultProject = (ProjectSnapshot)projectSnapshot;
 
         _logger.LogInformation("Opening document '{textDocumentPath}' in project '{projectSnapshotFilePath}'.", textDocumentPath, projectSnapshot.FilePath);
@@ -112,7 +110,7 @@ internal class DefaultRazorProjectService : RazorProjectService
 
         TrackDocumentVersion(textDocumentPath, version);
 
-        if (_snapshotResolver.TryResolveDocument(textDocumentPath, out var documentSnapshot))
+        if (_snapshotResolver.TryResolveDocument(textDocumentPath, includeMiscellaneous: true, out var documentSnapshot))
         {
             // Start generating the C# for the document so it can immediately be ready for incoming requests.
             _ = documentSnapshot.GetGeneratedOutputAsync();
@@ -124,7 +122,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_snapshotResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
+        if (!_snapshotResolver.TryResolveProject(textDocumentPath, includeMiscellaneous: true, out var projectSnapshot))
         {
             projectSnapshot = _snapshotResolver.GetMiscellaneousProject();
         }
@@ -140,14 +138,9 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_snapshotResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
+        if (!_snapshotResolver.TryResolveProject(textDocumentPath, includeMiscellaneous: true, out var projectSnapshot))
         {
-            projectSnapshot = _snapshotResolver.GetMiscellaneousProject();
-        }
-
-        if (!projectSnapshot.DocumentFilePaths.Contains(textDocumentPath, FilePathComparer.Instance))
-        {
-            _logger.LogInformation("Containing project is not tracking document '{filePath}'", filePath);
+            // Document isn't in any project
             return;
         }
 
@@ -180,8 +173,9 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_snapshotResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
+        if (!_snapshotResolver.TryResolveProject(textDocumentPath, includeMiscellaneous: true, out var projectSnapshot))
         {
+            // We'll happily update the document in the misc, even if we couldn't find it
             projectSnapshot = _snapshotResolver.GetMiscellaneousProject();
         }
 
@@ -414,7 +408,8 @@ internal class DefaultRazorProjectService : RazorProjectService
 
         foreach (var documentFilePath in miscellaneousProject.DocumentFilePaths)
         {
-            if (!_snapshotResolver.TryResolveProject(documentFilePath, out var projectSnapshot))
+            var destination = _snapshotResolver.FindPotentialProjects(documentFilePath, includeMiscellaneous: false).FirstOrDefault();
+            if (destination is not ProjectSnapshot destinationSnapshot)
             {
                 continue;
             }
@@ -431,17 +426,16 @@ internal class DefaultRazorProjectService : RazorProjectService
             // Add to new project
 
             var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
-            var defaultProject = (ProjectSnapshot)projectSnapshot;
             var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath);
             _logger.LogInformation("Migrating '{documentFilePath}' from the '{miscellaneousProject.FilePath}' project to '{projectSnapshot.FilePath}' project.",
-                documentFilePath, miscellaneousProject.FilePath, projectSnapshot.FilePath);
-            _projectSnapshotManagerAccessor.Instance.DocumentAdded(defaultProject.HostProject, newHostDocument, textLoader);
+                documentFilePath, miscellaneousProject.FilePath, destinationSnapshot.FilePath);
+            _projectSnapshotManagerAccessor.Instance.DocumentAdded(destinationSnapshot.HostProject, newHostDocument, textLoader);
         }
     }
 
     private void TrackDocumentVersion(string textDocumentPath, int version)
     {
-        if (!_snapshotResolver.TryResolveDocument(textDocumentPath, out var documentSnapshot))
+        if (!_snapshotResolver.TryResolveDocument(textDocumentPath, includeMiscellaneous: true, out var documentSnapshot))
         {
             return;
         }
