@@ -67,9 +67,10 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
     protected abstract string CustomMessageTarget { get; }
 
     /// <summary>
-    /// TODO docs
+    /// The name of the target for the Language Server Protocol methods
     /// </summary>
     /// <remarks>
+    /// An example is <see cref="Methods.TextDocumentHoverName"/>
     /// </remarks>
     protected abstract string LspTarget { get; }
 
