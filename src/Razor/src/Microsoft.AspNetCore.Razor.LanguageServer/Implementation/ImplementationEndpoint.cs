@@ -34,6 +34,8 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName;
 
+    protected override string LspName => Methods.TextDocumentImplementationName;
+
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;

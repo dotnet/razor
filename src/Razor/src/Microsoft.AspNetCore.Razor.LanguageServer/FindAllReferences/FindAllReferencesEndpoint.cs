@@ -51,6 +51,8 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorReferencesEndpointName;
 
+    protected override string LspName => Methods.TextDocumentReferencesName;
+
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;

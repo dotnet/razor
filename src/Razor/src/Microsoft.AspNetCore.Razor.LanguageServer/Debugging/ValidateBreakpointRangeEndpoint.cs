@@ -34,6 +34,8 @@ internal class ValidateBreakpointRangeEndpoint : AbstractRazorDelegatingEndpoint
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorValidateBreakpointRangeName;
 
+    protected override string LspName => VSInternalMethods.TextDocumentValidateBreakableRangeName;
+
     public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
     {
         const string ServerCapability = "_vs_breakableRangeProvider";

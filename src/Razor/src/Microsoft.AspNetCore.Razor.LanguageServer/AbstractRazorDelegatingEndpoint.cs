@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -23,18 +24,21 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
     protected readonly ILogger Logger;
+    protected readonly ITelemetryReporter? _telemetryReporter;
 
     protected AbstractRazorDelegatingEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
-        ILogger logger)
+        ILogger logger,
+        ITelemetryReporter? telemetryReporter = null)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions ?? throw new ArgumentNullException(nameof(languageServerFeatureOptions));
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
 
         Logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _telemetryReporter = telemetryReporter;
     }
 
     /// <summary>
@@ -61,6 +65,13 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
     /// An example is <see cref="RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName"/>
     /// </remarks>
     protected abstract string CustomMessageTarget { get; }
+
+    /// <summary>
+    /// TODO docs
+    /// </summary>
+    /// <remarks>
+    /// </remarks>
+    protected abstract string LspName { get; }
 
     public virtual bool MutatesSolutionState { get; } = false;
 
@@ -105,6 +116,8 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
             return default;
         }
 
+        var correlationId = Guid.NewGuid();
+        using var __ = _telemetryReporter?.TrackLspRequest(nameof(HandleRequestAsync), LspName, LanguageServerConstants.RazorLanguageServerName, correlationId);
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)
         {
@@ -159,6 +172,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
         TResponse? delegatedRequest;
         try
         {
+            using var _ = _telemetryReporter?.TrackLspRequest(nameof(HandleRequestAsync), LspName, positionInfo.LanguageKind == RazorLanguageKind.CSharp ? "Razor C# Language Server Client" : "HtmlDelegationLanguageServerClient", correlationId);
             delegatedRequest = await _languageServer.SendRequestAsync<IDelegatedParams, TResponse>(CustomMessageTarget, delegatedParams, cancellationToken).ConfigureAwait(false);
             if (delegatedRequest is null)
             {
