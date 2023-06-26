@@ -34,27 +34,27 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
         }
 
         var filePath = documentSnapshot.FilePath.AssumeNotNull();
-
-        // Everything beyond this point is holding onto to a write lock.
-        using var _ = _documentLockFactory.EnterWriteLock();
-
-        if (!DocumentLookup.TryGetValue(filePath, out var documentEntries))
+        using (var _ = _documentLockFactory.EnterWriteLock())
         {
-            documentEntries = new List<DocumentEntry>();
-            DocumentLookup[filePath] = documentEntries;
+
+            if (!DocumentLookup.TryGetValue(filePath, out var documentEntries))
+            {
+                documentEntries = new List<DocumentEntry>();
+                DocumentLookup[filePath] = documentEntries;
+            }
+
+            if (documentEntries.Count == MaxDocumentTrackingCount)
+            {
+                // Clear the oldest document entry
+
+                // With this approach we'll slowly leak memory as new documents are added to the system. We don't clear up
+                // document file paths where where all of the corresponding entries are expired.
+                documentEntries.RemoveAt(0);
+            }
+
+            var entry = new DocumentEntry(documentSnapshot, version);
+            documentEntries.Add(entry);
         }
-
-        if (documentEntries.Count == MaxDocumentTrackingCount)
-        {
-            // Clear the oldest document entry
-
-            // With this approach we'll slowly leak memory as new documents are added to the system. We don't clear up
-            // document file paths where where all of the corresponding entries are expired.
-            documentEntries.RemoveAt(0);
-        }
-
-        var entry = new DocumentEntry(documentSnapshot, version);
-        documentEntries.Add(entry);
     }
 
     public override bool TryGetDocumentVersion(IDocumentSnapshot documentSnapshot, [NotNullWhen(true)] out int? version)
