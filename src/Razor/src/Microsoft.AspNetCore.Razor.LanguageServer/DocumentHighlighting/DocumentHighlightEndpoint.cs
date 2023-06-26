@@ -44,7 +44,7 @@ internal class DocumentHighlightEndpoint : AbstractRazorDelegatingEndpoint<Docum
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorDocumentHighlightEndpointName;
 
-    protected override string LspName => Methods.TextDocumentDocumentHighlightName;
+    protected override string LspTarget => Methods.TextDocumentDocumentHighlightName;
 
     protected override Task<DocumentHighlight[]?> TryHandleAsync(DocumentHighlightParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {

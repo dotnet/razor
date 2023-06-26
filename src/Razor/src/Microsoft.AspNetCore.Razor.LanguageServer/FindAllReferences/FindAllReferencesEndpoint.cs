@@ -51,7 +51,7 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorReferencesEndpointName;
 
-    protected override string LspName => Methods.TextDocumentReferencesName;
+    protected override string LspTarget => Methods.TextDocumentReferencesName;
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 

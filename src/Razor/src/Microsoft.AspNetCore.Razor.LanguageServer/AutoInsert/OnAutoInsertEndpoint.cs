@@ -46,7 +46,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertEndpointName;
 
-    protected override string LspName => VSInternalMethods.OnAutoInsertName;
+    protected override string LspTarget => VSInternalMethods.OnAutoInsertName;
 
     public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
     {

@@ -51,7 +51,7 @@ internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextD
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName;
 
-    protected override string LspName => Methods.TextDocumentDefinitionName;
+    protected override string LspTarget => Methods.TextDocumentDefinitionName;
 
     public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
     {

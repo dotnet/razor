@@ -71,7 +71,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
     /// </summary>
     /// <remarks>
     /// </remarks>
-    protected abstract string LspName { get; }
+    protected abstract string LspTarget { get; }
 
     public virtual bool MutatesSolutionState { get; } = false;
 
@@ -117,7 +117,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
         }
 
         var correlationId = Guid.NewGuid();
-        using var __ = _telemetryReporter?.TrackLspRequest(nameof(HandleRequestAsync), LspName, LanguageServerConstants.RazorLanguageServerName, correlationId);
+        using var __ = _telemetryReporter?.TrackLspRequest(LspTarget, LanguageServerConstants.RazorLanguageServerName, correlationId);
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)
         {
@@ -172,7 +172,7 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
         TResponse? delegatedRequest;
         try
         {
-            using var _ = _telemetryReporter?.TrackLspRequest(nameof(HandleRequestAsync), LspName, positionInfo.LanguageKind == RazorLanguageKind.CSharp ? "Razor C# Language Server Client" : "HtmlDelegationLanguageServerClient", correlationId);
+            using var _ = _telemetryReporter?.TrackLspRequest(LspTarget, positionInfo.LanguageKind == RazorLanguageKind.CSharp ? RazorLSPConstants.RazorCSharpLanguageServerName : RazorLSPConstants.HtmlLanguageServerName, correlationId);
             delegatedRequest = await _languageServer.SendRequestAsync<IDelegatedParams, TResponse>(CustomMessageTarget, delegatedParams, cancellationToken).ConfigureAwait(false);
             if (delegatedRequest is null)
             {
