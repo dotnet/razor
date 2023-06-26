@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
