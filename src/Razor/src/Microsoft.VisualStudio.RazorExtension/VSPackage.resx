@@ -150,6 +150,12 @@
   <data name="Setting_AutoClosingTagsDisplayName" xml:space="preserve">
     <value>Auto Insert Closing Tag</value>
   </data>
+  <data name="Setting_ColorBackgroundDescription" xml:space="preserve">
+    <value>If true, gives C# code in Razor files a background color</value>
+  </data>
+  <data name="Setting_ColorBackgroundDisplayName" xml:space="preserve">
+    <value>Background for C# Code</value>
+  </data>
   <data name="Setting_FormattingOnTypeDescription" xml:space="preserve">
     <value>If true, formatting will be enabled while typing</value>
   </data>

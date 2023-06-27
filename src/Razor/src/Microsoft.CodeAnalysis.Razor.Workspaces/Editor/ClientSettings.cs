@@ -25,7 +25,7 @@ public sealed record ClientSpaceSettings(bool IndentWithTabs, int IndentSize)
     public int IndentSize { get; } = IndentSize >= 0 ? IndentSize : throw new ArgumentOutOfRangeException(nameof(IndentSize));
 }
 
-public sealed record ClientAdvancedSettings(bool FormatOnType, bool AutoClosingTags)
+public sealed record ClientAdvancedSettings(bool FormatOnType, bool AutoClosingTags, bool ColorBackground)
 {
-    public static readonly ClientAdvancedSettings Default = new(FormatOnType: true, AutoClosingTags: true);
+    public static readonly ClientAdvancedSettings Default = new(FormatOnType: true, AutoClosingTags: true, ColorBackground: false);
 }
