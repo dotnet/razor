@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -69,45 +69,28 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         var baselineFileName = Path.ChangeExtension(fileName, ".semantic.txt");
         var actual = actualSemanticTokens?.ToArray();
 
+        var actualFileContents = GetFileRepresentationOfTokens(actual);
+
         BaselineTestCount++;
         if (GenerateBaselines)
         {
-            GenerateSemanticBaseline(actual, baselineFileName);
+            GenerateSemanticBaseline(actualFileContents, baselineFileName);
         }
 
-        var semanticArray = GetBaselineTokens(baselineFileName);
+        var expectedFileContents = GetBaselineFileContents(baselineFileName);
 
-        if (semanticArray is null && actual is null)
-        {
-            return;
-        }
-        else if (semanticArray is null || actual is null)
-        {
-            Assert.False(true, $"Expected: {semanticArray}; Actual: {actual}");
-        }
-
-        for (var i = 0; i < Math.Min(semanticArray!.Length, actual!.Length); i += 5)
-        {
-            var end = i + 5;
-            var actualTokens = actual[i..end];
-            var expectedTokens = semanticArray[i..end];
-            Assert.True(Enumerable.SequenceEqual(expectedTokens, actualTokens), $"Expected: {string.Join(',', expectedTokens)} Actual: {string.Join(',', actualTokens)} index: {i}");
-        }
-
-        Assert.True(semanticArray.Length == actual.Length, $"Expected length: {semanticArray.Length}, Actual length: {actual.Length}");
+        new XUnitVerifier().EqualOrDiff(expectedFileContents, actualFileContents);
     }
 
-    protected int[]? GetBaselineTokens(string baselineFileName)
+    protected string GetBaselineFileContents(string baselineFileName)
     {
         var semanticFile = TestFile.Create(baselineFileName, GetType().GetTypeInfo().Assembly);
         if (!semanticFile.Exists())
         {
-            throw new XunitException($"The resource {baselineFileName} was not found.");
+            return string.Empty;
         }
 
-        var semanticIntStr = semanticFile.ReadAllText();
-        var semanticArray = ParseSemanticBaseline(semanticIntStr);
-        return semanticArray;
+        return semanticFile.ReadAllText();
     }
 
     private protected async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(
@@ -157,29 +140,34 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
             Range = range
         };
 
-    private static void GenerateSemanticBaseline(IEnumerable<int>? actual, string baselineFileName)
+    private static void GenerateSemanticBaseline(string actualFileContents, string baselineFileName)
     {
-        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+        var semanticBaselinePath = Path.Combine(s_projectPath, baselineFileName);
+        File.WriteAllText(semanticBaselinePath, actualFileContents);
+    }
 
-        if (actual != null)
+    private static string GetFileRepresentationOfTokens(int[]? data)
+    {
+        if (data == null)
         {
-            var actualArray = actual.ToArray();
-            builder.AppendLine("//line,characterPos,length,tokenType,modifier");
-            var legendArray = TestRazorSemanticTokensLegend.Instance.Legend.TokenTypes;
-            for (var i = 0; i < actualArray.Length; i += 5)
-            {
-                var typeString = legendArray[actualArray[i + 3]];
-                builder.Append(actualArray[i]).Append(' ');
-                builder.Append(actualArray[i + 1]).Append(' ');
-                builder.Append(actualArray[i + 2]).Append(' ');
-                builder.Append(typeString).Append(' ');
-                builder.Append(actualArray[i + 4]);
-                builder.AppendLine();
-            }
+            return string.Empty;
         }
 
-        var semanticBaselinePath = Path.Combine(s_projectPath, baselineFileName);
-        File.WriteAllText(semanticBaselinePath, builder.ToString());
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+        builder.AppendLine("//line,characterPos,length,tokenType,modifier");
+        var legendArray = TestRazorSemanticTokensLegend.Instance.Legend.TokenTypes;
+        for (var i = 0; i < data.Length; i += 5)
+        {
+            var typeString = legendArray[data[i + 3]];
+            builder.Append(data[i]).Append(' ');
+            builder.Append(data[i + 1]).Append(' ');
+            builder.Append(data[i + 2]).Append(' ');
+            builder.Append(typeString).Append(' ');
+            builder.Append(data[i + 4]);
+            builder.AppendLine();
+        }
+
+        return builder.ToString();
     }
 
     private static int[]? ParseSemanticBaseline(string semanticIntStr)
