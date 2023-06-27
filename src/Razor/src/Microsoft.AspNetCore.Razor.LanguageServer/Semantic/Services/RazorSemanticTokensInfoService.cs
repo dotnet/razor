@@ -23,16 +23,19 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     private const int TokenSize = 5;
 
     private readonly IRazorDocumentMappingService _documentMappingService;
+    private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly ILogger _logger;
 
     public RazorSemanticTokensInfoService(
         ClientNotifierServiceBase languageServer,
         IRazorDocumentMappingService documentMappingService,
+        RazorLSPOptionsMonitor razorLSPOptionsMonitor,
         ILoggerFactory loggerFactory)
     {
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+        _razorLSPOptionsMonitor = razorLSPOptionsMonitor ?? throw new ArgumentNullException(nameof(razorLSPOptionsMonitor));
 
         if (loggerFactory is null)
         {
@@ -132,6 +135,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         }
 
         var razorRanges = new List<SemanticRange>();
+        var colorBackground = _razorLSPOptionsMonitor.CurrentValue.ColorBackground;
 
         SemanticRange? previousSemanticRange = null;
         for (var i = 0; i < csharpResponse.Length; i += TokenSize)
@@ -142,9 +146,13 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             var tokenType = csharpResponse[i + 3];
             var tokenModifiers = csharpResponse[i + 4];
 
-            var semanticRange = DataToSemanticRange(
-                lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
-            if (_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), semanticRange.Range, out var originalRange))
+            if (colorBackground)
+            {
+                tokenModifiers |= (int)RazorSemanticTokensLegend.RazorTokenModifiers.RazorCode;
+            }
+
+            var semanticRange = DataToSemanticRange(lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
+            if (_documentMappingService.TryMapToHostDocumentRange(generatedDocument, semanticRange.Range, out var originalRange))
             {
                 var razorSemanticRange = new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers);
                 if (razorRange is null || razorRange.OverlapsWith(razorSemanticRange.Range))
@@ -331,7 +339,6 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             targetArray[currentCount + 3] = currentRange.Kind;
 
             // tokenModifiers
-            // We don't currently have any need for tokenModifiers
             targetArray[currentCount + 4] = currentRange.Modifier;
         }
     }
