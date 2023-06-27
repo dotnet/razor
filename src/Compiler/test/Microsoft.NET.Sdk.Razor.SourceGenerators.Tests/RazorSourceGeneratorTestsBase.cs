@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable enable
@@ -68,6 +68,7 @@ public abstract class RazorSourceGeneratorTestsBase
         optionsProvider.TestGlobalOptions["build_property.RootNamespace"] = "MyApp";
         optionsProvider.TestGlobalOptions["build_property.RazorLangVersion"] = "Latest";
         optionsProvider.TestGlobalOptions["build_property.GenerateRazorMetadataSourceChecksumAttributes"] = "false";
+        optionsProvider.TestGlobalOptions["build_property.TestingSuppressUniqueIds"] = "test";
 
         var additionalTexts = ImmutableArray<AdditionalText>.Empty;
 
