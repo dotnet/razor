@@ -23,6 +23,9 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
         _dispatcher = new SnapshotDispatcher(nameof(ProjectMutationBenchmark));
     }
 
+    private Thread _addRemoveThread;
+    private Thread _readThread;
+
     [IterationSetup]
     public void Setup()
     {
@@ -39,32 +42,50 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
             SnapshotManager.ProjectAdded(HostProject);
         }, CancellationToken.None);
 
-        var tasks = new Task[Documents.Length * 2];
+        var cancellationSource = new CancellationTokenSource();
+        var done = false;
 
-        for (var i = 0; i < tasks.Length; i += 2)
+#pragma warning disable VSTHRD101 // Avoid unsupported async delegates
+        _addRemoveThread = new Thread(async () =>
         {
-            tasks[i] = AddAndRemoveAsync(i / 2);
-            tasks[i+1] = GetDocumentsAsync();
+            for (var i = 0; i < Documents.Length; i++)
+            {
+                var document = Documents[i];
+                await _dispatcher.RunOnDispatcherThreadAsync(() => SnapshotManager.DocumentAdded(HostProject, document, TextLoaders[i % 4]), CancellationToken.None).ConfigureAwait(false);
+                Thread.Sleep(0);
+                await _dispatcher.RunOnDispatcherThreadAsync(() => SnapshotManager.DocumentRemoved(HostProject, document), CancellationToken.None).ConfigureAwait(false);
+                Thread.Sleep(0);
+            }
+
+            cancellationSource.Cancel();
+        });
+
+        _readThread = new Thread(async () =>
+        {
+            while (true)
+            {
+                if (cancellationSource.IsCancellationRequested)
+                {
+                    done = true;
+                    return;
+                }
+
+                await _dispatcher.RunOnDispatcherThreadAsync(() => SnapshotManager.Projects, CancellationToken.None).ConfigureAwait(false);
+                Thread.Sleep(0);
+                await _dispatcher.RunOnDispatcherThreadAsync(() => SnapshotManager.OpenDocuments, CancellationToken.None).ConfigureAwait(false);
+                Thread.Sleep(0);
+            }
+        });
+
+        _addRemoveThread.Start();
+        _readThread.Start();
+#pragma warning restore VSTHRD101 // Avoid unsupported async delegates
+
+        while (!done)
+        {
+            Thread.Sleep(0);
         }
-
-        await Task.WhenAll(tasks);
     }
-
-    private async Task AddAndRemoveAsync(int i)
-    {
-        await _dispatcher.RunOnDispatcherThreadAsync(() =>
-        {
-            SnapshotManager.DocumentAdded(HostProject, Documents[i], TextLoaders[i % 4]);
-        }, CancellationToken.None);
-
-        await _dispatcher.RunOnDispatcherThreadAsync(() =>
-        {
-            SnapshotManager.DocumentRemoved(HostProject, Documents[i]);
-        }, CancellationToken.None);
-    }
-
-    private Task GetDocumentsAsync() =>
-        _dispatcher.RunOnDispatcherThreadAsync(() => SnapshotManager.Projects, CancellationToken.None);
 
     private class SnapshotDispatcher : ProjectSnapshotManagerDispatcherBase
     {
