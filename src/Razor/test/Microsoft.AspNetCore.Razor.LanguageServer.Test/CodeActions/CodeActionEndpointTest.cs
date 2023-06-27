@@ -629,7 +629,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         Assert.NotNull(context);
 
         // Act
-        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Logger, default);
+        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Logger, default, Guid.Empty);
 
         // Assert
         Assert.Empty(results);
@@ -674,7 +674,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         Assert.NotNull(context);
 
         // Act
-        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Logger, default);
+        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Logger, default, Guid.Empty);
 
         // Assert
         var result = Assert.Single(results);
