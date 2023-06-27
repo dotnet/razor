@@ -51,7 +51,7 @@ internal sealed class CodeActionEndpoint : IRazorRequestHandler<VSCodeActionPara
         IEnumerable<IHtmlCodeActionProvider> htmlCodeActionProviders,
         ClientNotifierServiceBase languageServer,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        ITelemetryReporter? telemetryReporter = null)
+        ITelemetryReporter? telemetryReporter)
     {
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
         _razorCodeActionProviders = razorCodeActionProviders ?? throw new ArgumentNullException(nameof(razorCodeActionProviders));
@@ -71,8 +71,6 @@ internal sealed class CodeActionEndpoint : IRazorRequestHandler<VSCodeActionPara
             throw new ArgumentNullException(nameof(request));
         }
 
-        var correlationId = Guid.NewGuid();
-        using var __ = _telemetryReporter?.TrackLspRequest(Methods.TextDocumentCodeActionName, LanguageServerConstants.RazorLanguageServerName, correlationId);
         var documentContext = requestContext.DocumentContext;
         if (documentContext is null)
         {
@@ -87,6 +85,8 @@ internal sealed class CodeActionEndpoint : IRazorRequestHandler<VSCodeActionPara
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        var correlationId = Guid.NewGuid();
+        using var __ = _telemetryReporter?.TrackLspRequest(Methods.TextDocumentCodeActionName, LanguageServerConstants.RazorLanguageServerName, correlationId);
         var razorCodeActions = await GetRazorCodeActionsAsync(razorCodeActionContext, cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -94,7 +94,7 @@ internal sealed class CodeActionEndpoint : IRazorRequestHandler<VSCodeActionPara
         // HTML code actions aren't currently supported in VS Code:
         // https://github.com/dotnet/razor/issues/8062
         var delegatedCodeActions = _languageServerFeatureOptions.SupportsDelegatedCodeActions
-            ? await GetDelegatedCodeActionsAsync(documentContext, razorCodeActionContext, requestContext.Logger, cancellationToken, correlationId).ConfigureAwait(false)
+            ? await GetDelegatedCodeActionsAsync(documentContext, razorCodeActionContext, requestContext.Logger, correlationId, cancellationToken).ConfigureAwait(false)
             : ImmutableArray.Create<RazorVSInternalCodeAction>();
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -193,7 +193,7 @@ internal sealed class CodeActionEndpoint : IRazorRequestHandler<VSCodeActionPara
         return context;
     }
 
-    private async Task<ImmutableArray<RazorVSInternalCodeAction>> GetDelegatedCodeActionsAsync(VersionedDocumentContext documentContext, RazorCodeActionContext context, IRazorLogger logger, CancellationToken cancellationToken, Guid correlationId)
+    private async Task<ImmutableArray<RazorVSInternalCodeAction>> GetDelegatedCodeActionsAsync(VersionedDocumentContext documentContext, RazorCodeActionContext context, IRazorLogger logger, Guid correlationId, CancellationToken cancellationToken)
     {
         var languageKind = _documentMappingService.GetLanguageKind(context.CodeDocument, context.Location.AbsoluteIndex, rightAssociative: false);
 
@@ -203,7 +203,7 @@ internal sealed class CodeActionEndpoint : IRazorRequestHandler<VSCodeActionPara
             return ImmutableArray<RazorVSInternalCodeAction>.Empty;
         }
 
-        var codeActions = await GetCodeActionsFromLanguageServerAsync(languageKind, documentContext, context, logger, cancellationToken, correlationId).ConfigureAwait(false);
+        var codeActions = await GetCodeActionsFromLanguageServerAsync(languageKind, documentContext, context, logger, correlationId, cancellationToken).ConfigureAwait(false);
         if (codeActions is not [_, ..])
         {
             return ImmutableArray<RazorVSInternalCodeAction>.Empty;
@@ -275,7 +275,7 @@ internal sealed class CodeActionEndpoint : IRazorRequestHandler<VSCodeActionPara
     }
 
     // Internal for testing
-    internal async Task<RazorVSInternalCodeAction[]> GetCodeActionsFromLanguageServerAsync(RazorLanguageKind languageKind, VersionedDocumentContext documentContext, RazorCodeActionContext context, IRazorLogger logger, CancellationToken cancellationToken, Guid correlationId)
+    internal async Task<RazorVSInternalCodeAction[]> GetCodeActionsFromLanguageServerAsync(RazorLanguageKind languageKind, VersionedDocumentContext documentContext, RazorCodeActionContext context, IRazorLogger logger, Guid correlationId, CancellationToken cancellationToken)
     {
         if (languageKind == RazorLanguageKind.CSharp)
         {
