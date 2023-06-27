@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
@@ -103,9 +104,20 @@ internal class RazorSemanticTokensLegend
     }
 
     private static readonly string[] s_tokenModifiers = new string[] {
+        // TODO: These two should come from Roslyn once an available version is inserted
         // Razor
-        "None",
-        // C# Modifiers
         "static",
+        // C# Modifiers
+        "ReassignedVariable",
+        // Razor background
+        nameof(RazorTokenModifiers.RazorCode)
     };
+
+    [Flags]
+    public enum RazorTokenModifiers
+    {
+        // Must start after the last Roslyn modifier. So Roslyn has two modifiers right now, 1 and 2, so we start
+        // at 4 (noting this is a Flags enum)
+        RazorCode = 4
+    }
 }
