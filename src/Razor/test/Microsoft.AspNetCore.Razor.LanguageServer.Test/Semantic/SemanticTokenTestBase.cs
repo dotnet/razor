@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -57,7 +58,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
     {
     }
 
-    protected void AssertSemanticTokensMatchesBaseline(IEnumerable<int>? actualSemanticTokens)
+    protected void AssertSemanticTokensMatchesBaseline(SourceText sourceText, int[]? actualSemanticTokens)
     {
         if (FileName is null)
         {
@@ -67,9 +68,8 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
 
         var fileName = BaselineTestCount > 0 ? FileName + $"_{BaselineTestCount}" : FileName;
         var baselineFileName = Path.ChangeExtension(fileName, ".semantic.txt");
-        var actual = actualSemanticTokens?.ToArray();
 
-        var actualFileContents = GetFileRepresentationOfTokens(actual);
+        var actualFileContents = GetFileRepresentationOfTokens(sourceText, actualSemanticTokens);
 
         BaselineTestCount++;
         if (GenerateBaselines)
@@ -146,7 +146,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         File.WriteAllText(semanticBaselinePath, actualFileContents);
     }
 
-    private static string GetFileRepresentationOfTokens(int[]? data)
+    private static string GetFileRepresentationOfTokens(SourceText sourceText, int[]? data)
     {
         if (data == null)
         {
@@ -154,23 +154,37 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         }
 
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
-        builder.AppendLine("//line,characterPos,length,tokenType,modifier");
+        builder.AppendLine("//line,characterPos,length,tokenType,modifier,text");
         var legendArray = TestRazorSemanticTokensLegend.Instance.Legend.TokenTypes;
         var prevLength = 0;
+        var lineIndex = 0;
+        var lineOffset = 0;
         for (var i = 0; i < data.Length; i += 5)
         {
-            Assert.False(i != 0 && data[i] == 0 && data[i + 1] == 0, "line delta and character delta are both 0, which is invalid as we shouldn't be producing overlapping tokens");
-            Assert.False(i != 0 && data[i] == 0 && data[i + 1] < prevLength, "Previous length is longer than char offset from previous start, meaning tokens will overlap");
+            var lineDelta = data[i];
+            var charDelta = data[i + 1];
+            var length = data[i + 2];
+
+            Assert.False(i != 0 && lineDelta == 0 && charDelta == 0, "line delta and character delta are both 0, which is invalid as we shouldn't be producing overlapping tokens");
+            Assert.False(i != 0 && lineDelta == 0 && charDelta < prevLength, "Previous length is longer than char offset from previous start, meaning tokens will overlap");
+
+            if (lineDelta != 0)
+            {
+                lineOffset = 0;
+            }
+            lineIndex += lineDelta;
+            lineOffset += charDelta;
 
             var typeString = legendArray[data[i + 3]];
-            builder.Append(data[i]).Append(' ');
-            builder.Append(data[i + 1]).Append(' ');
-            builder.Append(data[i + 2]).Append(' ');
+            builder.Append(lineDelta).Append(' ');
+            builder.Append(charDelta).Append(' ');
+            builder.Append(length).Append(' ');
             builder.Append(typeString).Append(' ');
-            builder.Append(data[i + 4]);
+            builder.Append(data[i + 4]).Append(' ');
+            builder.Append('[').Append(sourceText.GetSubTextString(new TextSpan(sourceText.Lines[lineIndex].Start + lineOffset, length))).Append(']');
             builder.AppendLine();
 
-            prevLength = data[i + 2];
+            prevLength = length;
         }
 
         return builder.ToString();

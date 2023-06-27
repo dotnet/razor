@@ -815,7 +815,8 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var tokens = await service.GetSemanticTokensAsync(textDocumentIdentifier, range, documentContext, TestRazorSemanticTokensLegend.Instance, DisposalToken);
 
         // Assert
-        AssertSemanticTokensMatchesBaseline(tokens?.Data);
+        var sourceText = await documentContext.GetSourceTextAsync(DisposalToken);
+        AssertSemanticTokensMatchesBaseline(sourceText, tokens?.Data);
     }
 
     private async Task<IRazorSemanticTokensInfoService> GetDefaultRazorSemanticTokenInfoServiceAsync(

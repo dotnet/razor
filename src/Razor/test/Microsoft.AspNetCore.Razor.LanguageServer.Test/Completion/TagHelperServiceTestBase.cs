@@ -6,11 +6,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -254,6 +256,9 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
 
             documentContext.Setup(d => d.Project)
                 .Returns(projectSnapshot.Object);
+
+            documentContext.Setup(d => d.GetSourceTextAsync(It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(document.GetSourceText()));
 
             documentContexts.Enqueue(documentContext.Object);
             var identifier = GetIdentifier(isRazorFile);
