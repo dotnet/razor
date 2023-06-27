@@ -87,9 +87,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>419ee237406466eebd6bdfbf932a31e26971ec4c</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.VisualStudio.LanguageServices" Version="4.7.0-3.23314.5">
+    <Dependency Name="Microsoft.CodeAnalysis.Test.Utilities" Version="4.7.0-3.23326.2">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>f6725f6f04ce03574fcf89faa4b20b72ef83e4dd</Sha>
+      <Sha>419ee237406466eebd6bdfbf932a31e26971ec4c</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>

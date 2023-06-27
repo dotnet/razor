@@ -67,6 +67,7 @@
     <MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>4.7.0-3.23326.2</MicrosoftCodeAnalysisEditorFeaturesTextPackageVersion>
     <MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion>4.7.0-3.23326.2</MicrosoftCodeAnalysisEditorFeaturesWpfPackageVersion>
     <MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>4.7.0-3.23326.2</MicrosoftCodeAnalysisRemoteServiceHubPackageVersion>
+    <MicrosoftCodeAnalysisTestUtilitiesPackageVersion>4.7.0-3.23326.2</MicrosoftCodeAnalysisTestUtilitiesPackageVersion>
     <MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>4.7.0-3.23326.2</MicrosoftCodeAnalysisVisualBasicWorkspacesPackageVersion>
     <MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>4.7.0-3.23326.2</MicrosoftCodeAnalysisWorkspacesCommonPackageVersion>
     <MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>4.7.0-3.23326.2</MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>
