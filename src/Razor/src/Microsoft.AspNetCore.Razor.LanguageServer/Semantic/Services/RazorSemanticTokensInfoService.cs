@@ -56,7 +56,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
-        var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range, razorSemanticTokensLegend);
+        var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range, razorSemanticTokensLegend, _razorLSPOptionsMonitor.CurrentValue.ColorBackground);
         List<SemanticRange>? csharpSemanticRanges = null;
 
         try
