@@ -186,7 +186,8 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
     private bool ContainsOnlySpacesOrTabs(SourceText razorSource, int startIndex, int count)
     {
-        for (var i = startIndex; i < count; i++)
+        var end = startIndex + count;
+        for (var i = startIndex; i < end; i++)
         {
             if (razorSource[i] is not ' ' or '\t')
             {

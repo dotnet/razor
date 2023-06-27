@@ -156,9 +156,11 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
         builder.AppendLine("//line,characterPos,length,tokenType,modifier");
         var legendArray = TestRazorSemanticTokensLegend.Instance.Legend.TokenTypes;
+        var prevLength = 0;
         for (var i = 0; i < data.Length; i += 5)
         {
             Assert.False(i != 0 && data[i] == 0 && data[i + 1] == 0, "line delta and character delta are both 0, which is invalid as we shouldn't be producing overlapping tokens");
+            Assert.False(i != 0 && data[i] == 0 && data[i + 1] < prevLength, "Previous length is longer than char offset from previous start, meaning tokens will overlap");
 
             var typeString = legendArray[data[i + 3]];
             builder.Append(data[i]).Append(' ');
@@ -167,6 +169,8 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
             builder.Append(typeString).Append(' ');
             builder.Append(data[i + 4]);
             builder.AppendLine();
+
+            prevLength = data[i + 2];
         }
 
         return builder.ToString();

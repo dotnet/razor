@@ -726,6 +726,44 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens, withCSharpBackground: true);
     }
 
+    [Fact]
+    public async Task GetSemanticTokens_CSharp_WitRenderFragment()
+    {
+        var documentText = """
+                <div>This is some HTML</div>
+                @code
+                {
+                    public void M()
+                    {
+                        RenderFragment x = @<div>This is some HTML</div>;
+                    }
+                }
+                """;
+
+        var razorRange = GetRange(documentText);
+        var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
+        await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
+    }
+
+    [Fact]
+    public async Task GetSemanticTokens_CSharp_WitRenderFragmentAndBackground()
+    {
+        var documentText = """
+                <div>This is some HTML</div>
+                @code
+                {
+                    public void M()
+                    {
+                        RenderFragment x = @<div>This is some HTML</div>;
+                    }
+                }
+                """;
+
+        var razorRange = GetRange(documentText);
+        var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
+        await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens, withCSharpBackground: true);
+    }
+
     private async Task AssertSemanticTokensAsync(
         string documentText,
         bool isRazorFile,
