@@ -27,9 +27,10 @@ using SyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 
-[LanguageServerEndpoint(Methods.TextDocumentDefinitionName)]
+[LanguageServerEndpoint(LspEndpointName)]
 internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, DefinitionResult?>, IRegistrationExtension
 {
+    public const string LspEndpointName = Methods.TextDocumentDefinitionName;
     private readonly RazorComponentSearchEngine _componentSearchEngine;
     private readonly IRazorDocumentMappingService _documentMappingService;
 
@@ -51,7 +52,7 @@ internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextD
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName;
 
-    protected override string LspTarget => Methods.TextDocumentDefinitionName;
+    protected override string LspTarget => LspEndpointName;
 
     public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
     {

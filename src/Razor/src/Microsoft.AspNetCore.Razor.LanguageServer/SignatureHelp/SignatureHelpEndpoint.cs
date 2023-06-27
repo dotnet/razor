@@ -14,9 +14,11 @@ using LS = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 
-[LanguageServerEndpoint(Methods.TextDocumentSignatureHelpName)]
+[LanguageServerEndpoint(LspEndpointName)]
 internal sealed class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<SignatureHelpParams, LS.SignatureHelp?>, IRegistrationExtension
 {
+    public const string LspEndpointName = Methods.TextDocumentSignatureHelpName;
+
     public SignatureHelpEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IRazorDocumentMappingService documentMappingService,
@@ -28,7 +30,7 @@ internal sealed class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<Si
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName;
 
-    protected override string LspTarget => Methods.TextDocumentSignatureHelpName;
+    protected override string LspTarget => LspEndpointName;
 
     public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
     {

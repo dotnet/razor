@@ -17,9 +17,10 @@ using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumT
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 
-[LanguageServerEndpoint(Methods.TextDocumentImplementationName)]
+[LanguageServerEndpoint(LspEndpointName)]
 internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, ImplementationResult>, IRegistrationExtension
 {
+    public const string LspEndpointName = Methods.TextDocumentImplementationName;
     private readonly IRazorDocumentMappingService _documentMappingService;
 
     public ImplementationEndpoint(
@@ -34,7 +35,7 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName;
 
-    protected override string LspTarget => Methods.TextDocumentImplementationName;
+    protected override string LspTarget => LspEndpointName;
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 

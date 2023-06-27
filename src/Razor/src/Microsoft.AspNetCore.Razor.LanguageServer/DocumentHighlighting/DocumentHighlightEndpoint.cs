@@ -15,9 +15,10 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting;
 
-[LanguageServerEndpoint(Methods.TextDocumentDocumentHighlightName)]
+[LanguageServerEndpoint(LspEndpointName)]
 internal class DocumentHighlightEndpoint : AbstractRazorDelegatingEndpoint<DocumentHighlightParams, DocumentHighlight[]?>, IRegistrationExtension
 {
+    public const string LspEndpointName = Methods.TextDocumentDocumentHighlightName;
     private readonly IRazorDocumentMappingService _documentMappingService;
 
     public DocumentHighlightEndpoint(
@@ -44,7 +45,7 @@ internal class DocumentHighlightEndpoint : AbstractRazorDelegatingEndpoint<Docum
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorDocumentHighlightEndpointName;
 
-    protected override string LspTarget => Methods.TextDocumentDocumentHighlightName;
+    protected override string LspTarget => LspEndpointName;
 
     protected override Task<DocumentHighlight[]?> TryHandleAsync(DocumentHighlightParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {

@@ -18,9 +18,10 @@ using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 
-[LanguageServerEndpoint(Methods.TextDocumentReferencesName)]
+[LanguageServerEndpoint(LspEndpointName)]
 internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoint<ReferenceParams, VSInternalReferenceItem[]>, IRegistrationExtension
 {
+    public const string LspEndpointName = Methods.TextDocumentReferencesName;
     private readonly LanguageServerFeatureOptions _featureOptions;
     private readonly IRazorDocumentMappingService _documentMappingService;
 
@@ -51,7 +52,7 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorReferencesEndpointName;
 
-    protected override string LspTarget => Methods.TextDocumentReferencesName;
+    protected override string LspTarget => LspEndpointName;
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 

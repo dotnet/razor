@@ -20,9 +20,10 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
-[LanguageServerEndpoint(VSInternalMethods.OnAutoInsertName)]
+[LanguageServerEndpoint(LspEndpointName)]
 internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>, IRegistrationExtension
 {
+    public const string LspEndpointName = VSInternalMethods.OnAutoInsertName;
     private static readonly HashSet<string> s_htmlAllowedTriggerCharacters = new(StringComparer.Ordinal) { "=", };
     private static readonly HashSet<string> s_cSharpAllowedTriggerCharacters = new(StringComparer.Ordinal) { "'", "/", "\n" };
 
@@ -46,7 +47,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertEndpointName;
 
-    protected override string LspTarget => VSInternalMethods.OnAutoInsertName;
+    protected override string LspTarget => LspEndpointName;
 
     public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
     {

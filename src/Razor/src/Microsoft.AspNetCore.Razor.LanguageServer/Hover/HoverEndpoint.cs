@@ -16,9 +16,10 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
-[LanguageServerEndpoint(Methods.TextDocumentHoverName)]
+[LanguageServerEndpoint(LspEndpointName)]
 internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, VSInternalHover?>, IRegistrationExtension
 {
+    public const string LspEndpointName = Methods.TextDocumentHoverName;
     private readonly IHoverInfoService _hoverInfoService;
     private readonly IRazorDocumentMappingService _documentMappingService;
     private VSInternalClientCapabilities? _clientCapabilities;
@@ -54,7 +55,7 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName;
 
-    protected override string LspTarget => Methods.TextDocumentHoverName;
+    protected override string LspTarget => LspEndpointName;
 
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {

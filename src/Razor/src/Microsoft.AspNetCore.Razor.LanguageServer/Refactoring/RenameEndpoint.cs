@@ -24,9 +24,10 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 
-[LanguageServerEndpoint(Methods.TextDocumentRenameName)]
+[LanguageServerEndpoint(LspEndpointName)]
 internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParams, WorkspaceEdit?>, IRegistrationExtension
 {
+    public const string LspEndpointName = Methods.TextDocumentRenameName;
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly DocumentContextFactory _documentContextFactory;
     private readonly ProjectSnapshotManager _projectSnapshotManager;
@@ -68,7 +69,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName;
 
-    protected override string LspTarget => Methods.TextDocumentRenameName;
+    protected override string LspTarget => LspEndpointName;
 
     protected override async Task<WorkspaceEdit?> TryHandleAsync(RenameParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
