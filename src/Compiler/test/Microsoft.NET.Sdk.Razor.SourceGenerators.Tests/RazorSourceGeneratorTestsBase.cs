@@ -60,7 +60,7 @@ public abstract class RazorSourceGeneratorTestsBase
 
     protected static async ValueTask<(GeneratorDriver, ImmutableArray<AdditionalText>, TestAnalyzerConfigOptionsProvider)> GetDriverWithAdditionalTextAndProviderAsync(Project project, Action<TestAnalyzerConfigOptionsProvider>? configureGlobalOptions = null, bool hostOutputs = false)
     {
-        var razorSourceGenerator = new RazorSourceGenerator().AsSourceGenerator();
+        var razorSourceGenerator = new RazorSourceGenerator(testUniqueIds: "test").AsSourceGenerator();
         var disabledOutputs = hostOutputs ? IncrementalGeneratorOutputKind.None : (IncrementalGeneratorOutputKind)0b100000;
         var driver = (GeneratorDriver)CSharpGeneratorDriver.Create(new[] { razorSourceGenerator }, parseOptions: (CSharpParseOptions)project.ParseOptions!, driverOptions: new GeneratorDriverOptions(disabledOutputs, true));
 
@@ -69,7 +69,6 @@ public abstract class RazorSourceGeneratorTestsBase
         optionsProvider.TestGlobalOptions["build_property.RootNamespace"] = "MyApp";
         optionsProvider.TestGlobalOptions["build_property.RazorLangVersion"] = "Latest";
         optionsProvider.TestGlobalOptions["build_property.GenerateRazorMetadataSourceChecksumAttributes"] = "false";
-        optionsProvider.TestGlobalOptions["build_property.TestSuppressUniqueIds"] = "test";
 
         var additionalTexts = ImmutableArray<AdditionalText>.Empty;
 

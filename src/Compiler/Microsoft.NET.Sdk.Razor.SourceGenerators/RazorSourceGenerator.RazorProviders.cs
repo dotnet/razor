@@ -34,7 +34,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 && enableRazorHostOutputs == "true";
         }
 
-        private static (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions((AnalyzerConfigOptionsProvider, ParseOptions) pair, CancellationToken ct)
+        private (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions((AnalyzerConfigOptionsProvider, ParseOptions) pair, CancellationToken ct)
         {
             Log.ComputeRazorSourceGeneratorOptions();
 
@@ -45,7 +45,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             globalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace);
             globalOptions.TryGetValue("build_property.SupportLocalizedComponentNames", out var supportLocalizedComponentNames);
             globalOptions.TryGetValue("build_property.GenerateRazorMetadataSourceChecksumAttributes", out var generateMetadataSourceChecksumAttributes);
-            globalOptions.TryGetValue("build_property.TestSuppressUniqueIds", out var suppressUniqueIds);
 
             var razorLanguageVersion = RazorLanguageVersion.Latest;
             Diagnostic? diagnostic = null;
@@ -67,7 +66,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 RootNamespace = rootNamespace ?? "ASP",
                 SupportLocalizedComponentNames = supportLocalizedComponentNames == "true",
                 CSharpLanguageVersion = ((CSharpParseOptions)parseOptions).LanguageVersion,
-                TestSuppressUniqueIds = suppressUniqueIds,
+                TestSuppressUniqueIds = _testSuppressUniqueIds,
             };
 
             return (razorSourceGenerationOptions, diagnostic);
