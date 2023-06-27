@@ -45,7 +45,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             globalOptions.TryGetValue("build_property.RootNamespace", out var rootNamespace);
             globalOptions.TryGetValue("build_property.SupportLocalizedComponentNames", out var supportLocalizedComponentNames);
             globalOptions.TryGetValue("build_property.GenerateRazorMetadataSourceChecksumAttributes", out var generateMetadataSourceChecksumAttributes);
-            globalOptions.TryGetValue("build_property.TestingSuppressUniqueIds", out var suppressUniqueIds);
+            globalOptions.TryGetValue("build_property.TestSuppressUniqueIds", out var suppressUniqueIds);
 
             var razorLanguageVersion = RazorLanguageVersion.Latest;
             Diagnostic? diagnostic = null;

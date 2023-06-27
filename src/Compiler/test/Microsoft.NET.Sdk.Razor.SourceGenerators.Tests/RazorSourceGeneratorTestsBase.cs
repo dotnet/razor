@@ -69,7 +69,7 @@ public abstract class RazorSourceGeneratorTestsBase
         optionsProvider.TestGlobalOptions["build_property.RootNamespace"] = "MyApp";
         optionsProvider.TestGlobalOptions["build_property.RazorLangVersion"] = "Latest";
         optionsProvider.TestGlobalOptions["build_property.GenerateRazorMetadataSourceChecksumAttributes"] = "false";
-        optionsProvider.TestGlobalOptions["build_property.TestingSuppressUniqueIds"] = "test";
+        optionsProvider.TestGlobalOptions["build_property.TestSuppressUniqueIds"] = "test";
 
         var additionalTexts = ImmutableArray<AdditionalText>.Empty;
 
