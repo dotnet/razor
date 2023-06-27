@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -116,7 +117,8 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     {
         // We'll try to call into the mapping service to map to the projected range for us. If that doesn't work,
         // we'll try to find the minimal range ourselves.
-        if (!_documentMappingService.TryMapToGeneratedDocumentRange(codeDocument.GetCSharpDocument(), razorRange, out var csharpRange) &&
+        var generatedDocument = codeDocument.GetCSharpDocument();
+        if (!_documentMappingService.TryMapToGeneratedDocumentRange(generatedDocument, razorRange, out var csharpRange) &&
             !TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
         {
             // There's no C# in the range.
@@ -136,8 +138,10 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
         var razorRanges = new List<SemanticRange>();
         var colorBackground = _razorLSPOptionsMonitor.CurrentValue.ColorBackground;
+        var razorSource = codeDocument.GetSourceText();
 
         SemanticRange? previousSemanticRange = null;
+        Range? previousRazorSemanticRange = null;
         for (var i = 0; i < csharpResponse.Length; i += TokenSize)
         {
             var lineDelta = csharpResponse[i];
@@ -154,17 +158,42 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             var semanticRange = DataToSemanticRange(lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
             if (_documentMappingService.TryMapToHostDocumentRange(generatedDocument, semanticRange.Range, out var originalRange))
             {
+                if (colorBackground &&
+                    previousRazorSemanticRange is not null &&
+                    previousRazorSemanticRange.End.Line == originalRange.Start.Line &&
+                    previousRazorSemanticRange.End.TryGetAbsoluteIndex(razorSource, _logger, out var previousSpanEndIndex) &&
+                    ContainsOnlySpacesOrTabs(razorSource, previousSpanEndIndex + 1, originalRange.Start.Character - previousRazorSemanticRange.End.Character - 1))
+                {
+                    // we're on the same line as previous, lets extend ours to include whitespace between us and the proceeding range
+                    originalRange.Start.Character = previousRazorSemanticRange.End.Character;
+                }
+
                 var razorSemanticRange = new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers);
                 if (razorRange is null || razorRange.OverlapsWith(razorSemanticRange.Range))
                 {
                     razorRanges.Add(razorSemanticRange);
                 }
+
+                previousRazorSemanticRange = originalRange;
             }
 
             previousSemanticRange = semanticRange;
         }
 
         return razorRanges;
+    }
+
+    private bool ContainsOnlySpacesOrTabs(SourceText razorSource, int startIndex, int count)
+    {
+        for (var i = startIndex; i < count; i++)
+        {
+            if (razorSource[i] is not ' ' or '\t')
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // Internal for testing only
