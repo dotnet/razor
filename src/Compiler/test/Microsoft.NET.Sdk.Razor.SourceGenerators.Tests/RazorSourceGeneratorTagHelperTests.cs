@@ -1357,4 +1357,28 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
         Assert.Equal(2, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/aspnetcore/pull/49034#issuecomment-1608571858")]
+    public async Task UrlResolutionTagHelper()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                @page
+
+                <img src="~/images/red.png" alt="Red block" title="&lt;the title>" id="1">
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
 }
