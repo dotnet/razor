@@ -18,8 +18,8 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Xunit;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
@@ -158,6 +158,8 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         var legendArray = TestRazorSemanticTokensLegend.Instance.Legend.TokenTypes;
         for (var i = 0; i < data.Length; i += 5)
         {
+            Assert.False(i != 0 && data[i] == 0 && data[i + 1] == 0, "line delta and character delta are both 0, which is invalid as we shouldn't be producing overlapping tokens");
+
             var typeString = legendArray[data[i + 3]];
             builder.Append(data[i]).Append(' ');
             builder.Append(data[i + 1]).Append(' ');

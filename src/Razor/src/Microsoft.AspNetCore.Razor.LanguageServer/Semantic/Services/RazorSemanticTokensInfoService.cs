@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -155,7 +156,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                 tokenModifiers |= (int)RazorSemanticTokensLegend.RazorTokenModifiers.RazorCode;
             }
 
-            var semanticRange = DataToSemanticRange(lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
+            var semanticRange = CSharpDataToSemanticRange(lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
             if (_documentMappingService.TryMapToHostDocumentRange(generatedDocument, semanticRange.Range, out var originalRange))
             {
                 if (colorBackground &&
@@ -168,7 +169,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                     originalRange.Start.Character = previousRazorSemanticRange.End.Character;
                 }
 
-                var razorSemanticRange = new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers);
+                var razorSemanticRange = new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers, fromRazor: false);
                 if (razorRange is null || razorRange.OverlapsWith(razorSemanticRange.Range))
                 {
                     razorRanges.Add(razorSemanticRange);
@@ -272,7 +273,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         return response;
     }
 
-    private static SemanticRange DataToSemanticRange(
+    private static SemanticRange CSharpDataToSemanticRange(
         int lineDelta,
         int charDelta,
         int length,
@@ -287,7 +288,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                 Start = new Position(0, 0),
                 End = new Position(0, 0)
             };
-            previousSemanticRange = new SemanticRange(0, previousRange, modifier: 0);
+            previousSemanticRange = new SemanticRange(0, previousRange, modifier: 0, fromRazor: false);
         }
 
         var startLine = previousSemanticRange.Range.End.Line + lineDelta;
@@ -304,7 +305,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             Start = start,
             End = end
         };
-        var semanticRange = new SemanticRange(tokenType, range, tokenModifiers);
+        var semanticRange = new SemanticRange(tokenType, range, tokenModifiers, fromRazor: false);
 
         return semanticRange;
     }
@@ -315,25 +316,29 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     {
         SemanticRange? previousResult = null;
 
-        var data = new int[semanticRanges.Count * TokenSize];
-        var semanticRangeCount = 0;
+        var sourceText = razorCodeDocument.GetSourceText();
+
+        // We don't bother filtering out duplicate ranges (eg, where C# and Razor both have opinions), but instead take advantage of
+        // our sort algorithm to be correct, so we can skip duplicates here. That means our final array may end up smaller than the
+        // expected size, so we have to use a list to build it.
+        using var _ = ListPool<int>.GetPooledObject(out var data);
+        data.SetCapacityIfLarger(semanticRanges.Count * TokenSize);
+
         foreach (var result in semanticRanges)
         {
-            AppendData(result, previousResult, razorCodeDocument, data, semanticRangeCount);
-            semanticRangeCount += TokenSize;
+            AppendData(result, previousResult, sourceText, data);
 
             previousResult = result;
         }
 
-        return data;
+        return data.ToArray();
 
         // We purposely capture and manipulate the "data" array here to avoid allocation
         static void AppendData(
             SemanticRange currentRange,
             SemanticRange? previousRange,
-            RazorCodeDocument razorCodeDocument,
-            int[] targetArray,
-            int currentCount)
+            SourceText sourceText,
+            List<int> data)
         {
             /*
              * In short, each token takes 5 integers to represent, so a specific token `i` in the file consists of the following array indices:
@@ -346,29 +351,39 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
             // deltaLine
             var previousLineIndex = previousRange?.Range is null ? 0 : previousRange.Range.Start.Line;
-            targetArray[currentCount] = currentRange.Range.Start.Line - previousLineIndex;
+            var deltaLine = currentRange.Range.Start.Line - previousLineIndex;
 
-            // deltaStart
+            int deltaStart;
             if (previousRange != null && previousRange?.Range.Start.Line == currentRange.Range.Start.Line)
             {
-                targetArray[currentCount + 1] = currentRange.Range.Start.Character - previousRange.Range.Start.Character;
+                deltaStart = currentRange.Range.Start.Character - previousRange.Range.Start.Character;
+
+                // If there is no line delta, no char delta, and this isn't the first range (ie, previousRange is not null)
+                // then it means this range overlaps the previous, so we skip it.
+                if (deltaStart == 0)
+                {
+                    return;
+                }
             }
             else
             {
-                targetArray[currentCount + 1] = currentRange.Range.Start.Character;
+                deltaStart = currentRange.Range.Start.Character;
             }
 
+            data.Add(deltaLine);
+            data.Add(deltaStart);
+
             // length
-            var textSpan = currentRange.Range.AsTextSpan(razorCodeDocument.GetSourceText());
+            var textSpan = currentRange.Range.AsTextSpan(sourceText);
             var length = textSpan.Length;
             Debug.Assert(length > 0);
-            targetArray[currentCount + 2] = length;
+            data.Add(length);
 
             // tokenType
-            targetArray[currentCount + 3] = currentRange.Kind;
+            data.Add(currentRange.Kind);
 
             // tokenModifiers
-            targetArray[currentCount + 4] = currentRange.Modifier;
+            data.Add(currentRange.Modifier);
         }
     }
 }

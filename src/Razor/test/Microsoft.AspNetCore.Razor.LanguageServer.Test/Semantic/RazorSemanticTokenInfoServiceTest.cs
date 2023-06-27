@@ -409,6 +409,24 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
     }
 
     [Fact]
+    public async Task GetSemanticTokens_Razor_ComponentAttribute_DoesntGetABackground()
+    {
+        // Need C# around the component for the C# range to be valid, to correctly validate the attribute handling
+        var documentText =
+            """
+                @DateTime.Now
+
+                <Component1 Title=""Hi there I'm a string""></Component1>
+
+                @DateTime.Now
+                """;
+
+        var razorRange = GetRange(documentText);
+        var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
+        await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens, withCSharpBackground: true);
+    }
+
+    [Fact]
     public async Task GetSemanticTokens_Razor_DirectiveAttributesParametersAsync()
     {
         var documentText =

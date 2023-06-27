@@ -78,6 +78,8 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
         builder3.TagMatchingRule(rule => rule.TagName = "Component1");
         builder3.SetMetadata(
             TypeName("Component1"),
+            TypeNamespace("System"), // Just so we can reasonably assume a using directive is in place
+            TypeNameIdentifier("Component1"),
             new(ComponentMetadata.Component.NameMatchKey, ComponentMetadata.Component.FullyQualifiedNameMatch));
         builder3.BindAttribute(attribute =>
         {
@@ -90,6 +92,12 @@ public abstract class TagHelperServiceTestBase : LanguageServerTestBase
             attribute.Name = "int-val";
             attribute.SetMetadata(PropertyName("IntVal"));
             attribute.TypeName = typeof(int).FullName;
+        });
+        builder3.BindAttribute(attribute =>
+        {
+            attribute.Name = "Title";
+            attribute.SetMetadata(PropertyName("Title"));
+            attribute.TypeName = typeof(string).FullName;
         });
 
         var directiveAttribute1 = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "TestDirectiveAttribute", "TestAssembly");

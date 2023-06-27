@@ -547,7 +547,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
                         Start = startPosition,
                         End = endPosition
                     };
-                    var semantic = new SemanticRange(semanticKind, lineRange, tokenModifier);
+                    var semantic = new SemanticRange(semanticKind, lineRange, tokenModifier, fromRazor: true);
                     AddRange(semantic);
                 }
             }
@@ -563,7 +563,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
                     {
                         var tokenRange = token.GetRange(source);
 
-                        var semantic = new SemanticRange(semanticKind, tokenRange, tokenModifier);
+                        var semantic = new SemanticRange(semanticKind, tokenRange, tokenModifier, fromRazor: true);
                         AddRange(semantic);
                     }
                 }
@@ -571,7 +571,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
         }
         else
         {
-            var semanticRange = new SemanticRange(semanticKind, range, tokenModifier);
+            var semanticRange = new SemanticRange(semanticKind, range, tokenModifier, fromRazor: true);
             AddRange(semanticRange);
         }
 
