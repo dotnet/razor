@@ -150,7 +150,7 @@ public abstract class RazorCodeGenerationOptions
     public virtual bool UseEnhancedLinePragma { get; }
 
     /// <summary>
-    /// Gets a value that suppresses unique ids for testing purposes.
+    /// Gets a value used for unique ids for testing purposes. Null for unique ids.
     /// </summary>
     internal string SuppressUniqueIds { get; private protected init; }
 }
