@@ -265,12 +265,14 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         bool synchronized;
         VirtualDocumentSnapshot virtualDocumentSnapshot;
+        string languageServerName;
         if (codeActionParams.LanguageKind == RazorLanguageKind.Html)
         {
             (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
                 codeActionParams.HostDocumentVersion,
                 codeActionParams.CodeActionParams.TextDocument.Uri,
                 cancellationToken);
+            languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
         }
         else if (codeActionParams.LanguageKind == RazorLanguageKind.CSharp)
         {
@@ -278,6 +280,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
                 codeActionParams.HostDocumentVersion,
                 codeActionParams.CodeActionParams.TextDocument.Uri,
                 cancellationToken);
+            languageServerName = RazorLSPConstants.HtmlLanguageServerName;
         }
         else
         {
@@ -294,7 +297,6 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         codeActionParams.CodeActionParams.TextDocument.Uri = virtualDocumentSnapshot.Uri;
 
         var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
-        var languageServerName = codeActionParams.LanguageKind == RazorLanguageKind.CSharp ? RazorLSPConstants.RazorCSharpLanguageServerName : RazorLSPConstants.HtmlLanguageServerName;
         using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentCodeActionName, languageServerName, codeActionParams.CorrelationId);
         var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSCodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
             textBuffer,
