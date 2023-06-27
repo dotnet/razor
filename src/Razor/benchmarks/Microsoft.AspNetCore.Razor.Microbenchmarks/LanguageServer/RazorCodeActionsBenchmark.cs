@@ -53,7 +53,7 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
             htmlCodeActionProviders: languageServer.GetRequiredService<IEnumerable<IHtmlCodeActionProvider>>(),
             languageServer: languageServer.GetRequiredService<ClientNotifierServiceBase>(),
             languageServerFeatureOptions: languageServer.GetRequiredService<LanguageServerFeatureOptions>(),
-            default);
+            telemetryReporter: default);
 
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");

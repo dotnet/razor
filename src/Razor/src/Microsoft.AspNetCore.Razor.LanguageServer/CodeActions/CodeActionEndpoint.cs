@@ -36,7 +36,7 @@ internal sealed class CodeActionEndpoint : IRazorRequestHandler<VSCodeActionPara
     private readonly IEnumerable<IHtmlCodeActionProvider> _htmlCodeActionProviders;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ClientNotifierServiceBase _languageServer;
-    private ITelemetryReporter? _telemetryReporter;
+    private readonly ITelemetryReporter? _telemetryReporter;
 
     internal bool _supportsCodeActionResolve = false;
 
