@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
 /// <summary>
-/// Interface for delegated params that uses correlationId to track telemetry
+/// Interface for delegated params that use correlationId to track telemetry
 /// </summary>
 internal interface ICorrelationDelegatedParams : IDelegatedParams
 {
