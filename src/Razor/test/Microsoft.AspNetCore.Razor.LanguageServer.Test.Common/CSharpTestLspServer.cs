@@ -81,7 +81,9 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
             var languageServerFactory = exportProvider.GetExportedValue<IRazorLanguageServerFactoryWrapper>();
             var hostServices = workspace.Services.HostServices;
+#pragma warning disable CS0618 // Type or member is obsolete
             var languageServer = languageServerFactory.CreateLanguageServer(serverRpc, capabilitiesProvider, hostServices);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             serverRpc.StartListening();
             return languageServer;
@@ -188,16 +190,18 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
     #endregion
 
-    private class RazorCapabilitiesProvider : IRazorTestCapabilitiesProvider
+#pragma warning disable CS0618 // Type or member is obsolete
+    private class RazorCapabilitiesProvider : IRazorCapabilitiesProvider
+#pragma warning restore CS0618 // Type or member is obsolete
     {
-        private readonly string _serverCapabilities;
+        private readonly ServerCapabilities _serverCapabilities;
 
         public RazorCapabilitiesProvider(ServerCapabilities serverCapabilities)
         {
-            _serverCapabilities = JsonConvert.SerializeObject(serverCapabilities);
+            _serverCapabilities = serverCapabilities;
         }
 
-        public string GetServerCapabilitiesJson(string clientCapabilitiesJson)
+        public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilitiesJson)
             => _serverCapabilities;
     }
 }
