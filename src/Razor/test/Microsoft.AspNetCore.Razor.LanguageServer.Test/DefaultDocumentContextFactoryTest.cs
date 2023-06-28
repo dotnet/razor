@@ -87,7 +87,9 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         // Assert
         Assert.NotNull(documentContext);
         Assert.Equal(uri, documentContext.Uri);
-        Assert.Same(documentSnapshot, documentContext.Snapshot);
+        Assert.Equal(documentSnapshot.FilePath, documentContext.Snapshot.FilePath);
+        Assert.Equal(documentSnapshot.FileKind, documentContext.Snapshot.FileKind);
+        Assert.Equal(documentSnapshot.State.HostDocument, ((DocumentSnapshot)documentContext.Snapshot).State.HostDocument);
     }
 
     [Fact]
@@ -99,7 +101,13 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         var codeDocument = RazorCodeDocument.Create(RazorSourceDocument.Create(string.Empty, documentSnapshot.FilePath));
         documentSnapshot.With(codeDocument);
         var documentResolver = CreateSnapshotResolver(documentSnapshot);
-        await Dispatcher.RunOnDispatcherThreadAsync(() => _documentVersionCache.TrackDocumentVersion(documentSnapshot, version: 1337), DisposalToken);
+        await Dispatcher.RunOnDispatcherThreadAsync(() =>
+        {
+            Assert.True(documentResolver.TryResolveDocument(documentSnapshot.HostDocument.FilePath, includeMiscellaneous: false, out var snapshot));
+            _documentVersionCache.TrackDocumentVersion(snapshot, version: 1337);
+        }
+        , DisposalToken);
+
         var factory = new DefaultDocumentContextFactory(Dispatcher, documentResolver, _documentVersionCache, LoggerFactory);
 
         // Act
@@ -109,7 +117,9 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         Assert.NotNull(documentContext);
         Assert.Equal(1337, documentContext.Version);
         Assert.Equal(uri, documentContext.Uri);
-        Assert.Same(documentSnapshot, documentContext.Snapshot);
+        Assert.Equal(documentSnapshot.FilePath, documentContext.Snapshot.FilePath);
+        Assert.Equal(documentSnapshot.FileKind, documentContext.Snapshot.FileKind);
+        Assert.Equal(documentSnapshot.State.HostDocument, ((DocumentSnapshot)documentContext.Snapshot).State.HostDocument);
     }
 
     private SnapshotResolver CreateSnapshotResolver(params TestDocumentSnapshot[] snapshots)
