@@ -44,7 +44,7 @@ internal record DelegatedCompletionParams(
     RazorLanguageKind ProjectedKind,
     VSInternalCompletionContext Context,
     TextEdit? ProvisionalTextEdit,
-    Guid CorrelationId) : ICorrelationDelegatedParams;
+    Guid CorrelationId) : IDelegatedParams;
 
 internal record DelegatedCompletionResolutionContext(
     DelegatedCompletionParams OriginalRequestParams,
