@@ -418,10 +418,13 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         };
 
         var textBuffer = csharpDoc.Snapshot.TextBuffer;
+        var languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
+        var lspMethodName = Methods.TextDocumentSemanticTokensRangeName;
+        using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, semanticTokensParams.CorrelationId);
         var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
             textBuffer,
-            Methods.TextDocumentSemanticTokensRangeName,
-            RazorLSPConstants.RazorCSharpLanguageServerName,
+            lspMethodName,
+            languageServerName,
             newParams,
             cancellationToken).ConfigureAwait(false);
 
