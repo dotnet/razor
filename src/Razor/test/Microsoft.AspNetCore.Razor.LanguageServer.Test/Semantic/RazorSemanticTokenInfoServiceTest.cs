@@ -764,6 +764,20 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens, withCSharpBackground: true);
     }
 
+    [Fact]
+    public async Task GetSemanticTokens_CSharp_ExplicitStatement_WithBackground()
+    {
+        var documentText = """
+            @DateTime.Now
+
+            @("hello" + "\\n" + "world" + Environment.NewLine + "how are you?")
+            """;
+
+        var razorRange = GetRange(documentText);
+        var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
+        await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens, withCSharpBackground: true);
+    }
+
     private async Task AssertSemanticTokensAsync(
         string documentText,
         bool isRazorFile,
