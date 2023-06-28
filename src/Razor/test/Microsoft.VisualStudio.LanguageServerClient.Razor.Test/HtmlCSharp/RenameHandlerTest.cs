@@ -30,7 +30,7 @@ public class RenameHandlerTest : HandlerTestBase
 {
     private readonly Uri _uri;
     private readonly TestDocumentManager _documentManager;
-    private readonly ServerCapabilities _renameServerCapabilities;
+    private readonly VSInternalServerCapabilities _renameServerCapabilities;
 
     public RenameHandlerTest(ITestOutputHelper testOutput)
         : base(testOutput)
