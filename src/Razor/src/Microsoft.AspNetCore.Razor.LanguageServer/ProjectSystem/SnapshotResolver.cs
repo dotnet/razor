@@ -23,7 +23,7 @@ internal sealed class SnapshotResolver
         _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
 
         var miscellaneousProjectPath = Path.Combine(TempDirectory.Instance.DirectoryPath, "__MISC_RAZOR_PROJECT__");
-        MiscellaneousHostProject = new HostProject(miscellaneousProjectPath, RazorDefaults.Configuration, RazorDefaults.RootNamespace);
+        MiscellaneousHostProject = new HostProject(FilePathNormalizer.Normalize(miscellaneousProjectPath), RazorDefaults.Configuration, RazorDefaults.RootNamespace);
     }
 
     /// <summary>
@@ -57,9 +57,14 @@ internal sealed class SnapshotResolver
         foreach (var projectSnapshot in projects)
         {
             // Always include misc as something to check
-            if (projectSnapshot.FilePath == MiscellaneousHostProject.FilePath && includeMiscellaneous)
+            if (projectSnapshot.FilePath == MiscellaneousHostProject.FilePath)
             {
-                yield return projectSnapshot;
+                if (includeMiscellaneous)
+                {
+                   yield return projectSnapshot;
+                }
+
+                continue;
             }
 
             var projectDirectory = FilePathNormalizer.GetDirectory(projectSnapshot.FilePath);

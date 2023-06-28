@@ -470,9 +470,17 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
     public void RemoveOpenDocument_RemovesDocumentFromOwnerProject_MovesToMiscellaneousProject()
     {
         // Arrange
-        var documentFilePath = "C:/path/to/document.cshtml";
         var projectSnapshotManager = CreateSnapshotManagerWithDocumentInMisc(out var _, out var miscellaneousProject);
-        var ownerProject = projectSnapshotManager.CreateAndAddProject("C:/path/to/project.csproj");
+
+        // This gets a little hacky because we can't easily change out the file system used for testing.
+        // In normal scenarios where this would happen, RemoteRazorProjectFileSystem is the driving
+        // file system, which allows GetItem to be called and NormalizeAndEnsureValidPath will normalize
+        // the path to the desired root instead of requiring it. DefaultRazorProjectFileSystem is not so
+        // lenient. To get around this, put the desired project in a subdirectory of the misc project.
+        var miscDirectory = FilePathNormalizer.GetDirectory(miscellaneousProject.FilePath);
+        var expectedFilePath = miscDirectory + "document.cshtml";
+        var documentFilePath = miscDirectory + "proj/document.cshtml";
+        var ownerProject = projectSnapshotManager.CreateAndAddProject(miscDirectory + "proj/project.csproj");
         projectSnapshotManager.CreateAndAddDocument(ownerProject, documentFilePath);
         var projectService = CreateProjectService(projectSnapshotManager);
 
@@ -483,7 +491,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
 
         // Assert
         var project = projectSnapshotManager.GetLoadedProject(miscellaneousProject.FilePath);
-        Assert.Contains(documentFilePath, project.DocumentFilePaths);
+        Assert.Contains(expectedFilePath, project.DocumentFilePaths);
     }
 
     [Fact]
@@ -724,10 +732,17 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
     public void TryMigrateDocumentsFromRemovedProject_MigratesDocumentsToMiscProject()
     {
         // Arrange
-        var documentFilePath1 = "C:/path/to/some/document1.cshtml";
-        var documentFilePath2 = "C:/path/to/some/document2.cshtml";
+
+        // This gets a little hacky because we can't easily change out the file system used for testing.
+        // In normal scenarios where this would happen, RemoteRazorProjectFileSystem is the driving
+        // file system, which allows GetItem to be called and NormalizeAndEnsureValidPath will normalize
+        // the path to the desired root instead of requiring it. DefaultRazorProjectFileSystem is not so
+        // lenient. To get around this, put the desired project in a subdirectory of the misc project.
         var projectSnapshotManager = CreateSnapshotManagerWithDocumentInMisc(out var _, out var miscellaneousProject);
-        var removedProject = TestProjectSnapshot.Create("C:/path/to/some/project.csproj", new[] { documentFilePath1, documentFilePath2 });
+        var miscDirectory = FilePathNormalizer.GetDirectory(miscellaneousProject.FilePath);
+        var documentFilePath1 = miscDirectory + "document1.cshtml";
+        var documentFilePath2 = miscDirectory + "document2.cshtml";
+        var removedProject = TestProjectSnapshot.Create(miscDirectory + "project.csproj", new[] { documentFilePath1, documentFilePath2 });
         var projectService = CreateProjectService(projectSnapshotManager);
 
         // Act
@@ -764,13 +779,19 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
     public void TryMigrateMiscellaneousDocumentsToProject_MigratesDocumentsToNewOwnerProject()
     {
         // Arrange
+
+        // This gets a little hacky because we can't easily change out the file system used for testing.
+        // In normal scenarios where this would happen, RemoteRazorProjectFileSystem is the driving
+        // file system, which allows GetItem to be called and NormalizeAndEnsureValidPath will normalize
+        // the path to the desired root instead of requiring it. DefaultRazorProjectFileSystem is not so
+        // lenient. To get around this, put the desired project in a subdirectory of the misc project.
         var projectSnapshotManager = CreateSnapshotManagerWithDocumentInMisc(out var _, out var miscellaneousProject);
         var miscProjectDirectory = FilePathNormalizer.GetDirectory(miscellaneousProject.FilePath);
-        var documentFilePath1 = miscProjectDirectory + "document1.cshtml";
-        var documentFilePath2 = miscProjectDirectory + "document2.cshtml";
+        var documentFilePath1 = miscProjectDirectory + "proj/document1.cshtml";
+        var documentFilePath2 = miscProjectDirectory + "proj/document2.cshtml";
         projectSnapshotManager.CreateAndAddDocument(miscellaneousProject, documentFilePath1);
         projectSnapshotManager.CreateAndAddDocument(miscellaneousProject, documentFilePath2);
-        var projectToBeMigratedTo = projectSnapshotManager.CreateAndAddProject("C:/path/to/project.csproj");
+        var projectToBeMigratedTo = projectSnapshotManager.CreateAndAddProject(miscProjectDirectory + "proj/project.csproj");
         var projectService = CreateProjectService(projectSnapshotManager);
 
         // Act
