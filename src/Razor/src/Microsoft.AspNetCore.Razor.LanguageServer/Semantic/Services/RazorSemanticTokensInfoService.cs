@@ -159,14 +159,23 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             var semanticRange = CSharpDataToSemanticRange(lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
             if (_documentMappingService.TryMapToHostDocumentRange(generatedDocument, semanticRange.Range, out var originalRange))
             {
-                if (colorBackground &&
-                    previousRazorSemanticRange is not null &&
-                    previousRazorSemanticRange.End.Line == originalRange.Start.Line &&
-                    previousRazorSemanticRange.End.TryGetAbsoluteIndex(razorSource, _logger, out var previousSpanEndIndex) &&
-                    ContainsOnlySpacesOrTabs(razorSource, previousSpanEndIndex + 1, originalRange.Start.Character - previousRazorSemanticRange.End.Character - 1))
+                if (colorBackground && previousRazorSemanticRange is not null)
                 {
-                    // we're on the same line as previous, lets extend ours to include whitespace between us and the proceeding range
-                    originalRange.Start.Character = previousRazorSemanticRange.End.Character;
+                    var startChar = originalRange.Start.Character;
+                    if (previousRazorSemanticRange.End.Line == originalRange.Start.Line &&
+                        previousRazorSemanticRange.End.TryGetAbsoluteIndex(razorSource, _logger, out var previousSpanEndIndex) &&
+                        ContainsOnlySpacesOrTabs(razorSource, previousSpanEndIndex + 1, startChar - previousRazorSemanticRange.End.Character - 1))
+                    {
+                        // we're on the same line as previous, lets extend ours to include whitespace between us and the proceeding range
+                        originalRange.Start.Character = previousRazorSemanticRange.End.Character;
+                    }
+                    else if (previousRazorSemanticRange.End.Line != originalRange.Start.Line &&
+                        originalRange.Start.TryGetAbsoluteIndex(razorSource, _logger, out var originalRangeStartIndex) &&
+                        ContainsOnlySpacesOrTabs(razorSource, originalRangeStartIndex - startChar, startChar))
+                    {
+                        // We're on a new line, and the start of the line is only whitespace, so give that a background color too
+                        originalRange.Start.Character = 0;
+                    }
                 }
 
                 var razorSemanticRange = new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers, fromRazor: false);
