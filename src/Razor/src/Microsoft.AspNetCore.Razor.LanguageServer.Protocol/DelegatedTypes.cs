@@ -56,3 +56,9 @@ internal record DelegatedCompletionItemResolveParams(
     VersionedTextDocumentIdentifier HostDocument,
     VSInternalCompletionItem CompletionItem,
     RazorLanguageKind OriginatingKind);
+
+internal record DelegatedProjectContextsParams(
+    VersionedTextDocumentIdentifier HostDocument);
+
+internal record DelegatedDocumentSymbolParams(
+    VersionedTextDocumentIdentifier HostDocument);

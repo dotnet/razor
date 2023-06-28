@@ -1225,6 +1225,72 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         return serverCapabilities?.SpellCheckingProvider ?? false;
     }
 
+    public override async Task<VSProjectContextList?> ProjectContextsAsync(DelegatedProjectContextsParams request, CancellationToken cancellationToken)
+    {
+        var hostDocument = request.HostDocument;
+        var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+            hostDocument.Version,
+            hostDocument.Uri,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!synchronized)
+        {
+            return null;
+        }
+
+        var projectContextParams = new VSGetProjectContextsParams()
+        {
+            TextDocument = new TextDocumentItem()
+            {
+                LanguageId = CodeAnalysis.LanguageNames.CSharp,
+                Uri = virtualDocument.Uri,
+                Version = virtualDocument.Snapshot.Version.VersionNumber,
+                Text = virtualDocument.Snapshot.GetText(),
+            }
+        };
+
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSGetProjectContextsParams, VSProjectContextList?>(
+            virtualDocument.Snapshot.TextBuffer,
+            VSMethods.GetProjectContextsName,
+            RazorLSPConstants.RazorCSharpLanguageServerName,
+            projectContextParams,
+            cancellationToken).ConfigureAwait(false);
+
+        return response?.Response;
+    }
+
+    public override async Task<SumType<DocumentSymbol[], SymbolInformation[]>?> DocumentSymbolsAsync(DelegatedDocumentSymbolParams request, CancellationToken cancellationToken)
+    {
+        var hostDocument = request.HostDocument;
+        var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+            hostDocument.Version,
+            hostDocument.Uri,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!synchronized)
+        {
+            return null;
+        }
+
+        var documentSymbolParams = new DocumentSymbolParams()
+        {
+            TextDocument = new TextDocumentIdentifier()
+            {
+                Uri = virtualDocument.Uri,
+            },
+
+        };
+
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>?>(
+            virtualDocument.Snapshot.TextBuffer,
+            Methods.TextDocumentDocumentSymbolName,
+            RazorLSPConstants.RazorCSharpLanguageServerName,
+            documentSymbolParams,
+            cancellationToken).ConfigureAwait(false);
+
+        return response?.Response;
+    }
+
     private async Task<TResult?> DelegateTextDocumentPositionRequestAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
     {
         var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
