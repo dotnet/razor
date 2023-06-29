@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -19,10 +20,12 @@ using DocumentSymbol = VisualStudio.LanguageServer.Protocol.DocumentSymbol;
 internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>>, IRegistrationExtension
 {
     private readonly ClientNotifierServiceBase _languageServer;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
-    public DocumentSymbolEndpoint(ClientNotifierServiceBase languageServer)
+    public DocumentSymbolEndpoint(ClientNotifierServiceBase languageServer, IRazorDocumentMappingService documentMappingService)
     {
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+        _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     }
 
     public bool MutatesSolutionState => false;
@@ -62,6 +65,39 @@ internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParam
             delegatedParams,
             cancellationToken).ConfigureAwait(false);
 
-        return response ?? new SumType<DocumentSymbol[], SymbolInformation[]>(Array.Empty<DocumentSymbol>());
+        if (!response.HasValue)
+        {
+            return new();
+        }
+
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var csharpDocument = codeDocument.GetCSharpDocument();
+
+        if (response.Value.TryGetFirst(out var documentSymbols))
+        {
+            foreach (var documentSymbol in documentSymbols)
+            {
+                if (_documentMappingService.TryMapToGeneratedDocumentRange(csharpDocument, documentSymbol.Range, out var newRange))
+                {
+                    documentSymbol.Range = newRange;
+                }
+            }
+
+            return documentSymbols;
+        }
+        else
+        {
+            var symbolInformations = response.Value.Second;
+
+            foreach (var symbolInformation in symbolInformations)
+            {
+                if (_documentMappingService.TryMapToGeneratedDocumentRange(csharpDocument, symbolInformation.Location.Range, out var newRange))
+                {
+                    symbolInformation.Location.Range = newRange;
+                }
+            }
+
+            return symbolInformations;
+        }
     }
 }
