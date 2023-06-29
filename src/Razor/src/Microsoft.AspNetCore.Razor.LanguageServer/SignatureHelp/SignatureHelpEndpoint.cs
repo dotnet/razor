@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -43,9 +44,10 @@ internal sealed class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<Si
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(SignatureHelpParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
-        return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
+        return Task.FromResult<IDelegatedParams?>(new DelegatedPositionAndProjectContextParams(
                 documentContext.Identifier,
                 positionInfo.Position,
-                positionInfo.LanguageKind));
+                positionInfo.LanguageKind,
+                request.TextDocument.GetProjectContext()));
     }
 }

@@ -103,9 +103,10 @@ internal class DocumentHighlightHandler : IRequestHandler<DocumentHighlightParam
         var documentHighlightParams = new DocumentHighlightParams()
         {
             Position = projectionResult.Position,
-            TextDocument = new TextDocumentIdentifier()
+            TextDocument = new VSTextDocumentIdentifier()
             {
-                Uri = projectionResult.Uri
+                Uri = projectionResult.Uri,
+                ProjectContext = request.TextDocument is VSTextDocumentIdentifier vsTextDocument ? vsTextDocument.ProjectContext : null,
             }
         };
 

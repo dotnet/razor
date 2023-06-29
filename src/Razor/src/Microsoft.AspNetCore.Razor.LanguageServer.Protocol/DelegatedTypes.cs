@@ -23,6 +23,12 @@ internal record DelegatedPositionParams(
     Position ProjectedPosition,
     RazorLanguageKind ProjectedKind) : IDelegatedParams;
 
+internal record DelegatedPositionAndProjectContextParams(
+    VersionedTextDocumentIdentifier HostDocument,
+    Position ProjectedPosition,
+    RazorLanguageKind ProjectedKind,
+    VSProjectContext? ProjectContext) : IDelegatedParams;
+
 internal record DelegatedValidateBreakpointRangeParams(
     VersionedTextDocumentIdentifier HostDocument,
     Range ProjectedRange,
@@ -39,7 +45,8 @@ internal record DelegatedRenameParams(
     VersionedTextDocumentIdentifier HostDocument,
     Position ProjectedPosition,
     RazorLanguageKind ProjectedKind,
-    string NewName) : IDelegatedParams;
+    string NewName,
+    VSProjectContext? ProjectContext) : IDelegatedParams;
 
 internal record DelegatedCompletionParams(
     VersionedTextDocumentIdentifier HostDocument,
@@ -61,4 +68,5 @@ internal record DelegatedProjectContextsParams(
     VersionedTextDocumentIdentifier HostDocument);
 
 internal record DelegatedDocumentSymbolParams(
-    VersionedTextDocumentIdentifier HostDocument);
+    VersionedTextDocumentIdentifier HostDocument,
+    VSProjectContext? ProjectContext);

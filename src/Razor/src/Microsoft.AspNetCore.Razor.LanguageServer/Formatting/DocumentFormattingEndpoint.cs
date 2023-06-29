@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -58,8 +59,7 @@ internal class DocumentFormattingEndpoint : IRazorRequestHandler<DocumentFormatt
         {
             return null;
         }
-
-        var edits = await _razorFormattingService.FormatAsync(documentContext, range: null, request.Options, cancellationToken).ConfigureAwait(false);
+        var edits = await _razorFormattingService.FormatAsync(documentContext, range: null, request.Options, request.TextDocument.GetProjectContext(), cancellationToken).ConfigureAwait(false);
         return edits;
     }
 }

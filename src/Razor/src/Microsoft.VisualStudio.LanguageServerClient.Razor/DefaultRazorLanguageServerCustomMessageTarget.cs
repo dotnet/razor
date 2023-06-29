@@ -650,9 +650,10 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             {
                 var csharpRequestParams = new FoldingRangeParams()
                 {
-                    TextDocument = new()
+                    TextDocument = new VSTextDocumentIdentifier()
                     {
-                        Uri = csharpSnapshot.Uri
+                        Uri = csharpSnapshot.Uri,
+                        ProjectContext = foldingRangeParams.ProjectContext
                     }
                 };
 
@@ -1027,9 +1028,10 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var renameParams = new RenameParams()
         {
-            TextDocument = new TextDocumentIdentifier()
+            TextDocument = new VSTextDocumentIdentifier()
             {
                 Uri = delegationDetails.Value.ProjectedUri,
+                ProjectContext = request.ProjectContext
             },
             Position = request.ProjectedPosition,
             NewName = request.NewName,
@@ -1099,23 +1101,23 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         return response?.Response;
     }
 
-    public override Task<VSInternalHover?> HoverAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionRequestAsync<VSInternalHover>(request, Methods.TextDocumentHoverName, cancellationToken);
+    public override Task<VSInternalHover?> HoverAsync(DelegatedPositionAndProjectContextParams request, CancellationToken cancellationToken)
+        => DelegateTextDocumentPositionAndProjectContextAsync<VSInternalHover>(request, Methods.TextDocumentHoverName, cancellationToken);
 
-    public override Task<Location[]?> DefinitionAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionRequestAsync<Location[]>(request, Methods.TextDocumentDefinitionName, cancellationToken);
+    public override Task<Location[]?> DefinitionAsync(DelegatedPositionAndProjectContextParams request, CancellationToken cancellationToken)
+        => DelegateTextDocumentPositionAndProjectContextAsync<Location[]>(request, Methods.TextDocumentDefinitionName, cancellationToken);
 
-    public override Task<DocumentHighlight[]?> DocumentHighlightAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionRequestAsync<DocumentHighlight[]>(request, Methods.TextDocumentDocumentHighlightName, cancellationToken);
+    public override Task<DocumentHighlight[]?> DocumentHighlightAsync(DelegatedPositionAndProjectContextParams request, CancellationToken cancellationToken)
+        => DelegateTextDocumentPositionAndProjectContextAsync<DocumentHighlight[]>(request, Methods.TextDocumentDocumentHighlightName, cancellationToken);
 
-    public override Task<SignatureHelp?> SignatureHelpAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionRequestAsync<SignatureHelp>(request, Methods.TextDocumentSignatureHelpName, cancellationToken);
+    public override Task<SignatureHelp?> SignatureHelpAsync(DelegatedPositionAndProjectContextParams request, CancellationToken cancellationToken)
+        => DelegateTextDocumentPositionAndProjectContextAsync<SignatureHelp>(request, Methods.TextDocumentSignatureHelpName, cancellationToken);
 
-    public override Task<ImplementationResult> ImplementationAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionRequestAsync<ImplementationResult>(request, Methods.TextDocumentImplementationName, cancellationToken);
+    public override Task<ImplementationResult> ImplementationAsync(DelegatedPositionAndProjectContextParams request, CancellationToken cancellationToken)
+        => DelegateTextDocumentPositionAndProjectContextAsync<ImplementationResult>(request, Methods.TextDocumentImplementationName, cancellationToken);
 
-    public override Task<VSInternalReferenceItem[]?> ReferencesAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionRequestAsync<VSInternalReferenceItem[]>(request, Methods.TextDocumentReferencesName, cancellationToken);
+    public override Task<VSInternalReferenceItem[]?> ReferencesAsync(DelegatedPositionAndProjectContextParams request, CancellationToken cancellationToken)
+        => DelegateTextDocumentPositionAndProjectContextAsync<VSInternalReferenceItem[]>(request, Methods.TextDocumentReferencesName, cancellationToken);
 
     public override async Task<RazorPullDiagnosticResponse?> DiagnosticsAsync(DelegatedDiagnosticParams request, CancellationToken cancellationToken)
     {
@@ -1304,6 +1306,39 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             TextDocument = new TextDocumentIdentifier()
             {
                 Uri = delegationDetails.Value.ProjectedUri,
+            },
+            Position = request.ProjectedPosition,
+        };
+
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, TResult?>(
+            delegationDetails.Value.TextBuffer,
+            methodName,
+            delegationDetails.Value.LanguageServerName,
+            positionParams,
+            cancellationToken).ConfigureAwait(false);
+
+        if (response is null)
+        {
+            return default;
+        }
+
+        return response.Response;
+    }
+
+    private async Task<TResult?> DelegateTextDocumentPositionAndProjectContextAsync<TResult>(DelegatedPositionAndProjectContextParams request, string methodName, CancellationToken cancellationToken)
+    {
+        var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
+        if (delegationDetails is null)
+        {
+            return default;
+        }
+
+        var positionParams = new TextDocumentPositionParams()
+        {
+            TextDocument = new VSTextDocumentIdentifier()
+            {
+                Uri = delegationDetails.Value.ProjectedUri,
+                ProjectContext = request.ProjectContext,
             },
             Position = request.ProjectedPosition,
         };

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -52,7 +53,8 @@ internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParam
             {
                 Uri = documentContext.Uri,
                 Version = documentContext.Version
-            }
+            },
+            request.TextDocument.GetProjectContext()
         );
 
         var response = await _languageServer.SendRequestAsync<DelegatedDocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>?>(

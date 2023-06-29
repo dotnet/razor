@@ -68,7 +68,8 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
         var requestParams = new RazorFoldingRangeRequestParam
         {
             HostDocumentVersion = documentContext.Version,
-            TextDocument = @params.TextDocument
+            TextDocument = @params.TextDocument,
+            ProjectContext = @params.TextDocument.GetProjectContext()
         };
 
         IEnumerable<FoldingRange>? foldingRanges = null;
