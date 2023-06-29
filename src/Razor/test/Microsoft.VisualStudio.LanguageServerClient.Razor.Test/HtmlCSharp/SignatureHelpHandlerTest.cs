@@ -30,7 +30,7 @@ public class SignatureHelpHandlerTest : HandlerTestBase
 {
     private readonly Uri _uri;
     private readonly TestDocumentManager _defaultDocumentManager;
-    private readonly ServerCapabilities _signatureHelpServerCapabilities;
+    private readonly VSInternalServerCapabilities _signatureHelpServerCapabilities;
 
     public SignatureHelpHandlerTest(ITestOutputHelper testOutput)
         : base(testOutput)

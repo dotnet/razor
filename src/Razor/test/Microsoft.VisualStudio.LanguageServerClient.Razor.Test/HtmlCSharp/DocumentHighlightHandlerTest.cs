@@ -29,7 +29,7 @@ public class DocumentHighlightHandlerTest : HandlerTestBase
     private readonly Uri _uri;
     private readonly LSPDocumentSnapshot _documentSnapshot;
     private readonly TestDocumentManager _documentManager;
-    private readonly ServerCapabilities _documentHighlightServerCapabilities;
+    private readonly VSInternalServerCapabilities _documentHighlightServerCapabilities;
 
     public DocumentHighlightHandlerTest(ITestOutputHelper testOutput)
         : base(testOutput)
