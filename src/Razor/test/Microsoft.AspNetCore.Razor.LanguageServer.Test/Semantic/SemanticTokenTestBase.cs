@@ -15,10 +15,9 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
-using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -79,7 +78,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
 
         var expectedFileContents = GetBaselineFileContents(baselineFileName);
 
-        new XUnitVerifier().EqualOrDiff(expectedFileContents, actualFileContents);
+        AssertEx.EqualOrDiff(expectedFileContents, actualFileContents);
     }
 
     protected string GetBaselineFileContents(string baselineFileName)
