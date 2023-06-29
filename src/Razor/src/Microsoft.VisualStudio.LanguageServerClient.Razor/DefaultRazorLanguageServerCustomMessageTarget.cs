@@ -265,12 +265,14 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         bool synchronized;
         VirtualDocumentSnapshot virtualDocumentSnapshot;
+        string languageServerName;
         if (codeActionParams.LanguageKind == RazorLanguageKind.Html)
         {
             (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
                 codeActionParams.HostDocumentVersion,
                 codeActionParams.CodeActionParams.TextDocument.Uri,
                 cancellationToken);
+            languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
         }
         else if (codeActionParams.LanguageKind == RazorLanguageKind.CSharp)
         {
@@ -278,6 +280,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
                 codeActionParams.HostDocumentVersion,
                 codeActionParams.CodeActionParams.TextDocument.Uri,
                 cancellationToken);
+            languageServerName = RazorLSPConstants.HtmlLanguageServerName;
         }
         else
         {
@@ -294,9 +297,11 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         codeActionParams.CodeActionParams.TextDocument.Uri = virtualDocumentSnapshot.Uri;
 
         var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
+        var lspMethodName = Methods.TextDocumentCodeActionName;
+        using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, codeActionParams.CorrelationId);
         var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSCodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
             textBuffer,
-            Methods.TextDocumentCodeActionName,
+            lspMethodName,
             SupportsCodeActionResolve,
             codeActionParams.CodeActionParams,
             cancellationToken).ConfigureAwait(false);
@@ -414,10 +419,13 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         };
 
         var textBuffer = csharpDoc.Snapshot.TextBuffer;
+        var languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
+        var lspMethodName = Methods.TextDocumentSemanticTokensRangeName;
+        using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, semanticTokensParams.CorrelationId);
         var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
             textBuffer,
-            Methods.TextDocumentSemanticTokensRangeName,
-            RazorLSPConstants.RazorCSharpLanguageServerName,
+            lspMethodName,
+            languageServerName,
             newParams,
             cancellationToken).ConfigureAwait(false);
 
@@ -870,9 +878,11 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         try
         {
             var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
+            var lspMethodName = Methods.TextDocumentCompletion.Name;
+            using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, request.CorrelationId);
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, JToken?>(
                 textBuffer,
-                Methods.TextDocumentCompletion.Name,
+                lspMethodName,
                 languageServerName,
                 completionParams,
                 cancellationToken).ConfigureAwait(continueOnCapturedContext);
@@ -1165,10 +1175,11 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             },
         };
 
-        using var _ = _telemetryReporter.TrackLspRequest(nameof(_requestInvoker.ReinvokeRequestOnServerAsync), VSInternalMethods.DocumentPullDiagnosticName, delegatedLanguageServerName, correlationId);
+        var lspMethodName = VSInternalMethods.DocumentPullDiagnosticName;
+        using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, delegatedLanguageServerName, correlationId);
         var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
             virtualDocument.Snapshot.TextBuffer,
-            VSInternalMethods.DocumentPullDiagnosticName,
+            lspMethodName,
             delegatedLanguageServerName,
             request,
             cancellationToken).ConfigureAwait(false);
@@ -1185,6 +1196,44 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         }
 
         return response.Response;
+    }
+
+    public override async Task<VSInternalSpellCheckableRangeReport[]> SpellCheckAsync(DelegatedSpellCheckParams request, CancellationToken cancellationToken)
+    {
+        var hostDocument = request.HostDocument;
+        var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+            hostDocument.Version,
+            hostDocument.Uri,
+            cancellationToken).ConfigureAwait(false);
+        if (!synchronized)
+        {
+            return Array.Empty<VSInternalSpellCheckableRangeReport>();
+        }
+
+        var spellCheckParams = new VSInternalDocumentSpellCheckableParams
+        {
+            TextDocument = new TextDocumentIdentifier
+            {
+                Uri = virtualDocument.Uri,
+            },
+        };
+
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport[]>(
+            virtualDocument.Snapshot.TextBuffer,
+            VSInternalMethods.TextDocumentSpellCheckableRangesName,
+            RazorLSPConstants.RazorCSharpLanguageServerName,
+            SupportsSpellCheck,
+            spellCheckParams,
+            cancellationToken).ConfigureAwait(false);
+
+        return response?.Response ?? Array.Empty<VSInternalSpellCheckableRangeReport>();
+    }
+
+    private static bool SupportsSpellCheck(JToken token)
+    {
+        var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
+
+        return serverCapabilities?.SpellCheckingProvider ?? false;
     }
 
     private async Task<TResult?> DelegateTextDocumentPositionRequestAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
