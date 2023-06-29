@@ -200,20 +200,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             var allTagHelpers = tagHelpersFromCompilation
                 .Combine(tagHelpersFromReferences)
-                .Select(static (pair, _) =>
+                .Select(static (_, _) =>
                 {
-                    var (tagHelpersFromCompilation, tagHelpersFromReferences) = pair;
-                    var count = tagHelpersFromCompilation.Count + tagHelpersFromReferences.Count;
-                    if (count == 0)
-                    {
-                        return Array.Empty<TagHelperDescriptor>();
-                    }
-
-                    var allTagHelpers = new TagHelperDescriptor[count];
-                    tagHelpersFromCompilation.CopyTo(allTagHelpers, 0);
-                    tagHelpersFromReferences.CopyTo(allTagHelpers, tagHelpersFromCompilation.Count);
-
-                    return allTagHelpers;
+                    return Array.Empty<TagHelperDescriptor>();
                 });
 
             var withOptions = sourceItems
