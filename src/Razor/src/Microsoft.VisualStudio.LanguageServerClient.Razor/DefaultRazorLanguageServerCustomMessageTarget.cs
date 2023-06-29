@@ -1276,9 +1276,10 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var documentSymbolParams = new DocumentSymbolParams()
         {
-            TextDocument = new TextDocumentIdentifier()
+            TextDocument = new VSTextDocumentIdentifier()
             {
                 Uri = virtualDocument.Uri,
+                ProjectContext = request.ProjectContext
             },
 
         };
