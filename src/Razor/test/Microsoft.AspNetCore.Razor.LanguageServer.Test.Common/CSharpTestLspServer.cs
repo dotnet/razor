@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Nerdbank.Streams;
+using Newtonsoft.Json;
 using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
@@ -20,8 +21,8 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
     private readonly AdhocWorkspace _testWorkspace;
     private readonly IRazorLanguageServerTarget _languageServer;
 
-    private readonly StreamJsonRpc.JsonRpc _clientRpc;
-    private readonly StreamJsonRpc.JsonRpc _serverRpc;
+    private readonly JsonRpc _clientRpc;
+    private readonly JsonRpc _serverRpc;
 
     private readonly JsonMessageFormatter _clientMessageFormatter;
     private readonly JsonMessageFormatter _serverMessageFormatter;
@@ -34,7 +35,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
     private CSharpTestLspServer(
         AdhocWorkspace testWorkspace,
         ExportProvider exportProvider,
-        ServerCapabilities serverCapabilities,
+        VSInternalServerCapabilities serverCapabilities,
         CancellationToken cancellationToken)
     {
         _testWorkspace = testWorkspace;
@@ -44,7 +45,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
         _serverMessageFormatter = CreateJsonMessageFormatter();
         _serverMessageHandler = new HeaderDelimitedMessageHandler(serverStream, serverStream, _serverMessageFormatter);
-        _serverRpc = new StreamJsonRpc.JsonRpc(_serverMessageHandler)
+        _serverRpc = new JsonRpc(_serverMessageHandler)
         {
             ExceptionStrategy = ExceptionProcessing.ISerializable,
         };
@@ -53,7 +54,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
         _clientMessageFormatter = CreateJsonMessageFormatter();
         _clientMessageHandler = new HeaderDelimitedMessageHandler(clientStream, clientStream, _clientMessageFormatter);
-        _clientRpc = new StreamJsonRpc.JsonRpc(_clientMessageHandler)
+        _clientRpc = new JsonRpc(_clientMessageHandler)
         {
             ExceptionStrategy = ExceptionProcessing.ISerializable,
         };
@@ -68,10 +69,10 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
         }
 
         static IRazorLanguageServerTarget CreateLanguageServer(
-            StreamJsonRpc.JsonRpc serverRpc,
+            JsonRpc serverRpc,
             Workspace workspace,
             ExportProvider exportProvider,
-            ServerCapabilities serverCapabilities)
+            VSInternalServerCapabilities serverCapabilities)
         {
             var capabilitiesProvider = new RazorCapabilitiesProvider(serverCapabilities);
 
@@ -91,7 +92,7 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
         AdhocWorkspace testWorkspace,
         ExportProvider exportProvider,
         ClientCapabilities clientCapabilities,
-        ServerCapabilities serverCapabilities,
+        VSInternalServerCapabilities serverCapabilities,
         CancellationToken cancellationToken)
     {
         var server = new CSharpTestLspServer(testWorkspace, exportProvider, serverCapabilities, cancellationToken);
@@ -187,16 +188,16 @@ public sealed class CSharpTestLspServer : IAsyncDisposable
 
     #endregion
 
-    private class RazorCapabilitiesProvider : IRazorCapabilitiesProvider
+    private class RazorCapabilitiesProvider : IRazorTestCapabilitiesProvider
     {
-        private readonly ServerCapabilities _serverCapabilities;
+        private readonly string _serverCapabilities;
 
-        public RazorCapabilitiesProvider(ServerCapabilities serverCapabilities)
+        public RazorCapabilitiesProvider(VSInternalServerCapabilities serverCapabilities)
         {
-            _serverCapabilities = serverCapabilities;
+            _serverCapabilities = JsonConvert.SerializeObject(serverCapabilities);
         }
 
-        public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+        public string GetServerCapabilitiesJson(string clientCapabilitiesJson)
             => _serverCapabilities;
     }
 }
