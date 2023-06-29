@@ -116,8 +116,11 @@ internal class RazorSemanticTokensLegend
     [Flags]
     public enum RazorTokenModifiers
     {
-        // Must start after the last Roslyn modifier. So Roslyn has two modifiers right now, 1 and 2, so we start
-        // at 4 (noting this is a Flags enum)
-        RazorCode = 4
+        // None = 0
+        // Static, from Roslyn = 1
+        // ReassignedVariable, from Roslyn = 1 << 1
+
+        // Must start after the last Roslyn modifier
+        RazorCode = 1 << 2
     }
 }
