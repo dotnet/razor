@@ -30,7 +30,6 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
     {
     }
 
-    #region CSharp
     [Fact]
     public async Task GetSemanticTokens_CSharp_RazorIfNotReady()
     {
@@ -163,9 +162,7 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
     }
-    #endregion
 
-    #region HTML
     [Fact]
     public async Task GetSemanticTokens_MultipleBlankLines()
     {
@@ -262,9 +259,7 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
     }
-    #endregion
 
-    #region TagHelpers
     [Fact]
     public async Task GetSemanticTokens_HalfOfCommentAsync()
     {
@@ -376,9 +371,7 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
     }
-    #endregion TagHelpers
 
-    #region DirectiveAttributes
     [Fact]
     public async Task GetSemanticTokens_Razor_MinimizedDirectiveAttributeParameters()
     {
@@ -506,9 +499,7 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
     }
-    #endregion DirectiveAttributes
 
-    #region Directive
     [Fact]
     public async Task GetSemanticTokens_Razor_CodeDirectiveAsync()
     {
@@ -608,7 +599,6 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens);
     }
-    #endregion
 
     [Fact]
     public async Task GetSemanticTokens_Razor_CommentAsync()
