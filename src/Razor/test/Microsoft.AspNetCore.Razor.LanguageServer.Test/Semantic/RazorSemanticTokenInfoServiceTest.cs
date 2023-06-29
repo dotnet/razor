@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -619,6 +619,35 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
     }
 
     [Fact]
+    public async Task GetSemanticTokens_Razor_MultiLineCommentWithBlankLines()
+    {
+        var documentText =
+            """
+                @* kdl
+
+                skd
+                    
+                        sdfasdfasdf
+                slf*@
+                """;
+
+        var razorRange = GetRange(documentText);
+        var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
+        await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/8176")]
+    public async Task GetSemanticTokens_Razor_MultiLineCommentWithBlankLines_LF()
+    {
+        var documentText = "@* kdl\n\nskd\n    \n        sdfasdfasdf\nslf*@";
+
+        var razorRange = GetRange(documentText);
+        var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: false);
+        await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens);
+    }
+
+    [Fact]
     public async Task GetSemanticTokens_Razor_MultiLineCommentAsync()
     {
         var documentText =
@@ -675,9 +704,10 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
 
         var textDocumentIdentifier = textDocumentIdentifiers.Dequeue();
         var documentContext = documentContexts.Peek();
+        var correlationId = Guid.Empty;
 
         // Act
-        var tokens = await service.GetSemanticTokensAsync(textDocumentIdentifier, range, documentContext, DisposalToken);
+        var tokens = await service.GetSemanticTokensAsync(textDocumentIdentifier, range, documentContext, TestRazorSemanticTokensLegend.Instance, correlationId, DisposalToken);
 
         // Assert
         AssertSemanticTokensMatchesBaseline(tokens?.Data);
@@ -696,12 +726,7 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
             .ReturnsAsync(csharpTokens);
 
         var documentContextFactory = new TestDocumentContextFactory(documentSnapshots);
-        var documentMappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, documentContextFactory, LoggerFactory);
-
-        var testClient = new TestClient();
-        var errorReporter = new LanguageServerErrorReporter(LoggerFactory);
-        var settingsManager = new TestInitializeManager();
-        var semanticTokensRefreshPublisher = new DefaultWorkspaceSemanticTokensRefreshPublisher(settingsManager, testClient, errorReporter);
+        var documentMappingService = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, documentContextFactory, LoggerFactory);
 
         return new RazorSemanticTokensInfoService(
             languageServer.Object,

@@ -42,7 +42,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
     internal DocumentContextFactory DocumentContextFactory { get; private set; }
     internal LanguageServerFeatureOptions LanguageServerFeatureOptions { get; private set; }
     internal TestLanguageServer LanguageServer { get; private set; }
-    internal RazorDocumentMappingService DocumentMappingService { get; private set; }
+    internal IRazorDocumentMappingService DocumentMappingService { get; private set; }
 
     protected SingleServerDelegatingEndpointTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -92,7 +92,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
             options.HtmlVirtualDocumentSuffix == realLanguageServerFeatureOptions.HtmlVirtualDocumentSuffix,
             MockBehavior.Strict);
         LanguageServer = new TestLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
-        DocumentMappingService = new DefaultRazorDocumentMappingService(LanguageServerFeatureOptions, DocumentContextFactory, LoggerFactory);
+        DocumentMappingService = new RazorDocumentMappingService(LanguageServerFeatureOptions, DocumentContextFactory, LoggerFactory);
     }
 
     internal class TestLanguageServer : ClientNotifierServiceBase
@@ -133,11 +133,32 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
                 RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint => await HandleProvideCodeActionsAsync(@params),
                 RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint => await HandleResolveCodeActionsAsync(@params),
                 RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName => await HandlePullDiagnosticsAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorFoldingRangeEndpoint => await HandleFoldingRangeAsync(@params),
+                RazorLanguageServerCustomMessageTargets.RazorFoldingRangeEndpoint => await HandleFoldingRangeAsync(),
+                RazorLanguageServerCustomMessageTargets.RazorSpellCheckEndpoint => await HandleSpellCheckAsync(@params),
                 _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
             };
 
             return (TResponse)result;
+        }
+
+        private async Task<VSInternalSpellCheckableRangeReport[]> HandleSpellCheckAsync<TParams>(TParams @params)
+        {
+            Assert.IsType<DelegatedSpellCheckParams>(@params);
+
+            var delegatedRequest = new VSInternalDocumentSpellCheckableParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = _csharpDocumentUri,
+                },
+            };
+
+            var result = await _csharpServer.ExecuteRequestAsync<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport[]>(
+                VSInternalMethods.TextDocumentSpellCheckableRangesName,
+                delegatedRequest,
+                _cancellationToken);
+
+            return result;
         }
 
         private async Task<RazorPullDiagnosticResponse> HandlePullDiagnosticsAsync<TParams>(TParams @params)
@@ -160,7 +181,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
             return new RazorPullDiagnosticResponse(result, Array.Empty<VSInternalDiagnosticReport>());
         }
 
-        private Task<RazorFoldingRangeResponse> HandleFoldingRangeAsync<TParams>(TParams @params)
+        private Task<RazorFoldingRangeResponse> HandleFoldingRangeAsync()
         {
             return Task.FromResult(new RazorFoldingRangeResponse(ImmutableArray<FoldingRange>.Empty, ImmutableArray<FoldingRange>.Empty));
         }

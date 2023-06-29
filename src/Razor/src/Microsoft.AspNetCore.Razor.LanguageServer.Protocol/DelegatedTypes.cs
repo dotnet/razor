@@ -11,6 +11,9 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
+internal record DelegatedSpellCheckParams(
+    VersionedTextDocumentIdentifier HostDocument);
+
 internal record DelegatedDiagnosticParams(
     VersionedTextDocumentIdentifier HostDocument,
     Guid CorrelationId);
@@ -43,7 +46,8 @@ internal record DelegatedCompletionParams(
     Position ProjectedPosition,
     RazorLanguageKind ProjectedKind,
     VSInternalCompletionContext Context,
-    TextEdit? ProvisionalTextEdit) : IDelegatedParams;
+    TextEdit? ProvisionalTextEdit,
+    Guid CorrelationId) : IDelegatedParams;
 
 internal record DelegatedCompletionResolutionContext(
     DelegatedCompletionParams OriginalRequestParams,

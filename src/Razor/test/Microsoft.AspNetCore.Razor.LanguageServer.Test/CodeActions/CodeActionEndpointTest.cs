@@ -23,15 +23,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 public class CodeActionEndpointTest : LanguageServerTestBase
 {
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ClientNotifierServiceBase _languageServer;
 
     public CodeActionEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _documentMappingService = Mock.Of<RazorDocumentMappingService>(
-            s => s.TryMapToProjectedDocumentRange(
+        _documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+            s => s.TryMapToGeneratedDocumentRange(
                 It.IsAny<IRazorGeneratedDocument>(),
                 It.IsAny<Range>(),
                 out It.Ref<Range?>.IsAny) == false &&
@@ -58,7 +58,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -92,7 +93,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -124,7 +126,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -158,7 +161,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -196,7 +200,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -232,7 +237,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -275,7 +281,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -318,7 +325,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -354,7 +362,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -397,7 +406,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -435,7 +445,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = true
         };
@@ -483,7 +494,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -529,7 +541,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -569,7 +582,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             Array.Empty<ICSharpCodeActionProvider>(),
             Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -601,8 +615,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument("@code {}");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         Range? projectedRange = null;
-        var documentMappingService = Mock.Of<DefaultRazorDocumentMappingService>(
-            d => d.TryMapToProjectedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<Range>(), out projectedRange) == false
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+            d => d.TryMapToGeneratedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<Range>(), out projectedRange) == false
         , MockBehavior.Strict);
         var codeActionEndpoint = new CodeActionEndpoint(
             documentMappingService,
@@ -612,7 +626,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -629,7 +644,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         Assert.NotNull(context);
 
         // Act
-        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Logger, default);
+        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Guid.Empty, Logger, cancellationToken: default);
 
         // Assert
         Assert.Empty(results);
@@ -654,7 +669,8 @@ public class CodeActionEndpointTest : LanguageServerTestBase
             },
             Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -674,7 +690,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         Assert.NotNull(context);
 
         // Act
-        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Logger, default);
+        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Guid.Empty, Logger, cancellationToken: default);
 
         // Assert
         var result = Assert.Single(results);
@@ -691,11 +707,11 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         Assert.Equal(projectedRange, diagnostics[1].Range);
     }
 
-    private static DefaultRazorDocumentMappingService CreateDocumentMappingService(Range? projectedRange = null)
+    private static IRazorDocumentMappingService CreateDocumentMappingService(Range? projectedRange = null)
     {
         projectedRange ??= new Range { Start = new Position(5, 2), End = new Position(5, 2) };
-        var documentMappingService = Mock.Of<DefaultRazorDocumentMappingService>(
-            d => d.TryMapToProjectedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<Range>(), out projectedRange) == true &&
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+            d => d.TryMapToGeneratedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<Range>(), out projectedRange) == true &&
                  d.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp
         , MockBehavior.Strict);
         return documentMappingService;

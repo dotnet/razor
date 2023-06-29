@@ -33,7 +33,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
     public CSharpOnTypeFormattingPass(
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase server,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor,
         ILoggerFactory loggerFactory)
@@ -63,7 +63,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         var textEdits = result.Edits;
         if (textEdits.Length == 0)
         {
-            if (!DocumentMappingService.TryMapToProjectedDocumentPosition(codeDocument.GetCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
+            if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
             {
                 _logger.LogWarning("Failed to map to projected position for document {context.Uri}.", context.Uri);
                 return result;
@@ -346,12 +346,21 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         }
 
         if (owner is CSharpStatementLiteralSyntax &&
-            owner.PreviousSpan() is { } prevNode &&
+            owner.TryGetPreviousSibling(out var prevNode) &&
             prevNode.AncestorsAndSelf().FirstOrDefault(a => a is CSharpTemplateBlockSyntax) is { } template &&
             owner.SpanStart == template.Span.End &&
             IsOnSingleLine(template, text))
         {
             // Special case, we don't want to add a line break after a single line template
+            return;
+        }
+
+        // Parent.Parent.Parent is because the tree is
+        //  ExplicitExpression -> ExplicitExpressionBody -> CSharpCodeBlock -> CSharpExpressionLiteral
+        if (owner is CSharpExpressionLiteralSyntax { Parent.Parent.Parent: CSharpExplicitExpressionSyntax explicitExpression } &&
+            IsOnSingleLine(explicitExpression, text))
+        {
+            // Special case, we don't want to add line breaks inside a single line explicit expression (ie @( ... ))
             return;
         }
 

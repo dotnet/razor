@@ -86,12 +86,12 @@ internal class RazorMapToDocumentEditsEndpoint : IRazorMapToDocumentEditsHandler
             };
         }
 
-        var documentMappingService = requestContext.GetRequiredService<RazorDocumentMappingService>();
+        var documentMappingService = requestContext.GetRequiredService<IRazorDocumentMappingService>();
         var edits = new List<TextEdit>();
         for (var i = 0; i < request.ProjectedTextEdits.Length; i++)
         {
             var projectedRange = request.ProjectedTextEdits[i].Range;
-            if (!documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), projectedRange, out var originalRange))
+            if (!documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), projectedRange, out var originalRange))
             {
                 // Can't map range. Discard this edit.
                 continue;

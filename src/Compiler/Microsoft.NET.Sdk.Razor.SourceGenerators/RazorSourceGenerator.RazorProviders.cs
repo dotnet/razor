@@ -28,7 +28,13 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 && suppressRazorSourceGenerator == "true";
         }
 
-        private static (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions((AnalyzerConfigOptionsProvider, ParseOptions) pair, CancellationToken ct)
+        private static bool GetHostOutputsEnabledStatus(AnalyzerConfigOptionsProvider optionsProvider, CancellationToken _)
+        {
+            return optionsProvider.GlobalOptions.TryGetValue("build_property.EnableRazorHostOutputs", out var enableRazorHostOutputs)
+                && enableRazorHostOutputs == "true";
+        }
+
+        private (RazorSourceGenerationOptions?, Diagnostic?) ComputeRazorSourceGeneratorOptions((AnalyzerConfigOptionsProvider, ParseOptions) pair, CancellationToken ct)
         {
             Log.ComputeRazorSourceGeneratorOptions();
 
@@ -52,7 +58,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             }
 
             var razorConfiguration = RazorConfiguration.Create(razorLanguageVersion, configurationName ?? "default", System.Linq.Enumerable.Empty<RazorExtension>(), true);
-            
+
             var razorSourceGenerationOptions = new RazorSourceGenerationOptions()
             {
                 Configuration = razorConfiguration,
@@ -60,6 +66,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 RootNamespace = rootNamespace ?? "ASP",
                 SupportLocalizedComponentNames = supportLocalizedComponentNames == "true",
                 CSharpLanguageVersion = ((CSharpParseOptions)parseOptions).LanguageVersion,
+                TestSuppressUniqueIds = _testSuppressUniqueIds,
             };
 
             return (razorSourceGenerationOptions, diagnostic);

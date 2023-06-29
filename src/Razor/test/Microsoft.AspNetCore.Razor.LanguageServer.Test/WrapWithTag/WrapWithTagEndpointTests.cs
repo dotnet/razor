@@ -39,7 +39,7 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
             .Setup(l => l.SendRequestAsync<WrapWithTagParams, WrapWithTagResponse>(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
-        var documentMappingService = Mock.Of<RazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
         var endpoint = new WrapWithTagEndpoint(
             languageServer.Object,
@@ -73,7 +73,7 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
             .Setup(l => l.SendRequestAsync<WrapWithTagParams, WrapWithTagResponse>(LanguageServerConstants.RazorWrapWithTagEndpoint, It.IsAny<WrapWithTagParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
-        var documentMappingService = Mock.Of<RazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp, MockBehavior.Strict);
         var endpoint = new WrapWithTagEndpoint(
             languageServer.Object,
@@ -103,7 +103,7 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
 
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
 
-        var documentMappingService = Mock.Of<RazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
         var endpoint = new WrapWithTagEndpoint(languageServer.Object, documentMappingService);
 
@@ -131,7 +131,7 @@ public class WrapWithTagEndpointTest : LanguageServerTestBase
 
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
 
-        var documentMappingService = Mock.Of<RazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
         var endpoint = new WrapWithTagEndpoint(languageServer.Object, documentMappingService);
 

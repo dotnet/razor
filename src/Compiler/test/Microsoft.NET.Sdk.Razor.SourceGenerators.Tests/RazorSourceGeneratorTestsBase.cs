@@ -30,6 +30,8 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyModel;
 using Microsoft.Extensions.DependencyModel.Resolution;
@@ -56,10 +58,11 @@ public abstract class RazorSourceGeneratorTestsBase
         return (result.Item1, result.Item2);
     }
 
-    protected static async ValueTask<(GeneratorDriver, ImmutableArray<AdditionalText>, TestAnalyzerConfigOptionsProvider)> GetDriverWithAdditionalTextAndProviderAsync(Project project, Action<TestAnalyzerConfigOptionsProvider>? configureGlobalOptions = null)
+    protected static async ValueTask<(GeneratorDriver, ImmutableArray<AdditionalText>, TestAnalyzerConfigOptionsProvider)> GetDriverWithAdditionalTextAndProviderAsync(Project project, Action<TestAnalyzerConfigOptionsProvider>? configureGlobalOptions = null, bool hostOutputs = false)
     {
-        var razorSourceGenerator = new RazorSourceGenerator().AsSourceGenerator();
-        var driver = (GeneratorDriver)CSharpGeneratorDriver.Create(new[] { razorSourceGenerator }, parseOptions: (CSharpParseOptions)project.ParseOptions!, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, true));
+        var razorSourceGenerator = new RazorSourceGenerator(testUniqueIds: "test").AsSourceGenerator();
+        var disabledOutputs = hostOutputs ? IncrementalGeneratorOutputKind.None : (IncrementalGeneratorOutputKind)0b100000;
+        var driver = (GeneratorDriver)CSharpGeneratorDriver.Create(new[] { razorSourceGenerator }, parseOptions: (CSharpParseOptions)project.ParseOptions!, driverOptions: new GeneratorDriverOptions(disabledOutputs, true));
 
         var optionsProvider = new TestAnalyzerConfigOptionsProvider();
         optionsProvider.TestGlobalOptions["build_property.RazorConfiguration"] = "Default";
@@ -91,24 +94,16 @@ public abstract class RazorSourceGeneratorTestsBase
         return (driver, additionalTexts, optionsProvider);
     }
 
-    protected static GeneratorRunResult RunGenerator(Compilation compilation, ref GeneratorDriver driver, params Action<Diagnostic>[] expectedDiagnostics)
+    protected static GeneratorRunResult RunGenerator(Compilation compilation, ref GeneratorDriver driver, params DiagnosticDescription[] expectedDiagnostics)
     {
         return RunGenerator(compilation, ref driver, out _, expectedDiagnostics);
     }
 
-    protected static GeneratorRunResult RunGenerator(Compilation compilation, ref GeneratorDriver driver, out Compilation outputCompilation, params Action<Diagnostic>[] expectedDiagnostics)
+    protected static GeneratorRunResult RunGenerator(Compilation compilation, ref GeneratorDriver driver, out Compilation outputCompilation, params DiagnosticDescription[] expectedDiagnostics)
     {
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out _);
 
-        var actualDiagnostics = outputCompilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
-        if (expectedDiagnostics.Length == 0 && actualDiagnostics.Any())
-        {
-            Assert.Fail($"Compilation failed: {string.Join(Environment.NewLine, actualDiagnostics)}");
-        }
-        else
-        {
-            Assert.Collection(actualDiagnostics, expectedDiagnostics);
-        }
+        outputCompilation.VerifyDiagnostics(expectedDiagnostics);
 
         var result = driver.GetRunResult();
         return result.Results.Single();
@@ -308,7 +303,9 @@ public abstract class RazorSourceGeneratorTestsBase
                 {
                     // Ignore warnings about conflicts due to referencing `Microsoft.AspNetCore.App` DLLs.
                     // Won't be necessary after fixing https://github.com/dotnet/roslyn/issues/19640.
-                    new("CS1701", ReportDiagnostic.Hidden)
+                    new("CS1701", ReportDiagnostic.Suppress),
+                    // Ignore warnings about unused usings, we don't attempt to trim them
+                    new("CS8019", ReportDiagnostic.Suppress),
                 }));
 
         project = project.WithParseOptions(((CSharpParseOptions)project.ParseOptions!).WithLanguageVersion(LanguageVersion.Preview));
@@ -409,7 +406,7 @@ internal static class Extensions
     {
         if (expectedOutput.Length == 1 && string.IsNullOrWhiteSpace(expectedOutput[0]))
         {
-            Assert.True(false, GenerateExpectedOutput(result));
+            Assert.True(false, GenerateExpectedPageOutput(result));
         }
         else
         {
@@ -417,7 +414,30 @@ internal static class Extensions
             for (int i = 0; i < result.GeneratedSources.Length; i++)
             {
                 var text = TrimChecksum(result.GeneratedSources[i].SourceText.ToString());
-                Assert.Equal(text, TrimChecksum(expectedOutput[i]), ignoreWhiteSpaceDifferences: true);
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(text, TrimChecksum(expectedOutput[i]));
+            }
+        }
+
+        return result;
+    }
+
+    public static GeneratorRunResult VerifyHostOutput(this GeneratorRunResult result, params (string hintName, string text)[] expectedOutputs)
+    {
+        if (expectedOutputs.Length == 1 && string.IsNullOrWhiteSpace(expectedOutputs[0].text))
+        {
+            Assert.True(false, GenerateExpectedHostOutput(result));
+        }
+        else
+        {
+            var hostOutputs = result.GetHostOutputs();
+            Assert.Equal(expectedOutputs.Length, hostOutputs.Length);
+            for (int i = 0; i < hostOutputs.Length; i++)
+            {
+                var expectedOutput = expectedOutputs[i];
+                var actualOutput = hostOutputs[i];
+
+                Assert.Equal(expectedOutput.hintName, actualOutput.Key);
+                Assert.Equal(expectedOutput.text, actualOutput.Value, ignoreWhiteSpaceDifferences: true);
             }
         }
 
@@ -447,7 +467,7 @@ internal static class Extensions
             var sourceText = source.SourceText.ToString();
             GenerateOutputBaseline(baselinePath, sourceText);
             var baselineText = File.ReadAllText(baselinePath);
-            AssertEx.EqualOrDiff(TrimChecksum(baselineText), TrimChecksum(sourceText));
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(TrimChecksum(baselineText), TrimChecksum(sourceText));
             Assert.True(touchedFiles.Add(baselinePath));
         }
 
@@ -490,9 +510,9 @@ internal static class Extensions
         }
     }
 
-    private static string GenerateExpectedOutput(GeneratorRunResult result)
+    private static string GenerateExpectedPageOutput(GeneratorRunResult result)
     {
-        StringBuilder sb = new StringBuilder("Generated Output:").AppendLine().AppendLine();
+        StringBuilder sb = new StringBuilder("Generated Page Output:").AppendLine().AppendLine();
         for (int i = 0; i < result.GeneratedSources.Length; i++)
         {
             if (i > 0)
@@ -500,6 +520,22 @@ internal static class Extensions
                 sb.AppendLine(",");
             }
             sb.Append("@\"").Append(result.GeneratedSources[i].SourceText.ToString().Replace("\"", "\"\"")).Append('"');
+        }
+        return sb.ToString();
+    }
+
+    private static string GenerateExpectedHostOutput(GeneratorRunResult result)
+    {
+        StringBuilder sb = new StringBuilder("Generated Host Output:").AppendLine().AppendLine();
+        var hostOutputs = result.GetHostOutputs();
+        for (int i = 0; i < hostOutputs.Length; i++)
+        {
+            if (i > 0)
+            {
+                sb.AppendLine(",");
+            }
+            sb.Append("(@\"").Append(hostOutputs[i].Key.Replace("\"", "\"\"")).Append("\", ");
+            sb.Append("@\"").Append(hostOutputs[i].Value.Replace("\"", "\"\"")).Append("\")");
         }
         return sb.ToString();
     }
@@ -517,7 +553,7 @@ internal static class Extensions
             }
             else
             {
-                AssertEx.EqualOrDiff(TrimChecksum(diff), TrimChecksum(actual.GeneratedSources[i].SourceText.ToString()));
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(TrimChecksum(diff), TrimChecksum(actual.GeneratedSources[i].SourceText.ToString()));
             }
         }
 
@@ -531,5 +567,20 @@ internal static class Extensions
             .Replace("\\r\\n", "\\n");                                     // embedded new-lines
         Assert.StartsWith("#pragma", trimmed);
         return trimmed.Substring(trimmed.IndexOf('\n') + 1);
+    }
+
+    public static void AssertSingleItem(this RazorEventListener.RazorEvent e, string expectedEventName, string expectedFileName)
+    {
+        Assert.Equal(expectedEventName, e.EventName);
+        var file = Assert.Single(e.Payload);
+        Assert.Equal(expectedFileName, file);
+    }
+
+    public static void AssertPair(this RazorEventListener.RazorEvent e, string expectedEventName, string payload1, string payload2)
+    {
+        Assert.Equal(expectedEventName, e.EventName);
+        Assert.Equal(2, e.Payload.Length);
+        Assert.Equal(payload1, e.Payload[0]);
+        Assert.Equal(payload2, e.Payload[1]);
     }
 }
