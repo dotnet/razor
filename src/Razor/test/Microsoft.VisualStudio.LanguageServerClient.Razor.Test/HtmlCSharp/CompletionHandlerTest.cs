@@ -45,7 +45,7 @@ public class CompletionHandlerTest : HandlerTestBase
     private readonly CSharpVirtualDocumentSnapshot _csharpVirtualDocumentSnapshot;
     private readonly HtmlVirtualDocumentSnapshot _htmlVirtualDocumentSnapshot;
     private readonly Uri _uri;
-    private readonly ServerCapabilities _completionServerCapabilities;
+    private readonly VSInternalServerCapabilities _completionServerCapabilities;
 
     public CompletionHandlerTest(ITestOutputHelper testOutput)
         : base(testOutput)

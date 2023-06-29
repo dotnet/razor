@@ -41,7 +41,7 @@ public class CompletionResolveHandlerTest : HandlerTestBase
     private readonly CompletionRequestContextCache _completionRequestContextCache;
     private readonly Uri _hostDocumentUri;
     private readonly TestTextBuffer _textBuffer;
-    private readonly ServerCapabilities _completionResolveServerCapabilities;
+    private readonly VSInternalServerCapabilities _completionResolveServerCapabilities;
 
     public CompletionResolveHandlerTest(ITestOutputHelper testOutput)
         : base(testOutput)

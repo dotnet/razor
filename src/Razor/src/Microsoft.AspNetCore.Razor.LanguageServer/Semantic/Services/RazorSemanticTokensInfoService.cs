@@ -52,6 +52,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         Range range,
         VersionedDocumentContext documentContext,
         RazorSemanticTokensLegend razorSemanticTokensLegend,
+        Guid correlationId,
         CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
@@ -63,7 +64,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         try
         {
             csharpSemanticRanges = await GetCSharpSemanticRangesAsync(
-                codeDocument, textDocumentIdentifier, range, documentContext.Version, cancellationToken).ConfigureAwait(false);
+                codeDocument, textDocumentIdentifier, range, documentContext.Version, correlationId, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -113,6 +114,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         TextDocumentIdentifier textDocumentIdentifier,
         Range razorRange,
         long documentVersion,
+        Guid correlationId,
         CancellationToken cancellationToken,
         string? previousResultId = null)
     {
@@ -126,7 +128,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             return new List<SemanticRange>();
         }
 
-        var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, cancellationToken).ConfigureAwait(false);
+        var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, correlationId, cancellationToken).ConfigureAwait(false);
 
         // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
         // Unrecoverable, return default to indicate no change. We've already queued up a refresh request in
@@ -258,9 +260,10 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         TextDocumentIdentifier textDocumentIdentifier,
         long documentVersion,
         Range csharpRange,
+        Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var parameter = new ProvideSemanticTokensRangeParams(textDocumentIdentifier, documentVersion, csharpRange);
+        var parameter = new ProvideSemanticTokensRangeParams(textDocumentIdentifier, documentVersion, csharpRange, correlationId);
 
         var csharpResponse = await _languageServer.SendRequestAsync<ProvideSemanticTokensRangeParams, ProvideSemanticTokensResponse>(
             RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint,
