@@ -34,7 +34,7 @@ public class OmniSharpBackgroundDocumentGenerator : IOmniSharpProjectSnapshotMan
         }
 
         var wrappedListeners = documentProcessedListeners.Select(listener => new WrappedDocumentProcessedListener(remoteTextLoaderFactory, listener));
-        _backgroundDocumentGenerator = new BackgroundDocumentGenerator(projectSnapshotManagerDispatcher.InternalDispatcher, wrappedListeners);
+        _backgroundDocumentGenerator = new BackgroundDocumentGenerator(wrappedListeners);
     }
 
     public void Initialize(OmniSharpProjectSnapshotManager projectManager)
