@@ -18,7 +18,6 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 {
     private record struct WorkResult(RazorCodeDocument Output, IDocumentSnapshot Document);
 
-    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private readonly IEnumerable<DocumentProcessedListener> _listeners;
     private readonly Dictionary<string, IDocumentSnapshot> _work;
     private ProjectSnapshotManagerBase? _projectManager;
@@ -26,19 +25,15 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     private bool _solutionIsClosing;
 
     public BackgroundDocumentGenerator(
-        ProjectSnapshotManagerDispatcher dispatcher,
         IEnumerable<DocumentProcessedListener> listeners)
     {
-        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         _listeners = listeners ?? throw new ArgumentNullException(nameof(listeners));
         _work = new Dictionary<string, IDocumentSnapshot>(StringComparer.Ordinal);
     }
 
     // For testing only
-    protected BackgroundDocumentGenerator(
-        ProjectSnapshotManagerDispatcher dispatcher)
+    protected BackgroundDocumentGenerator()
     {
-        _dispatcher = dispatcher;
         _work = new Dictionary<string, IDocumentSnapshot>(StringComparer.Ordinal);
         _listeners = Enumerable.Empty<DocumentProcessedListener>();
     }
@@ -133,8 +128,6 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
     // Internal for testing
     internal void Enqueue(IDocumentSnapshot document)
     {
-        _dispatcher.AssertDispatcherThread();
-
         lock (_work)
         {
             // We only want to store the last 'seen' version of any given document. That way when we pick one to process
@@ -158,7 +151,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
         Timer_TickAsync(CancellationToken.None).Forget();
     }
 
-    private async Task Timer_TickAsync(CancellationToken cancellationToken)
+    private async Task Timer_TickAsync(CancellationToken _)
     {
         try
         {
@@ -197,9 +190,7 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
 
             if (!_solutionIsClosing)
             {
-                await _dispatcher.RunOnDispatcherThreadAsync(
-                    () => NotifyDocumentsProcessed(results),
-                    cancellationToken).ConfigureAwait(false);
+                NotifyDocumentsProcessed(results);
             }
 
             lock (_work)
@@ -261,8 +252,6 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
         }
 
         _solutionIsClosing = false;
-
-        _dispatcher.AssertDispatcherThread();
 
         switch (args.Kind)
         {
@@ -369,10 +358,6 @@ internal class BackgroundDocumentGenerator : ProjectSnapshotChangeTrigger
             return;
         }
 
-        _dispatcher
-            .RunOnDispatcherThreadAsync(
-                () => _projectManager.ReportError(ex),
-                CancellationToken.None)
-            .Forget();
+        _projectManager.ReportError(ex);
     }
 }

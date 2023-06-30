@@ -41,18 +41,14 @@ public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
     {
         // Arrange
         var projectManager = TestProjectSnapshotManager.Create(ErrorReporter);
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
-        {
-            projectManager.ProjectAdded(_hostProject1);
-            projectManager.ProjectAdded(_hostProject2);
-            projectManager.DocumentAdded(_hostProject1, _documents[0], null);
-            projectManager.DocumentAdded(_hostProject1, _documents[1], null);
-        }, DisposalToken);
+        projectManager.ProjectAdded(_hostProject1);
+        projectManager.ProjectAdded(_hostProject2);
+        projectManager.DocumentAdded(_hostProject1, _documents[0], null);
+        projectManager.DocumentAdded(_hostProject1, _documents[1], null);
 
-        var project = await Dispatcher.RunOnDispatcherThreadAsync(
-            () => projectManager.GetLoadedProject(_hostProject1.FilePath), DisposalToken);
+        var project =projectManager.GetLoadedProject(_hostProject1.FilePath);
 
-        var queue = new TestBackgroundDocumentGenerator(Dispatcher)
+        var queue = new TestBackgroundDocumentGenerator()
         {
             Delay = TimeSpan.FromMilliseconds(1),
             BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -79,22 +75,18 @@ public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
     }
 
     [Fact]
-    public async Task Queue_ProcessesNotifications_AndRestarts()
+    public void Queue_ProcessesNotifications_AndRestarts()
     {
         // Arrange
         var projectManager = TestProjectSnapshotManager.Create(ErrorReporter);
-        await Dispatcher.RunOnDispatcherThreadAsync(() =>
-        {
-            projectManager.ProjectAdded(_hostProject1);
-            projectManager.ProjectAdded(_hostProject2);
-            projectManager.DocumentAdded(_hostProject1, _documents[0], null);
-            projectManager.DocumentAdded(_hostProject1, _documents[1], null);
-        }, DisposalToken);
+        projectManager.ProjectAdded(_hostProject1);
+        projectManager.ProjectAdded(_hostProject2);
+        projectManager.DocumentAdded(_hostProject1, _documents[0], null);
+        projectManager.DocumentAdded(_hostProject1, _documents[1], null);
 
-        var project = await Dispatcher.RunOnDispatcherThreadAsync(
-            () => projectManager.GetLoadedProject(_hostProject1.FilePath), DisposalToken);
+        var project = projectManager.GetLoadedProject(_hostProject1.FilePath);
 
-        var queue = new TestBackgroundDocumentGenerator(Dispatcher)
+        var queue = new TestBackgroundDocumentGenerator()
         {
             Delay = TimeSpan.FromMilliseconds(1),
             BlockBackgroundWorkStart = new ManualResetEventSlim(initialState: false),
@@ -105,8 +97,7 @@ public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
         };
 
         // Act & Assert
-        await Dispatcher.RunOnDispatcherThreadAsync(
-            () => queue.Enqueue(project.GetDocument(_documents[0].FilePath)), DisposalToken);
+        queue.Enqueue(project.GetDocument(_documents[0].FilePath));
 
         Assert.True(queue.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
         Assert.True(queue.HasPendingNotifications, "Queue should have a notification created during Enqueue");
@@ -120,8 +111,7 @@ public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
         queue.NotifyBackgroundCapturedWorkload.Wait(TimeSpan.FromSeconds(1));
         Assert.False(queue.HasPendingNotifications, "Worker should have taken all notifications");
 
-        await Dispatcher.RunOnDispatcherThreadAsync(
-            () => queue.Enqueue(project.GetDocument(_documents[1].FilePath)), DisposalToken);
+        queue.Enqueue(project.GetDocument(_documents[1].FilePath));
         Assert.True(queue.HasPendingNotifications); // Now we should see the worker restart when it finishes.
 
         // Allow work to complete, which should restart the timer.
@@ -147,8 +137,8 @@ public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
 
     private class TestBackgroundDocumentGenerator : BackgroundDocumentGenerator
     {
-        public TestBackgroundDocumentGenerator(ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher)
-            : base(projectSnapshotManagerDispatcher)
+        public TestBackgroundDocumentGenerator()
+            : base()
         {
         }
     }
