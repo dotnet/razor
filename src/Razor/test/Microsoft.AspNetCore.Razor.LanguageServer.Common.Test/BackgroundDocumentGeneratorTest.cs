@@ -127,7 +127,7 @@ public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
         // Allow work to complete, which should restart the timer.
         queue.BlockBackgroundWorkCompleting.Set();
 
-        queue.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3));
+        Assert.True(queue.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)), "Work should have been completed");
         queue.NotifyBackgroundWorkCompleted.Reset();
 
         // It should start running again right away.
@@ -136,9 +136,10 @@ public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
 
         // Allow the background work to proceed.
         queue.BlockBackgroundWorkStart.Set();
+        Assert.True(queue.NotifyBackgroundWorkStarting.Wait(TimeSpan.FromSeconds(3)), "Work should have started");
 
         queue.BlockBackgroundWorkCompleting.Set();
-        queue.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3));
+        Assert.True(queue.NotifyBackgroundWorkCompleted.Wait(TimeSpan.FromSeconds(3)), "Work should have been completed");
 
         Assert.False(queue.IsScheduledOrRunning, "Queue should not have restarted");
         Assert.False(queue.HasPendingNotifications, "Queue should have processed all notifications");
