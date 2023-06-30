@@ -8,7 +8,7 @@
 0 1 4 razorDirectiveAttribute 0 [test]
 0 4 1 markupOperator 0 [=]
 0 1 1 markupAttributeQuote 0 [']
-0 1 8 markupAttributeQuote 0 [Function]
+0 1 8 markupAttributeValue 0 [Function]
 0 8 1 markupAttributeQuote 0 [']
 0 1 1 markupTagDelimiter 0 [>]
 0 1 1 markupTagDelimiter 0 [<]

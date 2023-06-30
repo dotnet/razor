@@ -11,7 +11,7 @@
 0 2 5 markupAttribute 0 [class]
 0 5 1 markupOperator 0 [=]
 0 1 1 markupAttributeQuote 0 [']
-0 1 12 markupAttributeQuote 0 [display:none]
+0 1 12 markupAttributeValue 0 [display:none]
 0 12 1 markupAttributeQuote 0 [']
 0 1 1 markupTagDelimiter 0 [>]
 0 1 1 markupTagDelimiter 0 [<]

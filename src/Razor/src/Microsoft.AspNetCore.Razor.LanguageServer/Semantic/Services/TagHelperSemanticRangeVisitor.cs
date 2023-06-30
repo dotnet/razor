@@ -65,7 +65,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
 
     public override void VisitMarkupLiteralAttributeValue(MarkupLiteralAttributeValueSyntax node)
     {
-        AddSemanticRange(node, _razorSemanticTokensLegend.MarkupAttributeQuote);
+        AddSemanticRange(node, _razorSemanticTokensLegend.MarkupAttributeValue);
     }
 
     public override void VisitMarkupAttributeBlock(MarkupAttributeBlockSyntax node)
@@ -346,7 +346,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
         {
             if (child.Kind == SyntaxKind.MarkupTextLiteral)
             {
-                AddSemanticRange(child, _razorSemanticTokensLegend.MarkupAttributeQuote);
+                AddSemanticRange(child, _razorSemanticTokensLegend.MarkupAttributeValue);
             }
             else
             {
