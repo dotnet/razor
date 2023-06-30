@@ -178,7 +178,9 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
         {
             AddSemanticRange(node.OpenBrace, legend.RazorTransition);
         }
+
         Visit(node.CSharpCode);
+
         using (ColorCSharpBackground())
         {
             AddSemanticRange(node.CloseBrace, legend.RazorTransition);
@@ -193,7 +195,9 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
         {
             AddSemanticRange(node.OpenParen, legend.RazorTransition);
         }
+
         Visit(node.CSharpCode);
+
         using (ColorCSharpBackground())
         {
             AddSemanticRange(node.CloseParen, legend.RazorTransition);

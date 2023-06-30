@@ -171,6 +171,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
             {
                 lineOffset = 0;
             }
+
             lineIndex += lineDelta;
             lineOffset += charDelta;
 
