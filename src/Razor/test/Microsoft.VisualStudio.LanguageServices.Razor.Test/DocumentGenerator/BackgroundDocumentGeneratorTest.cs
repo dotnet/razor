@@ -197,7 +197,7 @@ public class BackgroundDocumentGeneratorTest : ProjectSnapshotManagerDispatcherW
     public async Task Queue_ProcessesNotifications_AndRestarts()
     {
         // Arrange
-        var projectManager = new TestProjectSnapshotManager(Workspace);
+        var projectManager = new DefaultProjectSnapshotManager(ErrorReporter, triggers: Array.Empty<ProjectSnapshotChangeTrigger>(), Workspace);
         projectManager.ProjectAdded(_hostProject1);
         projectManager.ProjectAdded(_hostProject2);
         projectManager.DocumentAdded(_hostProject1, _documents[0], null);
