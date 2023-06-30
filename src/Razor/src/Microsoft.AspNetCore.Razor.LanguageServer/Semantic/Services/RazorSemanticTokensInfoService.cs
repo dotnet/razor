@@ -63,8 +63,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
         try
         {
-            csharpSemanticRanges = await GetCSharpSemanticRangesAsync(
-                codeDocument, textDocumentIdentifier, range, documentContext.Version, correlationId, cancellationToken).ConfigureAwait(false);
+            csharpSemanticRanges = await GetCSharpSemanticRangesAsync(codeDocument, textDocumentIdentifier, range, razorSemanticTokensLegend, documentContext.Version, correlationId, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -113,6 +112,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         RazorCodeDocument codeDocument,
         TextDocumentIdentifier textDocumentIdentifier,
         Range razorRange,
+        RazorSemanticTokensLegend razorSemanticTokensLegend,
         long documentVersion,
         Guid correlationId,
         CancellationToken cancellationToken,
@@ -141,6 +141,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
         var razorRanges = new List<SemanticRange>();
         var colorBackground = _razorLSPOptionsMonitor.CurrentValue.ColorBackground;
+        var textClassification = razorSemanticTokensLegend.MarkupTextLiteral;
         var razorSource = codeDocument.GetSourceText();
 
         SemanticRange? previousSemanticRange = null;
@@ -153,37 +154,18 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             var tokenType = csharpResponse[i + 3];
             var tokenModifiers = csharpResponse[i + 4];
 
-            if (colorBackground)
-            {
-                tokenModifiers |= (int)RazorSemanticTokensLegend.RazorTokenModifiers.RazorCode;
-            }
-
             var semanticRange = CSharpDataToSemanticRange(lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
             if (_documentMappingService.TryMapToHostDocumentRange(generatedDocument, semanticRange.Range, out var originalRange))
             {
-                if (colorBackground && previousRazorSemanticRange is not null)
+                if (razorRange is null || razorRange.OverlapsWith(originalRange))
                 {
-                    var startChar = originalRange.Start.Character;
-                    if (previousRazorSemanticRange.End.Line == originalRange.Start.Line &&
-                        previousRazorSemanticRange.End.TryGetAbsoluteIndex(razorSource, _logger, out var previousSpanEndIndex) &&
-                        ContainsOnlySpacesOrTabs(razorSource, previousSpanEndIndex + 1, startChar - previousRazorSemanticRange.End.Character - 1))
+                    if (colorBackground)
                     {
-                        // we're on the same line as previous, lets extend ours to include whitespace between us and the proceeding range
-                        originalRange.Start.Character = previousRazorSemanticRange.End.Character;
+                        tokenModifiers |= (int)RazorSemanticTokensLegend.RazorTokenModifiers.RazorCode;
+                        AddAdditionalCSharpWhitespaceRanges(razorRanges, textClassification, razorSource, previousRazorSemanticRange, originalRange, _logger);
                     }
-                    else if (previousRazorSemanticRange.End.Line != originalRange.Start.Line &&
-                        originalRange.Start.TryGetAbsoluteIndex(razorSource, _logger, out var originalRangeStartIndex) &&
-                        ContainsOnlySpacesOrTabs(razorSource, originalRangeStartIndex - startChar, startChar))
-                    {
-                        // We're on a new line, and the start of the line is only whitespace, so give that a background color too
-                        originalRange.Start.Character = 0;
-                    }
-                }
 
-                var razorSemanticRange = new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers, fromRazor: false);
-                if (razorRange is null || razorRange.OverlapsWith(razorSemanticRange.Range))
-                {
-                    razorRanges.Add(razorSemanticRange);
+                    razorRanges.Add(new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers, fromRazor: false));
                 }
 
                 previousRazorSemanticRange = originalRange;
@@ -195,7 +177,39 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         return razorRanges;
     }
 
-    private bool ContainsOnlySpacesOrTabs(SourceText razorSource, int startIndex, int count)
+    private static void AddAdditionalCSharpWhitespaceRanges(List<SemanticRange> razorRanges, int textClassification, SourceText razorSource, Range? previousRazorSemanticRange, Range originalRange, ILogger logger)
+    {
+        var startChar = originalRange.Start.Character;
+        if (previousRazorSemanticRange is not null &&
+            previousRazorSemanticRange.End.Line == originalRange.Start.Line &&
+            previousRazorSemanticRange.End.Character < originalRange.Start.Character &&
+            previousRazorSemanticRange.End.TryGetAbsoluteIndex(razorSource, logger, out var previousSpanEndIndex) &&
+            ContainsOnlySpacesOrTabs(razorSource, previousSpanEndIndex + 1, startChar - previousRazorSemanticRange.End.Character - 1))
+        {
+            // we're on the same line as previous, lets extend ours to include whitespace between us and the proceeding range
+            var whitespaceRange = new Range
+            {
+                Start = new Position(originalRange.Start.Line, previousRazorSemanticRange.End.Character),
+                End = originalRange.Start
+            };
+            razorRanges.Add(new SemanticRange(textClassification, whitespaceRange, (int)RazorSemanticTokensLegend.RazorTokenModifiers.RazorCode, fromRazor: false));
+        }
+        else if (originalRange.Start.Character > 0 &&
+            previousRazorSemanticRange?.End.Line != originalRange.Start.Line &&
+            originalRange.Start.TryGetAbsoluteIndex(razorSource, logger, out var originalRangeStartIndex) &&
+            ContainsOnlySpacesOrTabs(razorSource, originalRangeStartIndex - startChar + 1, startChar - 1))
+        {
+            // We're on a new line, and the start of the line is only whitespace, so give that a background color too
+            var whitespaceRange = new Range
+            {
+                Start = new Position(originalRange.Start.Line, 0),
+                End = originalRange.Start
+            };
+            razorRanges.Add(new SemanticRange(textClassification, whitespaceRange, (int)RazorSemanticTokensLegend.RazorTokenModifiers.RazorCode, fromRazor: false));
+        }
+    }
+
+    private static bool ContainsOnlySpacesOrTabs(SourceText razorSource, int startIndex, int count)
     {
         var end = startIndex + count;
         for (var i = startIndex; i < end; i++)
