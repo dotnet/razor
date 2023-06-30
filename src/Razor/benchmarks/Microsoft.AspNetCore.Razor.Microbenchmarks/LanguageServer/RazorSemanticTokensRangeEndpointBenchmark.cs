@@ -163,6 +163,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
             RazorCodeDocument codeDocument,
             TextDocumentIdentifier textDocumentIdentifier,
             Range razorRange,
+            RazorSemanticTokensLegend razorSemanticTokensLegend,
             long documentVersion,
             Guid correlationId,
             CancellationToken cancellationToken,
