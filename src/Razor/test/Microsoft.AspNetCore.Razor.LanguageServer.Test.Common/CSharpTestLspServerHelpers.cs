@@ -138,7 +138,7 @@ internal class CSharpTestLspServerHelpers
         var analyzerLoader = RazorTestAnalyzerLoader.CreateAnalyzerAssemblyLoader();
 
         var analyzerPaths = new DirectoryInfo(AppContext.BaseDirectory).GetFiles("*.dll")
-            .Where(f => f.Name.StartsWith("Microsoft.CodeAnalysis.", StringComparison.Ordinal) && !f.Name.Contains("LanguageServer"))
+            .Where(f => f.Name.StartsWith("Microsoft.CodeAnalysis.", StringComparison.Ordinal) && !f.Name.Contains("LanguageServer") && !f.Name.Contains("Test.Utilities"))
             .Select(f => f.FullName)
             .ToImmutableArray();
         var references = new List<AnalyzerFileReference>();
