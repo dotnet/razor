@@ -3,7 +3,7 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping;
 
 // Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
 [DataContract]

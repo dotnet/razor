@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 public class DefaultLSPRequestInvokerTest : TestBase
 {
