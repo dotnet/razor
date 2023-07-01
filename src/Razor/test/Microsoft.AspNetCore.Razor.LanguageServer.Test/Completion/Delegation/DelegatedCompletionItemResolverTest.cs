@@ -36,7 +36,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
     private readonly DelegatedCompletionParams _htmlCompletionParams;
     private readonly DocumentContextFactory _documentContextFactory;
     private readonly AsyncLazy<IRazorFormattingService> _formattingService;
-    private readonly RazorDocumentMappingService _mappingService;
+    private readonly IRazorDocumentMappingService _mappingService;
 
     public DelegatedCompletionItemResolverTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -56,11 +56,11 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
         };
 
         var documentContext = TestDocumentContext.From("C:/path/to/file.cshtml", hostDocumentVersion: 0);
-        _csharpCompletionParams = new DelegatedCompletionParams(documentContext.Identifier, new Position(10, 6), RazorLanguageKind.CSharp, new VSInternalCompletionContext(), ProvisionalTextEdit: null);
-        _htmlCompletionParams = new DelegatedCompletionParams(documentContext.Identifier, new Position(0, 0), RazorLanguageKind.Html, new VSInternalCompletionContext(), ProvisionalTextEdit: null);
+        _csharpCompletionParams = new DelegatedCompletionParams(documentContext.Identifier, new Position(10, 6), RazorLanguageKind.CSharp, new VSInternalCompletionContext(), ProvisionalTextEdit: null, CorrelationId: Guid.Empty);
+        _htmlCompletionParams = new DelegatedCompletionParams(documentContext.Identifier, new Position(0, 0), RazorLanguageKind.Html, new VSInternalCompletionContext(), ProvisionalTextEdit: null, CorrelationId: Guid.Empty);
         _documentContextFactory = new TestDocumentContextFactory();
         _formattingService = new AsyncLazy<IRazorFormattingService>(() => TestRazorFormattingService.CreateWithFullSupportAsync());
-        _mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        _mappingService = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
         var resolvedItem = await ResolveCompletionItemAsync(input, itemToResolve: "await", DisposalToken);
 
         // Assert
-        var textChange = resolvedItem.TextEdit.AsTextChange(originalSourceText);
+        var textChange = resolvedItem.TextEdit.Value.First.AsTextChange(originalSourceText);
         var actualSourceText = originalSourceText.WithChanges(textChange);
         Assert.True(expectedSourceText.ContentEquals(actualSourceText));
     }
@@ -234,7 +234,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
     {
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
-        var serverCapabilities = new ServerCapabilities()
+        var serverCapabilities = new VSInternalServerCapabilities()
         {
             CompletionProvider = new CompletionOptions
             {
@@ -261,7 +261,7 @@ public class DelegatedCompletionItemResolverTest : LanguageServerTestBase
         var provider = TestDelegatedCompletionListProvider.Create(csharpServer, LoggerFactory, DisposalToken);
 
         var completionList = await provider.GetCompletionListAsync(
-            cursorPosition, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            cursorPosition, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         return (completionList, provider.DelegatedParams);
     }

@@ -110,7 +110,7 @@ public class DocumentHighlightEndpointTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(output);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
-        var serverCapabilities = new ServerCapabilities()
+        var serverCapabilities = new VSInternalServerCapabilities()
         {
             DocumentHighlightProvider = true
         };
@@ -128,7 +128,7 @@ public class DocumentHighlightEndpointTest : LanguageServerTestBase
             MockBehavior.Strict);
 
         var languageServer = new DocumentHighlightServer(csharpServer, csharpDocumentUri);
-        var documentMappingService = new DefaultRazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
+        var documentMappingService = new RazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
 
         var endpoint = new DocumentHighlightEndpoint(
             languageServerFeatureOptions, documentMappingService, languageServer, LoggerFactory);

@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
+internal sealed class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
 {
     // Usually when we need to format code, we utilize the formatting options provided
     // by the platform. However, we aren't provided such options in the case of code actions
@@ -111,7 +111,7 @@ internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
             RazorLanguageKind.CSharp,
             csharpTextEdits,
             s_defaultFormattingOptions,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -125,12 +125,12 @@ internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
         resolvedCodeAction.Edit = new WorkspaceEdit()
         {
             DocumentChanges = new TextDocumentEdit[] {
-                    new TextDocumentEdit()
-                    {
-                        TextDocument = codeDocumentIdentifier,
-                        Edits = formattedEdits,
-                    }
+                new TextDocumentEdit()
+                {
+                    TextDocument = codeDocumentIdentifier,
+                    Edits = formattedEdits,
                 }
+            }
         };
 
         return resolvedCodeAction;

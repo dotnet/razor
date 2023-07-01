@@ -14,6 +14,51 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
 internal static class SyntaxNodeExtensions
 {
+    internal static bool IsUsingDirective(this SyntaxNode node, [NotNullWhen(true)] out SyntaxList<SyntaxNode>? children)
+    {
+        // Using directives are weird, because the directive keyword ("using") is part of the C# statement it represents
+        if (node is RazorDirectiveSyntax razorDirective &&
+            razorDirective.DirectiveDescriptor is null &&
+            razorDirective.Body is RazorDirectiveBodySyntax body &&
+            body.Keyword is CSharpStatementLiteralSyntax literal &&
+            literal.LiteralTokens.Count > 0)
+        {
+            if (literal.LiteralTokens[0] is { Kind: SyntaxKind.Keyword, Content: "using" })
+            {
+                children = literal.LiteralTokens;
+                return true;
+            }
+        }
+
+        children = null;
+        return false;
+    }
+
+    /// <summary>
+    /// Walks up the tree through the <paramref name="owner"/>'s parents to find the outermost node that starts at the same position.
+    /// </summary>
+    internal static SyntaxNode? GetOutermostNode(this SyntaxNode owner)
+    {
+        var node = owner.Parent;
+        if (node is null)
+        {
+            return owner;
+        }
+
+        var lastNode = node;
+        while (node.SpanStart == owner.SpanStart)
+        {
+            lastNode = node;
+            node = node.Parent;
+            if (node is null)
+            {
+                break;
+            }
+        }
+
+        return lastNode;
+    }
+
     internal static bool TryGetPreviousSibling(this SyntaxNode syntaxNode, [NotNullWhen(true)] out SyntaxNode? previousSibling)
     {
         var syntaxNodeParent = syntaxNode.Parent;

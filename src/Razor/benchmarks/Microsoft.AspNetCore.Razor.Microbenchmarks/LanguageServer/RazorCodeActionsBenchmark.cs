@@ -47,12 +47,13 @@ public class RazorCodeActionsBenchmark : RazorLanguageServerBenchmarkBase
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
 
         CodeActionEndpoint = new CodeActionEndpoint(
-            documentMappingService: languageServer.GetRequiredService<RazorDocumentMappingService>(),
-            razorCodeActionProviders: languageServer.GetRequiredService<IEnumerable<RazorCodeActionProvider>>(),
-            csharpCodeActionProviders: languageServer.GetRequiredService<IEnumerable<CSharpCodeActionProvider>>(),
-            htmlCodeActionProviders: languageServer.GetRequiredService<IEnumerable<HtmlCodeActionProvider>>(),
+            documentMappingService: languageServer.GetRequiredService<IRazorDocumentMappingService>(),
+            razorCodeActionProviders: languageServer.GetRequiredService<IEnumerable<IRazorCodeActionProvider>>(),
+            csharpCodeActionProviders: languageServer.GetRequiredService<IEnumerable<ICSharpCodeActionProvider>>(),
+            htmlCodeActionProviders: languageServer.GetRequiredService<IEnumerable<IHtmlCodeActionProvider>>(),
             languageServer: languageServer.GetRequiredService<ClientNotifierServiceBase>(),
-            languageServerFeatureOptions: languageServer.GetRequiredService<LanguageServerFeatureOptions>());
+            languageServerFeatureOptions: languageServer.GetRequiredService<LanguageServerFeatureOptions>(),
+            telemetryReporter: null);
 
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");

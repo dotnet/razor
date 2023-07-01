@@ -40,7 +40,7 @@ internal class RazorFormattingService : IRazorFormattingService
         FormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync();
+        var codeDocument = await documentContext.Snapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
 
         // Range formatting happens on every paste, and if there are Razor diagnostics in the file
         // that can make some very bad results. eg, given:
@@ -72,7 +72,7 @@ internal class RazorFormattingService : IRazorFormattingService
         foreach (var pass in _formattingPasses)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            result = await pass.ExecuteAsync(context, result, cancellationToken);
+            result = await pass.ExecuteAsync(context, result, cancellationToken).ConfigureAwait(false);
         }
 
         var filteredEdits = range is null
@@ -150,7 +150,7 @@ internal class RazorFormattingService : IRazorFormattingService
 
         var documentSnapshot = documentContext.Snapshot;
         var uri = documentContext.Identifier.Uri;
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync();
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync().ConfigureAwait(false);
         using var context = FormattingContext.CreateForOnTypeFormatting(uri, documentSnapshot, codeDocument, options, _workspaceFactory, automaticallyAddUsings: automaticallyAddUsings, hostDocumentIndex, triggerCharacter);
         var result = new FormattingResult(formattedEdits, kind);
 
@@ -162,7 +162,7 @@ internal class RazorFormattingService : IRazorFormattingService
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            result = await pass.ExecuteAsync(context, result, cancellationToken);
+            result = await pass.ExecuteAsync(context, result, cancellationToken).ConfigureAwait(false);
         }
 
         var originalText = context.SourceText;
@@ -171,7 +171,9 @@ internal class RazorFormattingService : IRazorFormattingService
         if (collapseEdits)
         {
             var collapsedEdit = MergeEdits(edits, originalText);
-            if (collapsedEdit.NewText.Length == 0)
+            if (collapsedEdit.NewText.Length == 0 &&
+                collapsedEdit.Range.Start.Line == collapsedEdit.Range.End.Line &&
+                collapsedEdit.Range.Start.Character == collapsedEdit.Range.End.Character)
             {
                 return Array.Empty<TextEdit>();
             }

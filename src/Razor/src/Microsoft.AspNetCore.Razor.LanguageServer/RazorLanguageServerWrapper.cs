@@ -2,13 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
+using Microsoft.AspNetCore.Razor.Serialization.Converters;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Serialization;
@@ -41,9 +41,16 @@ internal sealed class RazorLanguageServerWrapper : IDisposable
         ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher = null,
         Action<IServiceCollection>? configure = null,
         LanguageServerFeatureOptions? featureOptions = null,
-        RazorLSPOptions? razorLSPOptions = null)
+        RazorLSPOptions? razorLSPOptions = null,
+        TraceSource? traceSource = null)
     {
         var jsonRpc = CreateJsonRpc(input, output);
+
+        // This ensures each request is a separate activity in loghub
+        jsonRpc.ActivityTracingStrategy = new CorrelationManagerTracingStrategy
+        {
+            TraceSource = traceSource
+        };
 
         var server = new RazorLanguageServer(
             jsonRpc,

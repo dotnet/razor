@@ -2,8 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -19,8 +17,10 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
     private readonly bool? _singleServerCompletionSupport;
     private readonly bool? _singleServerSupport;
     private readonly bool? _supportsDelegatedCodeActions;
+    private readonly bool? _supportsDelegatedDiagnostics;
     private readonly bool? _returnCodeActionAndRenamePathsWithPrefixedSlash;
     private readonly bool? _showAllCSharpCodeActions;
+    private readonly bool? _updateBuffersForClosedDocuments;
 
     public override bool SupportsFileManipulation => _supportsFileManipulation ?? _defaults.SupportsFileManipulation;
     public override string ProjectConfigurationFileName => _projectConfigurationFileName ?? _defaults.ProjectConfigurationFileName;
@@ -29,8 +29,10 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
     public override bool SingleServerCompletionSupport => _singleServerCompletionSupport ?? _defaults.SingleServerCompletionSupport;
     public override bool SingleServerSupport => _singleServerSupport ?? _defaults.SingleServerSupport;
     public override bool SupportsDelegatedCodeActions => _supportsDelegatedCodeActions ?? _defaults.SupportsDelegatedCodeActions;
+    public override bool SupportsDelegatedDiagnostics => _supportsDelegatedDiagnostics ?? _defaults.SupportsDelegatedDiagnostics;
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => _returnCodeActionAndRenamePathsWithPrefixedSlash ?? _defaults.ReturnCodeActionAndRenamePathsWithPrefixedSlash;
     public override bool ShowAllCSharpCodeActions => _showAllCSharpCodeActions ?? _defaults.ShowAllCSharpCodeActions;
+    public override bool UpdateBuffersForClosedDocuments => _updateBuffersForClosedDocuments ?? _defaults.UpdateBuffersForClosedDocuments;
 
     public ConfigurableLanguageServerFeatureOptions(string[] args)
     {
@@ -48,8 +50,10 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
             TryProcessBoolOption(nameof(SingleServerCompletionSupport), ref _singleServerCompletionSupport, option, args, i);
             TryProcessBoolOption(nameof(SingleServerSupport), ref _singleServerSupport, option, args, i);
             TryProcessBoolOption(nameof(SupportsDelegatedCodeActions), ref _supportsDelegatedCodeActions, option, args, i);
+            TryProcessBoolOption(nameof(SupportsDelegatedDiagnostics), ref _supportsDelegatedDiagnostics, option, args, i);
             TryProcessBoolOption(nameof(ReturnCodeActionAndRenamePathsWithPrefixedSlash), ref _returnCodeActionAndRenamePathsWithPrefixedSlash, option, args, i);
             TryProcessBoolOption(nameof(ShowAllCSharpCodeActions), ref _showAllCSharpCodeActions, option, args, i);
+            TryProcessBoolOption(nameof(UpdateBuffersForClosedDocuments), ref _updateBuffersForClosedDocuments, option, args, i);
         }
     }
 

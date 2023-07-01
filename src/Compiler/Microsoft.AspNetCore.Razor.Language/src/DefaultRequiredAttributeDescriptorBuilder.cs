@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
 using static Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor;
@@ -29,7 +30,7 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
     [AllowNull]
     private DefaultTagMatchingRuleDescriptorBuilder _parent;
     private RazorDiagnosticCollection? _diagnostics;
-    private Dictionary<string, string>? _metadata;
+    private MetadataHolder _metadata;
 
     private DefaultRequiredAttributeDescriptorBuilder()
     {
@@ -45,11 +46,16 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
     public override string? Value { get; set; }
     public override ValueComparisonMode ValueComparisonMode { get; set; }
 
+    internal bool CaseSensitive => _parent.CaseSensitive;
+
     public override RazorDiagnosticCollection Diagnostics => _diagnostics ??= new RazorDiagnosticCollection();
 
-    public override IDictionary<string, string> Metadata => _metadata ??= new Dictionary<string, string>();
+    public override IDictionary<string, string?> Metadata => _metadata.MetadataDictionary;
 
-    internal bool CaseSensitive => _parent.CaseSensitive;
+    public override void SetMetadata(MetadataCollection metadata) => _metadata.SetMetadataCollection(metadata);
+
+    public override bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
+        => _metadata.TryGetMetadataValue(key, out value);
 
     public RequiredAttributeDescriptor Build()
     {
@@ -61,6 +67,7 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
             diagnostics.UnionWith(_diagnostics);
 
             var displayName = GetDisplayName();
+            var metadata = _metadata.GetMetadataCollection();
 
             var descriptor = new DefaultRequiredAttributeDescriptor(
                 Name,
@@ -70,7 +77,7 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
                 ValueComparisonMode,
                 displayName,
                 diagnostics.ToArray(),
-                MetadataCollection.CreateOrEmpty(_metadata));
+                metadata);
 
             return descriptor;
         }
@@ -85,6 +92,10 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
         return (NameComparisonMode == NameComparisonMode.PrefixMatch ? string.Concat(Name, "...") : Name) ?? string.Empty;
     }
 
+    private bool IsDirectiveAttribute()
+        => TryGetMetadataValue(ComponentMetadata.Common.DirectiveAttribute, out var value) &&
+           value == bool.TrueString;
+
     private void Validate(ref PooledHashSet<RazorDiagnostic> diagnostics)
     {
         if (Name.IsNullOrWhiteSpace())
@@ -95,11 +106,11 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
         }
         else
         {
-            var name = new StringSegment(Name);
-            var isDirectiveAttribute = this.IsDirectiveAttribute();
-            if (isDirectiveAttribute && name.StartsWith("@", StringComparison.Ordinal))
+            var name = Name.AsSpan();
+            var isDirectiveAttribute = IsDirectiveAttribute();
+            if (isDirectiveAttribute && name[0] == '@')
             {
-                name = name.Subsegment(1);
+                name = name[1..];
             }
             else if (isDirectiveAttribute)
             {
@@ -108,12 +119,11 @@ internal partial class DefaultRequiredAttributeDescriptorBuilder : RequiredAttri
                 diagnostics.Add(diagnostic);
             }
 
-            for (var i = 0; i < name.Length; i++)
+            foreach (var ch in name)
             {
-                var character = name[i];
-                if (char.IsWhiteSpace(character) || HtmlConventions.IsInvalidNonWhitespaceHtmlCharacters(character))
+                if (char.IsWhiteSpace(ch) || HtmlConventions.IsInvalidNonWhitespaceHtmlCharacters(ch))
                 {
-                    var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidTargetedAttributeName(Name, character);
+                    var diagnostic = RazorDiagnosticFactory.CreateTagHelper_InvalidTargetedAttributeName(Name, ch);
 
                     diagnostics.Add(diagnostic);
                 }

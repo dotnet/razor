@@ -16,7 +16,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization;
 
-public class CompletionListSerializationBenchmark : TagHelperBenchmarkBase
+public class CompletionListSerializationBenchmark
 {
     private readonly byte[] _completionListBuffer;
 
@@ -81,7 +81,7 @@ public class CompletionListSerializationBenchmark : TagHelperBenchmarkBase
     {
         var sourceDocument = RazorSourceDocument.Create(documentContent, RazorSourceDocumentProperties.Default);
         var syntaxTree = RazorSyntaxTree.Parse(sourceDocument);
-        var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, DefaultTagHelpers);
+        var tagHelperDocumentContext = TagHelperDocumentContext.Create(prefix: string.Empty, CommonResources.LegacyTagHelpers);
 
         var queryableChange = new SourceChange(queryIndex, length: 0, newText: string.Empty);
         var owner = syntaxTree.Root.LocateOwner(queryableChange);

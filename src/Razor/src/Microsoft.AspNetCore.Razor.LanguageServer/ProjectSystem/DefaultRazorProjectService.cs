@@ -10,7 +10,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Serialization;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -188,8 +190,21 @@ internal class DefaultRazorProjectService : RazorProjectService
         }
 
         var defaultProject = (ProjectSnapshot)projectSnapshot;
-        _logger.LogInformation("Removing document '{textDocumentPath}' from project '{projectSnapshotFilePath}'.", textDocumentPath, projectSnapshot.FilePath);
-        _projectSnapshotManagerAccessor.Instance.DocumentRemoved(defaultProject.HostProject, documentSnapshot.State.HostDocument);
+
+        // If the document is open, we can't remove it, because we could still get a request for it, and that
+        // request would fail. Instead we move it to the miscellaneous project, just like if we got notified of
+        // a remove via the project.razor.json
+        if (_projectSnapshotManagerAccessor.Instance.IsDocumentOpen(textDocumentPath))
+        {
+            _logger.LogInformation("Moving document '{textDocumentPath}' from project '{projectSnapshotFilePath}' to misc files because it is open.", textDocumentPath, projectSnapshot.FilePath);
+            var miscellaneousProject = (ProjectSnapshot)_projectResolver.GetMiscellaneousProject();
+            MoveDocument(textDocumentPath, defaultProject, miscellaneousProject);
+        }
+        else
+        {
+            _logger.LogInformation("Removing document '{textDocumentPath}' from project '{projectSnapshotFilePath}'.", textDocumentPath, projectSnapshot.FilePath);
+            _projectSnapshotManagerAccessor.Instance.DocumentRemoved(defaultProject.HostProject, documentSnapshot.State.HostDocument);
+        }
     }
 
     public override void UpdateDocument(string filePath, SourceText sourceText, int version)
@@ -273,7 +288,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
         {
             _logger.LogInformation("Updating project '{filePath}' TagHelpers ({projectWorkspaceState.TagHelpers.Count}) and C# Language Version ({projectWorkspaceState.CSharpLanguageVersion}).",
-                filePath, projectWorkspaceState.TagHelpers.Count, projectWorkspaceState.CSharpLanguageVersion);
+                filePath, projectWorkspaceState.TagHelpers.Length, projectWorkspaceState.CSharpLanguageVersion);
         }
 
         _projectSnapshotManagerAccessor.Instance.ProjectWorkspaceStateChanged(project.FilePath, projectWorkspaceState);
@@ -511,8 +526,8 @@ internal class DefaultRazorProjectService : RazorProjectService
            LoadTextOptions options,
            CancellationToken cancellationToken)
         {
-            var sourceText = await _fromDocument.GetTextAsync();
-            var version = await _fromDocument.GetTextVersionAsync();
+            var sourceText = await _fromDocument.GetTextAsync().ConfigureAwait(false);
+            var version = await _fromDocument.GetTextVersionAsync().ConfigureAwait(false);
             var textAndVersion = TextAndVersion.Create(sourceText, version.GetNewerVersion());
             return textAndVersion;
         }

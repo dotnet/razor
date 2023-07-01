@@ -11,10 +11,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Razor;
@@ -152,40 +153,6 @@ internal class FormattingLanguageServerClient : ClientNotifierServiceBase
         return response;
     }
 
-    private RazorDocumentFormattingResponse Format(RazorDocumentRangeFormattingParams @params)
-    {
-        if (@params.Kind == RazorLanguageKind.Razor)
-        {
-            throw new InvalidOperationException("We shouldn't be asked to format Razor language kind.");
-        }
-
-        var options = @params.Options;
-        var response = new RazorDocumentFormattingResponse();
-
-        if (@params.Kind == RazorLanguageKind.CSharp)
-        {
-            var codeDocument = _documents[@params.HostDocumentFilePath];
-            var csharpSourceText = codeDocument.GetCSharpSourceText();
-            var csharpDocument = GetCSharpDocument(codeDocument, @params.Options);
-            if (!csharpDocument.TryGetSyntaxRoot(out var root))
-            {
-                throw new InvalidOperationException("Couldn't get syntax root.");
-            }
-
-            var spanToFormat = @params.ProjectedRange.AsTextSpan(csharpSourceText);
-
-            var changes = Formatter.GetFormattedTextChanges(root, spanToFormat, csharpDocument.Project.Solution.Workspace);
-
-            response.Edits = changes.Select(c => c.AsTextEdit(csharpSourceText)).ToArray();
-        }
-        else
-        {
-            throw new InvalidOperationException($"We shouldn't be asked to format {@params.Kind} language kind.");
-        }
-
-        return response;
-    }
-
     private struct HtmlFormatterTextEdit
     {
 #pragma warning disable CS0649 // Field 'name' is never assigned to, and will always have its default value
@@ -213,39 +180,17 @@ internal class FormattingLanguageServerClient : ClientNotifierServiceBase
         }
     }
 
-    private static Document GetCSharpDocument(RazorCodeDocument codeDocument, FormattingOptions options)
-    {
-        var adhocWorkspace = new AdhocWorkspace();
-        var csharpOptions = adhocWorkspace.Options
-            .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.TabSize, LanguageNames.CSharp, (int)options.TabSize)
-            .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.IndentationSize, LanguageNames.CSharp, (int)options.TabSize)
-            .WithChangedOption(CodeAnalysis.Formatting.FormattingOptions.UseTabs, LanguageNames.CSharp, !options.InsertSpaces);
-        adhocWorkspace.TryApplyChanges(adhocWorkspace.CurrentSolution.WithOptions(csharpOptions));
-
-        var project = adhocWorkspace.AddProject("TestProject", LanguageNames.CSharp);
-        var csharpSourceText = codeDocument.GetCSharpSourceText();
-        var csharpDocument = adhocWorkspace.AddDocument(project.Id, "TestDocument", csharpSourceText);
-        return csharpDocument;
-    }
-
     public override Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
     {
-        if (@params is RazorDocumentRangeFormattingParams rangeFormattingParams &&
-           string.Equals(method, "razor/rangeFormatting", StringComparison.Ordinal))
-        {
-            var response = Format(rangeFormattingParams);
-
-            return Task.FromResult(Convert<TResponse>(response));
-        }
-        else if (@params is DocumentFormattingParams formattingParams &&
-            string.Equals(method, "textDocument/formatting", StringComparison.Ordinal))
+        if (@params is DocumentFormattingParams formattingParams &&
+            string.Equals(method, RazorLanguageServerCustomMessageTargets.RazorHtmlFormattingEndpoint, StringComparison.Ordinal))
         {
             var response = Format(formattingParams);
 
             return Task.FromResult(Convert<TResponse>(response));
         }
         else if (@params is DocumentOnTypeFormattingParams onTypeFormattingParams &&
-            string.Equals(method, "textDocument/onTypeFormatting", StringComparison.Ordinal))
+            string.Equals(method, RazorLanguageServerCustomMessageTargets.RazorHtmlOnTypeFormattingEndpoint, StringComparison.Ordinal))
         {
             var response = Format(onTypeFormattingParams);
 

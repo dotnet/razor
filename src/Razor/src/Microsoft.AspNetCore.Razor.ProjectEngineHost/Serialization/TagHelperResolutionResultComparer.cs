@@ -7,9 +7,9 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.Extensions.Internal;
 
-namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+namespace Microsoft.AspNetCore.Razor.Serialization;
 
-internal sealed class TagHelperResolutionResultComparer : IEqualityComparer<TagHelperResolutionResult>
+internal sealed class TagHelperResolutionResultComparer : IEqualityComparer<TagHelperResolutionResult?>
 {
     internal static readonly TagHelperResolutionResultComparer Default = new();
 
@@ -24,28 +24,21 @@ internal sealed class TagHelperResolutionResultComparer : IEqualityComparer<TagH
             return false;
         }
 
-        return x.Descriptors.AssumeNotNull().SequenceEqual(y.Descriptors.AssumeNotNull(), TagHelperDescriptorComparer.Default) &&
-               x.Diagnostics.AssumeNotNull().SequenceEqual(y.Diagnostics.AssumeNotNull());
+        return x.Descriptors.SequenceEqual(y.Descriptors, TagHelperDescriptorComparer.Default);
     }
 
-    public int GetHashCode(TagHelperResolutionResult obj)
+    public int GetHashCode(TagHelperResolutionResult? obj)
     {
-        var hash = new HashCodeCombiner();
-
-        if (obj.Descriptors is not null)
+        if (obj is null)
         {
-            foreach (var descriptor in obj.Descriptors)
-            {
-                hash.Add(descriptor);
-            }
+            return 0;
         }
 
-        if (obj.Diagnostics is not null)
+        var hash = HashCodeCombiner.Start();
+
+        foreach (var descriptor in obj.Descriptors)
         {
-            for (var i = 0; i < obj.Diagnostics.Count; i++)
-            {
-                hash.Add(obj.Diagnostics[i]);
-            }
+            hash.Add(descriptor);
         }
 
         return hash.CombinedHash;

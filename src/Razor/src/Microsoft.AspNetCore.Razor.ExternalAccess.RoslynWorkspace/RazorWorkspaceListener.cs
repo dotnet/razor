@@ -1,25 +1,25 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Runtime.InteropServices;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
 
 public class RazorWorkspaceListener : IDisposable
 {
-    private static readonly TimeSpan s_debounceTime = TimeSpan.FromMilliseconds(100);
+    private static readonly TimeSpan s_debounceTime = TimeSpan.FromMilliseconds(500);
+
+    private readonly ILogger _logger;
 
     private string? _projectRazorJsonFileName;
-    private readonly Dictionary<string, TaskDelayScheduler> _workQueues;
-    private readonly object _gate = new();
+    private Workspace? _workspace;
+    private ImmutableDictionary<ProjectId, TaskDelayScheduler> _workQueues = ImmutableDictionary<ProjectId, TaskDelayScheduler>.Empty;
 
-    public RazorWorkspaceListener()
+    public RazorWorkspaceListener(ILoggerFactory loggerFactory)
     {
-        var comparer = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-            ? StringComparer.Ordinal
-            : StringComparer.OrdinalIgnoreCase;
-        _workQueues = new Dictionary<string, TaskDelayScheduler>(comparer);
+        _logger = loggerFactory.CreateLogger(nameof(RazorWorkspaceListener));
     }
 
     public void EnsureInitialized(Workspace workspace, string projectRazorJsonFileName)
@@ -31,28 +31,67 @@ public class RazorWorkspaceListener : IDisposable
         }
 
         _projectRazorJsonFileName = projectRazorJsonFileName;
-        workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
+        _workspace = workspace;
+        _workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
+    }
+
+    public void NotifyDynamicFile(ProjectId projectId)
+    {
+        // Since there is no "un-notify" API to indicate that callers no longer care about a project, it's entirely
+        // possible that by the time we get notified, a project might have been removed from the workspace. Whilst
+        // that wouldn't cause any issues we may as well avoid creating a task scheduler.
+        if (_workspace is null || !_workspace.CurrentSolution.ContainsProject(projectId))
+        {
+            return;
+        }
+
+        // We expect this to be called multiple times per project so a no-op update operation seems like a better choice
+        // than constructing a new TaskDelayScheduler each time, and using the TryAdd method, which doesn't support a
+        // valueFactory argument.
+        var scheduler = ImmutableInterlocked.AddOrUpdate(ref _workQueues, projectId, static _ => new TaskDelayScheduler(s_debounceTime, CancellationToken.None), static (_, val) => val);
+
+        // Schedule a task, in case adding a dynamic file is the last thing that happens
+        _logger.LogTrace("{projectId} scheduling task due to dynamic file", projectId);
+        scheduler.ScheduleAsyncTask(ct => SerializeProjectAsync(projectId, ct), CancellationToken.None);
     }
 
     private void Workspace_WorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
     {
         switch (e.Kind)
         {
-            case WorkspaceChangeKind.SolutionAdded:
             case WorkspaceChangeKind.SolutionChanged:
             case WorkspaceChangeKind.SolutionReloaded:
+                foreach (var project in e.OldSolution.Projects)
+                {
+                    RemoveProject(project);
+                }
+
                 foreach (var project in e.NewSolution.Projects)
                 {
                     EnqueueUpdate(project);
                 }
 
                 break;
+
+            case WorkspaceChangeKind.SolutionAdded:
+                foreach (var project in e.NewSolution.Projects)
+                {
+                    EnqueueUpdate(project);
+                }
+
+                break;
+
             case WorkspaceChangeKind.ProjectRemoved:
                 RemoveProject(e.OldSolution.GetProject(e.ProjectId));
                 break;
+
+            case WorkspaceChangeKind.ProjectReloaded:
+                RemoveProject(e.OldSolution.GetProject(e.ProjectId));
+                EnqueueUpdate(e.NewSolution.GetProject(e.ProjectId));
+                break;
+
             case WorkspaceChangeKind.ProjectAdded:
             case WorkspaceChangeKind.ProjectChanged:
-            case WorkspaceChangeKind.ProjectReloaded:
             case WorkspaceChangeKind.DocumentAdded:
             case WorkspaceChangeKind.DocumentRemoved:
             case WorkspaceChangeKind.DocumentReloaded:
@@ -66,7 +105,12 @@ public class RazorWorkspaceListener : IDisposable
             case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
             case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
             case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
-                EnqueueUpdate(e.NewSolution.GetProject(e.ProjectId));
+                var projectId = e.ProjectId ?? e.DocumentId?.ProjectId;
+                if (projectId is not null)
+                {
+                    EnqueueUpdate(e.NewSolution.GetProject(projectId));
+                }
+
                 break;
             case WorkspaceChangeKind.SolutionCleared:
             case WorkspaceChangeKind.SolutionRemoved:
@@ -83,21 +127,15 @@ public class RazorWorkspaceListener : IDisposable
 
     private void RemoveProject(Project? project)
     {
-        if (project?.FilePath is null)
+        if (project is null)
         {
             return;
         }
 
-        TaskDelayScheduler? scheduler;
-        lock (_gate)
+        if (ImmutableInterlocked.TryRemove(ref _workQueues, project.Id, out var scheduler))
         {
-            if (_workQueues.TryGetValue(project.FilePath, out scheduler))
-            {
-                _workQueues.Remove(project.FilePath);
-            }
+            scheduler.Dispose();
         }
-
-        scheduler?.Dispose();
     }
 
     private void EnqueueUpdate(Project? project)
@@ -105,33 +143,50 @@ public class RazorWorkspaceListener : IDisposable
         if (_projectRazorJsonFileName is null ||
             project is not
             {
-                FilePath: not null,
                 Language: LanguageNames.CSharp
             })
         {
             return;
         }
 
-        TaskDelayScheduler? scheduler;
-        lock (_gate)
+        var projectId = project.Id;
+        if (_workQueues.TryGetValue(projectId, out var scheduler))
         {
-            if (!_workQueues.TryGetValue(project.FilePath, out scheduler))
-            {
-                scheduler = new TaskDelayScheduler(s_debounceTime, CancellationToken.None);
-            }
+            _logger.LogTrace("{projectId} scheduling task due to workspace event", projectId);
+
+            scheduler.ScheduleAsyncTask(ct => SerializeProjectAsync(projectId, ct), CancellationToken.None);
+        }
+    }
+
+    // Protected for testing
+    protected virtual Task SerializeProjectAsync(ProjectId projectId, CancellationToken ct)
+    {
+        if (_projectRazorJsonFileName is null || _workspace is null)
+        {
+            return Task.CompletedTask;
         }
 
-        scheduler.ScheduleAsyncTask(ct => RazorProjectJsonSerializer.SerializeAsync(project, _projectRazorJsonFileName, ct), CancellationToken.None);
+        var project = _workspace.CurrentSolution.GetProject(projectId);
+        if (project is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        _logger.LogTrace("{projectId} writing json file", projectId);
+        return RazorProjectJsonSerializer.SerializeAsync(project, _projectRazorJsonFileName, ct);
     }
 
     public void Dispose()
     {
-        lock (_gate)
+        if (_workspace is not null)
         {
-            foreach (var (_, value) in _workQueues)
-            {
-                value.Dispose();
-            }
+            _workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
+        }
+
+        var queues = Interlocked.Exchange(ref _workQueues, ImmutableDictionary<ProjectId, TaskDelayScheduler>.Empty);
+        foreach (var (_, value) in queues)
+        {
+            value.Dispose();
         }
     }
 }

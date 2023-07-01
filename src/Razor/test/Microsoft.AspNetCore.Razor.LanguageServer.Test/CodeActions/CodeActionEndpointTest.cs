@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -25,15 +23,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
 public class CodeActionEndpointTest : LanguageServerTestBase
 {
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly ClientNotifierServiceBase _languageServer;
 
     public CodeActionEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _documentMappingService = Mock.Of<RazorDocumentMappingService>(
-            s => s.TryMapToProjectedDocumentRange(
+        _documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+            s => s.TryMapToGeneratedDocumentRange(
                 It.IsAny<IRazorGeneratedDocument>(),
                 It.IsAny<Range>(),
                 out It.Ref<Range?>.IsAny) == false &&
@@ -56,11 +54,12 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var documentPath = new Uri("C:/path/to/Page.razor");
         var codeActionEndpoint = new CodeActionEndpoint(
             _documentMappingService,
-            Array.Empty<RazorCodeActionProvider>(),
-            Array.Empty<CSharpCodeActionProvider>(),
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<IRazorCodeActionProvider>(),
+            Array.Empty<ICSharpCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -90,11 +89,12 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         codeDocument.SetUnsupported();
         var codeActionEndpoint = new CodeActionEndpoint(
             _documentMappingService,
-            Array.Empty<RazorCodeActionProvider>(),
-            Array.Empty<CSharpCodeActionProvider>(),
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<IRazorCodeActionProvider>(),
+            Array.Empty<ICSharpCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -122,11 +122,12 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var codeActionEndpoint = new CodeActionEndpoint(
             _documentMappingService,
-            Array.Empty<RazorCodeActionProvider>(),
-            Array.Empty<CSharpCodeActionProvider>(),
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<IRazorCodeActionProvider>(),
+            Array.Empty<ICSharpCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -154,13 +155,14 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var codeActionEndpoint = new CodeActionEndpoint(
             _documentMappingService,
-            new RazorCodeActionProvider[] {
+            new IRazorCodeActionProvider[] {
                     new MockRazorCodeActionProvider()
             },
-            Array.Empty<CSharpCodeActionProvider>(),
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<ICSharpCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -192,13 +194,14 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var languageServer = CreateLanguageServer();
         var codeActionEndpoint = new CodeActionEndpoint(
             documentMappingService,
-            Array.Empty<RazorCodeActionProvider>(),
-            new CSharpCodeActionProvider[] {
+            Array.Empty<IRazorCodeActionProvider>(),
+            new ICSharpCodeActionProvider[] {
                     new MockCSharpCodeActionProvider()
             },
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -228,13 +231,14 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var codeActionEndpoint = new CodeActionEndpoint(
             _documentMappingService,
-            new RazorCodeActionProvider[] {
+            new IRazorCodeActionProvider[] {
                     new MockMultipleRazorCodeActionProvider(),
             },
-            Array.Empty<CSharpCodeActionProvider>(),
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<ICSharpCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -266,18 +270,19 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var languageServer = CreateLanguageServer();
         var codeActionEndpoint = new CodeActionEndpoint(
             documentMappingService,
-            new RazorCodeActionProvider[] {
+            new IRazorCodeActionProvider[] {
                     new MockMultipleRazorCodeActionProvider(),
                     new MockMultipleRazorCodeActionProvider(),
                     new MockRazorCodeActionProvider(),
             },
-            new CSharpCodeActionProvider[] {
+            new ICSharpCodeActionProvider[] {
                     new MockCSharpCodeActionProvider(),
                     new MockCSharpCodeActionProvider()
             },
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -309,18 +314,19 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var languageServer = CreateLanguageServer();
         var codeActionEndpoint = new CodeActionEndpoint(
             documentMappingService,
-            new RazorCodeActionProvider[] {
+            new IRazorCodeActionProvider[] {
                     new MockRazorCodeActionProvider(),
                     new MockRazorCodeActionProvider(),
                     new MockRazorCodeActionProvider(),
             },
-            new CSharpCodeActionProvider[] {
+            new ICSharpCodeActionProvider[] {
                     new MockCSharpCodeActionProvider(),
                     new MockCSharpCodeActionProvider()
             },
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -350,13 +356,14 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var codeActionEndpoint = new CodeActionEndpoint(
             _documentMappingService,
-            new RazorCodeActionProvider[] {
+            new IRazorCodeActionProvider[] {
                     new MockNullRazorCodeActionProvider()
             },
-            Array.Empty<CSharpCodeActionProvider>(),
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<ICSharpCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -387,19 +394,20 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var languageServer = CreateLanguageServer();
         var codeActionEndpoint = new CodeActionEndpoint(
             documentMappingService,
-            new RazorCodeActionProvider[] {
+            new IRazorCodeActionProvider[] {
                     new MockRazorCodeActionProvider(),
                     new MockNullRazorCodeActionProvider(),
                     new MockRazorCodeActionProvider(),
                     new MockNullRazorCodeActionProvider(),
             },
-            new CSharpCodeActionProvider[] {
+            new ICSharpCodeActionProvider[] {
                     new MockCSharpCodeActionProvider(),
                     new MockCSharpCodeActionProvider()
             },
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -429,15 +437,16 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var codeActionEndpoint = new CodeActionEndpoint(
             _documentMappingService,
-            new RazorCodeActionProvider[] {
+            new IRazorCodeActionProvider[] {
                     new MockRazorCodeActionProvider(),
                     new MockRazorCommandProvider(),
                     new MockNullRazorCodeActionProvider()
             },
-            Array.Empty<CSharpCodeActionProvider>(),
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<ICSharpCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = true
         };
@@ -477,15 +486,16 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var codeActionEndpoint = new CodeActionEndpoint(
             _documentMappingService,
-            new RazorCodeActionProvider[] {
+            new IRazorCodeActionProvider[] {
                     new MockRazorCodeActionProvider(),
                     new MockRazorCommandProvider(),
                     new MockNullRazorCodeActionProvider()
             },
-            Array.Empty<CSharpCodeActionProvider>(),
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<ICSharpCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -525,13 +535,14 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var codeActionEndpoint = new CodeActionEndpoint(
             _documentMappingService,
-            new RazorCodeActionProvider[] {
+            new IRazorCodeActionProvider[] {
                     new MockRazorCodeActionProvider()
             },
-            Array.Empty<CSharpCodeActionProvider>(),
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<ICSharpCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -565,13 +576,14 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var codeActionEndpoint = new CodeActionEndpoint(
             _documentMappingService,
-            new RazorCodeActionProvider[] {
+            new IRazorCodeActionProvider[] {
                     new MockRazorCodeActionProvider()
             },
-            Array.Empty<CSharpCodeActionProvider>(),
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<ICSharpCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -603,18 +615,19 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument("@code {}");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         Range? projectedRange = null;
-        var documentMappingService = Mock.Of<DefaultRazorDocumentMappingService>(
-            d => d.TryMapToProjectedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<Range>(), out projectedRange) == false
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+            d => d.TryMapToGeneratedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<Range>(), out projectedRange) == false
         , MockBehavior.Strict);
         var codeActionEndpoint = new CodeActionEndpoint(
             documentMappingService,
-            Array.Empty<RazorCodeActionProvider>(),
-            new CSharpCodeActionProvider[] {
+            Array.Empty<IRazorCodeActionProvider>(),
+            new ICSharpCodeActionProvider[] {
                     new MockCSharpCodeActionProvider()
             },
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             _languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -631,7 +644,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         Assert.NotNull(context);
 
         // Act
-        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Logger, default);
+        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Guid.Empty, Logger, cancellationToken: default);
 
         // Assert
         Assert.Empty(results);
@@ -650,13 +663,14 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         var languageServer = CreateLanguageServer();
         var codeActionEndpoint = new CodeActionEndpoint(
             documentMappingService,
-            Array.Empty<RazorCodeActionProvider>(),
-            new CSharpCodeActionProvider[] {
+            Array.Empty<IRazorCodeActionProvider>(),
+            new ICSharpCodeActionProvider[] {
                     new MockCSharpCodeActionProvider()
             },
-            Array.Empty<HtmlCodeActionProvider>(),
+            Array.Empty<IHtmlCodeActionProvider>(),
             languageServer,
-            _languageServerFeatureOptions)
+            _languageServerFeatureOptions,
+            telemetryReporter: null)
         {
             _supportsCodeActionResolve = false
         };
@@ -676,7 +690,7 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         Assert.NotNull(context);
 
         // Act
-        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Logger, default);
+        var results = await codeActionEndpoint.GetCodeActionsFromLanguageServerAsync(RazorLanguageKind.CSharp, documentContext, context, Guid.Empty, Logger, cancellationToken: default);
 
         // Assert
         var result = Assert.Single(results);
@@ -693,11 +707,11 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         Assert.Equal(projectedRange, diagnostics[1].Range);
     }
 
-    private static DefaultRazorDocumentMappingService CreateDocumentMappingService(Range? projectedRange = null)
+    private static IRazorDocumentMappingService CreateDocumentMappingService(Range? projectedRange = null)
     {
         projectedRange ??= new Range { Start = new Position(5, 2), End = new Position(5, 2) };
-        var documentMappingService = Mock.Of<DefaultRazorDocumentMappingService>(
-            d => d.TryMapToProjectedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<Range>(), out projectedRange) == true &&
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+            d => d.TryMapToGeneratedDocumentRange(It.IsAny<IRazorGeneratedDocument>(), It.IsAny<Range>(), out projectedRange) == true &&
                  d.GetLanguageKind(It.IsAny<RazorCodeDocument>(), It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp
         , MockBehavior.Strict);
         return documentMappingService;
@@ -717,17 +731,17 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         return codeDocument;
     }
 
-    private class MockRazorCodeActionProvider : RazorCodeActionProvider
+    private class MockRazorCodeActionProvider : IRazorCodeActionProvider
     {
-        public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(new List<RazorVSInternalCodeAction>() { new RazorVSInternalCodeAction() });
         }
     }
 
-    private class MockMultipleRazorCodeActionProvider : RazorCodeActionProvider
+    private class MockMultipleRazorCodeActionProvider : IRazorCodeActionProvider
     {
-        public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(new List<RazorVSInternalCodeAction>()
                 {
@@ -737,9 +751,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         }
     }
 
-    private class MockCSharpCodeActionProvider : CSharpCodeActionProvider
+    private class MockCSharpCodeActionProvider : ICSharpCodeActionProvider
     {
-        public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, IEnumerable<RazorVSInternalCodeAction> codeActions, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, IEnumerable<RazorVSInternalCodeAction> codeActions, CancellationToken cancellationToken)
         {
             return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(new List<RazorVSInternalCodeAction>()
                 {
@@ -748,9 +762,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         }
     }
 
-    private class MockRazorCommandProvider : RazorCodeActionProvider
+    private class MockRazorCommandProvider : IRazorCodeActionProvider
     {
-        public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             // O# Code Actions don't have `Data`, but `Commands` do
             return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(new List<RazorVSInternalCodeAction>() {
@@ -766,9 +780,9 @@ public class CodeActionEndpointTest : LanguageServerTestBase
         }
     }
 
-    private class MockNullRazorCodeActionProvider : RazorCodeActionProvider
+    private class MockNullRazorCodeActionProvider : IRazorCodeActionProvider
     {
-        public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+        public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
         {
             return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(null);
         }

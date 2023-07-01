@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion.Delegation;
@@ -16,6 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 using Microsoft.AspNetCore.Razor.LanguageServer.InlineCompletion;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
+using Microsoft.AspNetCore.Razor.LanguageServer.SpellCheck;
 using Microsoft.AspNetCore.Razor.LanguageServer.Tooltip;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -130,23 +130,23 @@ internal static class IServiceCollectionExtensions
     public static void AddCodeActionsServices(this IServiceCollection services)
     {
         services.AddRegisteringHandler<CodeActionEndpoint>();
-        services.AddHandler<CodeActionResolutionEndpoint>();
+        services.AddHandler<CodeActionResolveEndpoint>();
 
         // CSharp Code actions
-        services.AddSingleton<CSharpCodeActionProvider, TypeAccessibilityCodeActionProvider>();
-        services.AddSingleton<CSharpCodeActionProvider, DefaultCSharpCodeActionProvider>();
+        services.AddSingleton<ICSharpCodeActionProvider, TypeAccessibilityCodeActionProvider>();
+        services.AddSingleton<ICSharpCodeActionProvider, DefaultCSharpCodeActionProvider>();
         services.AddSingleton<CSharpCodeActionResolver, DefaultCSharpCodeActionResolver>();
         services.AddSingleton<CSharpCodeActionResolver, UnformattedRemappingCSharpCodeActionResolver>();
 
         // Razor Code actions
-        services.AddSingleton<RazorCodeActionProvider, ExtractToCodeBehindCodeActionProvider>();
-        services.AddSingleton<RazorCodeActionResolver, ExtractToCodeBehindCodeActionResolver>();
-        services.AddSingleton<RazorCodeActionProvider, ComponentAccessibilityCodeActionProvider>();
-        services.AddSingleton<RazorCodeActionResolver, CreateComponentCodeActionResolver>();
-        services.AddSingleton<RazorCodeActionResolver, AddUsingsCodeActionResolver>();
+        services.AddSingleton<IRazorCodeActionProvider, ExtractToCodeBehindCodeActionProvider>();
+        services.AddSingleton<IRazorCodeActionResolver, ExtractToCodeBehindCodeActionResolver>();
+        services.AddSingleton<IRazorCodeActionProvider, ComponentAccessibilityCodeActionProvider>();
+        services.AddSingleton<IRazorCodeActionResolver, CreateComponentCodeActionResolver>();
+        services.AddSingleton<IRazorCodeActionResolver, AddUsingsCodeActionResolver>();
 
         // Html Code actions
-        services.AddSingleton<HtmlCodeActionProvider, DefaultHtmlCodeActionProvider>();
+        services.AddSingleton<IHtmlCodeActionProvider, DefaultHtmlCodeActionProvider>();
         services.AddSingleton<HtmlCodeActionResolver, DefaultHtmlCodeActionResolver>();
     }
 
@@ -154,6 +154,9 @@ internal static class IServiceCollectionExtensions
     {
         services.AddRegisteringHandler<TextDocumentTextPresentationEndpoint>();
         services.AddRegisteringHandler<TextDocumentUriPresentationEndpoint>();
+
+        services.AddRegisteringHandler<DocumentSpellCheckEndpoint>();
+        services.AddHandler<WorkspaceSpellCheckEndpoint>();
 
         services.AddRegisteringHandler<DocumentDidChangeEndpoint>();
         services.AddHandler<DocumentDidCloseEndpoint>();
@@ -193,7 +196,7 @@ internal static class IServiceCollectionExtensions
         services.AddSingleton<DocumentResolver, DefaultDocumentResolver>();
         services.AddSingleton<RazorProjectService, DefaultRazorProjectService>();
         services.AddSingleton<ProjectSnapshotChangeTrigger, OpenDocumentGenerator>();
-        services.AddSingleton<RazorDocumentMappingService, DefaultRazorDocumentMappingService>();
+        services.AddSingleton<IRazorDocumentMappingService, RazorDocumentMappingService>();
         services.AddSingleton<RazorFileChangeDetectorManager>();
 
         // File change listeners

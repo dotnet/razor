@@ -12,6 +12,7 @@ using System.Text;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -525,7 +526,12 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 // The value should be populated before we use it, because we emit code for creating ancestors
                 // first, and that's where it's populated. However if this goes wrong somehow, we don't want to
                 // throw, so use a fallback
-                context.CodeWriter.Write(syntheticArg.ValueExpression ?? "default");
+                var valueExpression = syntheticArg.ValueExpression ?? "default";
+                context.CodeWriter.Write(valueExpression);
+                if (!context.Options.SuppressNullabilityEnforcement && IsDefaultExpression(valueExpression))
+                {
+                    context.CodeWriter.Write("!");
+                }
                 break;
             case TypeInferenceCapturedVariable capturedVariable:
                 context.CodeWriter.Write(capturedVariable.VariableName);
@@ -545,6 +551,11 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         if (node == null)
         {
             throw new ArgumentNullException(nameof(node));
+        }
+
+        if (node.IsDesignTimePropertyAccessHelper())
+        {
+            return;
         }
 
         var addAttributeMethod = node.Annotations[ComponentMetadata.Common.AddAttributeMethodName] as string ?? AddComponentParameterMethodName;
@@ -639,7 +650,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 context.CodeWriter.Write(".");
                 context.CodeWriter.Write(ComponentsApi.EventCallbackFactory.CreateMethod);
 
-                if (isInferred != true && node.TryParseEventCallbackTypeArgument(out StringSegment argument))
+                if (isInferred != true && node.TryParseEventCallbackTypeArgument(out ReadOnlyMemory<char> argument))
                 {
                     context.CodeWriter.Write("<");
                     if (explicitType == true)
@@ -702,7 +713,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
             static void QualifyEventCallback(CodeWriter codeWriter, string typeName, bool? explicitType)
             {
-                if (ComponentAttributeIntermediateNode.TryGetEventCallbackArgument(typeName, out var argument))
+                if (ComponentAttributeIntermediateNode.TryGetEventCallbackArgument(typeName.AsMemory(), out var argument))
                 {
                     codeWriter.Write("global::");
                     codeWriter.Write(ComponentsApi.EventCallback.FullTypeName);
@@ -993,12 +1004,14 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
     private static string GetHtmlContent(HtmlContentIntermediateNode node)
     {
-        var builder = new StringBuilder();
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
         var htmlTokens = node.Children.OfType<IntermediateToken>().Where(t => t.IsHtml);
         foreach (var htmlToken in htmlTokens)
         {
             builder.Append(htmlToken.Content);
         }
+
         return builder.ToString();
     }
 

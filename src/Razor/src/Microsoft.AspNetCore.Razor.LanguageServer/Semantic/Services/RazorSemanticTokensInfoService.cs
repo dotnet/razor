@@ -22,13 +22,13 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 {
     private const int TokenSize = 5;
 
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly ILogger _logger;
 
     public RazorSemanticTokensInfoService(
         ClientNotifierServiceBase languageServer,
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ILoggerFactory loggerFactory)
     {
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
@@ -46,18 +46,20 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         TextDocumentIdentifier textDocumentIdentifier,
         Range range,
         VersionedDocumentContext documentContext,
+        RazorSemanticTokensLegend razorSemanticTokensLegend,
+        Guid correlationId,
         CancellationToken cancellationToken)
     {
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
-        var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range);
+        var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range, razorSemanticTokensLegend);
         List<SemanticRange>? csharpSemanticRanges = null;
 
         try
         {
             csharpSemanticRanges = await GetCSharpSemanticRangesAsync(
-                codeDocument, textDocumentIdentifier, range, documentContext.Version, cancellationToken).ConfigureAwait(false);
+                codeDocument, textDocumentIdentifier, range, documentContext.Version, correlationId, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -107,19 +109,20 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         TextDocumentIdentifier textDocumentIdentifier,
         Range razorRange,
         long documentVersion,
+        Guid correlationId,
         CancellationToken cancellationToken,
         string? previousResultId = null)
     {
         // We'll try to call into the mapping service to map to the projected range for us. If that doesn't work,
         // we'll try to find the minimal range ourselves.
-        if (!_documentMappingService.TryMapToProjectedDocumentRange(codeDocument.GetCSharpDocument(), razorRange, out var csharpRange) &&
+        if (!_documentMappingService.TryMapToGeneratedDocumentRange(codeDocument.GetCSharpDocument(), razorRange, out var csharpRange) &&
             !TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
         {
             // There's no C# in the range.
             return new List<SemanticRange>();
         }
 
-        var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, cancellationToken).ConfigureAwait(false);
+        var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, correlationId, cancellationToken).ConfigureAwait(false);
 
         // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
         // Unrecoverable, return default to indicate no change. We've already queued up a refresh request in
@@ -143,7 +146,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
             var semanticRange = DataToSemanticRange(
                 lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
-            if (_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), semanticRange.Range, out var originalRange))
+            if (_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), semanticRange.Range, out var originalRange))
             {
                 var razorSemanticRange = new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers);
                 if (razorRange is null || razorRange.OverlapsWith(razorSemanticRange.Range))
@@ -209,9 +212,10 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         TextDocumentIdentifier textDocumentIdentifier,
         long documentVersion,
         Range csharpRange,
+        Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var parameter = new ProvideSemanticTokensRangeParams(textDocumentIdentifier, documentVersion, csharpRange);
+        var parameter = new ProvideSemanticTokensRangeParams(textDocumentIdentifier, documentVersion, csharpRange, correlationId);
 
         var csharpResponse = await _languageServer.SendRequestAsync<ProvideSemanticTokensRangeParams, ProvideSemanticTokensResponse>(
             RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint,

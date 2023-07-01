@@ -32,7 +32,7 @@ public class HoverHandlerTest : HandlerTestBase
 {
     private readonly Uri _uri;
     private readonly TestDocumentManager _documentManager;
-    private readonly ServerCapabilities _hoverServerCapabilities;
+    private readonly VSInternalServerCapabilities _hoverServerCapabilities;
 
     public HoverHandlerTest(ITestOutputHelper testOutput)
         : base(testOutput)

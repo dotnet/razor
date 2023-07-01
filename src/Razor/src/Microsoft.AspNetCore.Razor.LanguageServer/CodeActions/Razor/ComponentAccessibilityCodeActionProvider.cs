@@ -16,14 +16,14 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost.Serialization;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvider
+internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActionProvider
 {
     private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult = Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(null);
 
@@ -34,7 +34,7 @@ internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvide
         _tagHelperFactsService = tagHelperFactsService ?? throw new ArgumentNullException(nameof(tagHelperFactsService));
     }
 
-    public override Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<RazorVSInternalCodeAction>?> ProvideAsync(RazorCodeActionContext context, CancellationToken cancellationToken)
     {
         using var _ = ListPool<RazorVSInternalCodeAction>.GetPooledObject(out var codeActions);
 
@@ -140,7 +140,7 @@ internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvide
 
             // if fqn contains a generic typeparam, we should strip it out. Otherwise, replacing tag name will leave generic parameters in razor code, which are illegal
             // e.g. <Component /> -> <Component<T> />
-            var fullyQualifiedName = DefaultRazorComponentSearchEngine.RemoveGenericContent(tagHelperPair._short.Name).ToString();
+            var fullyQualifiedName = DefaultRazorComponentSearchEngine.RemoveGenericContent(tagHelperPair._short.Name.AsMemory()).ToString();
 
             // Insert @using
             if (AddUsingsCodeActionProviderHelper.TryCreateAddUsingResolutionParams(fullyQualifiedName, context.Request.TextDocument.Uri, out var @namespace, out var resolutionParams))
@@ -177,7 +177,7 @@ internal class ComponentAccessibilityCodeActionProvider : RazorCodeActionProvide
 
         foreach (var tagHelper in context.DocumentSnapshot.Project.TagHelpers)
         {
-            if (tagHelper.TagMatchingRules.All(rule => TagHelperMatchingConventions.SatisfiesRule(tagName, parentTagName, attributes, rule)))
+            if (tagHelper.TagMatchingRules.All(rule => TagHelperMatchingConventions.SatisfiesRule(tagName.AsSpan(), parentTagName.AsSpan(), attributes, rule)))
             {
                 matching.Add(tagHelper.Name, new TagHelperPair(@short: tagHelper));
             }

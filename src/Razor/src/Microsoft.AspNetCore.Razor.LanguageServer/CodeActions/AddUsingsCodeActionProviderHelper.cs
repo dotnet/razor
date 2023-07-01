@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -36,8 +35,8 @@ internal static class AddUsingsCodeActionProviderHelper
         // So because of the above, we look for a difference in C# using directive nodes directly from the C# syntax tree, and apply them manually
         // to the Razor document.
 
-        var oldUsings = await FindUsingDirectiveStringsAsync(originalCSharpText, cancellationToken);
-        var newUsings = await FindUsingDirectiveStringsAsync(changedCSharpText, cancellationToken);
+        var oldUsings = await FindUsingDirectiveStringsAsync(originalCSharpText, cancellationToken).ConfigureAwait(false);
+        var newUsings = await FindUsingDirectiveStringsAsync(changedCSharpText, cancellationToken).ConfigureAwait(false);
 
         var edits = new List<TextEdit>();
         foreach (var usingStatement in newUsings.Except(oldUsings))
@@ -54,7 +53,7 @@ internal static class AddUsingsCodeActionProviderHelper
     private static async Task<IEnumerable<string>> FindUsingDirectiveStringsAsync(SourceText originalCSharpText, CancellationToken cancellationToken)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(originalCSharpText, cancellationToken: cancellationToken);
-        var syntaxRoot = await syntaxTree.GetRootAsync(cancellationToken);
+        var syntaxRoot = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
         // We descend any compilation unit (ie, the file) or and namespaces because the compiler puts all usings inside
         // the namespace node.
@@ -62,7 +61,7 @@ internal static class AddUsingsCodeActionProviderHelper
             // Filter to using directives
             .OfType<UsingDirectiveSyntax>()
             // Select everything after the initial "using " part of the statement. This is slightly lazy, for sure, but has
-            // the advantage of us not caring about chagnes to C# syntax, we just grab whatever Roslyn wanted to put in, so
+            // the advantage of us not caring about changes to C# syntax, we just grab whatever Roslyn wanted to put in, so
             // we should still work in C# v26
             .Select(u => u.ToString()["using ".Length..]);
 
@@ -74,12 +73,12 @@ internal static class AddUsingsCodeActionProviderHelper
     // Internal for testing
     internal static string GetNamespaceFromFQN(string fullyQualifiedName)
     {
-        if (!TrySplitNamespaceAndType(fullyQualifiedName, out var namespaceName, out _))
+        if (!TrySplitNamespaceAndType(fullyQualifiedName.AsSpan(), out var namespaceName, out _))
         {
             return string.Empty;
         }
 
-        return namespaceName.Value;
+        return namespaceName.ToString();
     }
 
     internal static bool TryCreateAddUsingResolutionParams(string fullyQualifiedName, Uri uri, [NotNullWhen(true)] out string? @namespace, [NotNullWhen(true)] out RazorCodeActionResolutionParams? resolutionParams)
@@ -134,16 +133,16 @@ internal static class AddUsingsCodeActionProviderHelper
         }
 
         @namespace = regexMatchedTextEdit.Groups[1].Value;
-        prefix = csharpAddUsing.Substring(0, regexMatchedTextEdit.Index);
+        prefix = csharpAddUsing[..regexMatchedTextEdit.Index];
         return true;
     }
 
-    internal static bool TrySplitNamespaceAndType(StringSegment fullTypeName, out StringSegment @namespace, out StringSegment typeName)
+    internal static bool TrySplitNamespaceAndType(ReadOnlySpan<char> fullTypeName, out ReadOnlySpan<char> @namespace, out ReadOnlySpan<char> typeName)
     {
-        @namespace = StringSegment.Empty;
-        typeName = StringSegment.Empty;
+        @namespace = default;
+        typeName = default;
 
-        if (fullTypeName.IsEmpty || string.IsNullOrEmpty(fullTypeName.Buffer))
+        if (fullTypeName.IsEmpty)
         {
             return false;
         }
@@ -174,12 +173,12 @@ internal static class AddUsingsCodeActionProviderHelper
             return true;
         }
 
-        @namespace = fullTypeName.Subsegment(0, splitLocation);
+        @namespace = fullTypeName[..splitLocation];
 
         var typeNameStartLocation = splitLocation + 1;
         if (typeNameStartLocation < fullTypeName.Length)
         {
-            typeName = fullTypeName.Subsegment(typeNameStartLocation, fullTypeName.Length - typeNameStartLocation);
+            typeName = fullTypeName[typeNameStartLocation..];
         }
 
         return true;

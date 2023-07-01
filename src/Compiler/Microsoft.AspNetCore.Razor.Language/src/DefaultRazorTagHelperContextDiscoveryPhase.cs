@@ -5,11 +5,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -17,7 +18,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
 {
     protected override void ExecuteCore(RazorCodeDocument codeDocument)
     {
-        var syntaxTree = codeDocument.GetPreTagHelperSyntaxTree() ?? codeDocument.GetSyntaxTree();
+        var syntaxTree = codeDocument.GetSyntaxTree();
         ThrowForMissingDocumentDependency(syntaxTree);
 
         var descriptors = codeDocument.GetTagHelpers();
@@ -69,6 +70,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
 
         var context = TagHelperDocumentContext.Create(tagHelperPrefix, descriptors);
         codeDocument.SetTagHelperContext(context);
+        codeDocument.SetPreTagHelperSyntaxTree(syntaxTree);
     }
 
     private static bool MatchesDirective(TagHelperDescriptor descriptor, string typePattern, string assemblyName)
@@ -78,18 +80,32 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
             return false;
         }
 
-        if (typePattern.EndsWith("*", StringComparison.Ordinal))
+        var typePatternSpan = RemoveGlobalPrefix(typePattern.AsSpan());
+
+        if (typePatternSpan[^1] == '*')
         {
-            if (typePattern.Length == 1)
+            if (typePatternSpan.Length == 1)
             {
                 // TypePattern is "*".
                 return true;
             }
 
-            return new StringSegment(descriptor.Name).StartsWith(new StringSegment(typePattern, 0, typePattern.Length - 1), StringComparison.Ordinal);
+            return descriptor.Name.AsSpan().StartsWith(typePatternSpan[..^1], StringComparison.Ordinal);
         }
 
-        return string.Equals(descriptor.Name, typePattern, StringComparison.Ordinal);
+        return descriptor.Name.AsSpan().Equals(typePatternSpan, StringComparison.Ordinal);
+    }
+
+    private static ReadOnlySpan<char> RemoveGlobalPrefix(in ReadOnlySpan<char> span)
+    {
+        const string globalPrefix = "global::";
+
+        if (span.StartsWith(globalPrefix.AsSpan(), StringComparison.Ordinal))
+        {
+            return span[globalPrefix.Length..];
+        }
+
+        return span;
     }
 
     internal abstract class DirectiveVisitor : SyntaxWalker
@@ -215,13 +231,15 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
 
     internal sealed class ComponentDirectiveVisitor : DirectiveVisitor
     {
-        private readonly List<TagHelperDescriptor> _notFullyQualifiedComponents;
+        private readonly ImmutableArray<TagHelperDescriptor> _notFullyQualifiedComponents;
         private readonly string _filePath;
         private RazorSourceDocument _source;
 
         public ComponentDirectiveVisitor(string filePath, IReadOnlyList<TagHelperDescriptor> tagHelpers, string currentNamespace)
         {
             _filePath = filePath;
+
+            using var builder = new PooledArrayBuilder<TagHelperDescriptor>(capacity: tagHelpers.Count);
 
             for (var i = 0; i < tagHelpers.Count; i++)
             {
@@ -239,8 +257,7 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
                     continue;
                 }
 
-                _notFullyQualifiedComponents ??= new();
-                _notFullyQualifiedComponents.Add(tagHelper);
+                builder.Add(tagHelper);
 
                 if (currentNamespace is null)
                 {
@@ -262,6 +279,8 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
                     Matches.Add(tagHelper);
                 }
             }
+
+            _notFullyQualifiedComponents = builder.DrainToImmutable();
         }
 
         public override HashSet<TagHelperDescriptor> Matches { get; } = new HashSet<TagHelperDescriptor>();
@@ -323,9 +342,8 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
                             continue;
                         }
 
-                        for (var i = 0; _notFullyQualifiedComponents is not null && i < _notFullyQualifiedComponents.Count; i++)
+                        foreach (var tagHelper in _notFullyQualifiedComponents)
                         {
-                            var tagHelper = _notFullyQualifiedComponents[i];
                             Debug.Assert(!tagHelper.IsComponentFullyQualifiedNameMatch(), "We've already processed these.");
 
                             if (tagHelper.IsChildContentTagHelper())
@@ -354,8 +372,16 @@ internal sealed class DefaultRazorTagHelperContextDiscoveryPhase : RazorEnginePh
 
             static bool IsTypeInNamespace(string typeNamespace, string @namespace)
             {
-                // Either the typeName is not the full type name or this type is at the top level.
-                return string.IsNullOrEmpty(typeNamespace) || typeNamespace.Equals(@namespace, StringComparison.Ordinal);
+                if (string.IsNullOrEmpty(typeNamespace))
+                {
+                    // Either the typeName is not the full type name or this type is at the top level.
+                    return true;
+                }
+
+                // Remove global:: prefix from namespace.
+                var normalizedNamespace = RemoveGlobalPrefix(@namespace.AsSpan());
+
+                return normalizedNamespace.Equals(typeNamespace.AsSpan(), StringComparison.Ordinal);
             }
         }
 

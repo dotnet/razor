@@ -28,7 +28,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
     private static readonly AsyncLocal<string?> s_fileName = new();
     private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(TagHelperServiceTestBase));
 
-    protected static readonly ServerCapabilities SemanticTokensServerCapabilities = new()
+    protected static readonly VSInternalServerCapabilities SemanticTokensServerCapabilities = new()
     {
         SemanticTokensOptions = new()
         {
@@ -138,9 +138,9 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
 
     protected Range? GetMappedCSharpRange(RazorCodeDocument codeDocument, Range razorRange)
     {
-        var documentMappingService = new DefaultRazorDocumentMappingService(
+        var documentMappingService = new RazorDocumentMappingService(
             TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
-        if (!documentMappingService.TryMapToProjectedDocumentRange(codeDocument.GetCSharpDocument(), razorRange, out var csharpRange) &&
+        if (!documentMappingService.TryMapToGeneratedDocumentRange(codeDocument.GetCSharpDocument(), razorRange, out var csharpRange) &&
             !RazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
         {
             // No C# in the range.
@@ -165,7 +165,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         {
             var actualArray = actual.ToArray();
             builder.AppendLine("//line,characterPos,length,tokenType,modifier");
-            var legendArray = RazorSemanticTokensLegend.TokenTypes.ToArray();
+            var legendArray = TestRazorSemanticTokensLegend.Instance.Legend.TokenTypes;
             for (var i = 0; i < actualArray.Length; i += 5)
             {
                 var typeString = legendArray[actualArray[i + 3]];
@@ -189,7 +189,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
             return null;
         }
 
-        var tokenTypesList = RazorSemanticTokensLegend.TokenTypes.ToList();
+        var tokenTypesList = TestRazorSemanticTokensLegend.Instance.Legend.TokenTypes.ToList();
         var strArr = semanticIntStr.Split(new string[] { " ", Environment.NewLine }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         var results = new List<int>();
         for (var i = 0; i < strArr.Length; i++)

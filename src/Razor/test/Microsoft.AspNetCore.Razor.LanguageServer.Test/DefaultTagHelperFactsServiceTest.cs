@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.VisualStudio.Editor.Razor;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
@@ -122,10 +124,10 @@ public class DefaultTagHelperFactsServiceTest : TagHelperServiceTestBase
         tagHelper.BindAttribute(attribute =>
         {
             attribute.Name = "bound";
-            attribute.SetPropertyName("Bound");
+            attribute.SetMetadata(PropertyName("Bound"));
             attribute.TypeName = typeof(bool).FullName;
         });
-        tagHelper.SetTypeName("WithBoundAttribute");
+        tagHelper.SetMetadata(TypeName("WithBoundAttribute"));
         var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test bound='true' />", isRazorFile: false, tagHelper.Build());
         var syntaxTree = codeDocument.GetSyntaxTree();
         var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
@@ -154,10 +156,10 @@ public class DefaultTagHelperFactsServiceTest : TagHelperServiceTestBase
         tagHelper.BindAttribute(attribute =>
         {
             attribute.Name = "bound";
-            attribute.SetPropertyName("Bound");
+            attribute.SetMetadata(PropertyName("Bound"));
             attribute.TypeName = typeof(bool).FullName;
         });
-        tagHelper.SetTypeName("WithBoundAttribute");
+        tagHelper.SetMetadata(TypeName("WithBoundAttribute"));
         var codeDocument = CreateCodeDocument($"@addTagHelper *, TestAssembly{Environment.NewLine}<test bound />", isRazorFile: false, tagHelper.Build());
         var syntaxTree = codeDocument.GetSyntaxTree();
         var sourceSpan = new SourceSpan(30 + Environment.NewLine.Length, 0);
@@ -246,9 +248,9 @@ public class DefaultTagHelperFactsServiceTest : TagHelperServiceTestBase
             });
     }
 
-    private static RazorCodeDocument CreateComponentDocument(string text, params TagHelperDescriptor[] tagHelpers)
+    private static RazorCodeDocument CreateComponentDocument(string text, ImmutableArray<TagHelperDescriptor> tagHelpers)
     {
-        tagHelpers ??= Array.Empty<TagHelperDescriptor>();
+        tagHelpers = tagHelpers.NullToEmpty();
         var sourceDocument = TestRazorSourceDocument.Create(text);
         var projectEngine = RazorProjectEngine.Create(builder => { });
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, FileKinds.Component, Array.Empty<RazorSourceDocument>(), tagHelpers);

@@ -7,7 +7,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using BenchmarkDotNet.Attributes;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.AspNetCore.Razor.Serialization;
+using Microsoft.AspNetCore.Razor.Serialization.Converters;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Newtonsoft.Json;
 
@@ -37,7 +38,7 @@ public class ProjectSnapshotSerializationBenchmark : ProjectSnapshotManagerBench
         using (originalStream = new MemoryStream())
         using (var writer = new StreamWriter(originalStream, Encoding.UTF8, bufferSize: 4096))
         {
-            Serializer.Serialize(writer, new ProjectSnapshotHandle(ProjectSnapshot));
+            Serializer.Serialize(writer, ProjectSnapshot.ToHandle());
         }
 
         ProjectSnapshotHandle deserializedResult;
