@@ -175,7 +175,7 @@ public class GoToDefinitionTests : AbstractRazorEditorTest
         await TestServices.Editor.WaitForCurrentLineTextAsync("[Parameter] public string? MyProperty { get; set; }", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/razor/issues/8408")]
+    [IdeFact]
     public async Task GoToDefinition_ComponentAttribute_InReferencedAssembly()
     {
         // Open the file
@@ -190,7 +190,7 @@ public class GoToDefinitionTests : AbstractRazorEditorTest
         await TestServices.Editor.WaitForActiveWindowByFileAsync("NavLink.cs", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "Blocked by https://github.com/dotnet/razor/issues/7966")]
+    [IdeFact]
     public async Task GoToDefinition_ComponentAttribute_GenericComponent()
     {
         // Create the files
@@ -229,7 +229,7 @@ public class GoToDefinitionTests : AbstractRazorEditorTest
         await TestServices.Editor.WaitForCurrentLineTextAsync("[Parameter] public TItem Item { get; set; }", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "Blocked by https://github.com/dotnet/razor/issues/7966")]
+    [IdeFact]
     public async Task GoToDefinition_ComponentAttribute_CascadingGenericComponentWithConstraints()
     {
         // Create the files
