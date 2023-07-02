@@ -38,8 +38,6 @@ internal class TestProjectSystemServices : IUnconfiguredProjectCommonServices
         ActiveConfiguredProject = new TestConfiguredProject(UnconfiguredProject, data);
         UnconfiguredProject.LoadedConfiguredProjects.Add(ActiveConfiguredProject);
 
-        ActiveConfiguredProjectAssemblyReferences = new TestAssemblyReferencesService();
-        ActiveConfiguredProjectRazorProperties = new Rules.RazorProjectProperties(ActiveConfiguredProject, UnconfiguredProject);
         ActiveConfiguredProjectSubscription = new TestActiveConfiguredProjectSubscriptionService();
 
         TasksService = new TestProjectAsynchronousTasksService(ProjectService, UnconfiguredProject, ActiveConfiguredProject);
@@ -53,23 +51,11 @@ internal class TestProjectSystemServices : IUnconfiguredProjectCommonServices
 
     public TestConfiguredProject ActiveConfiguredProject { get; }
 
-    public TestAssemblyReferencesService ActiveConfiguredProjectAssemblyReferences { get; }
-
-    public Rules.RazorProjectProperties ActiveConfiguredProjectRazorProperties { get; }
-
     public TestActiveConfiguredProjectSubscriptionService ActiveConfiguredProjectSubscription { get; }
 
     public TestProjectAsynchronousTasksService TasksService { get; }
 
     public TestThreadingService ThreadingService { get; }
-
-    ConfiguredProject IUnconfiguredProjectCommonServices.ActiveConfiguredProject => ActiveConfiguredProject;
-
-    IAssemblyReferencesService IUnconfiguredProjectCommonServices.ActiveConfiguredProjectAssemblyReferences => ActiveConfiguredProjectAssemblyReferences;
-
-    IPackageReferencesService IUnconfiguredProjectCommonServices.ActiveConfiguredProjectPackageReferences => throw new NotImplementedException();
-
-    Rules.RazorProjectProperties IUnconfiguredProjectCommonServices.ActiveConfiguredProjectRazorProperties => ActiveConfiguredProjectRazorProperties;
 
     IActiveConfiguredProjectSubscriptionService IUnconfiguredProjectCommonServices.ActiveConfiguredProjectSubscription => ActiveConfiguredProjectSubscription;
 
