@@ -716,7 +716,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var codeDocument = CreateCodeDocument(output, DefaultTagHelpers);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
-        var serverCapabilities = new ServerCapabilities()
+        var serverCapabilities = new VSInternalServerCapabilities()
         {
             HoverProvider = true
         };

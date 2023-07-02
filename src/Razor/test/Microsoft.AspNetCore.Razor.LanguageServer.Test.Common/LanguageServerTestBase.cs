@@ -143,7 +143,7 @@ public abstract class LanguageServerTestBase : TestBase
 
     private static IReadOnlyList<TagHelperDescriptor> GetDefaultRuntimeComponents()
     {
-        var bytes = TestResources.GetResourceBytes(TestResources.BlazorServerAppTagHelpersJson);
+        var bytes = RazorTestResources.GetResourceBytes(RazorTestResources.BlazorServerAppTagHelpersJson);
 
         using var stream = new MemoryStream(bytes);
         using var reader = new StreamReader(stream);
