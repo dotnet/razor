@@ -12,11 +12,13 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 // for us to build reusable mocks instead.
 internal interface IUnconfiguredProjectCommonServices
 {
-    IActiveConfiguredProjectSubscriptionService ActiveConfiguredProjectSubscription { get; }
-
     IProjectAsynchronousTasksService TasksService { get; }
 
     IProjectThreadingService ThreadingService { get; }
 
     UnconfiguredProject UnconfiguredProject { get; }
+
+    IProjectFaultHandlerService FaultHandlerService { get; }
+
+    IActiveConfigurationGroupSubscriptionService ActiveConfigurationGroupSubscriptionService { get; }
 }

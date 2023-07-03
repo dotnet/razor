@@ -20,18 +20,19 @@ using Item = System.Collections.Generic.KeyValuePair<string, System.Collections.
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-// Somewhat similar to https://github.com/dotnet/project-system/blob/fa074d228dcff6dae9e48ce43dd4a3a5aa22e8f0/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/LanguageServices/LanguageServiceHost.cs
+// Somewhat similar to https://github.com/dotnet/project-system/blob/bf4f33ec1843551eb775f73cff515a939aa2f629/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/Tree/Dependencies/Subscriptions/DependenciesSnapshotProvider.cs
+// but a lot simpler
 //
-// This class is responsible for intializing the Razor ProjectSnapshotManager for cases where
+// This class is responsible for initializing the Razor ProjectSnapshotManager for cases where
 // MSBuild provides configuration support (>= 2.1).
 [AppliesTo("DotNetCoreRazor & DotNetCoreRazorConfiguration")]
 [Export(ExportContractNames.Scopes.UnconfiguredProject, typeof(IProjectDynamicLoadComponent))]
 internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 {
-    private IDisposable? _subscription;
-
     private const string RootNamespaceProperty = "RootNamespace";
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly List<IDisposable> _disposables = new();
+    private readonly Dictionary<ProjectConfigurationSlice, IDisposable> _projectSubscriptions = new();
 
     [ImportingConstructor]
     public DefaultWindowsRazorProjectHost(
@@ -62,33 +63,104 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     {
         await base.InitializeCoreAsync(cancellationToken).ConfigureAwait(false);
 
-        // Don't try to evaluate any properties here since the project is still loading and we require access
-        // to the UI thread to push our updates.
+        // CPS represents the various target frameworks that a project has in configuration groups, which are called "slices". Each
+        // slice represents a variation of a project configuration. So for example, a given multi-targeted project would have:
         //
-        // Just subscribe and handle the notification later.
-        var receiver = new ActionBlock<IProjectVersionedValue<IProjectSubscriptionUpdate>>(OnProjectChangedAsync);
-        _subscription = CommonServices.ActiveConfiguredProjectSubscription.JointRuleSource.SourceBlock.LinkTo(
-            receiver,
-            initialDataAsNew: true,
-            suppressVersionOnlyUpdates: true,
-            ruleNames: new string[]
+        // Configuration    | Platform     | Configuration Groups (slices)
+        // -----------------------------------------------------
+        // Debug            | Any CPU      | net6.0, net7.0
+        // Release          | Any CPU      | net6.0, net7.0
+        //
+        // This subscription hooks to the ActiveConfigurationGroupSubscriptionService which will feed us data whenever a
+        // "slice" is added or removed, for the current active Configuration/Platform combination. This is a nice mix between
+        // not having too many things loaded (ie, we don't get 4 projects representing the full matrix of configurations) but
+        // still having distinct projects per target framework. If the user changes configuration from Debug to Release, we will
+        // get updates for the slices indicating that change, but within a specific configuration, both target frameworks will
+        // get updates for project changes, which means our data won't be stale if the user changes the active context.
+        //
+        // CPS also manages the slices themselves, and we get updates as they change. eg the first event we get has one target
+        // framework, then we get an update containing both. If the user adds one, we get another event.  Either way
+        // the event also gives us a datasource we can subscribe to in order to receive updates about that project. It is
+        // important that we maintain our list of subscriptions because if a slice is removed, we are responsible for cleaning
+        // up our resources.
+        //
+        // It's worth noting the events also give us a key, which is a list of "dimensions". We only care about the target framework
+        // but they could be strictly anything, and could change at any time. If they do, we'll get new events, so the easiest
+        // thing to do is just treat the key as an opaque object. CPS implements IEquatable on it, expressly for this purpose.
+        // We should not have any logic that depends on the contents of the key.
+        _disposables.Add(CommonServices.ActiveConfigurationGroupSubscriptionService.SourceBlock.LinkTo(
+            DataflowBlockSlim.CreateActionBlock<IProjectVersionedValue<ConfigurationSubscriptionSources>>(SlicesChanged, nameFormat: "Slice {0}"),
+            new DataflowLinkOptions() { PropagateCompletion = true }));
+
+        // Join, in the JTF sense, the ActiveConfigurationGroupSubscriptionService, to help avoid hangs in our OnProjectChangedAsync method
+        _disposables.Add(ProjectDataSources.JoinUpstreamDataSources(CommonServices.ThreadingService.JoinableTaskFactory, CommonServices.FaultHandlerService, CommonServices.ActiveConfigurationGroupSubscriptionService));
+    }
+
+    private void SlicesChanged(IProjectVersionedValue<ConfigurationSubscriptionSources> value)
+    {
+        // Create a new dictionary representing the subscriptions we know about at the start of the update. Data flow ensures
+        // this method will not be called in parallel.
+        var current = new Dictionary<ProjectConfigurationSlice, IDisposable>(_projectSubscriptions);
+
+        foreach (var (slice, source) in value.Value)
+        {
+            if (!_projectSubscriptions.TryGetValue(slice, out var dataSource))
             {
-                Rules.RazorGeneral.SchemaName,
-                Rules.RazorConfiguration.SchemaName,
-                Rules.RazorExtension.SchemaName,
-                Rules.RazorComponentWithTargetPath.SchemaName,
-                Rules.RazorGenerateWithTargetPath.SchemaName,
-                ConfigurationGeneralSchemaName,
-            });
+                Assumes.False(current.ContainsKey(slice));
+
+                // This is a new slice that we didn't previously know about, either because its a new target framework, or how dimensions
+                // are calculated has changed. We simply subscribe to updates for it, and let our action block code handle whether the
+                // distinction is important. To put it another way, we may end up having multiple subscriptions and events that would be
+                // affect about the same project.razor.json file, but our event handling code ensures we don't handle them more than
+                // necessary.
+                var subscription = source.JointRuleSource.SourceBlock.LinkTo(
+                    DataflowBlockSlim.CreateActionBlock<IProjectVersionedValue<IProjectSubscriptionUpdate>>(OnProjectChangedAsync, "OnProjectChanged {0}"),
+                    initialDataAsNew: true,
+                    suppressVersionOnlyUpdates: true,
+                    ruleNames: new string[]
+                    {
+                        Rules.RazorGeneral.SchemaName,
+                        Rules.RazorConfiguration.SchemaName,
+                        Rules.RazorExtension.SchemaName,
+                        Rules.RazorComponentWithTargetPath.SchemaName,
+                        Rules.RazorGenerateWithTargetPath.SchemaName,
+                        ConfigurationGeneralSchemaName,
+                    });
+
+                _projectSubscriptions.Add(slice, subscription);
+            }
+            else
+            {
+                // We already know about this slice, so remove it from our "current" list, as we have nothing to do for it
+                Assumes.True(current.Remove(slice));
+            }
+        }
+
+        // Anything left in the current list must have been removed, so we dispose it
+        foreach (var (slice, subscription) in current)
+        {
+            Assumes.True(_projectSubscriptions.Remove(slice));
+
+            subscription.Dispose();
+        }
     }
 
     protected override async Task DisposeCoreAsync(bool initialized)
     {
         await base.DisposeCoreAsync(initialized).ConfigureAwait(false);
 
-        if (initialized && _subscription is not null)
+        if (initialized)
         {
-            _subscription.Dispose();
+            foreach (var (slice, subscription) in _projectSubscriptions)
+            {
+                Assumes.True(_projectSubscriptions.Remove(slice));
+                subscription.Dispose();
+            }
+
+            foreach (var disposable in _disposables)
+            {
+                disposable.Dispose();
+            }
         }
     }
 

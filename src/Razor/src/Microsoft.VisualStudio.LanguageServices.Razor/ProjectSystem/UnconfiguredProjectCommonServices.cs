@@ -15,7 +15,8 @@ internal class UnconfiguredProjectCommonServices : IUnconfiguredProjectCommonSer
         [Import(ExportContractNames.Scopes.UnconfiguredProject)] IProjectAsynchronousTasksService tasksService,
         IProjectThreadingService threadingService,
         UnconfiguredProject unconfiguredProject,
-        IActiveConfiguredProjectSubscriptionService activeConfiguredProjectSubscription)
+        IProjectFaultHandlerService faultHandlerService,
+        IActiveConfigurationGroupSubscriptionService activeConfigurationGroupSubscriptionService)
     {
         if (tasksService is null)
         {
@@ -32,22 +33,25 @@ internal class UnconfiguredProjectCommonServices : IUnconfiguredProjectCommonSer
             throw new ArgumentNullException(nameof(unconfiguredProject));
         }
 
-        if (activeConfiguredProjectSubscription is null)
+        if (activeConfigurationGroupSubscriptionService is null)
         {
-            throw new ArgumentNullException(nameof(activeConfiguredProjectSubscription));
+            throw new ArgumentNullException(nameof(activeConfigurationGroupSubscriptionService));
         }
 
         TasksService = tasksService;
         ThreadingService = threadingService;
         UnconfiguredProject = unconfiguredProject;
-        ActiveConfiguredProjectSubscription = activeConfiguredProjectSubscription;
+        FaultHandlerService = faultHandlerService;
+        ActiveConfigurationGroupSubscriptionService = activeConfigurationGroupSubscriptionService;
     }
-
-    public IActiveConfiguredProjectSubscriptionService ActiveConfiguredProjectSubscription { get; }
 
     public IProjectAsynchronousTasksService TasksService { get; }
 
     public IProjectThreadingService ThreadingService { get; }
 
     public UnconfiguredProject UnconfiguredProject { get; }
+
+    public IProjectFaultHandlerService FaultHandlerService { get; }
+
+    public IActiveConfigurationGroupSubscriptionService ActiveConfigurationGroupSubscriptionService { get; }
 }
