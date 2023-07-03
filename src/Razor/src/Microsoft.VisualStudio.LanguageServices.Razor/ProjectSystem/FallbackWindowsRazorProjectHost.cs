@@ -12,7 +12,6 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Dataflow;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServices;
@@ -24,9 +23,10 @@ using ResolvedCompilationReference = Microsoft.CodeAnalysis.Razor.ProjectSystem.
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-// Somewhat similar to https://github.com/dotnet/project-system/blob/fa074d228dcff6dae9e48ce43dd4a3a5aa22e8f0/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/LanguageServices/LanguageServiceHost.cs
+// Somewhat similar to https://github.com/dotnet/project-system/blob/bf4f33ec1843551eb775f73cff515a939aa2f629/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/Tree/Dependencies/Subscriptions/DependenciesSnapshotProvider.cs
+// but a lot simpler
 //
-// This class is responsible for intializing the Razor ProjectSnapshotManager for cases where
+// This class is responsible for initializing the Razor ProjectSnapshotManager for cases where
 // MSBuild does not provides configuration support (SDK < 2.1).
 [AppliesTo("(DotNetCoreRazor | DotNetCoreWeb) & !DotNetCoreRazorConfiguration")]
 [Export(ExportContractNames.Scopes.UnconfiguredProject, typeof(IProjectDynamicLoadComponent))]
@@ -34,7 +34,6 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
 {
     private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private IDisposable? _subscription;
 
     [ImportingConstructor]
     public FallbackWindowsRazorProjectHost(
@@ -61,40 +60,18 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
     {
     }
 
-    protected override async Task InitializeCoreAsync(CancellationToken cancellationToken)
+    protected override string[] GetRuleNames()
     {
-        await base.InitializeCoreAsync(cancellationToken).ConfigureAwait(false);
-
-        // Don't try to evaluate any properties here since the project is still loading and we require access
-        // to the UI thread to push our updates.
-        //
-        // Just subscribe and handle the notification later.
-        var receiver = new ActionBlock<IProjectVersionedValue<IProjectSubscriptionUpdate>>(OnProjectChangedAsync);
-        _subscription = CommonServices.ActiveConfiguredProjectSubscription.JointRuleSource.SourceBlock.LinkTo(
-            receiver,
-            initialDataAsNew: true,
-            suppressVersionOnlyUpdates: true,
-            ruleNames: new string[]
-            {
-                ResolvedCompilationReference.SchemaName,
-                ContentItem.SchemaName,
-                NoneItem.SchemaName,
-            },
-            linkOptions: new DataflowLinkOptions() { PropagateCompletion = true });
-    }
-
-    protected override async Task DisposeCoreAsync(bool initialized)
-    {
-        await base.DisposeCoreAsync(initialized).ConfigureAwait(false);
-
-        if (initialized)
+        return new string[]
         {
-            _subscription?.Dispose();
-        }
+            ResolvedCompilationReference.SchemaName,
+            ContentItem.SchemaName,
+            NoneItem.SchemaName,
+        };
     }
 
     // Internal for testing
-    internal async Task OnProjectChangedAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update)
+    internal override async Task OnProjectChangedAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {
         if (IsDisposing || IsDisposed)
         {
