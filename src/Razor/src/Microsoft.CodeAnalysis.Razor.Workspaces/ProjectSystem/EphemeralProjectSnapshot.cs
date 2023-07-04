@@ -32,7 +32,11 @@ internal class EphemeralProjectSnapshot : IProjectSnapshot
         FilePath = filePath;
 
         _projectEngine = new Lazy<RazorProjectEngine>(CreateProjectEngine);
+
+        Key = ProjectKey.From(this);
     }
+
+    public ProjectKey Key { get; }
 
     public RazorConfiguration? Configuration => FallbackRazorConfiguration.Latest;
 
