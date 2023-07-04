@@ -108,7 +108,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
         else
         {
             // Ok we can't find a configuration. Let's assume this project isn't using Razor then.
-            await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
+            await UpdateAsync(() => UninitializeProjectUnsafe(CommonServices.UnconfiguredProject.FullPath), CancellationToken.None).ConfigureAwait(false);
         }
     }
 

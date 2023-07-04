@@ -1156,7 +1156,7 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
 
         // Act - 2
         services.UnconfiguredProject.FullPath = TestProjectData.AnotherProject.FilePath;
-        await Task.Run(async () => await host.OnProjectRenamingAsync());
+        await Task.Run(async () => await host.OnProjectRenamingAsync(TestProjectData.SomeProject.FilePath, TestProjectData.AnotherProject.FilePath));
 
         // Assert - 1
         snapshot = Assert.Single(_projectManager.Projects);

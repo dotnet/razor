@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.ProjectSystem;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
@@ -101,8 +102,6 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     protected abstract string[] GetRuleNames();
 
     protected abstract Task HandleProjectChangeAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update);
-
-    private HostProject? Current { get; set; }
 
     protected IUnconfiguredProjectCommonServices CommonServices { get; }
 
@@ -213,13 +212,19 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         {
             CommonServices.UnconfiguredProject.ProjectRenaming -= UnconfiguredProject_ProjectRenamingAsync;
 
-            await ExecuteWithLockAsync(async () =>
+            // If we haven't been initialized, lets not start now
+            if (_projectManager is not null)
             {
-                if (Current is not null)
-                {
-                    await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
-                }
-            }).ConfigureAwait(false);
+                await ExecuteWithLockAsync(() => UpdateAsync(() =>
+                    {
+                        // The Projects property creates a copy, so its okay to iterate through this
+                        var projects = _projectManager.Projects;
+                        foreach (var project in projects)
+                        {
+                            UninitializeProjectUnsafe(project.FilePath);
+                        }
+                    }, CancellationToken.None)).ConfigureAwait(false);
+            }
 
             foreach (var (slice, subscription) in _projectSubscriptions)
             {
@@ -234,35 +239,33 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     }
 
     // Internal for tests
-    internal async Task OnProjectRenamingAsync()
+    internal Task OnProjectRenamingAsync(string oldProjectFilePath, string newProjectFilePath)
     {
         // When a project gets renamed we expect any rules watched by the derived class to fire.
         //
         // However, the project snapshot manager uses the project Fullpath as the key. We want to just
         // reinitialize the HostProject with the same configuration and settings here, but the updated
         // FilePath.
-        await ExecuteWithLockAsync(async () =>
-        {
-            if (Current is not null)
+        return ExecuteWithLockAsync(() => UpdateAsync(() =>
             {
-                var old = Current;
-                var oldDocuments = _currentDocuments.Values.ToArray();
-
-                await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
-
-                await UpdateAsync(() =>
+                var projectManager = GetProjectManager();
+                var current = projectManager.GetLoadedProject(oldProjectFilePath);
+                if (current?.Configuration is not null)
                 {
-                    var filePath = CommonServices.UnconfiguredProject.FullPath;
-                    UpdateProjectUnsafe(new HostProject(filePath, old.Configuration, old.RootNamespace));
+                    var oldDocuments = _currentDocuments.Values.ToArray();
+
+                    UninitializeProjectUnsafe(oldProjectFilePath);
+
+                    var hostProject = new HostProject(newProjectFilePath, current.Configuration, current.RootNamespace);
+                    UpdateProjectUnsafe(hostProject);
 
                     // This should no-op in the common case, just putting it here for insurance.
                     for (var i = 0; i < oldDocuments.Length; i++)
                     {
-                        AddDocumentUnsafe(oldDocuments[i]);
+                        AddDocumentUnsafe(hostProject, oldDocuments[i]);
                     }
-                }, CancellationToken.None).ConfigureAwait(false);
-            }
-        }).ConfigureAwait(false);
+                }
+            }, CancellationToken.None));
     }
 
     // Should only be called from the project snapshot manager's specialized thread.
@@ -278,20 +281,29 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     protected Task UpdateAsync(Action action, CancellationToken cancellationToken)
         => _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(action, cancellationToken);
 
-    protected void UninitializeProjectUnsafe()
+    protected void UninitializeProjectUnsafe(string projectFilePath)
     {
-        ClearDocumentsUnsafe();
-        UpdateProjectUnsafe(null);
+        ClearDocumentsUnsafe(projectFilePath);
+
+        var projectManager = GetProjectManager();
+        var current = projectManager.GetLoadedProject(projectFilePath);
+        if (current is not null)
+        {
+            Debug.Assert(_currentDocuments.Count == 0);
+            // TODO: The creation of the HostProject here is silly, but the ProjectRemoved method only uses it to use the FilePath as a key
+            // This will be cleaned up soon.
+            var hostProject = new HostProject(projectFilePath, RazorConfiguration.Default, null);
+            projectManager.ProjectRemoved(hostProject);
+            ProjectConfigurationFilePathStore.Remove(projectFilePath);
+        }
     }
 
-    protected void UpdateProjectUnsafe(HostProject? project)
+    protected void UpdateProjectUnsafe(HostProject project)
     {
         var projectManager = GetProjectManager();
-        if (Current is null && project is null)
-        {
-            // This is a no-op. This project isn't using Razor.
-        }
-        else if (Current is null && project != null)
+
+        var current = projectManager.GetLoadedProject(project.FilePath);
+        if (current is null)
         {
             // Just in case we somehow got in a state where VS didn't tell us that solution close was finished, lets just
             // ensure we're going to actually do something with the new project that we've just been told about.
@@ -300,21 +312,13 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
 
             projectManager.ProjectAdded(project);
         }
-        else if (Current != null && project is null)
-        {
-            Debug.Assert(_currentDocuments.Count == 0);
-            projectManager.ProjectRemoved(Current);
-            ProjectConfigurationFilePathStore.Remove(Current.FilePath);
-        }
         else
         {
             projectManager.ProjectConfigurationChanged(project);
         }
-
-        Current = project;
     }
 
-    protected void AddDocumentUnsafe(HostDocument document)
+    protected void AddDocumentUnsafe(HostProject project, HostDocument document)
     {
         var projectManager = GetProjectManager();
 
@@ -324,25 +328,28 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
             return;
         }
 
-        projectManager.DocumentAdded(Current, document, new FileTextLoader(document.FilePath, null));
+        projectManager.DocumentAdded(project, document, new FileTextLoader(document.FilePath, null));
         _currentDocuments.Add(document.FilePath, document);
     }
 
-    protected void RemoveDocumentUnsafe(HostDocument document)
+    protected void RemoveDocumentUnsafe(HostProject project, HostDocument document)
     {
         var projectManager = GetProjectManager();
 
-        projectManager.DocumentRemoved(Current, document);
+        projectManager.DocumentRemoved(project, document);
         _currentDocuments.Remove(document.FilePath);
     }
 
-    private void ClearDocumentsUnsafe()
+    private void ClearDocumentsUnsafe(string projectFilePath)
     {
         var projectManager = GetProjectManager();
+        // TODO: The creation of the HostProject here is silly, but the DocumentRemoved method only uses it to use the FilePath as a key
+        // This will be cleaned up soon.
+        var hostProject = new HostProject(projectFilePath, RazorConfiguration.Default, null);
 
         foreach (var kvp in _currentDocuments)
         {
-            projectManager.DocumentRemoved(Current, kvp.Value);
+            projectManager.DocumentRemoved(hostProject, kvp.Value);
         }
 
         _currentDocuments.Clear();
@@ -370,10 +377,8 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         return DisposeAsync();
     }
 
-    private async Task UnconfiguredProject_ProjectRenamingAsync(object? sender, ProjectRenamedEventArgs args)
-    {
-        await OnProjectRenamingAsync().ConfigureAwait(false);
-    }
+    private Task UnconfiguredProject_ProjectRenamingAsync(object? sender, ProjectRenamedEventArgs args)
+        => OnProjectRenamingAsync(args.OldFullPath, args.NewFullPath);
 
     // Internal for testing
     internal static bool TryGetIntermediateOutputPath(

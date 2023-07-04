@@ -86,7 +86,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
         if (mvcReferenceFullPath is null)
         {
             // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-            await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
+            await UpdateAsync(() => UninitializeProjectUnsafe(CommonServices.UnconfiguredProject.FullPath), CancellationToken.None).ConfigureAwait(false);
             return;
         }
 
@@ -94,7 +94,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
         if (version is null)
         {
             // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-            await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
+            await UpdateAsync(() => UninitializeProjectUnsafe(CommonServices.UnconfiguredProject.FullPath), CancellationToken.None).ConfigureAwait(false);
             return;
         }
 
