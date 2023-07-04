@@ -18,7 +18,7 @@ internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
 
     internal abstract IReadOnlyCollection<string> OpenDocuments { get; }
 
-    internal abstract void DocumentAdded(HostProject hostProject, HostDocument hostDocument, TextLoader textLoader);
+    internal abstract void DocumentAdded(string projectFilePath, HostDocument hostDocument, TextLoader textLoader);
 
     internal abstract void DocumentOpened(string projectFilePath, string documentFilePath, SourceText sourceText);
 
@@ -28,7 +28,7 @@ internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
 
     internal abstract void DocumentChanged(string projectFilePath, string documentFilePath, SourceText sourceText);
 
-    internal abstract void DocumentRemoved(HostProject hostProject, HostDocument hostDocument);
+    internal abstract void DocumentRemoved(string projectFilePath, HostDocument hostDocument);
 
     internal abstract void ProjectAdded(HostProject hostProject);
 
@@ -36,13 +36,13 @@ internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
 
     internal abstract void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState projectWorkspaceState);
 
-    internal abstract void ProjectRemoved(HostProject hostProject);
+    internal abstract void ProjectRemoved(string projectFilePath);
 
     internal abstract void ReportError(Exception exception);
 
     internal abstract void ReportError(Exception exception, IProjectSnapshot project);
 
-    internal abstract void ReportError(Exception exception, HostProject hostProject);
+    internal abstract void ReportError(Exception exception, string projectFilePath);
 
     internal abstract void SolutionOpened();
 

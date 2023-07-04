@@ -94,12 +94,12 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
                 for (var i = 0; i < changedDocuments.Length; i++)
                 {
-                    RemoveDocumentUnsafe(hostProject, changedDocuments[i]);
+                    RemoveDocumentUnsafe(hostProject.FilePath, changedDocuments[i]);
                 }
 
                 for (var i = 0; i < documents.Length; i++)
                 {
-                    AddDocumentUnsafe(hostProject, documents[i]);
+                    AddDocumentUnsafe(hostProject.FilePath, documents[i]);
                 }
             }, CancellationToken.None).ConfigureAwait(false);
         }

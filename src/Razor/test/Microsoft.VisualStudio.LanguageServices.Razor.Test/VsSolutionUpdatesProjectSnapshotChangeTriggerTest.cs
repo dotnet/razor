@@ -134,7 +134,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : TestBase
         await s_dispatcher.RunOnDispatcherThreadAsync(() =>
         {
             projectManager.SolutionClosed();
-            projectManager.ProjectRemoved(_someProject);
+            projectManager.ProjectRemoved(_someProject.FilePath);
         }, DisposalToken);
 
         // Assert

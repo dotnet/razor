@@ -73,7 +73,7 @@ internal class ProjectSnapshotSynchronizationService : ICollaborationService, IA
         {
             try
             {
-                _projectSnapshotManager.ProjectRemoved(((ProjectSnapshot)project).HostProject);
+                _projectSnapshotManager.ProjectRemoved(project.FilePath);
             }
             catch (Exception ex)
             {
@@ -99,8 +99,7 @@ internal class ProjectSnapshotSynchronizationService : ICollaborationService, IA
         else if (args.Kind == ProjectProxyChangeKind.ProjectRemoved)
         {
             var guestPath = ResolveGuestPath(args.ProjectFilePath);
-            var hostProject = new HostProject(guestPath, args.Older!.Configuration, args.Older.RootNamespace);
-            _projectSnapshotManager.ProjectRemoved(hostProject);
+            _projectSnapshotManager.ProjectRemoved(guestPath);
         }
         else if (args.Kind == ProjectProxyChangeKind.ProjectChanged)
         {

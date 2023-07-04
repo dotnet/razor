@@ -170,11 +170,11 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         return _openDocuments.Contains(documentFilePath);
     }
 
-    internal override void DocumentAdded(HostProject hostProject, HostDocument document, TextLoader textLoader)
+    internal override void DocumentAdded(string projectFilePath, HostDocument document, TextLoader textLoader)
     {
-        if (hostProject is null)
+        if (projectFilePath is null)
         {
-            throw new ArgumentNullException(nameof(hostProject));
+            throw new ArgumentNullException(nameof(projectFilePath));
         }
 
         if (document is null)
@@ -184,7 +184,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-        if (_projects.TryGetValue(hostProject.FilePath, out var entry))
+        if (_projects.TryGetValue(projectFilePath, out var entry))
         {
             // if the solution is closing we don't need to bother computing new state
             if (IsSolutionClosing)
@@ -204,18 +204,18 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     entry = new Entry(state);
-                    _projects[hostProject.FilePath] = entry;
+                    _projects[projectFilePath] = entry;
                     NotifyListeners(oldSnapshot, entry.GetSnapshot(), document.FilePath, ProjectChangeKind.DocumentAdded);
                 }
             }
         }
     }
 
-    internal override void DocumentRemoved(HostProject hostProject, HostDocument document)
+    internal override void DocumentRemoved(string projectFilePath, HostDocument document)
     {
-        if (hostProject is null)
+        if (projectFilePath is null)
         {
-            throw new ArgumentNullException(nameof(hostProject));
+            throw new ArgumentNullException(nameof(projectFilePath));
         }
 
         if (document is null)
@@ -225,7 +225,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-        if (_projects.TryGetValue(hostProject.FilePath, out var entry))
+        if (_projects.TryGetValue(projectFilePath, out var entry))
         {
             // if the solution is closing we don't need to bother computing new state
             if (IsSolutionClosing)
@@ -242,7 +242,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 {
                     var oldSnapshot = entry.GetSnapshot();
                     entry = new Entry(state);
-                    _projects[hostProject.FilePath] = entry;
+                    _projects[projectFilePath] = entry;
                     NotifyListeners(oldSnapshot, entry.GetSnapshot(), document.FilePath, ProjectChangeKind.DocumentRemoved);
                 }
             }
@@ -566,20 +566,20 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    internal override void ProjectRemoved(HostProject hostProject)
+    internal override void ProjectRemoved(string projectFilePath)
     {
-        if (hostProject is null)
+        if (projectFilePath is null)
         {
-            throw new ArgumentNullException(nameof(hostProject));
+            throw new ArgumentNullException(nameof(projectFilePath));
         }
 
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-        if (_projects.TryGetValue(hostProject.FilePath, out var entry))
+        if (_projects.TryGetValue(projectFilePath, out var entry))
         {
             // We need to notify listeners about every project removal.
             var oldSnapshot = entry.GetSnapshot();
-            _projects.Remove(hostProject.FilePath);
+            _projects.Remove(projectFilePath);
             NotifyListeners(oldSnapshot, newer: null, documentFilePath: null, ProjectChangeKind.ProjectRemoved);
         }
     }
@@ -614,14 +614,14 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         ErrorReporter.ReportError(exception, project);
     }
 
-    internal override void ReportError(Exception exception, HostProject hostProject)
+    internal override void ReportError(Exception exception, string projectFilePath)
     {
         if (exception is null)
         {
             throw new ArgumentNullException(nameof(exception));
         }
 
-        var snapshot = hostProject?.FilePath is null ? null : GetLoadedProject(hostProject.FilePath);
+        var snapshot = projectFilePath is null ? null : GetLoadedProject(projectFilePath);
         ErrorReporter.ReportError(exception, snapshot);
     }
 
