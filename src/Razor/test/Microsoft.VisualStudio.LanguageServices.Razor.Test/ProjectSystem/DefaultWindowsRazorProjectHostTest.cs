@@ -1154,6 +1154,23 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         Assert.Equal(TestProjectData.SomeProject.FilePath, snapshot.FilePath);
         Assert.Same("MVC-2.1", snapshot.Configuration.ConfigurationName);
 
+        Assert.Collection(
+           snapshot.DocumentFilePaths.OrderBy(d => d),
+           d =>
+           {
+               var document = snapshot.GetDocument(d);
+               Assert.Equal(TestProjectData.SomeProjectFile1.FilePath, document.FilePath);
+               Assert.Equal(TestProjectData.SomeProjectFile1.TargetPath, document.TargetPath);
+               Assert.Equal(FileKinds.Legacy, document.FileKind);
+           },
+           d =>
+           {
+               var document = snapshot.GetDocument(d);
+               Assert.Equal(TestProjectData.SomeProjectComponentFile1.FilePath, document.FilePath);
+               Assert.Equal(TestProjectData.SomeProjectComponentFile1.TargetPath, document.TargetPath);
+               Assert.Equal(FileKinds.Component, document.FileKind);
+           });
+
         // Act - 2
         services.UnconfiguredProject.FullPath = TestProjectData.AnotherProject.FilePath;
         await Task.Run(async () => await host.OnProjectRenamingAsync(TestProjectData.SomeProject.FilePath, TestProjectData.AnotherProject.FilePath));
@@ -1162,6 +1179,23 @@ public class DefaultWindowsRazorProjectHostTest : ProjectSnapshotManagerDispatch
         snapshot = Assert.Single(_projectManager.Projects);
         Assert.Equal(TestProjectData.AnotherProject.FilePath, snapshot.FilePath);
         Assert.Same("MVC-2.1", snapshot.Configuration.ConfigurationName);
+
+        Assert.Collection(
+           snapshot.DocumentFilePaths.OrderBy(d => d),
+           d =>
+           {
+               var document = snapshot.GetDocument(d);
+               Assert.Equal(TestProjectData.SomeProjectFile1.FilePath, document.FilePath);
+               Assert.Equal(TestProjectData.SomeProjectFile1.TargetPath, document.TargetPath);
+               Assert.Equal(FileKinds.Legacy, document.FileKind);
+           },
+           d =>
+           {
+               var document = snapshot.GetDocument(d);
+               Assert.Equal(TestProjectData.SomeProjectComponentFile1.FilePath, document.FilePath);
+               Assert.Equal(TestProjectData.SomeProjectComponentFile1.TargetPath, document.TargetPath);
+               Assert.Equal(FileKinds.Component, document.FileKind);
+           });
 
         await Task.Run(async () => await host.DisposeAsync());
         Assert.Empty(_projectManager.Projects);

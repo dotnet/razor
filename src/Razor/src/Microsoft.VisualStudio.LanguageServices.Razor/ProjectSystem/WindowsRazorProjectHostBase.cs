@@ -5,13 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.ProjectSystem;
@@ -31,7 +30,6 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     private readonly AsyncSemaphore _lock;
 
     private ProjectSnapshotManagerBase? _projectManager;
-    private readonly Dictionary<string, HostDocument> _currentDocuments;
     private readonly Dictionary<ProjectConfigurationSlice, IDisposable> _projectSubscriptions = new();
     private readonly List<IDisposable> _disposables = new();
     protected readonly ProjectConfigurationFilePathStore ProjectConfigurationFilePathStore;
@@ -78,7 +76,6 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
 
         _lock = new AsyncSemaphore(initialCount: 1);
-        _currentDocuments = new Dictionary<string, HostDocument>(FilePathComparer.Instance);
         ProjectConfigurationFilePathStore = projectConfigurationFilePathStore;
     }
 
@@ -252,17 +249,19 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
                 var current = projectManager.GetLoadedProject(oldProjectFilePath);
                 if (current?.Configuration is not null)
                 {
-                    var oldDocuments = _currentDocuments.Values.ToArray();
-
                     UninitializeProjectUnsafe(oldProjectFilePath);
 
                     var hostProject = new HostProject(newProjectFilePath, current.Configuration, current.RootNamespace);
                     UpdateProjectUnsafe(hostProject);
 
                     // This should no-op in the common case, just putting it here for insurance.
-                    for (var i = 0; i < oldDocuments.Length; i++)
+                    foreach (var documentFilePath in current.DocumentFilePaths)
                     {
-                        AddDocumentUnsafe(hostProject, oldDocuments[i]);
+                        var documentSnapshot = current.GetDocument(documentFilePath);
+                        Assumes.NotNull(documentSnapshot);
+                        // TODO: The creation of the HostProject here is silly
+                        var hostDocument = new HostDocument(documentSnapshot.FilePath.AssumeNotNull(), documentSnapshot.TargetPath.AssumeNotNull(), documentSnapshot.FileKind);
+                        AddDocumentUnsafe(hostProject, hostDocument);
                     }
                 }
             }, CancellationToken.None));
@@ -289,7 +288,6 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         var current = projectManager.GetLoadedProject(projectFilePath);
         if (current is not null)
         {
-            Debug.Assert(_currentDocuments.Count == 0);
             // TODO: The creation of the HostProject here is silly, but the ProjectRemoved method only uses it to use the FilePath as a key
             // This will be cleaned up soon.
             var hostProject = new HostProject(projectFilePath, RazorConfiguration.Default, null);
@@ -321,38 +319,37 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     protected void AddDocumentUnsafe(HostProject project, HostDocument document)
     {
         var projectManager = GetProjectManager();
-
-        if (_currentDocuments.ContainsKey(document.FilePath))
-        {
-            // Ignore duplicates
-            return;
-        }
-
         projectManager.DocumentAdded(project, document, new FileTextLoader(document.FilePath, null));
-        _currentDocuments.Add(document.FilePath, document);
     }
 
     protected void RemoveDocumentUnsafe(HostProject project, HostDocument document)
     {
         var projectManager = GetProjectManager();
-
         projectManager.DocumentRemoved(project, document);
-        _currentDocuments.Remove(document.FilePath);
     }
 
     private void ClearDocumentsUnsafe(string projectFilePath)
     {
         var projectManager = GetProjectManager();
+        var current = projectManager.GetLoadedProject(projectFilePath);
+
+        if (current is null)
+        {
+            return;
+        }
+
         // TODO: The creation of the HostProject here is silly, but the DocumentRemoved method only uses it to use the FilePath as a key
         // This will be cleaned up soon.
         var hostProject = new HostProject(projectFilePath, RazorConfiguration.Default, null);
 
-        foreach (var kvp in _currentDocuments)
+        foreach (var documentFilePath in current.DocumentFilePaths)
         {
-            projectManager.DocumentRemoved(hostProject, kvp.Value);
+            var documentSnapshot = current.GetDocument(documentFilePath);
+            Assumes.NotNull(documentSnapshot);
+            // TODO: The creation of the HostProject here is silly
+            var hostDocument = new HostDocument(documentSnapshot.FilePath.AssumeNotNull(), documentSnapshot.TargetPath.AssumeNotNull(), documentSnapshot.FileKind);
+            projectManager.DocumentRemoved(hostProject, hostDocument);
         }
-
-        _currentDocuments.Clear();
     }
 
     private async Task ExecuteWithLockAsync(Func<Task> func)
