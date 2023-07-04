@@ -19,10 +19,6 @@ using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-/// <summary>
-/// Somewhat similar to https://github.com/dotnet/project-system/blob/bf4f33ec1843551eb775f73cff515a939aa2f629/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/Tree/Dependencies/Subscriptions/DependenciesSnapshotProvider.cs
-/// but a lot simpler. Needs to SetPublisherPath for DefaultRazorProjectChangePublisher
-/// </summary>
 internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDisposedAsync, IProjectDynamicLoadComponent
 {
     private readonly Workspace _workspace;
@@ -137,6 +133,9 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         // but they could be strictly anything, and could change at any time. If they do, we'll get new events, so the easiest
         // thing to do is just treat the key as an opaque object. CPS implements IEquatable on it, expressly for this purpose.
         // We should not have any logic that depends on the contents of the key.
+        //
+        // Somewhat similar to https://github.com/dotnet/project-system/blob/bf4f33ec1843551eb775f73cff515a939aa2f629/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/Tree/Dependencies/Subscriptions/DependenciesSnapshotProvider.cs
+        // but a lot simpler.
         _disposables.Add(CommonServices.ActiveConfigurationGroupSubscriptionService.SourceBlock.LinkTo(
             DataflowBlockSlim.CreateActionBlock<IProjectVersionedValue<ConfigurationSubscriptionSources>>(SlicesChanged, nameFormat: "Slice {0}"),
             new DataflowLinkOptions() { PropagateCompletion = true }));
