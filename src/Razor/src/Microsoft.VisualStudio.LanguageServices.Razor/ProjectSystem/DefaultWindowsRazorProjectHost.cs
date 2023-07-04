@@ -19,9 +19,6 @@ using Item = System.Collections.Generic.KeyValuePair<string, System.Collections.
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-// Somewhat similar to https://github.com/dotnet/project-system/blob/bf4f33ec1843551eb775f73cff515a939aa2f629/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/Tree/Dependencies/Subscriptions/DependenciesSnapshotProvider.cs
-// but a lot simpler
-//
 // This class is responsible for initializing the Razor ProjectSnapshotManager for cases where
 // MSBuild provides configuration support (>= 2.1).
 [AppliesTo("DotNetCoreRazor & DotNetCoreRazorConfiguration")]
@@ -69,59 +66,50 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
         };
     }
 
-    // Internal for testing
-    internal override async Task OnProjectChangedAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update)
+    protected override async Task HandleProjectChangeAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {
-        if (IsDisposing || IsDisposed)
+        if (TryGetConfiguration(update.Value.CurrentState, out var configuration))
         {
-            return;
-        }
+            TryGetRootNamespace(update.Value.CurrentState, out var rootNamespace);
 
-        await CommonServices.TasksService.LoadedProjectAsync(async () => await ExecuteWithLockAsync(async () =>
-        {
-            if (TryGetConfiguration(update.Value.CurrentState, out var configuration))
+            // We need to deal with the case where the project was uninitialized, but now
+            // is valid for Razor. In that case we might have previously seen all of the documents
+            // but ignored them because the project wasn't active.
+            //
+            // So what we do to deal with this, is that we 'remove' all changed and removed items
+            // and then we 'add' all current items. This allows minimal churn to the PSM, but still
+            // makes us up to date.
+            var documents = GetCurrentDocuments(update.Value);
+            var changedDocuments = GetChangedAndRemovedDocuments(update.Value);
+
+            await UpdateAsync(() =>
             {
-                TryGetRootNamespace(update.Value.CurrentState, out var rootNamespace);
+                var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, configuration, rootNamespace);
 
-                // We need to deal with the case where the project was uninitialized, but now
-                // is valid for Razor. In that case we might have previously seen all of the documents
-                // but ignored them because the project wasn't active.
-                //
-                // So what we do to deal with this, is that we 'remove' all changed and removed items
-                // and then we 'add' all current items. This allows minimal churn to the PSM, but still
-                // makes us up to date.
-                var documents = GetCurrentDocuments(update.Value);
-                var changedDocuments = GetChangedAndRemovedDocuments(update.Value);
-
-                await UpdateAsync(() =>
+                if (TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
                 {
-                    var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, configuration, rootNamespace);
+                    var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
+                    ProjectConfigurationFilePathStore.Set(hostProject.FilePath, projectConfigurationFile);
+                }
 
-                    if (TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
-                    {
-                        var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
-                        ProjectConfigurationFilePathStore.Set(hostProject.FilePath, projectConfigurationFile);
-                    }
+                UpdateProjectUnsafe(hostProject);
 
-                    UpdateProjectUnsafe(hostProject);
+                for (var i = 0; i < changedDocuments.Length; i++)
+                {
+                    RemoveDocumentUnsafe(hostProject, changedDocuments[i]);
+                }
 
-                    for (var i = 0; i < changedDocuments.Length; i++)
-                    {
-                        RemoveDocumentUnsafe(changedDocuments[i]);
-                    }
-
-                    for (var i = 0; i < documents.Length; i++)
-                    {
-                        AddDocumentUnsafe(documents[i]);
-                    }
-                }, CancellationToken.None).ConfigureAwait(false);
-            }
-            else
-            {
-                // Ok we can't find a configuration. Let's assume this project isn't using Razor then.
-                await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
-            }
-        }).ConfigureAwait(false), registerFaultHandler: true);
+                for (var i = 0; i < documents.Length; i++)
+                {
+                    AddDocumentUnsafe(hostProject, documents[i]);
+                }
+            }, CancellationToken.None).ConfigureAwait(false);
+        }
+        else
+        {
+            // Ok we can't find a configuration. Let's assume this project isn't using Razor then.
+            await UpdateAsync(UninitializeProjectUnsafe, CancellationToken.None).ConfigureAwait(false);
+        }
     }
 
     #region Configuration Helpers

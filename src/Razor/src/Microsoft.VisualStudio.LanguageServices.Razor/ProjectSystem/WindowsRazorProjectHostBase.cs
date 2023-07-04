@@ -20,7 +20,8 @@ using Microsoft.VisualStudio.Threading;
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 /// <summary>
-/// Needs to SetPublisherPath for DefaultRazorProjectChangePublisher
+/// Somewhat similar to https://github.com/dotnet/project-system/blob/bf4f33ec1843551eb775f73cff515a939aa2f629/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/Tree/Dependencies/Subscriptions/DependenciesSnapshotProvider.cs
+/// but a lot simpler. Needs to SetPublisherPath for DefaultRazorProjectChangePublisher
 /// </summary>
 internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDisposedAsync, IProjectDynamicLoadComponent
 {
@@ -31,8 +32,8 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     private ProjectSnapshotManagerBase? _projectManager;
     private readonly Dictionary<string, HostDocument> _currentDocuments;
     private readonly Dictionary<ProjectConfigurationSlice, IDisposable> _projectSubscriptions = new();
+    private readonly List<IDisposable> _disposables = new();
     protected readonly ProjectConfigurationFilePathStore ProjectConfigurationFilePathStore;
-    protected readonly List<IDisposable> Disposables = new();
 
     internal const string BaseIntermediateOutputPathPropertyName = "BaseIntermediateOutputPath";
     internal const string IntermediateOutputPathPropertyName = "IntermediateOutputPath";
@@ -97,7 +98,11 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         _projectManager = projectManager;
     }
 
-    protected HostProject? Current { get; private set; }
+    protected abstract string[] GetRuleNames();
+
+    protected abstract Task HandleProjectChangeAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update);
+
+    private HostProject? Current { get; set; }
 
     protected IUnconfiguredProjectCommonServices CommonServices { get; }
 
@@ -136,12 +141,12 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         // but they could be strictly anything, and could change at any time. If they do, we'll get new events, so the easiest
         // thing to do is just treat the key as an opaque object. CPS implements IEquatable on it, expressly for this purpose.
         // We should not have any logic that depends on the contents of the key.
-        Disposables.Add(CommonServices.ActiveConfigurationGroupSubscriptionService.SourceBlock.LinkTo(
+        _disposables.Add(CommonServices.ActiveConfigurationGroupSubscriptionService.SourceBlock.LinkTo(
             DataflowBlockSlim.CreateActionBlock<IProjectVersionedValue<ConfigurationSubscriptionSources>>(SlicesChanged, nameFormat: "Slice {0}"),
             new DataflowLinkOptions() { PropagateCompletion = true }));
 
         // Join, in the JTF sense, the ActiveConfigurationGroupSubscriptionService, to help avoid hangs in our OnProjectChangedAsync method
-        Disposables.Add(ProjectDataSources.JoinUpstreamDataSources(CommonServices.ThreadingService.JoinableTaskFactory, CommonServices.FaultHandlerService, CommonServices.ActiveConfigurationGroupSubscriptionService));
+        _disposables.Add(ProjectDataSources.JoinUpstreamDataSources(CommonServices.ThreadingService.JoinableTaskFactory, CommonServices.FaultHandlerService, CommonServices.ActiveConfigurationGroupSubscriptionService));
 
         return Task.CompletedTask;
     }
@@ -188,9 +193,19 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         }
     }
 
-    protected abstract string[] GetRuleNames();
+    // Internal for testing
+    internal Task OnProjectChangedAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update)
+    {
+        if (IsDisposing || IsDisposed)
+        {
+            return Task.CompletedTask;
+        }
 
-    internal abstract Task OnProjectChangedAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update);
+        return CommonServices.TasksService.LoadedProjectAsync(() => ExecuteWithLockAsync(() =>
+        {
+            return HandleProjectChangeAsync(update);
+        }), registerFaultHandler: true).Task;
+    }
 
     protected override async Task DisposeCoreAsync(bool initialized)
     {
@@ -211,7 +226,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
                 subscription.Dispose();
             }
 
-            foreach (var disposable in Disposables)
+            foreach (var disposable in _disposables)
             {
                 disposable.Dispose();
             }
@@ -321,7 +336,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         _currentDocuments.Remove(document.FilePath);
     }
 
-    protected void ClearDocumentsUnsafe()
+    private void ClearDocumentsUnsafe()
     {
         var projectManager = GetProjectManager();
 
@@ -333,7 +348,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         _currentDocuments.Clear();
     }
 
-    protected async Task ExecuteWithLockAsync(Func<Task> func)
+    private async Task ExecuteWithLockAsync(Func<Task> func)
     {
         using (JoinableCollection.Join())
         {
