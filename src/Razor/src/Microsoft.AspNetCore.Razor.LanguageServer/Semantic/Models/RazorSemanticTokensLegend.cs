@@ -63,11 +63,15 @@ internal class RazorSemanticTokensLegend
     private readonly SemanticTokensLegend _legend;
     private readonly Dictionary<string, int> _razorTokenTypeMap;
 
+#pragma warning disable IDE0060 // Remove unused parameter
     public RazorSemanticTokensLegend(ClientCapabilities clientCapabilities)
+#pragma warning restore IDE0060 // Remove unused parameter
     {
-        var _ = ArrayBuilderPool<string>.GetPooledObject(out var builder);
+        using var _ = ArrayBuilderPool<string>.GetPooledObject(out var builder);
 
-        builder.AddRange(RazorSemanticTokensAccessor.GetTokenTypes(clientCapabilities));
+#pragma warning disable CS0618 // Type or member is obsolete
+        builder.AddRange(RazorSemanticTokensAccessor.RoslynTokenTypes);
+#pragma warning restore CS0618 // Type or member is obsolete
 
         _razorTokenTypeMap = new Dictionary<string, int>();
         foreach (var razorTokenType in GetRazorSemanticTokenTypes())
@@ -85,7 +89,7 @@ internal class RazorSemanticTokensLegend
 
     private static ImmutableArray<string> GetRazorSemanticTokenTypes()
     {
-        var _ = ArrayBuilderPool<string>.GetPooledObject(out var builder);
+        using var _ = ArrayBuilderPool<string>.GetPooledObject(out var builder);
 
         foreach (var field in typeof(RazorSemanticTokensLegend).GetFields(BindingFlags.NonPublic | BindingFlags.Static))
         {

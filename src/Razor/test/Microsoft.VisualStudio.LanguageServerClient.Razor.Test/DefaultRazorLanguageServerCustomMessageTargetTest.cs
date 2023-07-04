@@ -20,7 +20,6 @@ using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Test;
 using Microsoft.VisualStudio.Test;
 using Microsoft.VisualStudio.Text;
@@ -169,6 +168,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
         var documentSynchronizer = GetDocumentSynchronizer(GetCSharpSnapshot());
         var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
+        telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
@@ -280,7 +280,8 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
                 Uri = new Uri("C:/path/to/file.razor")
             },
             requiredHostDocumentVersion: 1,
-            range: new Range());
+            range: new Range(),
+            correlationId: Guid.Empty);
 
         // Act
         var result = await target.ProvideSemanticTokensRangeAsync(request, DisposalToken);
@@ -308,7 +309,8 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
                 Uri = new Uri("C:/path/to/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            range: new Range());
+            range: new Range(),
+            correlationId: Guid.Empty);
 
         // Act
         var result = await target.ProvideSemanticTokensRangeAsync(request, DisposalToken);
@@ -341,7 +343,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
             .Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
                 _textBuffer,
                 Methods.TextDocumentSemanticTokensRangeName,
-                LanguageServerKind.CSharp.ToLanguageServerName(),
+                RazorLSPConstants.RazorCSharpLanguageServerName,
                 It.IsAny<SemanticTokensRangeParams>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ReinvocationResponse<VSSemanticTokensResponse>("languageClient", expectedCSharpResults));
@@ -356,6 +358,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
         var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
         telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableDictionary<string, object>>())).Returns(NullScope.Instance);
+        telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
 
         var target = new DefaultRazorLanguageServerCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
@@ -366,7 +369,8 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
                 Uri = new Uri("C:/path/to%20-%20project/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            range: new Range());
+            range: new Range(),
+            correlationId: Guid.Empty);
         var expectedResults = new ProvideSemanticTokensResponse(expectedCSharpResults.Data, documentVersion);
 
         // Act

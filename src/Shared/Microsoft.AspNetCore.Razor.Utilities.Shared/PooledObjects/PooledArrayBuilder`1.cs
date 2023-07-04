@@ -16,16 +16,18 @@ namespace Microsoft.AspNetCore.Razor.PooledObjects;
 internal ref struct PooledArrayBuilder<T>
 {
     private readonly ObjectPool<ImmutableArray<T>.Builder> _pool;
+    private readonly int? _capacity;
     private ImmutableArray<T>.Builder? _builder;
 
     public PooledArrayBuilder()
-        : this(ArrayBuilderPool<T>.Default)
+        : this(null, null)
     {
     }
 
-    public PooledArrayBuilder(ObjectPool<ImmutableArray<T>.Builder> pool)
+    public PooledArrayBuilder(ObjectPool<ImmutableArray<T>.Builder>? pool = null, int? capacity = null)
     {
-        _pool = pool;
+        _pool = pool ?? ArrayBuilderPool<T>.Default;
+        _capacity = capacity;
     }
 
     public void Dispose()
@@ -38,7 +40,7 @@ internal ref struct PooledArrayBuilder<T>
 
     public void Add(T item)
     {
-        _builder ??= _pool.Get();
+        _builder ??= GetBuilder();
         _builder.Add(item);
     }
 
@@ -49,13 +51,13 @@ internal ref struct PooledArrayBuilder<T>
             return;
         }
 
-        _builder ??= _pool.Get();
+        _builder ??= GetBuilder();
         _builder.AddRange(items);
     }
 
     public void AddRange(IEnumerable<T> items)
     {
-        _builder ??= _pool.Get();
+        _builder ??= GetBuilder();
         _builder.AddRange(items);
     }
 
@@ -68,6 +70,17 @@ internal ref struct PooledArrayBuilder<T>
         }
     }
 
+    private readonly ImmutableArray<T>.Builder GetBuilder()
+    {
+        var result = _pool.Get();
+        if (_capacity is int capacity)
+        {
+            result.SetCapacityIfLarger(capacity);
+        }
+
+        return result;
+    }
+
     /// <summary>
     ///  Returns the current contents as an <see cref="ImmutableArray{T}"/> and sets
     ///  the collection to a zero length array.
@@ -76,34 +89,11 @@ internal ref struct PooledArrayBuilder<T>
     ///  If <see cref="ImmutableArray{T}.Builder.Capacity"/> equals <see cref="Count"/>, the
     ///  internal array will be extracted as an <see cref="ImmutableArray{T}"/> without copying
     ///  the contents. Otherwise, the contents will be copied into a new array. The collection
-    ///  will then be set to a zero length array.
+    ///  will then be set to a zero-length array.
     /// </remarks>
     /// <returns>An immutable array.</returns>
     public readonly ImmutableArray<T> DrainToImmutable()
-    {
-#if NET8_0_OR_GREATER
-        return _builder?.DrainToImmutable() ?? ImmutableArray<T>.Empty;
-#else
-        if (_builder is not { } builder)
-        {
-            return ImmutableArray<T>.Empty;
-        }
-
-        if (builder.Count == 0)
-        {
-            return ImmutableArray<T>.Empty;
-        }
-
-        if (builder.Count == builder.Capacity)
-        {
-            return builder.MoveToImmutable();
-        }
-
-        var result = builder.ToImmutable();
-        builder.Clear();
-        return result;
-#endif
-    }
+        => _builder?.DrainToImmutable() ?? ImmutableArray<T>.Empty;
 
     public readonly ImmutableArray<T> ToImmutable()
         => _builder?.ToImmutable() ?? ImmutableArray<T>.Empty;
