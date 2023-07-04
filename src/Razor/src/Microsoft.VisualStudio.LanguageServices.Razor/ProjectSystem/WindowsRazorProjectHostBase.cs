@@ -137,7 +137,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         // Somewhat similar to https://github.com/dotnet/project-system/blob/bf4f33ec1843551eb775f73cff515a939aa2f629/src/Microsoft.VisualStudio.ProjectSystem.Managed/ProjectSystem/Tree/Dependencies/Subscriptions/DependenciesSnapshotProvider.cs
         // but a lot simpler.
         _disposables.Add(CommonServices.ActiveConfigurationGroupSubscriptionService.SourceBlock.LinkTo(
-            DataflowBlockSlim.CreateActionBlock<IProjectVersionedValue<ConfigurationSubscriptionSources>>(SlicesChanged, nameFormat: "Slice {0}"),
+            DataflowBlockSlim.CreateActionBlock<IProjectVersionedValue<ConfigurationSubscriptionSources>>(SlicesChanged, nameFormat: "Slice {1}"),
             new DataflowLinkOptions() { PropagateCompletion = true }));
 
         // Join, in the JTF sense, the ActiveConfigurationGroupSubscriptionService, to help avoid hangs in our OnProjectChangedAsync method
@@ -164,7 +164,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
                 // affect about the same project.razor.json file, but our event handling code ensures we don't handle them more than
                 // necessary.
                 var subscription = source.JointRuleSource.SourceBlock.LinkTo(
-                    DataflowBlockSlim.CreateActionBlock<IProjectVersionedValue<IProjectSubscriptionUpdate>>(OnProjectChangedAsync, "OnProjectChanged {0}"),
+                    DataflowBlockSlim.CreateActionBlock<IProjectVersionedValue<IProjectSubscriptionUpdate>>(OnProjectChangedAsync, nameFormat: "OnProjectChanged {1}"),
                     initialDataAsNew: true,
                     suppressVersionOnlyUpdates: true,
                     ruleNames: GetRuleNames(),
