@@ -212,12 +212,7 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
             Changed?.Invoke(this, args);
         }
 
-        public override IProjectSnapshot GetLoadedProject(string filePath)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IProjectSnapshot GetOrCreateProject(string filePath)
+        public override IProjectSnapshot GetLoadedProject(ProjectKey projectKey)
         {
             throw new NotImplementedException();
         }

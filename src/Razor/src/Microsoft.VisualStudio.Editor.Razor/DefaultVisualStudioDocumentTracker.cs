@@ -178,7 +178,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
             return;
         }
 
-        _projectSnapshot = _projectManager.GetOrCreateProject(_projectPath);
+        _projectSnapshot = GetOrCreateProject(_projectPath);
         _isSupportedProject = true;
 
         _projectManager.Changed += ProjectManager_Changed;
@@ -188,6 +188,15 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
         _importDocumentManager.OnSubscribed(this);
 
         _ = OnContextChangedAsync(ContextChangeKind.ProjectChanged);
+    }
+
+    private IProjectSnapshot? GetOrCreateProject(string projectPath)
+    {
+        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+
+        var projectKey = ProjectKey.FromLegacy(projectPath);
+
+        return _projectManager.GetLoadedProject(projectKey) ?? new EphemeralProjectSnapshot(Workspace.Services, projectKey);
     }
 
     public void Unsubscribe()
@@ -261,7 +270,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
                 case ProjectChangeKind.ProjectRemoved:
 
                     // Fall back to ephemeral project
-                    _projectSnapshot = _projectManager.GetOrCreateProject(ProjectPath);
+                    _projectSnapshot = GetOrCreateProject(ProjectPath);
                     _ = OnContextChangedAsync(ContextChangeKind.ProjectChanged);
                     break;
 

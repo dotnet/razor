@@ -146,18 +146,6 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         return null;
     }
 
-    public override IProjectSnapshot GetOrCreateProject(string filePath)
-    {
-        if (filePath is null)
-        {
-            throw new ArgumentNullException(nameof(filePath));
-        }
-
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
-        return GetLoadedProject(filePath) ?? new EphemeralProjectSnapshot(Workspace.Services, filePath);
-    }
-
     public override bool IsDocumentOpen(string documentFilePath)
     {
         if (documentFilePath is null)

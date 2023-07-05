@@ -63,7 +63,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         var projectWorkspaceState = new ProjectWorkspaceState(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.CSharp11);
         projectSnapshotManager.ProjectWorkspaceStateChanged(projectFilePath, projectWorkspaceState);
         projectSnapshotManager.DocumentAdded(hostProject, hostDocument, textLoader);
-        var projectSnapshot = projectSnapshotManager.GetOrCreateProject(projectFilePath);
+        var projectSnapshot = projectSnapshotManager.GetLoadedProject(hostProject.Key);
 
         var documentSnapshot = projectSnapshot.GetDocument(filePath);
         return documentSnapshot;
