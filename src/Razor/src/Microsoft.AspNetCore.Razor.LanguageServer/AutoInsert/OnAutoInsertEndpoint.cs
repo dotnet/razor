@@ -121,7 +121,7 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(VSInternalDocumentOnAutoInsertParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
-        if (projection.LanguageKind == RazorLanguageKind.Html)
+        if (positionInfo.LanguageKind == RazorLanguageKind.Html)
         {
             if (!s_htmlAllowedTriggerCharacters.Contains(request.Character))
             {
