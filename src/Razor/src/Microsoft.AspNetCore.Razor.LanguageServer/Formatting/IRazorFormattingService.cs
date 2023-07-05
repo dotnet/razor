@@ -14,7 +14,6 @@ internal interface IRazorFormattingService
        VersionedDocumentContext documentContext,
        Range? range,
        FormattingOptions options,
-       VSProjectContext? vSProjectContext,
        CancellationToken cancellationToken);
 
     Task<TextEdit[]> FormatOnTypeAsync(
@@ -22,7 +21,6 @@ internal interface IRazorFormattingService
       RazorLanguageKind kind,
       TextEdit[] formattedEdits,
       FormattingOptions options,
-      VSProjectContext? vSProjectContext,
       int hostDocumentIndex,
       char triggerCharacter,
       CancellationToken cancellationToken);
@@ -32,7 +30,6 @@ internal interface IRazorFormattingService
        RazorLanguageKind kind,
        TextEdit[] formattedEdits,
        FormattingOptions options,
-       VSProjectContext? vSProjectContext,
        CancellationToken cancellationToken);
 
     Task<TextEdit[]> FormatSnippetAsync(
@@ -40,6 +37,5 @@ internal interface IRazorFormattingService
        RazorLanguageKind kind,
        TextEdit[] edits,
        FormattingOptions options,
-       VSProjectContext? vSProjectContext,
        CancellationToken cancellationToken);
 }
