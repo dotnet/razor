@@ -569,9 +569,9 @@ public class RazorCompletionListProvierTest : LanguageServerTestBase
         {
             attribute.Name = "testAttribute";
             attribute.TypeName = typeof(string).FullName;
-            attribute.SetPropertyName("TestAttribute");
+            attribute.SetMetadata(PropertyName("TestAttribute"));
         });
-        builder.SetTypeName("TestNamespace.TestTagHelper");
+        builder.SetMetadata(TypeName("TestNamespace.TestTagHelper"));
         var tagHelper = builder.Build();
         var tagHelperContext = TagHelperDocumentContext.Create(prefix: string.Empty, new[] { tagHelper });
         var codeDocument = CreateCodeDocument("<test  ");
