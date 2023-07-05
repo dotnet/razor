@@ -26,6 +26,15 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 {
     private const string RootNamespaceProperty = "RootNamespace";
+    private static readonly string[] s_ruleNames = new string[]
+        {
+            Rules.RazorGeneral.SchemaName,
+            Rules.RazorConfiguration.SchemaName,
+            Rules.RazorExtension.SchemaName,
+            Rules.RazorComponentWithTargetPath.SchemaName,
+            Rules.RazorGenerateWithTargetPath.SchemaName,
+            ConfigurationGeneralSchemaName,
+        };
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
     [ImportingConstructor]
@@ -53,18 +62,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     {
     }
 
-    protected override string[] GetRuleNames()
-    {
-        return new string[]
-        {
-            Rules.RazorGeneral.SchemaName,
-            Rules.RazorConfiguration.SchemaName,
-            Rules.RazorExtension.SchemaName,
-            Rules.RazorComponentWithTargetPath.SchemaName,
-            Rules.RazorGenerateWithTargetPath.SchemaName,
-            ConfigurationGeneralSchemaName,
-        };
-    }
+    protected override string[] GetRuleNames() => s_ruleNames;
 
     protected override async Task HandleProjectChangeAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {

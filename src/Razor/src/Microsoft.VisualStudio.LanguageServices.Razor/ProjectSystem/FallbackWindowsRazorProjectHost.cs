@@ -30,6 +30,12 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
 {
     private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
+    private static readonly string[] s_ruleNames = new string[]
+        {
+            ResolvedCompilationReference.SchemaName,
+            ContentItem.SchemaName,
+            NoneItem.SchemaName,
+        };
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
     [ImportingConstructor]
@@ -57,15 +63,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
     {
     }
 
-    protected override string[] GetRuleNames()
-    {
-        return new string[]
-        {
-            ResolvedCompilationReference.SchemaName,
-            ContentItem.SchemaName,
-            NoneItem.SchemaName,
-        };
-    }
+    protected override string[] GetRuleNames() => s_ruleNames;
 
     protected override async Task HandleProjectChangeAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {
