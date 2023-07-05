@@ -16,7 +16,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Logging;
 [Export(typeof(IOutputWindowLogger))]
 internal class OutputWindowLogger : IOutputWindowLogger
 {
-    private const LogLevel MinimumLogLevel = LogLevel.Warning;
+    private const LogLevel MinimumLogLevel = LogLevel.Trace;
+
     private readonly OutputPane _outputPane;
 
     [ImportingConstructor]
