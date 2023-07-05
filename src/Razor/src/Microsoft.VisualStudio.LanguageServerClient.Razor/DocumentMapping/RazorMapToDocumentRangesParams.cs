@@ -3,33 +3,41 @@
 
 using System;
 using System.Linq;
+using System.Runtime.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Internal;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor.DocumentMapping;
 
 // Note: This type should be kept in sync with the one in Razor.LanguageServer assembly.
-internal class RazorDiagnosticsParams : IEquatable<RazorDiagnosticsParams>
+[DataContract]
+internal class RazorMapToDocumentRangesParams : IEquatable<RazorMapToDocumentRangesParams>
 {
+    [DataMember(Name = "kind")]
     public RazorLanguageKind Kind { get; init; }
 
+    [DataMember(Name = "razorDocumentUri")]
     public required Uri RazorDocumentUri { get; init; }
 
-    public required Diagnostic[] Diagnostics { get; init; }
+    [DataMember(Name = "projectedRanges")]
+    public required Range[] ProjectedRanges { get; init; }
 
-    public bool Equals(RazorDiagnosticsParams? other)
+    [DataMember(Name = "mappingBehavior")]
+    public LanguageServerMappingBehavior MappingBehavior { get; init; }
+
+    public bool Equals(RazorMapToDocumentRangesParams? other)
     {
         return
             other is not null &&
             Kind == other.Kind &&
             RazorDocumentUri == other.RazorDocumentUri &&
-            Enumerable.SequenceEqual(Diagnostics, other.Diagnostics);
+            MappingBehavior == other.MappingBehavior &&
+            ProjectedRanges.SequenceEqual(other.ProjectedRanges);
     }
 
     public override bool Equals(object obj)
     {
-        return Equals(obj as RazorDiagnosticsParams);
+        return Equals(obj as RazorMapToDocumentRangesParams);
     }
 
     public override int GetHashCode()
@@ -37,7 +45,8 @@ internal class RazorDiagnosticsParams : IEquatable<RazorDiagnosticsParams>
         var hash = new HashCodeCombiner();
         hash.Add(Kind);
         hash.Add(RazorDocumentUri);
-        hash.Add(Diagnostics);
+        hash.Add(ProjectedRanges);
+        hash.Add(MappingBehavior);
         return hash;
     }
 }

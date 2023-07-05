@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json.Linq;
 
-namespace Microsoft.VisualStudio.LanguageServerClient.Razor.HtmlCSharp;
+namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 internal class TestLanguageServiceBroker : ILanguageServiceBroker2
 {
