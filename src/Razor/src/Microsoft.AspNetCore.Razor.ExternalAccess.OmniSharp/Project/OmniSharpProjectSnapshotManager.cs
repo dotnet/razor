@@ -43,7 +43,8 @@ public class OmniSharpProjectSnapshotManager
 
     public OmniSharpProjectSnapshot GetLoadedProject(string filePath)
     {
-        var projectSnapshot = InternalProjectSnapshotManager.GetLoadedProject(filePath);
+        var projectKey = ProjectKey.From(filePath);
+        var projectSnapshot = InternalProjectSnapshotManager.GetLoadedProject(projectKey);
         // Forgiving null because we should only return null when projectSnapshot is null
         var converted = OmniSharpProjectSnapshot.Convert(projectSnapshot)!;
 
@@ -63,18 +64,19 @@ public class OmniSharpProjectSnapshotManager
     public void DocumentAdded(OmniSharpHostProject hostProject, OmniSharpHostDocument hostDocument)
     {
         var textLoader = _remoteTextLoaderFactory.Create(hostDocument.FilePath);
-        InternalProjectSnapshotManager.DocumentAdded(hostProject.InternalHostProject, hostDocument.InternalHostDocument, textLoader);
+        InternalProjectSnapshotManager.DocumentAdded(hostProject.InternalHostProject.Key, hostDocument.InternalHostDocument, textLoader);
     }
 
     public void DocumentChanged(string projectFilePath, string documentFilePath)
     {
+        var projectKey = ProjectKey.From(projectFilePath);
         var textLoader = _remoteTextLoaderFactory.Create(documentFilePath);
-        InternalProjectSnapshotManager.DocumentChanged(projectFilePath, documentFilePath, textLoader);
+        InternalProjectSnapshotManager.DocumentChanged(projectKey, documentFilePath, textLoader);
     }
 
     public void DocumentRemoved(OmniSharpHostProject hostProject, OmniSharpHostDocument hostDocument)
     {
-        InternalProjectSnapshotManager.DocumentRemoved(hostProject.InternalHostProject, hostDocument.InternalHostDocument);
+        InternalProjectSnapshotManager.DocumentRemoved(hostProject.InternalHostProject.Key, hostDocument.InternalHostDocument);
     }
 
     private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs args)

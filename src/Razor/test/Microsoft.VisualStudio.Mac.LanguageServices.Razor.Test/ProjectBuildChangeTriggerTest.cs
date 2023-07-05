@@ -57,7 +57,7 @@ public class ProjectBuildChangeTriggerTest : ProjectSnapshotManagerDispatcherTes
         var projectManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         projectManager.SetupGet(p => p.Workspace).Returns(_workspace);
         projectManager
-            .Setup(p => p.GetLoadedProject(_someProject.FilePath))
+            .Setup(p => p.GetLoadedProject(_someProject.Key))
             .Returns(projectSnapshot);
         var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
         var trigger = new ProjectBuildChangeTrigger(Dispatcher, projectService, workspaceStateGenerator, projectManager.Object);
@@ -88,7 +88,7 @@ public class ProjectBuildChangeTriggerTest : ProjectSnapshotManagerDispatcherTes
         var projectManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         projectManager.SetupGet(p => p.Workspace).Returns(_workspace);
         projectManager
-            .Setup(p => p.GetLoadedProject(expectedPath))
+            .Setup(p => p.GetLoadedProject(ProjectKey.From(expectedPath)))
             .Returns(projectSnapshot);
         var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
         var trigger = new ProjectBuildChangeTrigger(Dispatcher, projectService, workspaceStateGenerator, projectManager.Object);
@@ -111,7 +111,7 @@ public class ProjectBuildChangeTriggerTest : ProjectSnapshotManagerDispatcherTes
         var projectManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         projectManager.SetupGet(p => p.Workspace).Returns(_workspace);
         projectManager
-            .Setup(p => p.GetLoadedProject(_someProject.FilePath))
+            .Setup(p => p.GetLoadedProject(_someProject.Key))
             .Returns<IProjectSnapshot>(null);
         var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
         var trigger = new ProjectBuildChangeTrigger(Dispatcher, projectService, workspaceStateGenerator, projectManager.Object);

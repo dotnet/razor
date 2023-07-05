@@ -94,19 +94,20 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
                 for (var i = 0; i < changedDocuments.Length; i++)
                 {
-                    RemoveDocumentUnsafe(hostProject.FilePath, changedDocuments[i]);
+                    RemoveDocumentUnsafe(hostProject.Key, changedDocuments[i]);
                 }
 
                 for (var i = 0; i < documents.Length; i++)
                 {
-                    AddDocumentUnsafe(hostProject.FilePath, documents[i]);
+                    AddDocumentUnsafe(hostProject.Key, documents[i]);
                 }
             }, CancellationToken.None).ConfigureAwait(false);
         }
         else
         {
             // Ok we can't find a configuration. Let's assume this project isn't using Razor then.
-            await UpdateAsync(() => UninitializeProjectUnsafe(CommonServices.UnconfiguredProject.FullPath), CancellationToken.None).ConfigureAwait(false);
+            var projectKey = ProjectKey.From(CommonServices.UnconfiguredProject.FullPath);
+            await UpdateAsync(() => UninitializeProjectUnsafe(projectKey), CancellationToken.None).ConfigureAwait(false);
         }
     }
 

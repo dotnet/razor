@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Editor.Razor;
+using MonoDevelop.Core;
 using MonoDevelop.Ide;
 using MonoDevelop.Projects;
 
@@ -124,7 +125,8 @@ internal class ProjectBuildChangeTrigger : ProjectSnapshotChangeTrigger
                    }
 
                    var projectPath = _projectService.GetProjectPath(projectItem);
-                   var projectSnapshot = _projectManager?.GetLoadedProject(projectPath);
+                   var projectKey = ProjectKey.From(projectPath);
+                   var projectSnapshot = _projectManager?.GetLoadedProject(projectKey);
                    if (projectSnapshot is not null)
                    {
                        var workspaceProject = _projectManager?.Workspace.CurrentSolution?.Projects.FirstOrDefault(

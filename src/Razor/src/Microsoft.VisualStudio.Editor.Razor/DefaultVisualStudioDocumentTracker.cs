@@ -242,7 +242,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
             string.Equals(_projectPath, e.ProjectFilePath, StringComparison.OrdinalIgnoreCase))
         {
             // This will be the new snapshot unless the project was removed.
-            _projectSnapshot = _projectManager.GetLoadedProject(e.ProjectFilePath);
+            _projectSnapshot = _projectManager.GetLoadedProject(e.ProjectKey);
 
             switch (e.Kind)
             {

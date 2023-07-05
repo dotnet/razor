@@ -186,8 +186,8 @@ public class DocumentProjectResolverTest : LanguageServerTestBase
         // Arrange
         DefaultProjectResolver projectResolver = null;
         var miscProject = new Mock<IProjectSnapshot>(MockBehavior.Strict);
-        miscProject.Setup(p => p.FilePath)
-            .Returns(() => projectResolver.MiscellaneousHostProject.FilePath);
+        miscProject.Setup(p => p.Key)
+            .Returns(() => projectResolver.MiscellaneousHostProject.Key);
         var expectedProject = miscProject.Object;
         projectResolver = CreateProjectResolver(() => new[] { expectedProject });
 
@@ -207,10 +207,10 @@ public class DocumentProjectResolverTest : LanguageServerTestBase
         var snapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         snapshotManager.Setup(manager => manager.Projects)
             .Returns(() => projects);
-        snapshotManager.Setup(manager => manager.GetLoadedProject(It.IsAny<string>()))
-            .Returns<string>(filePath => projects.FirstOrDefault(p => p.FilePath == filePath));
+        snapshotManager.Setup(manager => manager.GetLoadedProject(It.IsAny<ProjectKey>()))
+            .Returns<ProjectKey>(projectKey => projects.FirstOrDefault(p => p.Key == projectKey));
         snapshotManager.Setup(manager => manager.ProjectAdded(It.IsAny<HostProject>()))
-            .Callback<HostProject>(hostProject => projects.Add(Mock.Of<IProjectSnapshot>(p => p.FilePath == hostProject.FilePath, MockBehavior.Strict)));
+            .Callback<HostProject>(hostProject => projects.Add(Mock.Of<IProjectSnapshot>(p => p.Key == hostProject.Key, MockBehavior.Strict)));
         var snapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(accessor => accessor.Instance == snapshotManager.Object, MockBehavior.Strict);
         projectResolver = new DefaultProjectResolver(LegacyDispatcher, snapshotManagerAccessor);
 
@@ -219,7 +219,7 @@ public class DocumentProjectResolverTest : LanguageServerTestBase
 
         // Assert
         Assert.Single(projects);
-        Assert.Equal(projectResolver.MiscellaneousHostProject.FilePath, project.FilePath);
+        Assert.Equal(projectResolver.MiscellaneousHostProject.Key, project.Key);
     }
 
     private DefaultProjectResolver CreateProjectResolver(Func<IProjectSnapshot[]> projectFactory)
@@ -227,8 +227,8 @@ public class DocumentProjectResolverTest : LanguageServerTestBase
         var snapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         snapshotManager.Setup(manager => manager.Projects)
             .Returns(projectFactory);
-        snapshotManager.Setup(manager => manager.GetLoadedProject(It.IsAny<string>()))
-            .Returns<string>(filePath => projectFactory().FirstOrDefault(project => project.FilePath == filePath));
+        snapshotManager.Setup(manager => manager.GetLoadedProject(It.IsAny<ProjectKey>()))
+            .Returns<ProjectKey>(projectKey => projectFactory().FirstOrDefault(project => project.Key == projectKey));
         var snapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(accessor => accessor.Instance == snapshotManager.Object, MockBehavior.Strict);
         var projectResolver = new DefaultProjectResolver(LegacyDispatcher, snapshotManagerAccessor);
 

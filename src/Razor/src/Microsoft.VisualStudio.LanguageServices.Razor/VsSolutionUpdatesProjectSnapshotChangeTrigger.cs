@@ -144,7 +144,8 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : ProjectSnapshotCh
         var projectFilePath = _projectService.GetProjectPath(projectHierarchy);
         return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
         {
-            var projectSnapshot = _projectManager?.GetLoadedProject(projectFilePath);
+            var projectKey = ProjectKey.From(projectFilePath);
+            var projectSnapshot = _projectManager?.GetLoadedProject(projectKey);
             if (projectSnapshot is not null)
             {
                 var workspaceProject = _projectManager?.Workspace.CurrentSolution.Projects.FirstOrDefault(

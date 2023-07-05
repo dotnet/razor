@@ -219,7 +219,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
                         var projects = _projectManager.Projects;
                         foreach (var project in projects)
                         {
-                            UninitializeProjectUnsafe(project.FilePath);
+                            UninitializeProjectUnsafe(project.Key);
                         }
                     }, CancellationToken.None)).ConfigureAwait(false);
             }
@@ -247,10 +247,11 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         return ExecuteWithLockAsync(() => UpdateAsync(() =>
             {
                 var projectManager = GetProjectManager();
-                var current = projectManager.GetLoadedProject(oldProjectFilePath);
+                var projectKey = ProjectKey.From(oldProjectFilePath);
+                var current = projectManager.GetLoadedProject(projectKey);
                 if (current?.Configuration is not null)
                 {
-                    UninitializeProjectUnsafe(oldProjectFilePath);
+                    UninitializeProjectUnsafe(projectKey);
 
                     var hostProject = new HostProject(newProjectFilePath, current.Configuration, current.RootNamespace);
                     UpdateProjectUnsafe(hostProject);
@@ -262,7 +263,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
                         Assumes.NotNull(documentSnapshot);
                         // TODO: The creation of the HostProject here is silly
                         var hostDocument = new HostDocument(documentSnapshot.FilePath.AssumeNotNull(), documentSnapshot.TargetPath.AssumeNotNull(), documentSnapshot.FileKind);
-                        AddDocumentUnsafe(hostProject.FilePath, hostDocument);
+                        AddDocumentUnsafe(hostProject.Key, hostDocument);
                     }
                 }
             }, CancellationToken.None));
@@ -281,16 +282,16 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     protected Task UpdateAsync(Action action, CancellationToken cancellationToken)
         => _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(action, cancellationToken);
 
-    protected void UninitializeProjectUnsafe(string projectFilePath)
+    protected void UninitializeProjectUnsafe(ProjectKey projectKey)
     {
-        ClearDocumentsUnsafe(projectFilePath);
+        ClearDocumentsUnsafe(projectKey);
 
         var projectManager = GetProjectManager();
-        var current = projectManager.GetLoadedProject(projectFilePath);
+        var current = projectManager.GetLoadedProject(projectKey);
         if (current is not null)
         {
-            projectManager.ProjectRemoved(projectFilePath);
-            ProjectConfigurationFilePathStore.Remove(projectFilePath);
+            projectManager.ProjectRemoved(projectKey);
+            ProjectConfigurationFilePathStore.Remove(current.FilePath);
         }
     }
 
@@ -298,7 +299,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     {
         var projectManager = GetProjectManager();
 
-        var current = projectManager.GetLoadedProject(project.FilePath);
+        var current = projectManager.GetLoadedProject(project.Key);
         if (current is null)
         {
             // Just in case we somehow got in a state where VS didn't tell us that solution close was finished, lets just
@@ -314,22 +315,22 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         }
     }
 
-    protected void AddDocumentUnsafe(string projectFilePath, HostDocument document)
+    protected void AddDocumentUnsafe(ProjectKey projectKey, HostDocument document)
     {
         var projectManager = GetProjectManager();
-        projectManager.DocumentAdded(projectFilePath, document, new FileTextLoader(document.FilePath, null));
+        projectManager.DocumentAdded(projectKey, document, new FileTextLoader(document.FilePath, null));
     }
 
-    protected void RemoveDocumentUnsafe(string projectFilePath, HostDocument document)
+    protected void RemoveDocumentUnsafe(ProjectKey projectKey, HostDocument document)
     {
         var projectManager = GetProjectManager();
-        projectManager.DocumentRemoved(projectFilePath, document);
+        projectManager.DocumentRemoved(projectKey, document);
     }
 
-    private void ClearDocumentsUnsafe(string projectFilePath)
+    private void ClearDocumentsUnsafe(ProjectKey projectKey)
     {
         var projectManager = GetProjectManager();
-        var current = projectManager.GetLoadedProject(projectFilePath);
+        var current = projectManager.GetLoadedProject(projectKey);
 
         if (current is null)
         {
@@ -342,7 +343,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
             Assumes.NotNull(documentSnapshot);
             // TODO: The creation of the HostProject here is silly
             var hostDocument = new HostDocument(documentSnapshot.FilePath.AssumeNotNull(), documentSnapshot.TargetPath.AssumeNotNull(), documentSnapshot.FileKind);
-            projectManager.DocumentRemoved(projectFilePath, hostDocument);
+            projectManager.DocumentRemoved(projectKey, hostDocument);
         }
     }
 
