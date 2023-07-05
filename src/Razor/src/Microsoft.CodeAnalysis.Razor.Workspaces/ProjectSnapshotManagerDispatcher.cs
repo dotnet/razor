@@ -14,29 +14,21 @@ internal abstract class ProjectSnapshotManagerDispatcher
 
     public abstract TaskScheduler DispatcherScheduler { get; }
 
-    public Task RunOnDispatcherThreadAsync(Action action, CancellationToken _)
-    {
-        action();
-        return Task.CompletedTask;
-    }
+    public Task RunOnDispatcherThreadAsync(Action action, CancellationToken cancellationToken)
+        => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, DispatcherScheduler);
 
     public Task RunOnDispatcherThreadAsync<TArg>(Action<TArg, CancellationToken> action, TArg arg, CancellationToken cancellationToken)
-    {
-        action(arg, cancellationToken);
-        return Task.CompletedTask;
-    }
+        => Task.Factory.StartNew(() => action(arg, cancellationToken), cancellationToken, TaskCreationOptions.None, DispatcherScheduler);
 
-    public Task<TResult> RunOnDispatcherThreadAsync<TResult>(Func<TResult> action, CancellationToken _)
-    {
-        return Task.FromResult(action());
-    }
+    public Task<TResult> RunOnDispatcherThreadAsync<TResult>(Func<TResult> action, CancellationToken cancellationToken)
+        => Task.Factory.StartNew(action, cancellationToken, TaskCreationOptions.None, DispatcherScheduler);
 
-    public virtual void AssertDispatcherThread([CallerMemberName] string? _ = null)
+    public virtual void AssertDispatcherThread([CallerMemberName] string? caller = null)
     {
-        //if (!IsDispatcherThread)
-        //{
-        //    caller = caller is null ? "The method" : $"'{caller}'";
-        //    throw new InvalidOperationException(caller + " must be called on the project snapshot manager's thread.");
-        //}
+        if (!IsDispatcherThread)
+        {
+            caller = caller is null ? "The method" : $"'{caller}'";
+            throw new InvalidOperationException(caller + " must be called on the project snapshot manager's thread.");
+        }
     }
 }
