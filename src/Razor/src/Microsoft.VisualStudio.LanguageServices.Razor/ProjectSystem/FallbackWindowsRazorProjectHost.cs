@@ -35,7 +35,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
             ResolvedCompilationReference.SchemaName,
             ContentItem.SchemaName,
             NoneItem.SchemaName,
-        };
+        });
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
     [ImportingConstructor]
