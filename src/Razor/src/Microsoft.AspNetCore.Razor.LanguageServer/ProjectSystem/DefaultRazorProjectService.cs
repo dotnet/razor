@@ -268,7 +268,7 @@ internal class DefaultRazorProjectService : RazorProjectService
     }
 
     public override void UpdateProject(
-        string filePath,
+        ProjectKey projectKey,
         RazorConfiguration? configuration,
         string? rootNamespace,
         ProjectWorkspaceState projectWorkspaceState,
@@ -276,14 +276,12 @@ internal class DefaultRazorProjectService : RazorProjectService
     {
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-        var normalizedPath = FilePathNormalizer.Normalize(filePath);
-        var projectKey = ProjectKey.From(normalizedPath);
         var project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectKey);
 
         if (project is null)
         {
             // Never tracked the project to begin with, noop.
-            _logger.LogInformation("Failed to update untracked project '{filePath}'.", filePath);
+            _logger.LogInformation("Failed to update untracked project '{projectKey}'.", projectKey);
             return;
         }
 
@@ -292,7 +290,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
         {
             _logger.LogInformation("Updating project '{filePath}' TagHelpers ({projectWorkspaceState.TagHelpers.Count}) and C# Language Version ({projectWorkspaceState.CSharpLanguageVersion}).",
-                filePath, projectWorkspaceState.TagHelpers.Length, projectWorkspaceState.CSharpLanguageVersion);
+                project.FilePath, projectWorkspaceState.TagHelpers.Length, projectWorkspaceState.CSharpLanguageVersion);
         }
 
         _projectSnapshotManagerAccessor.Instance.ProjectWorkspaceStateChanged(project.Key, projectWorkspaceState);
@@ -303,24 +301,24 @@ internal class DefaultRazorProjectService : RazorProjectService
             currentHostProject.RootNamespace == rootNamespace)
         {
             _logger.LogTrace("Updating project '{filePath}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}'.",
-                filePath, configuration.ConfigurationName, rootNamespace);
+                project.FilePath, configuration.ConfigurationName, rootNamespace);
             return;
         }
 
         if (configuration is null)
         {
             configuration = RazorDefaults.Configuration;
-            _logger.LogInformation("Updating project '{filePath}' to use Razor's default configuration ('{configuration.ConfigurationName}')'.", filePath, configuration.ConfigurationName);
+            _logger.LogInformation("Updating project '{filePath}' to use Razor's default configuration ('{configuration.ConfigurationName}')'.", project.FilePath, configuration.ConfigurationName);
         }
         else if (currentConfiguration.ConfigurationName != configuration.ConfigurationName)
         {
             _logger.LogInformation("Updating project '{filePath}' to Razor configuration '{configuration.ConfigurationName}' with language version '{configuration.LanguageVersion}'.",
-                filePath, configuration.ConfigurationName, configuration.LanguageVersion);
+                project.FilePath, configuration.ConfigurationName, configuration.LanguageVersion);
         }
 
         if (currentHostProject.RootNamespace != rootNamespace)
         {
-            _logger.LogInformation("Updating project '{filePath}''s root namespace to '{rootNamespace}'.", filePath, rootNamespace);
+            _logger.LogInformation("Updating project '{filePath}''s root namespace to '{rootNamespace}'.", project.FilePath, rootNamespace);
         }
 
         var hostProject = new HostProject(project.FilePath, configuration, rootNamespace);
