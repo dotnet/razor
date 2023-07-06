@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -35,7 +36,8 @@ internal sealed class ProjectKey
     private ProjectKey(string id)
     {
         Debug.Assert(id is not null, "Cannot create a key for null Id. Did you call ProjectKey.From(this) in a constructor, before initializing a property?");
-        Id = id;
+        // The null check in the assert means the compiler thinks we're lying about id being non-nullable.. which is fair I suppose.
+        Id = id.AssumeNotNull();
     }
 
     public override int GetHashCode()
