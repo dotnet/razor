@@ -5,8 +5,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -144,6 +146,28 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
 
         return null;
+    }
+
+    public override ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName)
+    {
+        if (projectFileName is null)
+        {
+            throw new ArgumentNullException(nameof(projectFileName));
+        }
+
+        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+
+        using var _ = ArrayBuilderPool<ProjectKey>.GetPooledObject(out var projects);
+
+        foreach (var (key, entry) in _projects)
+        {
+            if (FilePathComparer.Instance.Equals(entry.State.HostProject.FilePath, projectFileName))
+            {
+                projects.Add(key);
+            }
+        }
+
+        return projects.DrainToImmutable();
     }
 
     public override bool IsDocumentOpen(string documentFilePath)

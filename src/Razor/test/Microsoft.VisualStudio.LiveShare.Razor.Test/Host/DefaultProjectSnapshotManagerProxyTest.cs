@@ -217,6 +217,11 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
             throw new NotImplementedException();
         }
 
+        public override ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName)
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool IsDocumentOpen(string documentFilePath)
         {
             throw new NotImplementedException();

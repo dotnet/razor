@@ -99,8 +99,11 @@ internal class ProjectSnapshotSynchronizationService : ICollaborationService, IA
         else if (args.Kind == ProjectProxyChangeKind.ProjectRemoved)
         {
             var guestPath = ResolveGuestPath(args.ProjectFilePath);
-            var guestKey = ProjectKey.From(guestPath);
-            _projectSnapshotManager.ProjectRemoved(guestKey);
+            var projectKeys = _projectSnapshotManager.GetAllProjectKeys(guestPath);
+            foreach (var projectKey in projectKeys)
+            {
+                _projectSnapshotManager.ProjectRemoved(projectKey);
+            }
         }
         else if (args.Kind == ProjectProxyChangeKind.ProjectChanged)
         {
@@ -114,8 +117,11 @@ internal class ProjectSnapshotSynchronizationService : ICollaborationService, IA
                 args.Older.ProjectWorkspaceState?.Equals(args.Newer.ProjectWorkspaceState) == false)
             {
                 var guestPath = ResolveGuestPath(args.Newer.FilePath);
-                var guestKey = ProjectKey.From(guestPath);
-                _projectSnapshotManager.ProjectWorkspaceStateChanged(guestKey, args.Newer.ProjectWorkspaceState);
+                var projectKeys = _projectSnapshotManager.GetAllProjectKeys(guestPath);
+                foreach (var projectKey in projectKeys)
+                {
+                    _projectSnapshotManager.ProjectWorkspaceStateChanged(projectKey, args.Newer.ProjectWorkspaceState);
+                }
             }
         }
     }

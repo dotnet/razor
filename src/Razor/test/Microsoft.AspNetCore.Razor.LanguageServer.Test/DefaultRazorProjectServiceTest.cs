@@ -833,7 +833,9 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
                 Assert.Equal(projectFilePath, hostProject.FilePath);
                 Assert.Same(RazorDefaults.Configuration, hostProject.Configuration);
             });
-        projectSnapshotManager.Setup(manager => manager.GetLoadedProject(It.IsAny<ProjectKey>())).Returns<IProjectSnapshot>(null);
+        projectSnapshotManager
+            .Setup(p => p.GetAllProjectKeys(projectFilePath))
+            .Returns(ImmutableArray<ProjectKey>.Empty);
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
@@ -848,11 +850,13 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
     {
         // Arrange
         var projectFilePath = "C:/path/to/project.csproj";
+        var projectKey = TestProjectKey.Create(projectFilePath);
         var miscellaneousProject = TestProjectSnapshot.Create("C:/__MISC_PROJECT__");
         var projectResolver = new TestProjectResolver(new Dictionary<string, IProjectSnapshot>(), miscellaneousProject);
         var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
-        projectSnapshotManager.Setup(manager => manager.GetLoadedProject(ProjectKey.From(projectFilePath)))
-            .Returns(Mock.Of<IProjectSnapshot>(MockBehavior.Strict));
+        projectSnapshotManager
+            .Setup(p => p.GetAllProjectKeys(projectFilePath))
+            .Returns(ImmutableArray.Create(projectKey));
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
@@ -873,6 +877,9 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         projectSnapshotManager.Setup(manager => manager.GetLoadedProject(ownerProject.Key))
             .Returns(ownerProject);
+        projectSnapshotManager
+            .Setup(p => p.GetAllProjectKeys(projectFilePath))
+            .Returns(ImmutableArray.Create(ownerProject.Key));
         projectSnapshotManager.Setup(manager => manager.ProjectRemoved(ownerProject.Key))
             .Callback<ProjectKey>((projectKey) => Assert.Equal(projectKey, ownerProject.Key));
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
@@ -894,8 +901,9 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         projectSnapshotManager.Setup(manager => manager.ProjectRemoved(It.IsAny<ProjectKey>()))
             .Throws(new InvalidOperationException("Should not have been called."));
-        projectSnapshotManager.Setup(manager => manager.GetLoadedProject(ProjectKey.From(projectFilePath)))
-            .Returns((IProjectSnapshot)null);
+        projectSnapshotManager
+            .Setup(p => p.GetAllProjectKeys(projectFilePath))
+            .Returns(ImmutableArray<ProjectKey>.Empty);
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act & Assert

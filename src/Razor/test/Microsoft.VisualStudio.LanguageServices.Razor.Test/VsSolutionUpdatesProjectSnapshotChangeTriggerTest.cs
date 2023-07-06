@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -198,6 +199,9 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : TestBase
         var projectManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         projectManager.SetupGet(p => p.Workspace).Returns(_workspace);
         projectManager
+            .Setup(p => p.GetAllProjectKeys(projectSnapshot.FilePath))
+            .Returns(ImmutableArray.Create(projectSnapshot.Key));
+        projectManager
             .Setup(p => p.GetLoadedProject(projectSnapshot.Key))
             .Returns(projectSnapshot);
         var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
@@ -233,8 +237,8 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : TestBase
         var projectManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         projectManager.SetupGet(p => p.Workspace).Returns(_workspace);
         projectManager
-            .Setup(p => p.GetLoadedProject(ProjectKey.From(expectedProjectPath)))
-            .Returns((IProjectSnapshot)null);
+            .Setup(p => p.GetAllProjectKeys(expectedProjectPath))
+            .Returns(ImmutableArray<ProjectKey>.Empty);
         var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
         var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator, s_dispatcher, JoinableTaskFactory.Context);

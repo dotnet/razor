@@ -229,10 +229,8 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
-        var projectKey = ProjectKey.From(normalizedPath);
-        var project = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectKey);
 
-        if (project != null)
+        if (_projectSnapshotManagerAccessor.Instance.GetAllProjectKeys(filePath).Length > 0)
         {
             // Project already exists, noop.
             return;
@@ -250,19 +248,23 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
-        var projectKey = ProjectKey.From(normalizedPath);
-        var project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectKey);
 
-        if (project is null)
+        var projectKeys = _projectSnapshotManagerAccessor.Instance.GetAllProjectKeys(normalizedPath);
+        foreach (var projectKey in projectKeys)
         {
-            // Never tracked the project to begin with, noop.
-            return;
+            var project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectKey);
+
+            if (project is null)
+            {
+                // Never tracked the project to begin with, noop.
+                continue;
+            }
+
+            _logger.LogInformation("Removing project '{filePath}' from project system.", filePath);
+            _projectSnapshotManagerAccessor.Instance.ProjectRemoved(project.Key);
+
+            TryMigrateDocumentsFromRemovedProject(project);
         }
-
-        _logger.LogInformation("Removing project '{filePath}' from project system.", filePath);
-        _projectSnapshotManagerAccessor.Instance.ProjectRemoved(project.Key);
-
-        TryMigrateDocumentsFromRemovedProject(project);
     }
 
     public override void UpdateProject(

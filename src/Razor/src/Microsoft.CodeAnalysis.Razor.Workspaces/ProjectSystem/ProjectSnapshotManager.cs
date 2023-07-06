@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -18,4 +19,6 @@ internal abstract class ProjectSnapshotManager : ILanguageService
     public abstract bool IsDocumentOpen(string documentFilePath);
 
     public abstract IProjectSnapshot GetLoadedProject(ProjectKey projectKey);
+
+    public abstract ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName);
 }

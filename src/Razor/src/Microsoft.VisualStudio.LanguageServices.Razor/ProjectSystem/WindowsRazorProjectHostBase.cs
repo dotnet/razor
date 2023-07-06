@@ -245,9 +245,12 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         // reinitialize the HostProject with the same configuration and settings here, but the updated
         // FilePath.
         return ExecuteWithLockAsync(() => UpdateAsync(() =>
+        {
+            var projectManager = GetProjectManager();
+
+            var projectKeys = projectManager.GetAllProjectKeys(oldProjectFilePath);
+            foreach (var projectKey in projectKeys)
             {
-                var projectManager = GetProjectManager();
-                var projectKey = ProjectKey.From(oldProjectFilePath);
                 var current = projectManager.GetLoadedProject(projectKey);
                 if (current?.Configuration is not null)
                 {
@@ -266,11 +269,12 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
                         AddDocumentUnsafe(hostProject.Key, hostDocument);
                     }
                 }
-            }, CancellationToken.None));
+            }
+        }, CancellationToken.None));
     }
 
     // Should only be called from the project snapshot manager's specialized thread.
-    private ProjectSnapshotManagerBase GetProjectManager()
+    protected ProjectSnapshotManagerBase GetProjectManager()
     {
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
