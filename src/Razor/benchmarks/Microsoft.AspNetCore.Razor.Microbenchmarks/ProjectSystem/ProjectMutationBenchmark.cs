@@ -30,7 +30,7 @@ public class ProjectMutationBenchmark : ProjectSnapshotManagerBenchmarkBase
     [IterationSetup]
     public void Setup()
     {
-        SnapshotManager = CreateProjectSnapshotManager(_dispatcher);
+        SnapshotManager = CreateProjectSnapshotManager();
     }
 
     private DefaultProjectSnapshotManager SnapshotManager { get; set; }

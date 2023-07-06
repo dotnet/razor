@@ -5,22 +5,26 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 
-internal sealed class SnapshotResolver
+internal class SnapshotResolver
 {
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
+    private readonly ILogger<SnapshotResolver> _logger;
 
     // Internal for testing
     internal readonly HostProject MiscellaneousHostProject;
 
-    public SnapshotResolver(ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
+    public SnapshotResolver(ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor, ILoggerFactory loggerFactory)
     {
         _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
+        _logger = loggerFactory.CreateLogger<SnapshotResolver>();
 
         var miscellaneousProjectPath = Path.Combine(TempDirectory.Instance.DirectoryPath, "__MISC_RAZOR_PROJECT__");
         MiscellaneousHostProject = new HostProject(FilePathNormalizer.Normalize(miscellaneousProjectPath), RazorDefaults.Configuration, RazorDefaults.RootNamespace);
@@ -81,6 +85,8 @@ internal sealed class SnapshotResolver
     /// <returns><see langword="true"/> if a document is found and contained in a project</returns>
     public bool TryResolve(string documentFilePath, bool includeMiscellaneous, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot, [NotNullWhen(true)] out IDocumentSnapshot? document)
     {
+        _logger.LogTrace("Looking for {documentFilePath}. IncludeMiscellaneous: {includeMiscellaneous}", documentFilePath, includeMiscellaneous);
+
         if (documentFilePath is null)
         {
             throw new ArgumentNullException(nameof(documentFilePath));
@@ -95,10 +101,13 @@ internal sealed class SnapshotResolver
             document = project.GetDocument(normalizedDocumentPath);
             if (document is not null)
             {
+                _logger.LogTrace("Found {documentFilePath} in {project}", documentFilePath, project.FilePath);
                 projectSnapshot = project;
                 return true;
             }
         }
+
+        _logger.LogTrace("{documentFilePath} not found in {documents}", documentFilePath, _projectSnapshotManagerAccessor.Instance.GetProjects().SelectMany(p => p.DocumentFilePaths));
 
         document = null;
         projectSnapshot = null;

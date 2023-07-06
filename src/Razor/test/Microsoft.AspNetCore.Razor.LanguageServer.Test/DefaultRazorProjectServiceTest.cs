@@ -820,7 +820,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         }
 
         var accessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
-        snapshotResolver = new SnapshotResolver(accessor);
+        snapshotResolver = new SnapshotResolver(accessor, LoggerFactory);
 
         var remoteTextLoaderFactory = Mock.Of<RemoteTextLoaderFactory>(factory => factory.Create(It.IsAny<string>()) == Mock.Of<TextLoader>(MockBehavior.Strict), MockBehavior.Strict);
         var projectService = new DefaultRazorProjectService(

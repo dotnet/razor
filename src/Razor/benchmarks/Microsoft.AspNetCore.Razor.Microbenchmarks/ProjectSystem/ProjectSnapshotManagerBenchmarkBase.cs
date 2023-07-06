@@ -64,7 +64,7 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
         TagHelperResolver = new StaticTagHelperResolver(tagHelpers, NoOpTelemetryReporter.Instance);
     }
 
-    internal DefaultProjectSnapshotManager CreateProjectSnapshotManager(ProjectSnapshotManagerDispatcher? dispatcher = null)
+    internal DefaultProjectSnapshotManager CreateProjectSnapshotManager()
     {
         var services = TestServices.Create(
             new IWorkspaceService[]
