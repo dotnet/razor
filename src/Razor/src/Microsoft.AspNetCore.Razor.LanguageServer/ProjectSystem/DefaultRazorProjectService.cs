@@ -58,6 +58,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         {
             // Document already added. This usually occurs when VSCode has already pre-initialized
             // open documents and then we try to manually add all known razor documents.
+            _logger.LogTrace("Add of {filePath} ignored because it was already added.", filePath);
             return;
         }
 
@@ -110,11 +111,11 @@ internal class DefaultRazorProjectService : RazorProjectService
 
         TrackDocumentVersion(textDocumentPath, version);
 
-        if (_snapshotResolver.TryResolveDocument(textDocumentPath, includeMiscellaneous: true, out var documentSnapshot))
-        {
-            // Start generating the C# for the document so it can immediately be ready for incoming requests.
-            _ = documentSnapshot.GetGeneratedOutputAsync();
-        }
+        _snapshotResolver.TryResolveDocument(textDocumentPath, includeMiscellaneous: true, out var documentSnapshot);
+        documentSnapshot.AssumeNotNull();
+
+        // Start generating the C# for the document so it can immediately be ready for incoming requests.
+        _ = documentSnapshot.GetGeneratedOutputAsync();
     }
 
     public override void CloseDocument(string filePath)
