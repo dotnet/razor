@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
 {
     private const string MvcAssemblyFileName = "Microsoft.AspNetCore.Mvc.Razor.dll";
-    private static readonly string[] s_ruleNames = new string[]
+    private static readonly ImmutableHashSet<string> s_ruleNames = ImmutableHashSet.CreateRange(new string[]
         {
             ResolvedCompilationReference.SchemaName,
             ContentItem.SchemaName,
@@ -63,7 +63,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
     {
     }
 
-    protected override string[] GetRuleNames() => s_ruleNames;
+    protected override ImmutableHashSet<string> GetRuleNames() => s_ruleNames;
 
     protected override async Task HandleProjectChangeAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {

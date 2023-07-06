@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDisposedAsync, IProjectDynamicLoadComponent
 {
+    private static readonly DataflowLinkOptions s_dataflowLinkOptions = new DataflowLinkOptions() { PropagateCompletion = true };
+
     private readonly Workspace _workspace;
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly AsyncSemaphore _lock;
@@ -92,7 +94,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         _projectManager = projectManager;
     }
 
-    protected abstract string[] GetRuleNames();
+    protected abstract ImmutableHashSet<string> GetRuleNames();
 
     protected abstract Task HandleProjectChangeAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update);
 
@@ -168,7 +170,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
                     initialDataAsNew: true,
                     suppressVersionOnlyUpdates: true,
                     ruleNames: GetRuleNames(),
-                    linkOptions: new DataflowLinkOptions() { PropagateCompletion = true });
+                    linkOptions: s_dataflowLinkOptions);
 
                 _projectSubscriptions.Add(slice, subscription);
             }

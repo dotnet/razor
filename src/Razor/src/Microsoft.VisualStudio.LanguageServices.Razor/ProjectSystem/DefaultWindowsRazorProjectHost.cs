@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 {
     private const string RootNamespaceProperty = "RootNamespace";
-    private static readonly string[] s_ruleNames = new string[]
+    private static readonly ImmutableHashSet<string> s_ruleNames = ImmutableHashSet.CreateRange(new string[]
         {
             Rules.RazorGeneral.SchemaName,
             Rules.RazorConfiguration.SchemaName,
@@ -34,7 +34,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
             Rules.RazorComponentWithTargetPath.SchemaName,
             Rules.RazorGenerateWithTargetPath.SchemaName,
             ConfigurationGeneralSchemaName,
-        };
+        });
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
     [ImportingConstructor]
@@ -62,7 +62,7 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
     {
     }
 
-    protected override string[] GetRuleNames() => s_ruleNames;
+    protected override ImmutableHashSet<string> GetRuleNames() => s_ruleNames;
 
     protected override async Task HandleProjectChangeAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {
