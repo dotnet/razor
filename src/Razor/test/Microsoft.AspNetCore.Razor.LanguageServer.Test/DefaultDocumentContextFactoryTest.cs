@@ -137,6 +137,6 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
             projectSnapshotManagerAccessor.Instance.DocumentAdded(project.HostProject, document.HostDocument, new EmptyTextLoader(document.FilePath));
         }
 
-        return new SnapshotResolver(projectSnapshotManagerAccessor, LoggerFactory);
+        return new SnapshotResolver(projectSnapshotManagerAccessor, new LoggerAdapter(new[] {Logger}, null, null));
     }
 }

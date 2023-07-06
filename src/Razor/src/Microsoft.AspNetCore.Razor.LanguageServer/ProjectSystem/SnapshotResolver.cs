@@ -16,15 +16,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 internal class SnapshotResolver
 {
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
-    private readonly ILogger<SnapshotResolver> _logger;
+    private readonly LoggerAdapter _logger;
 
     // Internal for testing
     internal readonly HostProject MiscellaneousHostProject;
 
-    public SnapshotResolver(ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor, ILoggerFactory loggerFactory)
+    public SnapshotResolver(ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor, LoggerAdapter loggerAdapter)
     {
         _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
-        _logger = loggerFactory.CreateLogger<SnapshotResolver>();
+        _logger = loggerAdapter ?? throw new ArgumentNullException(nameof(loggerAdapter));
 
         var miscellaneousProjectPath = Path.Combine(TempDirectory.Instance.DirectoryPath, "__MISC_RAZOR_PROJECT__");
         MiscellaneousHostProject = new HostProject(FilePathNormalizer.Normalize(miscellaneousProjectPath), RazorDefaults.Configuration, RazorDefaults.RootNamespace);
