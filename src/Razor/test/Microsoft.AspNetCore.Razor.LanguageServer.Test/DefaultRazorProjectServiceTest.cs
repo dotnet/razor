@@ -596,7 +596,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var projectSnapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         projectSnapshotManager.ProjectAdded(ownerProject.HostProject);
         var documentSnapshot = projectSnapshotManager.CreateAndAddDocument(ownerProject, documentFilePath);
-        var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
+        var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
         documentVersionCache.Initialize(projectSnapshotManager);
         documentVersionCache.TrackDocumentVersion(documentSnapshot, 1);
 
@@ -622,7 +622,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var projectSnapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         projectSnapshotManager.ProjectAdded(ownerProject.HostProject);
         var documentSnapshot = projectSnapshotManager.CreateAndAddDocument(ownerProject, documentFilePath);
-        var documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
+        var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
         documentVersionCache.Initialize(projectSnapshotManager);
 
         var projectService = CreateProjectService(
