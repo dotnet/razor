@@ -292,7 +292,7 @@ public static class RazorCodeDocumentExtensions
             return false;
         }
 
-        className = CSharpIdentifier.GetClassNameFromPath(filePath);
+        className = CSharpIdentifier.GetClassNameFromPath(filePath!);
         return className is not null;
     }
 #nullable disable
