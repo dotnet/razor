@@ -129,6 +129,9 @@
   <data name="ExtractTo_CodeBehind_Title" xml:space="preserve">
     <value>Extract block to code behind</value>
   </data>
+  <data name="Generate_Method_Title" xml:space="preserve">
+    <value>Generate '{0}' Method</value>
+  </data>
   <data name="Invalid_Offset" xml:space="preserve">
     <value>Invalid offset.</value>
   </data>
