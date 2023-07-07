@@ -12,8 +12,8 @@ public static class SourceMappingsSerializer
     internal static string Serialize(IRazorGeneratedDocument csharpDocument, RazorSourceDocument sourceDocument)
     {
         var builder = new StringBuilder();
-        var charBuffer = new char[sourceDocument.Length];
-        sourceDocument.CopyTo(0, charBuffer, 0, sourceDocument.Length);
+        var charBuffer = new char[sourceDocument.SourceText.Length];
+        sourceDocument.SourceText.CopyTo(0, charBuffer, 0, sourceDocument.SourceText.Length);
         var sourceContent = new string(charBuffer);
 
         for (var i = 0; i < csharpDocument.SourceMappings.Count; i++)
