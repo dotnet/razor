@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
@@ -15,14 +17,15 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
 
     // Internal for testing
     internal readonly Dictionary<string, List<DocumentEntry>> DocumentLookup;
+    private readonly ProjectSnapshotManagerDispatcher _dispatcher;
     private ProjectSnapshotManagerBase? _projectSnapshotManager;
-    private ReadWriterLocker _documentLockFactory = new();
 
     private ProjectSnapshotManagerBase ProjectSnapshotManager
         => _projectSnapshotManager ?? throw new InvalidOperationException("ProjectSnapshotManager accessed before Initialized was called.");
 
-    public DefaultDocumentVersionCache()
+    public DefaultDocumentVersionCache(ProjectSnapshotManagerDispatcher dispatcher)
     {
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         DocumentLookup = new Dictionary<string, List<DocumentEntry>>(FilePathComparer.Instance);
     }
 
@@ -33,28 +36,27 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
             throw new ArgumentNullException(nameof(documentSnapshot));
         }
 
+        _dispatcher.AssertDispatcherThread();
+
         var filePath = documentSnapshot.FilePath.AssumeNotNull();
-        using (var _ = _documentLockFactory.EnterWriteLock())
+
+        if (!DocumentLookup.TryGetValue(filePath, out var documentEntries))
         {
-
-            if (!DocumentLookup.TryGetValue(filePath, out var documentEntries))
-            {
-                documentEntries = new List<DocumentEntry>();
-                DocumentLookup[filePath] = documentEntries;
-            }
-
-            if (documentEntries.Count == MaxDocumentTrackingCount)
-            {
-                // Clear the oldest document entry
-
-                // With this approach we'll slowly leak memory as new documents are added to the system. We don't clear up
-                // document file paths where where all of the corresponding entries are expired.
-                documentEntries.RemoveAt(0);
-            }
-
-            var entry = new DocumentEntry(documentSnapshot, version);
-            documentEntries.Add(entry);
+            documentEntries = new List<DocumentEntry>();
+            DocumentLookup[filePath] = documentEntries;
         }
+
+        if (documentEntries.Count == MaxDocumentTrackingCount)
+        {
+            // Clear the oldest document entry
+
+            // With this approach we'll slowly leak memory as new documents are added to the system. We don't clear up
+            // document file paths where where all of the corresponding entries are expired.
+            documentEntries.RemoveAt(0);
+        }
+
+        var entry = new DocumentEntry(documentSnapshot, version);
+        documentEntries.Add(entry);
     }
 
     public override bool TryGetDocumentVersion(IDocumentSnapshot documentSnapshot, [NotNullWhen(true)] out int? version)
@@ -64,7 +66,7 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
             throw new ArgumentNullException(nameof(documentSnapshot));
         }
 
-        using var _ = _documentLockFactory.EnterReadLock();
+        _dispatcher.AssertDispatcherThread();
 
         var filePath = documentSnapshot.FilePath.AssumeNotNull();
 
@@ -96,6 +98,22 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
         return true;
     }
 
+    public override Task<int?> TryGetDocumentVersionAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
+    {
+        if (documentSnapshot is null)
+        {
+            throw new ArgumentNullException(nameof(documentSnapshot));
+        }
+
+        return _dispatcher.RunOnDispatcherThreadAsync(
+            () =>
+            {
+                TryGetDocumentVersion(documentSnapshot, out var version);
+                return version;
+            },
+            cancellationToken);
+    }
+
     public override void Initialize(ProjectSnapshotManagerBase projectManager)
     {
         if (projectManager is null)
@@ -114,6 +132,8 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
         {
             return;
         }
+
+        _dispatcher.AssertDispatcherThread();
 
         switch (args.Kind)
         {
@@ -136,7 +156,7 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
             return;
         }
 
-        var project = args.Newer;
+        var project = ProjectSnapshotManager.GetLoadedProject(args.ProjectFilePath);
         if (project is null)
         {
             // Project no longer loaded, wait for document removed event.
