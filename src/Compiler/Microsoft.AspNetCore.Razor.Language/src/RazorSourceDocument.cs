@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -276,17 +276,10 @@ public sealed class RazorSourceDocument
 
     private RazorSourceDocument(SourceText sourceText, RazorSourceDocumentProperties properties)
     {
-        if (sourceText == null)
-        {
-            throw new ArgumentNullException(nameof(sourceText));
-        }
+        Debug.Assert(sourceText != null);
+        Debug.Assert(properties != null);
 
-        if (properties == null)
-        {
-            throw new ArgumentNullException(nameof(properties));
-        }
-
-        SourceText = sourceText;
-        _properties = properties;
+        SourceText = sourceText!;
+        _properties = properties!;
     }
 }
