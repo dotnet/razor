@@ -118,7 +118,7 @@ internal static class IServiceCollectionExtensions
     public static void AddSemanticTokensServices(this IServiceCollection services)
     {
         services.AddHandlerWithCapabilities<SemanticTokensRangeEndpoint>();
-        services.AddHandlerWithCapabilities<RazorSemanticTokensRefreshEndpoint>();
+        services.AddHandler<RazorSemanticTokensRefreshEndpoint>();
 
         services.AddSingleton<WorkspaceSemanticTokensRefreshPublisher, DefaultWorkspaceSemanticTokensRefreshPublisher>();
         services.AddSingleton<ProjectSnapshotChangeTrigger, DefaultWorkspaceSemanticTokensRefreshTrigger>();
@@ -216,6 +216,7 @@ internal static class IServiceCollectionExtensions
             // events etc.
             services.AddSingleton<DocumentProcessedListener, RazorDiagnosticsPublisher>();
         }
+
         services.AddSingleton<DocumentProcessedListener, GeneratedDocumentSynchronizer>();
         services.AddSingleton<DocumentProcessedListener, CodeDocumentReferenceHolder>();
 
