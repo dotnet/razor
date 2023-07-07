@@ -226,15 +226,28 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Where(pair => pair.Right)
                 .Select((pair, _) => pair.Left);
 
+            var isAddComponentParameterAvailable = compilation.Select((compilation, _) =>
+            {
+                var renderTreeBuilder = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder");
+                if (renderTreeBuilder is null)
+                {
+                    return false;
+                }
+
+                return renderTreeBuilder.GetMembers("AddComponentParameter").Any();
+            });
+
             IncrementalValuesProvider<(string, RazorCodeDocument)> processed(bool designTime) => (designTime ? withOptionsDesignTime : withOptions)
+                .Combine(isAddComponentParameterAvailable)
                 .Select((pair, _) =>
                 {
-                    var (((sourceItem, imports), allTagHelpers), razorSourceGeneratorOptions) = pair;
+                    var ((((sourceItem, imports), allTagHelpers), razorSourceGeneratorOptions), isAddComponentParameterAvailable) = pair;
 
                     var kind = designTime ? "DesignTime" : "Runtime";
                     RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(sourceItem.FilePath, kind);
 
-                    var projectEngine = GetGenerationProjectEngine(allTagHelpers, sourceItem, imports, razorSourceGeneratorOptions);
+                    var projectEngine = GetGenerationProjectEngine(allTagHelpers, sourceItem, imports, razorSourceGeneratorOptions,
+                        isAddComponentParameterAvailable: isAddComponentParameterAvailable);
 
                     var codeDocument = designTime
                         ? projectEngine.ProcessDesignTime(sourceItem)
