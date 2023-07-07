@@ -217,12 +217,13 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
 
         private async Task<VSInternalReferenceItem[]> HandleReferencesAsync<TParams>(TParams @params)
         {
-            var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
+            var delegatedParams = Assert.IsType<DelegatedPositionAndProjectContextParams>(@params);
             var delegatedRequest = new TextDocumentPositionParams()
             {
-                TextDocument = new TextDocumentIdentifier()
+                TextDocument = new VSTextDocumentIdentifier()
                 {
-                    Uri = _csharpDocumentUri
+                    Uri = _csharpDocumentUri,
+                    ProjectContext = delegatedParams.ProjectContext
                 },
                 Position = delegatedParams.ProjectedPosition
             };
@@ -237,12 +238,13 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
 
         private async Task<DefinitionResult?> HandleDefinitionAsync<T>(T @params)
         {
-            var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
+            var delegatedParams = Assert.IsType<DelegatedPositionAndProjectContextParams>(@params);
             var delegatedRequest = new TextDocumentPositionParams()
             {
-                TextDocument = new TextDocumentIdentifier()
+                TextDocument = new VSTextDocumentIdentifier()
                 {
-                    Uri = _csharpDocumentUri
+                    Uri = _csharpDocumentUri,
+                    ProjectContext = delegatedParams.ProjectContext,
                 },
                 Position = delegatedParams.ProjectedPosition
             };
@@ -257,12 +259,13 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
 
         private async Task<ImplementationResult> HandleImplementationAsync<T>(T @params)
         {
-            var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
+            var delegatedParams = Assert.IsType<DelegatedPositionAndProjectContextParams>(@params);
             var delegatedRequest = new TextDocumentPositionParams()
             {
-                TextDocument = new TextDocumentIdentifier()
+                TextDocument = new VSTextDocumentIdentifier()
                 {
-                    Uri = _csharpDocumentUri
+                    Uri = _csharpDocumentUri,
+                    ProjectContext = delegatedParams.ProjectContext,
                 },
                 Position = delegatedParams.ProjectedPosition
             };
@@ -277,12 +280,13 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
 
         private async Task<VisualStudio.LanguageServer.Protocol.SignatureHelp> HandleSignatureHelpAsync<T>(T @params)
         {
-            var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
+            var delegatedParams = Assert.IsType<DelegatedPositionAndProjectContextParams>(@params);
             var delegatedRequest = new SignatureHelpParams()
             {
-                TextDocument = new TextDocumentIdentifier()
+                TextDocument = new VSTextDocumentIdentifier()
                 {
-                    Uri = _csharpDocumentUri
+                    Uri = _csharpDocumentUri,
+                    ProjectContext = delegatedParams.ProjectContext,
                 },
                 Position = delegatedParams.ProjectedPosition,
             };
@@ -300,9 +304,10 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
             var delegatedParams = Assert.IsType<DelegatedRenameParams>(@params);
             var delegatedRequest = new RenameParams()
             {
-                TextDocument = new TextDocumentIdentifier()
+                TextDocument = new VSTextDocumentIdentifier()
                 {
-                    Uri = _csharpDocumentUri
+                    Uri = _csharpDocumentUri,
+                    ProjectContext = delegatedParams.ProjectContext,
                 },
                 Position = delegatedParams.ProjectedPosition,
                 NewName = delegatedParams.NewName,
