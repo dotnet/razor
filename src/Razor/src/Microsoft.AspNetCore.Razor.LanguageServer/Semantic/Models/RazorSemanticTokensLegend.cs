@@ -110,7 +110,7 @@ internal class RazorSemanticTokensLegend
         // C# Modifiers
         "ReassignedVariable",
         // Razor background
-        nameof(RazorTokenModifiers.RazorCode)
+        "razorCode" // Not using nameof() because the convention is for modifiers to start with a lowercase letter. Yes I am aware of what the line above this says.
     };
 
     [Flags]
