@@ -13,18 +13,12 @@ internal class RazorLanguageServerCapability : ICapabilitiesProvider
     private const string RazorCapabilityKey = "razor";
     private static readonly RazorLanguageServerCapability s_default = new RazorLanguageServerCapability
     {
-        LanguageQuery = true,
         RangeMapping = true,
-        EditMapping = true,
-        MonitorProjectConfigurationFilePath = true,
         BreakpointSpan = true,
         ProximityExpressions = true
     };
 
-    public bool LanguageQuery { get; set; }
     public bool RangeMapping { get; set; }
-    public bool EditMapping { get; set; }
-    public bool MonitorProjectConfigurationFilePath { get; set; }
     public bool BreakpointSpan { get; set; }
     public bool ProximityExpressions { get; set; }
 
@@ -33,7 +27,7 @@ internal class RazorLanguageServerCapability : ICapabilitiesProvider
         serverCapabilities.Experimental ??= new Dictionary<string, object>();
 
         var dict = (Dictionary<string, object>)serverCapabilities.Experimental;
-        dict["razor"] = JToken.FromObject(s_default);
+        dict["razor"] = s_default;
     }
 
     public static bool TryGet(JToken token, [NotNullWhen(true)] out RazorLanguageServerCapability? razorCapability)
