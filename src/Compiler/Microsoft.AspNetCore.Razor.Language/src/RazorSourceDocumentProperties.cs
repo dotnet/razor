@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Diagnostics;
-
 namespace Microsoft.AspNetCore.Razor.Language;
 
 /// <summary>
@@ -17,15 +15,11 @@ public abstract class RazorSourceDocumentProperties
 
     internal static RazorSourceDocumentProperties Create(string? filePath, string? relativePath)
     {
-        Debug.Assert(relativePath == null || filePath != null);
-        if (filePath == null)
-        {
-            return Default;
-        }
-
         if (relativePath == null)
         {
-            return new NoRelativePathRazorSourceDocumentProperties(filePath);
+            return filePath == null
+                ? Default
+                : new NoRelativePathRazorSourceDocumentProperties(filePath);
         }
 
         return new RelativePathRazorSourceDocumentProperties(filePath, relativePath);
@@ -67,9 +61,9 @@ public abstract class RazorSourceDocumentProperties
         public override string? RelativePath => null;
     }
 
-    private sealed class RelativePathRazorSourceDocumentProperties(string filePath, string relativePath) : RazorSourceDocumentProperties
+    private sealed class RelativePathRazorSourceDocumentProperties(string? filePath, string relativePath) : RazorSourceDocumentProperties
     {
-        public override string FilePath { get; } = filePath;
+        public override string? FilePath { get; } = filePath;
         public override string RelativePath { get; } = relativePath;
     }
 }

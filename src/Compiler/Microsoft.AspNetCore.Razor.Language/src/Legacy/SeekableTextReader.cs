@@ -24,7 +24,7 @@ internal sealed class SeekableTextReader : TextReader, ITextDocument
     {
         _sourceDocument = source;
         _filePath = source.FilePath;
-        _cachedLineInfo = (new TextSpan(0, _sourceDocument.SourceText.Lines[0].Span.Length), 0);
+        _cachedLineInfo = (_sourceDocument.SourceText.Lines[0].Span, 0);
         UpdateState();
     }
 
@@ -71,8 +71,7 @@ internal sealed class SeekableTextReader : TextReader, ITextDocument
             {
                 // Try to avoid the GetLocation call by checking if the next line contains the position
                 var nextLineIndex = _cachedLineInfo.LineIndex + 1;
-                var nextLineLength = _sourceDocument.SourceText.Lines[nextLineIndex].Span.Length;
-                var nextLineSpan = new TextSpan(_cachedLineInfo.Span.End, nextLineLength);
+                var nextLineSpan = _sourceDocument.SourceText.Lines[nextLineIndex].Span;
 
                 if (nextLineSpan.Contains(_position))
                 {
@@ -87,8 +86,7 @@ internal sealed class SeekableTextReader : TextReader, ITextDocument
             {
                 // Try to avoid the GetLocation call by checking if the previous line contains the position
                 var prevLineIndex = _cachedLineInfo.LineIndex - 1;
-                var prevLineLength = _sourceDocument.SourceText.Lines[prevLineIndex].Text.Length;
-                var prevLineSpan = new TextSpan(_cachedLineInfo.Span.Start - prevLineLength, prevLineLength);
+                var prevLineSpan = _sourceDocument.SourceText.Lines[prevLineIndex].Span;
 
                 if (prevLineSpan.Contains(_position))
                 {
@@ -103,8 +101,7 @@ internal sealed class SeekableTextReader : TextReader, ITextDocument
             // The call to GetLocation is expensive
             _location = new SourceLocation(_sourceDocument.FilePath, _position, _sourceDocument.SourceText.Lines.GetLinePosition(_position));
 
-            var lineLength = _sourceDocument.SourceText.Lines[_location.LineIndex].Span.Length;
-            var lineSpan = new TextSpan(_position - _location.CharacterIndex, lineLength);
+            var lineSpan = _sourceDocument.SourceText.Lines[_location.LineIndex].Span;
             _cachedLineInfo = (lineSpan, _location.LineIndex);
 
             _current = _sourceDocument.SourceText[_location.AbsoluteIndex];

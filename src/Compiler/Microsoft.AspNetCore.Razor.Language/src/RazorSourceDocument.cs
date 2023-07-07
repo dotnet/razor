@@ -64,7 +64,7 @@ public sealed class RazorSourceDocument
         }
 
         var properties = RazorSourceDocumentProperties.Create(fileName, relativePath: null);
-        var sourceText = SourceText.From(stream);
+        var sourceText = SourceText.From(stream, checksumAlgorithm: SourceHashAlgorithm.Sha256);
         return new RazorSourceDocument(sourceText, properties);
     }
 
@@ -88,7 +88,7 @@ public sealed class RazorSourceDocument
         }
 
         var properties = RazorSourceDocumentProperties.Create(fileName, relativePath: null);
-        var sourceText = SourceText.From(stream, encoding);
+        var sourceText = SourceText.From(stream, encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
         return new RazorSourceDocument(sourceText, properties);
     }
 
@@ -116,7 +116,7 @@ public sealed class RazorSourceDocument
             throw new ArgumentNullException(nameof(properties));
         }
 
-        var sourceText = SourceText.From(stream, encoding);
+        var sourceText = SourceText.From(stream, encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
         return new RazorSourceDocument(sourceText, properties);
     }
 
@@ -156,7 +156,7 @@ public sealed class RazorSourceDocument
         {
             // Autodetect the encoding.
             var relativePath = projectItem.RelativePhysicalPath ?? projectItem.FilePath;
-            var sourceText = SourceText.From(stream);
+            var sourceText = SourceText.From(stream, checksumAlgorithm: SourceHashAlgorithm.Sha256);
             return new RazorSourceDocument(sourceText, RazorSourceDocumentProperties.Create(filePath, relativePath));
         }
     }
@@ -221,7 +221,7 @@ public sealed class RazorSourceDocument
         }
 
         var properties = RazorSourceDocumentProperties.Create(fileName, relativePath: null);
-        var sourceText = SourceText.From(content, encoding);
+        var sourceText = SourceText.From(content, encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
         return new RazorSourceDocument(sourceText, properties);
     }
 
@@ -249,7 +249,7 @@ public sealed class RazorSourceDocument
             throw new ArgumentNullException(nameof(properties));
         }
 
-        var sourceText = SourceText.From(content, encoding);
+        var sourceText = SourceText.From(content, encoding, checksumAlgorithm: SourceHashAlgorithm.Sha256);
         return new RazorSourceDocument(sourceText, properties);
     }
 
