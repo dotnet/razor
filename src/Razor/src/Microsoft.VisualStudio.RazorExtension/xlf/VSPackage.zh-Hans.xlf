@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Completion">
         <source>Completion</source>
-        <target state="new">Completion</target>
+        <target state="translated">完成</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting">
