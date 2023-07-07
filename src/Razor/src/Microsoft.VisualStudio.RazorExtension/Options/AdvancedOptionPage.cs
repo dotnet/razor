@@ -17,6 +17,7 @@ internal class AdvancedOptionPage : DialogPage
 
     private bool? _formatOnType;
     private bool? _autoClosingTags;
+    private bool? _autoInsertAttributeQuotes;
     private bool? _colorBackground;
 
     public AdvancedOptionPage()
@@ -48,6 +49,15 @@ internal class AdvancedOptionPage : DialogPage
         set => _autoClosingTags = value;
     }
 
+    [LocCategory(nameof(VSPackage.Completion))]
+    [LocDescription(nameof(VSPackage.Setting_AutoInsertAttributeQuotesDescription))]
+    [LocDisplayName(nameof(VSPackage.Setting_AutoInsertAttributeQuotesDisplayName))]
+    public bool AutoInsertAttributeQuotes
+    {
+        get => _autoInsertAttributeQuotes ?? _optionsStorage.Value.AutoInsertAttributeQuotes;
+        set => _autoInsertAttributeQuotes = value;
+    }
+
     [LocCategory(nameof(VSPackage.Formatting))]
     [LocDescription(nameof(VSPackage.Setting_ColorBackgroundDescription))]
     [LocDisplayName(nameof(VSPackage.Setting_ColorBackgroundDisplayName))]
@@ -69,6 +79,11 @@ internal class AdvancedOptionPage : DialogPage
             _optionsStorage.Value.AutoClosingTags = _autoClosingTags.Value;
         }
 
+        if (_autoInsertAttributeQuotes is not null)
+        {
+            _optionsStorage.Value.AutoInsertAttributeQuotes = _autoInsertAttributeQuotes.Value;
+        }
+
         if (_colorBackground is not null)
         {
             _optionsStorage.Value.ColorBackground = _colorBackground.Value;
@@ -79,6 +94,7 @@ internal class AdvancedOptionPage : DialogPage
     {
         _formatOnType = null;
         _autoClosingTags = null;
+        _autoInsertAttributeQuotes = null;
         _colorBackground = null;
     }
 }

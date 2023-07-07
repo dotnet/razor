@@ -119,7 +119,7 @@ public class DefaultWorkspaceSemanticTokensRefreshPublisherTest : LanguageServer
 
         var optionsMonitorCache = new OptionsCache<RazorLSPOptions>();
 
-        var optionsMonitor = new TestRazorLSPOptionsMonitor(
+        var optionsMonitor = TestRazorLSPOptionsMonitor.Create(
             configurationSyncService.Object,
             optionsMonitorCache);
 
