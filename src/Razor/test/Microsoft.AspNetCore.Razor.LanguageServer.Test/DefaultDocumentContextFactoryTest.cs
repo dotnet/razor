@@ -23,7 +23,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     public DefaultDocumentContextFactoryTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _documentVersionCache = new DefaultDocumentVersionCache();
+        _documentVersionCache = new DefaultDocumentVersionCache(Dispatcher);
     }
 
     [Fact]

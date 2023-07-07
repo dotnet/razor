@@ -35,7 +35,8 @@ internal class HtmlFormatter
             throw new ArgumentNullException(nameof(context));
         }
 
-        if (!_documentVersionCache.TryGetDocumentVersion(context.OriginalSnapshot, out var documentVersion))
+        var documentVersion = await _documentVersionCache.TryGetDocumentVersionAsync(context.OriginalSnapshot, cancellationToken).ConfigureAwait(false);
+        if (documentVersion is null)
         {
             return Array.Empty<TextEdit>();
         }
@@ -62,7 +63,8 @@ internal class HtmlFormatter
        FormattingContext context,
        CancellationToken cancellationToken)
     {
-        if (!_documentVersionCache.TryGetDocumentVersion(context.OriginalSnapshot, out var documentVersion))
+        var documentVersion = await _documentVersionCache.TryGetDocumentVersionAsync(context.OriginalSnapshot, cancellationToken).ConfigureAwait(false);
+        if (documentVersion is null)
         {
             return Array.Empty<TextEdit>();
         }

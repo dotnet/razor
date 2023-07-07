@@ -22,7 +22,7 @@ public class GeneratedDocumentSynchronizerTest : LanguageServerTestBase
     public GeneratedDocumentSynchronizerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _cache = new DefaultDocumentVersionCache();
+        _cache = new DefaultDocumentVersionCache(Dispatcher);
         _publisher = new TestGeneratedDocumentPublisher();
         _synchronizer = new GeneratedDocumentSynchronizer(_publisher, _cache, Dispatcher);
         _document = TestDocumentSnapshot.Create("C:/path/to/file.razor");
