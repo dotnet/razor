@@ -1,7 +1,11 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -137,5 +141,86 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         Assert.Empty(result.Diagnostics);
         Assert.Equal(4, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
+
+    // AddComponentParameter is not available regardless of the lang version since we reference AspNetCore v7.
+    [Theory, CombinatorialData]
+    public async Task AddComponentParameter_NotAvailable(
+        [CombinatorialValues("7.0", "8.0", "Latest")] string langVersion)
+    {
+        // Arrange.
+        var project = CreateTestProject(new()
+        {
+            ["Shared/Component1.razor"] = """
+                <Component1 Param="42" />
+
+                @code {
+                    [Parameter]
+                    public int Param { get; set; }
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = langVersion;
+        });
+
+        // Act.
+        var result = RunGenerator(compilation!, ref driver);
+
+        // Assert.
+        Assert.Empty(result.Diagnostics);
+        var source = Assert.Single(result.GeneratedSources);
+        Assert.Contains("AddAttribute", source.SourceText.ToString());
+        Assert.DoesNotContain("AddComponentParameter", source.SourceText.ToString());
+    }
+
+    [Theory, CombinatorialData]
+    public async Task AddComponentParameter_Available(
+        [CombinatorialValues("7.0", "8.0", "Latest")] string langVersion)
+    {
+        // Arrange.
+        var project = CreateTestProject(new()
+        {
+            ["Shared/Component1.razor"] = """
+                <Component1 Param="42" />
+
+                @code {
+                    [Parameter]
+                    public int Param { get; set; }
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+
+        // Replace the AspNetCore DLL v7 with our shim to make the AddComponentParameter method available.
+        var aspnetDll = compilation.References.Single(r => r.Display.EndsWith("Microsoft.AspNetCore.Components.dll", StringComparison.Ordinal));
+        var testCommon = Assembly.Load(GetType().Assembly.GetReferencedAssemblies().Single(a => a.Name == "Microsoft.AspNetCore.Razor.Test.Common.Compiler"));
+        var componentShims = Assembly.Load(testCommon.GetReferencedAssemblies().Single(a => a.Name == "Microsoft.AspNetCore.Razor.Test.ComponentShim.Compiler"));
+        compilation = compilation.ReplaceReference(aspnetDll, MetadataReference.CreateFromFile(componentShims.Location));
+
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = langVersion;
+        });
+
+        // Act.
+        var result = RunGenerator(compilation!, ref driver);
+
+        // Assert.
+        Assert.Empty(result.Diagnostics);
+        var source = Assert.Single(result.GeneratedSources);
+        if (langVersion == "7.0")
+        {
+            // In Razor v7, AddComponentParameter shouldn't be used even if available.
+            Assert.Contains("AddAttribute", source.SourceText.ToString());
+            Assert.DoesNotContain("AddComponentParameter", source.SourceText.ToString());
+        }
+        else
+        {
+            Assert.DoesNotContain("AddAttribute", source.SourceText.ToString());
+            Assert.Contains("AddComponentParameter", source.SourceText.ToString());
+        }
     }
 }
