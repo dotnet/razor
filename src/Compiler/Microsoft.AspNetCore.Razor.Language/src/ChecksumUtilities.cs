@@ -13,7 +13,7 @@ internal static class ChecksumUtilities
 {
     public static string BytesToString(ImmutableArray<byte> bytes)
     {
-        if (bytes == null)
+        if (bytes.IsDefault)
         {
             throw new ArgumentNullException(nameof(bytes));
         }
