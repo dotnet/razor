@@ -8,6 +8,7 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 public enum ErrorCode
 {
+    WRN_UnreferencedField = 169,
     ERR_SingleTypeNameNotFound = 246,
     ERR_CantInferMethTypeArgs = 411,
     WRN_AsyncLacksAwaits = 1998,
