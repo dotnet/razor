@@ -230,7 +230,7 @@ public class MetadataAttributePassTest
             Engine = engine,
         };
 
-        var sourceDocument = TestRazorSourceDocument.Create("", new RazorSourceDocumentProperties(null, null));
+        var sourceDocument = TestRazorSourceDocument.Create("", RazorSourceDocumentProperties.Default);
         var codeDocument = RazorCodeDocument.Create(sourceDocument);
 
         var irDocument = new DocumentIntermediateNode()
@@ -275,7 +275,7 @@ public class MetadataAttributePassTest
             Engine = engine,
         };
 
-        var sourceDocument = TestRazorSourceDocument.Create("", new RazorSourceDocumentProperties(null, "Foo\\Bar.cshtml"));
+        var sourceDocument = TestRazorSourceDocument.Create("", RazorSourceDocumentProperties.Create(null, "Foo\\Bar.cshtml"));
         var codeDocument = RazorCodeDocument.Create(sourceDocument);
 
         var irDocument = new DocumentIntermediateNode()
@@ -316,8 +316,7 @@ public class MetadataAttributePassTest
 
         Assert.Equal(2, @namespace.Children.Count);
         var checksum = Assert.IsType<RazorSourceChecksumAttributeIntermediateNode>(@namespace.Children[0]);
-        Assert.NotNull(checksum.Checksum); // Not verifying the checksum here
-        Assert.Equal("SHA256", checksum.ChecksumAlgorithm);
+        Assert.Equal(CodeAnalysis.Text.SourceHashAlgorithm.Sha256, checksum.ChecksumAlgorithm);
         Assert.Equal("/Foo/Bar.cshtml", checksum.Identifier);
     }
 
@@ -331,8 +330,8 @@ public class MetadataAttributePassTest
             Engine = engine,
         };
 
-        var sourceDocument = TestRazorSourceDocument.Create("", new RazorSourceDocumentProperties(null, "Foo\\Bar.cshtml"));
-        var import = TestRazorSourceDocument.Create("@using System", new RazorSourceDocumentProperties(null, "Foo\\Import.cshtml"));
+        var sourceDocument = TestRazorSourceDocument.Create("", RazorSourceDocumentProperties.Create(null, "Foo\\Bar.cshtml"));
+        var import = TestRazorSourceDocument.Create("@using System", RazorSourceDocumentProperties.Create(null, "Foo\\Import.cshtml"));
         var codeDocument = RazorCodeDocument.Create(sourceDocument, new[] { import, });
 
         var irDocument = new DocumentIntermediateNode()
@@ -373,13 +372,11 @@ public class MetadataAttributePassTest
 
         Assert.Equal(3, @namespace.Children.Count);
         var checksum = Assert.IsType<RazorSourceChecksumAttributeIntermediateNode>(@namespace.Children[0]);
-        Assert.NotNull(checksum.Checksum); // Not verifying the checksum here
-        Assert.Equal("SHA256", checksum.ChecksumAlgorithm);
+        Assert.Equal(CodeAnalysis.Text.SourceHashAlgorithm.Sha256, checksum.ChecksumAlgorithm);
         Assert.Equal("/Foo/Bar.cshtml", checksum.Identifier);
 
         checksum = Assert.IsType<RazorSourceChecksumAttributeIntermediateNode>(@namespace.Children[1]);
-        Assert.NotNull(checksum.Checksum); // Not verifying the checksum here
-        Assert.Equal("SHA256", checksum.ChecksumAlgorithm);
+        Assert.Equal(CodeAnalysis.Text.SourceHashAlgorithm.Sha256, checksum.ChecksumAlgorithm);
         Assert.Equal("/Foo/Import.cshtml", checksum.Identifier);
     }
 
@@ -393,8 +390,8 @@ public class MetadataAttributePassTest
             Engine = engine,
         };
 
-        var sourceDocument = TestRazorSourceDocument.Create("", new RazorSourceDocumentProperties(null, "Foo\\Bar.cshtml"));
-        var import = TestRazorSourceDocument.Create("@using System", new RazorSourceDocumentProperties(null, "Foo\\Import.cshtml"));
+        var sourceDocument = TestRazorSourceDocument.Create("", RazorSourceDocumentProperties.Create(null, "Foo\\Bar.cshtml"));
+        var import = TestRazorSourceDocument.Create("@using System", RazorSourceDocumentProperties.Create(null, "Foo\\Import.cshtml"));
         var codeDocument = RazorCodeDocument.Create(sourceDocument, new[] { import, });
 
         var irDocument = new DocumentIntermediateNode()
