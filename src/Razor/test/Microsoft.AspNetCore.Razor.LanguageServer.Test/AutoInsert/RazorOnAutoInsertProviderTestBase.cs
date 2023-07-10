@@ -73,7 +73,7 @@ public abstract class RazorOnAutoInsertProviderTestBase : LanguageServerTestBase
     {
         fileKind ??= FileKinds.Component;
         tagHelpers ??= Array.Empty<TagHelperDescriptor>();
-        var sourceDocument = text.GetRazorSourceDocument(path, path);
+        var sourceDocument = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(path, path));
         var projectEngine = RazorProjectEngine.Create(builder => { });
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, Array.Empty<RazorSourceDocument>(), tagHelpers);
         return codeDocument;

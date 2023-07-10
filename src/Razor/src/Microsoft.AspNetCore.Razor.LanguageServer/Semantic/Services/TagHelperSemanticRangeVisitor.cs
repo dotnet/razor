@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
@@ -36,7 +37,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
         if (range is not null)
         {
             var sourceText = razorCodeDocument.GetSourceText();
-            rangeAsTextSpan = range.ToRazorTextSpan(sourceText);
+            rangeAsTextSpan = range.ToTextSpan(sourceText);
         }
 
         using var _ = ArrayBuilderPool<SemanticRange>.GetPooledObject(out var builder);
@@ -526,7 +527,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
                     var originalCharPosition = charPosition;
                     // NOTE: GetLineLength includes newlines but we don't report tokens for newlines so
                     // need to account for them.
-                    var lineLength = source.Lines.GetLineLength(lineNumber);
+                    var lineLength = source.SourceText.Lines[lineNumber].Span.Length;
 
                     // For the last line, we end where the syntax tree tells us to. For all other lines, we end at the
                     // last non-newline character
@@ -573,8 +574,8 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
 
         void AddRange(SemanticRange semanticRange)
         {
-            if (semanticRange.StartLine == semanticRange.EndLine &&
-                semanticRange.StartCharacter == semanticRange.EndCharacter)
+            var linePositionSpan = semanticRange.AsLinePositionSpan();
+            if (linePositionSpan.Start != linePositionSpan.End)
             {
                 return;
             }
@@ -593,7 +594,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
                 return lineLength;
             }
 
-            return source[lineEndAbsoluteIndex - 1] is '\n' or '\r'
+            return source.SourceText[lineEndAbsoluteIndex - 1] is '\n' or '\r'
                 ? lineLength - 1
                 : lineLength;
         }

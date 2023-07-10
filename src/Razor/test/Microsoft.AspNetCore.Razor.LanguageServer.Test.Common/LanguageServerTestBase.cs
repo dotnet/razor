@@ -93,7 +93,7 @@ public abstract class LanguageServerTestBase : TestBase
                 @using Microsoft.AspNetCore.Components.Routing
                 @using Microsoft.AspNetCore.Components.Web
                 """,
-            new RazorSourceDocumentProperties(importDocumentName, importDocumentName));
+            RazorSourceDocumentProperties.Create(importDocumentName, importDocumentName));
         var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, new[] { defaultImportDocument }, tagHelpers);
         return codeDocument;
     }
