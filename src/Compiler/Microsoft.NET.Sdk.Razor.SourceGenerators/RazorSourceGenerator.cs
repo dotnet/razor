@@ -228,13 +228,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             var isAddComponentParameterAvailable = compilation.Select((compilation, _) =>
             {
-                var renderTreeBuilder = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder");
-                if (renderTreeBuilder is null)
-                {
-                    return false;
-                }
-
-                return renderTreeBuilder.GetMembers("AddComponentParameter").Any();
+                return compilation.GetTypesByMetadataName("Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder")
+                    .Any(static t => t.DeclaredAccessibility == Accessibility.Public &&
+                        t.GetMembers("AddComponentParameter").Any(static m => m.DeclaredAccessibility == Accessibility.Public));
             });
 
             IncrementalValuesProvider<(string, RazorCodeDocument)> processed(bool designTime) => (designTime ? withOptionsDesignTime : withOptions)
