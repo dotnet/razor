@@ -262,6 +262,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         {
             logging.AddFilter<LogHubLoggerProvider>(level => true);
             logging.AddProvider(_loggerProvider);
+
+            if (_outputWindowLogger is not null)
+            {
+                logging.AddProvider(new RazorOutputWindowLoggerProvider(_outputWindowLogger));
+            }
         });
 
         if (_vsHostWorkspaceServicesProvider is not null)
