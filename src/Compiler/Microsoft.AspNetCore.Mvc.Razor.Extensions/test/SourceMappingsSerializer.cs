@@ -13,12 +13,10 @@ public static class SourceMappingsSerializer
 {
     public static string Serialize(RazorCSharpDocument csharpDocument, RazorSourceDocument sourceDocument)
     {
-        var builder = new StringBuilder();
         var sourceFilePath = sourceDocument.FilePath;
-        var charBuffer = new char[sourceDocument.Length];
-        sourceDocument.CopyTo(0, charBuffer, 0, sourceDocument.Length);
-        var sourceContent = new string(charBuffer);
+        var sourceContent = sourceDocument.SourceText.ToString();
 
+        var builder = new StringBuilder();
         for (var i = 0; i < csharpDocument.SourceMappings.Count; i++)
         {
             var sourceMapping = csharpDocument.SourceMappings[i];
