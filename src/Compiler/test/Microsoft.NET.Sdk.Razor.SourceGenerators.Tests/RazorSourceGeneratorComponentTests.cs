@@ -223,4 +223,72 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
             Assert.Contains("AddComponentParameter", source.SourceText.ToString());
         }
     }
+
+    [Theory, CombinatorialData]
+    public async Task AddComponentParameter_Available_InSource(
+        [CombinatorialValues("7.0", "8.0", "Latest")] string langVersion)
+    {
+        // Arrange.
+        var project = CreateTestProject(new()
+        {
+            ["Shared/Component1.razor"] = """
+                <Component1 Param="42" />
+
+                @code {
+                    [Parameter]
+                    public int Param { get; set; }
+                }
+                """,
+        }, new()
+        {
+            ["Shims.cs"] = """
+                namespace Microsoft.AspNetCore.Components.Rendering
+                {
+                    public sealed class RenderTreeBuilder
+                    {
+                        public void OpenComponent<TComponent>(int sequence) { }
+                        public void AddAttribute(int sequence, string name, object value) { }
+                        public void AddComponentParameter(int sequence, string name, object value) { }
+                        public void CloseComponent() { }
+                    }
+                }
+                namespace Microsoft.AspNetCore.Components
+                {
+                    public sealed class ParameterAttribute : System.Attribute { }
+                    public interface IComponent { }
+                    public abstract class ComponentBase : IComponent
+                    {
+                        protected virtual void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder) { }
+                    }
+                }
+                namespace Microsoft.AspNetCore.Components.CompilerServices
+                {
+                    public static class RuntimeHelpers
+                    {
+                        public static T TypeCheck<T>(T value) => throw null!;
+                    }
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+
+        // Remove the AspNetCore DLL v7 to avoid clashes.
+        var aspnetDll = compilation.References.Single(r => r.Display.EndsWith("Microsoft.AspNetCore.Components.dll", StringComparison.Ordinal));
+        compilation = compilation.RemoveReferences(aspnetDll);
+
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = langVersion;
+        });
+
+        // Act.
+        var result = RunGenerator(compilation!, ref driver);
+
+        // Assert. Behaves as if `AddComponentParameter` wasn't available because
+        // the source generator only searches for it in references, not the current compilation.
+        Assert.Empty(result.Diagnostics);
+        var source = Assert.Single(result.GeneratedSources);
+        Assert.Contains("AddAttribute", source.SourceText.ToString());
+        Assert.DoesNotContain("AddComponentParameter", source.SourceText.ToString());
+    }
 }

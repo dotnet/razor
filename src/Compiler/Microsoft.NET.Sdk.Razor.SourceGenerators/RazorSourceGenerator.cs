@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler;
@@ -226,12 +227,24 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Where(pair => pair.Right)
                 .Select((pair, _) => pair.Left);
 
-            var isAddComponentParameterAvailable = compilation.Select((compilation, _) =>
-            {
-                return compilation.GetTypesByMetadataName("Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder")
-                    .Any(static t => t.DeclaredAccessibility == Accessibility.Public &&
-                        t.GetMembers("AddComponentParameter").Any(static m => m.DeclaredAccessibility == Accessibility.Public));
-            });
+            var isAddComponentParameterAvailable = compilation
+                // Only recompute when references change.
+                .WithLambdaComparer(static (compilationA, compilationB) =>
+                {
+                    return compilationA.References.SequenceEqual(compilationB.References);
+                },
+                static compilation =>
+                {
+                    return compilation.References.GetHashCode();
+                })
+                .Select((compilation, _) =>
+                {
+                    return compilation.GetTypesByMetadataName("Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder")
+                        .Any(static (t, compilation) => t.DeclaredAccessibility == Accessibility.Public &&
+                            // Only consider types from references (needed for the lambda comparer above to work correctly).
+                            t.ContainingAssembly is { } assembly && !SymbolEqualityComparer.Default.Equals(assembly, compilation.Assembly) &&
+                            t.GetMembers("AddComponentParameter").Any(static m => m.DeclaredAccessibility == Accessibility.Public), compilation);
+                });
 
             IncrementalValuesProvider<(string, RazorCodeDocument)> processed(bool designTime) => (designTime ? withOptionsDesignTime : withOptions)
                 .Combine(isAddComponentParameterAvailable)
