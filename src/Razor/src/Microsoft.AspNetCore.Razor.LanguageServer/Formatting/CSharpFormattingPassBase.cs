@@ -267,7 +267,7 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
 
             var existingIndentationLength = indentations[line].ExistingIndentation;
             var spanToReplace = new TextSpan(context.SourceText.Lines[line].Start, existingIndentationLength);
-            var effectiveDesiredIndentation = context.GetIndentationString(indentation);
+            var effectiveDesiredIndentation = FormattingUtilities.GetIndentationString(indentation, context.Options.InsertSpaces, context.Options.TabSize);
             changes.Add(new TextChange(spanToReplace, effectiveDesiredIndentation));
         }
 

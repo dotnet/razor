@@ -68,7 +68,7 @@ internal static class RazorCodeActionFactory
 
     public static RazorVSInternalCodeAction CreateGenerateMethod(RazorCodeActionResolutionParams resolutionParams)
     {
-        var title = SR.FormatGenerate_Method_Title(((GenerateMethodCodeActionParams)resolutionParams.Data).MethodName);
+        var title = SR.FormatGenerate_Event_Handler_Title(((GenerateMethodCodeActionParams)resolutionParams.Data).MethodName);
         var data = JToken.FromObject(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {

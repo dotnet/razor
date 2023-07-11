@@ -22,7 +22,7 @@
         <target state="translated">Extrahovat blok do kódu na pozadí</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_Method_Title">
+      <trans-unit id="Generate_Event_Handler_Title">
         <source>Generate '{0}' Method</source>
         <target state="new">Generate '{0}' Method</target>
         <note />

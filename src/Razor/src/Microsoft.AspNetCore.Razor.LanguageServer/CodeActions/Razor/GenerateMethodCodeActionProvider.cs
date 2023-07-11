@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis;
-using Diagnostic = Microsoft.VisualStudio.LanguageServer.Protocol.Diagnostic;
 using SyntaxFacts = Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
@@ -39,7 +38,7 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             return s_emptyResult;
         }
 
-        if (IsGenerateEventHandlerValid(owner, context, nameNotExistDiagnostics, out var @params))
+        if (IsGenerateEventHandlerValid(owner, context, out var @params))
         {
             return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(CreateCodeAction(@params));
         }
@@ -60,7 +59,7 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
         return new List<RazorVSInternalCodeAction> { codeAction };
     }
 
-    private static bool IsGenerateEventHandlerValid(SyntaxNode owner, RazorCodeActionContext context, IEnumerable<Diagnostic> nameNotExistDiagnostics, [NotNullWhen(true)] out GenerateMethodCodeActionParams? @params)
+    private static bool IsGenerateEventHandlerValid(SyntaxNode owner, RazorCodeActionContext context, [NotNullWhen(true)] out GenerateMethodCodeActionParams? @params)
     {
         @params = null;
 
@@ -81,18 +80,23 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
         var methodName = string.Empty;
         if (owner.Kind == SyntaxKind.CSharpExpressionLiteral)
         {
-            if (!TryParseUndefinedMethodName(owner, nameNotExistDiagnostics, out methodName))
+            var content = owner.GetContent();
+            if (!SyntaxFacts.IsValidIdentifier(content))
             {
                 return false;
             }
+
+            methodName = content;
         }
         else
         {
             var children = parent.ChildNodes();
             foreach (var child in children)
             {
-                if (child.Kind == SyntaxKind.MarkupTagHelperAttributeValue && TryParseUndefinedMethodName(child, nameNotExistDiagnostics, out methodName))
+                var content = child.GetContent();
+                if (child.Kind == SyntaxKind.MarkupTagHelperAttributeValue && SyntaxFacts.IsValidIdentifier(content))
                 {
+                    methodName = content;
                     break;
                 }
             }
@@ -109,25 +113,6 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             MethodName = methodName,
         };
 
-        return true;
-    }
-
-    private static bool TryParseUndefinedMethodName(SyntaxNode node, IEnumerable<Diagnostic> nameNotExistDiagnostics, out string? methodName)
-    {
-        methodName = null;
-        var content = node.GetContent();
-        if (!SyntaxFacts.IsValidIdentifier(content))
-        {
-            return false;
-        }
-
-        if (!nameNotExistDiagnostics.Any(d => d.Message == $"The name '{content}' does not exist in the current context"))
-        {
-            // There is no CS0103 diagnostic dedicated to the method name, meaning that the method is already defined.
-            return false;
-        }
-
-        methodName = content;
         return true;
     }
 }

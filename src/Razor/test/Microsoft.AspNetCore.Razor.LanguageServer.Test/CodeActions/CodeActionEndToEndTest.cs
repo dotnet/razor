@@ -352,7 +352,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             @code {
                 private void DoesNotExist()
                 {
-                    throw new NotImplementedException();
+                    throw new System.NotImplementedException();
                 }
             }
             """;
@@ -361,7 +361,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         await ValidateCodeActionAsync(input,
             expected, "Generate 'DoesNotExist' Method",
             razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
-            createRazorCodeActionResolversFn: () => new[] { new GenerateMethodCodeActionResolver(DocumentContextFactory) },
+            createRazorCodeActionResolversFn: () => new[] { new GenerateMethodCodeActionResolver(DocumentContextFactory, TestRazorLSPOptionsMonitor.Create()) },
             diagnostics: diagnostics);
     }
 
@@ -381,7 +381,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             @code {
                 private void DoesNotExist()
                 {
-                    throw new NotImplementedException();
+                    throw new System.NotImplementedException();
                 }
             }
             """;
@@ -391,7 +391,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             expected,
             "Generate 'DoesNotExist' Method",
             razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
-            createRazorCodeActionResolversFn: () => new[] { new GenerateMethodCodeActionResolver(DocumentContextFactory) },
+            createRazorCodeActionResolversFn: () => new[] { new GenerateMethodCodeActionResolver(DocumentContextFactory, TestRazorLSPOptionsMonitor.Create()) },
             diagnostics: diagnostics);
     }
 
@@ -418,7 +418,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
 
                 private void DoesNotExist()
                 {
-                    throw new NotImplementedException();
+                    throw new System.NotImplementedException();
                 }
             }
             """;
@@ -428,7 +428,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             expected,
             "Generate 'DoesNotExist' Method",
             razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
-            createRazorCodeActionResolversFn: () => new[] { new GenerateMethodCodeActionResolver(DocumentContextFactory) },
+            createRazorCodeActionResolversFn: () => new[] { new GenerateMethodCodeActionResolver(DocumentContextFactory, TestRazorLSPOptionsMonitor.Create()) },
             diagnostics: diagnostics);
     }
 
@@ -490,12 +490,75 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
                 {{{spacingOrMethod}}
                     private void DoesNotExist()
                     {
-                        throw new NotImplementedException();
+                        throw new System.NotImplementedException();
                     }
                 }
             }
             """;
+        await ValidateCodeBehindFileAsync(input, initialCodeBehindContent, expectedRazorContent, expectedCodeBehindContent);
+    }
 
+    [Theory]
+    [InlineData("namespace WrongNamespace\r\n{\r\npublic partial class test\r\n{\r\n}\r\n}")]
+    [InlineData("namespace __GeneratedComponent\r\n{\r\npublic partial class WrongClassName\r\n{\r\n}\r\n}")]
+    public async Task Handle_GenerateMethod_CodeBehindFile_Malformed(string initialCodeBehindContent)
+    {
+        var input = """
+            <button @onclick="[||]DoesNotExist"></button>
+            """;
+
+        var expectedRazorContent = """
+            <button @onclick="DoesNotExist"></button>
+            @code {
+                private void DoesNotExist()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
+
+        await ValidateCodeBehindFileAsync(input, initialCodeBehindContent, expectedRazorContent, initialCodeBehindContent);
+    }
+
+    [Fact]
+    public async Task Handle_GenerateMethod_CodeBehindFile_FileScopedNamespace()
+    {
+        var input = """
+            <button @onclick="[||]DoesNotExist"></button>
+            """;
+
+        var expectedRazorContent = """
+            <button @onclick="DoesNotExist"></button>
+            """;
+
+        var initialCodeBehindContent = $$"""
+            namespace __GeneratedComponent;
+            public partial class test
+            {
+            }
+            """;
+
+        var expectedCodeBehindContent = $$"""
+            namespace __GeneratedComponent;
+            public partial class test
+            {
+                private void DoesNotExist()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
+        await ValidateCodeBehindFileAsync(input, initialCodeBehindContent, expectedRazorContent, expectedCodeBehindContent);
+    }
+
+    #endregion
+
+    private async Task ValidateCodeBehindFileAsync(
+        string input,
+        string initialCodeBehindContent,
+        string expectedRazorContent,
+        string expectedCodeBehindContent)
+    {
         var razorFilePath = FilePathNormalizer.Normalize($"{Path.GetTempPath()}test.razor");
         var codeBehindFilePath = FilePathNormalizer.Normalize($"{Path.GetTempPath()}test.razor.cs");
         var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
@@ -514,7 +577,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             File.WriteAllText(codeBehindFilePath, initialCodeBehindContent);
 
             var result = await GetCodeActionsAsync(uri, textSpan, razorSourceText, requestContext, razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() }, diagnostics);
-            var changes = await GetEditsAsync(result, requestContext, "Generate 'DoesNotExist' Method", createRazorCodeActionResolversFn: () => new[] { new GenerateMethodCodeActionResolver(DocumentContextFactory) });
+            var changes = await GetEditsAsync(result, requestContext, "Generate 'DoesNotExist' Method", createRazorCodeActionResolversFn: () => new[] { new GenerateMethodCodeActionResolver(DocumentContextFactory, TestRazorLSPOptionsMonitor.Create()) });
 
             var razorEdits = new List<TextChange>();
             var codeBehindEdits = new List<TextChange>();
@@ -542,74 +605,6 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             File.Delete(codeBehindFilePath);
         }
     }
-
-    [Theory]
-    [InlineData("namespace WrongNamespace\r\n{\r\npublic partial class test\r\n{\r\n}\r\n}")]
-    [InlineData("namespace __GeneratedComponent\r\n{\r\npublic partial class WrongClassName\r\n{\r\n}\r\n}")]
-    public async Task Handle_GenerateMethod_CodeBehindFile_Malformed(string initialCodeBehindContent)
-    {
-        var input = """
-            <button @onclick="[||]DoesNotExist"></button>
-            """;
-
-        var expectedRazorContent = """
-            <button @onclick="DoesNotExist"></button>
-            @code {
-                private void DoesNotExist()
-                {
-                    throw new NotImplementedException();
-                }
-            }
-            """;
-
-        var razorFilePath = FilePathNormalizer.Normalize($"{Path.GetTempPath()}test.razor");
-        var codeBehindFilePath = FilePathNormalizer.Normalize($"{Path.GetTempPath()}test.razor.cs");
-        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
-
-        TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
-        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
-        var razorSourceText = codeDocument.GetSourceText();
-        var uri = new Uri(razorFilePath);
-        await CreateLanguageServerAsync(codeDocument, razorFilePath);
-        var documentContext = CreateDocumentContext(uri, codeDocument);
-        var requestContext = new RazorRequestContext(documentContext, Logger, null!);
-
-        File.Create(codeBehindFilePath).Close();
-        try
-        {
-            File.WriteAllText(codeBehindFilePath, initialCodeBehindContent);
-
-            var result = await GetCodeActionsAsync(uri, textSpan, razorSourceText, requestContext, razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() }, diagnostics);
-            var changes = await GetEditsAsync(result, requestContext, "Generate 'DoesNotExist' Method", createRazorCodeActionResolversFn: () => new[] { new GenerateMethodCodeActionResolver(DocumentContextFactory) });
-
-            var razorEdits = new List<TextChange>();
-            var codeBehindEdits = new List<TextChange>();
-            var codeBehindSourceText = SourceText.From(initialCodeBehindContent);
-            foreach (var change in changes)
-            {
-                if (FilePathNormalizer.Normalize(change.TextDocument.Uri.GetAbsoluteOrUNCPath()) == codeBehindFilePath)
-                {
-                    codeBehindEdits.AddRange(change.Edits.Select(e => e.AsTextChange(codeBehindSourceText)));
-                }
-                else
-                {
-                    razorEdits.AddRange(change.Edits.Select(e => e.AsTextChange(razorSourceText)));
-                }
-            }
-
-            var actualRazorContent = razorSourceText.WithChanges(razorEdits).ToString();
-            AssertEx.EqualOrDiff(expectedRazorContent, actualRazorContent);
-
-            var actualCodeBehindContent = codeBehindSourceText.WithChanges(codeBehindEdits).ToString();
-            AssertEx.EqualOrDiff(initialCodeBehindContent, actualCodeBehindContent);
-        }
-        finally
-        {
-            File.Delete(codeBehindFilePath);
-        }
-    }
-
-    #endregion
 
     private async Task ValidateCodeActionAsync(
         string input,
