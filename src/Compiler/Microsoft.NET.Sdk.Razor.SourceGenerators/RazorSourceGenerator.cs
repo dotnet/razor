@@ -227,22 +227,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .Where(pair => pair.Right)
                 .Select((pair, _) => pair.Left);
 
-            var isAddComponentParameterAvailable = compilation
-                // Only recompute when references change.
-                .WithLambdaComparer(static (compilationA, compilationB) =>
+            var isAddComponentParameterAvailable = context.MetadataReferencesProvider
+                .Where(r => r.Display is { } display && display.EndsWith("Microsoft.AspNetCore.Components.dll", StringComparison.Ordinal))
+                .Collect()
+                .Select((refs, _) =>
                 {
-                    return compilationA.References.SequenceEqual(compilationB.References);
-                },
-                static compilation =>
-                {
-                    return compilation.References.GetHashCode();
-                })
-                .Select((compilation, _) =>
-                {
+                    var compilation = CSharpCompilation.Create("components", references: refs);
                     return compilation.GetTypesByMetadataName("Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder")
                         .Any(static (t, compilation) => t.DeclaredAccessibility == Accessibility.Public &&
-                            // Only consider types from references (needed for the lambda comparer above to work correctly).
-                            t.ContainingAssembly is { } assembly && !SymbolEqualityComparer.Default.Equals(assembly, compilation.Assembly) &&
                             t.GetMembers("AddComponentParameter").Any(static m => m.DeclaredAccessibility == Accessibility.Public), compilation);
                 });
 
