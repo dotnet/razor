@@ -93,11 +93,14 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             var children = parent.ChildNodes();
             foreach (var child in children)
             {
-                var content = child.GetContent();
-                if (child.Kind == SyntaxKind.MarkupTagHelperAttributeValue && SyntaxFacts.IsValidIdentifier(content))
+                if (child.Kind == SyntaxKind.MarkupTagHelperAttributeValue)
                 {
-                    methodName = content;
-                    break;
+                    var content = child.GetContent();
+                    if (SyntaxFacts.IsValidIdentifier(content))
+                    {
+                        methodName = content;
+                        break;
+                    }
                 }
             }
         }
