@@ -136,12 +136,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
             throw new NotImplementedException();
         }
 
-        public bool TryResolve(string documentFilePath, bool includeMiscellaneous, [NotNullWhen(true)] out IProjectSnapshot projectSnapshot, [NotNullWhen(true)] out IDocumentSnapshot documentSnapshot)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool TryResolveDocument(string documentFilePath, bool includeMiscellaneous, [NotNullWhen(true)] out IDocumentSnapshot documentSnapshot)
+        public bool TryResolveDocument(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot documentSnapshot)
         {
             if (documentFilePath == _documentSnapshot?.FilePath)
             {
@@ -151,11 +146,6 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
 
             documentSnapshot = null;
             return false;
-        }
-
-        public bool TryResolveProject(string documentFilePath, bool includeMiscellaneous, [NotNullWhen(true)] out IProjectSnapshot projectSnapshot)
-        {
-            throw new NotImplementedException();
         }
     }
 }

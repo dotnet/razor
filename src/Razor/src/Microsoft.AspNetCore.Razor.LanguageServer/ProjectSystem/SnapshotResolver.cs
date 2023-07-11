@@ -61,38 +61,6 @@ internal class SnapshotResolver : ISnapshotResolver
         }
     }
 
-    /// <inheritdoc />
-    public bool TryResolve(string documentFilePath, bool includeMiscellaneous, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot, [NotNullWhen(true)] out IDocumentSnapshot? document)
-    {
-        _logger.LogTrace("Looking for {documentFilePath}. IncludeMiscellaneous: {includeMiscellaneous}", documentFilePath, includeMiscellaneous);
-
-        if (documentFilePath is null)
-        {
-            throw new ArgumentNullException(nameof(documentFilePath));
-        }
-
-        document = null;
-
-        var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
-        var potentialProjects = FindPotentialProjects(documentFilePath, includeMiscellaneous);
-        foreach (var project in potentialProjects)
-        {
-            document = project.GetDocument(normalizedDocumentPath);
-            if (document is not null)
-            {
-                _logger.LogTrace("Found {documentFilePath} in {project}", documentFilePath, project.FilePath);
-                projectSnapshot = project;
-                return true;
-            }
-        }
-
-        _logger.LogTrace("{documentFilePath} not found in {documents}", documentFilePath, _projectSnapshotManagerAccessor.Instance.Projects.SelectMany(p => p.DocumentFilePaths));
-
-        document = null;
-        projectSnapshot = null;
-        return false;
-    }
-
     public IProjectSnapshot GetMiscellaneousProject()
     {
         var miscellaneousProject = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(MiscellaneousHostProject.FilePath);
@@ -105,9 +73,32 @@ internal class SnapshotResolver : ISnapshotResolver
         return miscellaneousProject;
     }
 
-    public bool TryResolveDocument(string documentFilePath, bool includeMiscellaneous, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)
-        => TryResolve(documentFilePath, includeMiscellaneous, out var _, out documentSnapshot);
+    public bool TryResolveDocument(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)
+    {
+        _logger.LogTrace("Looking for {documentFilePath}.", documentFilePath);
 
-    public bool TryResolveProject(string documentFilePath, bool includeMiscellaneous, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot)
-        => TryResolve(documentFilePath, includeMiscellaneous, out projectSnapshot, out var _);
+        if (documentFilePath is null)
+        {
+            throw new ArgumentNullException(nameof(documentFilePath));
+        }
+
+        documentSnapshot = null;
+
+        var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
+        var potentialProjects = FindPotentialProjects(documentFilePath, includeMiscellaneous: true);
+        foreach (var project in potentialProjects)
+        {
+            documentSnapshot = project.GetDocument(normalizedDocumentPath);
+            if (documentSnapshot is not null)
+            {
+                _logger.LogTrace("Found {documentFilePath} in {project}", documentFilePath, project.FilePath);
+                return true;
+            }
+        }
+
+        _logger.LogTrace("{documentFilePath} not found in {documents}", documentFilePath, _projectSnapshotManagerAccessor.Instance.Projects.SelectMany(p => p.DocumentFilePaths));
+
+        documentSnapshot = null;
+        return false;
+    }
 }

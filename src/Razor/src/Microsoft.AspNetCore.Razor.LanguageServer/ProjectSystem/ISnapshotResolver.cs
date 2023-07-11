@@ -18,12 +18,7 @@ internal interface ISnapshotResolver
     IProjectSnapshot GetMiscellaneousProject();
 
     /// <summary>
-    /// Resolves a document and containing project given a document path
+    /// Finds a <see cref="IDocumentSnapshot"/> for the given document path that is contained within a project.
     /// </summary>
-    /// <returns><see langword="true"/> if a document is found and contained in a project</returns>
-    bool TryResolve(string documentFilePath, bool includeMiscellaneous, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot);
-
-    bool TryResolveDocument(string documentFilePath, bool includeMiscellaneous, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot);
-
-    bool TryResolveProject(string documentFilePath, bool includeMiscellaneous, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot);
+    bool TryResolveDocument(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot);
 }

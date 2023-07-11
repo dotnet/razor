@@ -486,7 +486,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var project = Mock.Of<IProjectSnapshot>(MockBehavior.Strict);
         var alreadyOpenDoc = Mock.Of<IDocumentSnapshot>(MockBehavior.Strict);
         var snapshotResolver = new Mock<ISnapshotResolver>(MockBehavior.Strict);
-        snapshotResolver.Setup(resolver => resolver.TryResolveDocument(It.IsAny<string>(), It.IsAny<bool>(), out alreadyOpenDoc)).Returns(true);
+        snapshotResolver.Setup(resolver => resolver.TryResolveDocument(It.IsAny<string>(), out alreadyOpenDoc)).Returns(true);
         var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         projectSnapshotManager.Setup(manager => manager.DocumentAdded(It.IsAny<HostProject>(), It.IsAny<HostDocument>(), It.IsAny<TextLoader>()))
             .Throws(new InvalidOperationException("This should not have been called."));
@@ -1042,7 +1042,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         if (snapshotResolver is null)
         {
             snapshotResolver = new Mock<ISnapshotResolver>(MockBehavior.Strict).Object;
-            Mock.Get(snapshotResolver).Setup(r => r.TryResolveDocument(It.IsAny<string>(), It.IsAny<bool>(), out It.Ref<IDocumentSnapshot>.IsAny)).Returns(false);
+            Mock.Get(snapshotResolver).Setup(r => r.TryResolveDocument(It.IsAny<string>(), out It.Ref<IDocumentSnapshot>.IsAny)).Returns(false);
         }
 
         var remoteTextLoaderFactory = Mock.Of<RemoteTextLoaderFactory>(factory => factory.Create(It.IsAny<string>()) == Mock.Of<TextLoader>(MockBehavior.Strict), MockBehavior.Strict);
@@ -1088,37 +1088,16 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
 
         public IProjectSnapshot GetMiscellaneousProject() => _miscellaneousProject;
 
-        public bool TryResolve(string documentFilePath, bool includeMiscellaneous, out IProjectSnapshot projectSnapshot, out IDocumentSnapshot documentSnapshot)
+        public bool TryResolveDocument(string documentFilePath, out IDocumentSnapshot documentSnapshot)
         {
-            if (_projectMappings.TryGetValue(documentFilePath, out projectSnapshot))
+            if (_projectMappings.TryGetValue(documentFilePath, out var projectSnapshot))
             {
                 documentSnapshot = projectSnapshot.GetDocument(documentFilePath);
                 return documentSnapshot is not null;
             }
 
-            if (includeMiscellaneous)
-            {
-                documentSnapshot = _miscellaneousProject.GetDocument(documentFilePath);
-                return documentSnapshot is not null;
-            }
-
-            projectSnapshot = null;
-            documentSnapshot = null;
-            return false;
-        }
-
-        public bool TryResolveDocument(string documentFilePath, bool includeMiscellaneous, out IDocumentSnapshot documentSnapshot)
-            => TryResolve(documentFilePath, includeMiscellaneous, out var _, out documentSnapshot);
-
-        public bool TryResolveProject(string documentFilePath, bool includeMiscellaneous, out IProjectSnapshot projectSnapshot)
-        {
-            if (_projectMappings.TryGetValue(documentFilePath, out projectSnapshot))
-            {
-                return true;
-            }
-
-            projectSnapshot = null;
-            return false;
+            documentSnapshot = _miscellaneousProject.GetDocument(documentFilePath);
+            return documentSnapshot is not null;
         }
     }
 }

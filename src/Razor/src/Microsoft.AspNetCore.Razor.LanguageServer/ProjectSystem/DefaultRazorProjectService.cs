@@ -81,7 +81,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (_snapshotResolver.TryResolveDocument(textDocumentPath, includeMiscellaneous: true, out var _))
+        if (_snapshotResolver.TryResolveDocument(textDocumentPath, out var _))
         {
             // Document already added. This usually occurs when VSCode has already pre-initialized
             // open documents and then we try to manually add all known razor documents.
@@ -115,14 +115,14 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_snapshotResolver.TryResolveDocument(textDocumentPath, includeMiscellaneous: true, out _))
+        if (!_snapshotResolver.TryResolveDocument(textDocumentPath, out _))
         {
             // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
             // processes and pre-initializes already open documents.
             AddDocument(filePath);
         }
 
-        if (!_snapshotResolver.TryResolveProject(textDocumentPath, includeMiscellaneous: false, out var projectSnapshot))
+        if (!_snapshotResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
         {
             projectSnapshot = _snapshotResolver.GetMiscellaneousProject();
         }
@@ -134,7 +134,7 @@ internal class DefaultRazorProjectService : RazorProjectService
 
         TrackDocumentVersion(textDocumentPath, version);
 
-        if (_snapshotResolver.TryResolveDocument(textDocumentPath, includeMiscellaneous: true, out var documentSnapshot))
+        if (_snapshotResolver.TryResolveDocument(textDocumentPath, out var documentSnapshot))
         {
             // Start generating the C# for the document so it can immediately be ready for incoming requests.
             _ = documentSnapshot.GetGeneratedOutputAsync();
@@ -146,7 +146,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_snapshotResolver.TryResolveProject(textDocumentPath, includeMiscellaneous: false, out var projectSnapshot))
+        if (!_snapshotResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
         {
             projectSnapshot = _snapshotResolver.GetMiscellaneousProject();
         }
@@ -162,7 +162,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_snapshotResolver.TryResolveProject(textDocumentPath, includeMiscellaneous: false, out var projectSnapshot))
+        if (!_snapshotResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
         {
             projectSnapshot = _snapshotResolver.GetMiscellaneousProject();
         }
@@ -202,7 +202,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_snapshotResolver.TryResolveProject(textDocumentPath, includeMiscellaneous: false, out var projectSnapshot))
+        if (!_snapshotResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
         {
             projectSnapshot = _snapshotResolver.GetMiscellaneousProject();
         }
@@ -495,7 +495,7 @@ internal class DefaultRazorProjectService : RazorProjectService
 
     private void TrackDocumentVersion(string textDocumentPath, int version)
     {
-        if (!_snapshotResolver.TryResolveDocument(textDocumentPath, includeMiscellaneous: true, out var documentSnapshot))
+        if (!_snapshotResolver.TryResolveDocument(textDocumentPath, out var documentSnapshot))
         {
             return;
         }
