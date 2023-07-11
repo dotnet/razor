@@ -130,7 +130,7 @@ public class ProjectRazorJsonPublisherTest : LanguageServerTestBase
         _projectSnapshotManager.ProjectAdded(hostProject);
         _projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.FilePath, ProjectWorkspaceState.Default);
         _projectSnapshotManager.DocumentAdded(hostProject, hostDocument, new EmptyTextLoader(hostDocument.FilePath));
-        var projectSnapshot = _projectSnapshotManager.Projects[0];
+        var projectSnapshot = _projectSnapshotManager.GetProjects()[0];
         var expectedConfigurationFilePath = @"C:\path\to\obj\bin\Debug\project.razor.json";
         _projectConfigurationFilePathStore.Set(projectSnapshot.FilePath, expectedConfigurationFilePath);
         var publisher = new TestProjectRazorJsonPublisher(
@@ -552,7 +552,7 @@ public class ProjectRazorJsonPublisherTest : LanguageServerTestBase
 
     internal ProjectSnapshotManagerBase CreateProjectSnapshotManager(bool allowNotifyListeners = false)
     {
-        var snapshotManager = TestProjectSnapshotManager.Create(LegacyDispatcher, ErrorReporter);
+        var snapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         snapshotManager.AllowNotifyListeners = allowNotifyListeners;
 
         return snapshotManager;

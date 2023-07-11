@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -45,7 +46,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
             MockBehavior.Strict);
 
         _projectManager = Mock.Of<ProjectSnapshotManager>(
-            p => p.Projects == new List<IProjectSnapshot>() && p.GetOrCreateProject(It.IsAny<string>()) == null,
+            p => p.GetProjects() == ImmutableArray<IProjectSnapshot>.Empty && p.GetOrCreateProject(It.IsAny<string>()) == null,
             MockBehavior.Strict);
 
         _workspaceEditorSettings = new DefaultWorkspaceEditorSettings(

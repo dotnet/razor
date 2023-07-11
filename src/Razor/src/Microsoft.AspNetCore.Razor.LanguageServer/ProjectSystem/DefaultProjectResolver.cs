@@ -49,8 +49,8 @@ internal class DefaultProjectResolver : ProjectResolver
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
-        var projects = _projectSnapshotManagerAccessor.Instance.Projects;
-        for (var i = 0; i < projects.Count; i++)
+        var projects = _projectSnapshotManagerAccessor.Instance.GetProjects();
+        for (var i = 0; i < projects.Length; i++)
         {
             projectSnapshot = projects[i];
 
