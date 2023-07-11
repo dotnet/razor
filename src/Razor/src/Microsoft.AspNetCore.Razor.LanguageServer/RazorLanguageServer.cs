@@ -167,25 +167,25 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 
         static void AddHandlers(IServiceCollection services)
         {
-            services.AddRegisteringHandler<ImplementationEndpoint>();
-            services.AddRegisteringHandler<SignatureHelpEndpoint>();
-            services.AddRegisteringHandler<DocumentHighlightEndpoint>();
+            services.AddHandlerWithCapabilities<ImplementationEndpoint>();
+            services.AddHandlerWithCapabilities<SignatureHelpEndpoint>();
+            services.AddHandlerWithCapabilities<DocumentHighlightEndpoint>();
             services.AddHandler<RazorConfigurationEndpoint>();
-            services.AddRegisteringHandler<OnAutoInsertEndpoint>();
+            services.AddHandlerWithCapabilities<OnAutoInsertEndpoint>();
             services.AddHandler<MonitorProjectConfigurationFilePathEndpoint>();
-            services.AddRegisteringHandler<RenameEndpoint>();
-            services.AddRegisteringHandler<DefinitionEndpoint>();
-            services.AddRegisteringHandler<LinkedEditingRangeEndpoint>();
+            services.AddHandlerWithCapabilities<RenameEndpoint>();
+            services.AddHandlerWithCapabilities<DefinitionEndpoint>();
+            services.AddHandlerWithCapabilities<LinkedEditingRangeEndpoint>();
             services.AddHandler<WrapWithTagEndpoint>();
             services.AddHandler<RazorBreakpointSpanEndpoint>();
             services.AddHandler<RazorProximityExpressionsEndpoint>();
-            services.AddRegisteringHandler<DocumentColorEndpoint>();
+            services.AddHandlerWithCapabilities<DocumentColorEndpoint>();
             services.AddHandler<ColorPresentationEndpoint>();
-            services.AddRegisteringHandler<FoldingRangeEndpoint>();
-            services.AddRegisteringHandler<ValidateBreakpointRangeEndpoint>();
-            services.AddRegisteringHandler<FindAllReferencesEndpoint>();
-            services.AddRegisteringHandler<ProjectContextsEndpoint>();
-            services.AddRegisteringHandler<DocumentSymbolEndpoint>();
+            services.AddHandlerWithCapabilities<FoldingRangeEndpoint>();
+            services.AddHandlerWithCapabilities<ValidateBreakpointRangeEndpoint>();
+            services.AddHandlerWithCapabilities<FindAllReferencesEndpoint>();
+            services.AddHandlerWithCapabilities<ProjectContextsEndpoint>();
+            services.AddHandlerWithCapabilities<DocumentSymbolEndpoint>();
         }
     }
 
