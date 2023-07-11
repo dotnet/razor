@@ -715,7 +715,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var codeDocument = CreateCodeDocument(output, DefaultTagHelpers);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
-        var serverCapabilities = new ServerCapabilities()
+        var serverCapabilities = new VSInternalServerCapabilities()
         {
             HoverProvider = true
         };
@@ -747,7 +747,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var clientCapabilities = CreateMarkDownCapabilities();
         clientCapabilities.SupportsVisualStudioExtensions = true;
 
-        _ = endpoint.GetRegistration(clientCapabilities);
+        endpoint.ApplyCapabilities(new(), clientCapabilities);
 
         codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
         var razorFileUri = new Uri(razorFilePath);

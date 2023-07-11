@@ -21,7 +21,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
 [LanguageServerEndpoint(VSInternalMethods.OnAutoInsertName)]
-internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>, IRegistrationExtension
+internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>, ICapabilitiesProvider
 {
     private static readonly HashSet<string> s_htmlAllowedTriggerCharacters = new(StringComparer.Ordinal) { "=", };
     private static readonly HashSet<string> s_cSharpAllowedTriggerCharacters = new(StringComparer.Ordinal) { "'", "/", "\n" };
@@ -46,10 +46,8 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertEndpointName;
 
-    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        const string AssociatedServerCapability = "_vs_onAutoInsertProvider";
-
         var triggerCharacters = _onAutoInsertProviders.Select(provider => provider.TriggerCharacter);
 
         if (_languageServerFeatureOptions.SingleServerSupport)
@@ -57,12 +55,10 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
             triggerCharacters = triggerCharacters.Concat(s_htmlAllowedTriggerCharacters).Concat(s_cSharpAllowedTriggerCharacters);
         }
 
-        var registrationOptions = new VSInternalDocumentOnAutoInsertOptions()
+        serverCapabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions()
         {
             TriggerCharacters = triggerCharacters.Distinct().ToArray()
         };
-
-        return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
     }
 
     protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> TryHandleAsync(VSInternalDocumentOnAutoInsertParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
@@ -121,11 +117,21 @@ internal class OnAutoInsertEndpoint : AbstractRazorDelegatingEndpoint<VSInternal
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(VSInternalDocumentOnAutoInsertParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
-        if (positionInfo.LanguageKind == RazorLanguageKind.Html &&
-           !s_htmlAllowedTriggerCharacters.Contains(request.Character))
+        if (positionInfo.LanguageKind == RazorLanguageKind.Html)
         {
-            Logger.LogInformation("Inapplicable HTML trigger char {request.Character}.", request.Character);
-            return Task.FromResult<IDelegatedParams?>(null);
+            if (!s_htmlAllowedTriggerCharacters.Contains(request.Character))
+            {
+                Logger.LogInformation("Inapplicable HTML trigger char {request.Character}.", request.Character);
+                return Task.FromResult<IDelegatedParams?>(null);
+            }
+
+            if (!_optionsMonitor.CurrentValue.AutoInsertAttributeQuotes && request.Character == "=")
+            {
+                // Use Razor setting for autoinsert attribute quotes. HTML Server doesn't have a way to pass that
+                // information along so instead we just don't delegate the request.
+                Logger.LogTrace("Not delegating to HTML completion because AutoInsertAttributeQuotes is disabled");
+                return Task.FromResult<IDelegatedParams?>(null);
+            }
         }
         else if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
         {

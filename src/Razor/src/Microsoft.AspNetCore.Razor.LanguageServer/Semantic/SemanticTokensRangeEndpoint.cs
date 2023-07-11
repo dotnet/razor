@@ -5,33 +5,39 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-[LanguageServerEndpoint(Methods.TextDocumentSemanticTokensRangeName)]
-internal sealed class SemanticTokensRangeEndpoint : IRazorRequestHandler<SemanticTokensRangeParams, SemanticTokens?>, IRegistrationExtension
+[LanguageServerEndpoint(LspEndpointName)]
+internal sealed class SemanticTokensRangeEndpoint : IRazorRequestHandler<SemanticTokensRangeParams, SemanticTokens?>, ICapabilitiesProvider
 {
+    public const string LspEndpointName = Methods.TextDocumentSemanticTokensRangeName;
     private RazorSemanticTokensLegend? _razorSemanticTokensLegend;
+    private readonly ITelemetryReporter? _telemetryReporter;
+
+    public SemanticTokensRangeEndpoint(ITelemetryReporter? telemetryReporter)
+    {
+        _telemetryReporter = telemetryReporter;
+    }
 
     public bool MutatesSolutionState { get; } = false;
 
-    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        const string ServerCapability = "semanticTokensProvider";
-
         _razorSemanticTokensLegend = new RazorSemanticTokensLegend(clientCapabilities);
 
-        return new RegistrationExtensionResult(ServerCapability,
-            new SemanticTokensOptions
-            {
-                Full = false,
-                Legend = _razorSemanticTokensLegend.Legend,
-                Range = true,
-            });
+        serverCapabilities.SemanticTokensOptions = new SemanticTokensOptions
+        {
+            Full = false,
+            Legend = _razorSemanticTokensLegend.Legend,
+            Range = true,
+        };
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(SemanticTokensRangeParams request)
@@ -49,7 +55,9 @@ internal sealed class SemanticTokensRangeEndpoint : IRazorRequestHandler<Semanti
         var documentContext = requestContext.GetRequiredDocumentContext();
         var semanticTokensInfoService = requestContext.GetRequiredService<IRazorSemanticTokensInfoService>();
 
-        var semanticTokens = await semanticTokensInfoService.GetSemanticTokensAsync(request.TextDocument, request.Range, documentContext, _razorSemanticTokensLegend.AssumeNotNull(), cancellationToken).ConfigureAwait(false);
+        var correlationId = Guid.NewGuid();
+        using var _ = _telemetryReporter?.TrackLspRequest(LspEndpointName, LanguageServerConstants.RazorLanguageServerName, correlationId);
+        var semanticTokens = await semanticTokensInfoService.GetSemanticTokensAsync(request.TextDocument, request.Range, documentContext, _razorSemanticTokensLegend.AssumeNotNull(), correlationId, cancellationToken).ConfigureAwait(false);
         var amount = semanticTokens is null ? "no" : (semanticTokens.Data.Length / 5).ToString(Thread.CurrentThread.CurrentCulture);
 
         requestContext.Logger.LogInformation("Returned {amount} semantic tokens for range {request.Range} in {request.TextDocument.Uri}.", amount, request.Range, request.TextDocument.Uri);

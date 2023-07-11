@@ -45,7 +45,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         Assert.Collection(completionList.Items,
@@ -63,7 +63,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         await _provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
@@ -90,7 +90,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         await _provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
@@ -118,7 +118,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         await _provider.GetCompletionListAsync(
-            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: 1, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
@@ -171,7 +171,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         var completionList = await _provider.GetCompletionListAsync(
-            absoluteIndex: 11, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: 11, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         Assert.Null(completionList);
@@ -194,7 +194,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         await _provider.GetCompletionListAsync(
-            absoluteIndex: 10, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: 10, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
@@ -224,7 +224,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
 
         // Act
         await _provider.GetCompletionListAsync(
-            absoluteIndex: 10, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: 10, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         // Assert
         var delegatedParameters = _provider.DelegatedParams;
@@ -268,7 +268,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(output);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
-        var serverCapabilities =  new ServerCapabilities()
+        var serverCapabilities =  new VSInternalServerCapabilities()
         {
             CompletionProvider = new CompletionOptions
             {
@@ -294,7 +294,7 @@ public class DelegatedCompletionListProviderTest : LanguageServerTestBase
         var provider = TestDelegatedCompletionListProvider.Create(csharpServer, LoggerFactory, DisposalToken);
 
         var completionList = await provider.GetCompletionListAsync(
-            absoluteIndex: cursorPosition, completionContext, documentContext, _clientCapabilities, DisposalToken);
+            absoluteIndex: cursorPosition, completionContext, documentContext, _clientCapabilities, correlationId: Guid.Empty, cancellationToken: DisposalToken);
 
         return completionList;
     }

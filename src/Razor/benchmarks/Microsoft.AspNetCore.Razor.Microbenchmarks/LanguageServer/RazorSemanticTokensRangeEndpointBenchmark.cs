@@ -57,7 +57,6 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
     private static List<SemanticRange> PregeneratedRandomSemanticRanges { get; set; }
 
-
     [GlobalSetup]
     public async Task InitializeRazorSemanticAsync()
     {
@@ -74,8 +73,8 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         var version = 1;
         DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, version);
         Logger = new NoopLogger();
-        SemanticTokensRangeEndpoint = new SemanticTokensRangeEndpoint();
-        _ = SemanticTokensRangeEndpoint.GetRegistration(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true });
+        SemanticTokensRangeEndpoint = new SemanticTokensRangeEndpoint(telemetryReporter: null);
+        SemanticTokensRangeEndpoint.ApplyCapabilities(new(), new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true });
 
         var text = await DocumentContext.GetSourceTextAsync(CancellationToken.None).ConfigureAwait(false);
         Range = new Range
@@ -164,6 +163,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
             TextDocumentIdentifier textDocumentIdentifier,
             Range razorRange,
             long documentVersion,
+            Guid correlationId,
             CancellationToken cancellationToken,
             string previousResultId = null)
         {

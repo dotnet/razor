@@ -494,6 +494,18 @@ public class RazorFormattingTest : FormattingTestBase
     }
 
     [Fact]
+    public async Task TypeParam()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @typeparam     T     where    T    :   IDisposable
+                    """,
+            expected: """
+                    @typeparam T where T : IDisposable
+                    """);
+    }
+
+    [Fact]
     public async Task Model()
     {
         await RunFormattingTestAsync(
@@ -608,8 +620,8 @@ public class RazorFormattingTest : FormattingTestBase
     public async Task LargeFile()
     {
         await RunFormattingTestAsync(
-            input: TestResources.GetResourceText("FormattingTest.razor"),
-            expected: TestResources.GetResourceText("FormattingTest_Expected.razor"),
+            input: RazorTestResources.GetResourceText("FormattingTest.razor"),
+            expected: RazorTestResources.GetResourceText("FormattingTest_Expected.razor"),
             allowDiagnostics: true);
     }
 }
