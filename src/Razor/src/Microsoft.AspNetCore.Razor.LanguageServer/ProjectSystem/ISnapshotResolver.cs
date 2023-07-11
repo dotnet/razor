@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 internal interface ISnapshotResolver
 {
     /// <summary>
-    /// Finds all the projects with a directory that contains the document path. 
+    /// Finds all the projects where the document path starts with the path of the folder that contains the project file.
     /// </summary>
     /// <param name="documentFilePath"></param>
     /// <param name="includeMiscellaneous">if true, will include the <see cref="GetMiscellaneousProject"/> in the results</param>
