@@ -88,7 +88,7 @@ internal class DefaultRazorProjectService : RazorProjectService
             return;
         }
 
-        var projectSnapshot = _snapshotResolver.FindPotentialProjects(textDocumentPath, includeMiscellaneous: false).FirstOrDefault()
+        var projectSnapshot = _snapshotResolver.FindPotentialProjects(textDocumentPath).FirstOrDefault()
             ?? _snapshotResolver.GetMiscellaneousProject();
 
         var targetFilePath = textDocumentPath;
@@ -445,7 +445,7 @@ internal class DefaultRazorProjectService : RazorProjectService
                 continue;
             }
 
-            var toProject = _snapshotResolver.FindPotentialProjects(documentFilePath, includeMiscellaneous: false).FirstOrDefault()
+            var toProject = _snapshotResolver.FindPotentialProjects(documentFilePath).FirstOrDefault()
                 ?? miscellaneousProject;
 
             var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
@@ -467,7 +467,7 @@ internal class DefaultRazorProjectService : RazorProjectService
 
         foreach (var documentFilePath in miscellaneousProject.DocumentFilePaths)
         {
-            var projectSnapshot = _snapshotResolver.FindPotentialProjects(documentFilePath, includeMiscellaneous: false).FirstOrDefault();
+            var projectSnapshot = _snapshotResolver.FindPotentialProjects(documentFilePath).FirstOrDefault();
             if (projectSnapshot is null)
             {
                 continue;

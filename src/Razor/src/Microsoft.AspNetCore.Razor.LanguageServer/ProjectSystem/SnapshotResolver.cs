@@ -31,7 +31,7 @@ internal class SnapshotResolver : ISnapshotResolver
     }
 
     /// <inheritdoc/>
-    public IEnumerable<IProjectSnapshot> FindPotentialProjects(string documentFilePath, bool includeMiscellaneous)
+    public IEnumerable<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
     {
         if (documentFilePath is null)
         {
@@ -42,14 +42,9 @@ internal class SnapshotResolver : ISnapshotResolver
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
         foreach (var projectSnapshot in projects)
         {
-            // Always include misc as something to check
+            // Always exclude the miscellaneous project.
             if (projectSnapshot.FilePath == MiscellaneousHostProject.FilePath)
             {
-                if (includeMiscellaneous)
-                {
-                    yield return projectSnapshot;
-                }
-
                 continue;
             }
 
@@ -85,7 +80,7 @@ internal class SnapshotResolver : ISnapshotResolver
         documentSnapshot = null;
 
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
-        var potentialProjects = FindPotentialProjects(documentFilePath, includeMiscellaneous: true);
+        var potentialProjects = FindPotentialProjects(documentFilePath);
         foreach (var project in potentialProjects)
         {
             documentSnapshot = project.GetDocument(normalizedDocumentPath);
@@ -94,6 +89,15 @@ internal class SnapshotResolver : ISnapshotResolver
                 _logger.LogTrace("Found {documentFilePath} in {project}", documentFilePath, project.FilePath);
                 return true;
             }
+        }
+
+        _logger.LogTrace("Looking for {documentFilePath} in miscellaneous project.", documentFilePath);
+        var miscellaneousProject = GetMiscellaneousProject();
+        documentSnapshot = miscellaneousProject.GetDocument(normalizedDocumentPath);
+        if (documentSnapshot is not null)
+        {
+            _logger.LogTrace("Found {documentFilePath} in miscellaneous project.", documentFilePath);
+            return true;
         }
 
         _logger.LogTrace("{documentFilePath} not found in {documents}", documentFilePath, _projectSnapshotManagerAccessor.Instance.Projects.SelectMany(p => p.DocumentFilePaths));

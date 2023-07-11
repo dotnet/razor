@@ -325,7 +325,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
     {
         // Arrange
         var expectedDocumentFilePath = "C:/path/to/document.cshtml";
-        var ownerProject = TestProjectSnapshot.Create("C:/path/to/project.csproj");
+        var ownerProject = TestProjectSnapshot.Create("C:/path/to/project.csproj", new [] { expectedDocumentFilePath });
         var projectResolver = new TestSnapshotResolver(
             new Dictionary<string, IProjectSnapshot>
             {
@@ -460,6 +460,8 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
                 Assert.Same(ownerProject.HostProject, hostProject);
                 Assert.Equal(expectedDocumentFilePath, hostDocument.FilePath);
                 Assert.NotNull(loader);
+
+                projectResolver.UpdateProject(expectedDocumentFilePath, ownerProject.State.WithAddedHostDocument(hostDocument, DocumentState.EmptyLoader));
             });
         projectSnapshotManager.Setup(manager => manager.DocumentOpened(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SourceText>()))
             .Callback<string, string, SourceText>((projectFilePath, documentFilePath, text) =>
@@ -1059,7 +1061,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
 
     private class TestSnapshotResolver : ISnapshotResolver
     {
-        private readonly IReadOnlyDictionary<string, IProjectSnapshot> _projectMappings;
+        private readonly Dictionary<string, IProjectSnapshot> _projectMappings;
         private readonly IProjectSnapshot _miscellaneousProject;
 
         public TestSnapshotResolver()
@@ -1069,20 +1071,15 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
 
         public TestSnapshotResolver(IReadOnlyDictionary<string, IProjectSnapshot> projectMappings, IProjectSnapshot miscellaneousProject)
         {
-            _projectMappings = projectMappings;
+            _projectMappings = projectMappings.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
             _miscellaneousProject = miscellaneousProject;
         }
 
-        public IEnumerable<IProjectSnapshot> FindPotentialProjects(string documentFilePath, bool includeMiscellaneous)
+        public IEnumerable<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
         {
             foreach (var project in _projectMappings.Values)
             {
                 yield return project;
-            }
-
-            if (includeMiscellaneous)
-            {
-                yield return _miscellaneousProject;
             }
         }
 
@@ -1098,6 +1095,11 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
 
             documentSnapshot = _miscellaneousProject.GetDocument(documentFilePath);
             return documentSnapshot is not null;
+        }
+
+        internal void UpdateProject(string expectedDocumentFilePath, ProjectState projectState)
+        {
+            _projectMappings[expectedDocumentFilePath] = new ProjectSnapshot(projectState);
         }
     }
 }

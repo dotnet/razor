@@ -126,7 +126,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
             _documentSnapshot = documentSnapshot;
         }
 
-        public IEnumerable<IProjectSnapshot> FindPotentialProjects(string documentFilePath, bool includeMiscellaneous)
+        public IEnumerable<IProjectSnapshot> FindPotentialProjects(string documentFilePath)
         {
             throw new NotImplementedException();
         }
