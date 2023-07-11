@@ -13,12 +13,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostPackageVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.Editor.Razor\Microsoft.VisualStudio.Editor.Razor.csproj" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor.Test" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.WebTools.Languages.Razor.Core" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="Microsoft.WebTools.Languages.TestServices" Key="$(VisualStudioKey)" />
   </ItemGroup>
 
   <Target DependsOnTargets="ResolveReferences" Name="CopyProjectReferencesToPackage">

@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.ComponentModel.Composition;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -10,9 +9,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-[System.Composition.Shared]
-[Export(typeof(RazorIndentationFactsService))]
-internal class DefaultRazorIndentationFactsService : RazorIndentationFactsService
+public static class RazorIndentationFacts
 {
     // This method dives down a syntax tree looking for open curly braces, every time
     // it finds one it increments its indent until it finds the provided "line".
@@ -29,7 +26,7 @@ internal class DefaultRazorIndentationFactsService : RazorIndentationFactsServic
     //     }
     // </div>
     // Asking for desired indentation of the @{ or } lines should result in a desired indentation of 8.
-    public override int? GetDesiredIndentation(
+    public static int? GetDesiredIndentation(
         RazorSyntaxTree syntaxTree,
         ITextSnapshot syntaxTreeSnapshot,
         ITextSnapshotLine line,
@@ -134,6 +131,7 @@ internal class DefaultRazorIndentationFactsService : RazorIndentationFactsServic
         var previousLine = line.Snapshot.GetLineFromLineNumber(line.LineNumber - 1);
         var trackingPoint = previousLine.Snapshot.CreateTrackingPoint(previousLine.End, PointTrackingMode.Negative);
         var previousLineEndIndex = trackingPoint.GetPosition(syntaxTreeSnapshot);
+
         return previousLineEndIndex;
     }
 
@@ -141,6 +139,7 @@ internal class DefaultRazorIndentationFactsService : RazorIndentationFactsServic
     internal static bool IsCSharpOpenCurlyBrace(SyntaxNode node)
     {
         var children = node.ChildNodes();
+
         return children.Count == 1 &&
             children[0].IsToken &&
             children[0].Kind == SyntaxKind.LeftBrace;

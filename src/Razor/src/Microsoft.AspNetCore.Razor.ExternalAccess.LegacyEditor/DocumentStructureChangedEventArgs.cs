@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
@@ -9,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 internal class DocumentStructureChangedEventArgs(
     RazorSourceChange? change,
     ITextSnapshot snapshot,
-    RazorCodeDocument codeDocument) : EventArgs
+    IRazorCodeDocument codeDocument) : EventArgs
 {
     /// <summary>
     /// The <see cref="RazorSourceChange"/> which triggered the re-parse.
@@ -24,5 +23,5 @@ internal class DocumentStructureChangedEventArgs(
     /// <summary>
     /// The result of the parsing and code generation.
     /// </summary>
-    public RazorCodeDocument CodeDocument { get; } = codeDocument ?? throw new ArgumentNullException(nameof(codeDocument));
+    public IRazorCodeDocument CodeDocument { get; } = codeDocument ?? throw new ArgumentNullException(nameof(codeDocument));
 }

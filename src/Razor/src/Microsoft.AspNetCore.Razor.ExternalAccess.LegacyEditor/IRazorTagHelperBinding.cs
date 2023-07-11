@@ -5,6 +5,9 @@ using System.Collections.Immutable;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 
-internal readonly record struct TagHelperSpan(
-    RazorSourceSpan Span,
-    ImmutableArray<IRazorTagHelperDescriptor> TagHelpers);
+internal interface IRazorTagHelperBinding
+{
+    ImmutableArray<IRazorTagHelperDescriptor> Descriptors { get; }
+
+    ImmutableArray<IRazorTagMatchingRuleDescriptor> GetBoundRules(IRazorTagHelperDescriptor descriptor);
+}

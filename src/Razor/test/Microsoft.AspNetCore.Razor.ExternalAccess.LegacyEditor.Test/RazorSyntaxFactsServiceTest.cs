@@ -29,10 +29,8 @@ public class RazorSyntaxFactsServiceTest(ITestOutputHelper testOutput) : RazorPr
     <taghelper></taghelper>
 </div>");
 
-        var service = new RazorSyntaxFactsService();
-
         // Act
-        var spans = service.GetClassifiedSpans(codeDocument);
+        var spans = codeDocument.GetClassifiedSpans();
 
         // Assert
         Assert.Equal(expectedSpans, spans);
@@ -51,10 +49,9 @@ public class RazorSyntaxFactsServiceTest(ITestOutputHelper testOutput) : RazorPr
 
         var codeDocument = GetCodeDocument(
 @"<taghelper id=1 class=""th"" show=true></taghelper>");
-        var service = new RazorSyntaxFactsService();
 
         // Act
-        var spans = service.GetClassifiedSpans(codeDocument);
+        var spans = codeDocument.GetClassifiedSpans();
 
         // Assert
         Assert.Equal(expectedSpans, spans);
@@ -71,20 +68,17 @@ public class RazorSyntaxFactsServiceTest(ITestOutputHelper testOutput) : RazorPr
 
         var tagHelperContext = codeDocument.GetTagHelperContext();
         var expectedSourceSpan = new RazorSourceSpan("test.cshtml", 11, 1, 4, 23);
-        var service = new RazorSyntaxFactsService();
 
         // Act
-        var spans = service.GetTagHelperSpans(codeDocument);
+        var spans = codeDocument.GetTagHelperSpans();
 
         // Assert
         var actualSpan = Assert.Single(spans);
         Assert.Equal(expectedSourceSpan, actualSpan.Span);
-        Assert.Equal(tagHelperContext.TagHelpers, actualSpan.TagHelpers);
-        Assert.Equal(tagHelperContext.Prefix, actualSpan.Binding.TagHelperPrefix);
-        Assert.Equal("div", actualSpan.Binding.ParentTagName);
+        Assert.Equal<IRazorTagHelperDescriptor>(tagHelperContext.TagHelpers, actualSpan.TagHelpers);
     }
 
-    private RazorCodeDocument GetCodeDocument(string source)
+    private IRazorCodeDocument GetCodeDocument(string source)
     {
         var taghelper = TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly")
             .BoundAttributeDescriptor(attr => attr.Name("show").TypeName("System.Boolean"))
@@ -100,6 +94,6 @@ public class RazorSyntaxFactsServiceTest(ITestOutputHelper testOutput) : RazorPr
 
         var codeDocument = engine.ProcessDesignTime(sourceDocument, FileKinds.Legacy, importSources: new []{ importDocument }, new []{ taghelper });
 
-        return codeDocument;
+        return RazorWrapperFactory.WrapCodeDocument(codeDocument);
     }
 }

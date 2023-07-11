@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using Microsoft.Extensions.Internal;
+
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 
 internal record struct RazorSourceSpan(
@@ -25,5 +27,24 @@ internal record struct RazorSourceSpan(
     public RazorSourceSpan(int absoluteIndex, int lineIndex, int characterIndex, int length)
         : this(filePath: null, absoluteIndex, lineIndex, characterIndex, length)
     {
+    }
+
+    public readonly bool Equals(RazorSourceSpan other)
+        => FilePath == other.FilePath&&
+           AbsoluteIndex == other.AbsoluteIndex &&
+           LineIndex == other.LineIndex &&
+           CharacterIndex == other.CharacterIndex &&
+           Length == other.Length;
+
+    public override readonly int GetHashCode()
+    {
+        var hash = HashCodeCombiner.Start();
+        hash.Add(FilePath, StringComparer.Ordinal);
+        hash.Add(AbsoluteIndex);
+        hash.Add(LineIndex);
+        hash.Add(CharacterIndex);
+        hash.Add(Length);
+
+        return hash;
     }
 }

@@ -8,12 +8,11 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 
 internal static partial class RazorWrapperFactory
 {
-    private class ParserWrapper(VisualStudioRazorParser parser) : IRazorParser
+    private class ParserWrapper(VisualStudioRazorParser obj) : Wrapper<VisualStudioRazorParser>(obj), IRazorParser
     {
-        private readonly VisualStudioRazorParser _parser = parser;
         private EventHandler<DocumentStructureChangedEventArgs>? _documentStructureChanged;
 
-        public bool HasPendingChanges => _parser.HasPendingChanges;
+        public bool HasPendingChanges => Object.HasPendingChanges;
 
         public event EventHandler<DocumentStructureChangedEventArgs>? DocumentStructureChanged
         {
@@ -22,7 +21,7 @@ internal static partial class RazorWrapperFactory
                 // If this is the first handler, hook the inner event.
                 if (_documentStructureChanged is null)
                 {
-                    _parser.DocumentStructureChanged += OnDocumentStructureChanged;
+                    Object.DocumentStructureChanged += OnDocumentStructureChanged;
                 }
 
                 _documentStructureChanged += value;
@@ -35,7 +34,7 @@ internal static partial class RazorWrapperFactory
                 // If there are no more handlers, unhook the inner event.
                 if (_documentStructureChanged is null)
                 {
-                    _parser.DocumentStructureChanged -= OnDocumentStructureChanged;
+                    Object.DocumentStructureChanged -= OnDocumentStructureChanged;
                 }
             }
         }
@@ -45,11 +44,11 @@ internal static partial class RazorWrapperFactory
             // Be sure to use our wrapper as the sender to avoid leaking the inner object.
             if (_documentStructureChanged is { } handler)
             {
-                handler(this, new DocumentStructureChangedEventArgs(
-                    ConvertSourceChange(e.SourceChange), e.Snapshot, e.CodeDocument));
+                handler(sender: this, new DocumentStructureChangedEventArgs(
+                    ConvertSourceChange(e.SourceChange), e.Snapshot, WrapCodeDocument(e.CodeDocument)));
             }
         }
 
-        public void QueueReparse() => _parser.QueueReparse();
+        public void QueueReparse() => Object.QueueReparse();
     }
 }

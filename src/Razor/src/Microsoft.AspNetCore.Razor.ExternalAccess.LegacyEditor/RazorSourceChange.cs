@@ -3,7 +3,7 @@
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 
-internal record class RazorSourceChange(
+internal sealed record RazorSourceChange(
     RazorSourceSpan Span,
     string NewText)
 {
