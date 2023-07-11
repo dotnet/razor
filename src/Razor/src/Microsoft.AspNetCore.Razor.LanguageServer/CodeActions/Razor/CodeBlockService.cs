@@ -52,7 +52,7 @@ internal static class CodeBlockService
         var closeBraceLocation = closeBrace.GetSourceLocation(code.Source);
         var previousLine = code.Source.Lines.GetLocation(closeBraceLocation.AbsoluteIndex - closeBraceLocation.CharacterIndex - 1);
         var insertLineLocation = openBraceLocation.LineIndex == closeBraceLocation.LineIndex || !IsLineEmpty(code.Source, previousLine) ? closeBraceLocation : previousLine;
-        int codeBlockBeginningIndex = csharpCodeBlock.GetSourceLocation(code.Source).CharacterIndex - 5;
+        var codeBlockBeginningIndex = csharpCodeBlock.GetSourceLocation(code.Source).CharacterIndex - 5;
         var formattedGeneratedMethod = FormatMethodInCodeBlock(code.Source, codeBlockBeginningIndex, openBraceLocation.LineIndex, closeBraceLocation.LineIndex, insertLineLocation, options, generatedMethod);
         var insertPosition = new Position(insertLineLocation.LineIndex, openBraceLocation.LineIndex == closeBraceLocation.LineIndex ? closeBraceLocation.CharacterIndex : 0);
         return new TextEdit() { Range = new Range { Start = insertPosition, End = insertPosition }, NewText = formattedGeneratedMethod.Replace("$$MethodName$$", methodName) };

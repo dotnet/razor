@@ -359,7 +359,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
 
         var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
         await ValidateCodeActionAsync(input,
-            expected, "Generate 'DoesNotExist' Method",
+            expected, "Generate Event Handler 'DoesNotExist'",
             razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
             createRazorCodeActionResolversFn: () => new[] { new GenerateMethodCodeActionResolver(DocumentContextFactory, TestRazorLSPOptionsMonitor.Create()) },
             diagnostics: diagnostics);
@@ -389,7 +389,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
         await ValidateCodeActionAsync(input,
             expected,
-            "Generate 'DoesNotExist' Method",
+            "Generate Event Handler 'DoesNotExist'",
             razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
             createRazorCodeActionResolversFn: () => new[] { new GenerateMethodCodeActionResolver(DocumentContextFactory, TestRazorLSPOptionsMonitor.Create()) },
             diagnostics: diagnostics);
@@ -426,7 +426,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
         await ValidateCodeActionAsync(input,
             expected,
-            "Generate 'DoesNotExist' Method",
+            "Generate Event Handler 'DoesNotExist'",
             razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
             createRazorCodeActionResolversFn: () => new[] { new GenerateMethodCodeActionResolver(DocumentContextFactory, TestRazorLSPOptionsMonitor.Create()) },
             diagnostics: diagnostics);
@@ -577,7 +577,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             File.WriteAllText(codeBehindFilePath, initialCodeBehindContent);
 
             var result = await GetCodeActionsAsync(uri, textSpan, razorSourceText, requestContext, razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() }, diagnostics);
-            var changes = await GetEditsAsync(result, requestContext, "Generate 'DoesNotExist' Method", createRazorCodeActionResolversFn: () => new[] { new GenerateMethodCodeActionResolver(DocumentContextFactory, TestRazorLSPOptionsMonitor.Create()) });
+            var changes = await GetEditsAsync(result, requestContext, "Generate Event Handler 'DoesNotExist'", createRazorCodeActionResolversFn: () => new[] { new GenerateMethodCodeActionResolver(DocumentContextFactory, TestRazorLSPOptionsMonitor.Create()) });
 
             var razorEdits = new List<TextChange>();
             var codeBehindEdits = new List<TextChange>();
