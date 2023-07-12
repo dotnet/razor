@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -459,6 +461,45 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
 
         var result = await GetCodeActionsAsync(uri, textSpan, razorSourceText, requestContext, razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() });
         Assert.False(result.Where(e => ((RazorVSInternalCodeAction)e.Value!).Title == "Generate 'DoesNotExist' Method").Any());
+    }
+
+    [Theory]
+    [InlineData(true, 4, "", "    ", "        ")]
+    [InlineData(true, 4, "    ", "        ", "            ")]
+    [InlineData(true, 2, "", "  ", "    ")]
+    [InlineData(true, 2, "  ", "    ", "      ")]
+    [InlineData(false, 4, "", "\t", "\t\t")]
+    [InlineData(false, 4, "    ", "\t\t", "\t\t\t")]
+    [InlineData(false, 2, "", "\t", "\t\t")]
+    [InlineData(false, 2, "  ", "\t\t", "\t\t\t")]
+    public async Task Handle_GenerateMethod_VaryIndentSize(bool insertSpaces, int tabSize, string initialIndent, string indent, string innerIndent)
+    {
+        var input = $$"""
+            <button @onclick="[||]DoesNotExist"></button>
+            {{initialIndent}}@code {
+            {{initialIndent}}}
+            """;
+
+        var expected = $$"""
+            <button @onclick="DoesNotExist"></button>
+            {{initialIndent}}@code {
+            {{indent}}private void DoesNotExist()
+            {{indent}}{
+            {{innerIndent}}throw new System.NotImplementedException();
+            {{indent}}}
+            {{initialIndent}}}
+            """;
+
+        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
+        var razorLSPOptions = new RazorLSPOptions(Trace: default, EnableFormatting: true, AutoClosingTags: true, insertSpaces, tabSize, FormatOnType: true, AutoInsertAttributeQuotes: true);
+        var optionsMonitor = TestRazorLSPOptionsMonitor.Create();
+        await optionsMonitor.UpdateAsync(razorLSPOptions, CancellationToken.None);
+        await ValidateCodeActionAsync(input,
+            expected,
+            "Generate Event Handler 'DoesNotExist'",
+            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
+            createRazorCodeActionResolversFn: () => new[] { new GenerateMethodCodeActionResolver(DocumentContextFactory, optionsMonitor) },
+            diagnostics: diagnostics);
     }
 
     [Theory]
