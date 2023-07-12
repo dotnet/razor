@@ -120,7 +120,7 @@ internal class ReadWriterLocker
             _rwLock.ExitUpgradeableReadLock();
         }
 
-        public WriteOnlyLock GetWriteLock()
+        public WriteOnlyLock EnterWriteLock()
         {
             return new WriteOnlyLock(_rwLock);
         }

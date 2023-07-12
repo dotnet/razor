@@ -326,7 +326,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             var state = ProjectState.Create(Workspace.Services, newProject);
             var entry = new Entry(state);
 
-            using (upgradeableReadLock.GetWriteLock())
+            using (upgradeableReadLock.EnterWriteLock())
             {
                 _projects_needsLock[projectKey] = entry;
             }
@@ -604,7 +604,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
         // Update current state first so we can get rid of the write lock and downgrade
         // back to a read lock when notifying changes
-        using (upgradeableLock.GetWriteLock())
+        using (upgradeableLock.EnterWriteLock())
         {
             foreach (var (path, entry) in updatedProjectsMap)
             {
@@ -662,7 +662,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             var newEntry = new Entry(state);
 
             oldSnapshot = newSnapshot = newEntry.GetSnapshot();
-            using (upgradeableLock.GetWriteLock())
+            using (upgradeableLock.EnterWriteLock())
             {
                 _projects_needsLock[projectAddedAction.HostProject.Key] = newEntry;
             }
@@ -691,7 +691,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 {
                     oldSnapshot = entry.GetSnapshot();
                     newSnapshot = newEntry?.GetSnapshot() ?? oldSnapshot;
-                    using (upgradeableLock.GetWriteLock())
+                    using (upgradeableLock.EnterWriteLock())
                     {
                         if (newEntry is null)
                         {
