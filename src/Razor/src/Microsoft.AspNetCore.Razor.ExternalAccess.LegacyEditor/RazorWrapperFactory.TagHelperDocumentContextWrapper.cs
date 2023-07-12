@@ -15,14 +15,6 @@ internal static partial class RazorWrapperFactory
         public string Prefix => Object.Prefix;
 
         public ImmutableArray<IRazorTagHelperDescriptor> TagHelpers
-        {
-            get
-            {
-                var result = _tagHelpers;
-                return result.IsDefault
-                    ? InterlockedOperations.Initialize(ref _tagHelpers, WrapAll(Object.TagHelpers, Wrap))
-                    : result;
-            }
-        }
+            => InitializeArrayWithWrappedItems(ref _tagHelpers, Object.TagHelpers, Wrap);
     }
 }

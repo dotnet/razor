@@ -28,14 +28,6 @@ internal static partial class RazorWrapperFactory
         }
 
         public ImmutableArray<IRazorRequiredAttributeDescriptor> Attributes
-        {
-            get
-            {
-                var result = _attributes;
-                return result.IsDefault
-                    ? InterlockedOperations.Initialize(ref _attributes, WrapAll(Object.Attributes, Wrap))
-                    : result;
-            }
-        }
+            => InitializeArrayWithWrappedItems(ref _attributes, Object.Attributes, Wrap);
     }
 }

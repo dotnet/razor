@@ -19,14 +19,6 @@ internal static partial class RazorWrapperFactory
         public string? IndexerNamePrefix => Object.IndexerNamePrefix;
 
         public ImmutableArray<IRazorBoundAttributeParameterDescriptor> BoundAttributeParameters
-        {
-            get
-            {
-                var result = _boundAttributeParameters;
-                return result.IsDefault
-                    ? InterlockedOperations.Initialize(ref _boundAttributeParameters, WrapAll(Object.BoundAttributeParameters, Wrap))
-                    : result;
-            }
-        }
+            => InitializeArrayWithWrappedItems(ref _boundAttributeParameters, Object.BoundAttributeParameters, Wrap);
     }
 }

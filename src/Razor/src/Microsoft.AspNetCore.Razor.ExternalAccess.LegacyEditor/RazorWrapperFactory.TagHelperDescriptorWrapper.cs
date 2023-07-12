@@ -19,26 +19,10 @@ internal static partial class RazorWrapperFactory
         public string? TagOutputHint => Object.TagOutputHint;
 
         public ImmutableArray<IRazorBoundAttributeDescriptor> BoundAttributes
-        {
-            get
-            {
-                var result = _boundAttributes;
-                return result.IsDefault
-                    ? InterlockedOperations.Initialize(ref _boundAttributes, WrapAll(Object.BoundAttributes, Wrap))
-                    : result;
-            }
-        }
+            => InitializeArrayWithWrappedItems(ref _boundAttributes, Object.BoundAttributes, Wrap);
 
         public ImmutableArray<IRazorTagMatchingRuleDescriptor> TagMatchingRules
-        {
-            get
-            {
-                var result = _tagMatchingRules;
-                return result.IsDefault
-                    ? InterlockedOperations.Initialize(ref _tagMatchingRules, WrapAll(Object.TagMatchingRules, Wrap))
-                    : result;
-            }
-        }
+            => InitializeArrayWithWrappedItems(ref _tagMatchingRules, Object.TagMatchingRules, Wrap);
 
         public override bool Equals(object obj)
             => obj is IRazorTagHelperDescriptor other &&
