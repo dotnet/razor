@@ -401,11 +401,11 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     internal override bool TryRemoveLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project)
     {
         if (TryChangeEntry_UsesLock(
-                projectKey,
-                documentFilePath: null,
-                new ProjectRemovedAction(projectKey),
-                out var oldSnapshot,
-                out project))
+            projectKey,
+            documentFilePath: null,
+            new ProjectRemovedAction(projectKey),
+            out var oldSnapshot,
+            out project))
         {
             NotifyListeners(oldSnapshot, project, documentFilePath: null, ProjectChangeKind.ProjectRemoved);
             return true;
@@ -702,23 +702,14 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                             _projects_needsLock[projectKey] = newEntry;
                         }
 
-                        if (action is OpenDocumentAction)
+                        switch (action)
                         {
-                            if (documentFilePath is null)
-                            {
-                                throw new ArgumentNullException(nameof(documentFilePath));
-                            }
-
-                            _openDocuments_needsLock.Add(documentFilePath);
-                        }
-                        else if (action is CloseDocumentAction)
-                        {
-                            if (documentFilePath is null)
-                            {
-                                throw new ArgumentNullException(nameof(documentFilePath));
-                            }
-
-                            _openDocuments_needsLock.Remove(documentFilePath);
+                            case OpenDocumentAction:
+                                _openDocuments_needsLock.Add(documentFilePath.AssumeNotNull());
+                                break;
+                            case CloseDocumentAction:
+                                _openDocuments_needsLock.Remove(documentFilePath.AssumeNotNull());
+                                break;
                         }
                     }
 
@@ -784,20 +775,11 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 }
 
             case DocumentTextLoaderChangedAction textLoaderChangedAction:
-                if (documentState is null)
-                {
-                    throw new ArgumentNullException(nameof(documentState));
-                }
-
-                return new Entry(originalEntry.State.WithChangedHostDocument(documentState.HostDocument, CreateTextAndVersionFunc(textLoaderChangedAction.TextLoader)));
+                return new Entry(originalEntry.State.WithChangedHostDocument(documentState.AssumeNotNull().HostDocument, CreateTextAndVersionFunc(textLoaderChangedAction.TextLoader)));
 
             case DocumentTextChangedAction textChangedAction:
-                if (documentState is null)
                 {
-                    throw new ArgumentNullException(nameof(documentState));
-                }
-
-                {
+                    documentState.AssumeNotNull();
                     if (documentState.TryGetText(out var olderText) &&
                         documentState.TryGetTextVersion(out var olderVersion))
                     {
