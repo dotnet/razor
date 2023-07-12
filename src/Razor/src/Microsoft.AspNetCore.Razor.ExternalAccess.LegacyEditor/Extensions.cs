@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 
 internal static class Extensions
 {
-    public static bool TryGetRazorParsor(this PropertyCollection properties, [NotNullWhen(true)] out IRazorParser? parser)
+    public static bool TryGetRazorParser(this PropertyCollection properties, [NotNullWhen(true)] out IRazorParser? parser)
     {
         if (properties.TryGetProperty(typeof(VisualStudioRazorParser), out VisualStudioRazorParser obj))
         {
