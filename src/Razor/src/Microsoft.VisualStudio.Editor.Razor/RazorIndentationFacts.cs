@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
-public static class RazorIndentationFacts
+internal static class RazorIndentationFacts
 {
     // This method dives down a syntax tree looking for open curly braces, every time
     // it finds one it increments its indent until it finds the provided "line".
