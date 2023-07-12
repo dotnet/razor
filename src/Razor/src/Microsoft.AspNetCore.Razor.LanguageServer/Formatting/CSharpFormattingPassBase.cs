@@ -58,9 +58,21 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
 #if DEBUG
             var spanText = context.SourceText.GetSubText(mappingSpan).ToString();
 #endif
-            if (!ShouldFormat(context, mappingSpan, allowImplicitStatements: true))
+            if (!ShouldFormat(context, mappingSpan, allowImplicitStatements: true, out var owner))
             {
                 // We don't care about this range as this can potentially lead to incorrect scopes.
+                continue;
+            }
+
+            // Special case: We are looking for "significant locations" that should affect indentation, but
+            // single line explicit expressions shouldn't. If there are any at the start of a line, the next
+            // loop will find them. Sadly the ShouldFormat method is used in too many places, for too many
+            // different purposes, to put this check there.
+            if (owner is not null &&
+                owner.AncestorsAndSelf().Any(n => n is CSharpExplicitExpressionSyntax &&
+                    n.Span.AsRange(text) is { } range &&
+                    range.Start.Line == range.End.Line))
+            {
                 continue;
             }
 
