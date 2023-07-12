@@ -87,7 +87,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var hostProject = new HostProject("C:/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
         projectManager.ProjectAdded(hostProject);
         var hostDocument = new HostDocument("C:/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
-        projectManager.DocumentAdded(hostProject, hostDocument, Mock.Of<TextLoader>(MockBehavior.Strict));
+        projectManager.DocumentAdded(hostProject.Key, hostDocument, Mock.Of<TextLoader>(MockBehavior.Strict));
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectManager);
         var oldDocument = new DocumentSnapshotHandle(hostDocument.FilePath, hostDocument.TargetPath, hostDocument.FileKind);
         var newDocument = new DocumentSnapshotHandle("C:/path/to/file2.cshtml", "file2.cshtml", FileKinds.Legacy);
@@ -111,8 +111,8 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         projectManager.ProjectAdded(miscProject.HostProject);
         var hostProject = new HostProject("C:/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
         projectManager.ProjectAdded(hostProject);
-        projectManager.DocumentAdded(miscProject.HostProject, hostDocument, Mock.Of<TextLoader>(MockBehavior.Strict));
-        var project = projectManager.GetLoadedProject(hostProject.FilePath);
+        projectManager.DocumentAdded(miscProject.Key, hostDocument, Mock.Of<TextLoader>(MockBehavior.Strict));
+        var project = projectManager.GetLoadedProject(hostProject.Key);
         var miscProjectSnapshot = projectManager.GetLoadedProject(miscProject.Key);
         var projectResolver = new TestSnapshotResolver(
             new Dictionary<string, IProjectSnapshot>
@@ -146,8 +146,8 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         projectManager.ProjectAdded(hostProject);
         var project = projectManager.GetLoadedProject(hostProject.Key);
         var hostDocument = new HostDocument("C:/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
-        projectManager.DocumentAdded(hostProject, hostDocument, Mock.Of<TextLoader>(MockBehavior.Strict));
-        var projectResolver = new TestProjectResolver(
+        projectManager.DocumentAdded(hostProject.Key, hostDocument, Mock.Of<TextLoader>(MockBehavior.Strict));
+        var projectResolver = new TestSnapshotResolver(
             new Dictionary<string, IProjectSnapshot>
             {
                 [hostDocument.FilePath] = project
@@ -174,9 +174,9 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher, ErrorReporter);
         var hostProject = new HostProject("path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
         projectManager.ProjectAdded(hostProject);
-        var document = new HostDocument("/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
-        projectManager.DocumentAdded(hostProject, document, Mock.Of<TextLoader>(MockBehavior.Strict));
-        var projectService = CreateProjectService(new TestProjectResolver(), projectManager);
+        var document = new HostDocument("path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
+        projectManager.DocumentAdded(hostProject.Key, document, Mock.Of<TextLoader>(MockBehavior.Strict));
+        var projectService = CreateProjectService(new TestSnapshotResolver(), projectManager);
         var newDocument = new DocumentSnapshotHandle(document.FilePath, document.TargetPath, document.FileKind);
         projectManager.AllowNotifyListeners = true;
         projectManager.Changed += (sender, args) =>
@@ -201,8 +201,8 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         var hostProject = new HostProject("C:/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
         projectManager.ProjectAdded(hostProject);
         var legacyDocument = new HostDocument("C:/path/to/file.cshtml", "file.cshtml", FileKinds.Legacy);
-        projectManager.DocumentAdded(hostProject, legacyDocument, Mock.Of<TextLoader>(MockBehavior.Strict));
-        var projectService = CreateProjectService(new TestProjectResolver(), projectManager);
+        projectManager.DocumentAdded(hostProject.Key, legacyDocument, Mock.Of<TextLoader>(MockBehavior.Strict));
+        var projectService = CreateProjectService(new TestSnapshotResolver(), projectManager);
         var newDocument = new DocumentSnapshotHandle(legacyDocument.FilePath, legacyDocument.TargetPath, FileKinds.Component);
 
         // Act
