@@ -131,7 +131,7 @@ internal class ProjectRazorJsonPublisher : ProjectSnapshotChangeTrigger
         {
             // Not currently active, we need to decide if we should become active or if we should no-op.
 
-            if (!ProjectSnapshotManager.GetOpenDocuments().IsDefaultOrEmpty)
+            if (!ProjectSnapshotManager.GetOpenDocuments().IsEmpty)
             {
                 // A Razor document was just opened, we should become "active" which means we'll constantly be monitoring project state.
                 _active = true;
