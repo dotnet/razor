@@ -229,8 +229,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
-
-        if (_projectSnapshotManagerAccessor.Instance.GetAllProjectKeys(filePath).Length > 0)
+        if (_projectSnapshotManagerAccessor.Instance.GetAllProjectKeys(normalizedPath).Length > 0)
         {
             // Project already exists, noop.
             return;
