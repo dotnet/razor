@@ -82,14 +82,12 @@ internal static partial class RazorWrapperFactory
         where TInner : class
         where TResult : class
     {
-        var result = location;
-
-        if (result.IsDefault)
+        if (location.IsDefault)
         {
             ImmutableInterlocked.InterlockedInitialize(ref location, WrapAll(list, createWrapper));
         }
 
-        return result;
+        return location;
     }
 
     private static ImmutableArray<TResult> InitializeArrayWithWrappedItems<TInner, TResult>(
@@ -99,14 +97,12 @@ internal static partial class RazorWrapperFactory
         where TInner : class
         where TResult : class
     {
-        var result = location;
-
-        if (result.IsDefault)
+        if (location.IsDefault)
         {
             ImmutableInterlocked.InterlockedInitialize(ref location, WrapAll(list, createWrapper));
         }
 
-        return result;
+        return location;
     }
 
     private static T Unwrap<T>(object obj)
