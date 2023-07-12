@@ -29,6 +29,8 @@ internal record struct RazorSourceSpan(
     {
     }
 
+    // Note: Equality for this record does not include LineCount or EndCharacterIndex to match
+    // the equality defined by Microsoft.AspNetCore.Razor.Language.SourceSpan.
     public readonly bool Equals(RazorSourceSpan other)
         => FilePath == other.FilePath&&
            AbsoluteIndex == other.AbsoluteIndex &&
