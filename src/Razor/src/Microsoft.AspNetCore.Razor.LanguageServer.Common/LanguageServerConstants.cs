@@ -45,7 +45,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
         public static class CodeActions
         {
-            public const string GenerateMethod = "GenerateMethod";
+            public const string GenerateEventHandler = "GenerateEventHandler";
 
             public const string EditBasedCodeActionCommand = "EditBasedCodeActionCommand";
 

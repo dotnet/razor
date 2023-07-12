@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
@@ -466,6 +467,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
     [InlineData("\r\npublic void Exists(){}\r\n")]
     public async Task Handle_GenerateMethod_CodeBehindFile_Exists(string spacingOrMethod)
     {
+        var @namespace = $"Test.{Path.GetTempPath().Replace(":", "_").Replace("\\", ".")[..^1]}";
         var input = """
             <button @onclick="[||]DoesNotExist"></button>
             """;
@@ -475,7 +477,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             """;
 
         var initialCodeBehindContent = $$"""
-            namespace __GeneratedComponent
+            namespace {{@namespace}}
             {
                 public partial class test
                 {{{spacingOrMethod}}
@@ -484,7 +486,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             """;
 
         var expectedCodeBehindContent = $$"""
-            namespace __GeneratedComponent
+            namespace {{@namespace}}
             {
                 public partial class test
                 {{{spacingOrMethod}}
@@ -523,6 +525,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
     [Fact]
     public async Task Handle_GenerateMethod_CodeBehindFile_FileScopedNamespace()
     {
+        var @namespace = $"Test.{Path.GetTempPath().Replace(":", "_").Replace("\\", ".")[..^1]}";
         var input = """
             <button @onclick="[||]DoesNotExist"></button>
             """;
@@ -532,14 +535,14 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             """;
 
         var initialCodeBehindContent = $$"""
-            namespace __GeneratedComponent;
+            namespace {{@namespace}};
             public partial class test
             {
             }
             """;
 
         var expectedCodeBehindContent = $$"""
-            namespace __GeneratedComponent;
+            namespace {{@namespace}};
             public partial class test
             {
                 private void DoesNotExist()
@@ -565,6 +568,10 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
 
         TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
         var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
+        codeDocument.SetCodeGenerationOptions(RazorCodeGenerationOptions.Create(o =>
+        {
+            o.RootNamespace = "Test";
+        }));
         var razorSourceText = codeDocument.GetSourceText();
         var uri = new Uri(razorFilePath);
         await CreateLanguageServerAsync(codeDocument, razorFilePath);

@@ -4,6 +4,7 @@
 using System;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+
 internal class GenerateMethodCodeActionParams
 {
     public required Uri Uri { get; set; }

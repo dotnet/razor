@@ -18,6 +18,7 @@ using SyntaxFacts = Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
+
 internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
 {
     private static readonly Task<IReadOnlyList<RazorVSInternalCodeAction>?> s_emptyResult = Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(null);
@@ -50,7 +51,7 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
     {
         var resolutionParams = new RazorCodeActionResolutionParams()
         {
-            Action = LanguageServerConstants.CodeActions.GenerateMethod,
+            Action = LanguageServerConstants.CodeActions.GenerateEventHandler,
             Language = LanguageServerConstants.CodeActions.Languages.Razor,
             Data = @params,
         };
@@ -59,7 +60,10 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
         return new List<RazorVSInternalCodeAction> { codeAction };
     }
 
-    private static bool IsGenerateEventHandlerValid(SyntaxNode owner, RazorCodeActionContext context, [NotNullWhen(true)] out GenerateMethodCodeActionParams? @params)
+    private static bool IsGenerateEventHandlerValid(
+        SyntaxNode owner,
+        RazorCodeActionContext context,
+        [NotNullWhen(true)] out GenerateMethodCodeActionParams? @params)
     {
         @params = null;
 
