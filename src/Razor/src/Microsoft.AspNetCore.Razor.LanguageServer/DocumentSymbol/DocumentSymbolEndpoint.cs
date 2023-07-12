@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSymbol;
 using DocumentSymbol = VisualStudio.LanguageServer.Protocol.DocumentSymbol;
 
 [LanguageServerEndpoint(Methods.TextDocumentDocumentSymbolName)]
-internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>>, IRegistrationExtension
+internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>>, ICapabilitiesProvider
 {
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly IRazorDocumentMappingService _documentMappingService;
@@ -30,14 +30,12 @@ internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParam
 
     public bool MutatesSolutionState => false;
 
-    public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        var options = new DocumentSymbolOptions()
+        serverCapabilities.DocumentSymbolProvider = new DocumentSymbolOptions()
         {
             WorkDoneProgress = false
         };
-
-        return new RegistrationExtensionResult("documentSymbolProvider", new SumType<bool, DocumentSymbolOptions>(options));
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentSymbolParams request)

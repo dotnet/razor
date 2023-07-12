@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.ProjectContexts;
 
 [LanguageServerEndpoint(VSMethods.GetProjectContextsName)]
-internal class ProjectContextsEndpoint : IRazorRequestHandler<VSGetProjectContextsParams, VSProjectContextList>, IRegistrationExtension
+internal class ProjectContextsEndpoint : IRazorRequestHandler<VSGetProjectContextsParams, VSProjectContextList>, ICapabilitiesProvider
 {
     private readonly ClientNotifierServiceBase _languageServer;
 
@@ -24,8 +24,10 @@ internal class ProjectContextsEndpoint : IRazorRequestHandler<VSGetProjectContex
 
     public bool MutatesSolutionState => false;
 
-    public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
-        => new RegistrationExtensionResult("_vs_projectContextProvider", true);
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
+    {
+        serverCapabilities.ProjectContextProvider = true;
+    }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(VSGetProjectContextsParams request)
         => new()
