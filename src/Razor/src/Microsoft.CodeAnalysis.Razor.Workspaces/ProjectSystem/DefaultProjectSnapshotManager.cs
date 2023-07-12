@@ -51,7 +51,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         Workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
         ErrorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
 
-        using (var _ = _rwLocker.EnterReadLock())
+        using (_rwLocker.EnterReadLock())
         {
             for (var i = 0; i < _triggers.Length; i++)
             {
@@ -326,7 +326,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             var state = ProjectState.Create(Workspace.Services, newProject);
             var entry = new Entry(state);
 
-            using (var _ = upgradeableReadLock.GetWriteLock())
+            using (upgradeableReadLock.GetWriteLock())
             {
                 _projects_needsLock[projectKey] = entry;
             }
@@ -662,7 +662,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             var newEntry = new Entry(state);
 
             oldSnapshot = newSnapshot = newEntry.GetSnapshot();
-            using (var writeLock = upgradeableLock.GetWriteLock())
+            using (upgradeableLock.GetWriteLock())
             {
                 _projects_needsLock[projectAddedAction.HostProject.Key] = newEntry;
             }
@@ -691,7 +691,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                 {
                     oldSnapshot = entry.GetSnapshot();
                     newSnapshot = newEntry?.GetSnapshot() ?? oldSnapshot;
-                    using (var writeLock = upgradeableLock.GetWriteLock())
+                    using (upgradeableLock.GetWriteLock())
                     {
                         if (newEntry is null)
                         {
