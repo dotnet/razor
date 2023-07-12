@@ -14,6 +14,7 @@ internal static class RazorLanguageServerCustomMessageTargets
     public const string RazorUriPresentationEndpoint = "razor/uriPresentation";
     public const string RazorSpellCheckEndpoint = "razor/spellCheck";
     public const string RazorProjectContextsEndpoint = "razor/projectContexts";
+    public const string RazorDocumentSymbolEndpoint = "razor/documentSymbol";
 
     // Cross platform
     public const string RazorUpdateCSharpBufferEndpoint = "razor/updateCSharpBuffer";
@@ -27,7 +28,6 @@ internal static class RazorLanguageServerCustomMessageTargets
     public const string RazorFoldingRangeEndpoint = "razor/foldingRange";
     public const string RazorHtmlFormattingEndpoint = "razor/htmlFormatting";
     public const string RazorHtmlOnTypeFormattingEndpoint = "razor/htmlOnTypeFormatting";
-    public const string RazorDocumentSymbolEndpoint = "razor/documentSymbol";
 
     // Still to migrate
     public const string RazorRenameEndpointName = "razor/rename";

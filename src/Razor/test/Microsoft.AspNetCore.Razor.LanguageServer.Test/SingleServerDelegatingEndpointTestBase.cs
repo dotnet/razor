@@ -135,10 +135,31 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
                 RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName => await HandlePullDiagnosticsAsync(@params),
                 RazorLanguageServerCustomMessageTargets.RazorFoldingRangeEndpoint => await HandleFoldingRangeAsync(),
                 RazorLanguageServerCustomMessageTargets.RazorSpellCheckEndpoint => await HandleSpellCheckAsync(@params),
+                RazorLanguageServerCustomMessageTargets.RazorDocumentSymbolEndpoint => await HandleDocumentSymbolAsync(@params),
                 _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
             };
 
             return (TResponse)result;
+        }
+
+        private async Task<SymbolInformation[]> HandleDocumentSymbolAsync<TParams>(TParams @params)
+        {
+            Assert.IsType<DelegatedDocumentSymbolParams>(@params);
+
+            var delegatedRequest = new DocumentSymbolParams
+            {
+                TextDocument = new TextDocumentIdentifier
+                {
+                    Uri = _csharpDocumentUri,
+                },
+            };
+
+            var result = await _csharpServer.ExecuteRequestAsync<DocumentSymbolParams, SymbolInformation[]>(
+                Methods.TextDocumentDocumentSymbolName,
+                delegatedRequest,
+                _cancellationToken);
+
+            return result;
         }
 
         private async Task<VSInternalSpellCheckableRangeReport[]> HandleSpellCheckAsync<TParams>(TParams @params)
