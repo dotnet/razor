@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
@@ -46,7 +47,7 @@ public class DefaultRazorDocumentManagerTest : ProjectSnapshotManagerDispatcherT
             MockBehavior.Strict);
 
         _projectManager = Mock.Of<ProjectSnapshotManager>(
-            p => p.GetProjects() == ImmutableArray<IProjectSnapshot>.Empty && p.GetOrCreateProject(It.IsAny<string>()) == null,
+            p => p.GetProjects() == ImmutableArray<IProjectSnapshot>.Empty,
             MockBehavior.Strict);
 
         _workspaceEditorSettings = new DefaultWorkspaceEditorSettings(

@@ -34,13 +34,13 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     // Each entry holds a ProjectState and an optional ProjectSnapshot. ProjectSnapshots are
     // created lazily.
-    private readonly ReadWriterLocker _locksFactory = new();
-    private readonly Dictionary<string, Entry> _projects_needsLock;
-    private readonly HashSet<string> _openDocuments_needsLock;
+    private readonly ReadWriterLocker _rwLocker = new();
+    private readonly Dictionary<ProjectKey, Entry> _projects_needsLock = new();
+    private readonly HashSet<string> _openDocuments_needsLock = new(FilePathComparer.Instance);
     private static readonly LoadTextOptions LoadTextOptions = new LoadTextOptions(SourceHashAlgorithm.Sha256);
 
     // We have a queue for changes because if one change results in another change aka, add -> open we want to make sure the "add" finishes running first before "open" is notified.
-    private readonly Queue<ProjectChangeEventArgs> _notificationWork;
+    private readonly Queue<ProjectChangeEventArgs> _notificationWork = new();
 
     public DefaultProjectSnapshotManager(
         IErrorReporter errorReporter,
@@ -51,11 +51,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         Workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
         ErrorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
 
-        _projects_needsLock = new Dictionary<string, Entry>(FilePathComparer.Instance);
-        _openDocuments_needsLock = new HashSet<string>(FilePathComparer.Instance);
-        _notificationWork = new Queue<ProjectChangeEventArgs>();
-
-        using (var _ = _locksFactory.EnterReadLock())
+        using (var _ = _rwLocker.EnterReadLock())
         {
             for (var i = 0; i < _triggers.Length; i++)
             {
@@ -69,7 +65,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     public override ImmutableArray<IProjectSnapshot> GetProjects()
     {
-        using var _ = _locksFactory.EnterReadLock();
+        using var _ = _rwLocker.EnterReadLock();
         using var _1 = ListPool<IProjectSnapshot>.GetPooledObject(out var builder);
 
         foreach (var (_, entry) in _projects_needsLock)
@@ -82,7 +78,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     internal override ImmutableArray<string> GetOpenDocuments()
     {
-        using var _ = _locksFactory.EnterReadLock();
+        using var _ = _rwLocker.EnterReadLock();
         return _openDocuments_needsLock.ToImmutableArray();
     }
 
@@ -90,15 +86,15 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     internal override IErrorReporter ErrorReporter { get; }
 
-    public override IProjectSnapshot? GetLoadedProject(string filePath)
+    public override IProjectSnapshot? GetLoadedProject(ProjectKey projectKey)
     {
-        if (filePath is null)
+        if (projectKey is null)
         {
-            throw new ArgumentNullException(nameof(filePath));
+            throw new ArgumentNullException(nameof(projectKey));
         }
 
-        using var _ = _locksFactory.EnterReadLock();
-        if (_projects_needsLock.TryGetValue(filePath, out var entry))
+        using var _ = _rwLocker.EnterReadLock();
+        if (_projects_needsLock.TryGetValue(projectKey, out var entry))
         {
             return entry.GetSnapshot();
         }
@@ -106,15 +102,25 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         return null;
     }
 
-    public override IProjectSnapshot GetOrCreateProject(string filePath)
+    public override ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName)
     {
-        if (filePath is null)
+        if (projectFileName is null)
         {
-            throw new ArgumentNullException(nameof(filePath));
+            throw new ArgumentNullException(nameof(projectFileName));
         }
 
-        using var _ = _locksFactory.EnterReadLock();
-        return GetLoadedProject(filePath) ?? new EphemeralProjectSnapshot(Workspace.Services, filePath);
+        using var _ = _rwLocker.EnterReadLock();
+        using var _1 = ArrayBuilderPool<ProjectKey>.GetPooledObject(out var projects);
+
+        foreach (var (key, entry) in _projects_needsLock)
+        {
+            if (FilePathComparer.Instance.Equals(entry.State.HostProject.FilePath, projectFileName))
+            {
+                projects.Add(key);
+            }
+        }
+
+        return projects.DrainToImmutable();
     }
 
     public override bool IsDocumentOpen(string documentFilePath)
@@ -124,15 +130,15 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             throw new ArgumentNullException(nameof(documentFilePath));
         }
 
-        using var _ = _locksFactory.EnterReadLock();
+        using var _ = _rwLocker.EnterReadLock();
         return _openDocuments_needsLock.Contains(documentFilePath);
     }
 
-    internal override void DocumentAdded(HostProject hostProject, HostDocument document, TextLoader textLoader)
+    internal override void DocumentAdded(ProjectKey projectKey, HostDocument document, TextLoader textLoader)
     {
-        if (hostProject is null)
+        if (projectKey is null)
         {
-            throw new ArgumentNullException(nameof(hostProject));
+            throw new ArgumentNullException(nameof(projectKey));
         }
 
         if (document is null)
@@ -141,7 +147,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
 
         if (TryChangeEntry_UsesLock(
-            hostProject.FilePath,
+            projectKey,
             document.FilePath,
             new AddDocumentAction(document, textLoader),
             out var oldSnapshot,
@@ -151,11 +157,11 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    internal override void DocumentRemoved(HostProject hostProject, HostDocument document)
+    internal override void DocumentRemoved(ProjectKey projectKey, HostDocument document)
     {
-        if (hostProject is null)
+        if (projectKey is null)
         {
-            throw new ArgumentNullException(nameof(hostProject));
+            throw new ArgumentNullException(nameof(projectKey));
         }
 
         if (document is null)
@@ -164,7 +170,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
 
         if (TryChangeEntry_UsesLock(
-            hostProject.FilePath,
+            projectKey,
             document.FilePath,
             new RemoveDocumentAction(document),
             out var oldSnapshot,
@@ -174,11 +180,11 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    internal override void DocumentOpened(string projectFilePath, string documentFilePath, SourceText sourceText)
+    internal override void DocumentOpened(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
     {
-        if (projectFilePath is null)
+        if (projectKey is null)
         {
-            throw new ArgumentNullException(nameof(projectFilePath));
+            throw new ArgumentNullException(nameof(projectKey));
         }
 
         if (documentFilePath is null)
@@ -192,7 +198,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
 
         if (TryChangeEntry_UsesLock(
-            projectFilePath,
+            projectKey,
             documentFilePath,
             new OpenDocumentAction(sourceText),
             out var oldSnapshot,
@@ -202,11 +208,11 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    internal override void DocumentClosed(string projectFilePath, string documentFilePath, TextLoader textLoader)
+    internal override void DocumentClosed(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
     {
-        if (projectFilePath is null)
+        if (projectKey is null)
         {
-            throw new ArgumentNullException(nameof(projectFilePath));
+            throw new ArgumentNullException(nameof(projectKey));
         }
 
         if (documentFilePath is null)
@@ -220,7 +226,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
 
         if (TryChangeEntry_UsesLock(
-            projectFilePath,
+            projectKey,
             documentFilePath,
             new CloseDocumentAction(textLoader),
             out var oldSnapshot,
@@ -230,11 +236,11 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    internal override void DocumentChanged(string projectFilePath, string documentFilePath, SourceText sourceText)
+    internal override void DocumentChanged(ProjectKey projectKey, string documentFilePath, SourceText sourceText)
     {
-        if (projectFilePath is null)
+        if (projectKey is null)
         {
-            throw new ArgumentNullException(nameof(projectFilePath));
+            throw new ArgumentNullException(nameof(projectKey));
         }
 
         if (documentFilePath is null)
@@ -248,7 +254,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
 
         if (TryChangeEntry_UsesLock(
-            projectFilePath,
+            projectKey,
             documentFilePath,
             new DocumentTextChangedAction(sourceText),
             out var oldSnapshot,
@@ -258,11 +264,11 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    internal override void DocumentChanged(string projectFilePath, string documentFilePath, TextLoader textLoader)
+    internal override void DocumentChanged(ProjectKey projectKey, string documentFilePath, TextLoader textLoader)
     {
-        if (projectFilePath is null)
+        if (projectKey is null)
         {
-            throw new ArgumentNullException(nameof(projectFilePath));
+            throw new ArgumentNullException(nameof(projectKey));
         }
 
         if (documentFilePath is null)
@@ -276,7 +282,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
 
         if (TryChangeEntry_UsesLock(
-            projectFilePath,
+            projectKey,
             documentFilePath,
             new DocumentTextLoaderChangedAction(textLoader),
             out var oldSnapshot,
@@ -294,7 +300,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
 
         if (TryChangeEntry_UsesLock(
-            hostProject.FilePath,
+            hostProject.Key,
             documentFilePath: null,
             new ProjectAddedAction(hostProject),
             out var oldSnapshot,
@@ -304,28 +310,28 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    internal override IProjectSnapshot GetOrAddLoadedProject(string normalizedPath, RazorConfiguration configuration, string? rootNamespace)
+    internal override IProjectSnapshot GetOrAddLoadedProject(ProjectKey projectKey, Func<HostProject> createHostProjectFunc)
     {
         IProjectSnapshot? newProjectSnapshot = null;
-        using (var upgradeableReadLock = _locksFactory.EnterUpgradeAbleReadLock())
+        using (var upgradeableReadLock = _rwLocker.EnterUpgradeAbleReadLock())
         {
-            var project = GetLoadedProject(normalizedPath);
+            var project = GetLoadedProject(projectKey);
 
             if (project is not null)
             {
                 return project;
             }
 
-            var newProject = new HostProject(normalizedPath, configuration, rootNamespace);
+            var newProject = createHostProjectFunc();
             var state = ProjectState.Create(Workspace.Services, newProject);
             var entry = new Entry(state);
 
             using (var _ = upgradeableReadLock.GetWriteLock())
             {
-                _projects_needsLock[newProject.FilePath] = entry;
+                _projects_needsLock[projectKey] = entry;
             }
 
-            newProjectSnapshot = _projects_needsLock[normalizedPath].GetSnapshot();
+            newProjectSnapshot = _projects_needsLock[projectKey].GetSnapshot();
         }
 
         // New project was created, notify outside of the lock
@@ -341,7 +347,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
 
         if (TryChangeEntry_UsesLock(
-            hostProject.FilePath,
+            hostProject.Key,
             documentFilePath: null,
             new HostProjectUpdatedAction(hostProject),
             out var oldSnapshot,
@@ -351,11 +357,11 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    internal override void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState? projectWorkspaceState)
+    internal override void ProjectWorkspaceStateChanged(ProjectKey projectKey, ProjectWorkspaceState? projectWorkspaceState)
     {
-        if (projectFilePath is null)
+        if (projectKey is null)
         {
-            throw new ArgumentNullException(nameof(projectFilePath));
+            throw new ArgumentNullException(nameof(projectKey));
         }
 
         if (projectWorkspaceState is null)
@@ -364,7 +370,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
 
         if (TryChangeEntry_UsesLock(
-            projectFilePath,
+            projectKey,
             documentFilePath: null,
             new ProjectWorkspaceStateChanged(projectWorkspaceState),
             out var oldSnapshot,
@@ -374,17 +380,17 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    internal override void ProjectRemoved(HostProject hostProject)
+    internal override void ProjectRemoved(ProjectKey projectKey)
     {
-        if (hostProject is null)
+        if (projectKey is null)
         {
-            throw new ArgumentNullException(nameof(hostProject));
+            throw new ArgumentNullException(nameof(projectKey));
         }
 
         if (TryChangeEntry_UsesLock(
-            hostProject.FilePath,
+            projectKey,
             documentFilePath: null,
-            new ProjectRemovedAction(hostProject.FilePath),
+            new ProjectRemovedAction(projectKey),
             out var oldSnapshot,
             out var newSnapshot))
         {
@@ -392,12 +398,12 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         }
     }
 
-    internal override bool TryRemoveLoadedProject(string normalizedPath, [NotNullWhen(true)] out IProjectSnapshot? project)
+    internal override bool TryRemoveLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project)
     {
         if (TryChangeEntry_UsesLock(
-                normalizedPath,
+                projectKey,
                 documentFilePath: null,
-                new ProjectRemovedAction(normalizedPath),
+                new ProjectRemovedAction(projectKey),
                 out var oldSnapshot,
                 out project))
         {
@@ -438,14 +444,14 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         ErrorReporter.ReportError(exception, project);
     }
 
-    internal override void ReportError(Exception exception, HostProject hostProject)
+    internal override void ReportError(Exception exception, ProjectKey projectKey)
     {
         if (exception is null)
         {
             throw new ArgumentNullException(nameof(exception));
         }
 
-        var snapshot = hostProject?.FilePath is null ? null : GetLoadedProject(hostProject.FilePath);
+        var snapshot = projectKey is null ? null : GetLoadedProject(projectKey);
         ErrorReporter.ReportError(exception, snapshot);
     }
 
@@ -480,7 +486,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     }
 
     internal override void UpdateProject(
-        string filePath,
+        ProjectKey projectKey,
         RazorConfiguration configuration,
         ProjectWorkspaceState projectWorkspaceState,
         string? rootNamespace,
@@ -497,9 +503,9 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         // and then get a write lock to actually apply them. Only one upgradeable lock
         // can be held at any given time. Write lock must be retrieved on the same
         // thread that the lock was acquired
-        using (var upgradeableLock = _locksFactory.EnterUpgradeAbleReadLock())
+        using (var upgradeableLock = _rwLocker.EnterUpgradeAbleReadLock())
         {
-            UpdateProject_NoLock(filePath, configuration, projectWorkspaceState, rootNamespace, calculate, changesToNotify, upgradeableLock);
+            UpdateProject_NoLock(projectKey, configuration, projectWorkspaceState, rootNamespace, calculate, changesToNotify, upgradeableLock);
         }
 
         // Notify outside of the lock, since notifications may trigger mutations from listeners
@@ -510,7 +516,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
     }
 
     private void UpdateProject_NoLock(
-        string filePath,
+        ProjectKey projectKey,
         RazorConfiguration configuration,
         ProjectWorkspaceState projectWorkspaceState,
         string? rootNamespace,
@@ -518,7 +524,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         List<ProjectChangeEventArgs> changesToNotify,
         in ReadWriterLocker.UpgradeableReadLock upgradeableLock)
     {
-        var project = GetLoadedProject(filePath);
+        var project = GetLoadedProject(projectKey);
         if (project is not ProjectSnapshot projectSnapshot)
         {
             return;
@@ -527,8 +533,8 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         var originalHostProject = projectSnapshot.HostProject;
         var changes = calculate(project);
 
-        var originalEntry = _projects_needsLock[filePath];
-        Dictionary<string, Entry> updatedProjectsMap = new(changes.Length, FilePathComparer.Instance);
+        var originalEntry = _projects_needsLock[projectKey];
+        Dictionary<ProjectKey, Entry> updatedProjectsMap = new(changes.Length);
 
         // Resolve all the changes and add notifications as needed
         foreach (var change in changes)
@@ -592,7 +598,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             var currentHostProject = currentEntry.State.HostProject;
             var newHostProject = new HostProject(currentHostProject.FilePath, configuration, rootNamespace);
             var newEntry = new Entry(currentEntry.State.WithHostProject(newHostProject));
-            updatedProjectsMap[project.FilePath] = newEntry;
+            updatedProjectsMap[project.Key] = newEntry;
             changesToNotify.Add(new ProjectChangeEventArgs(currentEntry.GetSnapshot(), newEntry.GetSnapshot(), ProjectChangeKind.ProjectChanged));
         }
 
@@ -614,16 +620,16 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             }
 
             var newEntry = new Entry(newState);
-            updatedProjectsMap[currentEntry.State.HostProject.FilePath] = newEntry;
+            updatedProjectsMap[currentEntry.State.HostProject.Key] = newEntry;
             changesToNotify.Add(new ProjectChangeEventArgs(currentEntry.GetSnapshot(), newEntry.GetSnapshot(), documentFilePath, changeKind, IsSolutionClosing));
         }
 
         Entry GetCurrentEntry(IProjectSnapshot project)
         {
-            if (!updatedProjectsMap.TryGetValue(project.FilePath, out var entry))
+            if (!updatedProjectsMap.TryGetValue(project.Key, out var entry))
             {
-                entry = _projects_needsLock[project.FilePath];
-                updatedProjectsMap[project.FilePath] = entry;
+                entry = _projects_needsLock[project.Key];
+                updatedProjectsMap[project.Key] = entry;
             }
 
             return entry;
@@ -636,17 +642,17 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             : (() => textLoader.LoadTextAndVersionAsync(LoadTextOptions, CancellationToken.None));
 
     private bool TryChangeEntry_UsesLock(
-        string projectFilePath,
+        ProjectKey projectKey,
         string? documentFilePath,
         IUpdateProjectAction action,
         [NotNullWhen(true)] out IProjectSnapshot? oldSnapshot,
         [NotNullWhen(true)] out IProjectSnapshot? newSnapshot)
     {
-        using var upgradeableLock = _locksFactory.EnterUpgradeAbleReadLock();
+        using var upgradeableLock = _rwLocker.EnterUpgradeAbleReadLock();
 
         if (action is ProjectAddedAction projectAddedAction)
         {
-            if (_projects_needsLock.ContainsKey(projectAddedAction.HostProject.FilePath))
+            if (_projects_needsLock.ContainsKey(projectAddedAction.HostProject.Key))
             {
                 oldSnapshot = newSnapshot = null;
                 return false;
@@ -658,13 +664,13 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
             oldSnapshot = newSnapshot = newEntry.GetSnapshot();
             using (var writeLock = upgradeableLock.GetWriteLock())
             {
-                _projects_needsLock[projectAddedAction.HostProject.FilePath] = newEntry;
+                _projects_needsLock[projectAddedAction.HostProject.Key] = newEntry;
             }
 
             return true;
         }
 
-        if (_projects_needsLock.TryGetValue(projectFilePath, out var entry))
+        if (_projects_needsLock.TryGetValue(projectKey, out var entry))
         {
             // if the solution is closing we don't need to bother computing new state
             if (IsSolutionClosing)
@@ -689,11 +695,11 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
                     {
                         if (newEntry is null)
                         {
-                            _projects_needsLock.Remove(projectFilePath);
+                            _projects_needsLock.Remove(projectKey);
                         }
                         else
                         {
-                            _projects_needsLock[projectFilePath] = newEntry;
+                            _projects_needsLock[projectKey] = newEntry;
                         }
 
                         if (action is OpenDocumentAction)

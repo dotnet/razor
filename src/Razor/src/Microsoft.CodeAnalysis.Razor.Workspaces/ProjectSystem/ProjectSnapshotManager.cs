@@ -18,7 +18,7 @@ internal abstract class ProjectSnapshotManager : ILanguageService
 
     public abstract bool IsDocumentOpen(string documentFilePath);
 
-    public abstract IProjectSnapshot GetLoadedProject(string filePath);
+    public abstract IProjectSnapshot GetLoadedProject(ProjectKey projectKey);
 
-    public abstract IProjectSnapshot GetOrCreateProject(string filePath);
+    public abstract ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName);
 }

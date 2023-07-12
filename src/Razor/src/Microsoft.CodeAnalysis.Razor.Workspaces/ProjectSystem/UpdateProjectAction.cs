@@ -29,7 +29,7 @@ internal record DocumentTextLoaderChangedAction(TextLoader TextLoader) : IUpdate
 
 internal record ProjectAddedAction(HostProject HostProject) : IUpdateProjectAction;
 
-internal record ProjectRemovedAction(string ProjectPath) : IUpdateProjectAction;
+internal record ProjectRemovedAction(ProjectKey ProjectKey) : IUpdateProjectAction;
 
 internal record HostProjectUpdatedAction(HostProject HostProject) : IUpdateProjectAction;
 

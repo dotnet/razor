@@ -101,7 +101,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -118,7 +118,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -141,7 +141,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentAdded(_hostProject, _documents[3], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[3], null);
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -161,11 +161,11 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -180,7 +180,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         // Arrange
 
         // Act
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -195,7 +195,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -215,7 +215,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         var expected = SourceText.From("Hello");
 
         // Act
-        _projectManager.DocumentAdded(_hostProject, _documents[0], TextLoader.From(TextAndVersion.Create(expected, VersionStamp.Default)));
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], TextLoader.From(TextAndVersion.Create(expected, VersionStamp.Default)));
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -230,13 +230,13 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
-        _projectManager.ProjectWorkspaceStateChanged(_hostProject.FilePath, _projectWorkspaceStateWithTagHelpers);
+        _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
         _projectManager.Reset();
 
         var originalTagHelpers = _projectManager.GetSnapshot(_hostProject).TagHelpers;
 
         // Act
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
 
         // Assert
         var newTagHelpers = _projectManager.GetSnapshot(_hostProject).TagHelpers;
@@ -259,7 +259,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         var projectEngine = snapshot.GetProjectEngine();
 
         // Act
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
 
         // Assert
         snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -271,13 +271,13 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
-        _projectManager.DocumentAdded(_hostProject, _documents[1], null);
-        _projectManager.DocumentAdded(_hostProject, _documents[2], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[1], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[2], null);
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentRemoved(_hostProject, _documents[1]);
+        _projectManager.DocumentRemoved(_hostProject.Key, _documents[1]);
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -297,7 +297,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentRemoved(_hostProject, _documents[0]);
+        _projectManager.DocumentRemoved(_hostProject.Key, _documents[0]);
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -312,7 +312,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         // Arrange
 
         // Act
-        _projectManager.DocumentRemoved(_hostProject, _documents[0]);
+        _projectManager.DocumentRemoved(_hostProject.Key, _documents[0]);
 
         // Assert
         var snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -324,16 +324,16 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
-        _projectManager.ProjectWorkspaceStateChanged(_hostProject.FilePath, _projectWorkspaceStateWithTagHelpers);
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
-        _projectManager.DocumentAdded(_hostProject, _documents[1], null);
-        _projectManager.DocumentAdded(_hostProject, _documents[2], null);
+        _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[1], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[2], null);
         _projectManager.Reset();
 
         var originalTagHelpers = _projectManager.GetSnapshot(_hostProject).TagHelpers;
 
         // Act
-        _projectManager.DocumentRemoved(_hostProject, _documents[1]);
+        _projectManager.DocumentRemoved(_hostProject.Key, _documents[1]);
 
         // Assert
         var newTagHelpers = _projectManager.GetSnapshot(_hostProject).TagHelpers;
@@ -350,16 +350,16 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
-        _projectManager.DocumentAdded(_hostProject, _documents[1], null);
-        _projectManager.DocumentAdded(_hostProject, _documents[2], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[1], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[2], null);
         _projectManager.Reset();
 
         var snapshot = _projectManager.GetSnapshot(_hostProject);
         var projectEngine = snapshot.GetProjectEngine();
 
         // Act
-        _projectManager.DocumentRemoved(_hostProject, _documents[1]);
+        _projectManager.DocumentRemoved(_hostProject.Key, _documents[1]);
 
         // Assert
         snapshot = _projectManager.GetSnapshot(_hostProject);
@@ -370,11 +370,11 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
         _projectManager.Reset();
 
         // Act
-        _projectManager.DocumentOpened(_hostProject.FilePath, _documents[0].FilePath, _sourceText);
+        _projectManager.DocumentOpened(_hostProject.Key, _documents[0].FilePath, _sourceText);
 
         // Assert
         Assert.Equal(ProjectChangeKind.DocumentChanged, _projectManager.ListenersNotifiedOf);
@@ -391,8 +391,8 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
-        _projectManager.DocumentOpened(_hostProject.FilePath, _documents[0].FilePath, _sourceText);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
+        _projectManager.DocumentOpened(_hostProject.Key, _documents[0].FilePath, _sourceText);
         _projectManager.Reset();
 
         var expected = SourceText.From("Hi");
@@ -401,7 +401,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         Assert.True(_projectManager.IsDocumentOpen(_documents[0].FilePath));
 
         // Act
-        _projectManager.DocumentClosed(_hostProject.FilePath, _documents[0].FilePath, TextLoader.From(textAndVersion));
+        _projectManager.DocumentClosed(_hostProject.Key, _documents[0].FilePath, TextLoader.From(textAndVersion));
 
         // Assert
         Assert.Equal(ProjectChangeKind.DocumentChanged, _projectManager.ListenersNotifiedOf);
@@ -417,14 +417,14 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
         _projectManager.Reset();
 
         var expected = SourceText.From("Hi");
         var textAndVersion = TextAndVersion.Create(expected, VersionStamp.Create());
 
         // Act
-        _projectManager.DocumentClosed(_hostProject.FilePath, _documents[0].FilePath, TextLoader.From(textAndVersion));
+        _projectManager.DocumentClosed(_hostProject.Key, _documents[0].FilePath, TextLoader.From(textAndVersion));
 
         // Assert
         Assert.Equal(ProjectChangeKind.DocumentChanged, _projectManager.ListenersNotifiedOf);
@@ -439,14 +439,14 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
-        _projectManager.DocumentOpened(_hostProject.FilePath, _documents[0].FilePath, _sourceText);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
+        _projectManager.DocumentOpened(_hostProject.Key, _documents[0].FilePath, _sourceText);
         _projectManager.Reset();
 
         var expected = SourceText.From("Hi");
 
         // Act
-        _projectManager.DocumentChanged(_hostProject.FilePath, _documents[0].FilePath, expected);
+        _projectManager.DocumentChanged(_hostProject.Key, _documents[0].FilePath, expected);
 
         // Assert
         Assert.Equal(ProjectChangeKind.DocumentChanged, _projectManager.ListenersNotifiedOf);
@@ -461,15 +461,15 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
-        _projectManager.DocumentOpened(_hostProject.FilePath, _documents[0].FilePath, _sourceText);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
+        _projectManager.DocumentOpened(_hostProject.Key, _documents[0].FilePath, _sourceText);
         _projectManager.Reset();
 
         var expected = SourceText.From("Hi");
         var textAndVersion = TextAndVersion.Create(expected, VersionStamp.Create());
 
         // Act
-        _projectManager.DocumentChanged(_hostProject.FilePath, _documents[0].FilePath, TextLoader.From(textAndVersion));
+        _projectManager.DocumentChanged(_hostProject.Key, _documents[0].FilePath, TextLoader.From(textAndVersion));
 
         // Assert
         Assert.Equal(ProjectChangeKind.DocumentChanged, _projectManager.ListenersNotifiedOf);
@@ -510,7 +510,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
-        _projectManager.ProjectWorkspaceStateChanged(_hostProject.FilePath, _projectWorkspaceStateWithTagHelpers);
+        _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
         _projectManager.Reset();
 
         // Act
@@ -560,7 +560,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         _projectManager.Reset();
 
         // Act
-        _projectManager.ProjectRemoved(_hostProject);
+        _projectManager.ProjectRemoved(_hostProject.Key);
 
         // Assert
         Assert.Empty(_projectManager.GetProjects());
@@ -574,7 +574,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         // Arrange
 
         // Act
-        _projectManager.ProjectWorkspaceStateChanged(_hostProject.FilePath, _projectWorkspaceStateWithTagHelpers);
+        _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
 
         // Assert
         Assert.Empty(_projectManager.GetProjects());
@@ -590,7 +590,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         _projectManager.Reset();
 
         // Act
-        _projectManager.ProjectWorkspaceStateChanged(_hostProject.FilePath, _projectWorkspaceStateWithTagHelpers);
+        _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
 
         // Assert
         Assert.Equal(ProjectChangeKind.ProjectChanged, _projectManager.ListenersNotifiedOf);
@@ -601,11 +601,11 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     {
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
-        _projectManager.ProjectWorkspaceStateChanged(_hostProject.FilePath, ProjectWorkspaceState.Default);
+        _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, ProjectWorkspaceState.Default);
         _projectManager.Reset();
 
         // Act
-        _projectManager.ProjectWorkspaceStateChanged(_hostProject.FilePath, _projectWorkspaceStateWithTagHelpers);
+        _projectManager.ProjectWorkspaceStateChanged(_hostProject.Key, _projectWorkspaceStateWithTagHelpers);
 
         // Assert
         Assert.Equal(ProjectChangeKind.ProjectChanged, _projectManager.ListenersNotifiedOf);
@@ -624,18 +624,18 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
 
             if (args.Kind == ProjectChangeKind.DocumentAdded)
             {
-                _projectManager.DocumentOpened(_hostProject.FilePath, _documents[0].FilePath, _sourceText);
+                _projectManager.DocumentOpened(_hostProject.Key, _documents[0].FilePath, _sourceText);
             }
             else if (args.Kind == ProjectChangeKind.DocumentChanged)
             {
-                _projectManager.DocumentRemoved(_hostProject, _documents[0]);
+                _projectManager.DocumentRemoved(_hostProject.Key, _documents[0]);
             }
         };
         _projectManager.Changed += (sender, args) => listenerNotifications.Add(args.Kind);
         _projectManager.NotifyChangedEvents = true;
 
         // Act
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
 
         // Assert
         Assert.Equal(new[] { ProjectChangeKind.DocumentAdded, ProjectChangeKind.DocumentChanged, ProjectChangeKind.DocumentRemoved }, listenerNotifications);
@@ -655,7 +655,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
 
         // Act
         _projectManager.SolutionClosed();
-        _projectManager.DocumentAdded(_hostProject, _documents[0], textLoader.Object);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], textLoader.Object);
 
         // Assert
         Assert.Equal(ProjectChangeKind.DocumentAdded, _projectManager.ListenersNotifiedOf);
@@ -668,9 +668,9 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         // Arrange
         _projectManager.ProjectAdded(_hostProject);
         _projectManager.ProjectAdded(_hostProject2);
-        _projectManager.DocumentAdded(_hostProject, _documents[0], null);
-        _projectManager.DocumentAdded(_hostProject, _documents[1], null);
-        _projectManager.DocumentAdded(_hostProject, _documents[3], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[0], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[1], null);
+        _projectManager.DocumentAdded(_hostProject.Key, _documents[3], null);
         _projectManager.Reset();
 
         var projects = _projectManager.GetProjects();
@@ -683,7 +683,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
 
         // Act
         _projectManager.UpdateProject(
-            _hostProject.FilePath,
+            _hostProject.Key,
             FallbackRazorConfiguration.MVC_5_0,
             _projectWorkspaceStateWithTagHelpers,
             "NewRoot",
@@ -703,6 +703,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
             {
                 Assert.Equal(ProjectChangeKind.DocumentAdded, e.Kind);
                 Assert.Equal(_documents[4].FilePath, e.DocumentFilePath);
+                Assert.Equal(_hostProject.Key, e.ProjectKey);
                 Assert.Equal(_hostProject.FilePath, e.ProjectFilePath);
                 Assert.Equal(_hostProject.FilePath, e.Older.FilePath);
                 Assert.Equal(_hostProject.FilePath, e.Newer.FilePath);
@@ -722,6 +723,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
             {
                 Assert.Equal(ProjectChangeKind.DocumentRemoved, e.Kind);
                 Assert.Equal(_documents[1].FilePath, e.DocumentFilePath);
+                Assert.Equal(_hostProject.Key, e.ProjectKey);
                 Assert.Equal(_hostProject.FilePath, e.ProjectFilePath);
                 Assert.Equal(_hostProject.FilePath, e.Older.FilePath);
                 Assert.Equal(_hostProject.FilePath, e.Newer.FilePath);
@@ -742,9 +744,12 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
                 Assert.Equal(ProjectChangeKind.DocumentAdded, e.Kind);
                 Assert.Equal(_documents[1].FilePath, e.DocumentFilePath);
                 Assert.Equal(_documents[1].FilePath, e.DocumentFilePath);
+                Assert.Equal(_hostProject2.Key, e.ProjectKey);
                 Assert.Equal(_hostProject2.FilePath, e.ProjectFilePath);
                 Assert.Equal(_hostProject2.FilePath, e.Older.FilePath);
                 Assert.Equal(_hostProject2.FilePath, e.Newer.FilePath);
+                Assert.Equal(_hostProject2.Key, e.Older.Key);
+                Assert.Equal(_hostProject2.Key, e.Newer.Key);
 
                 Assert.Empty(e.Older.DocumentFilePaths);
                 Assert.Collection(e.Newer.DocumentFilePaths, p => Assert.Equal(_documents[1].FilePath, p));
@@ -753,6 +758,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
             {
                 Assert.Equal(ProjectChangeKind.DocumentRemoved, e.Kind);
                 Assert.Equal(_documents[0].FilePath, e.DocumentFilePath);
+                Assert.Equal(_hostProject.Key, e.ProjectKey);
                 Assert.Equal(_hostProject.FilePath, e.ProjectFilePath);
                 Assert.Equal(_hostProject.FilePath, e.Older.FilePath);
                 Assert.Equal(_hostProject.FilePath, e.Newer.FilePath);
@@ -770,6 +776,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
             {
                 Assert.Equal(ProjectChangeKind.DocumentRemoved, e.Kind);
                 Assert.Equal(_documents[3].FilePath, e.DocumentFilePath);
+                Assert.Equal(_hostProject.Key, e.ProjectKey);
                 Assert.Equal(_hostProject.FilePath, e.ProjectFilePath);
                 Assert.Equal(_hostProject.FilePath, e.Older.FilePath);
                 Assert.Equal(_hostProject.FilePath, e.Newer.FilePath);
@@ -785,6 +792,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
             {
                 Assert.Equal(ProjectChangeKind.DocumentAdded, e.Kind);
                 Assert.Equal(_documents[1].FilePath, e.DocumentFilePath);
+                Assert.Equal(_hostProject.Key, e.ProjectKey);
                 Assert.Equal(_hostProject.FilePath, e.ProjectFilePath);
                 Assert.Equal(_hostProject.FilePath, e.Older.FilePath);
                 Assert.Equal(_hostProject.FilePath, e.Newer.FilePath);
@@ -801,6 +809,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
                 Assert.Equal(ProjectChangeKind.ProjectChanged, e.Kind);
                 Assert.Equal(_hostProject.RootNamespace, e.Older.RootNamespace);
                 Assert.Equal(e.Newer.RootNamespace, e.Older.RootNamespace);
+                Assert.Equal(_hostProject.Key, e.ProjectKey);
                 Assert.Equal(_hostProject.FilePath, e.ProjectFilePath);
                 Assert.Equal(_hostProject.FilePath, e.Older.FilePath);
                 Assert.Equal(_hostProject.FilePath, e.Newer.FilePath);
@@ -811,6 +820,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
             {
                 Assert.Equal(ProjectChangeKind.ProjectChanged, e.Kind);
                 Assert.Equal(_hostProject.RootNamespace, e.Older.RootNamespace);
+                Assert.Equal(_hostProject.Key, e.ProjectKey);
                 Assert.Equal(_hostProject.FilePath, e.ProjectFilePath);
                 Assert.Equal(_hostProject.FilePath, e.Older.FilePath);
                 Assert.Equal(_hostProject.FilePath, e.Newer.FilePath);
@@ -822,6 +832,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         Assert.Collection(_projectManager.GetProjects(),
             p =>
             {
+                Assert.Equal(_hostProject.Key, p.Key);
                 Assert.Equal(_hostProject.FilePath, p.FilePath);
                 Assert.Equal("NewRoot", p.RootNamespace);
                 Assert.Equal(_projectWorkspaceStateWithTagHelpers, p.ProjectWorkspaceState);
@@ -831,6 +842,7 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
             },
             p =>
             {
+                Assert.Equal(_hostProject2.Key, p.Key);
                 Assert.Equal(_hostProject2.FilePath, p.FilePath);
                 Assert.Equal(_hostProject2.RootNamespace, p.RootNamespace);
                 Assert.Equal(destinationProject.ProjectWorkspaceState, p.ProjectWorkspaceState);

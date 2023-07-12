@@ -19,31 +19,31 @@ internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
 
     internal abstract ImmutableArray<string> GetOpenDocuments();
 
-    internal abstract void DocumentAdded(HostProject hostProject, HostDocument hostDocument, TextLoader textLoader);
+    internal abstract void DocumentAdded(ProjectKey projectKey, HostDocument hostDocument, TextLoader textLoader);
 
-    internal abstract void DocumentOpened(string projectFilePath, string documentFilePath, SourceText sourceText);
+    internal abstract void DocumentOpened(ProjectKey projectKey, string documentFilePath, SourceText sourceText);
 
-    internal abstract void DocumentClosed(string projectFilePath, string documentFilePath, TextLoader textLoader);
+    internal abstract void DocumentClosed(ProjectKey projectKey, string documentFilePath, TextLoader textLoader);
 
-    internal abstract void DocumentChanged(string projectFilePath, string documentFilePath, TextLoader textLoader);
+    internal abstract void DocumentChanged(ProjectKey projectKey, string documentFilePath, TextLoader textLoader);
 
-    internal abstract void DocumentChanged(string projectFilePath, string documentFilePath, SourceText sourceText);
+    internal abstract void DocumentChanged(ProjectKey projectKey, string documentFilePath, SourceText sourceText);
 
-    internal abstract void DocumentRemoved(HostProject hostProject, HostDocument hostDocument);
+    internal abstract void DocumentRemoved(ProjectKey projectKey, HostDocument hostDocument);
 
     internal abstract void ProjectAdded(HostProject hostProject);
 
     internal abstract void ProjectConfigurationChanged(HostProject hostProject);
 
-    internal abstract void ProjectWorkspaceStateChanged(string projectFilePath, ProjectWorkspaceState? projectWorkspaceState);
+    internal abstract void ProjectWorkspaceStateChanged(ProjectKey projectKey, ProjectWorkspaceState? projectWorkspaceState);
 
-    internal abstract void ProjectRemoved(HostProject hostProject);
+    internal abstract void ProjectRemoved(ProjectKey projectKey);
 
     internal abstract void ReportError(Exception exception);
 
     internal abstract void ReportError(Exception exception, IProjectSnapshot project);
 
-    internal abstract void ReportError(Exception exception, HostProject hostProject);
+    internal abstract void ReportError(Exception exception, ProjectKey projectKey);
 
     internal abstract void SolutionOpened();
 
@@ -52,12 +52,12 @@ internal abstract class ProjectSnapshotManagerBase : ProjectSnapshotManager
     /// <summary>
     /// Gets a project if it's already loaded, or calls <see cref="ProjectAdded(HostProject)" /> with a new host project
     /// </summary>
-    internal abstract IProjectSnapshot GetOrAddLoadedProject(string normalizedPath, RazorConfiguration configuration, string? rootNamespace);
+    internal abstract IProjectSnapshot GetOrAddLoadedProject(ProjectKey projectKey, Func<HostProject> createHostProjectFunc);
 
-    internal abstract bool TryRemoveLoadedProject(string normalizedPath, [NotNullWhen(true)] out IProjectSnapshot? project);
+    internal abstract bool TryRemoveLoadedProject(ProjectKey projectKey, [NotNullWhen(true)] out IProjectSnapshot? project);
 
     internal abstract void UpdateProject(
-        string normalizedPath,
+        ProjectKey projectKey,
         RazorConfiguration configuration,
         ProjectWorkspaceState projectWorkspaceState,
         string? rootNamespace,
