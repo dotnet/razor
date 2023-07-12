@@ -18,7 +18,7 @@ Set-StrictMode -Version 1
 $success=$false
 for($i=0; $i -le 3; $i++)
 {
-  & $devenvExePath /rootsuffix $rootSuffix /updateConfiguration /log
+  & $devenvExePath /rootsuffix $rootSuffix /updateConfiguration
   if(Test-Path -Path $env:LocalAppData\Microsoft\VisualStudio\17.0*RoslynDev)
   {
     Write-Host "The hive 'RoslynDev' exists"
