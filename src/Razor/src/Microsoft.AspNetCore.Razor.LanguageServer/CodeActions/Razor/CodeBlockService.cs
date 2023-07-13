@@ -46,7 +46,7 @@ internal static class CodeBlockService
             || !csharpCodeBlock.Children.TryGetCloseBraceNode(out var closeBrace))
         {
             // No well-formed @code block exists. Generate the method within an @code block at the end of the file.
-            var indentedMethod = FormattingUtilities.AddIndentationToMethod(templateWithMethodName, options);
+            var indentedMethod = FormattingUtilities.AddIndentationToMethod(templateWithMethodName, options, startingIndent: 0);
             var textWithCodeBlock = "@code {" + Environment.NewLine + indentedMethod + Environment.NewLine + "}";
             var lastCharacterLocation = code.Source.Lines.GetLocation(code.Source.Length - 1);
             var insertCharacterIndex = 0;
@@ -97,7 +97,7 @@ internal static class CodeBlockService
 
     private static string FormatMethodInCodeBlock(RazorSourceDocument source, SourceLocation codeBlockSourceLocation, int openBraceLineIndex, int closeBraceLineIndex, SourceLocation insertLocation, RazorLSPOptions options, string method)
     {
-        var formattedGeneratedMethod = FormattingUtilities.AddIndentationToMethod(method, options, codeBlockSourceLocation, source);
+        var formattedGeneratedMethod = FormattingUtilities.AddIndentationToMethod(method, options, codeBlockSourceLocation.AbsoluteIndex - 5, codeBlockSourceLocation.CharacterIndex - 5, source);
         if (openBraceLineIndex == closeBraceLineIndex)
         {
             // The @code block's '{' and '}' are on the same line, we'll need to add a new line to both the beginning and end of the generated code.

@@ -90,10 +90,12 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
             return GenerateMethodInCodeBlock(code, actionParams, templateWithMethodName);
         }
 
+        var classLocationLineSpan = @class.GetLocation().GetLineSpan();
         var formattedMethod = FormattingUtilities.AddIndentationToMethod(
             templateWithMethodName,
             _razorLSPOptionsMonitor.CurrentValue,
-            (ClassDeclarationSyntax)@class,
+            @class.Span.AsSourceSpan().AbsoluteIndex,
+            classLocationLineSpan.StartLinePosition.Character,
             content);
 
         var codeBehindUri = new UriBuilder
@@ -103,7 +105,6 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
             Host = string.Empty,
         }.Uri;
 
-        var classLocationLineSpan = @class.GetLocation().GetLineSpan();
         var insertPosition = new Position(classLocationLineSpan.EndLinePosition.Line, 0);
         var edit = new TextEdit()
         {
