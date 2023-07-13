@@ -68,10 +68,9 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             // single line explicit expressions shouldn't. If there are any at the start of a line, the next
             // loop will find them. Sadly the ShouldFormat method is used in too many places, for too many
             // different purposes, to put this check there.
-            if (owner is not null &&
-                owner.AncestorsAndSelf().Any(n => n is CSharpExplicitExpressionSyntax &&
-                    n.Span.AsRange(text) is { } range &&
-                    range.Start.Line == range.End.Line))
+            if (owner is { Parent.Parent.Parent: CSharpExplicitExpressionSyntax explicitExpression } &&
+                explicitExpression.Span.AsRange(text) is { } exprRange &&
+                exprRange.Start.Line == exprRange.End.Line)
             {
                 continue;
             }
