@@ -306,7 +306,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         {
             var parameter = new MonitorProjectConfigurationFilePathParams()
             {
-                ProjectFilePath = args.ProjectFilePath,
+                ProjectKeyId = args.ProjectKey.Id,
                 ConfigurationFilePath = args.ConfigurationFilePath,
             };
 

@@ -410,7 +410,7 @@ internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigge
             case ProjectChangeKind.DocumentAdded:
                 var currentSolution = ProjectSnapshotManager.Workspace.CurrentSolution;
                 var associatedWorkspaceProject = currentSolution.Projects
-                    .FirstOrDefault(project => FilePathComparer.Instance.Equals(e.ProjectFilePath, project.FilePath));
+                    .FirstOrDefault(project => e.ProjectKey == ProjectKey.From(project));
 
                 if (associatedWorkspaceProject is not null)
                 {
@@ -457,7 +457,7 @@ internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigge
 
         EnsureWorkQueue();
 
-        _workQueue?.Enqueue(projectSnapshot.FilePath, workItem);
+        _workQueue?.Enqueue(projectSnapshot.Key.Id, workItem);
     }
 
     private bool TryGetProjectSnapshot(ProjectKey? projectKey, [NotNullWhen(true)] out IProjectSnapshot? projectSnapshot)
