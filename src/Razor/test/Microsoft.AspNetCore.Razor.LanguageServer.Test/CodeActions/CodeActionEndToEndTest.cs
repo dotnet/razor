@@ -464,30 +464,33 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
     }
 
     [Theory]
-    [InlineData(true, 4, "", "    ", "        ")]
-    [InlineData(true, 4, "    ", "        ", "            ")]
-    [InlineData(true, 2, "", "  ", "    ")]
-    [InlineData(true, 2, "  ", "    ", "      ")]
-    [InlineData(false, 4, "", "\t", "\t\t")]
-    [InlineData(false, 4, "    ", "\t\t", "\t\t\t")]
-    [InlineData(false, 2, "", "\t", "\t\t")]
-    [InlineData(false, 2, "  ", "\t\t", "\t\t\t")]
-    public async Task Handle_GenerateMethod_VaryIndentSize(bool insertSpaces, int tabSize, string initialIndent, string indent, string innerIndent)
+    [InlineData(true, 4, "", 0, "    ")]
+    [InlineData(true, 4, "    ", 4, "    ")]
+    [InlineData(true, 4, "\t", 4, "    ")]
+    [InlineData(true, 2, "", 0, "  ")]
+    [InlineData(true, 2, "  ", 2, "  ")]
+    [InlineData(false, 4, "", 0, "\t")]
+    [InlineData(false, 4, "    ", 4, "\t")]
+    [InlineData(false, 4, "\t", 4, "\t")]
+    [InlineData(false, 2, "", 0, "\t")]
+    [InlineData(false, 2, "  ", 2, "\t")]
+    public async Task Handle_GenerateMethod_VaryIndentSize(bool insertSpaces, int tabSize, string inputIndentString, int initialIndentSize, string indent)
     {
         var input = $$"""
             <button @onclick="[||]DoesNotExist"></button>
-            {{initialIndent}}@code {
-            {{initialIndent}}}
+            {{inputIndentString}}@code {
+            {{inputIndentString}}}
             """;
 
+        var initialIndentString = FormattingUtilities.GetIndentationString(initialIndentSize, insertSpaces, tabSize);
         var expected = $$"""
             <button @onclick="DoesNotExist"></button>
-            {{initialIndent}}@code {
-            {{indent}}private void DoesNotExist()
-            {{indent}}{
-            {{innerIndent}}throw new System.NotImplementedException();
-            {{indent}}}
-            {{initialIndent}}}
+            {{inputIndentString}}@code {
+            {{initialIndentString}}{{indent}}private void DoesNotExist()
+            {{initialIndentString}}{{indent}}{
+            {{initialIndentString}}{{indent}}{{indent}}throw new System.NotImplementedException();
+            {{initialIndentString}}{{indent}}}
+            {{inputIndentString}}}
             """;
 
         var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };

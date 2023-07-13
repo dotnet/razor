@@ -22,10 +22,13 @@ internal static class CodeBlockService
     /// </param>
     /// <param name="templateWithMethodName">
     ///  The skeleton of the generated method where a <see cref="FormattingUtilities.Indent"/> should be placed
-    ///  anywhere that needs to have some initial indenting, <see cref="FormattingUtilities.InnerIndent"/> for the
-    ///  inner indent of the method, and a '$$MethodName$$' for where the method name should be placed.
+    ///  anywhere that needs to have some indenting, <see cref="FormattingUtilities.InitialIndent"/> anywhere that
+    ///  needs some initial indenting, and a '$$MethodName$$' for where the method name should be placed.
     ///  It should look something like:
-    ///  <see cref="FormattingUtilities.Indent"/>public void $$MethodName$$(){\r\n<see cref="FormattingUtilities.InnerIndent"/>throw new NotImplementedException();\r\n<see cref="FormattingUtilities.Indent"/>}
+    ///   <see cref="FormattingUtilities.InitialIndent"/><see cref="FormattingUtilities.Indent"/>public void $$MethodName$$()
+    ///   <see cref="FormattingUtilities.InitialIndent"/><see cref="FormattingUtilities.Indent"/>{
+    ///   <see cref="FormattingUtilities.InitialIndent"/><see cref="FormattingUtilities.Indent"/><see cref="FormattingUtilities.Indent"/>throw new NotImplementedException();
+    ///   <see cref="FormattingUtilities.InitialIndent"/><see cref="FormattingUtilities.Indent"/>}
     /// </param>
     /// <param name="options">
     ///  The <see cref="RazorLSPOptions"/> that contains information about indentation.
@@ -43,7 +46,7 @@ internal static class CodeBlockService
             || !csharpCodeBlock.Children.TryGetCloseBraceNode(out var closeBrace))
         {
             // No well-formed @code block exists. Generate the method within an @code block at the end of the file.
-            var indentedMethod = FormattingUtilities.AddIndentationToMethod(templateWithMethodName, options, startingIndent: 0);
+            var indentedMethod = FormattingUtilities.AddIndentationToMethod(templateWithMethodName, options);
             var textWithCodeBlock = $$"""
                 @code {
                 {{indentedMethod}}
@@ -76,10 +79,9 @@ internal static class CodeBlockService
             ? closeBraceLocation
             : previousLine;
 
-        var codeBlockBeginningIndex = csharpCodeBlock.GetSourceLocation(code.Source).CharacterIndex - 5;
         var formattedGeneratedMethod = FormatMethodInCodeBlock(
             code.Source,
-            codeBlockBeginningIndex,
+            csharpCodeBlock.GetSourceLocation(code.Source),
             openBraceLocation.LineIndex,
             closeBraceLocation.LineIndex,
             insertLineLocation,
@@ -97,9 +99,9 @@ internal static class CodeBlockService
         };
     }
 
-    private static string FormatMethodInCodeBlock(RazorSourceDocument source, int codeBlockStartIndex, int openBraceLineIndex, int closeBraceLineIndex, SourceLocation insertLocation, RazorLSPOptions options, string method)
+    private static string FormatMethodInCodeBlock(RazorSourceDocument source, SourceLocation codeBlockSourceLocation, int openBraceLineIndex, int closeBraceLineIndex, SourceLocation insertLocation, RazorLSPOptions options, string method)
     {
-        var formattedGeneratedMethod = FormattingUtilities.AddIndentationToMethod(method, options, codeBlockStartIndex);
+        var formattedGeneratedMethod = FormattingUtilities.AddIndentationToMethod(method, options, codeBlockSourceLocation, source);
         if (openBraceLineIndex == closeBraceLineIndex)
         {
             // The @code block's '{' and '}' are on the same line, we'll need to add a new line to both the beginning and end of the generated code.

@@ -26,10 +26,10 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
     private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor;
 
     private static readonly string s_generateMethodTemplate = $$"""
-        {{FormattingUtilities.Indent}}private void $$MethodName$$()
-        {{FormattingUtilities.Indent}}{
-        {{FormattingUtilities.InnerIndent}}throw new System.NotImplementedException();
-        {{FormattingUtilities.Indent}}}
+        {{FormattingUtilities.InitialIndent}}{{FormattingUtilities.Indent}}private void $$MethodName$$()
+        {{FormattingUtilities.InitialIndent}}{{FormattingUtilities.Indent}}{
+        {{FormattingUtilities.InitialIndent}}{{FormattingUtilities.Indent}}{{FormattingUtilities.Indent}}throw new System.NotImplementedException();
+        {{FormattingUtilities.InitialIndent}}{{FormattingUtilities.Indent}}}
         """;
 
     public string Action => LanguageServerConstants.CodeActions.GenerateEventHandler;
@@ -72,7 +72,8 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
             return GenerateMethodInCodeBlock(code, actionParams, templateWithMethodName);
         }
 
-        var mock = CSharpSyntaxFactory.ParseCompilationUnit(File.ReadAllText(codeBehindPath));
+        var content = File.ReadAllText(codeBehindPath);
+        var mock = CSharpSyntaxFactory.ParseCompilationUnit(content);
         var @namespace = mock.Members
             .FirstOrDefault(m => m is BaseNamespaceDeclarationSyntax { } @namespace && @namespace.Name.ToString() == razorNamespace);
         if (@namespace is null)
@@ -89,11 +90,11 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
             return GenerateMethodInCodeBlock(code, actionParams, templateWithMethodName);
         }
 
-        var classLocationLineSpan = @class.GetLocation().GetLineSpan();
         var formattedMethod = FormattingUtilities.AddIndentationToMethod(
             templateWithMethodName,
             _razorLSPOptionsMonitor.CurrentValue,
-            classLocationLineSpan.StartLinePosition.Character);
+            (ClassDeclarationSyntax)@class,
+            content);
 
         var codeBehindUri = new UriBuilder
         {
@@ -102,6 +103,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
             Host = string.Empty,
         }.Uri;
 
+        var classLocationLineSpan = @class.GetLocation().GetLineSpan();
         var insertPosition = new Position(classLocationLineSpan.EndLinePosition.Line, 0);
         var edit = new TextEdit()
         {
