@@ -256,7 +256,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
                 {
                     UninitializeProjectUnsafe(projectKey);
 
-                    var hostProject = new HostProject(newProjectFilePath, current.Configuration, current.RootNamespace);
+                    var hostProject = new HostProject(newProjectFilePath, current.IntermediateOutputPath, current.Configuration, current.RootNamespace);
                     UpdateProjectUnsafe(hostProject);
 
                     // This should no-op in the common case, just putting it here for insurance.
@@ -295,7 +295,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         if (current is not null)
         {
             projectManager.ProjectRemoved(projectKey);
-            ProjectConfigurationFilePathStore.Remove(current.FilePath);
+            ProjectConfigurationFilePathStore.Remove(projectKey);
         }
     }
 
@@ -376,8 +376,8 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
     private Task UnconfiguredProject_ProjectRenamingAsync(object? sender, ProjectRenamedEventArgs args)
         => OnProjectRenamingAsync(args.OldFullPath, args.NewFullPath);
 
-    // Internal for testing
-    internal static bool TryGetIntermediateOutputPath(
+    // virtual for testing
+    protected virtual bool TryGetIntermediateOutputPath(
         IImmutableDictionary<string, IProjectRuleSnapshot> state,
         [NotNullWhen(returnValue: true)] out string? path)
     {
