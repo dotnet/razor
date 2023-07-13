@@ -47,11 +47,7 @@ internal static class CodeBlockService
         {
             // No well-formed @code block exists. Generate the method within an @code block at the end of the file.
             var indentedMethod = FormattingUtilities.AddIndentationToMethod(templateWithMethodName, options);
-            var textWithCodeBlock = $$"""
-                @code {
-                {{indentedMethod}}
-                }
-                """;
+            var textWithCodeBlock = "@code {" + Environment.NewLine + indentedMethod + Environment.NewLine + "}";
             var lastCharacterLocation = code.Source.Lines.GetLocation(code.Source.Length - 1);
             var insertCharacterIndex = 0;
             if (lastCharacterLocation.LineIndex == code.Source.Lines.Count - 1 && !IsLineEmpty(code.Source, lastCharacterLocation))

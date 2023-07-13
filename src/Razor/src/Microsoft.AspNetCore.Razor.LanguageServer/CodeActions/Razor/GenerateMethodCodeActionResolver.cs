@@ -25,12 +25,12 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
     private readonly DocumentContextFactory _documentContextFactory;
     private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor;
 
-    private static readonly string s_generateMethodTemplate = $$"""
-        {{FormattingUtilities.InitialIndent}}{{FormattingUtilities.Indent}}private void $$MethodName$$()
-        {{FormattingUtilities.InitialIndent}}{{FormattingUtilities.Indent}}{
-        {{FormattingUtilities.InitialIndent}}{{FormattingUtilities.Indent}}{{FormattingUtilities.Indent}}throw new System.NotImplementedException();
-        {{FormattingUtilities.InitialIndent}}{{FormattingUtilities.Indent}}}
-        """;
+    private static readonly string s_beginningIndents = $"{FormattingUtilities.InitialIndent}{FormattingUtilities.Indent}";
+    private static readonly string s_generateMethodTemplate =
+        $"{s_beginningIndents}private void $$MethodName$$(){Environment.NewLine}" +
+        s_beginningIndents + "{" + Environment.NewLine +
+        $"{s_beginningIndents}{FormattingUtilities.Indent}throw new System.NotImplementedException();{Environment.NewLine}" +
+        s_beginningIndents + "}";
 
     public string Action => LanguageServerConstants.CodeActions.GenerateEventHandler;
 
