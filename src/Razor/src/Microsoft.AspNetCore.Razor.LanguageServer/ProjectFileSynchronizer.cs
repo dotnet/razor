@@ -43,7 +43,8 @@ internal class ProjectFileSynchronizer : IProjectFileChangeListener
         switch (kind)
         {
             case RazorFileChangeKind.Added:
-                _projectService.AddProject(filePath, rootNamespace: null);
+                // TODO: Do we need to call this at all? And if so, how?!
+                //_projectService.AddProject(filePath);
                 break;
             case RazorFileChangeKind.Removed:
                 _projectService.RemoveProject(filePath);
