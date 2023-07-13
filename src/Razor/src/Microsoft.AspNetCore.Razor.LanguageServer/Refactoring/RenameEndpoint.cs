@@ -130,8 +130,8 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         }
 
         var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
-        AddFileRenameForComponent(documentChanges, originComponentDocumentSnapshot, newPath);
         AddEditsForCodeDocument(documentChanges, originTagHelpers, request.NewName, request.TextDocument.Uri, codeDocument);
+        AddFileRenameForComponent(documentChanges, originComponentDocumentSnapshot, newPath);
 
         var documentSnapshots = await GetAllDocumentSnapshotsAsync(documentContext, cancellationToken).ConfigureAwait(false);
 

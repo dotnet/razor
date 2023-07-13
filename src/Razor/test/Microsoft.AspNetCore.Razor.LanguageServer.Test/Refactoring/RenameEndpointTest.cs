@@ -95,13 +95,13 @@ public class RenameEndpointTest : LanguageServerTestBase
         Assert.NotNull(result);
         var documentChanges = result.DocumentChanges.Value;
         Assert.Equal(2, documentChanges.Count());
-        var renameChange = documentChanges.ElementAt(0);
+        var editChange = documentChanges.ElementAt(0);
+        Assert.True(editChange.TryGetFirst(out var textDocumentEdit));
+        Assert.Equal("file:///c:/First/Component1.razor", textDocumentEdit.TextDocument.Uri.ToString());
+        var renameChange = documentChanges.ElementAt(1);
         Assert.True(renameChange.TryGetThird(out var renameFile));
         Assert.Equal(new Uri("file:///c:/First/Component2.razor"), renameFile.OldUri);
         Assert.Equal(new Uri("file:///c:/First/Component5.razor"), renameFile.NewUri);
-        var editChange = documentChanges.ElementAt(1);
-        Assert.True(editChange.TryGetFirst(out var textDocumentEdit));
-        Assert.Equal("file:///c:/First/Component1.razor", textDocumentEdit.TextDocument.Uri.ToString());
         Assert.Collection(
             textDocumentEdit.Edits,
             edit =>
@@ -266,11 +266,7 @@ public class RenameEndpointTest : LanguageServerTestBase
         Assert.NotNull(result);
         var documentChanges = result.DocumentChanges.Value;
         Assert.Equal(3, documentChanges.Count());
-        var renameChange = documentChanges.ElementAt(0);
-        Assert.True(renameChange.TryGetThird(out var renameFile));
-        Assert.Equal(new Uri("file:///c:/First/Component1337.razor"), renameFile.OldUri);
-        Assert.Equal(new Uri("file:///c:/First/Component5.razor"), renameFile.NewUri);
-        var editChange1 = documentChanges.ElementAt(1);
+        var editChange1 = documentChanges.ElementAt(0);
         Assert.True(editChange1.TryGetFirst(out var textDocumentEdit));
         Assert.Equal("file:///c:/First/Index.razor", textDocumentEdit.TextDocument.Uri.ToString());
         Assert.Collection(
@@ -292,7 +288,7 @@ public class RenameEndpointTest : LanguageServerTestBase
                 Assert.Equal(30, edit.Range.End.Character);
             });
 
-        var editChange2 = result.DocumentChanges.Value.ElementAt(2);
+        var editChange2 = result.DocumentChanges.Value.ElementAt(1);
         Assert.True(editChange2.TryGetFirst(out var textDocumentEdit2));
         Assert.Equal("file:///c:/First/Index.razor", textDocumentEdit2.TextDocument.Uri.ToString());
         Assert.Collection(
@@ -313,6 +309,10 @@ public class RenameEndpointTest : LanguageServerTestBase
                 Assert.Equal(3, edit.Range.End.Line);
                 Assert.Equal(40, edit.Range.End.Character);
             });
+        var renameChange = documentChanges.ElementAt(2);
+        Assert.True(renameChange.TryGetThird(out var renameFile));
+        Assert.Equal(new Uri("file:///c:/First/Component1337.razor"), renameFile.OldUri);
+        Assert.Equal(new Uri("file:///c:/First/Component5.razor"), renameFile.NewUri);
     }
 
     [Fact]
@@ -338,13 +338,13 @@ public class RenameEndpointTest : LanguageServerTestBase
         // Assert
         Assert.NotNull(result);
         Assert.Equal(4, result.DocumentChanges.Value.Count());
-        var renameChange = result.DocumentChanges.Value.ElementAt(0);
+        var editChange1 = result.DocumentChanges.Value.ElementAt(0);
+        Assert.True(editChange1.TryGetFirst(out var textDocumentEdit));
+        Assert.Equal("file:///c:/Second/Component3.razor", textDocumentEdit.TextDocument.Uri.ToString());
+        var renameChange = result.DocumentChanges.Value.ElementAt(1);
         Assert.True(renameChange.TryGetThird(out var renameFile));
         Assert.Equal(new Uri("file:///c:/Second/Component3.razor"), renameFile.OldUri);
         Assert.Equal(new Uri("file:///c:/Second/Component5.razor"), renameFile.NewUri);
-        var editChange1 = result.DocumentChanges.Value.ElementAt(1);
-        Assert.True(editChange1.TryGetFirst(out var textDocumentEdit));
-        Assert.Equal("file:///c:/Second/Component3.razor", textDocumentEdit.TextDocument.Uri.ToString());
         Assert.Collection(
             textDocumentEdit.Edits,
             edit =>
@@ -392,13 +392,13 @@ public class RenameEndpointTest : LanguageServerTestBase
         // Assert
         Assert.NotNull(result);
         Assert.Equal(2, result.DocumentChanges.Value.Count());
-        var renameChange = result.DocumentChanges.Value.ElementAt(0);
+        var editChange = result.DocumentChanges.Value.ElementAt(0);
+        Assert.True(editChange.TryGetFirst(out var textDocumentEdit));
+        Assert.Equal("file:///c:/Dir1/Directory1.razor", textDocumentEdit.TextDocument.Uri.ToString());
+        var renameChange = result.DocumentChanges.Value.ElementAt(1);
         Assert.True(renameChange.TryGetThird(out var renameFile));
         Assert.Equal(new Uri("file:///c:/Dir2/Directory2.razor"), renameFile.OldUri);
         Assert.Equal(new Uri("file:///c:/Dir2/TestComponent.razor"), renameFile.NewUri);
-        var editChange = result.DocumentChanges.Value.ElementAt(1);
-        Assert.True(editChange.TryGetFirst(out var textDocumentEdit));
-        Assert.Equal("file:///c:/Dir1/Directory1.razor", textDocumentEdit.TextDocument.Uri.ToString());
         Assert.Collection(
             textDocumentEdit.Edits,
             edit =>
