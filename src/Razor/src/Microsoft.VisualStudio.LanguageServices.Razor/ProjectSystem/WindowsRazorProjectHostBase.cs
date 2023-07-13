@@ -100,6 +100,8 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
 
     protected IUnconfiguredProjectCommonServices CommonServices { get; }
 
+    internal bool SkipIntermediateOutputPathExistCheck_TestOnly { get; set; }
+
     // internal for tests. The product will call through the IProjectDynamicLoadComponent interface.
     internal Task LoadAsync()
     {
@@ -408,7 +410,7 @@ internal abstract class WindowsRazorProjectHostBase : OnceInitializedOnceDispose
         var basePath = new DirectoryInfo(baseIntermediateOutputPathValue).Parent;
         var joinedPath = Path.Combine(basePath.FullName, intermediateOutputPathValue);
 
-        if (!Directory.Exists(joinedPath))
+        if (!SkipIntermediateOutputPathExistCheck_TestOnly && !Directory.Exists(joinedPath))
         {
             // The directory doesn't exist for the currently executing application.
             // This can occur in Razor class library scenarios because:
