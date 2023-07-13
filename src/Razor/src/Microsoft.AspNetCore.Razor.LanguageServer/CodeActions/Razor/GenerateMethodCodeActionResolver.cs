@@ -94,7 +94,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
         var formattedMethod = FormattingUtilities.AddIndentationToMethod(
             templateWithMethodName,
             _razorLSPOptionsMonitor.CurrentValue,
-            @class.Span.AsSourceSpan().AbsoluteIndex,
+            @class.SpanStart,
             classLocationLineSpan.StartLinePosition.Character,
             content);
 

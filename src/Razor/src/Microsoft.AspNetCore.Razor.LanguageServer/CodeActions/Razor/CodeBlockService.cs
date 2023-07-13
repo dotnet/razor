@@ -95,9 +95,25 @@ internal static class CodeBlockService
         };
     }
 
-    private static string FormatMethodInCodeBlock(RazorSourceDocument source, SourceLocation codeBlockSourceLocation, int openBraceLineIndex, int closeBraceLineIndex, SourceLocation insertLocation, RazorLSPOptions options, string method)
+    private static string FormatMethodInCodeBlock(
+        RazorSourceDocument source,
+        SourceLocation codeBlockSourceLocation,
+        int openBraceLineIndex,
+        int closeBraceLineIndex,
+        SourceLocation insertLocation,
+        RazorLSPOptions options,
+        string method)
     {
-        var formattedGeneratedMethod = FormattingUtilities.AddIndentationToMethod(method, options, codeBlockSourceLocation.AbsoluteIndex - 5, codeBlockSourceLocation.CharacterIndex - 5, source);
+        // The absolute index and character index of the code block's location points to the end of '@code'.
+        // For indenting, we want to know about what characters there are before that, so we need to - 5.
+        var codeBlockStartAbsoluteIndex = codeBlockSourceLocation.AbsoluteIndex - 5;
+        var numCharacterBefore = codeBlockSourceLocation.CharacterIndex - 5;
+        var formattedGeneratedMethod = FormattingUtilities.AddIndentationToMethod(
+            method,
+            options,
+            codeBlockStartAbsoluteIndex,
+            numCharacterBefore,
+            source);
         if (openBraceLineIndex == closeBraceLineIndex)
         {
             // The @code block's '{' and '}' are on the same line, we'll need to add a new line to both the beginning and end of the generated code.
