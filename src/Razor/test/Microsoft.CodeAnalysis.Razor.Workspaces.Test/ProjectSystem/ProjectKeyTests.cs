@@ -18,7 +18,7 @@ public class ProjectKeyTests : WorkspaceTestBase
 
     [Theory]
     [InlineData("/path/to/dir", @"\path\to\dir")]
-    [InlineData("/path%2Fto/dir", @"path\to\dir")]
+    [InlineData("/path%2Fto/dir", @"\path\to\dir")]
     [InlineData(@"\path\to\dir\", @"\path\to\dir")]
     [InlineData(@"\path%5Cto\dir\", @"\path\to\dir")]
     [InlineData(@"\PATH\TO\DIR\", @"\path\to\dir")]
