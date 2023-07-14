@@ -19,6 +19,7 @@ public class ProjectFileSynchronizerTest : LanguageServerTestBase
     {
     }
 
+    // TODO: This method was commented out. If it ends up being removed, this test should be too.
     //[Fact]
     //public void ProjectFileChanged_Added_AddsProject()
     //{

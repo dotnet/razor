@@ -83,6 +83,9 @@ internal class ProjectRazorJsonPublisher : ProjectSnapshotChangeTrigger
         _projectConfigurationFilePathStore = projectConfigurationFilePathStore;
         _logger = logger;
 
+#if DEBUG
+        _serializer.Formatting = Formatting.Indented;
+#endif
         _serializer.Converters.Add(ProjectRazorJsonJsonConverter.Instance);
     }
 
