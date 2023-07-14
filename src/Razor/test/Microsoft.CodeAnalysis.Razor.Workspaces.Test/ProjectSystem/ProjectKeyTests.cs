@@ -18,17 +18,35 @@ public class ProjectKeyTests : WorkspaceTestBase
 
     [Theory]
     [InlineData("/path/to/dir", @"\path\to\dir")]
-    [InlineData("path/to/dir", @"\path\to\dir")]
-    [InlineData("/path/to/dir", @"path\to\dir")]
     [InlineData("/path%2Fto/dir", @"path\to\dir")]
     [InlineData(@"\path\to\dir\", @"\path\to\dir")]
     [InlineData(@"\path%5Cto\dir\", @"\path\to\dir")]
-    [InlineData(@"\path\to\dir\", @"path\to\dir")]
     [InlineData(@"\PATH\TO\DIR\", @"\path\to\dir")]
     [InlineData(@"C:\path\to\dir\", @"c:\path\to\dir")]
+    public void EqualityTests(string id1, string id2)
+    {
+        var key1 = TestProjectKey.Create(id1);
+        var key2 = TestProjectKey.Create(id2);
+
+        // I'm covering all bases out of a complete lack of trust in compilers
+        Assert.True(key1 == key2);
+        Assert.True(key1.Equals(key2));
+        Assert.True(key1.Equals((object)key2));
+        Assert.Equal(key1, key2);
+
+        // And just for good measure, has boolean logic changed?
+        Assert.False(key1 != key2);
+        Assert.False(!key1.Equals(key2));
+        Assert.False(!key1.Equals((object)key2));
+    }
+
+    [OSSkipConditionTheory(new[] { "OSX", "Linux" })]
     [InlineData(@"/c:/path/to/dir/", @"c:\path\to\dir")]
     [InlineData(@"/c:\path/to\dir/", @"c:\path\to\dir")]
-    public void EqualityTests(string id1, string id2)
+    [InlineData(@"\path\to\dir\", @"path\to\dir")]
+    [InlineData("/path/to/dir", @"path\to\dir")]
+    [InlineData("path/to/dir", @"\path\to\dir")]
+    public void EqualityTests_Windows(string id1, string id2)
     {
         var key1 = TestProjectKey.Create(id1);
         var key2 = TestProjectKey.Create(id2);
