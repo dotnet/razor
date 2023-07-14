@@ -130,14 +130,16 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         }
 
         var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
-        AddEditsForCodeDocument(documentChanges, originTagHelpers, request.NewName, request.TextDocument.Uri, codeDocument);
-        AddFileRenameForComponent(documentChanges, originComponentDocumentSnapshot, newPath);
+        var fileRename = AddFileRenameForComponent(originComponentDocumentSnapshot, newPath);
+        documentChanges.Add(fileRename);
+        var fileRenameUriLookup = new Dictionary<string, Uri>() { { fileRename.OldUri.OriginalString, fileRename.NewUri } };
+        AddEditsForCodeDocument(documentChanges, originTagHelpers, request.NewName, request.TextDocument.Uri, codeDocument, fileRenameUriLookup);
 
         var documentSnapshots = await GetAllDocumentSnapshotsAsync(documentContext, cancellationToken).ConfigureAwait(false);
 
         foreach (var documentSnapshot in documentSnapshots)
         {
-            await AddEditsForCodeDocumentAsync(documentChanges, originTagHelpers, request.NewName, documentSnapshot).ConfigureAwait(false);
+            await AddEditsForCodeDocumentAsync(documentChanges, originTagHelpers, request.NewName, documentSnapshot, fileRenameUriLookup).ConfigureAwait(false);
         }
 
         return new WorkspaceEdit
@@ -184,7 +186,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         return documentSnapshots;
     }
 
-    public void AddFileRenameForComponent(List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges, IDocumentSnapshot documentSnapshot, string newPath)
+    public RenameFile AddFileRenameForComponent(IDocumentSnapshot documentSnapshot, string newPath)
     {
         // VS Code in Windows expects path to start with '/'
         var filePath = documentSnapshot.FilePath.AssumeNotNull();
@@ -210,11 +212,11 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
             Scheme = Uri.UriSchemeFile,
         }.Uri;
 
-        documentChanges.Add(new RenameFile
+        return new RenameFile
         {
             OldUri = oldUri,
             NewUri = newUri,
-        });
+        };
     }
 
     private static string MakeNewPath(string originalPath, string newName)
@@ -230,7 +232,8 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges,
         IReadOnlyList<TagHelperDescriptor> originTagHelpers,
         string newName,
-        IDocumentSnapshot? documentSnapshot)
+        IDocumentSnapshot? documentSnapshot,
+        Dictionary<string, Uri> fileRenameUriLookup)
     {
         if (documentSnapshot is null)
         {
@@ -260,7 +263,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
             Scheme = Uri.UriSchemeFile,
         }.Uri;
 
-        AddEditsForCodeDocument(documentChanges, originTagHelpers, newName, uri, codeDocument);
+        AddEditsForCodeDocument(documentChanges, originTagHelpers, newName, uri, codeDocument, fileRenameUriLookup);
     }
 
     public static void AddEditsForCodeDocument(
@@ -268,7 +271,8 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         IReadOnlyList<TagHelperDescriptor> originTagHelpers,
         string newName,
         Uri uri,
-        RazorCodeDocument codeDocument)
+        RazorCodeDocument codeDocument,
+        Dictionary<string, Uri> fileRenameUriLookup)
     {
         var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = uri };
         var tagHelperElements = codeDocument.GetSyntaxTree().Root
@@ -297,6 +301,11 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
             {
                 if (node is MarkupTagHelperElementSyntax tagHelperElement && BindingContainsTagHelper(originTagHelper, tagHelperElement.TagHelperInfo.BindingResult))
                 {
+                    if (fileRenameUriLookup.TryGetValue(uri.OriginalString, out var newUri))
+                    {
+                        documentIdentifier.Uri = newUri;
+                    }
+
                     documentChanges.Add(new TextDocumentEdit
                     {
                         TextDocument = documentIdentifier,
