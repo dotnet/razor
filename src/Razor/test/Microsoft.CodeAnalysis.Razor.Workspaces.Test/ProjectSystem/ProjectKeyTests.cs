@@ -21,7 +21,6 @@ public class ProjectKeyTests : WorkspaceTestBase
     [InlineData("/path%2Fto/dir", @"\path\to\dir")]
     [InlineData(@"\path\to\dir\", @"\path\to\dir")]
     [InlineData(@"\path%5Cto\dir\", @"\path\to\dir")]
-    [InlineData(@"\PATH\TO\DIR\", @"\path\to\dir")]
     public void EqualityTests(string id1, string id2)
     {
         var key1 = TestProjectKey.Create(id1);
@@ -46,6 +45,7 @@ public class ProjectKeyTests : WorkspaceTestBase
     [InlineData("/path/to/dir", @"path\to\dir")]
     [InlineData("path/to/dir", @"\path\to\dir")]
     [InlineData(@"C:\path\to\dir\", @"c:\path\to\dir")]
+    [InlineData(@"\PATH\TO\DIR\", @"\path\to\dir")]
     public void EqualityTests_Windows(string id1, string id2)
     {
         var key1 = TestProjectKey.Create(id1);
