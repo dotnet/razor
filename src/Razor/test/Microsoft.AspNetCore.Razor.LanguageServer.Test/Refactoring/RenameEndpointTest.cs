@@ -94,7 +94,7 @@ public class RenameEndpointTest : LanguageServerTestBase
         // Assert
         Assert.NotNull(result);
         var documentChanges = result.DocumentChanges.Value;
-        Assert.Equal(3, documentChanges.Count());
+        Assert.Equal(2, documentChanges.Count());
         var renameChange = documentChanges.ElementAt(0);
         Assert.True(renameChange.TryGetThird(out var renameFile));
         Assert.Equal(new Uri("file:///c:/First/Component2.razor"), renameFile.OldUri);
@@ -242,18 +242,18 @@ public class RenameEndpointTest : LanguageServerTestBase
         Assert.NotNull(result);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8541")]
     public async Task Handle_Rename_ComponentInSameFile()
     {
         // Arrange
-        var uri = new Uri("file:///c:/First/Component2.razor");
+        var uri = new Uri("file:///c:/Second/Component4.razor");
         var request = new RenameParams
         {
             TextDocument = new TextDocumentIdentifier
             {
                 Uri = uri,
             },
-            Position = new Position(2, 1),
+            Position = new Position(1, 1),
             NewName = "Component5"
         };
         var documentContext = await GetDocumentContextAsync(uri);
@@ -264,54 +264,39 @@ public class RenameEndpointTest : LanguageServerTestBase
 
         // Assert
         Assert.NotNull(result);
-        var documentChanges = result.DocumentChanges.Value;
-        Assert.Equal(3, documentChanges.Count());
-        var renameChange = documentChanges.ElementAt(0);
+        Assert.Equal(4, result.DocumentChanges.Value.Count());
+        var renameChange = result.DocumentChanges.Value.ElementAt(0);
         Assert.True(renameChange.TryGetThird(out var renameFile));
-        Assert.Equal(new Uri("file:///c:/First/Component2.razor"), renameFile.OldUri);
-        Assert.Equal(new Uri("file:///c:/First/Component5.razor"), renameFile.NewUri);
-        var editChange1 = documentChanges.ElementAt(1);
-        Assert.True(editChange1.TryGetFirst(out var textDocumentEdit));
-        Assert.Equal("file:///c:/First/Component5.razor", textDocumentEdit.TextDocument.Uri.ToString());
-        Assert.Collection(
-            textDocumentEdit.Edits,
-            edit =>
-            {
-                Assert.Equal("Component5", edit.NewText);
-                Assert.Equal(2, edit.Range.Start.Line);
-                Assert.Equal(1, edit.Range.Start.Character);
-                Assert.Equal(2, edit.Range.End.Line);
-                Assert.Equal(11, edit.Range.End.Character);
-            },
-            edit =>
-            {
-                Assert.Equal("Component5", edit.NewText);
-                Assert.Equal(2, edit.Range.Start.Line);
-                Assert.Equal(14, edit.Range.Start.Character);
-                Assert.Equal(2, edit.Range.End.Line);
-                Assert.Equal(24, edit.Range.End.Character);
-            });
-
+        Assert.Equal(new Uri("file:///c:/Second/Component3.razor"), renameFile.OldUri);
+        Assert.Equal(new Uri("file:///c:/Second/Component5.razor"), renameFile.NewUri);
+        var editChange1 = result.DocumentChanges.Value.ElementAt(1);
+        Assert.True(editChange1.TryGetFirst(out var textDocumentEdit1));
+        Assert.Equal("file:///c:/Second/Component4.razor", textDocumentEdit1.TextDocument.Uri.ToString());
+        Assert.Equal(2, textDocumentEdit1.Edits.Length);
         var editChange2 = result.DocumentChanges.Value.ElementAt(2);
         Assert.True(editChange2.TryGetFirst(out var textDocumentEdit2));
-        Assert.Equal("file:///c:/First/Component1.razor", textDocumentEdit2.TextDocument.Uri.ToString());
+        Assert.Equal("file:///c:/Second/Component4.razor", textDocumentEdit2.TextDocument.Uri.ToString());
+        Assert.Equal(2, textDocumentEdit2.Edits.Length);
+        var editChange3 = result.DocumentChanges.Value.ElementAt(3);
+        Assert.True(editChange3.TryGetFirst(out var textDocumentEdit3));
+        Assert.Equal("file:///c:/Second/Component5.razor", textDocumentEdit3.TextDocument.Uri.ToString());
         Assert.Collection(
-            textDocumentEdit2.Edits,
+            textDocumentEdit3.Edits,
             edit =>
             {
                 Assert.Equal("Component5", edit.NewText);
-                Assert.Equal(2, edit.Range.Start.Line);
+                Assert.Equal(1, edit.Range.Start.Line);
                 Assert.Equal(1, edit.Range.Start.Character);
-                Assert.Equal(2, edit.Range.End.Line);
+                Assert.Equal(1, edit.Range.End.Line);
                 Assert.Equal(11, edit.Range.End.Character);
             },
             edit =>
             {
                 Assert.Equal("Component5", edit.NewText);
-                Assert.Equal(2, edit.Range.Start.Line);
-                Assert.Equal(1, edit.Range.Start.Character);
-                Assert.Equal(2, edit.Range.End.Line);
-                Assert.Equal(11, edit.Range.End.Character);
+                Assert.Equal(1, edit.Range.Start.Line);
+                Assert.Equal(14, edit.Range.Start.Character);
+                Assert.Equal(1, edit.Range.End.Line);
+                Assert.Equal(24, edit.Range.End.Character);
             });
     }
 
@@ -649,7 +634,7 @@ public class RenameEndpointTest : LanguageServerTestBase
         var tagHelperDescriptors = builder.ToImmutable();
 
         var item1 = CreateProjectItem("@namespace First.Components\n@using Test\n<Component2></Component2>", "c:/First/Component1.razor");
-        var item2 = CreateProjectItem("@namespace First.Components\n@using Test\n<Component2></Component2>", "c:/First/Component2.razor");
+        var item2 = CreateProjectItem("@namespace Test", "c:/First/Component2.razor");
         var item3 = CreateProjectItem("@namespace Second.Components\n<Component3></Component3>", "c:/Second/Component3.razor");
         var item4 = CreateProjectItem("@namespace Second.Components\n<Component3></Component3>\n<Component3></Component3>", "c:/Second/Component4.razor");
         var itemComponentParam = CreateProjectItem("@namespace Second.Components\n<Component3 Title=\"Something\"></Component3>", "c:/Second/Component5.razor");
