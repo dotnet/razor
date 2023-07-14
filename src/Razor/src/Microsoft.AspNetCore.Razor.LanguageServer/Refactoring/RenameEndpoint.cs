@@ -132,7 +132,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
         var fileRename = AddFileRenameForComponent(originComponentDocumentSnapshot, newPath);
         documentChanges.Add(fileRename);
-        var fileRenameUriLookup = new Dictionary<string, Uri>() { { fileRename.OldUri.OriginalString, fileRename.NewUri } };
+        var fileRenameUriLookup = new Dictionary<Uri, Uri>() { { fileRename.OldUri, fileRename.NewUri } };
         AddEditsForCodeDocument(documentChanges, originTagHelpers, request.NewName, request.TextDocument.Uri, codeDocument, fileRenameUriLookup);
 
         var documentSnapshots = await GetAllDocumentSnapshotsAsync(documentContext, cancellationToken).ConfigureAwait(false);
@@ -233,7 +233,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         IReadOnlyList<TagHelperDescriptor> originTagHelpers,
         string newName,
         IDocumentSnapshot? documentSnapshot,
-        Dictionary<string, Uri> fileRenameUriLookup)
+        Dictionary<Uri, Uri> fileRenameUriLookup)
     {
         if (documentSnapshot is null)
         {
@@ -272,7 +272,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         string newName,
         Uri uri,
         RazorCodeDocument codeDocument,
-        Dictionary<string, Uri> fileRenameUriLookup)
+        Dictionary<Uri, Uri> fileRenameUriLookup)
     {
         var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = uri };
         var tagHelperElements = codeDocument.GetSyntaxTree().Root
@@ -301,7 +301,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
             {
                 if (node is MarkupTagHelperElementSyntax tagHelperElement && BindingContainsTagHelper(originTagHelper, tagHelperElement.TagHelperInfo.BindingResult))
                 {
-                    if (fileRenameUriLookup.TryGetValue(uri.OriginalString, out var newUri))
+                    if (fileRenameUriLookup.TryGetValue(uri, out var newUri))
                     {
                         documentIdentifier.Uri = newUri;
                     }
