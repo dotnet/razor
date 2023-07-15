@@ -1288,12 +1288,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var documentSymbolParams = new DocumentSymbolParams()
         {
-            TextDocument = new VSTextDocumentIdentifier()
-            {
-                Uri = virtualDocument.Uri,
-                ProjectContext = request.ProjectContext
-            },
-
+            TextDocument = request.HostDocument
         };
 
         var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>?>(
@@ -1319,7 +1314,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             TextDocument = new VSTextDocumentIdentifier()
             {
                 Uri = delegationDetails.Value.ProjectedUri,
-                ProjectContext = request.ProjectContext,
+                ProjectContext = request.HostDocument.ProjectContext,
             },
             Position = request.ProjectedPosition,
         };

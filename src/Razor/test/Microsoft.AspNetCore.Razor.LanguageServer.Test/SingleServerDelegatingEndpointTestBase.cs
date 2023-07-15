@@ -244,7 +244,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
                 TextDocument = new VSTextDocumentIdentifier()
                 {
                     Uri = _csharpDocumentUri,
-                    ProjectContext = delegatedParams.ProjectContext
+                    ProjectContext = delegatedParams.HostDocument.ProjectContext
                 },
                 Position = delegatedParams.ProjectedPosition
             };
@@ -265,7 +265,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
                 TextDocument = new VSTextDocumentIdentifier()
                 {
                     Uri = _csharpDocumentUri,
-                    ProjectContext = delegatedParams.ProjectContext,
+                    ProjectContext = delegatedParams.HostDocument.ProjectContext,
                 },
                 Position = delegatedParams.ProjectedPosition
             };
@@ -286,7 +286,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
                 TextDocument = new VSTextDocumentIdentifier()
                 {
                     Uri = _csharpDocumentUri,
-                    ProjectContext = delegatedParams.ProjectContext,
+                    ProjectContext = delegatedParams.HostDocument.ProjectContext,
                 },
                 Position = delegatedParams.ProjectedPosition
             };
@@ -307,7 +307,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
                 TextDocument = new VSTextDocumentIdentifier()
                 {
                     Uri = _csharpDocumentUri,
-                    ProjectContext = delegatedParams.ProjectContext,
+                    ProjectContext = delegatedParams.HostDocument.ProjectContext,
                 },
                 Position = delegatedParams.ProjectedPosition,
             };

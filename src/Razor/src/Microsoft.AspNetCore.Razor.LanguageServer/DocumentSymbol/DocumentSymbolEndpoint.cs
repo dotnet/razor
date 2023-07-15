@@ -49,12 +49,12 @@ internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParam
 
         var documentContext = context.GetRequiredDocumentContext();
         var delegatedParams = new DelegatedDocumentSymbolParams(
-            new VersionedTextDocumentIdentifier()
+            new VSVersionedTextDocumentIdentifier()
             {
                 Uri = documentContext.Uri,
-                Version = documentContext.Version
-            },
-            request.TextDocument.GetProjectContext()
+                Version = documentContext.Version,
+                ProjectContext = documentContext.ProjectContext,
+            }
         );
 
         var symbolInformations = await _languageServer.SendRequestAsync<DelegatedDocumentSymbolParams, SymbolInformation[]?>(

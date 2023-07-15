@@ -22,8 +22,7 @@ internal record DelegatedDiagnosticParams(
 internal record DelegatedPositionParams(
     VSVersionedTextDocumentIdentifier HostDocument,
     Position ProjectedPosition,
-    RazorLanguageKind ProjectedKind,
-    VSProjectContext? ProjectContext) : IDelegatedParams;
+    RazorLanguageKind ProjectedKind) : IDelegatedParams;
 
 internal record DelegatedValidateBreakpointRangeParams(
     VSVersionedTextDocumentIdentifier HostDocument,
@@ -65,5 +64,4 @@ internal record DelegatedProjectContextsParams(
     VersionedTextDocumentIdentifier HostDocument);
 
 internal record DelegatedDocumentSymbolParams(
-    VersionedTextDocumentIdentifier HostDocument,
-    VSProjectContext? ProjectContext);
+    VSVersionedTextDocumentIdentifier HostDocument);
