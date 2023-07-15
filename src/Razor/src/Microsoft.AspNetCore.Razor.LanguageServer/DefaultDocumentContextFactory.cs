@@ -89,10 +89,12 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
                 return null;
             }
 
-            return new VersionedDocumentContext(documentUri, documentSnapshot, version.Value);
+            // TODO: Actually start adding the project context in
+            return new VersionedDocumentContext(documentUri, documentSnapshot, version.Value, null);
         }
 
-        return new DocumentContext(documentUri, documentSnapshot);
+        // TODO: Actually start adding the project context in
+        return new DocumentContext(documentUri, documentSnapshot, null);
     }
 
     private record DocumentSnapshotAndVersion(IDocumentSnapshot Snapshot, int? Version);

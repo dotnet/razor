@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -44,14 +45,14 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         serverCapabilities.SupportsDiagnosticRequests = true;
     }
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
+    public VSTextDocumentIdentifier GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
     {
         if (request.TextDocument is null)
         {
             throw new ArgumentNullException(nameof(request.TextDocument));
         }
 
-        return request.TextDocument;
+        return request.TextDocument.AsVSTextDocumentIdentifier();
     }
 
     public async Task<IEnumerable<VSInternalDiagnosticReport>?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, RazorRequestContext context, CancellationToken cancellationToken)

@@ -17,11 +17,12 @@ internal class RazorMapToDocumentEditsEndpoint : IRazorMapToDocumentEditsHandler
 {
     public bool MutatesSolutionState { get; } = false;
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(RazorMapToDocumentEditsParams request)
+    public VSTextDocumentIdentifier GetTextDocumentIdentifier(RazorMapToDocumentEditsParams request)
     {
-        return new TextDocumentIdentifier
+        return new VSTextDocumentIdentifier
         {
-            Uri = request.RazorDocumentUri
+            Uri = request.RazorDocumentUri,
+            ProjectContext = null,
         };
     }
 

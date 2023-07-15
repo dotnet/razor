@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 
-internal interface IRazorRequestHandler<RequestType, ResponseType> : IRequestHandler<RequestType, ResponseType, RazorRequestContext>, ITextDocumentIdentifierHandler<RequestType, TextDocumentIdentifier>
+internal interface IRazorRequestHandler<RequestType, ResponseType> : IRequestHandler<RequestType, ResponseType, RazorRequestContext>, ITextDocumentIdentifierHandler<RequestType, VSTextDocumentIdentifier>
 {
 }
 

@@ -59,7 +59,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
 
     protected abstract Task<WorkspaceEdit?> TryGetRazorWorkspaceEditAsync(RazorLanguageKind languageKind, TParams request, CancellationToken cancellationToken);
 
-    public abstract TextDocumentIdentifier GetTextDocumentIdentifier(TParams request);
+    public virtual VSTextDocumentIdentifier GetTextDocumentIdentifier(TParams request) => request.TextDocument.AsVSTextDocumentIdentifier();
 
     public async Task<WorkspaceEdit?> HandleRequestAsync(TParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
     {

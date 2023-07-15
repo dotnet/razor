@@ -34,9 +34,9 @@ internal class DocumentFormattingEndpoint : IRazorRequestHandler<DocumentFormatt
         serverCapabilities.DocumentFormattingProvider = new DocumentFormattingOptions();
     }
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentFormattingParams request)
+    public VSTextDocumentIdentifier GetTextDocumentIdentifier(DocumentFormattingParams request)
     {
-        return request.TextDocument;
+        return request.TextDocument.AsVSTextDocumentIdentifier();
     }
 
     public async Task<TextEdit[]?> HandleRequestAsync(DocumentFormattingParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)

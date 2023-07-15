@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -40,9 +41,9 @@ internal sealed class SemanticTokensRangeEndpoint : IRazorRequestHandler<Semanti
         };
     }
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(SemanticTokensRangeParams request)
+    public VSTextDocumentIdentifier GetTextDocumentIdentifier(SemanticTokensRangeParams request)
     {
-        return request.TextDocument;
+        return request.TextDocument.AsVSTextDocumentIdentifier();
     }
 
     public async Task<SemanticTokens?> HandleRequestAsync(SemanticTokensRangeParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)

@@ -22,11 +22,12 @@ internal class RazorLanguageQueryEndpoint : IRazorLanguageQueryHandler
         _documentMappingService = documentMappingService;
     }
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(RazorLanguageQueryParams request)
+    public VSTextDocumentIdentifier GetTextDocumentIdentifier(RazorLanguageQueryParams request)
     {
-        return new TextDocumentIdentifier
+        return new VSTextDocumentIdentifier
         {
-            Uri = request.Uri
+            Uri = request.Uri,
+            ProjectContext = null,
         };
     }
 

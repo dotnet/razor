@@ -60,7 +60,7 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
         }
 
         var documentContext = requestContext.GetRequiredDocumentContext();
-        return Task.FromResult<IDelegatedParams?>(new DelegatedPositionAndProjectContextParams(
+        return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
                 positionInfo.Position,
                 positionInfo.LanguageKind,

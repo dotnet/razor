@@ -176,8 +176,8 @@ internal abstract class AbstractRazorDelegatingEndpoint<TRequest, TResponse> : I
         return remappedResponse;
     }
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(TRequest request)
+    public VSTextDocumentIdentifier GetTextDocumentIdentifier(TRequest request)
     {
-        return request.TextDocument;
+        return request.TextDocument.AsVSTextDocumentIdentifier();
     }
 }

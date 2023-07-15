@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Runtime.Serialization;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 
@@ -12,44 +13,39 @@ using Range = Microsoft.VisualStudio.LanguageServer.Protocol.Range;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
 internal record DelegatedSpellCheckParams(
-    VersionedTextDocumentIdentifier HostDocument);
+    VSVersionedTextDocumentIdentifier HostDocument);
 
 internal record DelegatedDiagnosticParams(
-    VersionedTextDocumentIdentifier HostDocument,
+    VSVersionedTextDocumentIdentifier HostDocument,
     Guid CorrelationId);
 
 internal record DelegatedPositionParams(
-    VersionedTextDocumentIdentifier HostDocument,
-    Position ProjectedPosition,
-    RazorLanguageKind ProjectedKind) : IDelegatedParams;
-
-internal record DelegatedPositionAndProjectContextParams(
-    VersionedTextDocumentIdentifier HostDocument,
+    VSVersionedTextDocumentIdentifier HostDocument,
     Position ProjectedPosition,
     RazorLanguageKind ProjectedKind,
     VSProjectContext? ProjectContext) : IDelegatedParams;
 
 internal record DelegatedValidateBreakpointRangeParams(
-    VersionedTextDocumentIdentifier HostDocument,
+    VSVersionedTextDocumentIdentifier HostDocument,
     Range ProjectedRange,
     RazorLanguageKind ProjectedKind) : IDelegatedParams;
 
 internal record DelegatedOnAutoInsertParams(
-    VersionedTextDocumentIdentifier HostDocument,
+    VSVersionedTextDocumentIdentifier HostDocument,
     Position ProjectedPosition,
     RazorLanguageKind ProjectedKind,
     string Character,
     FormattingOptions Options) : IDelegatedParams;
 
 internal record DelegatedRenameParams(
-    VersionedTextDocumentIdentifier HostDocument,
+    VSVersionedTextDocumentIdentifier HostDocument,
     Position ProjectedPosition,
     RazorLanguageKind ProjectedKind,
     string NewName,
     VSProjectContext? ProjectContext) : IDelegatedParams;
 
 internal record DelegatedCompletionParams(
-    VersionedTextDocumentIdentifier HostDocument,
+    VSVersionedTextDocumentIdentifier HostDocument,
     Position ProjectedPosition,
     RazorLanguageKind ProjectedKind,
     VSInternalCompletionContext Context,
@@ -61,7 +57,7 @@ internal record DelegatedCompletionResolutionContext(
     object? OriginalCompletionListData);
 
 internal record DelegatedCompletionItemResolveParams(
-    VersionedTextDocumentIdentifier HostDocument,
+    VSVersionedTextDocumentIdentifier HostDocument,
     VSInternalCompletionItem CompletionItem,
     RazorLanguageKind OriginatingKind);
 

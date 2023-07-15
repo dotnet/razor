@@ -51,11 +51,6 @@ internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresent
         serverCapabilities.UriPresentationProvider = true;
     }
 
-    public override TextDocumentIdentifier GetTextDocumentIdentifier(UriPresentationParams request)
-    {
-        return request.TextDocument;
-    }
-
     protected override IRazorPresentationParams CreateRazorRequestParameters(UriPresentationParams request)
         => new RazorUriPresentationParams()
         {

@@ -10,4 +10,13 @@ internal static class TextDocumentIdentifierExtensions
         => textDocumentIdentifier is VSTextDocumentIdentifier vsIdentifier
             ? vsIdentifier.ProjectContext
             : null;
+
+    public static VSTextDocumentIdentifier AsVSTextDocumentIdentifier(this TextDocumentIdentifier textDocumentIdentifier)
+        => textDocumentIdentifier is VSTextDocumentIdentifier vsIdentifier
+            ? vsIdentifier
+            : new VSTextDocumentIdentifier()
+            {
+                Uri = textDocumentIdentifier.Uri,
+                ProjectContext = null,
+            };
 }

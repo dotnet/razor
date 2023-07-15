@@ -37,8 +37,8 @@ internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParam
         };
     }
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentSymbolParams request)
-        => request.TextDocument;
+    public VSTextDocumentIdentifier GetTextDocumentIdentifier(DocumentSymbolParams request)
+        => request.TextDocument.AsVSTextDocumentIdentifier();
 
     public async Task<SymbolInformation[]> HandleRequestAsync(DocumentSymbolParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {

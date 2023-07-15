@@ -27,7 +27,7 @@ internal class RazorRequestContextFactory : IRequestContextFactory<RazorRequestC
         Uri? uri = null;
         if (textDocumentHandler is not null)
         {
-            if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, TextDocumentIdentifier> tdiHandler)
+            if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, VSTextDocumentIdentifier> tdiHandler)
             {
                 var textDocumentIdentifier = tdiHandler.GetTextDocumentIdentifier(@params);
                 uri = textDocumentIdentifier.Uri;

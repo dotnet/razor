@@ -29,11 +29,6 @@ internal class TextDocumentTextPresentationEndpoint : AbstractTextDocumentPresen
         serverCapabilities.TextPresentationProvider = true;
     }
 
-    public override TextDocumentIdentifier GetTextDocumentIdentifier(TextPresentationParams request)
-    {
-        return request.TextDocument;
-    }
-
     protected override IRazorPresentationParams CreateRazorRequestParameters(TextPresentationParams request)
         => new RazorTextPresentationParams()
         {

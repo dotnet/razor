@@ -46,9 +46,9 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
         serverCapabilities.FoldingRangeProvider = new FoldingRangeOptions();
     }
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(FoldingRangeParams request)
+    public VSTextDocumentIdentifier GetTextDocumentIdentifier(FoldingRangeParams request)
     {
-        return request.TextDocument;
+        return request.TextDocument.AsVSTextDocumentIdentifier();
     }
 
     public async Task<IEnumerable<FoldingRange>?> HandleRequestAsync(FoldingRangeParams @params, RazorRequestContext requestContext, CancellationToken cancellationToken)

@@ -373,8 +373,8 @@ internal sealed class CodeActionEndpoint : IRazorRequestHandler<VSCodeActionPara
         return availableCodeActionNames.ToImmutableHashSet();
     }
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(VSCodeActionParams request)
+    public VSTextDocumentIdentifier GetTextDocumentIdentifier(VSCodeActionParams request)
     {
-        return request.TextDocument;
+        return request.TextDocument.AsVSTextDocumentIdentifier();
     }
 }

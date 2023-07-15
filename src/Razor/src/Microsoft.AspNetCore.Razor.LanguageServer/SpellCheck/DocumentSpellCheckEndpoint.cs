@@ -43,14 +43,14 @@ internal sealed class DocumentSpellCheckEndpoint : IRazorRequestHandler<VSIntern
         serverCapabilities.SpellCheckingProvider = true;
     }
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalDocumentSpellCheckableParams request)
+    public VSTextDocumentIdentifier GetTextDocumentIdentifier(VSInternalDocumentSpellCheckableParams request)
     {
         if (request.TextDocument is null)
         {
             throw new ArgumentNullException(nameof(request.TextDocument));
         }
 
-        return request.TextDocument;
+        return request.TextDocument.AsVSTextDocumentIdentifier();
     }
 
     public async Task<VSInternalSpellCheckableRangeReport[]> HandleRequestAsync(VSInternalDocumentSpellCheckableParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)

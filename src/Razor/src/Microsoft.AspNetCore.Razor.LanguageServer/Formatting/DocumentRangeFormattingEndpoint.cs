@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -33,9 +34,9 @@ internal class DocumentRangeFormattingEndpoint : IRazorRequestHandler<DocumentRa
         serverCapabilities.DocumentRangeFormattingProvider = new DocumentRangeFormattingOptions();
     }
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentRangeFormattingParams request)
+    public VSTextDocumentIdentifier GetTextDocumentIdentifier(DocumentRangeFormattingParams request)
     {
-        return request.TextDocument;
+        return request.TextDocument.AsVSTextDocumentIdentifier();
     }
 
     public async Task<TextEdit[]?> HandleRequestAsync(DocumentRangeFormattingParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)
