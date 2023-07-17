@@ -147,9 +147,8 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         {
             if (documentChange.TryGetFirst(out var textDocumentEdit) &&
                 fileRenameUriLookup.TryGetValue(textDocumentEdit.TextDocument.Uri, out var renamedUri))
-                {
-                    textDocumentEdit.TextDocument.Uri = renamedUri;
-                }
+            {
+                textDocumentEdit.TextDocument.Uri = renamedUri;
             }
         }
 
