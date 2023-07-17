@@ -850,14 +850,14 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
 
         public override Task<VersionedDocumentContext?> TryCreateForOpenDocumentAsync(Uri documentUri, CancellationToken cancellationToken)
         {
-            if (FilePath is null || _codeDocument is null)
+            if (FilePath is null || CodeDocument is null)
             {
                 return Task.FromResult<VersionedDocumentContext?>(null);
             }
 
             var projectWorkspaceState = new ProjectWorkspaceState(_tagHelperDescriptors.ToImmutableArray(), LanguageVersion.Default);
-            var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, _codeDocument.GetSourceText().ToString(), CodeAnalysis.VersionStamp.Default, projectWorkspaceState);
-            testDocumentSnapshot.With(_codeDocument);
+            var testDocumentSnapshot = TestDocumentSnapshot.Create(FilePath, CodeDocument.GetSourceText().ToString(), CodeAnalysis.VersionStamp.Default, projectWorkspaceState);
+            testDocumentSnapshot.With(CodeDocument);
 
             return Task.FromResult<VersionedDocumentContext?>(CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot));
         }
