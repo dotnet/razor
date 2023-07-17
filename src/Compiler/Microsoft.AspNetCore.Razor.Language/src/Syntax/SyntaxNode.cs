@@ -459,12 +459,6 @@ internal abstract partial class SyntaxNode
 
         // Stack for walking efficiently back up the tree. Only used when includeWhitespace is false.
         using var stack = new PooledArrayBuilder<(SyntaxNode node, int nodeIndexInParent)>();
-        const int RootNodeIndexSentinel = int.MinValue;
-        if (!includeWhitespace)
-        {
-            stack.Push((this, RootNodeIndexSentinel));
-        }
-
         SyntaxNode curNode = this;
 
         while (true)
@@ -498,8 +492,6 @@ internal abstract partial class SyntaxNode
                 {
                     return foundToken;
                 }
-
-                Debug.Assert(stack.Peek().node == curNode, "The top of the stack must be the current node");
 
                 // Walk backwards until we find a non-whitespace token. We accomplish this by looking up the stack and walking nodes backwards from where we
                 // were located.
@@ -563,12 +555,6 @@ internal abstract partial class SyntaxNode
             static bool? walkNodeChildren(SyntaxNode parent, int startIndex, bool walkBackwards, bool stopOnNewline, [NotNullWhen(true)] out SyntaxToken? foundToken)
             {
                 Debug.Assert(parent != null, "Node should have been out of range of the document");
-
-                if (startIndex == RootNodeIndexSentinel)
-                {
-                    // We're before or after the root that was asked for. We're out of range of the request.
-                    throw new ArgumentOutOfRangeException(nameof(position));
-                }
 
                 var (indexIncrement, endIndex) = walkBackwards
                     ? (-1, -1)
