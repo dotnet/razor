@@ -43,7 +43,8 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
 
         var documentAndVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
         {
-            if (_snapshotResolver.TryResolveDocument(filePath,  out var documentSnapshot))
+            // TODO: Supply a ProjectKey from the ProjectContext attached to the Uri somehow
+            if (_snapshotResolver.TryResolveDocumentInAnyProject(filePath,  out var documentSnapshot))
             {
                 if (!versioned)
                 {

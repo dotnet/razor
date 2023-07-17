@@ -81,33 +81,45 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (_snapshotResolver.TryResolveDocument(textDocumentPath, out var _))
+
+        var added = false;
+        foreach (var projectSnapshot in _snapshotResolver.FindPotentialProjects(textDocumentPath))
         {
-            // Document already added. This usually occurs when VSCode has already pre-initialized
-            // open documents and then we try to manually add all known razor documents.
-            return;
+            added = true;
+            AddDocumentToProject(projectSnapshot, textDocumentPath);
         }
 
-        var projectSnapshot = _snapshotResolver.FindPotentialProjects(textDocumentPath).FirstOrDefault()
-            ?? _snapshotResolver.GetMiscellaneousProject();
-
-        var targetFilePath = textDocumentPath;
-        var projectDirectory = FilePathNormalizer.GetDirectory(projectSnapshot.FilePath);
-        if (targetFilePath.StartsWith(projectDirectory, FilePathComparison.Instance))
+        if (!added)
         {
-            // Make relative
-            targetFilePath = textDocumentPath[projectDirectory.Length..];
+            AddDocumentToProject(_snapshotResolver.GetMiscellaneousProject(), textDocumentPath);
         }
 
-        // Representing all of our host documents with a re-normalized target path to workaround GetRelatedDocument limitations.
-        var normalizedTargetFilePath = targetFilePath.Replace('/', '\\').TrimStart('\\');
+        void AddDocumentToProject(IProjectSnapshot projectSnapshot, string textDocumentPath)
+        {
+            if (_snapshotResolver.TryResolveDocument(projectSnapshot.Key, textDocumentPath, out var _))
+            {
+                // Document already added. This usually occurs when VSCode has already pre-initialized
+                // open documents and then we try to manually add all known razor documents.
+                return;
+            }
 
-        var hostDocument = new HostDocument(textDocumentPath, normalizedTargetFilePath);
-        var defaultProject = (ProjectSnapshot)projectSnapshot;
-        var textLoader = _remoteTextLoaderFactory.Create(textDocumentPath);
+            var targetFilePath = textDocumentPath;
+            var projectDirectory = FilePathNormalizer.GetDirectory(projectSnapshot.FilePath);
+            if (targetFilePath.StartsWith(projectDirectory, FilePathComparison.Instance))
+            {
+                // Make relative
+                targetFilePath = textDocumentPath[projectDirectory.Length..];
+            }
 
-        _logger.LogInformation("Adding document '{filePath}' to project '{projectSnapshotFilePath}'.", filePath, projectSnapshot.FilePath);
-        _projectSnapshotManagerAccessor.Instance.DocumentAdded(defaultProject.Key, hostDocument, textLoader);
+            // Representing all of our host documents with a re-normalized target path to workaround GetRelatedDocument limitations.
+            var normalizedTargetFilePath = targetFilePath.Replace('/', '\\').TrimStart('\\');
+
+            var hostDocument = new HostDocument(textDocumentPath, normalizedTargetFilePath);
+            var textLoader = _remoteTextLoaderFactory.Create(textDocumentPath);
+
+            _logger.LogInformation("Adding document '{filePath}' to project '{projectSnapshotFilePath}'.", filePath, projectSnapshot.FilePath);
+            _projectSnapshotManagerAccessor.Instance.DocumentAdded(projectSnapshot.Key, hostDocument, textLoader);
+        }
     }
 
     public override void OpenDocument(string filePath, SourceText sourceText, int version)
@@ -115,7 +127,11 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        if (!_snapshotResolver.TryResolveDocument(textDocumentPath, out _))
+
+        // We are okay to use the non-project-key overload of TryResolveDocument here because we really are just checking if the document
+        // has been added to _any_ project. AddDocument will take care of adding to all of the necessary ones, and then below we ensure
+        // we process them all too
+        if (!_snapshotResolver.TryResolveDocumentInAnyProject(textDocumentPath, out _))
         {
             // Document hasn't been added. This usually occurs when VSCode trumps all other initialization
             // processes and pre-initializes already open documents.
@@ -202,15 +218,17 @@ internal class DefaultRazorProjectService : RazorProjectService
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var textDocumentPath = FilePathNormalizer.Normalize(filePath);
-        // TODO: Needs to handle multiple projects!
-        if (!_snapshotResolver.TryResolveProject(textDocumentPath, out var projectSnapshot))
+
+        if (!_snapshotResolver.TryResolveAllProjects(textDocumentPath, out var projectSnapshots))
         {
-            projectSnapshot = _snapshotResolver.GetMiscellaneousProject();
+            projectSnapshots = new[] { _snapshotResolver.GetMiscellaneousProject() };
         }
 
-        var defaultProject = (ProjectSnapshot)projectSnapshot;
-        _logger.LogTrace("Updating document '{textDocumentPath}'.", textDocumentPath);
-        _projectSnapshotManagerAccessor.Instance.DocumentChanged(defaultProject.Key, textDocumentPath, sourceText);
+        foreach (var project in projectSnapshots)
+        {
+            _logger.LogTrace("Updating document '{textDocumentPath}' in {projectKey}.", textDocumentPath, project.Key);
+            _projectSnapshotManagerAccessor.Instance.DocumentChanged(project.Key, textDocumentPath, sourceText);
+        }
 
         TrackDocumentVersion(textDocumentPath, version);
     }
