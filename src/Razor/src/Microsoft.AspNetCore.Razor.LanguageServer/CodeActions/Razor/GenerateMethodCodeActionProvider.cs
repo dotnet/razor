@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -75,41 +74,7 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             return false;
         }
 
-        var parent = owner.Kind == SyntaxKind.CSharpExpressionLiteral ? owner.Parent.Parent : owner.Parent;
-        if (parent.Kind != SyntaxKind.MarkupTagHelperDirectiveAttribute)
-        {
-            return false;
-        }
-
-        var methodName = string.Empty;
-        if (owner.Kind == SyntaxKind.CSharpExpressionLiteral)
-        {
-            var content = owner.GetContent();
-            if (!SyntaxFacts.IsValidIdentifier(content))
-            {
-                return false;
-            }
-
-            methodName = content;
-        }
-        else
-        {
-            var children = parent.ChildNodes();
-            foreach (var child in children)
-            {
-                if (child.Kind == SyntaxKind.MarkupTagHelperAttributeValue)
-                {
-                    var content = child.GetContent();
-                    if (SyntaxFacts.IsValidIdentifier(content))
-                    {
-                        methodName = content;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (methodName.IsNullOrEmpty())
+        if (!TryParseMethodAndEventName(owner, out var methodName, out var eventName))
         {
             return false;
         }
@@ -118,8 +83,67 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
         {
             Uri = context.Request.TextDocument.Uri,
             MethodName = methodName,
+            EventName = eventName
         };
 
         return true;
+    }
+
+    private static bool TryParseMethodAndEventName(
+        SyntaxNode owner,
+        [NotNullWhen(true)] out string? methodName,
+        [NotNullWhen(true)] out string? eventName)
+    {
+        methodName = null;
+        eventName = null;
+
+        var commonParent = owner.Kind == SyntaxKind.CSharpExpressionLiteral ? owner.Parent.Parent : owner.Parent;
+        if (commonParent.Kind != SyntaxKind.MarkupTagHelperDirectiveAttribute)
+        {
+            return false;
+        }
+
+        var children = commonParent.ChildNodes();
+        var csharpExpressionLiteralNode = owner;
+
+        if (csharpExpressionLiteralNode.Kind == SyntaxKind.MarkupTextLiteral)
+        {
+            // We have a MarkupTextLiteral and need to find the CSharpExpressionLiteral node.
+            // The hierarchy here starting with the parent of the MarkupTextLiteral node is:
+            // MarkupTagHelperDirectiveAttribute > MarkupTagHelperAttributeValue > CSharpExpressionLiteral
+            var markupTagHelperAttributeValueNode = children.FirstOrDefault(c => c.Kind == SyntaxKind.MarkupTagHelperAttributeValue);
+            csharpExpressionLiteralNode = markupTagHelperAttributeValueNode?.ChildNodes()
+                .FirstOrDefault(c => c.Kind == SyntaxKind.CSharpExpressionLiteral);
+            if (csharpExpressionLiteralNode is null)
+            {
+                return false;
+            }
+        }
+
+        var content = csharpExpressionLiteralNode.GetContent();
+        if (!SyntaxFacts.IsValidIdentifier(content))
+        {
+            return false;
+        }
+
+        methodName = content;
+
+        for (var i = 1; i < children.Count; i++)
+        {
+            if (children[i].Kind == SyntaxKind.Equals)
+            {
+                // We assume that the node that contains the event name will always come before the one equals node.
+                var node = children[i - 1];
+                if (node.Kind != SyntaxKind.MarkupTextLiteral)
+                {
+                    return false;
+                }
+
+                eventName = node.GetContent();
+                return true;
+            }
+        }
+
+        return false;
     }
 }

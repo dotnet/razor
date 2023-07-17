@@ -26,8 +26,10 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
     private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor;
 
     private static readonly string s_beginningIndents = $"{FormattingUtilities.InitialIndent}{FormattingUtilities.Indent}";
+    private static readonly string s_methodName = "$$MethodName$$";
+    private static readonly string s_eventArgs = "$$EventArgs$$";
     private static readonly string s_generateMethodTemplate =
-        $"{s_beginningIndents}private void $$MethodName$$(){Environment.NewLine}" +
+        $"{s_beginningIndents}private void {s_methodName}({s_eventArgs} e){Environment.NewLine}" +
         s_beginningIndents + "{" + Environment.NewLine +
         $"{s_beginningIndents}{FormattingUtilities.Indent}throw new System.NotImplementedException();{Environment.NewLine}" +
         s_beginningIndents + "}";
@@ -59,7 +61,8 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
             return null;
         }
 
-        var templateWithMethodName = s_generateMethodTemplate.Replace("$$MethodName$$", actionParams.MethodName);
+        var templateWithMethodNameAndParams = PopulateMethodNameAndParams(documentContext, actionParams);
+
         var code = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var uriPath = FilePathNormalizer.Normalize(actionParams.Uri.GetAbsoluteOrUNCPath());
         var razorClassName = Path.GetFileNameWithoutExtension(uriPath);
@@ -69,7 +72,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
             || razorClassName is null
             || !code.TryComputeNamespace(fallbackToRootNamespace: true, out var razorNamespace))
         {
-            return GenerateMethodInCodeBlock(code, actionParams, templateWithMethodName);
+            return GenerateMethodInCodeBlock(code, actionParams, templateWithMethodNameAndParams);
         }
 
         var content = File.ReadAllText(codeBehindPath);
@@ -79,7 +82,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
         if (@namespace is null)
         {
             // The code behind file is malformed, generate the code in the razor file instead.
-            return GenerateMethodInCodeBlock(code, actionParams, templateWithMethodName);
+            return GenerateMethodInCodeBlock(code, actionParams, templateWithMethodNameAndParams);
         }
 
         var @class = ((BaseNamespaceDeclarationSyntax)@namespace).Members
@@ -87,12 +90,12 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
         if (@class is null)
         {
             // The code behind file is malformed, generate the code in the razor file instead.
-            return GenerateMethodInCodeBlock(code, actionParams, templateWithMethodName);
+            return GenerateMethodInCodeBlock(code, actionParams, templateWithMethodNameAndParams);
         }
 
         var classLocationLineSpan = @class.GetLocation().GetLineSpan();
         var formattedMethod = FormattingUtilities.AddIndentationToMethod(
-            templateWithMethodName,
+            templateWithMethodNameAndParams,
             _razorLSPOptionsMonitor.CurrentValue,
             @class.SpanStart,
             classLocationLineSpan.StartLinePosition.Character,
@@ -131,5 +134,20 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
         };
 
         return new WorkspaceEdit() { DocumentChanges = new[] { razorTextDocEdit } };
+    }
+
+    private static string PopulateMethodNameAndParams(VersionedDocumentContext documentContext, GenerateMethodCodeActionParams actionParams)
+    {
+        var templateWithMethodNameAndParams = s_generateMethodTemplate.Replace(s_methodName, actionParams.MethodName);
+        var eventArgsKey = "Components.EventHandler.EventArgs";
+        var eventTagHelper = documentContext.Project.ProjectWorkspaceState?.TagHelpers
+            .FirstOrDefault(th => th.Name == actionParams.EventName && th.Metadata.ContainsKey(eventArgsKey));
+        if (eventTagHelper is null)
+        {
+            // Couldn't find the params, generate a generic event args parameter instead.
+            return templateWithMethodNameAndParams.Replace(s_eventArgs, "System.EventArgs");
+        }
+
+        return templateWithMethodNameAndParams.Replace(s_eventArgs, eventTagHelper.Metadata[eventArgsKey]);
     }
 }
