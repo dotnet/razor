@@ -3,9 +3,11 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Razor;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -63,12 +65,82 @@ public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
         documentVersionCache.TrackDocumentVersion(document1, 123);
         documentVersionCache.TrackDocumentVersion(document2, 1337);
 
+        var key = new DocumentKey(document1.Project.Key, document1.FilePath);
+
         // Act
-        var result = documentVersionCache.TryGetLatestVersionFromPath(filePath, out var version);
+        var result = documentVersionCache.TryGetLatestVersionFromPath(key, out var version);
 
         // Assert
         Assert.True(result);
         Assert.Equal(1337, version);
+    }
+
+    [Fact]
+    public void TryGetLatestVersionFromPath_DifferentDocument_ReturnsTrue1()
+    {
+        // Arrange
+        var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
+        var filePath = "C:/file.cshtml";
+        var document1 = TestDocumentSnapshot.Create(filePath);
+        var document2 = TestDocumentSnapshot.Create("C:/file2.cshtml");
+        documentVersionCache.TrackDocumentVersion(document1, 123);
+        documentVersionCache.TrackDocumentVersion(document2, 1337);
+
+        var key = new DocumentKey(document1.Project.Key, document1.FilePath);
+
+        // Act
+        var result = documentVersionCache.TryGetLatestVersionFromPath(key, out var version);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(123, version);
+    }
+
+    [Fact]
+    public void TryGetLatestVersionFromPath_DifferentDocument_ReturnsTrue2()
+    {
+        // Arrange
+        var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
+        var filePath = "C:/file.cshtml";
+        var document1 = TestDocumentSnapshot.Create(filePath);
+        var document2 = TestDocumentSnapshot.Create("C:/file2.cshtml");
+        documentVersionCache.TrackDocumentVersion(document1, 123);
+        documentVersionCache.TrackDocumentVersion(document2, 1337);
+        documentVersionCache.TrackDocumentVersion(document1, 456);
+
+        var key = new DocumentKey(document1.Project.Key, document1.FilePath);
+
+        // Act
+        var result = documentVersionCache.TryGetLatestVersionFromPath(key, out var version);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(456, version);
+    }
+
+    [Fact]
+    public void TryGetLatestVersionFromPath_DifferentProject_ReturnsTrue2()
+    {
+        // Arrange
+        var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
+
+        var project1 = TestProjectSnapshot.Create("C:/project1.csproj", "C:/obj/tfm1", Array.Empty<string>(), Language.RazorConfiguration.Default, projectWorkspaceState: null);
+        var project2 = TestProjectSnapshot.Create("C:/project1.csproj", "C:/obj/tfm2", Array.Empty<string>(), Language.RazorConfiguration.Default, projectWorkspaceState: null);
+
+        var filePath = "C:/file.cshtml";
+        var document1 = TestDocumentSnapshot.Create(filePath, string.Empty, VersionStamp.Default, project1);
+        var document2 = TestDocumentSnapshot.Create(filePath, string.Empty, VersionStamp.Default, project2);
+        documentVersionCache.TrackDocumentVersion(document1, 123);
+        documentVersionCache.TrackDocumentVersion(document2, 1337);
+
+        var key = new DocumentKey(document1.Project.Key, document1.FilePath);
+
+        // Act
+        var result = documentVersionCache.TryGetLatestVersionFromPath(key, out var version);
+
+        // Assert
+        Assert.True(result);
+        Assert.Equal(123, version);
     }
 
     [Fact]
@@ -77,8 +149,11 @@ public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
         // Arrange
         var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
 
+        var projectKey = TestProjectKey.Create(@"/obj");
+        var key = new DocumentKey(projectKey, "C:/file.cshtml");
+
         // Act
-        var result = documentVersionCache.TryGetLatestVersionFromPath("C:/file.cshtml", out var version);
+        var result = documentVersionCache.TryGetLatestVersionFromPath(key, out var version);
 
         // Assert
         Assert.False(result);
@@ -191,7 +266,7 @@ public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
 
         // Assert
         var kvp = Assert.Single(documentVersionCache.DocumentLookup);
-        Assert.Equal(document.FilePath, kvp.Key);
+        Assert.Equal(document.FilePath, kvp.Key.DocumentFilePath);
         var entry = Assert.Single(kvp.Value);
         Assert.True(entry.Document.TryGetTarget(out var actualDocument));
         Assert.Same(document, actualDocument);
