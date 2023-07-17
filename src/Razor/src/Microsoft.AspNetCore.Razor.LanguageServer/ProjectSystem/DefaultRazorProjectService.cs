@@ -143,13 +143,7 @@ internal class DefaultRazorProjectService : RazorProjectService
             _logger.LogInformation("Opening document '{textDocumentPath}' in project '{projectSnapshotFilePath}'.", textDocumentPath, projectSnapshot.FilePath);
             _projectSnapshotManagerAccessor.Instance.DocumentOpened(projectSnapshot.Key, textDocumentPath, sourceText);
 
-            TrackDocumentVersion(textDocumentPath, version);
-
-            if (projectSnapshot.GetDocument(textDocumentPath) is { } documentSnapshot)
-            {
-                // Start generating the C# for the document so it can immediately be ready for incoming requests.
-                _ = documentSnapshot.GetGeneratedOutputAsync();
-            }
+            TrackDocumentVersion(projectSnapshot.Key, textDocumentPath, version, startGenerating: true);
         });
     }
 
@@ -212,7 +206,7 @@ internal class DefaultRazorProjectService : RazorProjectService
             _logger.LogTrace("Updating document '{textDocumentPath}' in {projectKey}.", textDocumentPath, project.Key);
             _projectSnapshotManagerAccessor.Instance.DocumentChanged(project.Key, textDocumentPath, sourceText);
 
-            TrackDocumentVersion(textDocumentPath, version);
+            TrackDocumentVersion(project.Key, textDocumentPath, version, startGenerating: false);
         });
     }
 
@@ -508,15 +502,21 @@ internal class DefaultRazorProjectService : RazorProjectService
         }
     }
 
-    private void TrackDocumentVersion(string textDocumentPath, int version)
+    private void TrackDocumentVersion(ProjectKey projectKey, string textDocumentPath, int version, bool startGenerating)
     {
-        // TODO: This should take in the document snapshot
-        if (!_snapshotResolver.TryResolveDocument(textDocumentPath, out var documentSnapshot))
+        // It's important we resolve the project again, as changes could have been made just before this call, and we don't want to track an old snapshot
+        if (!_snapshotResolver.TryResolveDocument(projectKey, textDocumentPath, out var documentSnapshot))
         {
             return;
         }
 
         _documentVersionCache.TrackDocumentVersion(documentSnapshot, version);
+
+        if (startGenerating)
+        {
+            // Start generating the C# for the document so it can immediately be ready for incoming requests.
+            _ = documentSnapshot.GetGeneratedOutputAsync();
+        }
     }
 
     private class DelegatingTextLoader : TextLoader

@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -1215,6 +1216,25 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
 
             documentSnapshot = _miscellaneousProject.GetDocument(documentFilePath);
             return documentSnapshot is not null;
+        }
+
+        public bool TryResolveDocument(ProjectKey projectKey, string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot documentSnapshot)
+        {
+            documentSnapshot = null;
+
+            if (_projectMappings.TryGetValue(documentFilePath, out var projects))
+            {
+                foreach (var project in projects)
+                {
+                    if (project.Key == projectKey)
+                    {
+                        documentSnapshot = project.GetDocument(documentFilePath);
+                        return documentSnapshot is not null;
+                    }
+                }
+            }
+
+            return false;
         }
 
         internal void UpdateProject(string expectedDocumentFilePath, ProjectState projectState)
