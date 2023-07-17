@@ -58,16 +58,25 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
-        var razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range, razorSemanticTokensLegend, _razorLSPOptionsMonitor.CurrentValue.ColorBackground);
+        List<SemanticRange>? razorSemanticRanges = null;
         List<SemanticRange>? csharpSemanticRanges = null;
 
         try
         {
-            csharpSemanticRanges = await GetCSharpSemanticRangesAsync(codeDocument, textDocumentIdentifier, range, razorSemanticTokensLegend, documentContext.Version, correlationId, cancellationToken).ConfigureAwait(false);
+            var csharpSemanticRangesTask = GetCSharpSemanticRangesAsync(
+                codeDocument, textDocumentIdentifier, range, razorSemanticTokensLegend, documentContext.Version, correlationId, cancellationToken);
+
+            razorSemanticRanges = TagHelperSemanticRangeVisitor.VisitAllNodes(codeDocument, range, razorSemanticTokensLegend, _razorLSPOptionsMonitor.CurrentValue.ColorBackground);
+            csharpSemanticRanges = await csharpSemanticRangesTask.ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error thrown while retrieving CSharp semantic range.");
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return null;
         }
 
         var combinedSemanticRanges = CombineSemanticRanges(razorSemanticRanges, csharpSemanticRanges);
@@ -95,19 +104,79 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             return null;
         }
 
-        var newList = new List<SemanticRange>(ranges1.Count + ranges2.Count);
-        newList.AddRange(ranges1);
-        newList.AddRange(ranges2);
-
         // Because SemanticToken data is generated relative to the previous token it must be in order.
-        // We have a guarantee of order within any given language server, but the interweaving of them can be quite complex.
+        // We have a guarantee of order within any given language server, but when we translate from the ranges
+        // in the C# document to ranges into the Razor document we lose that guarantee.
+        // Having converted them to SemanticRange objects, we can simply do the final round of a merge sort.
+        var newList = new List<SemanticRange>(ranges1.Count + ranges2.Count);
+        var idxRange1 = 0;
+        var idxRange2 = 0;
+        while (idxRange1 < ranges1.Count && idxRange2 < ranges2.Count)
+        {
+            var range1 = ranges1[idxRange1];
+            var range2 = ranges2[idxRange2];
+
+            int comparison = range1.CompareTo(range2);
+
+            if (comparison == 0)
+            {
+                // csharp and razor ranges have the same span; skip the C# item
+                idxRange2++;
+            }
+            if (comparison < 0)
+            {
+                newList.Add(range1);
+                ++idxRange1;
+            }
+            else
+            {
+                newList.Add(range2);
+                ++idxRange2;
+            }
+        }
+
+        while (idxRange1 < ranges1.Count)
+        {
+            newList.Add(ranges1[idxRange1]);
+            ++idxRange1;
+        }
+
+        while (idxRange2 < ranges2.Count)
+        {
+            newList.Add(ranges2[idxRange2]);
+            ++idxRange2;
+        }
+
+#if DEBUG
         // Rather than attempting to reason about transition zones we can simply order our ranges since we know there can be no overlapping range.
-        newList.Sort();
+        var fullSortList = new List<SemanticRange>(newList.Capacity);
+        fullSortList.AddRange(ranges1);
+        fullSortList.AddRange(ranges2);
+
+        fullSortList.Sort();
+        for(var idx = 0; idx < fullSortList.Count; ++idx)
+        {
+            Debug.Assert(Equals(newList[idx], fullSortList[idx]));
+        }
+#endif
 
         return newList;
     }
 
-    // Internal and virtual for testing only
+    /// <summary>
+    /// Returns a sorted list of SemanticRange objects representing the semantic info
+    /// for the C# regions of the Razor file.
+    ///
+    /// Internal and virtual to enable testing; for running product, no need to override.
+    /// </summary>
+    /// <param name="codeDocument"></param>
+    /// <param name="textDocumentIdentifier"></param>
+    /// <param name="razorRange"></param>
+    /// <param name="documentVersion"></param>
+    /// <param name="correlationId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <param name="previousResultId"></param>
+    /// <returns></returns>
     internal virtual async Task<List<SemanticRange>?> GetCSharpSemanticRangesAsync(
         RazorCodeDocument codeDocument,
         TextDocumentIdentifier textDocumentIdentifier,
@@ -128,6 +197,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             return new List<SemanticRange>();
         }
 
+        // We expect that the response is sorted already.
         var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, correlationId, cancellationToken).ConfigureAwait(false);
 
         // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
@@ -173,6 +243,11 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
             previousSemanticRange = semanticRange;
         }
+
+        // The ranges are sorted by the C# document, but we need to sort them by the Razor
+        // document since we mapped all the ranges and the mapping does not necessarily
+        // maintain the ordering.
+        razorRanges.Sort();
 
         return razorRanges;
     }
@@ -343,17 +418,19 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     {
         SemanticRange? previousResult = null;
 
+        var data = new int[semanticRanges.Count * TokenSize];
+        var semanticRangeCount = 0;
         var sourceText = razorCodeDocument.GetSourceText();
 
-        // We don't bother filtering out duplicate ranges (eg, where C# and Razor both have opinions), but instead take advantage of
-        // our sort algorithm to be correct, so we can skip duplicates here. That means our final array may end up smaller than the
-        // expected size, so we have to use a list to build it.
-        using var _ = ListPool<int>.GetPooledObject(out var data);
-        data.SetCapacityIfLarger(semanticRanges.Count * TokenSize);
+        if (sourceText is null)
+        {
+            return Array.Empty<int>();
+        }
 
         foreach (var result in semanticRanges)
         {
-            AppendData(result, previousResult, sourceText, data);
+            AppendData(result, previousResult, sourceText, data, semanticRangeCount);
+            semanticRangeCount += TokenSize;
 
             previousResult = result;
         }
@@ -365,7 +442,8 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             SemanticRange currentRange,
             SemanticRange? previousRange,
             SourceText sourceText,
-            List<int> data)
+            int[] targetArray,
+            int currentCount)
         {
             /*
              * In short, each token takes 5 integers to represent, so a specific token `i` in the file consists of the following array indices:

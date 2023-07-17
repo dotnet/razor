@@ -65,7 +65,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         ProjectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
         PagesDirectory = Path.Combine(projectRoot, "Components", "Pages");
-        var filePath = Path.Combine(PagesDirectory, $"SemanticTokens.razor");
+        var filePath = Path.Combine(PagesDirectory, $"MSN.cshtml");
         TargetPath = "/Components/Pages/SemanticTokens.razor";
 
         var documentUri = new Uri(filePath);
@@ -92,21 +92,24 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
 
         var random = new Random();
         var codeDocument = await DocumentContext.GetCodeDocumentAsync(CancellationToken);
-        PregeneratedRandomSemanticRanges = new List<SemanticRange>(NumberOfCsSemanticRangesToReturn);
+        var pregeneratedRandomSemanticRanges = new List<SemanticRange>(NumberOfCsSemanticRangesToReturn);
         for (var i = 0; i < NumberOfCsSemanticRangesToReturn; i++)
         {
             var startLine = random.Next(Range.Start.Line, Range.End.Line);
             var startChar = random.Next(0, codeDocument.Source.Lines.GetLineLength(startLine));
             var endLine = random.Next(startLine, Range.End.Line);
             var endChar = startLine == endLine
-                ? random.Next(startChar, codeDocument.Source.Lines.GetLineLength(startLine))
+                ? random.Next(startChar+1, codeDocument.Source.Lines.GetLineLength(startLine))
                 : random.Next(0, codeDocument.Source.Lines.GetLineLength(endLine));
 
-            PregeneratedRandomSemanticRanges.Add(
+            pregeneratedRandomSemanticRanges.Add(
                 new SemanticRange(random.Next(),
                     new Range { Start = new Position(startLine, startChar), End = new Position(endLine, endChar) },
-                    0, fromRazor: false));
+                    0));
         }
+
+        pregeneratedRandomSemanticRanges.Sort();
+        PregeneratedRandomSemanticRanges = pregeneratedRandomSemanticRanges;
     }
 
     [Benchmark(Description = "Razor Semantic Tokens Range Endpoint")]
