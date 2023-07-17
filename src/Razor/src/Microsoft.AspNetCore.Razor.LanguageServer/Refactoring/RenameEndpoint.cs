@@ -133,7 +133,6 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
         var fileRename = GetFileRenameForComponent(originComponentDocumentSnapshot, newPath);
         documentChanges.Add(fileRename);
-        var fileRenameUriLookup = new Dictionary<Uri, Uri>() { { fileRename.OldUri, fileRename.NewUri } };
         AddEditsForCodeDocument(documentChanges, originTagHelpers, request.NewName, request.TextDocument.Uri, codeDocument);
 
         var documentSnapshots = await GetAllDocumentSnapshotsAsync(documentContext, cancellationToken).ConfigureAwait(false);
@@ -146,9 +145,9 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         foreach (var documentChange in documentChanges)
         {
             if (documentChange.TryGetFirst(out var textDocumentEdit) &&
-                fileRenameUriLookup.TryGetValue(textDocumentEdit.TextDocument.Uri, out var renamedUri))
+                textDocumentEdit.TextDocument.Uri == fileRename.OldUri)
             {
-                textDocumentEdit.TextDocument.Uri = renamedUri;
+                textDocumentEdit.TextDocument.Uri = fileRename.NewUri;
             }
         }
 
