@@ -45,7 +45,7 @@ public class DocumentSymbolEndpointTest : SingleServerDelegatingEndpointTestBase
             
             """);
 
-    private async Task VerifyRazorFoldsAsync(string input)
+    private async Task VerifyDocumentSymbolsAsync(string input)
     {
         TestFileMarkupParser.GetSpans(input, out input, out ImmutableDictionary<string, ImmutableArray<TextSpan>>  spansDict);
         var codeDocument = CreateCodeDocument(input);
