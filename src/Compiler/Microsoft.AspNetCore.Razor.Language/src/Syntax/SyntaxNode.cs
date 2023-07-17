@@ -428,7 +428,7 @@ internal abstract partial class SyntaxNode
     /// </summary>
     /// <param name="position">The character position of the token relative to the beginning of the file.</param>
     /// <param name="includeWhitespace">
-    /// True to return whitespace or newline tokens. If false, finds the closes nonwhitespace, nonnewline token that matches the following algorithm:
+    /// True to return whitespace or newline tokens. If false, finds the closest non-whitespace, non-newline token that matches the following algorithm:
     /// <list type="number">
     /// <item>
     /// <description>
@@ -560,11 +560,11 @@ internal abstract partial class SyntaxNode
                 throw new ArgumentOutOfRangeException(nameof(position));
             }
 
-            static bool? walkNodeChildren(SyntaxNode parent, int nodeIndexInParent, bool walkBackwards, bool stopOnNewline, [NotNullWhen(true)] out SyntaxToken? foundToken)
+            static bool? walkNodeChildren(SyntaxNode parent, int startIndex, bool walkBackwards, bool stopOnNewline, [NotNullWhen(true)] out SyntaxToken? foundToken)
             {
                 Debug.Assert(parent != null, "Node should have been out of range of the document");
 
-                if (nodeIndexInParent == RootNodeIndexSentinel)
+                if (startIndex == RootNodeIndexSentinel)
                 {
                     // We're before or after the root that was asked for. We're out of range of the request.
                     throw new ArgumentOutOfRangeException(nameof(position));
@@ -574,7 +574,7 @@ internal abstract partial class SyntaxNode
                     ? (-1, -1)
                     : (1, ChildSyntaxList.CountNodes(parent!.Green));
 
-                for (int currentIndex = nodeIndexInParent + indexIncrement; currentIndex != endIndex; currentIndex += indexIncrement)
+                for (int currentIndex = startIndex + indexIncrement; currentIndex != endIndex; currentIndex += indexIncrement)
                 {
                     var currentChild = ChildSyntaxList.ItemInternal(parent, currentIndex);
                     switch (currentChild.Kind)
@@ -598,7 +598,7 @@ internal abstract partial class SyntaxNode
                                 // The previous node is something complex. Walk its children to find a desired token.
                                 // If this ever becomes a stack overflow concern, we could make it iterative, but this is much
                                 // simpler for now.
-                                switch (walkNodeChildren(parent: currentChild, nodeIndexInParent: walkBackwards ? ChildSyntaxList.CountNodes(currentChild.Green) : -1, walkBackwards, stopOnNewline, out foundToken))
+                                switch (walkNodeChildren(parent: currentChild, startIndex: walkBackwards ? ChildSyntaxList.CountNodes(currentChild.Green) : -1, walkBackwards, stopOnNewline, out foundToken))
                                 {
                                     case true:
                                         return true;

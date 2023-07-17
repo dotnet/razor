@@ -31,7 +31,7 @@ public class FindTokenTests
         return RazorSyntaxTree.Parse(new StringSourceDocument(text, System.Text.Encoding.Default, RazorSourceDocumentProperties.Default));
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7505")]
     public void ReturnsEofOnFileEnd()
     {
         var text = "<div></div>$$";
@@ -70,6 +70,28 @@ public class FindTokenTests
     public void ReturnsCloseAngle()
     {
         var text = "<div$$></div>";
+        var (tree, position) = ParseWithPosition(text);
+
+        var token = tree.Root.FindToken(position);
+
+        AssertEx.Equal("""CloseAngle;[>];""", SyntaxSerializer.Serialize(token).Trim());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7630")]
+    public void ReturnsEof_AfterVoidTag()
+    {
+        var text = "<input>$$";
+        var (tree, position) = ParseWithPosition(text);
+
+        var token = tree.Root.FindToken(position);
+
+        AssertEx.Equal("""EndOfFile;[];""", SyntaxSerializer.Serialize(token).Trim());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7630")]
+    public void ReturnsCloseAngle_AfterVoidTagWithTrailingSpace()
+    {
+        var text = "<input>$$ ";
         var (tree, position) = ParseWithPosition(text);
 
         var token = tree.Root.FindToken(position);
@@ -233,7 +255,8 @@ public class FindTokenTests
         var text = """
         @if (true)
         {
-        $$}
+            $$
+        }
         """;
         var (tree, position) = ParseWithPosition(text);
 
@@ -246,6 +269,21 @@ public class FindTokenTests
     public void CSharpTransition_10()
     {
         var text = """
+        @if (true)
+        {
+        $$}
+        """;
+        var (tree, position) = ParseWithPosition(text);
+
+        var token = tree.Root.FindToken(position);
+
+        AssertEx.Equal("""RightBrace;[}];""", SyntaxSerializer.Serialize(token).Trim());
+    }
+
+    [Fact]
+    public void CSharpTransition_11()
+    {
+        var text = """
         <div attr=$$@value />
         """;
         var (tree, position) = ParseWithPosition(text);
@@ -256,7 +294,7 @@ public class FindTokenTests
     }
 
     [Fact]
-    public void CSharpTransition_11()
+    public void CSharpTransition_12()
     {
         var text = """
         <div attr=@$$value />
@@ -388,13 +426,16 @@ public class FindTokenTests
         AssertEx.Equal("""OpenAngle;[<];""", SyntaxSerializer.Serialize(token).Trim());
     }
 
-    [Fact]
-    public void HtmlTransition_02()
+    [Theory, WorkItem("https://github.com/dotnet/razor/issues/7630")]
+    [InlineData("div")]
+    [InlineData("div /")]
+    [InlineData("input")]
+    public void HtmlTransition_02(string tagContent)
     {
-        var text = """
+        var text = $$"""
         @if (true)
         {
-            <div />$$
+            <{{tagContent}}>$$
         }
         """;
         var (tree, position) = ParseWithPosition(text);
@@ -402,6 +443,67 @@ public class FindTokenTests
         var token = tree.Root.FindToken(position);
 
         AssertEx.Equal("""CloseAngle;[>];""", SyntaxSerializer.Serialize(token).Trim());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7630")]
+    public void HtmlTransition_03()
+    {
+        var text = """
+        @if (true)
+        {
+            <div><em>$$</div>
+        }
+        """;
+        var (tree, position) = ParseWithPosition(text);
+
+        var token = tree.Root.FindToken(position);
+
+        AssertEx.Equal("""OpenAngle;[<];""", SyntaxSerializer.Serialize(token).Trim());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7630")]
+    public void HtmlTransition_04()
+    {
+        var text = """
+        @if (true)
+        {
+            <div><em$$></div>
+        }
+        """;
+        var (tree, position) = ParseWithPosition(text);
+
+        var token = tree.Root.FindToken(position);
+
+        AssertEx.Equal("""CloseAngle;[>];""", SyntaxSerializer.Serialize(token).Trim());
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/razor/issues/7505")]
+    [CombinatorialData]
+    public void HtmlTransition_05(bool withComment)
+    {
+        var commentText = withComment ?
+        """
+
+                <!--asdfasd-->
+        """
+        : "";
+        var text = $$"""
+        @foreach (var num in Enumerable.Range(1, 10))
+        {
+            <span class="skill_result btn">{{commentText}}
+                $$<span style="margin-left:0px">
+                    <svg>
+                        <rect width="1" height="1" />
+                    </svg>
+                </span>
+            </span>
+        }
+        """;
+        var (tree, position) = ParseWithPosition(text);
+
+        var token = tree.Root.FindToken(position);
+
+        AssertEx.Equal("""OpenAngle;[<];""", SyntaxSerializer.Serialize(token).Trim());
     }
 
     [Fact]
