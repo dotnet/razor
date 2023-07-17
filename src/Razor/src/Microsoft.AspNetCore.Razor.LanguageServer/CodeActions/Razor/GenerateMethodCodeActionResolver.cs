@@ -125,9 +125,9 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
         return new WorkspaceEdit() { DocumentChanges = new[] { codeBehindTextDocEdit } };
     }
 
-    private WorkspaceEdit GenerateMethodInCodeBlock(RazorCodeDocument code, GenerateMethodCodeActionParams actionParams, string templateWithMethodName)
+    private WorkspaceEdit GenerateMethodInCodeBlock(RazorCodeDocument code, GenerateMethodCodeActionParams actionParams, string templateWithMethodSignature)
     {
-        var edit = CodeBlockService.CreateFormattedTextEdit(code, templateWithMethodName, _razorLSPOptionsMonitor.CurrentValue);
+        var edit = CodeBlockService.CreateFormattedTextEdit(code, templateWithMethodSignature, _razorLSPOptionsMonitor.CurrentValue);
         var razorTextDocEdit = new TextDocumentEdit()
         {
             TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = actionParams.Uri },
