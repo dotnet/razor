@@ -596,7 +596,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
         {
             var currentEntry = GetCurrentEntry(project);
             var currentHostProject = currentEntry.State.HostProject;
-            var newHostProject = new HostProject(currentHostProject.FilePath, configuration, rootNamespace);
+            var newHostProject = new HostProject(currentHostProject.FilePath, currentHostProject.IntermediateOutputPath, configuration, rootNamespace);
             var newEntry = new Entry(currentEntry.State.WithHostProject(newHostProject));
             updatedProjectsMap[project.Key] = newEntry;
             changesToNotify.Add(new ProjectChangeEventArgs(currentEntry.GetSnapshot(), newEntry.GetSnapshot(), ProjectChangeKind.ProjectChanged));

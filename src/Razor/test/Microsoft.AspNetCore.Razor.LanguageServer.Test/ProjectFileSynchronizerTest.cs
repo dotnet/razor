@@ -19,21 +19,22 @@ public class ProjectFileSynchronizerTest : LanguageServerTestBase
     {
     }
 
-    [Fact]
-    public void ProjectFileChanged_Added_AddsProject()
-    {
-        // Arrange
-        var projectPath = "/path/to/project.csproj";
-        var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
-        projectService.Setup(service => service.AddProject(projectPath, null)).Verifiable();
-        var synchronizer = new ProjectFileSynchronizer(LegacyDispatcher, projectService.Object);
+    // TODO: This method was commented out. If it ends up being removed, this test should be too.
+    //[Fact]
+    //public void ProjectFileChanged_Added_AddsProject()
+    //{
+    //    // Arrange
+    //    var projectPath = "/path/to/project.csproj";
+    //    var projectService = new Mock<RazorProjectService>(MockBehavior.Strict);
+    //    projectService.Setup(service => service.AddProject(projectPath, "/path/to/obj", null)).Verifiable();
+    //    var synchronizer = new ProjectFileSynchronizer(LegacyDispatcher, projectService.Object);
 
-        // Act
-        synchronizer.ProjectFileChanged(projectPath, RazorFileChangeKind.Added);
+    //    // Act
+    //    synchronizer.ProjectFileChanged(projectPath, RazorFileChangeKind.Added);
 
-        // Assert
-        projectService.VerifyAll();
-    }
+    //    // Assert
+    //    projectService.VerifyAll();
+    //}
 
     [Fact]
     public void ProjectFileChanged_Removed_RemovesProject()
