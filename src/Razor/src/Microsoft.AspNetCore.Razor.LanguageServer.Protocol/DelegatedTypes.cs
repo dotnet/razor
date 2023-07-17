@@ -68,4 +68,4 @@ internal record DelegatedProjectContextsParams(
     VersionedTextDocumentIdentifier HostDocument);
 
 internal record DelegatedDocumentSymbolParams(
-    VSVersionedTextDocumentIdentifier HostDocument);
+    VersionedTextDocumentIdentifier HostDocument);

@@ -866,7 +866,6 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
                 TextDocument = new VSTextDocumentIdentifier()
                 {
                     Uri = _csharpDocumentUri,
-                    ProjectContext = hoverParams.HostDocument.ProjectContext,
                 },
                 Position = hoverParams.ProjectedPosition
             };

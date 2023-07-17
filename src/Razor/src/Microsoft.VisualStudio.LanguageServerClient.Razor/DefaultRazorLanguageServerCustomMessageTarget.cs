@@ -1300,38 +1300,6 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         return response?.Response;
     }
 
-    private async Task<TResult?> DelegateTextDocumentPositionRequestAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
-    {
-        var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
-        if (delegationDetails is null)
-        {
-            return default;
-        }
-
-        var positionParams = new TextDocumentPositionParams()
-        {
-            TextDocument = new TextDocumentIdentifier()
-            {
-                Uri = delegationDetails.Value.ProjectedUri,
-            },
-            Position = request.ProjectedPosition,
-        };
-
-        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, TResult?>(
-            delegationDetails.Value.TextBuffer,
-            methodName,
-            delegationDetails.Value.LanguageServerName,
-            positionParams,
-            cancellationToken).ConfigureAwait(false);
-
-        if (response is null)
-        {
-            return default;
-        }
-
-        return response.Response;
-    }
-
     private async Task<TResult?> DelegateTextDocumentPositionAndProjectContextAsync<TResult>(DelegatedPositionAndProjectContextParams request, string methodName, CancellationToken cancellationToken)
     {
         var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
@@ -1345,7 +1313,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             TextDocument = new VSTextDocumentIdentifier()
             {
                 Uri = delegationDetails.Value.ProjectedUri,
-                ProjectContext = request.HostDocument.ProjectContext,
+                ProjectContext = null,
             },
             Position = request.ProjectedPosition,
         };
