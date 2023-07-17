@@ -387,12 +387,12 @@ public class BackgroundDocumentGeneratorTest : ProjectSnapshotManagerDispatcherW
         {
         }
 
-        public override void SuppressDocument(string projectFilePath, string documentFilePath)
+        public override void SuppressDocument(ProjectKey projectFilePath, string documentFilePath)
         {
             _dynamicDocuments[documentFilePath] = null;
         }
 
-        public override void UpdateFileInfo(string projectFilePath, DynamicDocumentContainer documentContainer)
+        public override void UpdateFileInfo(ProjectKey projectKey, DynamicDocumentContainer documentContainer)
         {
             _dynamicDocuments[documentContainer.FilePath] = documentContainer;
         }
