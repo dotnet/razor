@@ -10,4 +10,5 @@ internal class GenerateMethodCodeActionParams
     public required Uri Uri { get; set; }
     public required string MethodName { get; set; }
     public required string EventName { get; set;}
+    public required bool IsAsync { get; set; }
 }

@@ -46,23 +46,31 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
         return s_emptyResult;
     }
 
-    private static List<RazorVSInternalCodeAction> CreateCodeAction(GenerateMethodCodeActionParams @params)
+    private static List<RazorVSInternalCodeAction> CreateCodeAction(GenerateMethodCodeActionParams[] @params)
     {
-        var resolutionParams = new RazorCodeActionResolutionParams()
+        var result = new List<RazorVSInternalCodeAction>();
+        foreach (var param in @params)
         {
-            Action = LanguageServerConstants.CodeActions.GenerateEventHandler,
-            Language = LanguageServerConstants.CodeActions.Languages.Razor,
-            Data = @params,
-        };
+            var resolutionParams = new RazorCodeActionResolutionParams()
+            {
+                Action = LanguageServerConstants.CodeActions.GenerateEventHandler,
+                Language = LanguageServerConstants.CodeActions.Languages.Razor,
+                Data = param,
+            };
 
-        var codeAction = RazorCodeActionFactory.CreateGenerateMethod(resolutionParams);
-        return new List<RazorVSInternalCodeAction> { codeAction };
+            var codeAction = param.IsAsync
+                ? RazorCodeActionFactory.CreateAsyncGenerateMethod(resolutionParams)
+                : RazorCodeActionFactory.CreateGenerateMethod(resolutionParams);
+            result.Add(codeAction);
+        }
+
+        return result;
     }
 
     private static bool IsGenerateEventHandlerValid(
         SyntaxNode owner,
         RazorCodeActionContext context,
-        [NotNullWhen(true)] out GenerateMethodCodeActionParams? @params)
+        [NotNullWhen(true)] out GenerateMethodCodeActionParams[]? @params)
     {
         @params = null;
 
@@ -79,11 +87,22 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             return false;
         }
 
-        @params = new GenerateMethodCodeActionParams()
+        @params = new[]
         {
-            Uri = context.Request.TextDocument.Uri,
-            MethodName = methodName,
-            EventName = eventName
+            new GenerateMethodCodeActionParams()
+            {
+                Uri = context.Request.TextDocument.Uri,
+                MethodName = methodName,
+                EventName = eventName,
+                IsAsync = false,
+            },
+            new GenerateMethodCodeActionParams()
+            {
+                Uri = context.Request.TextDocument.Uri,
+                MethodName = methodName,
+                EventName = eventName,
+                IsAsync = true,
+            }
         };
 
         return true;
