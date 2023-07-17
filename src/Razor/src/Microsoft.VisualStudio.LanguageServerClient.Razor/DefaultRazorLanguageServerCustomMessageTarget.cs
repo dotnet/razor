@@ -145,6 +145,8 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             return;
         }
 
+        // TODO: Use request.ProjectKeyId somehow
+
         var hostDocumentUri = new Uri(request.HostDocumentFilePath);
         _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
             hostDocumentUri,
@@ -172,6 +174,8 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         {
             return;
         }
+
+        // TODO: Use request.ProjectKeyId somehow
 
         var hostDocumentUri = new Uri(request.HostDocumentFilePath);
         _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(
