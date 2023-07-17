@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -12,17 +11,16 @@ internal class VersionedDocumentContext : DocumentContext
 {
     public virtual int Version { get; }
 
-    public VersionedDocumentContext(Uri uri, IDocumentSnapshot snapshot, int version, VSProjectContext? projectContext)
-        : base(uri, snapshot, projectContext)
+    public VersionedDocumentContext(Uri uri, IDocumentSnapshot snapshot, int version)
+        : base(uri, snapshot)
     {
         Version = version;
     }
 
     // Sadly we target net472 which doesn't support covariant return types, so this can't override.
-    public new VSVersionedTextDocumentIdentifier Identifier => new VSVersionedTextDocumentIdentifier()
+    public new VersionedTextDocumentIdentifier Identifier => new VersionedTextDocumentIdentifier()
     {
         Uri = Uri,
         Version = Version,
-        ProjectContext = ProjectContext,
     };
 }

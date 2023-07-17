@@ -29,11 +29,10 @@ internal class ProjectContextsEndpoint : IRazorRequestHandler<VSGetProjectContex
         serverCapabilities.ProjectContextProvider = true;
     }
 
-    public VSTextDocumentIdentifier GetTextDocumentIdentifier(VSGetProjectContextsParams request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(VSGetProjectContextsParams request)
         => new()
         {
-            Uri = request.TextDocument.Uri,
-            ProjectContext = null, // not needed, we're getting all of the project contexts for this call
+            Uri = request.TextDocument.Uri
         };
 
     public async Task<VSProjectContextList> HandleRequestAsync(VSGetProjectContextsParams request, RazorRequestContext context, CancellationToken cancellationToken)

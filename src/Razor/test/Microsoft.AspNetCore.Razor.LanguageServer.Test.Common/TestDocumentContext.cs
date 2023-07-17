@@ -16,7 +16,7 @@ internal static class TestDocumentContext
     public static DocumentContext Create(Uri uri, string text)
     {
         var snapshot = TestDocumentSnapshot.Create(uri.GetAbsoluteOrUNCPath(), text);
-        return new DocumentContext(uri, snapshot, null);
+        return new DocumentContext(uri, snapshot);
     }
 
     public static VersionedDocumentContext From(string filePath, RazorCodeDocument codeDocument, int hostDocumentVersion)
@@ -25,7 +25,7 @@ internal static class TestDocumentContext
         var documentSnapshot = TestDocumentSnapshot.Create(filePath, content);
         documentSnapshot.With(codeDocument);
         var uri = new Uri(filePath);
-        return new VersionedDocumentContext(uri, documentSnapshot, hostDocumentVersion, null);
+        return new VersionedDocumentContext(uri, documentSnapshot, hostDocumentVersion);
     }
 
     public static DocumentContext From(string filePath, RazorCodeDocument codeDocument)
@@ -34,7 +34,7 @@ internal static class TestDocumentContext
         var documentSnapshot = TestDocumentSnapshot.Create(filePath, content);
         documentSnapshot.With(codeDocument);
         var uri = new Uri(filePath);
-        return new DocumentContext(uri, documentSnapshot, null);
+        return new DocumentContext(uri, documentSnapshot);
     }
 
     public static DocumentContext From(string filePath)

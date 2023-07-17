@@ -31,9 +31,9 @@ internal class WrapWithTagEndpoint : IRazorRequestHandler<WrapWithTagParams, Wra
 
     public bool MutatesSolutionState => false;
 
-    public VSTextDocumentIdentifier GetTextDocumentIdentifier(WrapWithTagParams request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(WrapWithTagParams request)
     {
-        return request.TextDocument.AsVSTextDocumentIdentifier();
+        return request.TextDocument;
     }
 
     public async Task<WrapWithTagResponse?> HandleRequestAsync(WrapWithTagParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)

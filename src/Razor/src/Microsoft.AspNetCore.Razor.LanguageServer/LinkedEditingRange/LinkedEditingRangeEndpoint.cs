@@ -45,9 +45,9 @@ internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRa
         serverCapabilities.LinkedEditingRangeProvider = new LinkedEditingRangeOptions();
     }
 
-    public VSTextDocumentIdentifier GetTextDocumentIdentifier(LinkedEditingRangeParams request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(LinkedEditingRangeParams request)
     {
-        return request.TextDocument.AsVSTextDocumentIdentifier();
+        return request.TextDocument;
     }
 
     public async Task<LinkedEditingRanges?> HandleRequestAsync(

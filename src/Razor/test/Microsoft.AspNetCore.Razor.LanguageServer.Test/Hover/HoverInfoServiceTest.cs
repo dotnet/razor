@@ -601,7 +601,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
 
         var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         languageServerMock
-            .Setup(c => c.SendRequestAsync<IDelegatedParams, VSInternalHover>(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, It.IsAny<DelegatedPositionParams>(), It.IsAny<CancellationToken>()))
+            .Setup(c => c.SendRequestAsync<IDelegatedParams, VSInternalHover>(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, It.IsAny<DelegatedPositionAndProjectContextParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(delegatedHover);
 
         var documentMappingServiceMock = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
@@ -788,7 +788,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
             d.GetTextAsync() == Task.FromResult(sourceText) &&
             d.Project == projectSnapshot, MockBehavior.Strict);
 
-        var documentContext = new VersionedDocumentContext(new Uri(path), snapshot, 1337, null);
+        var documentContext = new VersionedDocumentContext(new Uri(path), snapshot, 1337);
 
         return documentContext;
     }
@@ -859,7 +859,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         public override async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         {
             Assert.Equal(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, method);
-            var hoverParams = Assert.IsType<DelegatedPositionParams>(@params);
+            var hoverParams = Assert.IsType<DelegatedPositionAndProjectContextParams>(@params);
 
             var hoverRequest = new TextDocumentPositionParams()
             {

@@ -5,7 +5,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -14,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentSynchronization;
 
 [LanguageServerEndpoint(Methods.TextDocumentDidCloseName)]
-internal class DocumentDidCloseEndpoint : IRazorNotificationHandler<DidCloseTextDocumentParams>, ITextDocumentIdentifierHandler<DidCloseTextDocumentParams, VSTextDocumentIdentifier>
+internal class DocumentDidCloseEndpoint : IRazorNotificationHandler<DidCloseTextDocumentParams>, ITextDocumentIdentifierHandler<DidCloseTextDocumentParams, TextDocumentIdentifier>
 {
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly RazorProjectService _projectService;
@@ -29,9 +28,9 @@ internal class DocumentDidCloseEndpoint : IRazorNotificationHandler<DidCloseText
         _projectService = projectService ?? throw new ArgumentNullException(nameof(projectService));
     }
 
-    public VSTextDocumentIdentifier GetTextDocumentIdentifier(DidCloseTextDocumentParams request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(DidCloseTextDocumentParams request)
     {
-        return request.TextDocument.AsVSTextDocumentIdentifier();
+        return request.TextDocument;
     }
 
     public async Task HandleNotificationAsync(DidCloseTextDocumentParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)

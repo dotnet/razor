@@ -47,7 +47,7 @@ internal sealed class ImplementationEndpoint : AbstractRazorDelegatingEndpoint<T
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
-        return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
+        return Task.FromResult<IDelegatedParams?>(new DelegatedPositionAndProjectContextParams(
                 documentContext.Identifier,
                 positionInfo.Position,
                 positionInfo.LanguageKind));

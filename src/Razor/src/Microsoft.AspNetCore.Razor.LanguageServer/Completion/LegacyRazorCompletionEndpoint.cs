@@ -64,9 +64,9 @@ internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
         };
     }
 
-    public VSTextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(CompletionParams request)
     {
-        return request.TextDocument.AsVSTextDocumentIdentifier();
+        return request.TextDocument;
     }
 
     public async Task<VSInternalCompletionList?> HandleRequestAsync(CompletionParams request, RazorRequestContext requestContext, CancellationToken cancellationToken)

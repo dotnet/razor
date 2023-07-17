@@ -193,7 +193,7 @@ public class DocumentHighlightEndpointTest : LanguageServerTestBase
         public override async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         {
             Assert.Equal(RazorLanguageServerCustomMessageTargets.RazorDocumentHighlightEndpointName, method);
-            var highlightParams = Assert.IsType<DelegatedPositionParams>(@params);
+            var highlightParams = Assert.IsType<DelegatedPositionAndProjectContextParams>(@params);
 
             var highlightRequest = new DocumentHighlightParams()
             {

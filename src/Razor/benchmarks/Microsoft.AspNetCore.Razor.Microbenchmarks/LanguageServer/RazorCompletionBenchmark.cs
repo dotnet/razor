@@ -74,7 +74,7 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
 
         RazorPosition = ToPosition(razorCodeActionIndex);
 
-        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, 1, null);
+        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, 1);
         RazorRequestContext = new RazorRequestContext(documentContext, Logger, languageServer.GetLspServices());
 
         Position ToPosition(int index)

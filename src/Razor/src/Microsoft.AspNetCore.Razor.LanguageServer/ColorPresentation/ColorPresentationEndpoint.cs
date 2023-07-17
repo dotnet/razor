@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -32,8 +31,8 @@ internal sealed class ColorPresentationEndpoint : IRazorRequestHandler<ColorPres
 
     public bool MutatesSolutionState => false;
 
-    public VSTextDocumentIdentifier GetTextDocumentIdentifier(ColorPresentationParams request)
-        => request.TextDocument.AsVSTextDocumentIdentifier();
+    public TextDocumentIdentifier GetTextDocumentIdentifier(ColorPresentationParams request)
+        => request.TextDocument;
 
     public async Task<ColorPresentation[]> HandleRequestAsync(ColorPresentationParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {

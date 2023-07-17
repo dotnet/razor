@@ -238,7 +238,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
 
         private async Task<VSInternalReferenceItem[]> HandleReferencesAsync<TParams>(TParams @params)
         {
-            var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
+            var delegatedParams = Assert.IsType<DelegatedPositionAndProjectContextParams>(@params);
             var delegatedRequest = new TextDocumentPositionParams()
             {
                 TextDocument = new VSTextDocumentIdentifier()
@@ -259,7 +259,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
 
         private async Task<DefinitionResult?> HandleDefinitionAsync<T>(T @params)
         {
-            var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
+            var delegatedParams = Assert.IsType<DelegatedPositionAndProjectContextParams>(@params);
             var delegatedRequest = new TextDocumentPositionParams()
             {
                 TextDocument = new VSTextDocumentIdentifier()
@@ -280,7 +280,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
 
         private async Task<ImplementationResult> HandleImplementationAsync<T>(T @params)
         {
-            var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
+            var delegatedParams = Assert.IsType<DelegatedPositionAndProjectContextParams>(@params);
             var delegatedRequest = new TextDocumentPositionParams()
             {
                 TextDocument = new VSTextDocumentIdentifier()
@@ -301,7 +301,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
 
         private async Task<VisualStudio.LanguageServer.Protocol.SignatureHelp> HandleSignatureHelpAsync<T>(T @params)
         {
-            var delegatedParams = Assert.IsType<DelegatedPositionParams>(@params);
+            var delegatedParams = Assert.IsType<DelegatedPositionAndProjectContextParams>(@params);
             var delegatedRequest = new SignatureHelpParams()
             {
                 TextDocument = new VSTextDocumentIdentifier()

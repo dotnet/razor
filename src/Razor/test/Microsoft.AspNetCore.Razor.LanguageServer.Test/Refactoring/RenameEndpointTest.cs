@@ -558,7 +558,7 @@ public class RenameEndpointTest : LanguageServerTestBase
             d.GetTextAsync() == Task.FromResult(sourceText) &&
             d.Project == projectSnapshot, MockBehavior.Strict);
         var version = 1337;
-        var documentSnapshot = new VersionedDocumentContext(new Uri(item.FilePath), snapshot, version, null);
+        var documentSnapshot = new VersionedDocumentContext(new Uri(item.FilePath), snapshot, version);
 
         return documentSnapshot;
     }

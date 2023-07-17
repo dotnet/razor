@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -22,19 +21,15 @@ internal class DocumentContext
 
     public DocumentContext(
         Uri uri,
-        IDocumentSnapshot snapshot,
-        VSProjectContext? projectContext)
+        IDocumentSnapshot snapshot)
     {
         Uri = uri;
         Snapshot = snapshot;
-        ProjectContext = projectContext;
     }
 
     public virtual Uri Uri { get; }
 
     public virtual IDocumentSnapshot Snapshot { get; }
-
-    public VSProjectContext? ProjectContext { get; }
 
     public virtual string FilePath => Snapshot.FilePath.AssumeNotNull();
 
@@ -42,7 +37,7 @@ internal class DocumentContext
 
     public virtual IProjectSnapshot Project => Snapshot.Project;
 
-    public virtual VSTextDocumentIdentifier Identifier => new VSVersionedTextDocumentIdentifier()
+    public virtual TextDocumentIdentifier Identifier => new VersionedTextDocumentIdentifier()
     {
         Uri = Uri
     };

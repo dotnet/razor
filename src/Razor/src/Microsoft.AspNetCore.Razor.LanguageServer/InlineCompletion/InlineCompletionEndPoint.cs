@@ -55,9 +55,9 @@ internal sealed class InlineCompletionEndpoint : IRazorRequestHandler<VSInternal
         };
     }
 
-    public VSTextDocumentIdentifier GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
     {
-        return request.TextDocument.AsVSTextDocumentIdentifier();
+        return request.TextDocument;
     }
 
     public async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RazorRequestContext requestContext, CancellationToken cancellationToken)

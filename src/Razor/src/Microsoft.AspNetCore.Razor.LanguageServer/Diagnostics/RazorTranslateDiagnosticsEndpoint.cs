@@ -70,12 +70,11 @@ internal class RazorTranslateDiagnosticsEndpoint : IRazorRequestHandler<RazorDia
         };
     }
 
-    public VSTextDocumentIdentifier GetTextDocumentIdentifier(RazorDiagnosticsParams request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(RazorDiagnosticsParams request)
     {
-        return new VSTextDocumentIdentifier
+        return new TextDocumentIdentifier
         {
             Uri = request.RazorDocumentUri,
-            ProjectContext = null, // Where would we get this?
         };
     }
 
