@@ -13,19 +13,19 @@ internal sealed partial class Checksum
     private readonly struct HashData(long data1, long data2, int data3) : IEquatable<HashData>
     {
         [FieldOffset(0)]
-        private readonly long _data1 = data1;
+        public readonly long Data1 = data1;
 
         [FieldOffset(8)]
-        private readonly long _data2 = data2;
+        public readonly long Data2 = data2;
 
         [FieldOffset(16)]
-        private readonly int _data3 = data3;
+        public readonly int Data3 = data3;
 
         public void WriteTo(BinaryWriter writer)
         {
-            writer.Write(_data1);
-            writer.Write(_data2);
-            writer.Write(_data3);
+            writer.Write(Data1);
+            writer.Write(Data2);
+            writer.Write(Data3);
         }
 
         public override bool Equals(object? obj)
@@ -33,14 +33,14 @@ internal sealed partial class Checksum
                Equals(data);
 
         public bool Equals(HashData other)
-            => _data1 == other._data1 &&
-               _data2 == other._data2 &&
-               _data3 == other._data3;
+            => Data1 == other.Data1 &&
+               Data2 == other.Data2 &&
+               Data3 == other.Data3;
 
         public override int GetHashCode()
         {
             // The checksum is already a hash. Just provide a 4-byte value as a well-distributed hash code.
-            return (int)_data1;
+            return (int)Data1;
         }
 
         public static bool operator ==(HashData left, HashData right)
