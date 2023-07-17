@@ -10,7 +10,4 @@ internal class RazorFoldingRangeRequestParam : FoldingRangeParams
 {
     [DataMember(Name = "hostDocumentVersion")]
     public int HostDocumentVersion { get; init; }
-
-    [DataMember(Name = "projectContext")]
-    public VSProjectContext? ProjectContext { get; init; }
 }
