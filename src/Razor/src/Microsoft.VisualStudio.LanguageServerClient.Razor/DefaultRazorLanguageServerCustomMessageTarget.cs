@@ -1273,9 +1273,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
     public override async Task<SumType<DocumentSymbol[], SymbolInformation[]>?> DocumentSymbolsAsync(DelegatedDocumentSymbolParams request, CancellationToken cancellationToken)
     {
-        var hostDocument = request.HostDocument;
+        var hostDocument = request.TextDocument;
         var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
-            hostDocument.Version,
+            request.Version,
             hostDocument.Uri,
             cancellationToken).ConfigureAwait(false);
 
@@ -1286,7 +1286,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var documentSymbolParams = new DocumentSymbolParams()
         {
-            TextDocument = request.HostDocument
+            TextDocument = request.TextDocument.WithUri(virtualDocument.Uri)
         };
 
         var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>?>(
