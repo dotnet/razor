@@ -60,10 +60,11 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
         }
 
         var documentContext = requestContext.GetRequiredDocumentContext();
-        return Task.FromResult<IDelegatedParams?>(new DelegatedPositionAndProjectContextParams(
+        return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
                 positionInfo.Position,
-                positionInfo.LanguageKind));
+                positionInfo.LanguageKind,
+                request.TextDocument.GetProjectContext()));
     }
 
     protected override async Task<VSInternalReferenceItem[]> HandleDelegatedResponseAsync(VSInternalReferenceItem[] delegatedResponse, ReferenceParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)

@@ -54,10 +54,11 @@ internal sealed class HoverEndpoint : AbstractRazorDelegatingEndpoint<TextDocume
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
-        return Task.FromResult<IDelegatedParams?>(new DelegatedPositionAndProjectContextParams(
+        return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
                 positionInfo.Position,
-                positionInfo.LanguageKind));
+                positionInfo.LanguageKind,
+                request.TextDocument.GetProjectContext()));
     }
 
     protected override async Task<VSInternalHover?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
