@@ -136,10 +136,31 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
                 RazorLanguageServerCustomMessageTargets.RazorFoldingRangeEndpoint => await HandleFoldingRangeAsync(),
                 RazorLanguageServerCustomMessageTargets.RazorSpellCheckEndpoint => await HandleSpellCheckAsync(@params),
                 RazorLanguageServerCustomMessageTargets.RazorDocumentSymbolEndpoint => await HandleDocumentSymbolAsync(@params),
+                RazorLanguageServerCustomMessageTargets.RazorProjectContextsEndpoint => await HandleProjectContextsAsync(@params),
                 _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
             };
 
             return (TResponse)result;
+        }
+
+        private async Task<VSProjectContextList> HandleProjectContextsAsync<TParams>(TParams @params)
+        {
+            Assert.IsType<DelegatedProjectContextsParams>(@params);
+
+            var delegatedRequest = new VSGetProjectContextsParams
+            {
+                TextDocument = new TextDocumentItem
+                {
+                    Uri = _csharpDocumentUri,
+                },
+            };
+
+            var result = await _csharpServer.ExecuteRequestAsync<VSGetProjectContextsParams, VSProjectContextList>(
+                VSMethods.GetProjectContextsName,
+                delegatedRequest,
+                _cancellationToken);
+
+            return result;
         }
 
         private async Task<SymbolInformation[]> HandleDocumentSymbolAsync<TParams>(TParams @params)
