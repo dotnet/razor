@@ -658,10 +658,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             {
                 var csharpRequestParams = new FoldingRangeParams()
                 {
-                    TextDocument = new VSTextDocumentIdentifier()
-                    {
-                        Uri = csharpSnapshot.Uri,
-                    }
+                    TextDocument = foldingRangeParams.TextDocument.WithUri(csharpSnapshot.Uri),
                 };
 
                 var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, IEnumerable<FoldingRange>?>(
