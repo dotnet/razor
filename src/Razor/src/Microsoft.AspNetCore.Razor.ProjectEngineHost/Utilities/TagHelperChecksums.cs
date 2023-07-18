@@ -10,49 +10,45 @@ namespace Microsoft.AspNetCore.Razor.Utilities;
 internal static class TagHelperChecksums
 {
     public static Checksum GetChecksum(TagHelperDescriptor value)
+        => ChecksumCache.GetOrCreate(value, static o => CreateChecksum((TagHelperDescriptor)o));
+
+    public static Checksum CreateChecksum(TagHelperDescriptor value)
     {
-        return ChecksumCache.GetOrCreate(value, Create);
+        var builder = new Checksum.Builder();
 
-        static object Create(object obj)
+        builder.AppendData(value.Kind);
+        builder.AppendData(value.Name);
+        builder.AppendData(value.AssemblyName);
+        builder.AppendData(value.DisplayName);
+        builder.AppendData(value.TagOutputHint);
+
+        AppendDocumentation(value.DocumentationObject, builder);
+
+        builder.AppendData(value.CaseSensitive);
+
+        foreach (var descriptor in (AllowedChildTagDescriptor[])value.AllowedChildTags)
         {
-            var builder = new Checksum.Builder();
-
-            var value = (TagHelperDescriptor)obj;
-
-            builder.AppendData(value.Kind);
-            builder.AppendData(value.Name);
-            builder.AppendData(value.AssemblyName);
-            builder.AppendData(value.DisplayName);
-            builder.AppendData(value.TagOutputHint);
-
-            AppendDocumentation(value.DocumentationObject, builder);
-
-            builder.AppendData(value.CaseSensitive);
-
-            foreach (var descriptor in (AllowedChildTagDescriptor[])value.AllowedChildTags)
-            {
-                builder.AppendData(GetChecksum(descriptor));
-            }
-
-            foreach (var descriptor in (BoundAttributeDescriptor[])value.BoundAttributes)
-            {
-                builder.AppendData(GetChecksum(descriptor));
-            }
-
-            foreach (var descriptor in (TagMatchingRuleDescriptor[])value.TagMatchingRules)
-            {
-                builder.AppendData(GetChecksum(descriptor));
-            }
-
-            builder.AppendData(GetChecksum((MetadataCollection)value.Metadata));
-
-            foreach (var diagnostic in (RazorDiagnostic[])value.Diagnostics)
-            {
-                builder.AppendData(GetChecksum(diagnostic));
-            }
-
-            return builder.FreeAndGetChecksum();
+            builder.AppendData(GetChecksum(descriptor));
         }
+
+        foreach (var descriptor in (BoundAttributeDescriptor[])value.BoundAttributes)
+        {
+            builder.AppendData(GetChecksum(descriptor));
+        }
+
+        foreach (var descriptor in (TagMatchingRuleDescriptor[])value.TagMatchingRules)
+        {
+            builder.AppendData(GetChecksum(descriptor));
+        }
+
+        builder.AppendData(GetChecksum((MetadataCollection)value.Metadata));
+
+        foreach (var diagnostic in (RazorDiagnostic[])value.Diagnostics)
+        {
+            builder.AppendData(GetChecksum(diagnostic));
+        }
+
+        return builder.FreeAndGetChecksum();
     }
 
     public static Checksum GetChecksum(AllowedChildTagDescriptor value)
