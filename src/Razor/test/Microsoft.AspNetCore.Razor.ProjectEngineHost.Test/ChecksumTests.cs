@@ -25,6 +25,9 @@ public class ChecksumTests(ITestOutputHelper testOutput) : TestBase(testOutput)
             yield return new object[] { true, s_trueValue, s_trueValue };
             yield return new object[] { true, CreateIntArray(new[] { 1, 2, 3, 4, 5 }), CreateIntArray(new[] { 1, 2, 3, 4, 5 }) };
             yield return new object[] { false, CreateIntArray(new[] { 1, 2, 3, 4, 5 }), CreateIntArray(new[] { 5, 4, 3, 2, 1 }) };
+            yield return new object[] { true, CreateString(null), CreateString(null) };
+            yield return new object[] { false, CreateString("test"), CreateString(null) };
+            yield return new object[] { true, CreateString("test"), CreateString("test") };
         }
     }
 
@@ -54,6 +57,16 @@ public class ChecksumTests(ITestOutputHelper testOutput) : TestBase(testOutput)
         {
             var builder = new Checksum.Builder();
             builder.AppendData(values);
+            return builder.FreeAndGetChecksum();
+        };
+    }
+
+    private static Func<Checksum> CreateString(string? value)
+    {
+        return () =>
+        {
+            var builder = new Checksum.Builder();
+            builder.AppendData(value);
             return builder.FreeAndGetChecksum();
         };
     }
