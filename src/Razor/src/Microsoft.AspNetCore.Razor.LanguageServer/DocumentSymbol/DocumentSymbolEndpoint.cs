@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -21,17 +22,29 @@ internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParam
 {
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly IRazorDocumentMappingService _documentMappingService;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
-    public DocumentSymbolEndpoint(ClientNotifierServiceBase languageServer, IRazorDocumentMappingService documentMappingService)
+    public DocumentSymbolEndpoint(
+        ClientNotifierServiceBase languageServer,
+        IRazorDocumentMappingService documentMappingService,
+        LanguageServerFeatureOptions languageServerFeatureOptions)
     {
         _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+        _languageServerFeatureOptions = languageServerFeatureOptions;
     }
 
     public bool MutatesSolutionState => false;
 
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
+        // TODO: Add an option for this that the client can configure. This turns this off for
+        // VS Code but keeps it on for VS by depending on SingleServerSupport signifying the client.
+        if (!_languageServerFeatureOptions.SingleServerSupport)
+        {
+            return;
+        }
+
         serverCapabilities.DocumentSymbolProvider = new DocumentSymbolOptions()
         {
             WorkDoneProgress = false
