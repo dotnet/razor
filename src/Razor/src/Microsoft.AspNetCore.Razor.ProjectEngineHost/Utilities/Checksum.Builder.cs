@@ -7,11 +7,15 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
 internal sealed partial class Checksum
 {
+    private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool = DefaultPool.Create(IncrementalHashPoolPolicy.Instance);
+    private static readonly ObjectPool<byte[]> s_byteArrayPool = DefaultPool.Create(ByteArrayPoolPolicy.Instance, size: 512);
+
     internal readonly ref struct Builder
     {
         private enum TypeKind : byte
@@ -28,7 +32,7 @@ internal sealed partial class Checksum
 
         // Per-thread array to use as a buffer for appending primitive values to the hash.
         [ThreadStatic]
-        private static readonly byte[] g_buffer = new byte[8];
+        private static byte[]? s_buffer;
 
         private readonly IncrementalHash _hash;
 
@@ -36,6 +40,9 @@ internal sealed partial class Checksum
         {
             _hash = s_incrementalHashPool.Get();
         }
+
+        static byte[] GetBuffer()
+            => s_buffer ??= new byte[8];
 
         public Checksum FreeAndGetChecksum()
         {
@@ -46,26 +53,30 @@ internal sealed partial class Checksum
 
         private static void AppendTypeKind(IncrementalHash hash, TypeKind kind)
         {
-            g_buffer[0] = (byte)kind;
-            hash.AppendData(g_buffer, offset: 0, count: 1);
+            var buffer = GetBuffer();
+            buffer[0] = (byte)kind;
+            hash.AppendData(buffer, offset: 0, count: 1);
         }
 
         private static void AppendBoolValue(IncrementalHash hash, bool value)
         {
-            g_buffer[0] = (byte)(value ? 1 : 0);
-            hash.AppendData(g_buffer, offset: 0, count: sizeof(bool));
+            var buffer = GetBuffer();
+            buffer[0] = (byte)(value ? 1 : 0);
+            hash.AppendData(buffer, offset: 0, count: sizeof(bool));
         }
 
         private static void AppendInt32Value(IncrementalHash hash, int value)
         {
-            BinaryPrimitives.WriteInt32LittleEndian(g_buffer.AsSpan(0, sizeof(int)), value);
-            hash.AppendData(g_buffer, offset: 0, count: sizeof(int));
+            var buffer = GetBuffer();
+            BinaryPrimitives.WriteInt32LittleEndian(buffer.AsSpan(0, sizeof(int)), value);
+            hash.AppendData(buffer, offset: 0, count: sizeof(int));
         }
 
         private static void AppendInt64Value(IncrementalHash hash, long value)
         {
-            BinaryPrimitives.WriteInt64LittleEndian(g_buffer.AsSpan(0, sizeof(long)), value);
-            hash.AppendData(g_buffer, offset: 0, count: sizeof(long));
+            var buffer = GetBuffer();
+            BinaryPrimitives.WriteInt64LittleEndian(buffer.AsSpan(0, sizeof(long)), value);
+            hash.AppendData(buffer, offset: 0, count: sizeof(long));
         }
 
         private static void AppendStringValue(IncrementalHash hash, string value)
@@ -87,7 +98,7 @@ internal sealed partial class Checksum
             }
         }
 
-        private void AppendHashDataValue(IncrementalHash hash, HashData value)
+        private static void AppendHashDataValue(IncrementalHash hash, HashData value)
         {
             AppendInt64Value(hash, value.Data1);
             AppendInt64Value(hash, value.Data2);
@@ -146,6 +157,11 @@ internal sealed partial class Checksum
             }
         }
 
+        public void AppendNull()
+        {
+            AppendTypeKind(_hash, TypeKind.Null);
+        }
+
         public void AppendData(bool value)
         {
             AppendTypeKind(_hash, TypeKind.Bool);
@@ -168,7 +184,7 @@ internal sealed partial class Checksum
         {
             if (value is null)
             {
-                AppendTypeKind(_hash, TypeKind.Null);
+                AppendNull();
                 return;
             }
 

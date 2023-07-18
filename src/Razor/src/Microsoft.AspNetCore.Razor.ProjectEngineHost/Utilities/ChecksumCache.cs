@@ -10,7 +10,8 @@ internal static class ChecksumCache
 {
     private static readonly ConditionalWeakTable<object, object> s_cache = new();
 
-    public static bool TryGetValue(object value, [NotNullWhen(true)] out Checksum? checksum)
+    public static bool TryGetValue<T>(T value, [NotNullWhen(true)] out Checksum? checksum)
+        where T : class
     {
         if (s_cache.TryGetValue(value, out var result))
         {
@@ -22,10 +23,7 @@ internal static class ChecksumCache
         return false;
     }
 
-    public static Checksum GetOrCreate(object value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator)
+    public static Checksum GetOrCreate<T>(T value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator)
+        where T : class
         => (Checksum)s_cache.GetValue(value, checksumCreator);
-
-    public static T GetOrCreate<T>(object value, ConditionalWeakTable<object, object>.CreateValueCallback checksumCreator)
-        where T : IChecksummedObject
-        => (T)s_cache.GetValue(value, checksumCreator);
 }
