@@ -5,7 +5,7 @@
 
   <PropertyGroup>
     <NormalizedPackageId>$(PackageId.Replace('@','').Replace('/','-'))</NormalizedPackageId>
-    <PackageFileName>$(NormalizedPackageId)-$(PackageVersion).tgz</PackageFileName>
+    <PackageFileName>$(NormalizedPackageId)-omnisharp-$(PackageVersion).zip</PackageFileName>
     <PackageJson>$(MSBuildProjectDirectory)\package.json</PackageJson>
     <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$(MSBuildProjectDirectory)\obj\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$([MSBuild]::NormalizeDirectory('$(BaseIntermediateOutputPath)'))$(Configuration)\</IntermediateOutputPath>
