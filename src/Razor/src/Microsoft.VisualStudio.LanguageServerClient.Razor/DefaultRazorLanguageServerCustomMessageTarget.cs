@@ -203,7 +203,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var formattingParams = new DocumentFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { Uri = projectedUri },
+            TextDocument = request.TextDocument.WithUri(projectedUri),
             Options = request.Options
         };
 
@@ -239,7 +239,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         {
             Character = request.Character,
             Position = request.Position,
-            TextDocument = new TextDocumentIdentifier() { Uri = htmlDocument.Uri },
+            TextDocument = request.TextDocument.WithUri(htmlDocument.Uri),
             Options = request.Options
         };
 
@@ -626,7 +626,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         {
             Context = inlineCompletionParams.Context,
             Position = inlineCompletionParams.Position,
-            TextDocument = new TextDocumentIdentifier { Uri = csharpDoc.Uri, },
+            TextDocument = inlineCompletionParams.TextDocument.WithUri(csharpDoc.Uri),
             Options = inlineCompletionParams.Options,
         };
 
@@ -855,10 +855,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         {
             Context = request.Context,
             Position = request.ProjectedPosition,
-            TextDocument = new TextDocumentIdentifier()
-            {
-                Uri = projectedUri,
-            },
+            TextDocument = request.HostDocument.WithUri(projectedUri),
         };
 
         var continueOnCapturedContext = false;
@@ -1066,10 +1063,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var onAutoInsertParams = new VSInternalDocumentOnAutoInsertParams
         {
-            TextDocument = new TextDocumentIdentifier()
-            {
-                Uri = delegationDetails.Value.ProjectedUri,
-            },
+            TextDocument = request.HostDocument.WithUri(delegationDetails.Value.ProjectedUri),
             Position = request.ProjectedPosition,
             Character = request.Character,
             Options = request.Options
@@ -1094,10 +1088,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var validateBreakpointRangeParams = new VSInternalValidateBreakableRangeParams
         {
-            TextDocument = new TextDocumentIdentifier()
-            {
-                Uri = delegationDetails.Value.ProjectedUri,
-            },
+            TextDocument = request.HostDocument.WithUri(delegationDetails.Value.ProjectedUri),
             Range = request.ProjectedRange
         };
 
@@ -1170,10 +1161,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var request = new VSInternalDocumentDiagnosticsParams
         {
-            TextDocument = new TextDocumentIdentifier
-            {
-                Uri = virtualDocument.Uri,
-            },
+            TextDocument = hostDocument.WithUri(virtualDocument.Uri),
         };
 
         var lspMethodName = VSInternalMethods.DocumentPullDiagnosticName;
@@ -1213,10 +1201,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var spellCheckParams = new VSInternalDocumentSpellCheckableParams
         {
-            TextDocument = new TextDocumentIdentifier
-            {
-                Uri = virtualDocument.Uri,
-            },
+            TextDocument = request.HostDocument.WithUri(virtualDocument.Uri),
         };
 
         var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport[]>(
