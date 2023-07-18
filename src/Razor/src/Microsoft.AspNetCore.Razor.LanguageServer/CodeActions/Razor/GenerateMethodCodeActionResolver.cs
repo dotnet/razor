@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
@@ -30,7 +31,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
     private static readonly string s_methodName = "$$MethodName$$";
     private static readonly string s_eventArgs = "$$EventArgs$$";
     private static readonly string s_generateMethodTemplate =
-        $"{s_beginningIndents}private {s_returnType} {s_methodName}({s_eventArgs} e){Environment.NewLine}" +
+        $"{s_beginningIndents}private {s_returnType} {s_methodName}({s_eventArgs}){Environment.NewLine}" +
         s_beginningIndents + "{" + Environment.NewLine +
         $"{s_beginningIndents}{FormattingUtilities.Indent}throw new System.NotImplementedException();{Environment.NewLine}" +
         s_beginningIndents + "}";
@@ -144,12 +145,11 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
         var returnType = actionParams.IsAsync ? "async System.Threading.Tasks.Task" : "void";
         templateWithMethodSignature = templateWithMethodSignature.Replace(s_returnType, returnType);
 
-        var eventArgsKey = "Components.EventHandler.EventArgs";
-        var eventTagHelper = documentContext.Project.ProjectWorkspaceState?.TagHelpers
-            .FirstOrDefault(th => th.Name == actionParams.EventName && th.Metadata.ContainsKey(eventArgsKey));
+        var eventTagHelper = documentContext.Project.TagHelpers
+            .FirstOrDefault(th => th.Name == actionParams.EventName && th.IsEventHandlerTagHelper() && th.GetEventArgsType() is not null);
         var eventArgsType = eventTagHelper is null
-            ? "System.EventArgs" // Couldn't find the params, generate a generic event args parameter instead.
-            : eventTagHelper.Metadata[eventArgsKey];
+            ? string.Empty // Couldn't find the params, generate no params instead.
+            : $"{eventTagHelper.GetEventArgsType()} e";
 
         return templateWithMethodSignature.Replace(s_eventArgs, eventArgsType);
     }

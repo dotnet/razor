@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
@@ -361,13 +362,10 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
     #region RazorCodeAction Tests
 
     [Theory]
-    [InlineData("[||]DoesNotExist", GenerateEventHandlerReturnType, GenerateEventHandlerTitle)]
-    [InlineData("Does[||]NotExist", GenerateEventHandlerReturnType, GenerateEventHandlerTitle)]
-    [InlineData("DoesNotExist[||]", GenerateEventHandlerReturnType, GenerateEventHandlerTitle)]
-    [InlineData("[||]DoesNotExist", GenerateAsyncEventHandlerReturnType, GenerateAsyncEventHandlerTitle)]
-    [InlineData("Does[||]NotExist", GenerateAsyncEventHandlerReturnType, GenerateAsyncEventHandlerTitle)]
-    [InlineData("DoesNotExist[||]", GenerateAsyncEventHandlerReturnType, GenerateAsyncEventHandlerTitle)]
-    public async Task Handle_GenerateMethod_NoCodeBlock(string cursorAndMethodName, string returnType, string codeActionTitle)
+    [InlineData("[||]DoesNotExist")]
+    [InlineData("Does[||]NotExist")]
+    [InlineData("DoesNotExist[||]")]
+    public async Task Handle_GenerateMethod_NoCodeBlock(string cursorAndMethodName)
     {
         var input = $$"""
             <button @onclick="{{cursorAndMethodName}}"></button>
@@ -376,7 +374,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var expected = $$"""
             <button @onclick="DoesNotExist"></button>
             @code {
-                private {{returnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                private {{GenerateEventHandlerReturnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
                 {
                     throw new System.NotImplementedException();
                 }
@@ -386,20 +384,46 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
         await ValidateCodeActionAsync(input,
             expected,
-            codeActionTitle,
+            GenerateEventHandlerTitle,
             razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
             createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
             diagnostics: diagnostics);
     }
 
     [Theory]
-    [InlineData("@code {}", GenerateEventHandlerReturnType, GenerateEventHandlerTitle)]
-    [InlineData("@code {\r\n}", GenerateEventHandlerReturnType, GenerateEventHandlerTitle)]
-    [InlineData("@code {\r\n\r\n}", GenerateEventHandlerReturnType, GenerateEventHandlerTitle)]
-    [InlineData("@code {}", GenerateAsyncEventHandlerReturnType, GenerateAsyncEventHandlerTitle)]
-    [InlineData("@code {\r\n}", GenerateAsyncEventHandlerReturnType, GenerateAsyncEventHandlerTitle)]
-    [InlineData("@code {\r\n\r\n}", GenerateAsyncEventHandlerReturnType, GenerateAsyncEventHandlerTitle)]
-    public async Task Handle_GenerateMethod_Empty_CodeBlock(string codeBlock, string returnType, string codeActionTitle)
+    [InlineData("[||]DoesNotExist")]
+    [InlineData("Does[||]NotExist")]
+    [InlineData("DoesNotExist[||]")]
+    public async Task Handle_GenerateAsyncMethod_NoCodeBlock(string cursorAndMethodName)
+    {
+        var input = $$"""
+            <button @onclick="{{cursorAndMethodName}}"></button>
+            """;
+
+        var expected = $$"""
+            <button @onclick="DoesNotExist"></button>
+            @code {
+                private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
+
+        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
+        await ValidateCodeActionAsync(input,
+            expected,
+            GenerateAsyncEventHandlerTitle,
+            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
+            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
+            diagnostics: diagnostics);
+    }
+
+    [Theory]
+    [InlineData("@code {}")]
+    [InlineData("@code {\r\n}")]
+    [InlineData("@code {\r\n\r\n}")]
+    public async Task Handle_GenerateMethod_Empty_CodeBlock(string codeBlock)
     {
         var input = $$"""
             <button @onclick="[||]DoesNotExist"></button>
@@ -409,7 +433,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var expected = $$"""
             <button @onclick="DoesNotExist"></button>
             @code {
-                private {{returnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                private {{GenerateEventHandlerReturnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
                 {
                     throw new System.NotImplementedException();
                 }
@@ -419,7 +443,37 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
         await ValidateCodeActionAsync(input,
             expected,
-            codeActionTitle,
+            GenerateEventHandlerTitle,
+            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
+            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
+            diagnostics: diagnostics);
+    }
+
+    [Theory]
+    [InlineData("@code {}")]
+    [InlineData("@code {\r\n}")]
+    [InlineData("@code {\r\n\r\n}")]
+    public async Task Handle_GenerateAsyncMethod_Empty_CodeBlock(string codeBlock)
+    {
+        var input = $$"""
+            <button @onclick="[||]DoesNotExist"></button>
+            {{codeBlock}}
+            """;
+
+        var expected = $$"""
+            <button @onclick="DoesNotExist"></button>
+            @code {
+                private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
+
+        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
+        await ValidateCodeActionAsync(input,
+            expected,
+            GenerateAsyncEventHandlerTitle,
             razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
             createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
             diagnostics: diagnostics);
@@ -459,6 +513,43 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
         await ValidateCodeActionAsync(input,
             expected,
             codeActionTitle,
+            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
+            createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
+            diagnostics: diagnostics);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("\r\n")]
+    public async Task Handle_GenerateAsyncMethod_Nonempty_CodeBlock(string spacing)
+    {
+        var input = $$"""
+            <button @onclick="[||]DoesNotExist"></button>
+            @code {
+                public void Exists()
+                {
+                }{{spacing}}
+            }
+            """;
+
+        var expected = $$"""
+            <button @onclick="DoesNotExist"></button>
+            @code {
+                public void Exists()
+                {
+                }
+
+                private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
+
+        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
+        await ValidateCodeActionAsync(input,
+            expected,
+            GenerateAsyncEventHandlerTitle,
             razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
             createRazorCodeActionResolversFn: CreateRazorCodeActionResolversFn,
             diagnostics: diagnostics);
@@ -545,13 +636,10 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
     }
 
     [Theory]
-    [InlineData("", GenerateEventHandlerReturnType, GenerateEventHandlerTitle)]
-    [InlineData("\r\n", GenerateEventHandlerReturnType, GenerateEventHandlerTitle)]
-    [InlineData("\r\npublic void Exists(){}\r\n", GenerateEventHandlerReturnType, GenerateEventHandlerTitle)]
-    [InlineData("", GenerateAsyncEventHandlerReturnType, GenerateAsyncEventHandlerTitle)]
-    [InlineData("\r\n", GenerateAsyncEventHandlerReturnType, GenerateAsyncEventHandlerTitle)]
-    [InlineData("\r\npublic void Exists(){}\r\n", GenerateAsyncEventHandlerReturnType, GenerateAsyncEventHandlerTitle)]
-    public async Task Handle_GenerateMethod_CodeBehindFile_Exists(string spacingOrMethod, string returnType, string codeActionTitle)
+    [InlineData("")]
+    [InlineData("\r\n")]
+    [InlineData("\r\npublic void Exists(){}\r\n")]
+    public async Task Handle_GenerateMethod_CodeBehindFile_Exists(string spacingOrMethod)
     {
         var @namespace = $"Test.{Path.GetTempPath().Replace(":", "_").Replace("\\", ".")[..^1]}";
         var input = """
@@ -576,7 +664,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             {
                 public partial class test
                 {{{spacingOrMethod}}
-                    private {{returnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                    private {{GenerateEventHandlerReturnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
                     {
                         throw new System.NotImplementedException();
                     }
@@ -589,7 +677,52 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             initialCodeBehindContent,
             expectedRazorContent,
             expectedCodeBehindContent,
-            codeActionTitle);
+            GenerateEventHandlerTitle);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("\r\n")]
+    [InlineData("\r\npublic void Exists(){}\r\n")]
+    public async Task Handle_GenerateAsyncMethod_CodeBehindFile_Exists(string spacingOrMethod)
+    {
+        var @namespace = $"Test.{Path.GetTempPath().Replace(":", "_").Replace("\\", ".")[..^1]}";
+        var input = """
+            <button @onclick="[||]DoesNotExist"></button>
+            """;
+
+        var expectedRazorContent = """
+            <button @onclick="DoesNotExist"></button>
+            """;
+
+        var initialCodeBehindContent = $$"""
+            namespace {{@namespace}}
+            {
+                public partial class test
+                {{{spacingOrMethod}}
+                }
+            }
+            """;
+
+        var expectedCodeBehindContent = $$"""
+            namespace {{@namespace}}
+            {
+                public partial class test
+                {{{spacingOrMethod}}
+                    private {{GenerateAsyncEventHandlerReturnType}} DoesNotExist(Microsoft.AspNetCore.Components.Web.MouseEventArgs e)
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+            }
+            """;
+
+        await ValidateCodeBehindFileAsync(
+            input,
+            initialCodeBehindContent,
+            expectedRazorContent,
+            expectedCodeBehindContent,
+            GenerateAsyncEventHandlerTitle);
     }
 
     [Theory]
@@ -841,7 +974,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             : base(filePath, codeDocument, version)
         {
 
-            _tagHelperDescriptors = new() { CreateOnClickTagHelperDescriptor() };
+            _tagHelperDescriptors = CreateTagHelperDescriptors();
             if (tagHelpers is not null)
             {
                 _tagHelperDescriptors.AddRange(tagHelpers);
@@ -862,11 +995,21 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
             return Task.FromResult<VersionedDocumentContext?>(CreateDocumentContext(new Uri(FilePath), testDocumentSnapshot));
         }
 
-        private static TagHelperDescriptor CreateOnClickTagHelperDescriptor()
+        private static List<TagHelperDescriptor> CreateTagHelperDescriptors()
         {
-            var builder = TagHelperDescriptorBuilder.Create("onclick", "Microsoft.AspNetCore.Components");
-            builder.SetMetadata(new KeyValuePair<string, string>("Components.EventHandler.EventArgs", "Microsoft.AspNetCore.Components.Web.MouseEventArgs"));
-            return builder.Build();
+            var builder = TagHelperDescriptorBuilder.Create("oncontextmenu", "Microsoft.AspNetCore.Components");
+            builder.SetMetadata(
+                new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
+                new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
+            var builder2 = TagHelperDescriptorBuilder.Create("onclick", "Microsoft.AspNetCore.Components");
+            builder2.SetMetadata(
+                new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.MouseEventArgs"),
+                new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
+            var builder3 = TagHelperDescriptorBuilder.Create("oncopy", "Microsoft.AspNetCore.Components");
+            builder3.SetMetadata(
+                new KeyValuePair<string, string>(ComponentMetadata.EventHandler.EventArgsType, "Microsoft.AspNetCore.Components.Web.ClipboardEventArgs"),
+                new KeyValuePair<string, string>(ComponentMetadata.SpecialKindKey, ComponentMetadata.EventHandler.TagHelperKind));
+            return new() { builder.Build(), builder2.Build(), builder3.Build() };
         }
     }
 }

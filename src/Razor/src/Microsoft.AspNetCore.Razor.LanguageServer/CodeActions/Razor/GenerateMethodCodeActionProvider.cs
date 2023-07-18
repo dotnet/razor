@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis;
 using SyntaxFacts = Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
 using SyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -38,41 +37,27 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             return s_emptyResult;
         }
 
-        if (IsGenerateEventHandlerValid(owner, context, out var @params))
+        if (IsGenerateEventHandlerValid(owner, out var methodAndEvent))
         {
-            return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(CreateCodeAction(@params));
+            var uri = context.Request.TextDocument.Uri;
+            var methodName = methodAndEvent.Value.methodName;
+            var eventName = methodAndEvent.Value.eventName;
+            var codeActions = new List<RazorVSInternalCodeAction>()
+            {
+                RazorCodeActionFactory.CreateGenerateMethod(uri, methodName, eventName),
+                RazorCodeActionFactory.CreateAsyncGenerateMethod(uri, methodName, eventName)
+            };
+            return Task.FromResult<IReadOnlyList<RazorVSInternalCodeAction>?>(codeActions);
         }
 
         return s_emptyResult;
     }
 
-    private static List<RazorVSInternalCodeAction> CreateCodeAction(GenerateMethodCodeActionParams[] @params)
-    {
-        var result = new List<RazorVSInternalCodeAction>();
-        foreach (var param in @params)
-        {
-            var resolutionParams = new RazorCodeActionResolutionParams()
-            {
-                Action = LanguageServerConstants.CodeActions.GenerateEventHandler,
-                Language = LanguageServerConstants.CodeActions.Languages.Razor,
-                Data = param,
-            };
-
-            var codeAction = param.IsAsync
-                ? RazorCodeActionFactory.CreateAsyncGenerateMethod(resolutionParams)
-                : RazorCodeActionFactory.CreateGenerateMethod(resolutionParams);
-            result.Add(codeAction);
-        }
-
-        return result;
-    }
-
     private static bool IsGenerateEventHandlerValid(
         SyntaxNode owner,
-        RazorCodeActionContext context,
-        [NotNullWhen(true)] out GenerateMethodCodeActionParams[]? @params)
+        [NotNullWhen(true)] out (string methodName, string eventName)? methodAndEvent)
     {
-        @params = null;
+        methodAndEvent = null;
 
         // The owner should have a SyntaxKind of CSharpExpressionLiteral or MarkupTextLiteral.
         // MarkupTextLiteral if the cursor is directly before the first letter of the method name.
@@ -82,87 +67,25 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             return false;
         }
 
-        if (!TryParseMethodAndEventName(owner, out var methodName, out var eventName))
-        {
-            return false;
-        }
-
-        @params = new[]
-        {
-            new GenerateMethodCodeActionParams()
-            {
-                Uri = context.Request.TextDocument.Uri,
-                MethodName = methodName,
-                EventName = eventName,
-                IsAsync = false,
-            },
-            new GenerateMethodCodeActionParams()
-            {
-                Uri = context.Request.TextDocument.Uri,
-                MethodName = methodName,
-                EventName = eventName,
-                IsAsync = true,
-            }
-        };
-
-        return true;
-    }
-
-    private static bool TryParseMethodAndEventName(
-        SyntaxNode owner,
-        [NotNullWhen(true)] out string? methodName,
-        [NotNullWhen(true)] out string? eventName)
-    {
-        methodName = null;
-        eventName = null;
-
+        // We want to get MarkupTagHelperDirectiveAttribute since this has information about the event name.
+        // Hierarchy:
+        // MarkupTagHelperDirectiveAttribute > MarkupTextLiteral
+        // or
+        // MarkupTagHelperDirectiveAttribute > MarkupTagHelperAttributeValue > CSharpExpressionLiteral
         var commonParent = owner.Kind == SyntaxKind.CSharpExpressionLiteral ? owner.Parent.Parent : owner.Parent;
-        if (commonParent.Kind != SyntaxKind.MarkupTagHelperDirectiveAttribute)
+        if (commonParent is not MarkupTagHelperDirectiveAttributeSyntax markupTagHelperDirectiveAttribute)
         {
             return false;
         }
 
-        var children = commonParent.ChildNodes();
-        var csharpExpressionLiteralNode = owner;
-
-        if (csharpExpressionLiteralNode.Kind == SyntaxKind.MarkupTextLiteral)
-        {
-            // We have a MarkupTextLiteral and need to find the CSharpExpressionLiteral node.
-            // The hierarchy here starting with the parent of the MarkupTextLiteral node is:
-            // MarkupTagHelperDirectiveAttribute > MarkupTagHelperAttributeValue > CSharpExpressionLiteral
-            var markupTagHelperAttributeValueNode = children.FirstOrDefault(c => c.Kind == SyntaxKind.MarkupTagHelperAttributeValue);
-            csharpExpressionLiteralNode = markupTagHelperAttributeValueNode?.ChildNodes()
-                .FirstOrDefault(c => c.Kind == SyntaxKind.CSharpExpressionLiteral);
-            if (csharpExpressionLiteralNode is null)
-            {
-                return false;
-            }
-        }
-
-        var content = csharpExpressionLiteralNode.GetContent();
-        if (!SyntaxFacts.IsValidIdentifier(content))
+        var eventName = markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.Name[1..];
+        var methodName = markupTagHelperDirectiveAttribute.Value.GetContent();
+        if (!SyntaxFacts.IsValidIdentifier(methodName))
         {
             return false;
         }
 
-        methodName = content;
-
-        for (var i = 1; i < children.Count; i++)
-        {
-            if (children[i].Kind == SyntaxKind.Equals)
-            {
-                // We assume that the node that contains the event name will always come before the one equals node.
-                var node = children[i - 1];
-                if (node.Kind != SyntaxKind.MarkupTextLiteral)
-                {
-                    return false;
-                }
-
-                eventName = node.GetContent();
-                return true;
-            }
-        }
-
-        return false;
+        methodAndEvent = (methodName, eventName);
+        return true;
     }
 }

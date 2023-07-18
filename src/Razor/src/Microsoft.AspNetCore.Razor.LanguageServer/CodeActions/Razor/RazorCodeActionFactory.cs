@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Linq;
 
@@ -67,9 +68,23 @@ internal static class RazorCodeActionFactory
         return codeAction;
     }
 
-    public static RazorVSInternalCodeAction CreateGenerateMethod(RazorCodeActionResolutionParams resolutionParams)
+    public static RazorVSInternalCodeAction CreateGenerateMethod(Uri uri, string methodName, string eventName)
     {
-        var title = SR.FormatGenerate_Event_Handler_Title(((GenerateMethodCodeActionParams)resolutionParams.Data).MethodName);
+        var @params = new GenerateMethodCodeActionParams
+        {
+            Uri = uri,
+            MethodName = methodName,
+            EventName = eventName,
+            IsAsync = false
+        };
+        var resolutionParams = new RazorCodeActionResolutionParams()
+        {
+            Action = LanguageServerConstants.CodeActions.GenerateEventHandler,
+            Language = LanguageServerConstants.CodeActions.Languages.Razor,
+            Data = @params,
+        };
+
+        var title = SR.FormatGenerate_Event_Handler_Title(methodName);
         var data = JToken.FromObject(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
@@ -80,9 +95,23 @@ internal static class RazorCodeActionFactory
         return codeAction;
     }
 
-    public static RazorVSInternalCodeAction CreateAsyncGenerateMethod(RazorCodeActionResolutionParams resolutionParams)
+    public static RazorVSInternalCodeAction CreateAsyncGenerateMethod(Uri uri, string methodName, string eventName)
     {
-        var title = SR.FormatGenerate_Async_Event_Handler_Title(((GenerateMethodCodeActionParams)resolutionParams.Data).MethodName);
+        var @params = new GenerateMethodCodeActionParams
+        {
+            Uri = uri,
+            MethodName = methodName,
+            EventName = eventName,
+            IsAsync = true
+        };
+        var resolutionParams = new RazorCodeActionResolutionParams()
+        {
+            Action = LanguageServerConstants.CodeActions.GenerateEventHandler,
+            Language = LanguageServerConstants.CodeActions.Languages.Razor,
+            Data = @params,
+        };
+
+        var title = SR.FormatGenerate_Async_Event_Handler_Title(methodName);
         var data = JToken.FromObject(resolutionParams);
         var codeAction = new RazorVSInternalCodeAction()
         {
