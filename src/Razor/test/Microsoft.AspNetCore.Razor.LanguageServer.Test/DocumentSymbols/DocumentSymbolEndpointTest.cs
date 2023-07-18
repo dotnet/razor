@@ -23,7 +23,7 @@ public class DocumentSymbolEndpointTest : SingleServerDelegatingEndpointTestBase
     }
 
     [Fact]
-    public Task DocumentSymols_CSharpMethods()
+    public Task DocumentSymbols_CSharpMethods()
         => VerifyDocumentSymbolsAsync(
             """
             @functions {
@@ -45,6 +45,30 @@ public class DocumentSymbolEndpointTest : SingleServerDelegatingEndpointTestBase
             
             """);
 
+    [Fact]
+    public async Task DocumentSymbols_DisabledWhenNotSingleServer()
+    {
+        var input = """
+            <p> Hello World </p>
+            """;
+
+        var codeDocument = CreateCodeDocument(input);
+        var razorFilePath = "C:/path/to/file.razor";
+
+        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+
+        // This test requires the SingleServerSupport to be disabled
+        Assert.False(TestLanguageServerFeatureOptions.Instance.SingleServerSupport);
+        var endpoint = new DocumentSymbolEndpoint(LanguageServer, DocumentMappingService, TestLanguageServerFeatureOptions.Instance);
+
+        var serverCapabilities = new VSInternalServerCapabilities();
+        var clientCapabilities = new VSInternalClientCapabilities();
+
+        endpoint.ApplyCapabilities(serverCapabilities, clientCapabilities);
+
+        Assert.Null(serverCapabilities.DocumentSymbolProvider?.Value);
+    }
+
     private async Task VerifyDocumentSymbolsAsync(string input)
     {
         TestFileMarkupParser.GetSpans(input, out input, out ImmutableDictionary<string, ImmutableArray<TextSpan>>  spansDict);
@@ -53,7 +77,7 @@ public class DocumentSymbolEndpointTest : SingleServerDelegatingEndpointTestBase
 
         await CreateLanguageServerAsync(codeDocument, razorFilePath);
 
-        var endpoint = new DocumentSymbolEndpoint(LanguageServer, DocumentMappingService);
+        var endpoint = new DocumentSymbolEndpoint(LanguageServer, DocumentMappingService, TestLanguageServerFeatureOptions.Instance);
 
         var request = new DocumentSymbolParams()
         {
