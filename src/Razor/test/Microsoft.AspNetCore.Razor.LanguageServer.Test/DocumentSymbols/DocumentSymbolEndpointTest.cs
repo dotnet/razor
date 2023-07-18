@@ -24,7 +24,7 @@ public class DocumentSymbolEndpointTest : SingleServerDelegatingEndpointTestBase
 
     [Fact]
     public Task DocumentSymols_CSharpMethods()
-        => VerifyRazorFoldsAsync(
+        => VerifyDocumentSymbolsAsync(
             """
             @functions {
                 private void {|HandleString(string s):HandleString|}(string s)

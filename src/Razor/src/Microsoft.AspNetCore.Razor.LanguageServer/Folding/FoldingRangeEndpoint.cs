@@ -65,7 +65,6 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
         {
             HostDocumentVersion = documentContext.Version,
             TextDocument = @params.TextDocument,
-            ProjectContext = @params.TextDocument.GetProjectContext()
         };
 
         IEnumerable<FoldingRange>? foldingRanges = null;

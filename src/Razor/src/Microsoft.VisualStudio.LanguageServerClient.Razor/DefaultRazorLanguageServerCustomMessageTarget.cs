@@ -661,7 +661,6 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
                     TextDocument = new VSTextDocumentIdentifier()
                     {
                         Uri = csharpSnapshot.Uri,
-                        ProjectContext = foldingRangeParams.ProjectContext
                     }
                 };
 
