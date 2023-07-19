@@ -37,11 +37,9 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             return s_emptyResult;
         }
 
-        if (IsGenerateEventHandlerValid(owner, out var methodAndEvent))
+        if (IsGenerateEventHandlerValid(owner, out var methodName, out var eventName))
         {
             var uri = context.Request.TextDocument.Uri;
-            var methodName = methodAndEvent.Value.methodName;
-            var eventName = methodAndEvent.Value.eventName;
             var codeActions = new List<RazorVSInternalCodeAction>()
             {
                 RazorCodeActionFactory.CreateGenerateMethod(uri, methodName, eventName),
@@ -55,9 +53,11 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
 
     private static bool IsGenerateEventHandlerValid(
         SyntaxNode owner,
-        [NotNullWhen(true)] out (string methodName, string eventName)? methodAndEvent)
+        [NotNullWhen(true)] out string? methodName,
+        [NotNullWhen(true)] out string? eventName)
     {
-        methodAndEvent = null;
+        methodName = null;
+        eventName = null;
 
         // The owner should have a SyntaxKind of CSharpExpressionLiteral or MarkupTextLiteral.
         // MarkupTextLiteral if the cursor is directly before the first letter of the method name.
@@ -78,7 +78,6 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             return false;
         }
 
-        var eventName = markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.Name[1..];
         if (markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.ParameterName is not null)
         {
             // An event parameter is being set instead of the event handler e.g.
@@ -86,13 +85,16 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             return false;
         }
 
-        var methodName = markupTagHelperDirectiveAttribute.Value.GetContent();
-        if (!SyntaxFacts.IsValidIdentifier(methodName))
+        // The TagHelperAttributeInfo Name property includes the '@' in the beginning so exclude it.
+        eventName = markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.Name[1..];
+
+        var content = markupTagHelperDirectiveAttribute.Value.GetContent();
+        if (!SyntaxFacts.IsValidIdentifier(content))
         {
             return false;
         }
 
-        methodAndEvent = (methodName, eventName);
+        methodName = content;
         return true;
     }
 }
