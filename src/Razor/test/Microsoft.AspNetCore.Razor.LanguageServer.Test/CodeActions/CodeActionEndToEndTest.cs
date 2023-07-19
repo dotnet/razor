@@ -556,6 +556,40 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
     }
 
     [Theory]
+    [InlineData("")]
+    [InlineData("()")]
+    public async Task Handle_GenerateMethod_SetEventParameter_DoesNothing(string parens)
+    {
+        var input = $"""
+            <button @onclick:stopPropagation="[||]DoesNotExist{parens}"></button>
+            """;
+
+        TestFileMarkupParser.GetSpan(input, out input, out var textSpan);
+        var razorFilePath = "file://C:/path/test.razor";
+        var codeDocument = CreateCodeDocument(input, filePath: razorFilePath);
+        var razorSourceText = codeDocument.GetSourceText();
+        var uri = new Uri(razorFilePath);
+        await CreateLanguageServerAsync(codeDocument, razorFilePath);
+        var documentContext = CreateDocumentContext(uri, codeDocument);
+        var requestContext = new RazorRequestContext(documentContext, Logger, null!);
+
+        var diagnostics = new[] { new Diagnostic() { Code = "CS0103", Message = "The name 'DoesNotExist' does not exist in the current context" } };
+
+        var result = await GetCodeActionsAsync(
+            uri,
+            textSpan,
+            razorSourceText,
+            requestContext,
+            razorCodeActionProviders: new[] { new GenerateMethodCodeActionProvider() },
+            diagnostics: diagnostics);
+        Assert.DoesNotContain(
+            result,
+            e =>
+                ((RazorVSInternalCodeAction)e.Value!).Title == GenerateEventHandlerTitle
+                || ((RazorVSInternalCodeAction)e.Value!).Title == GenerateAsyncEventHandlerTitle);
+    }
+
+    [Theory]
     [InlineData("[||]Exists")]
     [InlineData("E[||]xists")]
     [InlineData("Exists[||]")]
