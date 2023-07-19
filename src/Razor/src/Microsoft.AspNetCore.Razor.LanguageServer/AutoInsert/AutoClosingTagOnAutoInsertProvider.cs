@@ -120,18 +120,10 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
     private static bool TryResolveAutoClosingBehavior(FormattingContext context, int afterCloseAngleIndex, [NotNullWhen(true)] out string? name, out AutoClosingBehavior autoClosingBehavior)
     {
-        var change = new SourceChange(afterCloseAngleIndex, 0, string.Empty);
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
-        var originalOwner = syntaxTree.Root.LocateOwner(change);
+        var closeAngle = syntaxTree.Root.FindToken(afterCloseAngleIndex - 1);
 
-        if (!TryEnsureOwner_WorkaroundCompilerQuirks(afterCloseAngleIndex, syntaxTree, originalOwner, out var owner))
-        {
-            name = null;
-            autoClosingBehavior = default;
-            return false;
-        }
-
-        if (owner.Parent is MarkupStartTagSyntax
+        if (closeAngle.Parent is MarkupStartTagSyntax
             {
                 ForwardSlash: null,
                 Parent: MarkupElementSyntax htmlElement
@@ -153,7 +145,7 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
             return true;
         }
 
-        if (owner.Parent is MarkupTagHelperStartTagSyntax
+        if (closeAngle.Parent is MarkupTagHelperStartTagSyntax
             {
                 ForwardSlash: null,
                 Parent: MarkupTagHelperElementSyntax tagHelperElement
