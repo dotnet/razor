@@ -52,7 +52,7 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
 
         var delegatedParams = resolutionContext.OriginalRequestParams;
         var delegatedResolveParams = new DelegatedCompletionItemResolveParams(
-            delegatedParams.HostDocument,
+            delegatedParams.Identifier,
             item,
             delegatedParams.ProjectedKind);
         var resolvedCompletionItem = await _languageServer.SendRequestAsync<DelegatedCompletionItemResolveParams, VSInternalCompletionItem?>(Common.LanguageServerConstants.RazorCompletionResolveEndpointName, delegatedResolveParams, cancellationToken).ConfigureAwait(false);
@@ -88,14 +88,14 @@ internal class DelegatedCompletionItemResolver : CompletionItemResolver
             return resolvedCompletionItem;
         }
 
-        var hostDocumentUri = context.OriginalRequestParams.HostDocument.Uri;
+        var hostDocumentUri = context.OriginalRequestParams.Identifier.TextDocumentIdentifier.Uri;
         var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(hostDocumentUri, cancellationToken).ConfigureAwait(false);
         if (documentContext is null)
         {
             return resolvedCompletionItem;
         }
 
-        var formattingOptions = await _languageServer.SendRequestAsync<VersionedTextDocumentIdentifier, FormattingOptions?>(Common.LanguageServerConstants.RazorGetFormattingOptionsEndpointName, documentContext.Identifier, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await _languageServer.SendRequestAsync<RazorVersionedTextDocumentIdentifier, FormattingOptions?>(Common.LanguageServerConstants.RazorGetFormattingOptionsEndpointName, documentContext.Identifier, cancellationToken).ConfigureAwait(false);
         if (formattingOptions is null)
         {
             return resolvedCompletionItem;
