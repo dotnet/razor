@@ -180,13 +180,13 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
                 }
 
                 // Add to the list and add the path to the set
-                var documentContext = await _documentContextFactory.TryCreateAsync(new Uri(documentPath), cancellationToken).ConfigureAwait(false);
-                if (documentContext is null)
+                var snapshot = project.GetDocument(documentPath);
+                if (snapshot is null)
                 {
                     throw new NotImplementedException($"{documentPath} in project {project.FilePath} but not retrievable");
                 }
 
-                documentSnapshots.Add(documentContext.Snapshot);
+                documentSnapshots.Add(snapshot);
                 documentPaths.Add(documentPath);
             }
         }

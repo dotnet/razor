@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
@@ -31,13 +32,13 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
         _logger = loggerFactory.CreateLogger<DefaultDocumentContextFactory>();
     }
 
-    public override Task<DocumentContext?> TryCreateAsync(Uri documentUri, CancellationToken cancellationToken)
-        => TryCreateCoreAsync(documentUri, versioned: false, cancellationToken);
+    public override Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, CancellationToken cancellationToken)
+        => TryCreateCoreAsync(documentUri, projectContext, versioned: false, cancellationToken);
 
-    public async override Task<VersionedDocumentContext?> TryCreateForOpenDocumentAsync(Uri documentUri, CancellationToken cancellationToken)
-        => (VersionedDocumentContext?)await TryCreateCoreAsync(documentUri, versioned: true, cancellationToken).ConfigureAwait(false);
+    public async override Task<VersionedDocumentContext?> TryCreateForOpenDocumentAsync(Uri documentUri, VSProjectContext? projectContext, CancellationToken cancellationToken)
+        => (VersionedDocumentContext?)await TryCreateCoreAsync(documentUri, projectContext, versioned: true, cancellationToken).ConfigureAwait(false);
 
-    private async Task<DocumentContext?> TryCreateCoreAsync(Uri documentUri, bool versioned, CancellationToken cancellationToken)
+    private async Task<DocumentContext?> TryCreateCoreAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
     {
         var filePath = documentUri.GetAbsoluteOrUNCPath();
 
@@ -89,10 +90,10 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
                 return null;
             }
 
-            return new VersionedDocumentContext(documentUri, documentSnapshot, version.Value);
+            return new VersionedDocumentContext(documentUri, documentSnapshot, projectContext, version.Value);
         }
 
-        return new DocumentContext(documentUri, documentSnapshot);
+        return new DocumentContext(documentUri, documentSnapshot, projectContext);
     }
 
     private record DocumentSnapshotAndVersion(IDocumentSnapshot Snapshot, int? Version);

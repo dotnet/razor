@@ -97,7 +97,7 @@ internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresent
             return null;
         }
 
-        var componentTagText = await TryGetComponentTagAsync(razorFileUri, cancellationToken).ConfigureAwait(false);
+        var componentTagText = await TryGetComponentTagAsync(razorFileUri, projectContext: null, cancellationToken).ConfigureAwait(false);
         if (componentTagText is null)
         {
             return null;
@@ -126,11 +126,11 @@ internal class TextDocumentUriPresentationEndpoint : AbstractTextDocumentPresent
         };
     }
 
-    private async Task<string?> TryGetComponentTagAsync(Uri uri, CancellationToken cancellationToken)
+    private async Task<string?> TryGetComponentTagAsync(Uri uri, VSProjectContext? projectContext, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Trying to find document info for dropped uri {uri}.", uri);
 
-        var documentContext = await _documentContextFactory.TryCreateAsync(uri, cancellationToken).ConfigureAwait(false);
+        var documentContext = await _documentContextFactory.TryCreateAsync(uri, projectContext, cancellationToken).ConfigureAwait(false);
         if (documentContext is null)
         {
             _logger.LogInformation("Failed to find document for component {uri}.", uri);

@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -25,12 +26,14 @@ internal class RazorRequestContextFactory : IRequestContextFactory<RazorRequestC
         var textDocumentHandler = queueItem.MethodHandler as ITextDocumentIdentifierHandler;
 
         Uri? uri = null;
+        VSProjectContext? projectContext = null;
         if (textDocumentHandler is not null)
         {
             if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, TextDocumentIdentifier> tdiHandler)
             {
                 var textDocumentIdentifier = tdiHandler.GetTextDocumentIdentifier(@params);
                 uri = textDocumentIdentifier.Uri;
+                projectContext = textDocumentIdentifier.GetProjectContext();
             }
             else if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, Uri> uriHandler)
             {
@@ -45,7 +48,7 @@ internal class RazorRequestContextFactory : IRequestContextFactory<RazorRequestC
         if (uri is not null)
         {
             var documentContextFactory = _lspServices.GetRequiredService<DocumentContextFactory>();
-            documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, cancellationToken).ConfigureAwait(false);
+            documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, projectContext, cancellationToken).ConfigureAwait(false);
         }
 
         var loggerAdapter = _lspServices.GetRequiredService<LoggerAdapter>();
