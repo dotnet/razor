@@ -79,8 +79,7 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
         }
 
         var eventName = markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.Name[1..];
-        if (markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.ParameterName is { } parameterName
-            && eventName.Contains(parameterName))
+        if (markupTagHelperDirectiveAttribute.TagHelperAttributeInfo.ParameterName is not null)
         {
             // An event parameter is being set instead of the event handler e.g.
             // <button @onclick:preventDefault=SomeValue/>, this is not a generate event handler scenario.
