@@ -37,7 +37,7 @@ internal class DocumentContext
 
     public virtual IProjectSnapshot Project => Snapshot.Project;
 
-    public virtual TextDocumentIdentifier Identifier => new VersionedTextDocumentIdentifier()
+    public virtual TextDocumentIdentifier Identifier => new TextDocumentIdentifier()
     {
         Uri = Uri
     };
