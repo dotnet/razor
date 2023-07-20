@@ -55,11 +55,11 @@ public abstract class AbstractRazorEditorTest : AbstractEditorTest
 
         TestServices.Input.Send("{ENTER}");
 
-        await Task.Delay(1000);
+        await Task.Delay(10000);
 
         TestServices.Input.Send("{ENTER}");
 
-        await Task.Delay(1000);
+        await Task.Delay(10000);
 
         // Close the file we opened, just in case, so the test can start with a clean slate
         await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, saveFile: false, ControlledHangMitigatingCancellationToken);
