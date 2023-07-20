@@ -91,7 +91,7 @@ public class SignatureHelpEndpointTest : SingleServerDelegatingEndpointTestBase
             Position = new Position(line, offset)
         };
 
-        var documentContext = await DocumentContextFactory.TryCreateForOpenDocumentAsync(request.TextDocument.Uri, request.TextDocument.GetProjectContext(), DisposalToken);
+        var documentContext = await DocumentContextFactory.TryCreateForOpenDocumentAsync(request.TextDocument, DisposalToken);
 
         var requestContext = CreateRazorRequestContext(documentContext);
 

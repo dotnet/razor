@@ -35,7 +35,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DefaultDocumentContextFactory(Dispatcher, new TestDocumentResolver(), _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = await factory.TryCreateAsync(uri, projectContext: null, DisposalToken);
+        var documentContext = await factory.TryCreateAsync(uri, DisposalToken);
 
         // Assert
         Assert.Null(documentContext);
@@ -49,7 +49,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DefaultDocumentContextFactory(Dispatcher, new TestDocumentResolver(), _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, projectContext: null, DisposalToken);
+        var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
 
         // Assert
         Assert.Null(documentContext);
@@ -65,7 +65,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DefaultDocumentContextFactory(Dispatcher, documentResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, projectContext: null, DisposalToken);
+        var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
 
         // Assert
         Assert.Null(documentContext);
@@ -83,7 +83,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DefaultDocumentContextFactory(Dispatcher, documentResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = await factory.TryCreateAsync(uri, projectContext: null, DisposalToken);
+        var documentContext = await factory.TryCreateAsync(uri, DisposalToken);
 
         // Assert
         Assert.NotNull(documentContext);
@@ -104,7 +104,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DefaultDocumentContextFactory(Dispatcher, documentResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, projectContext: null, DisposalToken);
+        var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
 
         // Assert
         Assert.NotNull(documentContext);

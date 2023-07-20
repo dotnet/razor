@@ -26,7 +26,6 @@ public abstract class FormattingLanguageServerTestBase : LanguageServerTestBase
         EmptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(
             r => r.TryCreateAsync(
                 It.IsAny<Uri>(),
-                It.IsAny<VSProjectContext>(),
                 It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext?>(null),
             MockBehavior.Strict);
     }

@@ -4,13 +4,30 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal abstract class DocumentContextFactory
 {
-    public abstract Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, CancellationToken cancellationToken);
+    public Task<DocumentContext?> TryCreateAsync(TextDocumentIdentifier documentIdentifier, CancellationToken cancellationToken)
+        => TryCreateAsync(documentIdentifier.Uri, documentIdentifier.GetProjectContext(), versioned: false, cancellationToken);
 
-    public abstract Task<VersionedDocumentContext?> TryCreateForOpenDocumentAsync(Uri documentUri, VSProjectContext? projectContext, CancellationToken cancellationToken);
+    public Task<DocumentContext?> TryCreateAsync(Uri documentUri, CancellationToken cancellationToken)
+        => TryCreateAsync(documentUri, projectContext: null, versioned: false, cancellationToken);
+
+    public Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, CancellationToken cancellationToken)
+        => TryCreateAsync(documentUri, projectContext, versioned: false, cancellationToken);
+
+    public async Task<VersionedDocumentContext?> TryCreateForOpenDocumentAsync(Uri documentUri, CancellationToken cancellationToken)
+        => (VersionedDocumentContext?) await TryCreateAsync(documentUri, projectContext: null, versioned: true, cancellationToken).ConfigureAwait(false);
+
+    public async Task<VersionedDocumentContext?> TryCreateForOpenDocumentAsync(TextDocumentIdentifier documentIdentifier, CancellationToken cancellationToken)
+        => (VersionedDocumentContext?)await TryCreateAsync(documentIdentifier.Uri, documentIdentifier.GetProjectContext(), versioned: true, cancellationToken).ConfigureAwait(false);
+
+    public async Task<VersionedDocumentContext?> TryCreateForOpenDocumentAsync(Uri documentUri, VSProjectContext? projectContext, CancellationToken cancellationToken)
+        => (VersionedDocumentContext?)await TryCreateAsync(documentUri, projectContext, versioned: true, cancellationToken).ConfigureAwait(false);
+
+    protected abstract Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken);
 }

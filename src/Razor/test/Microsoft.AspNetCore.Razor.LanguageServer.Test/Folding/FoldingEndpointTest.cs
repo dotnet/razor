@@ -61,7 +61,7 @@ public class FoldingEndpointTest : SingleServerDelegatingEndpointTestBase
                 }
             }
         };
-        var documentContext = await DocumentContextFactory.TryCreateForOpenDocumentAsync(request.TextDocument.Uri, request.TextDocument.GetProjectContext(), DisposalToken);
+        var documentContext = await DocumentContextFactory.TryCreateForOpenDocumentAsync(request.TextDocument, DisposalToken);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act

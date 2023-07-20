@@ -32,18 +32,13 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
         _logger = loggerFactory.CreateLogger<DefaultDocumentContextFactory>();
     }
 
-    public override Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, CancellationToken cancellationToken)
-        => TryCreateCoreAsync(documentUri, projectContext, versioned: false, cancellationToken);
-
-    public async override Task<VersionedDocumentContext?> TryCreateForOpenDocumentAsync(Uri documentUri, VSProjectContext? projectContext, CancellationToken cancellationToken)
-        => (VersionedDocumentContext?)await TryCreateCoreAsync(documentUri, projectContext, versioned: true, cancellationToken).ConfigureAwait(false);
-
-    private async Task<DocumentContext?> TryCreateCoreAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
+    protected override async Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
     {
         var filePath = documentUri.GetAbsoluteOrUNCPath();
 
         var documentAndVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
         {
+            // TODO: Use project context to resolve the document.
             if (_snapshotResolver.TryResolveDocument(filePath,  out var documentSnapshot))
             {
                 if (!versioned)

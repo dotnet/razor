@@ -471,7 +471,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             return (generatedDocumentUri, generatedDocumentRange);
         }
 
-        var documentContext = await _documentContextFactory.TryCreateAsync(razorDocumentUri, projectContext: null, cancellationToken).ConfigureAwait(false);
+        var documentContext = await _documentContextFactory.TryCreateAsync(razorDocumentUri, cancellationToken).ConfigureAwait(false);
         if (documentContext is null)
         {
             return (generatedDocumentUri, generatedDocumentRange);
@@ -877,7 +877,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
                 continue;
             }
 
-            var documentContext = await _documentContextFactory.TryCreateAsync(uri, projectContext: null, cancellationToken).ConfigureAwait(false);
+            var documentContext = await _documentContextFactory.TryCreateAsync(uri, cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
                 continue;

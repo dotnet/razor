@@ -26,23 +26,23 @@ internal class TestDocumentContextFactory : DocumentContextFactory
         _version = version;
     }
 
-    public override Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, CancellationToken cancellationToken)
+    protected override Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
     {
         if (_filePath is null || _codeDocument is null)
         {
             return Task.FromResult<DocumentContext?>(null);
         }
 
-        return Task.FromResult<DocumentContext?>(TestDocumentContext.From(_filePath, _codeDocument));
-    }
-
-    public override Task<VersionedDocumentContext?> TryCreateForOpenDocumentAsync(Uri documentUri, VSProjectContext? projectContext, CancellationToken cancellationToken)
-    {
-        if (_filePath is null || _codeDocument is null || _version is null)
+        if (versioned)
         {
-            return Task.FromResult<VersionedDocumentContext?>(null);
+            if (_version is null)
+            {
+                return Task.FromResult<DocumentContext?>(null);
+            }
+
+            return Task.FromResult<DocumentContext?>(TestDocumentContext.From(_filePath, _codeDocument, _version.Value));
         }
 
-        return Task.FromResult<VersionedDocumentContext?>(TestDocumentContext.From(_filePath, _codeDocument, _version.Value));
+        return Task.FromResult<DocumentContext?>(TestDocumentContext.From(_filePath, _codeDocument));
     }
 }

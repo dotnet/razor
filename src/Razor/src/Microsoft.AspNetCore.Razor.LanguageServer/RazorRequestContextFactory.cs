@@ -26,29 +26,23 @@ internal class RazorRequestContextFactory : IRequestContextFactory<RazorRequestC
         var textDocumentHandler = queueItem.MethodHandler as ITextDocumentIdentifierHandler;
 
         Uri? uri = null;
-        VSProjectContext? projectContext = null;
+        var documentContextFactory = _lspServices.GetRequiredService<DocumentContextFactory>();
         if (textDocumentHandler is not null)
         {
             if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, TextDocumentIdentifier> tdiHandler)
             {
                 var textDocumentIdentifier = tdiHandler.GetTextDocumentIdentifier(@params);
-                uri = textDocumentIdentifier.Uri;
-                projectContext = textDocumentIdentifier.GetProjectContext();
+                documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
             }
             else if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, Uri> uriHandler)
             {
                 uri = uriHandler.GetTextDocumentIdentifier(@params);
+                documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 throw new NotImplementedException();
             }
-        }
-
-        if (uri is not null)
-        {
-            var documentContextFactory = _lspServices.GetRequiredService<DocumentContextFactory>();
-            documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, projectContext, cancellationToken).ConfigureAwait(false);
         }
 
         var loggerAdapter = _lspServices.GetRequiredService<LoggerAdapter>();

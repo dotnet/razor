@@ -928,16 +928,11 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
             _documentContexts = documentContexts;
         }
 
-        public override Task<VersionedDocumentContext?> TryCreateForOpenDocumentAsync(Uri documentFilePath, VSProjectContext? projectContext, CancellationToken _)
+        protected override Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
         {
             var document = _documentContexts.Count == 1 ? _documentContexts.Peek() : _documentContexts.Dequeue();
 
-            return Task.FromResult<VersionedDocumentContext?>(document);
-        }
-
-        public override Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
+            return Task.FromResult<DocumentContext?>(document);
         }
     }
 }

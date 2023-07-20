@@ -28,7 +28,6 @@ public class CreateComponentCodeActionResolverTest : LanguageServerTestBase
         _emptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(
             r => r.TryCreateAsync(
                 It.IsAny<Uri>(),
-                It.IsAny<VSProjectContext?>(),
                 It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext?>(null),
             MockBehavior.Strict);
     }
