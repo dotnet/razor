@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -30,6 +31,7 @@ public class ExtractToCodeBehindCodeActionResolverTest : LanguageServerTestBase
         Mock.Get(_emptyDocumentContextFactory)
             .Setup(r => r.TryCreateAsync(
                 It.IsAny<Uri>(),
+                It.IsAny<VSProjectContext?>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(value: null);
     }

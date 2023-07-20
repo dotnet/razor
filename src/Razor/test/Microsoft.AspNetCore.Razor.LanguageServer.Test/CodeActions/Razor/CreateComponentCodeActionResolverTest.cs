@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -27,6 +28,7 @@ public class CreateComponentCodeActionResolverTest : LanguageServerTestBase
         _emptyDocumentContextFactory = Mock.Of<DocumentContextFactory>(
             r => r.TryCreateAsync(
                 It.IsAny<Uri>(),
+                It.IsAny<VSProjectContext?>(),
                 It.IsAny<CancellationToken>()) == Task.FromResult<DocumentContext?>(null),
             MockBehavior.Strict);
     }

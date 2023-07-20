@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 
@@ -25,7 +26,7 @@ internal class TestDocumentContextFactory : DocumentContextFactory
         _version = version;
     }
 
-    public override Task<DocumentContext?> TryCreateAsync(Uri documentUri, CancellationToken cancellationToken)
+    public override Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, CancellationToken cancellationToken)
     {
         if (_filePath is null || _codeDocument is null)
         {
@@ -35,7 +36,7 @@ internal class TestDocumentContextFactory : DocumentContextFactory
         return Task.FromResult<DocumentContext?>(TestDocumentContext.From(_filePath, _codeDocument));
     }
 
-    public override Task<VersionedDocumentContext?> TryCreateForOpenDocumentAsync(Uri documentUri, CancellationToken cancellationToken)
+    public override Task<VersionedDocumentContext?> TryCreateForOpenDocumentAsync(Uri documentUri, VSProjectContext? projectContext, CancellationToken cancellationToken)
     {
         if (_filePath is null || _codeDocument is null || _version is null)
         {
