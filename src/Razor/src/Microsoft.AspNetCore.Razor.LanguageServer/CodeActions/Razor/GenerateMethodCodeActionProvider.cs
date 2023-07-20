@@ -2,13 +2,13 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.CodeAnalysis;
@@ -29,11 +29,11 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
             return s_emptyResult;
         }
 
-        var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
-        var owner = syntaxTree.Root.LocateOwner(change);
+        var owner = syntaxTree.Root.FindToken(context.Location.AbsoluteIndex).Parent;
         if (owner is null)
         {
+            Debug.Fail("Should not be possible for this to be null");
             return s_emptyResult;
         }
 
