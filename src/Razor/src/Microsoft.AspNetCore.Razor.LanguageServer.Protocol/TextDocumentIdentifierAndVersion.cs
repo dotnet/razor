@@ -5,4 +5,4 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
-internal record class RazorVersionedTextDocumentIdentifier(TextDocumentIdentifier TextDocumentIdentifier, int Version);
+internal record class TextDocumentIdentifierAndVersion(TextDocumentIdentifier TextDocumentIdentifier, int Version);

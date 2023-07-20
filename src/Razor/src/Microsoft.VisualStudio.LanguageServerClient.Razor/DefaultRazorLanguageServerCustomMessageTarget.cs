@@ -1016,7 +1016,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         return response?.Response;
     }
 
-    public override Task<FormattingOptions?> GetFormattingOptionsAsync(RazorVersionedTextDocumentIdentifier document, CancellationToken cancellationToken)
+    public override Task<FormattingOptions?> GetFormattingOptionsAsync(TextDocumentIdentifierAndVersion document, CancellationToken cancellationToken)
     {
         var formattingOptions = _formattingOptionsProvider.GetOptions(document.TextDocumentIdentifier.Uri);
         return Task.FromResult(formattingOptions);
@@ -1145,7 +1145,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         return new RazorPullDiagnosticResponse(csharpDiagnostics, htmlDiagnostics);
     }
 
-    private async Task<VSInternalDiagnosticReport[]?> GetVirtualDocumentPullDiagnosticsAsync<TVirtualDocumentSnapshot>(RazorVersionedTextDocumentIdentifier identifier, Guid correlationId, string delegatedLanguageServerName, CancellationToken cancellationToken)
+    private async Task<VSInternalDiagnosticReport[]?> GetVirtualDocumentPullDiagnosticsAsync<TVirtualDocumentSnapshot>(TextDocumentIdentifierAndVersion identifier, Guid correlationId, string delegatedLanguageServerName, CancellationToken cancellationToken)
         where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
     {
         var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(

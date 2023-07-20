@@ -10,6 +10,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 /// </summary>
 internal interface IDelegatedParams
 {
-    public RazorVersionedTextDocumentIdentifier Identifier { get; }
+    public TextDocumentIdentifierAndVersion Identifier { get; }
     public RazorLanguageKind ProjectedKind { get; }
 }

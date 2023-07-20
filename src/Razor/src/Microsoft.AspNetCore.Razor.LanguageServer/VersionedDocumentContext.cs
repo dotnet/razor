@@ -19,7 +19,7 @@ internal class VersionedDocumentContext : DocumentContext
     }
 
     // Sadly we target net472 which doesn't support covariant return types, so this can't override.
-    public new RazorVersionedTextDocumentIdentifier Identifier => new RazorVersionedTextDocumentIdentifier(
+    public new TextDocumentIdentifierAndVersion Identifier => new TextDocumentIdentifierAndVersion(
         base.Identifier,
         Version);
 }
