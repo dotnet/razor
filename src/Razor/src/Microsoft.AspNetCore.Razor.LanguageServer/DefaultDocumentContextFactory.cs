@@ -32,7 +32,7 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
         _logger = loggerFactory.CreateLogger<DefaultDocumentContextFactory>();
     }
 
-    protected override async Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
+    protected override async Task<DocumentContext?> TryCreateCoreAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
     {
         var filePath = documentUri.GetAbsoluteOrUNCPath();
 

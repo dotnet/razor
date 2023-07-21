@@ -928,7 +928,7 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
             _documentContexts = documentContexts;
         }
 
-        protected override Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
+        protected override Task<DocumentContext?> TryCreateCoreAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
         {
             var document = _documentContexts.Count == 1 ? _documentContexts.Peek() : _documentContexts.Dequeue();
 

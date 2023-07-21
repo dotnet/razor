@@ -26,7 +26,7 @@ internal class TestDocumentContextFactory : DocumentContextFactory
         _version = version;
     }
 
-    protected override Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
+    protected override Task<DocumentContext?> TryCreateCoreAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
     {
         if (FilePath is null || CodeDocument is null)
         {
