@@ -2,17 +2,15 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
-using Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.TextDifferencing;
 
-public class SourceTextDifferBenchmark : RazorLanguageServerBenchmarkBase
+public class SourceTextDifferBenchmark
 {
     private SourceText? _largeFileOriginal;
     private SourceText? _largeFileMinimalChanges;
@@ -21,10 +19,7 @@ public class SourceTextDifferBenchmark : RazorLanguageServerBenchmarkBase
     [GlobalSetup]
     public void GlobalSetup()
     {
-        var msnCshtmlDiskPath = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp", "Components", "Pages", "MSN.cshtml");
-        using var fileStream = new FileStream(msnCshtmlDiskPath, FileMode.Open);
-        var reader = new StreamReader(fileStream);
-        var largeFileText = reader.ReadToEnd();
+        var largeFileText = Resources.GetResourceText("MSN.cshtml");
 
         _largeFileOriginal = SourceText.From(largeFileText);
 

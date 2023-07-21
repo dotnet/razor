@@ -135,8 +135,6 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         services.AddHoverServices();
         services.AddTextDocumentServices();
 
-        // add language
-
         // Auto insert
         services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
         services.AddSingleton<IOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
