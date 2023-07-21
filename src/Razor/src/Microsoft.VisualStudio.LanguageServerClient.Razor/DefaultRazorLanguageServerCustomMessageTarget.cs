@@ -1032,11 +1032,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var renameParams = new RenameParams()
         {
-            TextDocument = new VSTextDocumentIdentifier()
-            {
-                Uri = delegationDetails.Value.ProjectedUri,
-                ProjectContext = request.Identifier.TextDocumentIdentifier.GetProjectContext()
-            },
+            TextDocument = request.Identifier.TextDocumentIdentifier.WithUri(delegationDetails.Value.ProjectedUri),
             Position = request.ProjectedPosition,
             NewName = request.NewName,
         };
