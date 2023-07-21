@@ -28,6 +28,8 @@ public class LanguageConfigurationTest
     [InlineData("""<div class="hello">$$</div>""")]
     [InlineData("""<div class="@(() => true)">$$""")]
     [InlineData("""<div class="@(() => true)">$$</div>""")]
+    [InlineData("""<PropertyColumn Value="() => true" >$$""")]
+    [InlineData("""<PropertyColumn Value="() => true" >$$</PropertyColumn>""")]
     public void OnEnter_WillIndent(string input)
     {
         TestFileMarkupParser.GetPosition(input, out input, out var position);
@@ -39,6 +41,7 @@ public class LanguageConfigurationTest
     [InlineData("""<input>$$""")]
     [InlineData("""<input />$$""")]
     [InlineData("""<PropertyColumn Value="() => true" />$$""")]
+    [InlineData("""<PropertyColumn />$$""")]
     public void OnEnter_WontIndent(string input)
     {
         TestFileMarkupParser.GetPosition(input, out input, out var position);
