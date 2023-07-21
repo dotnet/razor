@@ -15,7 +15,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         
         private ITagHelperDescriptorProvider[]? _providers;
 
-        public List<TagHelperDescriptor> GetDescriptors()
+        public List<TagHelperDescriptor> GetDescriptors(ISymbol? targetSymbol)
         {
             if (Compilation is null)
             {
@@ -25,9 +25,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var results = new List<TagHelperDescriptor>();
             var context = TagHelperDescriptorProviderContext.Create(results);
             context.SetCompilation(Compilation);
-            if (TargetSymbol is not null)
+            if (targetSymbol is not null)
             {
-                context.Items.SetTargetSymbol(TargetSymbol);
+                context.Items.SetTargetSymbol(targetSymbol);
             }
 
             for (var i = 0; i < _providers?.Length; i++)
@@ -38,11 +38,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             return results;
         }
 
-        IReadOnlyList<TagHelperDescriptor> ITagHelperFeature.GetDescriptors() => GetDescriptors();
+        IReadOnlyList<TagHelperDescriptor> ITagHelperFeature.GetDescriptors() => GetDescriptors(targetSymbol: null);
 
         public Compilation? Compilation { get; set; }
-
-        public ISymbol? TargetSymbol { get; set; }
 
         protected override void OnInitialized()
         {

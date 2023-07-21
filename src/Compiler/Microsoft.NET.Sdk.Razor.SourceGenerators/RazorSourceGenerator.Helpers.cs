@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
@@ -66,13 +67,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             return discoveryProjectEngine;
         }
 
-        private static RazorProjectEngine GetDiscoveryProjectEngine(
-            IReadOnlyList<MetadataReference> references,
-            StaticCompilationTagHelperFeature tagHelperFeature)
+        private static StaticCompilationTagHelperFeature GetStaticTagHelperFeature(Compilation compilation)
         {
+            var tagHelperFeature = new StaticCompilationTagHelperFeature() {  Compilation = compilation };
+
+            // the tagHelperFeature will have its Engine property set as part of adding it to the engine, which is used later when doing the actual discovery
             var discoveryProjectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, new VirtualRazorProjectFileSystem(), b =>
             {
-                b.Features.Add(new DefaultMetadataReferenceFeature { References = references });
+                b.Features.Add(new DefaultMetadataReferenceFeature { References = compilation.References.ToImmutableArray() });
                 b.Features.Add(tagHelperFeature);
                 b.Features.Add(new DefaultTagHelperDescriptorProvider());
 
@@ -80,7 +82,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 RazorExtensions.Register(b);
             });
 
-            return discoveryProjectEngine;
+            return tagHelperFeature;
         }
 
         private static SourceGeneratorProjectEngine GetGenerationProjectEngine(

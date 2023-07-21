@@ -20,7 +20,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 /// If the underlying document is unchanged we return the original wrapper class. If the underlying 
 /// document is changed, we return a new instance of the wrapper.
 /// </remarks>
-internal class SourceGeneratorRazorCodeDocument
+internal sealed class SourceGeneratorRazorCodeDocument
 {
     public RazorCodeDocument CodeDocument { get; }
 

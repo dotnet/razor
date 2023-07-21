@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.CodeAnalysis;
@@ -80,7 +81,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var generatedDeclarationCode = componentFiles
                 .Combine(importFiles.Collect())
                 .Combine(razorSourceGeneratorOptions)
-                .WithLambdaComparer((old, @new) => (old.Right.Equals(@new.Right) && old.Left.Left.Equals(@new.Left.Left) && old.Left.Right.SequenceEqual(@new.Left.Right)), (a) => a.GetHashCode())
+                .WithLambdaComparer((old, @new) => (old.Right.Equals(@new.Right) && old.Left.Left.Equals(@new.Left.Left) && old.Left.Right.SequenceEqual(@new.Left.Right)), (a) => Assumed.Unreachable<int>())
                 .Select(static (pair, _) =>
                 {
                     var ((sourceItem, importFiles), razorSourceGeneratorOptions) = pair;
@@ -108,7 +109,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var declCompilation = generatedDeclarationSyntaxTrees
                 .Collect()
                 .Combine(compilation)
-                .Select((pair, _) =>
+                .Select(static (pair, _) =>
                 {
                     return pair.Right.AddSyntaxTrees(pair.Left);
                 });
@@ -121,13 +122,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     var (compilation, razorSourceGeneratorOptions) = pair;
 
-                    var tagHelperFeature = new StaticCompilationTagHelperFeature();
-                    var discoveryProjectEngine = GetDiscoveryProjectEngine(compilation.References.ToImmutableArray(), tagHelperFeature);
-
-                    tagHelperFeature.Compilation = compilation;
-                    tagHelperFeature.TargetSymbol = compilation.Assembly;
-
-                    var result = tagHelperFeature.GetDescriptors();
+                    var tagHelperFeature = GetStaticTagHelperFeature(compilation);
+                    var result = tagHelperFeature.GetDescriptors(compilation.Assembly);
+                    
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStop();
                     return result;
                 })
@@ -187,17 +184,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                         return ImmutableArray<TagHelperDescriptor>.Empty;
                     }
 
-                    var tagHelperFeature = new StaticCompilationTagHelperFeature();
-                    var discoveryProjectEngine = GetDiscoveryProjectEngine(compilation.References.ToImmutableArray(), tagHelperFeature);
+                    var tagHelperFeature = GetStaticTagHelperFeature(compilation);
 
                     List<TagHelperDescriptor> descriptors = new();
-                    tagHelperFeature.Compilation = compilation;
                     foreach (var reference in compilation.References)
                     {
                         if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assembly)
                         {
-                            tagHelperFeature.TargetSymbol = assembly;
-                            descriptors.AddRange(tagHelperFeature.GetDescriptors());
+                            descriptors.AddRange(tagHelperFeature.GetDescriptors(assembly));
                         }
                     }
 
@@ -262,7 +256,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                 // Add the tag helpers in, but ignore if they've changed or not, only reprocessing the actual document changed
                 .Combine(allTagHelpers)
-                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left), (item) => item.GetHashCode())
+                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left), (item) => Assumed.Unreachable<int>())
                 .Select(static (pair, _) =>
                 {
                     var ((projectEngine, filePath, codeDocument), allTagHelpers) = pair;
@@ -274,7 +268,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return (projectEngine, filePath, codeDocument);
                 })
 
-                // next we do a second parse, along with the helpers, but check for idempotency. If the tag helpers used on the previous parse match, the compiler can skip re-computing them
+                // next we do a second parse, along with the helpers, but check for idempotency. If the tag helpers used on the previous parse match, the compiler can skip re-writing them
                 .Combine(allTagHelpers)
                 .Select(static (pair, _) =>
                 {
