@@ -38,7 +38,7 @@ public class LanguageConfigurationTest
     [Theory]
     [InlineData("""<input>$$""")]
     [InlineData("""<input />$$""")]
-    [InlineData("""<PropertyColumn Value="() => true" />$$""", Skip = "https://github.com/dotnet/razor/issues/8916")]
+    [InlineData("""<PropertyColumn Value="() => true" />$$""")]
     public void OnEnter_WontIndent(string input)
     {
         TestFileMarkupParser.GetPosition(input, out input, out var position);
