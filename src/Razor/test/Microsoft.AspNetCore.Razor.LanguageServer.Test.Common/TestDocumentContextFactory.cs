@@ -11,8 +11,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
 
 internal class TestDocumentContextFactory : DocumentContextFactory
 {
-    private readonly string? _filePath;
-    private readonly RazorCodeDocument? _codeDocument;
+    private protected readonly string? FilePath;
+    private protected readonly RazorCodeDocument? CodeDocument;
     private readonly int? _version;
 
     public TestDocumentContextFactory()
@@ -21,14 +21,14 @@ internal class TestDocumentContextFactory : DocumentContextFactory
 
     public TestDocumentContextFactory(string filePath, RazorCodeDocument codeDocument, int? version = null)
     {
-        _filePath = filePath;
-        _codeDocument = codeDocument;
+        FilePath = filePath;
+        CodeDocument = codeDocument;
         _version = version;
     }
 
     protected override Task<DocumentContext?> TryCreateAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
     {
-        if (_filePath is null || _codeDocument is null)
+        if (FilePath is null || CodeDocument is null)
         {
             return Task.FromResult<DocumentContext?>(null);
         }
@@ -40,9 +40,9 @@ internal class TestDocumentContextFactory : DocumentContextFactory
                 return Task.FromResult<DocumentContext?>(null);
             }
 
-            return Task.FromResult<DocumentContext?>(TestDocumentContext.From(_filePath, _codeDocument, _version.Value));
+            return Task.FromResult<DocumentContext?>(TestDocumentContext.From(FilePath, CodeDocument, _version.Value));
         }
 
-        return Task.FromResult<DocumentContext?>(TestDocumentContext.From(_filePath, _codeDocument));
+        return Task.FromResult<DocumentContext?>(TestDocumentContext.From(FilePath, CodeDocument));
     }
 }
