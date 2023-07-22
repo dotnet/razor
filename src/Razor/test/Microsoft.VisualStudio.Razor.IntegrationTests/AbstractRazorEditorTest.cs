@@ -55,7 +55,7 @@ public abstract class AbstractRazorEditorTest : AbstractEditorTest
 
         // Making a code change gets us flowing new generated code versions around the system
         // which seems to have a positive effect on Web Tools in particular. Given the relatively
-        // fast pace of running integration tests, this warming up seems to have a big positive effect
+        // fast pace of running integration tests, it's worth taking a slight delay at the start for a more reliable run.
         TestServices.Input.Send("{ENTER}");
 
         await Task.Delay(5000);
