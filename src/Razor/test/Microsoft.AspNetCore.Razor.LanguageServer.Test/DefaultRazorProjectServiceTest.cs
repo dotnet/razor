@@ -6,9 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -21,7 +19,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.RpcContracts.Documents;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
@@ -268,7 +265,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         projectSnapshotManager.Setup(manager => manager.ProjectConfigurationChanged(It.IsAny<HostProject>()))
             .Callback<HostProject>((hostProject) =>
             {
-                Assert.Same(RazorDefaults.Configuration, hostProject.Configuration);
+                Assert.Same(FallbackRazorConfiguration.Latest, hostProject.Configuration);
                 Assert.Equal(projectFilePath, hostProject.FilePath);
             });
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectSnapshotManager.Object);
@@ -326,7 +323,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
     {
         // Arrange
         var expectedDocumentFilePath = "C:/path/to/document.cshtml";
-        var ownerProject = TestProjectSnapshot.Create("C:/path/to/project.csproj", new [] { expectedDocumentFilePath });
+        var ownerProject = TestProjectSnapshot.Create("C:/path/to/project.csproj", new[] { expectedDocumentFilePath });
         var projectResolver = new TestSnapshotResolver(
             new Dictionary<string, IProjectSnapshot>
             {
@@ -832,12 +829,40 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
             .Callback<HostProject>((hostProject) =>
             {
                 Assert.Equal(projectFilePath, hostProject.FilePath);
-                Assert.Same(RazorDefaults.Configuration, hostProject.Configuration);
+                Assert.Same(FallbackRazorConfiguration.Latest, hostProject.Configuration);
+                Assert.Null(hostProject.RootNamespace);
             });
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        projectService.AddProject(projectFilePath, "C:/path/to/obj", rootNamespace: null);
+        projectService.AddProject(projectFilePath, "C:/path/to/obj", configuration: null, rootNamespace: null);
+
+        // Assert
+        projectSnapshotManager.VerifyAll();
+    }
+
+    [Fact]
+    public void AddProject_AddsProjectWithSpecifiedConfiguration()
+    {
+        // Arrange
+        var projectFilePath = "C:/path/to/project.csproj";
+        var miscellaneousProject = TestProjectSnapshot.Create("/./__MISC_PROJECT__");
+        var projectResolver = new TestSnapshotResolver(new Dictionary<string, IProjectSnapshot>(), miscellaneousProject);
+
+        var configuration = RazorConfiguration.Create(RazorLanguageVersion.Version_1_0, "TestName", Array.Empty<RazorExtension>());
+
+        var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
+        projectSnapshotManager.Setup(manager => manager.ProjectAdded(It.IsAny<HostProject>()))
+            .Callback<HostProject>((hostProject) =>
+            {
+                Assert.Equal(projectFilePath, hostProject.FilePath);
+                Assert.Same(configuration, hostProject.Configuration);
+                Assert.Equal("My.Root.Namespace", hostProject.RootNamespace);
+            });
+        var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
+
+        // Act
+        projectService.AddProject(projectFilePath, "C:/path/to/obj", configuration, "My.Root.Namespace");
 
         // Assert
         projectSnapshotManager.VerifyAll();
