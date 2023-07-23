@@ -190,7 +190,7 @@ public class GoToDefinitionTests : AbstractRazorEditorTest
         await TestServices.Editor.WaitForActiveWindowByFileAsync("NavLink.cs", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "Blocked by https://github.com/dotnet/razor/issues/7966")]
     public async Task GoToDefinition_ComponentAttribute_GenericComponent()
     {
         // Create the files
