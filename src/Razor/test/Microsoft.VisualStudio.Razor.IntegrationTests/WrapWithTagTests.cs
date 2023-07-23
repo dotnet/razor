@@ -98,7 +98,7 @@ public class WrapWithTagTests : AbstractRazorEditorTest
             """, ControlledHangMitigatingCancellationToken);
     }
 
-    [ConditionalSkipIdeFact(Issue = "https://github.com/dotnet/razor/issues/8856")]
+    [IdeFact]
     public async Task WrapWithTag_SelfClosingTag()
     {
         // Open the file
