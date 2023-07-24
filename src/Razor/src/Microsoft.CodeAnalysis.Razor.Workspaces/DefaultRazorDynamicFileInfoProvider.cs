@@ -28,7 +28,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
     private readonly Func<Key, Entry> _createEmptyEntry;
     private readonly RazorDocumentServiceProviderFactory _factory;
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly DocumentFilePathProvider _documentFilePathProvider;
 
     private ProjectSnapshotManagerBase _projectManager;
 
@@ -36,26 +36,13 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
     public DefaultRazorDynamicFileInfoProvider(
         RazorDocumentServiceProviderFactory factory,
         LSPEditorFeatureDetector lspEditorFeatureDetector,
-        LanguageServerFeatureOptions languageServerFeatureOptions)
+        LanguageServerFeatureOptions languageServerFeatureOptions,
+        DocumentFilePathProvider documentFilePathProvider)
     {
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+        _lspEditorFeatureDetector = lspEditorFeatureDetector ?? throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
+        _documentFilePathProvider = documentFilePathProvider ?? throw new ArgumentNullException(nameof(documentFilePathProvider));
 
-        if (lspEditorFeatureDetector is null)
-        {
-            throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
-        }
-
-        if (languageServerFeatureOptions is null)
-        {
-            throw new ArgumentNullException(nameof(languageServerFeatureOptions));
-        }
-
-        _factory = factory;
-        _lspEditorFeatureDetector = lspEditorFeatureDetector;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
         _entries = new ConcurrentDictionary<Key, Entry>();
         _createEmptyEntry = (key) => new Entry(CreateEmptyInfo(key));
     }
@@ -164,7 +151,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
             var associatedKey = associatedKvp.Key;
             var associatedEntry = associatedKvp.Value;
 
-            var filename = _languageServerFeatureOptions.GetRazorCSharpFilePath(associatedKey.FilePath);
+            var filename = _documentFilePathProvider.GetRazorCSharpFilePath(associatedKey.FilePath);
 
             // To promote the background document, we just need to add the passed in properties service to
             // the dynamic file info. The properties service contains the client name and allows the C#
@@ -332,14 +319,14 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
 
     private RazorDynamicFileInfo CreateEmptyInfo(Key key)
     {
-        var filename = _languageServerFeatureOptions.GetRazorCSharpFilePath(key.FilePath);
+        var filename = _documentFilePathProvider.GetRazorCSharpFilePath(key.FilePath);
         var textLoader = new EmptyTextLoader(filename);
         return new RazorDynamicFileInfo(filename, SourceCodeKind.Regular, textLoader, _factory.CreateEmpty());
     }
 
     private RazorDynamicFileInfo CreateInfo(Key key, DynamicDocumentContainer document)
     {
-        var filename = _languageServerFeatureOptions.GetRazorCSharpFilePath(key.FilePath);
+        var filename = _documentFilePathProvider.GetRazorCSharpFilePath(key.FilePath);
         var textLoader = document.GetTextLoader(filename);
         return new RazorDynamicFileInfo(filename, SourceCodeKind.Regular, textLoader, _factory.Create(document));
     }

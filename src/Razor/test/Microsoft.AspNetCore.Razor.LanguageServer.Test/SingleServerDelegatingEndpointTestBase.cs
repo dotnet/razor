@@ -51,10 +51,9 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
 
     protected async Task CreateLanguageServerAsync(RazorCodeDocument codeDocument, string razorFilePath, IEnumerable<(string, string)> additionalRazorDocuments = null)
     {
-        var realLanguageServerFeatureOptions = new DefaultLanguageServerFeatureOptions();
-
+        var documentFilePathProvider = TestDocumentFilePathProvider.Instance;
         var csharpSourceText = codeDocument.GetCSharpSourceText();
-        var csharpDocumentUri = new Uri(realLanguageServerFeatureOptions.GetRazorCSharpFilePath(razorFilePath));
+        var csharpDocumentUri = new Uri(documentFilePathProvider.GetRazorCSharpFilePath(razorFilePath));
 
         var csharpFiles = new List<(Uri, SourceText)>();
         csharpFiles.Add((csharpDocumentUri, csharpSourceText));
@@ -64,7 +63,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
             {
                 var additionalDocument = CreateCodeDocument(contents, filePath: filePath);
                 var additionalDocumentSourceText = additionalDocument.GetCSharpSourceText();
-                var additionalDocumentUri = new Uri(realLanguageServerFeatureOptions.GetRazorCSharpFilePath("C:/path/to/" + filePath));
+                var additionalDocumentUri = new Uri(documentFilePathProvider.GetRazorCSharpFilePath("C:/path/to/" + filePath));
 
                 csharpFiles.Add((additionalDocumentUri, additionalDocumentSourceText));
             }
@@ -88,11 +87,11 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
             options.SupportsFileManipulation == true &&
             options.SupportsDelegatedCodeActions == true &&
             options.SingleServerSupport == true &&
-            options.CSharpVirtualDocumentSuffix == realLanguageServerFeatureOptions.CSharpVirtualDocumentSuffix &&
-            options.HtmlVirtualDocumentSuffix == realLanguageServerFeatureOptions.HtmlVirtualDocumentSuffix,
+            options.CSharpVirtualDocumentSuffix == DefaultLanguageServerFeatureOptions.DefaultCSharpVirtualDocumentSuffix &&
+            options.HtmlVirtualDocumentSuffix == DefaultLanguageServerFeatureOptions.DefaultHtmlVirtualDocumentSuffix,
             MockBehavior.Strict);
         LanguageServer = new TestLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
-        DocumentMappingService = new RazorDocumentMappingService(LanguageServerFeatureOptions, DocumentContextFactory, LoggerFactory);
+        DocumentMappingService = new RazorDocumentMappingService(documentFilePathProvider, DocumentContextFactory, LoggerFactory);
     }
 
     internal class TestLanguageServer : ClientNotifierServiceBase

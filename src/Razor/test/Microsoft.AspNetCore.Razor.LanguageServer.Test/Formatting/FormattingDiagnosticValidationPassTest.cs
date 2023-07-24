@@ -132,7 +132,7 @@ public class Foo { }
 
     private FormattingDiagnosticValidationPass GetPass()
     {
-        var mappingService = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var mappingService = new RazorDocumentMappingService(TestDocumentFilePathProvider.Instance, new TestDocumentContextFactory(), LoggerFactory);
 
         var client = Mock.Of<ClientNotifierServiceBase>(MockBehavior.Strict);
         var pass = new FormattingDiagnosticValidationPass(mappingService, client, LoggerFactory)

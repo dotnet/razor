@@ -55,7 +55,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
             documentMappingService,
             searchEngine,
             languageServer.Object,
-            TestLanguageServerFeatureOptions.Instance,
+            TestDocumentFilePathProvider.Instance,
             documentContextFactory,
             Dispatcher,
             LoggerFactory);
@@ -115,7 +115,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
             documentMappingService,
             searchEngine,
             languageServer.Object,
-            TestLanguageServerFeatureOptions.Instance,
+            TestDocumentFilePathProvider.Instance,
             documentContextFactory,
             Dispatcher,
             LoggerFactory);
@@ -183,7 +183,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
             documentMappingService,
             searchEngine,
             languageServer.Object,
-            TestLanguageServerFeatureOptions.Instance,
+            TestDocumentFilePathProvider.Instance,
             documentContextFactory,
             Dispatcher,
             LoggerFactory);
@@ -247,7 +247,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
             documentMappingService,
             searchEngine,
             languageServer.Object,
-            TestLanguageServerFeatureOptions.Instance,
+            TestDocumentFilePathProvider.Instance,
             documentContextFactory,
             Dispatcher,
             LoggerFactory);
@@ -303,7 +303,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
             documentMappingService,
             searchEngine,
             languageServer.Object,
-            TestLanguageServerFeatureOptions.Instance,
+            TestDocumentFilePathProvider.Instance,
             documentContextFactory,
             Dispatcher,
             LoggerFactory);
@@ -362,7 +362,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
             documentMappingService,
             searchEngine,
             languageServer.Object,
-            TestLanguageServerFeatureOptions.Instance,
+            TestDocumentFilePathProvider.Instance,
             documentContextFactory,
             Dispatcher,
             LoggerFactory);
@@ -426,7 +426,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
             documentMappingService,
             searchEngine,
             languageServer.Object,
-            TestLanguageServerFeatureOptions.Instance,
+            TestDocumentFilePathProvider.Instance,
             documentContextFactory,
             Dispatcher,
             LoggerFactory);
@@ -486,7 +486,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
             documentMappingService,
             searchEngine,
             languageServer.Object,
-            TestLanguageServerFeatureOptions.Instance,
+            TestDocumentFilePathProvider.Instance,
             documentContextFactory,
             Dispatcher,
             LoggerFactory);
@@ -537,7 +537,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
             documentMappingService,
             searchEngine,
             languageServer.Object,
-            TestLanguageServerFeatureOptions.Instance,
+            TestDocumentFilePathProvider.Instance,
             documentContextFactory,
             Dispatcher,
             LoggerFactory);
@@ -589,7 +589,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
             documentMappingService,
             searchEngine,
             languageServer.Object,
-            TestLanguageServerFeatureOptions.Instance,
+            TestDocumentFilePathProvider.Instance,
             documentContextFactory,
             Dispatcher,
             LoggerFactory);
@@ -640,7 +640,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
             documentMappingService,
             searchEngine,
             languageServer.Object,
-            TestLanguageServerFeatureOptions.Instance,
+            TestDocumentFilePathProvider.Instance,
             documentContextFactory,
             Dispatcher,
             LoggerFactory);

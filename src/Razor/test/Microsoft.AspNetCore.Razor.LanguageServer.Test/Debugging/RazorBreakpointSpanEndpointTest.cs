@@ -21,7 +21,7 @@ public class RazorBreakpointSpanEndpointTest : LanguageServerTestBase
         : base(testOutput)
     {
         _mappingService = new RazorDocumentMappingService(
-            TestLanguageServerFeatureOptions.Instance,
+            TestDocumentFilePathProvider.Instance,
             new TestDocumentContextFactory(),
             LoggerFactory);
     }

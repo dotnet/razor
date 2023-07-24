@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 [LanguageServerEndpoint(Methods.TextDocumentReferencesName)]
 internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoint<ReferenceParams, VSInternalReferenceItem[]>, ICapabilitiesProvider
 {
-    private readonly LanguageServerFeatureOptions _featureOptions;
+    private readonly DocumentFilePathProvider _documentFilePathProvider;
     private readonly IRazorDocumentMappingService _documentMappingService;
 
     public FindAllReferencesEndpoint(
@@ -29,10 +29,10 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
         IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         ILoggerFactory loggerFactory,
-        LanguageServerFeatureOptions featureOptions)
+        DocumentFilePathProvider documentFilePathProvider)
         : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<FindAllReferencesEndpoint>())
     {
-        _featureOptions = featureOptions;
+        _documentFilePathProvider = documentFilePathProvider ?? throw new ArgumentNullException(nameof(documentFilePathProvider));
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     }
 
@@ -85,8 +85,8 @@ internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoin
             // Indicates the reference item is directly available in the code
             referenceItem.Origin = VSInternalItemOrigin.Exact;
 
-            if (!_featureOptions.IsVirtualCSharpFile(referenceItem.Location.Uri) &&
-                !_featureOptions.IsVirtualHtmlFile(referenceItem.Location.Uri))
+            if (!_documentFilePathProvider.IsVirtualCSharpFile(referenceItem.Location.Uri) &&
+                !_documentFilePathProvider.IsVirtualHtmlFile(referenceItem.Location.Uri))
             {
                 // This location doesn't point to a virtual file. No need to remap.
                 remappedLocations.Add(referenceItem);

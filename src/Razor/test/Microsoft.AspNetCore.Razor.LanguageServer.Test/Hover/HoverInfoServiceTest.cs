@@ -734,7 +734,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
             options.HtmlVirtualDocumentSuffix == ".g.html"
             , MockBehavior.Strict);
         var languageServer = new HoverLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
-        var documentMappingService = new RazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
+        var documentMappingService = new RazorDocumentMappingService(TestDocumentFilePathProvider.Instance, documentContextFactory, LoggerFactory);
         var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == new[] { Mock.Of<IProjectSnapshot>(MockBehavior.Strict) }.ToImmutableArray(), MockBehavior.Strict);
         var hoverInfoService = GetHoverInfoService();
 

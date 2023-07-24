@@ -52,7 +52,7 @@ public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
         _document1 = (DocumentSnapshot)_project.GetDocument(hostDocument1.FilePath);
         _document2 = (DocumentSnapshot)_project.GetDocument(hostDocument2.FilePath);
 
-        _provider = new DefaultRazorDynamicFileInfoProvider(_documentServiceFactory, _editorFeatureDetector, TestLanguageServerFeatureOptions.Instance);
+        _provider = new DefaultRazorDynamicFileInfoProvider(_documentServiceFactory, _editorFeatureDetector, TestLanguageServerFeatureOptions.Instance, TestDocumentFilePathProvider.Instance);
         _testAccessor = _provider.GetTestAccessor();
         _provider.Initialize(_projectSnapshotManager);
 

@@ -26,7 +26,7 @@ public class RazorLanguageEndpointTest : LanguageServerTestBase
         : base(testOutput)
     {
         _mappingService = new RazorDocumentMappingService(
-            TestLanguageServerFeatureOptions.Instance,
+            TestDocumentFilePathProvider.Instance,
             new TestDocumentContextFactory(),
             LoggerFactory);
     }
