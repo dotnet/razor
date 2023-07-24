@@ -24,8 +24,8 @@ internal class ConfigurableLanguageServerFeatureOptions : LanguageServerFeatureO
 
     public override bool SupportsFileManipulation => _supportsFileManipulation ?? _defaults.SupportsFileManipulation;
     public override string ProjectConfigurationFileName => _projectConfigurationFileName ?? _defaults.ProjectConfigurationFileName;
-    public override string CSharpVirtualDocumentSuffix => _csharpVirtualDocumentSuffix ?? _defaults.CSharpVirtualDocumentSuffix;
-    public override string HtmlVirtualDocumentSuffix => _htmlVirtualDocumentSuffix ?? _defaults.HtmlVirtualDocumentSuffix;
+    public override string CSharpVirtualDocumentSuffix => _csharpVirtualDocumentSuffix ?? DefaultLanguageServerFeatureOptions.DefaultCSharpVirtualDocumentSuffix;
+    public override string HtmlVirtualDocumentSuffix => _htmlVirtualDocumentSuffix ?? DefaultLanguageServerFeatureOptions.DefaultHtmlVirtualDocumentSuffix;
     public override bool SingleServerCompletionSupport => _singleServerCompletionSupport ?? _defaults.SingleServerCompletionSupport;
     public override bool SingleServerSupport => _singleServerSupport ?? _defaults.SingleServerSupport;
     public override bool SupportsDelegatedCodeActions => _supportsDelegatedCodeActions ?? _defaults.SupportsDelegatedCodeActions;
