@@ -25,7 +25,7 @@ public class TagHelperChecksumBenchmarks
     {
         foreach (var descriptor in TagHelpers)
         {
-            _ = TagHelperChecksums.CreateChecksum(descriptor);
+            _ = descriptor.CreateChecksum();
         }
     }
 }

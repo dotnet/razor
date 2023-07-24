@@ -7,6 +7,7 @@ using System.IO;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,13 +22,22 @@ public class ChecksumTests(ITestOutputHelper testOutput) : TestBase(testOutput)
             yield return new object[] { true, s_empty, s_empty };
             yield return new object[] { true, s_falseValue, s_falseValue };
             yield return new object[] { false, s_falseValue, s_trueValue };
-            yield return new object[] { false, s_trueValue, s_falseValue };
             yield return new object[] { true, s_trueValue, s_trueValue };
-            yield return new object[] { true, CreateIntArray(new[] { 1, 2, 3, 4, 5 }), CreateIntArray(new[] { 1, 2, 3, 4, 5 }) };
-            yield return new object[] { false, CreateIntArray(new[] { 1, 2, 3, 4, 5 }), CreateIntArray(new[] { 5, 4, 3, 2, 1 }) };
+            yield return new object[] { true, CreateInt32(0), CreateInt32(0) };
+            yield return new object[] { true, CreateInt32(int.MaxValue), CreateInt32(int.MaxValue) };
+            yield return new object[] { false, CreateInt32(0), CreateInt32(int.MaxValue) };
+            yield return new object[] { false, CreateInt32(0), s_falseValue };
+            yield return new object[] { false, CreateInt32(0), CreateInt64(0) };
+            yield return new object[] { true, CreateInt64(0), CreateInt64(0) };
+            yield return new object[] { true, CreateInt64(long.MaxValue), CreateInt64(long.MaxValue) };
+            yield return new object[] { false, CreateInt64(0), CreateInt64(long.MaxValue) };
+            yield return new object[] { false, CreateInt64(0), s_falseValue };
+            yield return new object[] { false, CreateInt64(int.MaxValue), CreateInt32(int.MaxValue) };
             yield return new object[] { true, CreateString(null), CreateString(null) };
             yield return new object[] { false, CreateString("test"), CreateString(null) };
             yield return new object[] { true, CreateString("test"), CreateString("test") };
+            yield return new object[] { true, Combine(s_falseValue, s_trueValue), Combine(s_falseValue, s_trueValue) };
+            yield return new object[] { false, Combine(s_trueValue, s_falseValue), Combine(s_falseValue, s_trueValue) };
         }
     }
 
@@ -51,12 +61,22 @@ public class ChecksumTests(ITestOutputHelper testOutput) : TestBase(testOutput)
         return builder.FreeAndGetChecksum();
     };
 
-    private static Func<Checksum> CreateIntArray(int[] values)
+    private static Func<Checksum> CreateInt32(int value)
     {
         return () =>
         {
             var builder = new Checksum.Builder();
-            builder.AppendData(values);
+            builder.AppendData(value);
+            return builder.FreeAndGetChecksum();
+        };
+    }
+
+    private static Func<Checksum> CreateInt64(long value)
+    {
+        return () =>
+        {
+            var builder = new Checksum.Builder();
+            builder.AppendData(value);
             return builder.FreeAndGetChecksum();
         };
     }
@@ -67,6 +87,19 @@ public class ChecksumTests(ITestOutputHelper testOutput) : TestBase(testOutput)
         {
             var builder = new Checksum.Builder();
             builder.AppendData(value);
+            return builder.FreeAndGetChecksum();
+        };
+    }
+
+    private static Func<Checksum> Combine(params Func<Checksum>[] producers)
+    {
+        return () =>
+        {
+            var builder = new Checksum.Builder();
+            foreach (var producer in producers)
+            {
+                builder.AppendData(producer());
+            }
             return builder.FreeAndGetChecksum();
         };
     }
@@ -102,11 +135,11 @@ public class ChecksumTests(ITestOutputHelper testOutput) : TestBase(testOutput)
 
         for (var i = 0; i < tagHelpers.Length; i++)
         {
-            var current = TagHelperChecksums.GetChecksum(tagHelpers[i]);
+            var current = tagHelpers[i].GetChecksum();
 
             for (var j = 0; j < tagHelpers.Length; j++)
             {
-                var other = TagHelperChecksums.GetChecksum(tagHelpers[j]);
+                var other = tagHelpers[j].GetChecksum();
 
                 if (i == j)
                 {

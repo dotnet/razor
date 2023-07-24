@@ -7,12 +7,13 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
-internal static class TagHelperChecksums
+internal static class ChecksumExtensions
 {
-    public static Checksum GetChecksum(TagHelperDescriptor value)
+    public static Checksum GetChecksum(this TagHelperDescriptor value)
         => ChecksumCache.GetOrCreate(value, static o => CreateChecksum((TagHelperDescriptor)o));
 
-    public static Checksum CreateChecksum(TagHelperDescriptor value)
+    // Public for benchmarks
+    public static Checksum CreateChecksum(this TagHelperDescriptor value)
     {
         var builder = new Checksum.Builder();
 
@@ -51,7 +52,7 @@ internal static class TagHelperChecksums
         return builder.FreeAndGetChecksum();
     }
 
-    public static Checksum GetChecksum(AllowedChildTagDescriptor value)
+    public static Checksum GetChecksum(this AllowedChildTagDescriptor value)
     {
         return ChecksumCache.GetOrCreate(value, Create);
 
@@ -73,7 +74,7 @@ internal static class TagHelperChecksums
         }
     }
 
-    public static Checksum GetChecksum(TagMatchingRuleDescriptor value)
+    public static Checksum GetChecksum(this TagMatchingRuleDescriptor value)
     {
         return ChecksumCache.GetOrCreate(value, Create);
 
@@ -103,7 +104,7 @@ internal static class TagHelperChecksums
         }
     }
 
-    public static Checksum GetChecksum(RequiredAttributeDescriptor value)
+    public static Checksum GetChecksum(this RequiredAttributeDescriptor value)
     {
         return ChecksumCache.GetOrCreate(value, Create);
 
@@ -132,7 +133,7 @@ internal static class TagHelperChecksums
         }
     }
 
-    public static Checksum GetChecksum(BoundAttributeDescriptor value)
+    public static Checksum GetChecksum(this BoundAttributeDescriptor value)
     {
         return ChecksumCache.GetOrCreate(value, Create);
 
@@ -176,7 +177,7 @@ internal static class TagHelperChecksums
         }
     }
 
-    public static Checksum GetChecksum(BoundAttributeParameterDescriptor value)
+    public static Checksum GetChecksum(this BoundAttributeParameterDescriptor value)
     {
         return ChecksumCache.GetOrCreate(value, Create);
 
@@ -226,7 +227,7 @@ internal static class TagHelperChecksums
         }
     }
 
-    public static Checksum GetChecksum(DocumentationDescriptor value)
+    public static Checksum GetChecksum(this DocumentationDescriptor value)
     {
         return ChecksumCache.GetOrCreate(value, Create);
 
@@ -266,7 +267,7 @@ internal static class TagHelperChecksums
         }
     }
 
-    public static Checksum GetChecksum(RazorDiagnostic value)
+    public static Checksum GetChecksum(this RazorDiagnostic value)
     {
         return ChecksumCache.GetOrCreate(value, Create);
 
@@ -293,7 +294,7 @@ internal static class TagHelperChecksums
         }
     }
 
-    public static Checksum GetChecksum(MetadataCollection value)
+    public static Checksum GetChecksum(this MetadataCollection value)
     {
         return ChecksumCache.GetOrCreate(value, Create);
 
