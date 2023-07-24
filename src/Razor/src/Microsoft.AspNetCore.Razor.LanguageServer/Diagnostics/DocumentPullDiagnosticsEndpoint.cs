@@ -17,9 +17,6 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
-/// <summary>
-/// Provides diagnostic information for a Document. Implements an LSP request that pulls all diagnostics for a specific document.
-/// </summary>
 [LanguageServerEndpoint(VSInternalMethods.DocumentPullDiagnosticName)]
 internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternalDocumentDiagnosticsParams, IEnumerable<VSInternalDiagnosticReport>?>, ICapabilitiesProvider
 {
@@ -28,14 +25,6 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
     private readonly RazorTranslateDiagnosticsService _translateDiagnosticsService;
     private readonly ITelemetryReporter? _telemetryReporter;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DocumentPullDiagnosticsEndpoint"/> class.
-    /// </summary>
-    /// <param name="languageServerFeatureOptions">The <see cref="LanguageServerFeatureOptions"/>.</param>
-    /// <param name="translateDiagnosticsService">The <see cref="RazorTranslateDiagnosticsService"/>.</param>
-    /// <param name="languageServer">The <see cref="ClientNotifierServiceBase"/>.</param>
-    /// <param name="telemetryReporter">The <see cref="ITelemetryReporter"/>.</param>
-    /// <exception cref="ArgumentNullException"/>
     public DocumentPullDiagnosticsEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
         RazorTranslateDiagnosticsService translateDiagnosticsService,
@@ -48,16 +37,13 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         _telemetryReporter = telemetryReporter;
     }
 
-    /// <inheritdoc/>
     public bool MutatesSolutionState => false;
 
-    /// <inheritdoc/>
     public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
         serverCapabilities.SupportsDiagnosticRequests = true;
     }
 
-    /// <inheritdoc/>
     public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
     {
         if (request.TextDocument is null)
@@ -68,7 +54,6 @@ internal class DocumentPullDiagnosticsEndpoint : IRazorRequestHandler<VSInternal
         return request.TextDocument;
     }
 
-    /// <inheritdoc/>
     public async Task<IEnumerable<VSInternalDiagnosticReport>?> HandleRequestAsync(VSInternalDocumentDiagnosticsParams request, RazorRequestContext context, CancellationToken cancellationToken)
     {
         if (!_languageServerFeatureOptions.SingleServerSupport)
