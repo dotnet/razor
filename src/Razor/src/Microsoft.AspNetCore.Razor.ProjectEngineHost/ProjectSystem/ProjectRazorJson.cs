@@ -9,6 +9,8 @@ namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
 internal sealed class ProjectRazorJson
 {
+    public const int Version = 1;
+
     public string SerializedFilePath { get; }
     public string FilePath { get; }
     public RazorConfiguration? Configuration { get; }
