@@ -2,31 +2,39 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Moq;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 
+[ShortRunJob]
 public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
 {
+    private readonly Range _inRange = new Range { Start = new Position(10, 19), End = new Position(10, 23) };
+    private readonly Range _outRange = new Range { Start = new Position(7, 8), End = new Position(7, 15) };
     private string? _filePath;
     private Uri? DocumentUri { get; set; }
     private DocumentPullDiagnosticsEndpoint? DocumentPullDiagnosticsEndpoint { get; set; }
     private IDocumentSnapshot? DocumentSnapshot { get; set; }
     private SourceText? DocumentText { get; set; }
     private RazorRequestContext RazorRequestContext { get; set; }
+    private VSInternalDocumentDiagnosticsParams? Request { get; set; }
+    private IEnumerable<VSInternalDiagnosticReport?>? Diagnostics { get; set; }
 
     public enum FileTypes
     {
@@ -44,10 +52,14 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
     public async Task SetupAsync()
     {
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
+        var languageServerFeatureOptions = BuildFeatureOptions();
+        var razorDocumentMappingService = BuildRazorDocumentMappingService();
+        var loggerFactory = BuildLoggerFactory();
+        var translateDiagnosticsService = new RazorTranslateDiagnosticsService(razorDocumentMappingService, loggerFactory);
 
         DocumentPullDiagnosticsEndpoint = new DocumentPullDiagnosticsEndpoint(
-            languageServerFeatureOptions: languageServer.GetRequiredService<LanguageServerFeatureOptions>(),
-            translateDiagnosticsService: languageServer.GetRequiredService<RazorTranslateDiagnosticsService>(),
+            languageServerFeatureOptions: languageServerFeatureOptions,
+            translateDiagnosticsService: translateDiagnosticsService,
             languageServer: new ClientNotifierService(BuildDiagnostics(N)), telemetryReporter: null);
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
@@ -65,24 +77,16 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
 
         RazorRequestContext = new RazorRequestContext(documentContext, Logger, languageServer.GetLspServices());
 
-        // Run once in setup to verify setup is correct
-        var request = new VSInternalDocumentDiagnosticsParams
+        Request = new VSInternalDocumentDiagnosticsParams
         {
             TextDocument = new TextDocumentIdentifier
             {
                 Uri = DocumentUri!
-            },
+            }
         };
-
-        var diagnostics = await DocumentPullDiagnosticsEndpoint!.HandleRequestAsync(request, RazorRequestContext, CancellationToken.None);
-
-        if (N > 0 && !diagnostics!.ElementAtOrDefault(0)!.Diagnostics!.ElementAtOrDefault(0)!.Message.Contains("CallOnMe"))
-        {
-            throw new NotImplementedException("benchmark setup is wrong");
-        }
     }
 
-    private static object BuildDiagnostics(int numDiagnostics)
+    private object BuildDiagnostics(int numDiagnostics)
     {
         return new RazorPullDiagnosticResponse(
             new[]
@@ -92,11 +96,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
                         ResultId = "5",
                         Diagnostics = Enumerable.Range(1000, numDiagnostics).Select(x => new Diagnostic
                         {
-                                Range = new Range()
-                                {
-                                    Start = new Position(10, 19),
-                                    End = new Position(10, 23)
-                                },
+                                Range = _inRange,
                                 Code = "CS" + x,
                                 Severity = DiagnosticSeverity.Error,
                                 Source = "DocumentPullDiagnosticHandler",
@@ -108,29 +108,57 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
 
     private protected override LanguageServerFeatureOptions BuildFeatureOptions()
     {
-        return new DiagnosticsLanguageServerFeatureOptions();
+        return Mock.Of<LanguageServerFeatureOptions>(options =>
+            options.SupportsFileManipulation == true &&
+            options.SupportsDelegatedCodeActions == true &&
+            options.SingleServerSupport == true &&
+            options.SingleServerCompletionSupport == true &&
+            options.CSharpVirtualDocumentSuffix == ".ide.g.cs" &&
+            options.HtmlVirtualDocumentSuffix == "__virtual.html",
+            MockBehavior.Strict);
     }
+
+    private IRazorDocumentMappingService BuildRazorDocumentMappingService()
+    {
+        var razorDocumentMappingService = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
+
+        Range? hostDocumentRange;
+        razorDocumentMappingService.Setup(
+            r => r.TryMapToHostDocumentRange(
+                It.IsAny<IRazorGeneratedDocument>(),
+                _inRange,
+                It.IsAny<MappingBehavior>(),
+                out hostDocumentRange))
+            .Returns((IRazorGeneratedDocument generatedDocument, Range range, MappingBehavior mappingBehavior, out Range? actualOutRange) =>
+            {
+                actualOutRange = _outRange;
+                return true;
+            });
+
+        Range? hostDocumentRange2;
+        razorDocumentMappingService.Setup(
+            r => r.TryMapToHostDocumentRange(
+                It.IsAny<IRazorGeneratedDocument>(),
+                It.IsNotIn(_inRange),
+                It.IsAny<MappingBehavior>(),
+                out hostDocumentRange2))
+            .Returns((IRazorGeneratedDocument generatedDocument, Range range, MappingBehavior mappingBehavior, out Range? actualOutRange) =>
+            {
+                actualOutRange = null;
+                return false;
+            });
+
+        return razorDocumentMappingService.Object;
+    }
+
+    private ILoggerFactory BuildLoggerFactory() => Mock.Of<ILoggerFactory>(
+        r => r.CreateLogger(
+            It.IsAny<string>()) == new NoopLogger(),
+        MockBehavior.Strict);
 
     private string GetFileContents(FileTypes fileType)
     {
         var sb = new StringBuilder();
-
-        sb.Append("""
-            @using System;
-            """);
-
-        for (var i = 0; i < (fileType == FileTypes.Small ? 1 : 100); i++)
-        {
-            sb.Append($$"""
-            @{
-                var y{{i}} = 456;
-            }
-
-            <div>
-                <p>Hello there Mr {{i}}</p>
-            </div>
-            """);
-        }
 
         sb.Append("""
 
@@ -146,60 +174,42 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
 
              """);
 
+        for (var i = 0; i < (fileType == FileTypes.Small ? 1 : 100); i++)
+        {
+            sb.Append($$"""
+            @{
+                var y{{i}} = 456;
+            }
+
+            <div>
+                <p>Hello there Mr {{i}}</p>
+            </div>
+            """);
+        }
+
         return sb.ToString();
     }
 
     [Benchmark(Description = "Diagnostics")]
     public async Task RazorDiagnosticsAsync()
     {
-        var request = new VSInternalDocumentDiagnosticsParams
-        {
-            TextDocument = new TextDocumentIdentifier
-            {
-                Uri = DocumentUri!
-            },
-        };
-
-        await DocumentPullDiagnosticsEndpoint!.HandleRequestAsync(request, RazorRequestContext, CancellationToken.None);
+        Diagnostics = await DocumentPullDiagnosticsEndpoint!.HandleRequestAsync(Request!, RazorRequestContext, CancellationToken.None);
     }
 
     [GlobalCleanup]
     public async Task CleanupAsync()
     {
+        if (Diagnostics!.Any(x => x!.Diagnostics!.Any(y => !y.Message.Contains("CallOnMe"))))
+        {
+            throw new NotImplementedException("benchmark setup is wrong");
+        }
+
         File.Delete(_filePath!);
 
         var innerServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
 
         await innerServer.ShutdownAsync();
         await innerServer.ExitAsync();
-    }
-
-    private class DiagnosticsLanguageServerFeatureOptions : LanguageServerFeatureOptions
-    {
-        public override bool SupportsFileManipulation => true;
-
-        public override string ProjectConfigurationFileName => "project.razor.json";
-
-        public override string CSharpVirtualDocumentSuffix => ".ide.g.cs";
-
-        public override string HtmlVirtualDocumentSuffix => "__virtual.html";
-
-        public override bool SingleServerCompletionSupport => false;
-
-        public override bool SingleServerSupport => true;
-
-        public override bool SupportsDelegatedCodeActions => true;
-
-        public override bool SupportsDelegatedDiagnostics => false;
-
-        public override bool UpdateBuffersForClosedDocuments => false;
-
-        // Code action and rename paths in Windows VS Code need to be prefixed with '/':
-        // https://github.com/dotnet/razor/issues/8131
-        public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash
-            => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-
-        public override bool ShowAllCSharpCodeActions => false;
     }
 
     private class ClientNotifierService : ClientNotifierServiceBase
