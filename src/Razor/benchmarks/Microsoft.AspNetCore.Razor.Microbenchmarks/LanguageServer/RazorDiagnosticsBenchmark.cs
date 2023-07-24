@@ -53,9 +53,10 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(razorDocumentMappingService, loggerFactory);
 
         _documentPullDiagnosticsEndpoint = new DocumentPullDiagnosticsEndpoint(
-            languageServerFeatureOptions: languageServerFeatureOptions,
-            translateDiagnosticsService: translateDiagnosticsService,
-            languageServer: new ClientNotifierService(BuildDiagnostics(N)), telemetryReporter: null);
+            languageServerFeatureOptions,
+            translateDiagnosticsService,
+            languageServer: new ClientNotifierService(BuildDiagnostics(N)),
+            telemetryReporter: null);
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
         _filePath = Path.Combine(projectRoot, "Components", "Pages", $"Generated.razor");
@@ -76,7 +77,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         {
             TextDocument = new TextDocumentIdentifier
             {
-                Uri = documentUri!
+                Uri = documentUri
             }
         };
     }
@@ -86,18 +87,18 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         return new RazorPullDiagnosticResponse(
             new[]
             {
-                    new VSInternalDiagnosticReport()
+                new VSInternalDiagnosticReport()
+                {
+                    ResultId = "5",
+                    Diagnostics = Enumerable.Range(1000, numDiagnostics).Select(x => new Diagnostic
                     {
-                        ResultId = "5",
-                        Diagnostics = Enumerable.Range(1000, numDiagnostics).Select(x => new Diagnostic
-                        {
-                                Range = _inRange,
-                                Code = "CS" + x,
-                                Severity = DiagnosticSeverity.Error,
-                                Source = "DocumentPullDiagnosticHandler",
-                                Message = "The name 'CallOnMe' does not exist in the current context"
-                        }).ToArray()
-                    }
+                        Range = _inRange,
+                        Code = "CS" + x,
+                        Severity = DiagnosticSeverity.Error,
+                        Source = "DocumentPullDiagnosticHandler",
+                        Message = "The name 'CallOnMe' does not exist in the current context"
+                    }).ToArray()
+                }
             }, Array.Empty<VSInternalDiagnosticReport>());
     }
 
