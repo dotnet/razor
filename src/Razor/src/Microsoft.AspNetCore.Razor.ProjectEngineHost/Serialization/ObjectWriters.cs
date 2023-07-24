@@ -7,6 +7,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
 namespace Microsoft.AspNetCore.Razor.Serialization;
 
@@ -225,5 +226,17 @@ internal static class ObjectWriters
         writer.Write(nameof(value.RootNamespace), value.RootNamespace);
         writer.WriteArray(nameof(value.Documents), value.Documents, Write);
         writer.Write("SerializationFormat", ProjectSerializationFormat.Version);
+    }
+
+    public static void Write(JsonDataWriter writer, Checksum value)
+        => writer.WriteObject(value, WriteProperties);
+
+    public static void WriteProperties(JsonDataWriter writer, Checksum value)
+    {
+        var data = value.Data;
+
+        writer.Write(nameof(data.Data1), data.Data1);
+        writer.Write(nameof(data.Data2), data.Data2);
+        writer.Write(nameof(data.Data3), data.Data3);
     }
 }

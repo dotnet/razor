@@ -147,7 +147,7 @@ internal sealed partial class Checksum
         public void AppendData(Checksum value)
         {
             AppendTypeKind(_hash, TypeKind.Checksum);
-            AppendHashDataValue(_hash, value._checksum);
+            AppendHashDataValue(_hash, value.Data);
         }
     }
 }

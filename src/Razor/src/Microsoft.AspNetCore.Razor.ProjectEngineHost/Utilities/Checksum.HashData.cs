@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.Utilities;
 internal sealed partial class Checksum
 {
     [StructLayout(LayoutKind.Explicit, Size = HashSize)]
-    private readonly struct HashData(long data1, long data2, int data3) : IEquatable<HashData>
+    public readonly struct HashData(long data1, long data2, int data3) : IEquatable<HashData>
     {
         [FieldOffset(0)]
         public readonly long Data1 = data1;

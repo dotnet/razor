@@ -15,10 +15,10 @@ internal sealed partial class Checksum : IEquatable<Checksum?>
 
     public static readonly Checksum Null = new(default);
 
-    private readonly HashData _checksum;
+    public readonly HashData Data;
 
-    private Checksum(HashData hash)
-        => _checksum = hash;
+    public Checksum(HashData data)
+        => Data = data;
 
     public static Checksum From(ReadOnlySpan<byte> source)
     {
@@ -41,13 +41,13 @@ internal sealed partial class Checksum : IEquatable<Checksum?>
     }
 
     private void WriteTo(BinaryWriter writer)
-        => _checksum.WriteTo(writer);
+        => Data.WriteTo(writer);
 
     public string ToBase64String()
     {
 #if NETCOREAPP
         Span<byte> bytes = stackalloc byte[HashSize];
-        MemoryMarshal.TryWrite(bytes, ref Unsafe.AsRef(in _checksum));
+        MemoryMarshal.TryWrite(bytes, ref Unsafe.AsRef(in Data));
 
         return Convert.ToBase64String(bytes);
 #else
@@ -56,7 +56,7 @@ internal sealed partial class Checksum : IEquatable<Checksum?>
             var data = new byte[HashSize];
             fixed (byte* dataPtr = data)
             {
-                *(HashData*)dataPtr = _checksum;
+                *(HashData*)dataPtr = Data;
             }
 
             return Convert.ToBase64String(data, offset: 0, length: HashSize);
@@ -74,10 +74,10 @@ internal sealed partial class Checksum : IEquatable<Checksum?>
 
     public bool Equals(Checksum? other)
         => other is not null &&
-           _checksum == other._checksum;
+           Data == other.Data;
 
     public override int GetHashCode()
-        => _checksum.GetHashCode();
+        => Data.GetHashCode();
 
     public override string ToString()
         => ToBase64String();
