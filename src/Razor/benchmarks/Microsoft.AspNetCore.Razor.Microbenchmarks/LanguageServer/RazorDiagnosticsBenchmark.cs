@@ -13,9 +13,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -28,13 +26,10 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
     private readonly Range _inRange = new Range { Start = new Position(10, 19), End = new Position(10, 23) };
     private readonly Range _outRange = new Range { Start = new Position(7, 8), End = new Position(7, 15) };
     private string? _filePath;
-    private Uri? DocumentUri { get; set; }
-    private DocumentPullDiagnosticsEndpoint? DocumentPullDiagnosticsEndpoint { get; set; }
-    private IDocumentSnapshot? DocumentSnapshot { get; set; }
-    private SourceText? DocumentText { get; set; }
-    private RazorRequestContext RazorRequestContext { get; set; }
-    private VSInternalDocumentDiagnosticsParams? Request { get; set; }
-    private IEnumerable<VSInternalDiagnosticReport?>? Diagnostics { get; set; }
+    private DocumentPullDiagnosticsEndpoint? _documentPullDiagnosticsEndpoint;
+    private RazorRequestContext _razorRequestContext;
+    private VSInternalDocumentDiagnosticsParams? _request;
+    private IEnumerable<VSInternalDiagnosticReport?>? _diagnostics;
 
     public enum FileTypes
     {
@@ -57,7 +52,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         var loggerFactory = BuildLoggerFactory();
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(razorDocumentMappingService, loggerFactory);
 
-        DocumentPullDiagnosticsEndpoint = new DocumentPullDiagnosticsEndpoint(
+        _documentPullDiagnosticsEndpoint = new DocumentPullDiagnosticsEndpoint(
             languageServerFeatureOptions: languageServerFeatureOptions,
             translateDiagnosticsService: translateDiagnosticsService,
             languageServer: new ClientNotifierService(BuildDiagnostics(N)), telemetryReporter: null);
@@ -70,18 +65,18 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
 
         var targetPath = "/Components/Pages/Generated.razor";
 
-        DocumentUri = new Uri(_filePath);
-        DocumentSnapshot = GetDocumentSnapshot(projectFilePath, _filePath, targetPath);
-        DocumentText = await DocumentSnapshot.GetTextAsync();
-        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, 1);
+        var documentUri = new Uri(_filePath);
+        var documentSnapshot = GetDocumentSnapshot(projectFilePath, _filePath, targetPath);
+        var documentText = await documentSnapshot.GetTextAsync();
+        var documentContext = new VersionedDocumentContext(documentUri, documentSnapshot, 1);
 
-        RazorRequestContext = new RazorRequestContext(documentContext, Logger, languageServer.GetLspServices());
+        _razorRequestContext = new RazorRequestContext(documentContext, Logger, languageServer.GetLspServices());
 
-        Request = new VSInternalDocumentDiagnosticsParams
+        _request = new VSInternalDocumentDiagnosticsParams
         {
             TextDocument = new TextDocumentIdentifier
             {
-                Uri = DocumentUri!
+                Uri = documentUri!
             }
         };
     }
@@ -193,13 +188,13 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
     [Benchmark(Description = "Diagnostics")]
     public async Task RazorDiagnosticsAsync()
     {
-        Diagnostics = await DocumentPullDiagnosticsEndpoint!.HandleRequestAsync(Request!, RazorRequestContext, CancellationToken.None);
+        _diagnostics = await _documentPullDiagnosticsEndpoint!.HandleRequestAsync(_request!, _razorRequestContext, CancellationToken.None);
     }
 
     [GlobalCleanup]
     public async Task CleanupAsync()
     {
-        if (Diagnostics!.Any(x => x!.Diagnostics!.Any(y => !y.Message.Contains("CallOnMe"))))
+        if (_diagnostics!.Any(x => x!.Diagnostics!.Any(y => !y.Message.Contains("CallOnMe"))))
         {
             throw new NotImplementedException("benchmark setup is wrong");
         }
