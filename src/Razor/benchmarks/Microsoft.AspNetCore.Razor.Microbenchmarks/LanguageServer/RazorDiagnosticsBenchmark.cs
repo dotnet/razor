@@ -69,7 +69,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         var documentUri = new Uri(_filePath);
         var documentSnapshot = GetDocumentSnapshot(projectFilePath, _filePath, targetPath);
         var documentText = await documentSnapshot.GetTextAsync();
-        var documentContext = new VersionedDocumentContext(documentUri, documentSnapshot, 1);
+        var documentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, 1);
 
         _razorRequestContext = new RazorRequestContext(documentContext, Logger, languageServer.GetLspServices());
 
