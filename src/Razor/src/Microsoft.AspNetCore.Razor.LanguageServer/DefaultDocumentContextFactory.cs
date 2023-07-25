@@ -15,64 +15,37 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class DefaultDocumentContextFactory : DocumentContextFactory
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly ISnapshotResolver _snapshotResolver;
     private readonly DocumentVersionCache _documentVersionCache;
     private readonly ILogger<DefaultDocumentContextFactory> _logger;
 
     public DefaultDocumentContextFactory(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ISnapshotResolver snapshotResolver,
         DocumentVersionCache documentVersionCache,
         ILoggerFactory loggerFactory)
     {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _snapshotResolver = snapshotResolver;
         _documentVersionCache = documentVersionCache;
         _logger = loggerFactory.CreateLogger<DefaultDocumentContextFactory>();
     }
 
-    protected override async Task<DocumentContext?> TryCreateCoreAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
+    protected override Task<DocumentContext?> TryCreateCoreAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
     {
         var filePath = documentUri.GetAbsoluteOrUNCPath();
 
-        var documentAndVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-        {
-            // TODO: Use project context to resolve the document.
-            if (_snapshotResolver.TryResolveDocument(filePath,  out var documentSnapshot))
-            {
-                if (!versioned)
-                {
-                    return new DocumentSnapshotAndVersion(documentSnapshot, Version: null);
-                }
-
-                if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
-                {
-                    return new DocumentSnapshotAndVersion(documentSnapshot, version.Value);
-                }
-            }
-
-            // This is super rare, if we get here it could mean many things. Some of which:
-            //     1. Stale request:
-            //          - Got queued after a "document closed" / "document removed" type action
-            //          - Took too long to run and by the time the request needed the document context the
-            //            version cache has evicted the entry
-            //     2. Client is misbehaving and sending requests for a document that we've never seen before.
-            _logger.LogWarning("Tried to create context for document {documentUri} which was not found.", documentUri);
-            return null;
-        }, cancellationToken).ConfigureAwait(false);
+        var documentAndVersion = TryGetDocumentAndVersion(filePath, versioned);
 
         if (documentAndVersion is null)
         {
             // Stale request or misbehaving client, see above comment.
-            return null;
+            return Task.FromResult<DocumentContext?>(null);
         }
 
         var (documentSnapshot, version) = documentAndVersion;
         if (documentSnapshot is null)
         {
             Debug.Fail($"Document snapshot should never be null here for '{filePath}'. This indicates that our acquisition of documents / versions did not behave as expected.");
-            return null;
+            return Task.FromResult<DocumentContext?>(null);
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -82,13 +55,41 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
             // If we were asked for a versioned document, but have no version info, then we didn't find the document
             if (version is null)
             {
-                return null;
+                return Task.FromResult<DocumentContext?>(null);
             }
 
-            return new VersionedDocumentContext(documentUri, documentSnapshot, projectContext, version.Value);
+            return Task.FromResult<DocumentContext?>(
+                new VersionedDocumentContext(documentUri, documentSnapshot, projectContext, version.Value));
         }
 
-        return new DocumentContext(documentUri, documentSnapshot, projectContext);
+        return Task.FromResult<DocumentContext?>(
+            new DocumentContext(documentUri, documentSnapshot, projectContext));
+    }
+
+    private DocumentSnapshotAndVersion? TryGetDocumentAndVersion(string filePath, bool versioned)
+    {
+        // TODO: Use project context to resolve the document.
+        if (_snapshotResolver.TryResolveDocument(filePath, out var documentSnapshot))
+        {
+            if (!versioned)
+            {
+                return new DocumentSnapshotAndVersion(documentSnapshot, Version: null);
+            }
+
+            if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
+            {
+                return new DocumentSnapshotAndVersion(documentSnapshot, version.Value);
+            }
+        }
+
+        // This is super rare, if we get here it could mean many things. Some of which:
+        //     1. Stale request:
+        //          - Got queued after a "document closed" / "document removed" type action
+        //          - Took too long to run and by the time the request needed the document context the
+        //            version cache has evicted the entry
+        //     2. Client is misbehaving and sending requests for a document that we've never seen before.
+        _logger.LogWarning("Tried to create context for document {filePath} which was not found.", filePath);
+        return null;
     }
 
     private record DocumentSnapshotAndVersion(IDocumentSnapshot Snapshot, int? Version);
