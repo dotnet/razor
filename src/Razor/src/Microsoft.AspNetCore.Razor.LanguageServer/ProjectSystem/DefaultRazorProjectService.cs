@@ -96,7 +96,7 @@ internal class DefaultRazorProjectService : RazorProjectService
 
         void AddDocumentToProject(IProjectSnapshot projectSnapshot, string textDocumentPath)
         {
-            if (_snapshotResolver.TryResolveDocument(projectSnapshot.Key, textDocumentPath, out var _))
+            if (projectSnapshot.GetDocument(FilePathNormalizer.Normalize(textDocumentPath)) is not null)
             {
                 // Document already added. This usually occurs when VSCode has already pre-initialized
                 // open documents and then we try to manually add all known razor documents.
@@ -142,8 +142,12 @@ internal class DefaultRazorProjectService : RazorProjectService
         {
             _logger.LogInformation("Opening document '{textDocumentPath}' in project '{projectSnapshotFilePath}'.", textDocumentPath, projectSnapshot.FilePath);
             _projectSnapshotManagerAccessor.Instance.DocumentOpened(projectSnapshot.Key, textDocumentPath, sourceText);
+        });
 
-            TrackDocumentVersion(projectSnapshot.Key, textDocumentPath, version, startGenerating: true);
+        // Use a separate loop, as the above call modified out projects, so we have to make sure we're operating on the latest snapshot
+        ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
+        {
+            TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: true);
         });
     }
 
@@ -205,8 +209,12 @@ internal class DefaultRazorProjectService : RazorProjectService
         {
             _logger.LogTrace("Updating document '{textDocumentPath}' in {projectKey}.", textDocumentPath, project.Key);
             _projectSnapshotManagerAccessor.Instance.DocumentChanged(project.Key, textDocumentPath, sourceText);
+        });
 
-            TrackDocumentVersion(project.Key, textDocumentPath, version, startGenerating: false);
+        // Use a separate loop, as the above call modified out projects, so we have to make sure we're operating on the latest snapshot
+        ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
+        {
+            TrackDocumentVersion(projectSnapshot, textDocumentPath, version, startGenerating: false);
         });
     }
 
@@ -502,10 +510,9 @@ internal class DefaultRazorProjectService : RazorProjectService
         }
     }
 
-    private void TrackDocumentVersion(ProjectKey projectKey, string textDocumentPath, int version, bool startGenerating)
+    private void TrackDocumentVersion(IProjectSnapshot projectSnapshot, string textDocumentPath, int version, bool startGenerating)
     {
-        // It's important we resolve the project again, as changes could have been made just before this call, and we don't want to track an old snapshot
-        if (!_snapshotResolver.TryResolveDocument(projectKey, textDocumentPath, out var documentSnapshot))
+        if (projectSnapshot.GetDocument(FilePathNormalizer.Normalize(textDocumentPath)) is not { } documentSnapshot)
         {
             return;
         }

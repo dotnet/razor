@@ -20,9 +20,4 @@ internal interface ISnapshotResolver
     /// one found if it does. This method should be avoided where possible, and the overload that takes a <see cref="ProjectKey"/> should be used instead
     /// </summary>
     bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot);
-
-    /// <summary>
-    /// Finds a <see cref="IDocumentSnapshot"/> for the given document path that is contained within the given project.
-    /// </summary>
-    bool TryResolveDocument(ProjectKey projectKey, string textDocumentPath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot);
 }

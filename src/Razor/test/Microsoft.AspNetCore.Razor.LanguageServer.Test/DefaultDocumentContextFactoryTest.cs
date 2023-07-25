@@ -147,10 +147,5 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
             documentSnapshot = null;
             return false;
         }
-
-        public bool TryResolveDocument(ProjectKey projectKey, string textDocumentPath, [NotNullWhen(true)] out IDocumentSnapshot documentSnapshot)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

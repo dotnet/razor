@@ -539,11 +539,12 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
     {
         // Arrange
         var documentFilePath = "C:/path/to/document.cshtml";
-        var project = Mock.Of<IProjectSnapshot>(p => p.Key == TestProjectKey.Create("C:/path/to/obj"), MockBehavior.Strict);
+        var project = new Mock<IProjectSnapshot>(MockBehavior.Strict);
+        project.Setup(p => p.Key).Returns(TestProjectKey.Create("C:/path/to/obj"));
+        project.Setup(p => p.GetDocument(It.IsAny<string>())).Returns(TestDocumentSnapshot.Create(documentFilePath));
         var alreadyOpenDoc = Mock.Of<IDocumentSnapshot>(MockBehavior.Strict);
         var snapshotResolver = new Mock<ISnapshotResolver>(MockBehavior.Strict);
-        snapshotResolver.Setup(resolver => resolver.TryResolveDocument(project.Key, It.IsAny<string>(), out alreadyOpenDoc)).Returns(true);
-        snapshotResolver.Setup(resolver => resolver.FindPotentialProjects(It.IsAny<string>())).Returns(new[] { project });
+        snapshotResolver.Setup(resolver => resolver.FindPotentialProjects(It.IsAny<string>())).Returns(new[] { project.Object });
         var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         projectSnapshotManager.Setup(manager => manager.DocumentAdded(It.IsAny<ProjectKey>(), It.IsAny<HostDocument>(), It.IsAny<TextLoader>()))
             .Throws(new InvalidOperationException("This should not have been called."));
@@ -896,17 +897,26 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
             },
             TestProjectSnapshot.Create("C:/__MISC_PROJECT__"));
 
-        var expectedSnapshot = ownerProject.GetDocument(documentFilePath);
+        var newText = SourceText.From("Something New");
         var documentVersionCache = new Mock<DocumentVersionCache>(MockBehavior.Strict);
         documentVersionCache.Setup(cache => cache.TrackDocumentVersion(It.IsAny<IDocumentSnapshot>(), It.IsAny<int>()))
             .Callback<IDocumentSnapshot, int>((snapshot, version) =>
             {
-                Assert.Same(expectedSnapshot, snapshot);
+                // We updated the project in the DocumentChanged callback, so we expect to get a new snapshot
+                Assert.NotSame(ownerProject.GetDocument(documentFilePath), snapshot);
+                Assert.Equal(documentFilePath, snapshot.FilePath);
+                Assert.Equal(newText, snapshot.GetTextAsync().Result);
                 Assert.Equal(1337, version);
             });
-        var newText = SourceText.From("Something New");
         var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
-        projectSnapshotManager.Setup(m => m.DocumentChanged(It.IsAny<ProjectKey>(), It.IsAny<string>(), It.IsAny<SourceText>())).Verifiable();
+        projectSnapshotManager.Setup(m => m.DocumentChanged(It.IsAny<ProjectKey>(), It.IsAny<string>(), It.IsAny<SourceText>()))
+            .Callback<ProjectKey, string, SourceText>((projectKey, documentFilePath, sourceText) =>
+            {
+                Assert.Equal(ownerProject.Key, projectKey);
+                var hostDocument = new HostDocument(documentFilePath, documentFilePath);
+                var newState = ownerProject.State.WithChangedHostDocument(hostDocument, sourceText, VersionStamp.Create());
+                snapshotResolver.UpdateProject(documentFilePath, newState);
+            }).Verifiable();
         var projectService = CreateProjectService(
             snapshotResolver,
             projectSnapshotManager.Object,
@@ -1216,25 +1226,6 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
 
             documentSnapshot = _miscellaneousProject.GetDocument(documentFilePath);
             return documentSnapshot is not null;
-        }
-
-        public bool TryResolveDocument(ProjectKey projectKey, string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot documentSnapshot)
-        {
-            documentSnapshot = null;
-
-            if (_projectMappings.TryGetValue(documentFilePath, out var projects))
-            {
-                foreach (var project in projects)
-                {
-                    if (project.Key == projectKey)
-                    {
-                        documentSnapshot = project.GetDocument(documentFilePath);
-                        return documentSnapshot is not null;
-                    }
-                }
-            }
-
-            return false;
         }
 
         internal void UpdateProject(string expectedDocumentFilePath, ProjectState projectState)

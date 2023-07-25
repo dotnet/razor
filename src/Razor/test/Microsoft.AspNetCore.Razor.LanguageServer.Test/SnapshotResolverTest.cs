@@ -20,45 +20,6 @@ public class SnapshotResolverTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void TryResolveDocument_FindsDocumentInProject()
-    {
-        // Arrange
-        var documentFilePath = @"C:\path\to\document.cshtml";
-        var normalizedFilePath = "C:/path/to/document.cshtml";
-        var snapshotResolver = CreateSnapshotResolver(normalizedFilePath, out var snapshotManager);
-
-        var project = snapshotManager.GetProjects().First();
-
-        // Act
-        var result = snapshotResolver.TryResolveDocument(project.Key, documentFilePath, out var document);
-
-        // Assert
-        Assert.True(result);
-        Assert.Equal(normalizedFilePath, document.FilePath);
-        AssertSnapshotsEqual(project, document.Project);
-    }
-
-    [Fact]
-    public void TryResolveDocument_DoesntFindDocumentNotInProject()
-    {
-        // Arrange
-        var documentFilePath = @"C:\path\to\document.cshtml";
-        var normalizedFilePath = "C:/path/to/document.cshtml";
-        var snapshotResolver = CreateSnapshotResolver(normalizedFilePath, out var snapshotManager);
-
-        var project2 = TestProjectSnapshot.Create(FilePathNormalizer.Normalize(@"C:\path\two\project2.csproj"));
-        snapshotManager.ProjectAdded(project2.HostProject);
-        snapshotManager.CreateAndAddDocument(project2, @"C:\path\two\document2.cshtml");
-
-        // Act
-        var result = snapshotResolver.TryResolveDocument(project2.Key, documentFilePath, out var document);
-
-        // Assert
-        Assert.False(result);
-        Assert.Null(document);
-    }
-
-    [Fact]
     public void TryResolveDocumentInAnyProject_AsksPotentialParentProjectForDocumentItsTracking_ReturnsTrue()
     {
         // Arrange

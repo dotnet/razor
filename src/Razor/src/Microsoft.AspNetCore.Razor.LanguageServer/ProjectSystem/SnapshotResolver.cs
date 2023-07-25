@@ -106,30 +106,4 @@ internal class SnapshotResolver : ISnapshotResolver
         documentSnapshot = null;
         return false;
     }
-
-    public bool TryResolveDocument(ProjectKey projectKey, string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)
-    {
-        _logger.LogTrace("Looking for {documentFilePath} in {projectKey}.", documentFilePath, projectKey);
-
-        documentSnapshot = null;
-
-        var project = _projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectKey);
-        if (project is null)
-        {
-            _logger.LogTrace("Could not find project {projectKey}", projectKey);
-            return false;
-        }
-
-        var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
-
-        if (project.GetDocument(normalizedDocumentPath) is { } document)
-        {
-            documentSnapshot = document;
-            _logger.LogTrace("Found {documentFilePath} in in {projectKey}.", documentFilePath, projectKey);
-            return true;
-        }
-
-        _logger.LogTrace("{documentFilePath} not found in {projectKey}", documentFilePath, projectKey);
-        return false;
-    }
 }
