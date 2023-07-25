@@ -69,7 +69,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
         private static StaticCompilationTagHelperFeature GetStaticTagHelperFeature(Compilation compilation)
         {
-            var tagHelperFeature = new StaticCompilationTagHelperFeature() {  Compilation = compilation };
+            var tagHelperFeature = new StaticCompilationTagHelperFeature(compilation);
 
             // the tagHelperFeature will have its Engine property set as part of adding it to the engine, which is used later when doing the actual discovery
             var discoveryProjectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, new VirtualRazorProjectFileSystem(), b =>

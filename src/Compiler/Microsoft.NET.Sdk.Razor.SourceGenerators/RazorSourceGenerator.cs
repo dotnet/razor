@@ -81,7 +81,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var generatedDeclarationCode = componentFiles
                 .Combine(importFiles.Collect())
                 .Combine(razorSourceGeneratorOptions)
-                .WithLambdaComparer((old, @new) => (old.Right.Equals(@new.Right) && old.Left.Left.Equals(@new.Left.Left) && old.Left.Right.SequenceEqual(@new.Left.Right)), (a) => Assumed.Unreachable<int>())
+                .WithLambdaComparer((old, @new) => (old.Right.Equals(@new.Right) && old.Left.Left.Equals(@new.Left.Left) && old.Left.Right.SequenceEqual(@new.Left.Right)), getHashCode: (a) => Assumed.Unreachable<int>())
                 .Select(static (pair, _) =>
                 {
                     var ((sourceItem, importFiles), razorSourceGeneratorOptions) = pair;
@@ -256,7 +256,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                 // Add the tag helpers in, but ignore if they've changed or not, only reprocessing the actual document changed
                 .Combine(allTagHelpers)
-                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left), (item) => Assumed.Unreachable<int>())
+                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left), getHashCode: (item) => Assumed.Unreachable<int>())
                 .Select(static (pair, _) =>
                 {
                     var ((projectEngine, filePath, codeDocument), allTagHelpers) = pair;

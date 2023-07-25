@@ -9,22 +9,16 @@ using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
-    internal sealed class StaticCompilationTagHelperFeature : RazorEngineFeatureBase, ITagHelperFeature
+    internal sealed class StaticCompilationTagHelperFeature(Compilation compilation)
+        : RazorEngineFeatureBase, ITagHelperFeature
     {
-        private static readonly List<TagHelperDescriptor> EmptyList = new();
-        
         private ITagHelperDescriptorProvider[]? _providers;
 
         public List<TagHelperDescriptor> GetDescriptors(ISymbol? targetSymbol)
         {
-            if (Compilation is null)
-            {
-                return EmptyList;
-            }
-
             var results = new List<TagHelperDescriptor>();
             var context = TagHelperDescriptorProviderContext.Create(results);
-            context.SetCompilation(Compilation);
+            context.SetCompilation(compilation);
             if (targetSymbol is not null)
             {
                 context.Items.SetTargetSymbol(targetSymbol);
@@ -39,8 +33,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         }
 
         IReadOnlyList<TagHelperDescriptor> ITagHelperFeature.GetDescriptors() => GetDescriptors(targetSymbol: null);
-
-        public Compilation? Compilation { get; set; }
 
         protected override void OnInitialized()
         {
