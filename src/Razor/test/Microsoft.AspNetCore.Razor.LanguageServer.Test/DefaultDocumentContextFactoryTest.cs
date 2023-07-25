@@ -28,35 +28,35 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
     }
 
     [Fact]
-    public async Task TryCreateAsync_CanNotResolveDocument_ReturnsNull()
+    public void TryCreateAsync_CanNotResolveDocument_ReturnsNull()
     {
         // Arrange
         var uri = new Uri("C:/path/to/file.cshtml");
         var factory = new DefaultDocumentContextFactory(new TestDocumentResolver(), _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = await factory.TryCreateAsync(uri, DisposalToken);
+        var documentContext = factory.TryCreate(uri);
 
         // Assert
         Assert.Null(documentContext);
     }
 
     [Fact]
-    public async Task TryCreateForOpenDocumentAsync_CanNotResolveDocument_ReturnsNull()
+    public void TryCreateForOpenDocumentAsync_CanNotResolveDocument_ReturnsNull()
     {
         // Arrange
         var uri = new Uri("C:/path/to/file.cshtml");
         var factory = new DefaultDocumentContextFactory(new TestDocumentResolver(), _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
+        var documentContext = factory.TryCreateForOpenDocument(uri);
 
         // Assert
         Assert.Null(documentContext);
     }
 
     [Fact]
-    public async Task TryCreateForOpenDocumentAsync_CanNotResolveVersion_ReturnsNull()
+    public void TryCreateForOpenDocumentAsync_CanNotResolveVersion_ReturnsNull()
     {
         // Arrange
         var uri = new Uri("C:/path/to/file.cshtml");
@@ -65,14 +65,14 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DefaultDocumentContextFactory(documentResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
+        var documentContext = factory.TryCreateForOpenDocument(uri);
 
         // Assert
         Assert.Null(documentContext);
     }
 
     [Fact]
-    public async Task TryCreateAsync_ResolvesContent()
+    public void TryCreateAsync_ResolvesContent()
     {
         // Arrange
         var uri = new Uri("C:/path/to/file.cshtml");
@@ -83,7 +83,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DefaultDocumentContextFactory(documentResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = await factory.TryCreateAsync(uri, DisposalToken);
+        var documentContext = factory.TryCreate(uri);
 
         // Assert
         Assert.NotNull(documentContext);
@@ -104,7 +104,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
         var factory = new DefaultDocumentContextFactory(documentResolver, _documentVersionCache, LoggerFactory);
 
         // Act
-        var documentContext = await factory.TryCreateForOpenDocumentAsync(uri, DisposalToken);
+        var documentContext = factory.TryCreateForOpenDocument(uri);
 
         // Assert
         Assert.NotNull(documentContext);

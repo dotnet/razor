@@ -29,7 +29,7 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
         _logger = loggerFactory.CreateLogger<DefaultDocumentContextFactory>();
     }
 
-    protected override Task<DocumentContext?> TryCreateCoreAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
+    protected override DocumentContext? TryCreateCore(Uri documentUri, VSProjectContext? projectContext, bool versioned)
     {
         var filePath = documentUri.GetAbsoluteOrUNCPath();
 
@@ -38,32 +38,28 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
         if (documentAndVersion is null)
         {
             // Stale request or misbehaving client, see above comment.
-            return Task.FromResult<DocumentContext?>(null);
+            return null;
         }
 
         var (documentSnapshot, version) = documentAndVersion;
         if (documentSnapshot is null)
         {
             Debug.Fail($"Document snapshot should never be null here for '{filePath}'. This indicates that our acquisition of documents / versions did not behave as expected.");
-            return Task.FromResult<DocumentContext?>(null);
+            return null;
         }
-
-        cancellationToken.ThrowIfCancellationRequested();
 
         if (versioned)
         {
             // If we were asked for a versioned document, but have no version info, then we didn't find the document
             if (version is null)
             {
-                return Task.FromResult<DocumentContext?>(null);
+                return null;
             }
 
-            return Task.FromResult<DocumentContext?>(
-                new VersionedDocumentContext(documentUri, documentSnapshot, projectContext, version.Value));
+            return new VersionedDocumentContext(documentUri, documentSnapshot, projectContext, version.Value);
         }
 
-        return Task.FromResult<DocumentContext?>(
-            new DocumentContext(documentUri, documentSnapshot, projectContext));
+        return new DocumentContext(documentUri, documentSnapshot, projectContext);
     }
 
     private DocumentSnapshotAndVersion? TryGetDocumentAndVersion(string filePath, bool versioned)
