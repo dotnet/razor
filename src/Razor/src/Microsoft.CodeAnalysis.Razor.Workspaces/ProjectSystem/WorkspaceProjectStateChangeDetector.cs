@@ -470,13 +470,13 @@ internal class WorkspaceProjectStateChangeDetector : ProjectSnapshotChangeTrigge
 
         var projectKey = ProjectKey.From(project);
         // ProjectKey could be null, if Roslyn doesn't know the IntermediateOutputPath for the project
-        if (projectKey is null)
+        if (!projectKey.HasValue)
         {
             projectSnapshot = null;
             return false;
         }
 
-        projectSnapshot = ProjectSnapshotManager.GetLoadedProject(projectKey);
+        projectSnapshot = ProjectSnapshotManager.GetLoadedProject(projectKey.GetValueOrDefault());
         return projectSnapshot is not null;
     }
 
