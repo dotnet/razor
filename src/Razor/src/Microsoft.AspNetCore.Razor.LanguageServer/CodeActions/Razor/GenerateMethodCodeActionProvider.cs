@@ -31,11 +31,7 @@ internal class GenerateMethodCodeActionProvider : IRazorCodeActionProvider
 
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
         var owner = syntaxTree.Root.FindToken(context.Location.AbsoluteIndex).Parent;
-        if (owner is null)
-        {
-            Debug.Fail("Should not be possible for this to be null");
-            return s_emptyResult;
-        }
+        Assumes.NotNull(owner);
 
         if (IsGenerateEventHandlerValid(owner, out var methodName, out var eventName))
         {
