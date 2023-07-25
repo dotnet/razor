@@ -7,10 +7,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -29,19 +31,19 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
     private readonly RazorDocumentServiceProviderFactory _factory;
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly DocumentFilePathProvider _documentFilePathProvider;
-
-    private ProjectSnapshotManagerBase _projectManager;
+    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
 
     [ImportingConstructor]
     public DefaultRazorDynamicFileInfoProvider(
         RazorDocumentServiceProviderFactory factory,
         LSPEditorFeatureDetector lspEditorFeatureDetector,
-        LanguageServerFeatureOptions languageServerFeatureOptions,
-        DocumentFilePathProvider documentFilePathProvider)
+        DocumentFilePathProvider documentFilePathProvider,
+        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
     {
         _factory = factory ?? throw new ArgumentNullException(nameof(factory));
         _lspEditorFeatureDetector = lspEditorFeatureDetector ?? throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
         _documentFilePathProvider = documentFilePathProvider ?? throw new ArgumentNullException(nameof(documentFilePathProvider));
+        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
 
         _entries = new ConcurrentDictionary<Key, Entry>();
         _createEmptyEntry = (key) => new Entry(CreateEmptyInfo(key));
@@ -52,8 +54,6 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
     public override void Initialize(ProjectSnapshotManagerBase projectManager)
     {
         projectManager.Changed += ProjectManager_Changed;
-
-        _projectManager = projectManager;
     }
 
     // Called by us to update LSP document entries
@@ -144,14 +144,22 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
             throw new ArgumentNullException(nameof(propertiesService));
         }
 
-        // TODO: This needs to use the project key somehow, rather than assuming all generated content is the same
+        // TODO: Get the project info out of the documentUri so that the DocumentFilePathProvider can reconstruct the ProjectKey
         var filePath = GetProjectSystemFilePath(documentUri);
         foreach (var associatedKvp in GetAllKeysForPath(filePath))
         {
             var associatedKey = associatedKvp.Key;
             var associatedEntry = associatedKvp.Value;
 
-            var filename = _documentFilePathProvider.GetRazorCSharpFilePath(associatedKey.FilePath);
+            var projectId = associatedKey.ProjectId;
+            var projectKey = TryFindProjectKeyForProjectId(projectId);
+            if (projectKey is not ProjectKey key)
+            {
+                Debug.Fail("Could not find project key for project id. This should never happen.");
+                continue;
+            }
+
+            var filename = _documentFilePathProvider.GetRazorCSharpFilePath(key, associatedKey.FilePath);
 
             // To promote the background document, we just need to add the passed in properties service to
             // the dynamic file info. The properties service contains the client name and allows the C#
@@ -301,7 +309,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
 
     private ProjectId TryFindProjectIdForProjectKey(ProjectKey key)
     {
-        if (_projectManager?.Workspace is not { } workspace)
+        if (_projectSnapshotManagerAccessor.Instance.Workspace is not { } workspace)
         {
             throw new InvalidOperationException("Can not map a ProjectKey to a ProjectId before the project is initialized");
         }
@@ -317,16 +325,36 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
         return null;
     }
 
+    public ProjectKey? TryFindProjectKeyForProjectId(ProjectId projectId)
+    {
+        if (_projectSnapshotManagerAccessor.Instance.Workspace is not { } workspace)
+        {
+            throw new InvalidOperationException("Can not map a ProjectId to a ProjectKey before the project is initialized");
+        }
+
+        var project = workspace.CurrentSolution.GetProject(projectId);
+        if (project is null)
+        {
+            return null;
+        }
+
+        var projectKey = ProjectKey.From(project);
+
+        return projectKey;
+    }
+
     private RazorDynamicFileInfo CreateEmptyInfo(Key key)
     {
-        var filename = _documentFilePathProvider.GetRazorCSharpFilePath(key.FilePath);
+        var projectKey = TryFindProjectKeyForProjectId(key.ProjectId).AssumeNotNull();
+        var filename = _documentFilePathProvider.GetRazorCSharpFilePath(projectKey, key.FilePath);
         var textLoader = new EmptyTextLoader(filename);
         return new RazorDynamicFileInfo(filename, SourceCodeKind.Regular, textLoader, _factory.CreateEmpty());
     }
 
     private RazorDynamicFileInfo CreateInfo(Key key, DynamicDocumentContainer document)
     {
-        var filename = _documentFilePathProvider.GetRazorCSharpFilePath(key.FilePath);
+        var projectKey = TryFindProjectKeyForProjectId(key.ProjectId).AssumeNotNull();
+        var filename = _documentFilePathProvider.GetRazorCSharpFilePath(projectKey, key.FilePath);
         var textLoader = document.GetTextLoader(filename);
         return new RazorDynamicFileInfo(filename, SourceCodeKind.Regular, textLoader, _factory.Create(document));
     }

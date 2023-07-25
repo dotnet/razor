@@ -9,8 +9,8 @@ internal class TestDocumentFilePathProvider : DocumentFilePathProvider
 {
     public static readonly TestDocumentFilePathProvider Instance = new();
 
-    private TestDocumentFilePathProvider()
-        : base(TestLanguageServerFeatureOptions.Instance)
+    public TestDocumentFilePathProvider(LanguageServerFeatureOptions? options = null)
+        : base(options ?? TestLanguageServerFeatureOptions.Instance)
     {
     }
 }

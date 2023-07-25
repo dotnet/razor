@@ -25,9 +25,9 @@ internal class DefaultVisualStudioMacDocumentInfoFactory : VisualStudioMacDocume
         _documentFilePathProvider = documentFilePathProvider;
     }
 
-    public override DocumentInfo CreateEmpty(string razorFilePath, ProjectId projectId)
+    public override DocumentInfo CreateEmpty(string razorFilePath, ProjectId projectId, ProjectKey projectKey)
     {
-        var filename = _documentFilePathProvider.GetRazorCSharpFilePath(razorFilePath);
+        var filename = _documentFilePathProvider.GetRazorCSharpFilePath(projectKey, razorFilePath);
         var textLoader = new EmptyTextLoader(filename);
         var docId = DocumentId.CreateNewId(projectId, debugName: filename);
         return DocumentInfo.Create(

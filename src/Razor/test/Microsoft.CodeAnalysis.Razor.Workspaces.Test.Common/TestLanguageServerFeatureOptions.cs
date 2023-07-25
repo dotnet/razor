@@ -9,8 +9,12 @@ internal class TestLanguageServerFeatureOptions : LanguageServerFeatureOptions
 {
     public static readonly LanguageServerFeatureOptions Instance = new TestLanguageServerFeatureOptions();
 
-    private TestLanguageServerFeatureOptions()
+    private bool _includeProjectKeyInGeneratedFilePath;
+
+    public TestLanguageServerFeatureOptions(
+        bool includeProjectKeyInGeneratedFilePath = false)
     {
+        _includeProjectKeyInGeneratedFilePath = includeProjectKeyInGeneratedFilePath;
     }
 
     public override bool SupportsFileManipulation => false;
@@ -35,5 +39,5 @@ internal class TestLanguageServerFeatureOptions : LanguageServerFeatureOptions
 
     public override bool UpdateBuffersForClosedDocuments => false;
 
-    public override bool IncludeProjectKeyInGeneratedFilePath => false;
+    public override bool IncludeProjectKeyInGeneratedFilePath => _includeProjectKeyInGeneratedFilePath;
 }
