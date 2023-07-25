@@ -36,4 +36,6 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
         => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
     public override bool ShowAllCSharpCodeActions => false;
+
+    public override bool IncludeProjectKeyInGeneratedFilePath => false;
 }

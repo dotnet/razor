@@ -28,4 +28,10 @@ internal abstract class LanguageServerFeatureOptions
     // Code action and rename paths in Windows VS Code need to be prefixed with '/':
     // https://github.com/dotnet/razor/issues/8131
     public abstract bool ReturnCodeActionAndRenamePathsWithPrefixedSlash { get; }
+
+    /// <summary>
+    /// Whether the file path for the generated C# and Html documents should utilize the project key to
+    /// ensure a unique file path per project.
+    /// </summary>
+    public abstract bool IncludeProjectKeyInGeneratedFilePath { get; }
 }

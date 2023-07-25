@@ -34,4 +34,6 @@ internal class TestLanguageServerFeatureOptions : LanguageServerFeatureOptions
     public override bool ShowAllCSharpCodeActions => false;
 
     public override bool UpdateBuffersForClosedDocuments => false;
+
+    public override bool IncludeProjectKeyInGeneratedFilePath => false;
 }
