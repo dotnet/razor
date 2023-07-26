@@ -24,7 +24,7 @@ internal class ProjectChangeEventArgs : EventArgs
         DocumentFilePath = documentFilePath;
         Kind = kind;
         SolutionIsClosing = solutionIsClosing;
-        ProjectFilePath = older?.FilePath ?? newer?.FilePath;
+        ProjectFilePath = (older ?? newer)!.FilePath;
         ProjectKey = (older ?? newer)!.Key;
     }
 
@@ -34,7 +34,7 @@ internal class ProjectChangeEventArgs : EventArgs
 
     public ProjectKey ProjectKey { get; }
 
-    public string? ProjectFilePath { get; }
+    public string ProjectFilePath { get; }
 
     public string? DocumentFilePath { get; }
 
