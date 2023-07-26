@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 
 /// <summary>
@@ -10,6 +8,6 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 /// </summary>
 internal interface IDelegatedParams
 {
-    public VersionedTextDocumentIdentifier HostDocument { get; }
+    public TextDocumentIdentifierAndVersion Identifier { get; }
     public RazorLanguageKind ProjectedKind { get; }
 }

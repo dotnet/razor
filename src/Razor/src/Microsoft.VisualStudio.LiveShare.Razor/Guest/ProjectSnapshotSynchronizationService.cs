@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -68,7 +67,7 @@ internal class ProjectSnapshotSynchronizationService : ICollaborationService, IA
 
         await _joinableTaskFactory.SwitchToMainThreadAsync();
 
-        var projects = _projectSnapshotManager.Projects.ToArray();
+        var projects = _projectSnapshotManager.GetProjects();
         foreach (var project in projects)
         {
             try

@@ -215,12 +215,12 @@ internal class DefaultRazorProjectService : RazorProjectService
         TrackDocumentVersion(textDocumentPath, version);
     }
 
-    public override ProjectKey AddProject(string filePath, string intermediateOutputPath, string? rootNamespace)
+    public override ProjectKey AddProject(string filePath, string intermediateOutputPath, RazorConfiguration? configuration, string? rootNamespace)
     {
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
         var normalizedPath = FilePathNormalizer.Normalize(filePath);
-        var hostProject = new HostProject(normalizedPath, intermediateOutputPath, RazorDefaults.Configuration, rootNamespace ?? RazorDefaults.RootNamespace);
+        var hostProject = new HostProject(normalizedPath, intermediateOutputPath, configuration ?? FallbackRazorConfiguration.Latest, rootNamespace);
         // ProjectAdded will no-op if the project already exists
         _projectSnapshotManagerAccessor.Instance.ProjectAdded(hostProject);
 
@@ -295,8 +295,8 @@ internal class DefaultRazorProjectService : RazorProjectService
 
         if (configuration is null)
         {
-            configuration = RazorDefaults.Configuration;
-            _logger.LogInformation("Updating project '{filePath}' to use Razor's default configuration ('{configuration.ConfigurationName}')'.", project.FilePath, configuration.ConfigurationName);
+            configuration = FallbackRazorConfiguration.Latest;
+            _logger.LogInformation("Updating project '{filePath}' to use the latest configuration ('{configuration.ConfigurationName}')'.", project.FilePath, configuration.ConfigurationName);
         }
         else if (currentConfiguration.ConfigurationName != configuration.ConfigurationName)
         {

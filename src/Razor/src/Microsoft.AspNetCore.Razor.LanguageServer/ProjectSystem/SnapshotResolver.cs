@@ -28,7 +28,7 @@ internal class SnapshotResolver : ISnapshotResolver
 
         var miscellaneousProjectPath = Path.Combine(TempDirectory.Instance.DirectoryPath, "__MISC_RAZOR_PROJECT__");
         var normalizedPath = FilePathNormalizer.Normalize(miscellaneousProjectPath);
-        MiscellaneousHostProject = new HostProject(normalizedPath, normalizedPath, RazorDefaults.Configuration, RazorDefaults.RootNamespace);
+        MiscellaneousHostProject = new HostProject(normalizedPath, normalizedPath, FallbackRazorConfiguration.Latest, rootNamespace: null);
     }
 
     /// <inheritdoc/>
@@ -39,7 +39,7 @@ internal class SnapshotResolver : ISnapshotResolver
             throw new ArgumentNullException(nameof(documentFilePath));
         }
 
-        var projects = _projectSnapshotManagerAccessor.Instance.Projects;
+        var projects = _projectSnapshotManagerAccessor.Instance.GetProjects();
         var normalizedDocumentPath = FilePathNormalizer.Normalize(documentFilePath);
         foreach (var projectSnapshot in projects)
         {
@@ -101,7 +101,7 @@ internal class SnapshotResolver : ISnapshotResolver
             return true;
         }
 
-        _logger.LogTrace("{documentFilePath} not found in {documents}", documentFilePath, _projectSnapshotManagerAccessor.Instance.Projects.SelectMany(p => p.DocumentFilePaths));
+        _logger.LogTrace("{documentFilePath} not found in {documents}", documentFilePath, _projectSnapshotManagerAccessor.Instance.GetProjects().SelectMany(p => p.DocumentFilePaths));
 
         documentSnapshot = null;
         return false;

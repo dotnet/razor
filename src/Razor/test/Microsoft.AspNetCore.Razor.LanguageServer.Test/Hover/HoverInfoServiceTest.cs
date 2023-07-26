@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -734,7 +735,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
             , MockBehavior.Strict);
         var languageServer = new HoverLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
         var documentMappingService = new RazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
-        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == new[] { Mock.Of<IProjectSnapshot>(MockBehavior.Strict) }, MockBehavior.Strict);
+        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == new[] { Mock.Of<IProjectSnapshot>(MockBehavior.Strict) }.ToImmutableArray(), MockBehavior.Strict);
         var hoverInfoService = GetHoverInfoService();
 
         var endpoint = new HoverEndpoint(
@@ -788,7 +789,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
             d.GetTextAsync() == Task.FromResult(sourceText) &&
             d.Project == projectSnapshot, MockBehavior.Strict);
 
-        var documentContext = new VersionedDocumentContext(new Uri(path), snapshot, 1337);
+        var documentContext = new VersionedDocumentContext(new Uri(path), snapshot, projectContext: null, 1337);
 
         return documentContext;
     }

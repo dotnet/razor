@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -833,7 +832,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             }
 
             var razorDocumentUri = _languageServerFeatureOptions.GetRazorDocumentUri(generatedDocumentUri);
-            var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(razorDocumentUri, cancellationToken).ConfigureAwait(false);
+            var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(razorDocumentUri, entry.TextDocument.GetProjectContext(), cancellationToken).ConfigureAwait(false);
             if (documentContext is null)
             {
                 continue;

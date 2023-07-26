@@ -4,13 +4,10 @@
 #nullable disable
 
 using System.IO;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -43,11 +40,11 @@ public class SnapshotResolverTest : LanguageServerTestBase
         // Arrange
         var documentFilePath = @"C:\path\to\document.cshtml";
         var normalizedFilePath = "C:/path/to/document.cshtml";
-        var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(TestProjectSnapshotManager.Create(new TestDispatcher(), ErrorReporter));
+        var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(TestProjectSnapshotManager.Create(ErrorReporter));
         var snapshotResolver = new SnapshotResolver(projectSnapshotManagerAccessor, LoggerFactory);
         var miscProject = snapshotResolver.GetMiscellaneousProject();
 
-        var hostProject = new HostProject(miscProject.FilePath, miscProject.IntermediateOutputPath, RazorDefaults.Configuration, miscProject.RootNamespace);
+        var hostProject = new HostProject(miscProject.FilePath, miscProject.IntermediateOutputPath, FallbackRazorConfiguration.Latest, miscProject.RootNamespace);
         projectSnapshotManagerAccessor.Instance.DocumentAdded(
             hostProject.Key,
             new HostDocument(normalizedFilePath, "document.cshtml"),
@@ -67,7 +64,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentFilePath = @"C:\path\to\document.cshtml";
-        var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(TestProjectSnapshotManager.Create(new TestDispatcher(), ErrorReporter));
+        var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(TestProjectSnapshotManager.Create(ErrorReporter));
         var snapshotResolver = new SnapshotResolver(projectSnapshotManagerAccessor, LoggerFactory);
 
         // Act
@@ -83,7 +80,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentFilePath = "C:/path/to/document.cshtml";
-        var snapshotResolver = new SnapshotResolver(new TestProjectSnapshotManagerAccessor(TestProjectSnapshotManager.Create(new TestDispatcher(), ErrorReporter)), LoggerFactory);
+        var snapshotResolver = new SnapshotResolver(new TestProjectSnapshotManagerAccessor(TestProjectSnapshotManager.Create(ErrorReporter)), LoggerFactory);
 
         // Act
         var result = snapshotResolver.TryResolveProject(documentFilePath, out var project);
@@ -98,7 +95,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentFilePath = "C:/path/to/document.cshtml";
-        var snapshotResolver = new SnapshotResolver(new TestProjectSnapshotManagerAccessor(TestProjectSnapshotManager.Create(new TestDispatcher(), ErrorReporter)), LoggerFactory);
+        var snapshotResolver = new SnapshotResolver(new TestProjectSnapshotManagerAccessor(TestProjectSnapshotManager.Create(ErrorReporter)), LoggerFactory);
         _ = snapshotResolver.GetMiscellaneousProject();
 
         // Act
@@ -129,7 +126,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentFilePath = "C:/path/to/document.cshtml";
-        var snapshotManager = TestProjectSnapshotManager.Create(new TestDispatcher(), ErrorReporter);
+        var snapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         var snapshotResolver = new SnapshotResolver(new TestProjectSnapshotManagerAccessor(snapshotManager), LoggerFactory);
         snapshotManager.ProjectAdded(TestProjectSnapshot.Create("C:/other/path/to/project.csproj").HostProject);
 
@@ -146,7 +143,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentFilePath = "C:/path/to/document.cshtml";
-        var snapshotManager = TestProjectSnapshotManager.Create(new TestDispatcher(), ErrorReporter);
+        var snapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         var expectedProject = snapshotManager.CreateAndAddProject("C:/path/to/project.csproj");
         snapshotManager.CreateAndAddProject("C:/path/to/other/project.csproj");
         snapshotManager.CreateAndAddDocument(expectedProject, documentFilePath);
@@ -158,7 +155,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
 
         // Assert
         Assert.True(result);
-        AssertSnapshotsEqual(expectedProject, project);
+        SnapshotResolverTest.AssertSnapshotsEqual(expectedProject, project);
     }
 
     [Fact]
@@ -168,7 +165,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
         var documentFilePath = Path.Join(TempDirectory.Instance.DirectoryPath, "file.cshtml");
         documentFilePath = FilePathNormalizer.Normalize(documentFilePath);
 
-        var snapshotManager = TestProjectSnapshotManager.Create(new TestDispatcher(), ErrorReporter);
+        var snapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         var snapshotResolver = new SnapshotResolver(new TestProjectSnapshotManagerAccessor(snapshotManager), LoggerFactory);
         var miscProject = (ProjectSnapshot)snapshotResolver.GetMiscellaneousProject();
         snapshotManager.CreateAndAddDocument(miscProject, documentFilePath);
@@ -179,7 +176,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
 
         // Assert
         Assert.True(result);
-        AssertSnapshotsEqual(miscProject, project);
+        SnapshotResolverTest.AssertSnapshotsEqual(miscProject, project);
     }
 
     [OSSkipConditionFact(new[] { "OSX", "Linux" })]
@@ -187,7 +184,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
     {
         // Arrange
         var documentFilePath = "c:/path/to/document.cshtml";
-        var snapshotManager = TestProjectSnapshotManager.Create(new TestDispatcher(), ErrorReporter);
+        var snapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         var snapshotResolver = new SnapshotResolver(new TestProjectSnapshotManagerAccessor(snapshotManager), LoggerFactory);
 
         var ownerProject = snapshotManager.CreateAndAddProject("C:/Path/To/project.csproj");
@@ -198,14 +195,14 @@ public class SnapshotResolverTest : LanguageServerTestBase
 
         // Assert
         Assert.True(result);
-        AssertSnapshotsEqual(ownerProject, project);
+        SnapshotResolverTest.AssertSnapshotsEqual(ownerProject, project);
     }
 
     [Fact]
     public void GetMiscellaneousProject_ProjectLoaded_ReturnsExistingProject()
     {
         // Arrange
-        var snapshotManager = TestProjectSnapshotManager.Create(new TestDispatcher(), ErrorReporter);
+        var snapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         var snapshotResolver = new SnapshotResolver(new TestProjectSnapshotManagerAccessor(snapshotManager), LoggerFactory);
 
         // Act
@@ -220,14 +217,14 @@ public class SnapshotResolverTest : LanguageServerTestBase
     public void GetMiscellaneousProject_ProjectNotLoaded_CreatesProjectAndReturnsCreatedProject()
     {
         // Arrange
-        var snapshotManager = TestProjectSnapshotManager.Create(new TestDispatcher(), ErrorReporter);
+        var snapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         var snapshotResolver = new SnapshotResolver(new TestProjectSnapshotManagerAccessor(snapshotManager), LoggerFactory);
 
         // Act
         var project = snapshotResolver.GetMiscellaneousProject();
 
         // Assert
-        Assert.Single(snapshotManager.Projects);
+        Assert.Single(snapshotManager.GetProjects());
         Assert.Equal(snapshotResolver.MiscellaneousHostProject.FilePath, project.FilePath);
     }
 
@@ -238,7 +235,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
     {
         filePath = FilePathNormalizer.Normalize(filePath);
 
-        snapshotManager = TestProjectSnapshotManager.Create(new TestDispatcher(), ErrorReporter);
+        snapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         var snapshotResolver = new SnapshotResolver(new TestProjectSnapshotManagerAccessor(snapshotManager), LoggerFactory);
 
         if (addToMiscellaneous)
@@ -259,17 +256,10 @@ public class SnapshotResolverTest : LanguageServerTestBase
         return snapshotResolver;
     }
 
-    private void AssertSnapshotsEqual(IProjectSnapshot first, IProjectSnapshot second)
+    private static void AssertSnapshotsEqual(IProjectSnapshot first, IProjectSnapshot second)
     {
         Assert.Equal(first.FilePath, second.FilePath);
         Assert.Equal(first.CSharpLanguageVersion, second.CSharpLanguageVersion);
         Assert.Equal(first.RootNamespace, second.RootNamespace);
-    }
-
-    private class TestDispatcher : ProjectSnapshotManagerDispatcher
-    {
-        public override bool IsDispatcherThread => true;
-
-        public override TaskScheduler DispatcherScheduler => TaskScheduler.Default;
     }
 }
