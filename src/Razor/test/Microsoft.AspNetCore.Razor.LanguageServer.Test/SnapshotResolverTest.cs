@@ -4,13 +4,10 @@
 #nullable disable
 
 using System.IO;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -47,7 +44,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
         var snapshotResolver = new SnapshotResolver(projectSnapshotManagerAccessor, LoggerFactory);
         var miscProject = snapshotResolver.GetMiscellaneousProject();
 
-        var hostProject = new HostProject(miscProject.FilePath, miscProject.IntermediateOutputPath, RazorDefaults.Configuration, miscProject.RootNamespace);
+        var hostProject = new HostProject(miscProject.FilePath, miscProject.IntermediateOutputPath, FallbackRazorConfiguration.Latest, miscProject.RootNamespace);
         projectSnapshotManagerAccessor.Instance.DocumentAdded(
             hostProject.Key,
             new HostDocument(normalizedFilePath, "document.cshtml"),
@@ -158,7 +155,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
 
         // Assert
         Assert.True(result);
-        AssertSnapshotsEqual(expectedProject, project);
+        SnapshotResolverTest.AssertSnapshotsEqual(expectedProject, project);
     }
 
     [Fact]
@@ -179,7 +176,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
 
         // Assert
         Assert.True(result);
-        AssertSnapshotsEqual(miscProject, project);
+        SnapshotResolverTest.AssertSnapshotsEqual(miscProject, project);
     }
 
     [OSSkipConditionFact(new[] { "OSX", "Linux" })]
@@ -198,7 +195,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
 
         // Assert
         Assert.True(result);
-        AssertSnapshotsEqual(ownerProject, project);
+        SnapshotResolverTest.AssertSnapshotsEqual(ownerProject, project);
     }
 
     [Fact]
@@ -259,7 +256,7 @@ public class SnapshotResolverTest : LanguageServerTestBase
         return snapshotResolver;
     }
 
-    private void AssertSnapshotsEqual(IProjectSnapshot first, IProjectSnapshot second)
+    private static void AssertSnapshotsEqual(IProjectSnapshot first, IProjectSnapshot second)
     {
         Assert.Equal(first.FilePath, second.FilePath);
         Assert.Equal(first.CSharpLanguageVersion, second.CSharpLanguageVersion);
