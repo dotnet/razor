@@ -70,12 +70,12 @@ public class GeneratedDocumentSynchronizerTest : LanguageServerTestBase
 
         public bool PublishedHtml { get; private set; }
 
-        public override void PublishCSharp(string filePath, SourceText sourceText, int hostDocumentVersion)
+        public override void PublishCSharp(ProjectKey projectKey, string filePath, SourceText sourceText, int hostDocumentVersion)
         {
             PublishedCSharp = true;
         }
 
-        public override void PublishHtml(string filePath, SourceText sourceText, int hostDocumentVersion)
+        public override void PublishHtml(ProjectKey projectKey, string filePath, SourceText sourceText, int hostDocumentVersion)
         {
             PublishedHtml = true;
         }

@@ -136,7 +136,7 @@ public class DefaultDocumentContextFactoryTest : LanguageServerTestBase
             throw new NotImplementedException();
         }
 
-        public bool TryResolveDocument(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot documentSnapshot)
+        public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot documentSnapshot)
         {
             if (documentFilePath == _documentSnapshot?.FilePath)
             {
