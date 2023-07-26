@@ -133,11 +133,6 @@ internal class ProjectConfigurationStateSynchronizer : IProjectConfigurationFile
 
         void UpdateProject(ProjectKey projectKey, ProjectRazorJson? projectRazorJson)
         {
-            if (projectKey is null)
-            {
-                throw new ArgumentNullException(nameof(projectKey));
-            }
-
             if (projectRazorJson is null)
             {
                 ResetProject(projectKey);
