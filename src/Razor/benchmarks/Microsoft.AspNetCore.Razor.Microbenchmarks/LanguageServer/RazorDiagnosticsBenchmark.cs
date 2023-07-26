@@ -37,6 +37,9 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
     private VSInternalDocumentDiagnosticsParams? Request { get; set; }
     private IEnumerable<VSInternalDiagnosticReport?>? Response { get; set; }
 
+    [Params(0, 1, 1000)]
+    public int N { get; set; }
+
     [IterationSetup]
     public void Setup()
     {
@@ -96,7 +99,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
             {
                 new VSInternalDiagnosticReport()
                 {
-                    Diagnostics = GetDiagnostics()
+                    Diagnostics = GetDiagnostics(N)
                 }
             }, Array.Empty<VSInternalDiagnosticReport>());
 
@@ -173,11 +176,14 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
     [GlobalCleanup]
     public void Cleanup()
     {
-        var diagnostics = Response!.SelectMany(r => r!.Diagnostics!);
-        if (!diagnostics.Any(d => d.Message.Contains("CallOnMe")) ||
-            !diagnostics.Any(y => y.Range == OutRange))
+        if (N > 0)
         {
-            throw new NotImplementedException("benchmark setup is wrong");
+            var diagnostics = Response!.SelectMany(r => r!.Diagnostics!);
+            if (!diagnostics.Any(d => d.Message.Contains("CallOnMe")) ||
+                !diagnostics.Any(y => y.Range == OutRange))
+            {
+                throw new NotImplementedException("benchmark setup is wrong");
+            }
         }
     }
 
@@ -214,16 +220,13 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
     private Range InRange { get; set; } = new Range { Start = new Position(85, 8), End = new Position(85, 16) };
     private Range OutRange { get; set; } = new Range { Start = new Position(6, 8), End = new Position(6, 16) };
 
-    private Diagnostic[] GetDiagnostics() => new Diagnostic[]
-        {
-            new Diagnostic()
-            {
-                Range = InRange,
-                Code = "CS0103",
-                Severity = DiagnosticSeverity.Error,
-                Message = "The name 'CallOnMe' does not exist in the current context"
-            }
-        };
+    private Diagnostic[] GetDiagnostics(int N) => Enumerable.Range(1, N).Select(_ => new Diagnostic()
+    {
+        Range = InRange,
+        Code = "CS0103",
+        Severity = DiagnosticSeverity.Error,
+        Message = "The name 'CallOnMe' does not exist in the current context"
+    }).ToArray();
 
     private string GetGeneratedCode()
         => """
