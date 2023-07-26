@@ -80,8 +80,8 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
     {
         // Arrange
         var initializedOrder = new List<string>();
-        var highPriorityTrigger = new InitializeInspectionTrigger(() => initializedOrder.Add("highPriority"), 100);
-        var defaultPriorityTrigger = new InitializeInspectionTrigger(() => initializedOrder.Add("lowPriority"), 0);
+        var highPriorityTrigger = new PriorityInitializeInspectionTrigger(() => initializedOrder.Add("highPriority"));
+        var defaultPriorityTrigger = new InitializeInspectionTrigger(() => initializedOrder.Add("lowPriority"));
 
         // Building this list in the wrong order so we can verify priority matters
         var triggers = new[] { defaultPriorityTrigger, highPriorityTrigger };
@@ -887,21 +887,16 @@ public class DefaultProjectSnapshotManagerTest : ProjectSnapshotManagerDispatche
         }
     }
 
-    private class InitializeInspectionTrigger : ProjectSnapshotChangeTrigger
+    private class InitializeInspectionTrigger(Action initializeNotification) : IProjectSnapshotChangeTrigger
     {
-        private readonly Action _initializeNotification;
+        private readonly Action _initializeNotification = initializeNotification;
 
-        public InitializeInspectionTrigger(Action initializeNotification, int initializePriority)
-        {
-            _initializeNotification = initializeNotification;
-            InitializePriority = initializePriority;
-        }
-
-        public override int InitializePriority { get; }
-
-        public override void Initialize(ProjectSnapshotManagerBase projectManager)
+        public void Initialize(ProjectSnapshotManagerBase projectManager)
         {
             _initializeNotification();
         }
     }
+
+    private class PriorityInitializeInspectionTrigger(Action initializeNotification)
+        : InitializeInspectionTrigger(initializeNotification), IPriorityProjectSnapshotChangeTrigger;
 }
