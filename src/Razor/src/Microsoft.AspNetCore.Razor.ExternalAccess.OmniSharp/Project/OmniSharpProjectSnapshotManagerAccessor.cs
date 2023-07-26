@@ -56,7 +56,7 @@ public class OmniSharpProjectSnapshotManagerAccessor
             {
                 var projectSnapshotManager = new DefaultProjectSnapshotManager(
                     ErrorReporter.Instance,
-                    Array.Empty<ProjectSnapshotChangeTrigger>(),
+                    Array.Empty<IProjectSnapshotChangeTrigger>(),
                     _workspace);
 
                 var instance = new OmniSharpProjectSnapshotManager(projectSnapshotManager, _remoteTextLoaderFactory);

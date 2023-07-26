@@ -30,7 +30,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 {
     public override event EventHandler<ProjectChangeEventArgs>? Changed;
 
-    private readonly ProjectSnapshotChangeTrigger[] _triggers;
+    private readonly IProjectSnapshotChangeTrigger[] _triggers;
 
     // Each entry holds a ProjectState and an optional ProjectSnapshot. ProjectSnapshots are
     // created lazily.
@@ -44,7 +44,7 @@ internal class DefaultProjectSnapshotManager : ProjectSnapshotManagerBase
 
     public DefaultProjectSnapshotManager(
         IErrorReporter errorReporter,
-        IEnumerable<ProjectSnapshotChangeTrigger> triggers,
+        IEnumerable<IProjectSnapshotChangeTrigger> triggers,
         Workspace workspace)
     {
         _triggers = triggers?.OrderByDescending(trigger => trigger.InitializePriority).ToArray() ?? throw new ArgumentNullException(nameof(triggers));
