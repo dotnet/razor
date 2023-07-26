@@ -28,7 +28,7 @@ internal class SnapshotResolver : ISnapshotResolver
 
         var miscellaneousProjectPath = Path.Combine(TempDirectory.Instance.DirectoryPath, "__MISC_RAZOR_PROJECT__");
         var normalizedPath = FilePathNormalizer.Normalize(miscellaneousProjectPath);
-        MiscellaneousHostProject = new HostProject(normalizedPath, normalizedPath, RazorDefaults.Configuration, RazorDefaults.RootNamespace);
+        MiscellaneousHostProject = new HostProject(normalizedPath, normalizedPath, FallbackRazorConfiguration.Latest, rootNamespace: null);
     }
 
     /// <inheritdoc/>

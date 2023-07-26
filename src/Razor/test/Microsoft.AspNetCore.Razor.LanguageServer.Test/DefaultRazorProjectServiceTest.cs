@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -266,7 +265,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         projectSnapshotManager.Setup(manager => manager.ProjectConfigurationChanged(It.IsAny<HostProject>()))
             .Callback<HostProject>((hostProject) =>
             {
-                Assert.Same(RazorDefaults.Configuration, hostProject.Configuration);
+                Assert.Same(FallbackRazorConfiguration.Latest, hostProject.Configuration);
                 Assert.Equal(projectFilePath, hostProject.FilePath);
             });
         var projectService = CreateProjectService(new TestSnapshotResolver(), projectSnapshotManager.Object);
@@ -511,7 +510,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         projectSnapshotManager.Setup(manager => manager.DocumentAdded(It.IsAny<ProjectKey>(), It.IsAny<HostDocument>(), It.IsAny<TextLoader>()))
             .Callback<ProjectKey, HostDocument, TextLoader>((projectKey, hostDocument, loader) =>
             {
-                Assert.Same(ownerProject.Key, projectKey);
+                Assert.Equal(ownerProject.Key, projectKey);
                 Assert.Equal(expectedDocumentFilePath, hostDocument.FilePath);
                 Assert.NotNull(loader);
 
@@ -570,7 +569,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         projectSnapshotManager.Setup(manager => manager.DocumentAdded(It.IsAny<ProjectKey>(), It.IsAny<HostDocument>(), It.IsAny<TextLoader>()))
             .Callback<ProjectKey, HostDocument, TextLoader>((projectKey, hostDocument, loader) =>
             {
-                Assert.Same(ownerProject.Key, projectKey);
+                Assert.Equal(ownerProject.Key, projectKey);
                 Assert.Equal(documentFilePath, hostDocument.FilePath);
                 Assert.NotNull(loader);
             });
@@ -594,7 +593,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         projectSnapshotManager.Setup(manager => manager.DocumentAdded(It.IsAny<ProjectKey>(), It.IsAny<HostDocument>(), It.IsAny<TextLoader>()))
             .Callback<ProjectKey, HostDocument, TextLoader>((projectKey, hostDocument, loader) =>
             {
-                Assert.Same(miscellaneousProject.HostProject.Key, projectKey);
+                Assert.Equal(miscellaneousProject.HostProject.Key, projectKey);
                 Assert.Equal(documentFilePath, hostDocument.FilePath);
                 Assert.NotNull(loader);
             });
@@ -623,7 +622,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         projectSnapshotManager.Setup(manager => manager.DocumentRemoved(It.IsAny<ProjectKey>(), It.IsAny<HostDocument>()))
             .Callback<ProjectKey, HostDocument>((projectKey, hostDocument) =>
             {
-                Assert.Same(ownerProject.Key, projectKey);
+                Assert.Equal(ownerProject.Key, projectKey);
                 Assert.Equal(documentFilePath, hostDocument.FilePath);
             });
         projectSnapshotManager.Setup(manager => manager.IsDocumentOpen(It.IsAny<string>()))
@@ -703,7 +702,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         projectSnapshotManager.Setup(manager => manager.DocumentRemoved(It.IsAny<ProjectKey>(), It.IsAny<HostDocument>()))
             .Callback<ProjectKey, HostDocument>((projectKey, hostDocument) =>
             {
-                Assert.Same(ownerProject.Key, projectKey);
+                Assert.Equal(ownerProject.Key, projectKey);
                 Assert.Equal(documentFilePath, hostDocument.FilePath);
             });
         projectSnapshotManager.Setup(manager => manager.DocumentAdded(It.IsAny<ProjectKey>(), It.IsAny<HostDocument>(), It.IsAny<TextLoader>()))
@@ -742,7 +741,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         projectSnapshotManager.Setup(manager => manager.DocumentRemoved(It.IsAny<ProjectKey>(), It.IsAny<HostDocument>()))
             .Callback<ProjectKey, HostDocument>((projectKey, hostDocument) =>
             {
-                Assert.Same(miscellaneousProject.Key, projectKey);
+                Assert.Equal(miscellaneousProject.Key, projectKey);
                 Assert.Equal(documentFilePath, hostDocument.FilePath);
             });
         projectSnapshotManager.Setup(manager => manager.IsDocumentOpen(It.IsAny<string>()))
@@ -968,12 +967,40 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
             .Callback<HostProject>((hostProject) =>
             {
                 Assert.Equal(projectFilePath, hostProject.FilePath);
-                Assert.Same(RazorDefaults.Configuration, hostProject.Configuration);
+                Assert.Same(FallbackRazorConfiguration.Latest, hostProject.Configuration);
+                Assert.Null(hostProject.RootNamespace);
             });
         var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
 
         // Act
-        projectService.AddProject(projectFilePath, "C:/path/to/obj", rootNamespace: null);
+        projectService.AddProject(projectFilePath, "C:/path/to/obj", configuration: null, rootNamespace: null);
+
+        // Assert
+        projectSnapshotManager.VerifyAll();
+    }
+
+    [Fact]
+    public void AddProject_AddsProjectWithSpecifiedConfiguration()
+    {
+        // Arrange
+        var projectFilePath = "C:/path/to/project.csproj";
+        var miscellaneousProject = TestProjectSnapshot.Create("/./__MISC_PROJECT__");
+        var projectResolver = new TestSnapshotResolver(new Dictionary<string, IProjectSnapshot>(), miscellaneousProject);
+
+        var configuration = RazorConfiguration.Create(RazorLanguageVersion.Version_1_0, "TestName", Array.Empty<RazorExtension>());
+
+        var projectSnapshotManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
+        projectSnapshotManager.Setup(manager => manager.ProjectAdded(It.IsAny<HostProject>()))
+            .Callback<HostProject>((hostProject) =>
+            {
+                Assert.Equal(projectFilePath, hostProject.FilePath);
+                Assert.Same(configuration, hostProject.Configuration);
+                Assert.Equal("My.Root.Namespace", hostProject.RootNamespace);
+            });
+        var projectService = CreateProjectService(projectResolver, projectSnapshotManager.Object);
+
+        // Act
+        projectService.AddProject(projectFilePath, "C:/path/to/obj", configuration, "My.Root.Namespace");
 
         // Assert
         projectSnapshotManager.VerifyAll();
@@ -1044,7 +1071,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         projectSnapshotManager.Setup(manager => manager.DocumentAdded(It.IsAny<ProjectKey>(), It.IsAny<HostDocument>(), It.IsAny<TextLoader>()))
             .Callback<ProjectKey, HostDocument, TextLoader>((projectKey, hostDocument, textLoader) =>
             {
-                Assert.Same(projectToBeMigratedTo.Key, projectKey);
+                Assert.Equal(projectToBeMigratedTo.Key, projectKey);
                 Assert.NotNull(textLoader);
 
                 migratedDocuments.Add(hostDocument);
@@ -1074,7 +1101,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         projectSnapshotManager.Setup(manager => manager.DocumentAdded(It.IsAny<ProjectKey>(), It.IsAny<HostDocument>(), It.IsAny<TextLoader>()))
             .Callback<ProjectKey, HostDocument, TextLoader>((projectKey, hostDocument, textLoader) =>
             {
-                Assert.Same(miscellaneousProject.Key, projectKey);
+                Assert.Equal(miscellaneousProject.Key, projectKey);
                 Assert.NotNull(textLoader);
 
                 migratedDocuments.Add(hostDocument);
@@ -1127,7 +1154,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         projectSnapshotManager.Setup(manager => manager.DocumentAdded(It.IsAny<ProjectKey>(), It.IsAny<HostDocument>(), It.IsAny<TextLoader>()))
             .Callback<ProjectKey, HostDocument, TextLoader>((projectKey, hostDocument, textLoader) =>
             {
-                Assert.Same(projectToBeMigratedTo.Key, projectKey);
+                Assert.Equal(projectToBeMigratedTo.Key, projectKey);
                 Assert.NotNull(textLoader);
 
                 migratedDocuments.Add(hostDocument);
@@ -1135,7 +1162,7 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         projectSnapshotManager.Setup(manager => manager.DocumentRemoved(It.IsAny<ProjectKey>(), It.IsAny<HostDocument>()))
             .Callback<ProjectKey, HostDocument>((projectKey, hostDocument) =>
             {
-                Assert.Same(miscellaneousProject.Key, projectKey);
+                Assert.Equal(miscellaneousProject.Key, projectKey);
 
                 Assert.DoesNotContain(hostDocument, migratedDocuments);
             });
