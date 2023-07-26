@@ -37,7 +37,7 @@ public class CodeActionEndToEndTest : SingleServerDelegatingEndpointTestBase
     private const string GenerateEventHandlerTitle = "Generate Event Handler 'DoesNotExist'";
     private const string GenerateAsyncEventHandlerTitle = "Generate Async Event Handler 'DoesNotExist'";
     private const string GenerateEventHandlerReturnType = "void";
-    private const string GenerateAsyncEventHandlerReturnType = "async System.Threading.Tasks.Task";
+    private const string GenerateAsyncEventHandlerReturnType = "System.Threading.Tasks.Task";
 
     private static GenerateMethodCodeActionResolver[] CreateRazorCodeActionResolversFn(
         string filePath,
