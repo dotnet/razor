@@ -40,6 +40,7 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
 
     private void TrackDocumentVersion(IDocumentSnapshot documentSnapshot, int version, string filePath, ReadWriterLocker.UpgradeableReadLock upgradeableReadLock)
     {
+        // Need to ensure the write lock covers all uses of documentEntries, not just DocumentLookup
         using (upgradeableReadLock.EnterWriteLock())
         {
             if (!DocumentLookup_NeedsLock.TryGetValue(filePath, out var documentEntries))
