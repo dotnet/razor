@@ -40,23 +40,26 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
 
     private void TrackDocumentVersion(IDocumentSnapshot documentSnapshot, int version, string filePath, ReadWriterLocker.UpgradeableReadLock upgradeableReadLock)
     {
-        if (!DocumentLookup_NeedsLock.TryGetValue(filePath, out var documentEntries))
+        using (upgradeableReadLock.EnterWriteLock())
         {
-            documentEntries = new List<DocumentEntry>();
-            DocumentLookup_NeedsLock[filePath] = documentEntries;
+            if (!DocumentLookup_NeedsLock.TryGetValue(filePath, out var documentEntries))
+            {
+                documentEntries = new List<DocumentEntry>();
+                DocumentLookup_NeedsLock[filePath] = documentEntries;
+            }
+
+            if (documentEntries.Count == MaxDocumentTrackingCount)
+            {
+                // Clear the oldest document entry
+
+                // With this approach we'll slowly leak memory as new documents are added to the system. We don't clear up
+                // document file paths where where all of the corresponding entries are expired.
+                documentEntries.RemoveAt(0);
+            }
+
+            var entry = new DocumentEntry(documentSnapshot, version);
+            documentEntries.Add(entry);
         }
-
-        if (documentEntries.Count == MaxDocumentTrackingCount)
-        {
-            // Clear the oldest document entry
-
-            // With this approach we'll slowly leak memory as new documents are added to the system. We don't clear up
-            // document file paths where where all of the corresponding entries are expired.
-            documentEntries.RemoveAt(0);
-        }
-
-        var entry = new DocumentEntry(documentSnapshot, version);
-        documentEntries.Add(entry);
     }
 
     public override bool TryGetDocumentVersion(IDocumentSnapshot documentSnapshot, [NotNullWhen(true)] out int? version)
@@ -155,7 +158,8 @@ internal class DefaultDocumentVersionCache : DocumentVersionCache
     // Internal for testing
     internal void MarkAsLatestVersion(IDocumentSnapshot document)
     {
-        MarkAsLatestVersion(document);
+        using var upgradeableLock = _lock.EnterUpgradeAbleReadLock();
+        MarkAsLatestVersion(document, upgradeableLock);
     }
 
     // Internal for testing
