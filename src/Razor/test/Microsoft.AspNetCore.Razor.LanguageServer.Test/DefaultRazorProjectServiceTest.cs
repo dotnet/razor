@@ -660,13 +660,13 @@ public class DefaultRazorProjectServiceTest : LanguageServerTestBase
         projectSnapshotManager.Setup(manager => manager.DocumentRemoved(project1.Key, It.IsAny<HostDocument>()))
             .Callback<ProjectKey, HostDocument>((projectKey, hostDocument) =>
             {
-                Assert.Same(project1.Key, projectKey);
+                Assert.Equal(project1.Key, projectKey);
                 Assert.Equal(documentFilePath, hostDocument.FilePath);
             });
         projectSnapshotManager.Setup(manager => manager.DocumentRemoved(project2.Key, It.IsAny<HostDocument>()))
             .Callback<ProjectKey, HostDocument>((projectKey, hostDocument) =>
             {
-                Assert.Same(project2.Key, projectKey);
+                Assert.Equal(project2.Key, projectKey);
                 Assert.Equal(documentFilePath, hostDocument.FilePath);
             });
         projectSnapshotManager.Setup(manager => manager.IsDocumentOpen(It.IsAny<string>()))

@@ -61,7 +61,7 @@ internal class CodeDocumentReferenceHolder : DocumentProcessedListener
             case ProjectChangeKind.DocumentChanged:
             case ProjectChangeKind.DocumentRemoved:
                 {
-                    var key = new DocumentKey(args.ProjectKey.AssumeNotNull(), args.DocumentFilePath.AssumeNotNull());
+                    var key = new DocumentKey(args.ProjectKey, args.DocumentFilePath.AssumeNotNull());
                     _codeDocumentCache.Remove(key);
                     break;
                 }

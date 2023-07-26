@@ -199,7 +199,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
                 Assumes.NotNull(args.DocumentFilePath);
                 if (!_projectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
                 {
-                    var key = new DocumentKey(args.ProjectKey.AssumeNotNull(), args.DocumentFilePath);
+                    var key = new DocumentKey(args.ProjectKey, args.DocumentFilePath);
                     // Document closed, evict published source text, unless the server doesn't want us to.
                     if (_languageServerFeatureOptions.UpdateBuffersForClosedDocuments)
                     {

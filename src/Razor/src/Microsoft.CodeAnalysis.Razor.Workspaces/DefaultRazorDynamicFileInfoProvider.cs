@@ -111,11 +111,6 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
     // Called by us to update entries
     public override void UpdateFileInfo(ProjectKey projectKey, DynamicDocumentContainer documentContainer)
     {
-        if (projectKey is null)
-        {
-            throw new ArgumentNullException(nameof(projectKey));
-        }
-
         if (documentContainer is null)
         {
             throw new ArgumentNullException(nameof(documentContainer));
@@ -204,11 +199,6 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
     // Called by us when a document opens in the editor
     public override void SuppressDocument(ProjectKey projectKey, string documentFilePath)
     {
-        if (projectKey is null)
-        {
-            throw new ArgumentNullException(nameof(projectKey));
-        }
-
         if (documentFilePath is null)
         {
             throw new ArgumentNullException(nameof(documentFilePath));
