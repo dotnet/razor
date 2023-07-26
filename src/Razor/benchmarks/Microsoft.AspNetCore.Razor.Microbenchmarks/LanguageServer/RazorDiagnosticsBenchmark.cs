@@ -3,17 +3,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
@@ -23,84 +25,80 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 [ShortRunJob]
 public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
 {
-    private readonly Range _inRange = new Range { Start = new Position(10, 19), End = new Position(10, 23) };
-    private readonly Range _outRange = new Range { Start = new Position(7, 8), End = new Position(7, 15) };
-    private string? _filePath;
-    private DocumentPullDiagnosticsEndpoint? _documentPullDiagnosticsEndpoint;
-    private RazorRequestContext _razorRequestContext;
-    private VSInternalDocumentDiagnosticsParams? _request;
-    private IEnumerable<VSInternalDiagnosticReport?>? _diagnostics;
+    private DocumentPullDiagnosticsEndpoint? DocumentPullDiagnosticsEndpoint { get; set; }
+    private RazorRequestContext RazorRequestContext { get; set; }
+    private RazorCodeDocument? RazorCodeDocument { get; set; }
+    private SourceText? SourceText { get; set; }
+    private SourceMapping[]? SourceMappings { get; set; }
+    private string? GeneratedCode { get; set; }
+    private object? Diagnostics { get; set; }
+    private SourceText? CSharpSourceText { get; set; }
+    private VersionedDocumentContext? VersionedDocumentContext { get; set; }
+    private VSInternalDocumentDiagnosticsParams? Request { get; set; }
+    private IEnumerable<VSInternalDiagnosticReport?>? Response { get; set; }
 
-    public enum FileTypes
+    [IterationSetup]
+    public void Setup()
     {
-        Small,
-        Large
-    }
-
-    [Params(0, 1, 1000)]
-    public int N { get; set; }
-
-    [ParamsAllValues]
-    public FileTypes FileType { get; set; }
-
-    [GlobalSetup]
-    public async Task SetupAsync()
-    {
-        var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-        var languageServerFeatureOptions = BuildFeatureOptions();
-        var razorDocumentMappingService = BuildRazorDocumentMappingService();
-        var loggerFactory = BuildLoggerFactory();
-        var translateDiagnosticsService = new RazorTranslateDiagnosticsService(razorDocumentMappingService, loggerFactory);
-
-        _documentPullDiagnosticsEndpoint = new DocumentPullDiagnosticsEndpoint(
-            languageServerFeatureOptions,
-            translateDiagnosticsService,
-            languageServer: new ClientNotifierService(BuildDiagnostics(N)),
-            telemetryReporter: null);
-        var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
-        var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
-        _filePath = Path.Combine(projectRoot, "Components", "Pages", $"Generated.razor");
-
-        var content = GetFileContents(FileType);
-        File.WriteAllText(_filePath, content);
-
-        var targetPath = "/Components/Pages/Generated.razor";
-
-        var documentUri = new Uri(_filePath);
-        var documentSnapshot = GetDocumentSnapshot(projectFilePath, _filePath, targetPath);
-        var documentText = await documentSnapshot.GetTextAsync();
-        var documentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, 1);
-
-        _razorRequestContext = new RazorRequestContext(documentContext, Logger, languageServer.GetLspServices());
-
-        _request = new VSInternalDocumentDiagnosticsParams
+        SourceMappings = GetSourceMappings();
+        GeneratedCode = GetGeneratedCode();
+        Diagnostics = BuildDiagnostics();
+        var razorFilePath = "file://C:/path/test.razor";
+        var uri = new Uri(razorFilePath);
+        Request = new VSInternalDocumentDiagnosticsParams
         {
-            TextDocument = new TextDocumentIdentifier
-            {
-                Uri = documentUri
-            }
+            TextDocument = new TextDocumentIdentifier { Uri = uri }
         };
+        var stringSourceDocument = new StringSourceDocument(GetFileContents(), UTF8Encoding.UTF8, new RazorSourceDocumentProperties());
+        var mockRazorCodeDocument = new Mock<RazorCodeDocument>(MockBehavior.Strict);
+
+        var mockRazorCSharpDocument = RazorCSharpDocument.Create(
+            mockRazorCodeDocument.Object,
+            GeneratedCode,
+            RazorCodeGenerationOptions.CreateDesignTimeDefault(),
+            Array.Empty<RazorDiagnostic>(),
+            SourceMappings,
+            new List<LinePragma>()
+        );
+
+        var itemCollection = new ItemCollection();
+        itemCollection[typeof(RazorCSharpDocument)] = mockRazorCSharpDocument;
+        mockRazorCodeDocument.Setup(r => r.Source).Returns(stringSourceDocument);
+        mockRazorCodeDocument.Setup(r => r.Items).Returns(itemCollection);
+        RazorCodeDocument = mockRazorCodeDocument.Object;
+
+        SourceText = RazorCodeDocument.GetSourceText();
+        CSharpSourceText = RazorCodeDocument.GetCSharpSourceText();
+        var documentContext = new Mock<VersionedDocumentContext>(
+            MockBehavior.Strict,
+            new object[] { It.IsAny<Uri>(), It.IsAny<IDocumentSnapshot>(), It.IsAny<VSProjectContext>(), It.IsAny<int>() });
+        documentContext
+            .Setup(r => r.GetCodeDocumentAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(RazorCodeDocument);
+        documentContext.Setup(r => r.Uri).Returns(It.IsAny<Uri>());
+        documentContext.Setup(r => r.Version).Returns(It.IsAny<int>());
+        documentContext.Setup(r => r.GetSourceTextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(It.IsAny<SourceText>());
+        RazorRequestContext = new RazorRequestContext(documentContext.Object, Logger, null!);
+        VersionedDocumentContext = documentContext.Object;
+
+        var loggerFactory = BuildLoggerFactory();
+        var languageServerFeatureOptions = BuildFeatureOptions();
+        var languageServer = new ClientNotifierService(Diagnostics!);
+        var documentMappingService = BuildRazorDocumentMappingService();
+
+        var translateDiagnosticsService = new RazorTranslateDiagnosticsService(documentMappingService, loggerFactory);
+        DocumentPullDiagnosticsEndpoint = new DocumentPullDiagnosticsEndpoint(languageServerFeatureOptions, translateDiagnosticsService, languageServer, telemetryReporter: null);
     }
 
-    private object BuildDiagnostics(int numDiagnostics)
-    {
-        return new RazorPullDiagnosticResponse(
+    private object BuildDiagnostics()
+        => new RazorPullDiagnosticResponse(
             new[]
             {
                 new VSInternalDiagnosticReport()
                 {
-                    ResultId = "5",
-                    Diagnostics = Enumerable.Range(1000, numDiagnostics).Select(x => new Diagnostic
-                    {
-                        Range = _inRange,
-                        Code = "CS" + x,
-                        Severity = DiagnosticSeverity.Error,
-                        Source = "DocumentPullDiagnosticHandler",
-                        Message = "The name 'CallOnMe' does not exist in the current context"
-                    }).ToArray()
+                    Diagnostics = GetDiagnostics()
                 }
             }, Array.Empty<VSInternalDiagnosticReport>());
-    }
 
     private protected override LanguageServerFeatureOptions BuildFeatureOptions()
     {
@@ -122,12 +120,12 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         razorDocumentMappingService.Setup(
             r => r.TryMapToHostDocumentRange(
                 It.IsAny<IRazorGeneratedDocument>(),
-                _inRange,
+                InRange,
                 It.IsAny<MappingBehavior>(),
                 out hostDocumentRange))
             .Returns((IRazorGeneratedDocument generatedDocument, Range range, MappingBehavior mappingBehavior, out Range? actualOutRange) =>
             {
-                actualOutRange = _outRange;
+                actualOutRange = OutRange;
                 return true;
             });
 
@@ -135,7 +133,7 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
         razorDocumentMappingService.Setup(
             r => r.TryMapToHostDocumentRange(
                 It.IsAny<IRazorGeneratedDocument>(),
-                It.IsNotIn(_inRange),
+                It.IsNotIn(InRange),
                 It.IsAny<MappingBehavior>(),
                 out hostDocumentRange2))
             .Returns((IRazorGeneratedDocument generatedDocument, Range range, MappingBehavior mappingBehavior, out Range? actualOutRange) =>
@@ -152,60 +150,35 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
             It.IsAny<string>()) == new NoopLogger(),
         MockBehavior.Strict);
 
-    private string GetFileContents(FileTypes fileType)
+    private string GetFileContents()
+        => """
+<div></div>
+
+@functions
+{
+    public void M()
     {
-        var sb = new StringBuilder();
-
-        sb.Append("""
-
-             <div></div>
-
-             @functions
-             {
-                public void M()
-                {
-                    CallOnMe();
-                }
-             }
-
-             """);
-
-        for (var i = 0; i < (fileType == FileTypes.Small ? 1 : 100); i++)
-        {
-            sb.Append($$"""
-            @{
-                var y{{i}} = 456;
-            }
-
-            <div>
-                <p>Hello there Mr {{i}}</p>
-            </div>
-            """);
-        }
-
-        return sb.ToString();
+        CallOnMe();
     }
+}
+
+""";
 
     [Benchmark(Description = "Diagnostics")]
     public async Task RazorDiagnosticsAsync()
     {
-        _diagnostics = await _documentPullDiagnosticsEndpoint!.HandleRequestAsync(_request!, _razorRequestContext, CancellationToken.None);
+        Response = await DocumentPullDiagnosticsEndpoint!.HandleRequestAsync(Request!, RazorRequestContext, CancellationToken.None);
     }
 
     [GlobalCleanup]
-    public async Task CleanupAsync()
+    public void Cleanup()
     {
-        if (_diagnostics!.Any(x => x!.Diagnostics!.Any(y => !y.Message.Contains("CallOnMe"))))
+        var diagnostics = Response!.SelectMany(r => r!.Diagnostics!);
+        if (!diagnostics.Any(d => d.Message.Contains("CallOnMe")) ||
+            !diagnostics.Any(y => y.Range == OutRange))
         {
             throw new NotImplementedException("benchmark setup is wrong");
         }
-
-        File.Delete(_filePath!);
-
-        var innerServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-
-        await innerServer.ShutdownAsync();
-        await innerServer.ExitAsync();
     }
 
     private class ClientNotifierService : ClientNotifierServiceBase
@@ -237,4 +210,124 @@ public class RazorDiagnosticsBenchmark : RazorLanguageServerBenchmarkBase
             return Task.FromResult((TResponse)_diagnostics);
         }
     }
+
+    private Range InRange { get; set; } = new Range { Start = new Position(85, 8), End = new Position(85, 16) };
+    private Range OutRange { get; set; } = new Range { Start = new Position(6, 8), End = new Position(6, 16) };
+
+    private Diagnostic[] GetDiagnostics() => new Diagnostic[]
+        {
+            new Diagnostic()
+            {
+                Range = InRange,
+                Code = "CS0103",
+                Severity = DiagnosticSeverity.Error,
+                Message = "The name 'CallOnMe' does not exist in the current context"
+            }
+        };
+
+    private string GetGeneratedCode()
+        => """
+// <auto-generated/>
+#pragma warning disable 1591
+namespace AspNetCore
+{
+    #line hidden
+    using TModel = global::System.Object;
+#nullable restore
+#line 1 "_ViewImports.cshtml"
+using BlazorApp1;
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 2 "_ViewImports.cshtml"
+using BlazorApp1.Pages;
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 3 "_ViewImports.cshtml"
+using BlazorApp1.Shared;
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 4 "_ViewImports.cshtml"
+using System;
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 5 "_ViewImports.cshtml"
+using Microsoft.AspNetCore.Components;
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 6 "_ViewImports.cshtml"
+using Microsoft.AspNetCore.Components.Authorization;
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 7 "_ViewImports.cshtml"
+using Microsoft.AspNetCore.Components.Routing;
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 8 "_ViewImports.cshtml"
+using Microsoft.AspNetCore.Components.Web;
+
+#line default
+#line hidden
+#nullable disable
+    [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/test.cshtml")]
+    [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
+    #nullable restore
+    public class test : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
+    #nullable disable
+    {
+        #pragma warning disable 219
+        private void __RazorDirectiveTokenHelpers__() {
+        }
+        #pragma warning restore 219
+        #pragma warning disable 0414
+        private static object __o = null;
+        #pragma warning restore 0414
+        #pragma warning disable 1998
+        public async override global::System.Threading.Tasks.Task ExecuteAsync()
+        {
+        }
+        #pragma warning restore 1998
+#nullable restore
+#line 4 "test.cshtml"
+
+    public void M()
+    {
+        CallOnMe();
+    }
+
+#line default
+#line hidden
+#nullable disable
+    }
+}
+#pragma warning restore 1591
+
+""";
+
+    private SourceMapping[] GetSourceMappings()
+        => new SourceMapping[] {
+            new SourceMapping(
+                originalSpan: new SourceSpan(filePath: "test.cshtml", absoluteIndex: 28, lineIndex: 3, characterIndex: 1, length: 58, lineCount: 5, endCharacterIndex: 0),
+                generatedSpan: new SourceSpan(filePath: null, absoluteIndex: 2026, lineIndex: 82, characterIndex: 1, length: 58, lineCount: 1, endCharacterIndex: 0)
+    )};
 }
