@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
@@ -39,8 +38,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         using var _ = ListPool<RazorVSInternalCodeAction>.GetPooledObject(out var codeActions);
 
         // Locate cursor
-        var token = context.CodeDocument.GetSyntaxTree().Root.FindToken(context.Location.AbsoluteIndex);
-        var node = token?.Parent;
+        var node = context.CodeDocument.GetSyntaxTree().Root.FindNode(context.Location.AbsoluteIndex);
         if (node is null)
         {
             return s_emptyResult;

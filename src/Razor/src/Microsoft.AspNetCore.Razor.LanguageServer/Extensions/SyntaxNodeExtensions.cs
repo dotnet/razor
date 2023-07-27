@@ -326,4 +326,7 @@ internal static class SyntaxNodeExtensions
 
         return whitespaceLength;
     }
+
+    public static SyntaxNode? FindNode(this SyntaxNode node, int index)
+        => node.FindToken(index)?.Parent;
 }

@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Razor;
@@ -224,8 +223,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
                 return false;
             }
 
-            var token = syntaxTree.Root.FindToken(context.Location.AbsoluteIndex);
-            owner = token?.Parent;
+            owner = syntaxTree.Root.FindNode(context.Location.AbsoluteIndex);
             if (owner is null)
             {
                 Debug.Fail("Owner should never be null.");
