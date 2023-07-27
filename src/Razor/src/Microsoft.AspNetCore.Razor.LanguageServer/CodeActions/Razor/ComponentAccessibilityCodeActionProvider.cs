@@ -39,8 +39,8 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
         using var _ = ListPool<RazorVSInternalCodeAction>.GetPooledObject(out var codeActions);
 
         // Locate cursor
-        var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
-        var node = context.CodeDocument.GetSyntaxTree().Root.LocateOwner(change);
+        var token = context.CodeDocument.GetSyntaxTree().Root.FindToken(context.Location.AbsoluteIndex);
+        var node = token?.Parent;
         if (node is null)
         {
             return s_emptyResult;

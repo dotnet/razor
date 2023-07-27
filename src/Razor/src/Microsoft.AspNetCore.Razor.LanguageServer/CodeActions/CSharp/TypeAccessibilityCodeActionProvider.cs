@@ -217,7 +217,6 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
 
         static bool TryGetOwner(RazorCodeActionContext context, [NotNullWhen(true)] out SyntaxNode? owner)
         {
-            var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
             var syntaxTree = context.CodeDocument.GetSyntaxTree();
             if (syntaxTree?.Root is null)
             {
@@ -225,7 +224,8 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
                 return false;
             }
 
-            owner = syntaxTree.Root.LocateOwner(change);
+            var token = syntaxTree.Root.FindToken(context.Location.AbsoluteIndex);
+            owner = token?.Parent;
             if (owner is null)
             {
                 Debug.Fail("Owner should never be null.");

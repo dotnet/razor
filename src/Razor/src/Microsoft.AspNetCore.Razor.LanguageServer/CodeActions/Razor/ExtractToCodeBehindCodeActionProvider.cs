@@ -52,14 +52,14 @@ internal sealed class ExtractToCodeBehindCodeActionProvider : IRazorCodeActionPr
             return s_emptyResult;
         }
 
-        var change = new SourceChange(context.Location.AbsoluteIndex, length: 0, newText: string.Empty);
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
         if (syntaxTree?.Root is null)
         {
             return s_emptyResult;
         }
 
-        var owner = syntaxTree.Root.LocateOwner(change);
+        var token = syntaxTree.Root.FindToken(context.Location.AbsoluteIndex);
+        var owner = token?.Parent;
         if (owner is null)
         {
             _logger.LogWarning("Owner should never be null.");
