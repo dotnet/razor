@@ -2,8 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -13,8 +11,5 @@ internal abstract class DocumentVersionCache : IProjectSnapshotChangeTrigger
     public abstract void Initialize(ProjectSnapshotManagerBase projectManager);
 
     public abstract bool TryGetDocumentVersion(IDocumentSnapshot documentSnapshot, [NotNullWhen(true)] out int? version);
-
-    public abstract Task<int?> TryGetDocumentVersionAsync(IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken);
-
     public abstract void TrackDocumentVersion(IDocumentSnapshot documentSnapshot, int version);
 }

@@ -69,7 +69,7 @@ internal class SnapshotResolver : ISnapshotResolver
         return miscellaneousProject;
     }
 
-    public bool TryResolveDocument(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)
+    public bool TryResolveDocumentInAnyProject(string documentFilePath, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)
     {
         _logger.LogTrace("Looking for {documentFilePath}.", documentFilePath);
 

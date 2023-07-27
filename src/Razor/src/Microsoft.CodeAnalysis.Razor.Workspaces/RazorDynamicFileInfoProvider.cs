@@ -14,7 +14,7 @@ internal abstract class RazorDynamicFileInfoProvider : IProjectSnapshotChangeTri
 
     public abstract void UpdateLSPFileInfo(Uri documentUri, DynamicDocumentContainer documentContainer);
 
-    public abstract void UpdateFileInfo(string projectFilePath, DynamicDocumentContainer documentContainer);
+    public abstract void UpdateFileInfo(ProjectKey projectKey, DynamicDocumentContainer documentContainer);
 
-    public abstract void SuppressDocument(string projectFilePath, string documentFilePath);
+    public abstract void SuppressDocument(ProjectKey projectKey, string documentFilePath);
 }
