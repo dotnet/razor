@@ -81,7 +81,7 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
         //          - Took too long to run and by the time the request needed the document context the
         //            version cache has evicted the entry
         //     2. Client is misbehaving and sending requests for a document that we've never seen before.
-        _logger.LogWarning("Tried to create context for document {documentUri} which was not found.", documentUri);
+        _logger.LogWarning("Tried to create context for document {filePath} which was not found.", filePath);
         return null;
     }
 
