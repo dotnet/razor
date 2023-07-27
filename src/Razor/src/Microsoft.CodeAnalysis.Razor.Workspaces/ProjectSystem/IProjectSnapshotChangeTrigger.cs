@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-internal abstract class ProjectSnapshotChangeTrigger
+internal interface IProjectSnapshotChangeTrigger
 {
-    public virtual int InitializePriority { get; }
+    void Initialize(ProjectSnapshotManagerBase projectManager);
+}
 
-    public abstract void Initialize(ProjectSnapshotManagerBase projectManager);
+internal interface IPriorityProjectSnapshotChangeTrigger : IProjectSnapshotChangeTrigger
+{
 }

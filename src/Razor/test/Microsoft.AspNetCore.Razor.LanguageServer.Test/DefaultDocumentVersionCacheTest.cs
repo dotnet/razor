@@ -53,39 +53,6 @@ public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
     }
 
     [Fact]
-    public void TryGetLatestVersionFromPath_TrackedDocument_ReturnsTrue()
-    {
-        // Arrange
-        var documentVersionCache = new DefaultDocumentVersionCache();
-        var filePath = "C:/file.cshtml";
-        var document1 = TestDocumentSnapshot.Create(filePath);
-        var document2 = TestDocumentSnapshot.Create(filePath);
-        documentVersionCache.TrackDocumentVersion(document1, 123);
-        documentVersionCache.TrackDocumentVersion(document2, 1337);
-
-        // Act
-        var result = documentVersionCache.TryGetLatestVersionFromPath(filePath, out var version);
-
-        // Assert
-        Assert.True(result);
-        Assert.Equal(1337, version);
-    }
-
-    [Fact]
-    public void TryGetLatestVersionFromPath_UntrackedDocument_ReturnsFalse()
-    {
-        // Arrange
-        var documentVersionCache = new DefaultDocumentVersionCache();
-
-        // Act
-        var result = documentVersionCache.TryGetLatestVersionFromPath("C:/file.cshtml", out var version);
-
-        // Assert
-        Assert.False(result);
-        Assert.Null(version);
-    }
-
-    [Fact]
     public void ProjectSnapshotManager_Changed_DocumentRemoved_DoesNotEvictDocument()
     {
         // Arrange
@@ -191,7 +158,7 @@ public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
 
         // Assert
         var kvp = Assert.Single(documentVersionCache.DocumentLookup_NeedsLock);
-        Assert.Equal(document.FilePath, kvp.Key);
+        Assert.Equal(document.FilePath, kvp.Key.DocumentFilePath);
         var entry = Assert.Single(kvp.Value);
         Assert.True(entry.Document.TryGetTarget(out var actualDocument));
         Assert.Same(document, actualDocument);

@@ -30,7 +30,6 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
     protected override DocumentContext? TryCreateCore(Uri documentUri, VSProjectContext? projectContext, bool versioned)
     {
         var filePath = documentUri.GetAbsoluteOrUNCPath();
-
         var documentAndVersion = TryGetDocumentAndVersion(filePath, versioned);
 
         if (documentAndVersion is null)
@@ -62,8 +61,8 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
 
     private DocumentSnapshotAndVersion? TryGetDocumentAndVersion(string filePath, bool versioned)
     {
-        // TODO: Use project context to resolve the document.
-        if (_snapshotResolver.TryResolveDocument(filePath, out var documentSnapshot))
+        // TODO: Supply a ProjectKey from the ProjectContext attached to the Uri somehow
+        if (_snapshotResolver.TryResolveDocumentInAnyProject(filePath,  out var documentSnapshot))
         {
             if (!versioned)
             {
@@ -82,7 +81,7 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
         //          - Took too long to run and by the time the request needed the document context the
         //            version cache has evicted the entry
         //     2. Client is misbehaving and sending requests for a document that we've never seen before.
-        _logger.LogWarning("Tried to create context for document {filePath} which was not found.", filePath);
+        _logger.LogWarning("Tried to create context for document {documentUri} which was not found.", documentUri);
         return null;
     }
 
