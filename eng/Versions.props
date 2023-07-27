@@ -73,7 +73,7 @@
     <MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>4.7.0-3.23326.2</MicrosoftCodeAnalysisWorkspacesMSBuildPackageVersion>
     <MicrosoftVisualStudioLanguageServicesPackageVersion>4.7.0-3.23326.2</MicrosoftVisualStudioLanguageServicesPackageVersion>
     <MicrosoftSourceLinkGitHubPackageVersion>8.0.0-beta.23361.2</MicrosoftSourceLinkGitHubPackageVersion>
-    <MicrosoftDotNetXliffTasksPackageVersion>1.0.0-beta.23368.1</MicrosoftDotNetXliffTasksPackageVersion>
+    <MicrosoftDotNetXliffTasksPackageVersion>1.0.0-beta.23374.1</MicrosoftDotNetXliffTasksPackageVersion>
     <!--
       Exception - Microsoft.Extensions.ObjectPool and System.Collections.Immutable packages are not updated by automation,
       but are present in Version.Details.xml for source-build PVP flow. See the comment in Version.Details.xml for more information.
@@ -170,7 +170,7 @@
     <!-- Compiler Deps -->
     <DiffPlexVersion>1.5.0</DiffPlexVersion>
     <FluentAssertionsVersion>6.7.0</FluentAssertionsVersion>
-    <MicrosoftAspNetCoreAppVersion>7.0.7</MicrosoftAspNetCoreAppVersion>
+    <MicrosoftAspNetCoreAppVersion>7.0.9</MicrosoftAspNetCoreAppVersion>
     <MicrosoftBuildLocatorVersion>1.4.1</MicrosoftBuildLocatorVersion>
     <MicrosoftBuildVersion>17.3.0-preview-22364-05</MicrosoftBuildVersion>
     <MicrosoftBuildFrameworkVersion>$(MicrosoftBuildVersion)</MicrosoftBuildFrameworkVersion>
