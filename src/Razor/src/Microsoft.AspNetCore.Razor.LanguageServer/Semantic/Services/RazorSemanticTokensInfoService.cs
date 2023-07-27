@@ -125,7 +125,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         // in the C# document to ranges into the Razor document we lose that guarantee.
         // Having converted them to SemanticRange objects, we can simply do the final round of a merge sort.
         var pooledList = ListPool<SemanticRange>.GetPooledObject(out var newList);
-        newList.Capacity = razorRanges.Count + csharpRanges.Count;
+        newList.SetCapacityIfLarger(razorRanges.Count + csharpRanges.Count);
 
         var indexRazor = 0;
         var indexCsharp = 0;
@@ -310,7 +310,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                 Start = new Position(originalRange.Start.Line, previousRazorSemanticRange.End.Character),
                 End = originalRange.Start
             };
-            razorRanges.Add(new SemanticRange(textClassification, whitespaceRange, (int)RazorSemanticTokensLegend.RazorTokenModifiers.RazorCode, fromRazor:false));
+            razorRanges.Add(new SemanticRange(textClassification, whitespaceRange, (int)RazorSemanticTokensLegend.RazorTokenModifiers.RazorCode, fromRazor: false));
         }
         else if (originalRange.Start.Character > 0 &&
             previousRazorSemanticRange?.End.Line != originalRange.Start.Line &&
