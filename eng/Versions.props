@@ -132,12 +132,8 @@
     <MicrosoftVisualStudioTextDataPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioTextDataPackageVersion>
     <MicrosoftVisualStudioTextImplementationPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioTextImplementationPackageVersion>
     <MicrosoftVisualStudioTextLogicPackageVersion>$(MicrosoftVisualStudioPackagesVersion)</MicrosoftVisualStudioTextLogicPackageVersion>
-    <!-- NOTE: Keep O#-Roslyn's Microsoft.VisualStudio.Threading version in sync with the version below:
-    https://github.com/OmniSharp/omnisharp-roslyn/blob/d7555ebfb6c4d7c6811c58370322d3b092c0abf6/build/Packages.props#L65 -->
     <MicrosoftVisualStudioThreadingPackageVersion>17.7.35</MicrosoftVisualStudioThreadingPackageVersion>
     <MicrosoftVisualStudioWebPackageVersion>16.10.0-preview-1-31008-014</MicrosoftVisualStudioWebPackageVersion>
-    <!-- NOTE: Keep O#-Roslyn's Microsoft.VisualStudio.Validation version in sync with the version below:
-    https://github.com/OmniSharp/omnisharp-roslyn/blob/d7555ebfb6c4d7c6811c58370322d3b092c0abf6/build/Packages.props#L66 -->
     <MicrosoftVisualStudioValidationPackageVersion>17.6.11</MicrosoftVisualStudioValidationPackageVersion>
     <MicrosoftVisualStudioComponentModelHostPackageVersion>17.7.124-preview</MicrosoftVisualStudioComponentModelHostPackageVersion>
     <MicrosoftWebToolsLanguagesHtmlPackageVersion>$(Tooling_HtmlEditorPackageVersion)</MicrosoftWebToolsLanguagesHtmlPackageVersion>
