@@ -52,6 +52,14 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
             return s_emptyResult;
         }
 
+        if (context.Location.AbsoluteIndex < startTag.SpanStart)
+        {
+            // Cursor is before the start tag, so we shouldn't show a light bulb. This can happen
+            // in cases where the cursor is in whitespace at the beginning of the document
+            // eg: $$ <Component></Component>
+            return s_emptyResult;
+        }
+
         // Ignore if start tag has dots, as we only handle short tags
         if (startTag.Name.Content.Contains("."))
         {
