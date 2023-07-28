@@ -38,6 +38,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
     private readonly ProjectSnapshotManagerDispatcher? _projectSnapshotManagerDispatcher;
     private readonly Action<IServiceCollection>? _configureServer;
     private readonly RazorLSPOptions _lspOptions;
+    private readonly ILspServerActivationTracker? _lspServerActivationTracker;
     private readonly ITelemetryReporter _telemetryReporter;
 
     // Cached for testing
@@ -50,6 +51,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         LanguageServerFeatureOptions? featureOptions,
         Action<IServiceCollection>? configureServer,
         RazorLSPOptions? lspOptions,
+        ILspServerActivationTracker? lspServerActivationTracker,
         ITelemetryReporter telemetryReporter)
         : base(jsonRpc, logger)
     {
@@ -58,6 +60,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _configureServer = configureServer;
         _lspOptions = lspOptions ?? RazorLSPOptions.Default;
+        _lspServerActivationTracker = lspServerActivationTracker;
         _telemetryReporter = telemetryReporter;
 
         Initialize();
@@ -122,7 +125,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         var featureOptions = _featureOptions ?? new DefaultLanguageServerFeatureOptions();
         services.AddSingleton(featureOptions);
 
-        services.AddLifeCycleServices(this, serverManager);
+        services.AddLifeCycleServices(this, serverManager, _lspServerActivationTracker);
 
         services.AddDiagnosticServices();
         services.AddSemanticTokensServices();
