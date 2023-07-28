@@ -47,7 +47,8 @@ public class FindTokenTests
     {
         var text = """
             <div></div>
-             $$
+            $$
+
             """;
         var (tree, position) = ParseWithPosition(text);
 
