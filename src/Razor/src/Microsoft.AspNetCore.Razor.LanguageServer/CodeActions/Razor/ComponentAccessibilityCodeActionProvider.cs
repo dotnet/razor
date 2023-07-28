@@ -46,7 +46,8 @@ internal sealed class ComponentAccessibilityCodeActionProvider : IRazorCodeActio
 
         // Find start tag. We allow this code action to work from anywhere in the start tag, which includes
         // embedded C#, so we just have to traverse up the tree to find a start tag if there is one.
-        var startTag = (MarkupStartTagSyntax?)node.Ancestors().FirstOrDefault(n => n is MarkupStartTagSyntax);
+        var startTag = node as MarkupStartTagSyntax
+            ?? (MarkupStartTagSyntax?)node.Ancestors().FirstOrDefault(n => n is MarkupStartTagSyntax);
         if (startTag is null)
         {
             return s_emptyResult;
