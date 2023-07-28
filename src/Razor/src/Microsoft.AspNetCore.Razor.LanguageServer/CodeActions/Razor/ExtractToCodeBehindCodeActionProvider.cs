@@ -58,7 +58,7 @@ internal sealed class ExtractToCodeBehindCodeActionProvider : IRazorCodeActionPr
             return s_emptyResult;
         }
 
-        var owner = syntaxTree.Root.FindNode(context.Location.AbsoluteIndex);
+        var owner = syntaxTree.Root.FindInnermostNode(context.Location.AbsoluteIndex);
         if (owner is null)
         {
             _logger.LogWarning("Owner should never be null.");
