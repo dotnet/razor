@@ -39,7 +39,7 @@ public class CSharpVirtualDocumentDebuggingExtensionsTest : TestBase
             adhocWorkspace.AddDocument(documentInfo);
         });
         var textBuffer = new TestTextBuffer(new StringTextSnapshot("INVALID"));
-        var virtualDocument = new CSharpVirtualDocument(uri, textBuffer);
+        var virtualDocument = new CSharpVirtualDocument(projectKey: default, uri, textBuffer);
         var virtualDocumentSnapshot = (CSharpVirtualDocumentSnapshot)virtualDocument.CurrentSnapshot;
 
         // Act
@@ -59,7 +59,7 @@ public class CSharpVirtualDocumentDebuggingExtensionsTest : TestBase
         var uri = new Uri(filePath);
         using var workspace = TestWorkspace.Create();
         var textBuffer = new TestTextBuffer(new StringTextSnapshot("class Foo{}"));
-        var virtualDocument = new CSharpVirtualDocument(uri, textBuffer);
+        var virtualDocument = new CSharpVirtualDocument(projectKey: default, uri, textBuffer);
         var virtualDocumentSnapshot = (CSharpVirtualDocumentSnapshot)virtualDocument.CurrentSnapshot;
 
         // Act
@@ -78,7 +78,7 @@ public class CSharpVirtualDocumentDebuggingExtensionsTest : TestBase
         var filePath = "C:\\path\\to\\file.razor.cs";
         var uri = new Uri(filePath);
         var textBuffer = new TestTextBuffer(new StringTextSnapshot("class Foo{}"));
-        var virtualDocument = new CSharpVirtualDocument(uri, textBuffer);
+        var virtualDocument = new CSharpVirtualDocument(projectKey: default, uri, textBuffer);
         var virtualDocumentSnapshot = (CSharpVirtualDocumentSnapshot)virtualDocument.CurrentSnapshot;
 
         // Act
