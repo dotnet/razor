@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using static Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor;
 using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
@@ -91,10 +92,10 @@ internal static partial class ObjectReaders
 
     public static ProjectWorkspaceState ReadProjectWorkspaceStateFromProperties(JsonDataReader reader)
     {
-        ProjectWorkspaceStateData data = default;
-        reader.ReadProperties(ref data, ProjectWorkspaceStateData.PropertyMap);
+        var tagHelpers = reader.ReadImmutableArrayOrEmpty(nameof(ProjectWorkspaceState.TagHelpers), static r => ReadTagHelper(r, useCache: true));
+        var csharpLanguageVersion = (LanguageVersion)reader.ReadInt32OrZero(nameof(ProjectWorkspaceState.CSharpLanguageVersion));
 
-        return new ProjectWorkspaceState(data.TagHelpers, data.CSharpLanguageVersion);
+        return new ProjectWorkspaceState(tagHelpers, csharpLanguageVersion);
     }
 
     public static TagHelperDescriptor ReadTagHelper(JsonDataReader reader, bool useCache)
