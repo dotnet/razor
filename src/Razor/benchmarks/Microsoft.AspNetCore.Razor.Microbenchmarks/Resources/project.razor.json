@@ -1,11 +1,11 @@
 {
-  "__Version": 1,
+  "__Version": 2,
   "SerializedFilePath": "C:\\Users\\admin\\location\\blazorserver\\obj\\Debug\\net7.0\\project.razor.json",
   "FilePath": "C:\\Users\\admin\\location\\blazorserver\\blazorserver.csproj",
   "Configuration": {
     "ConfigurationName": "MVC-3.0",
     "LanguageVersion": "3.0",
-    "Extensions": [ { "ExtensionName": "MVC-3.0" } ]
+    "Extensions": [ "MVC-3.0" ]
   },
   "ProjectWorkspaceState": {
     "TagHelpers": [
