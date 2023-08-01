@@ -82,10 +82,11 @@ internal static partial class ObjectReaders
 
     public static DocumentSnapshotHandle ReadDocumentSnapshotHandleFromProperties(JsonDataReader reader)
     {
-        DocumentSnapshotHandleData data = default;
-        reader.ReadProperties(ref data, DocumentSnapshotHandleData.PropertyMap);
+        var filePath = reader.ReadNonNullString(nameof(DocumentSnapshotHandle.FilePath));
+        var targetPath = reader.ReadNonNullString(nameof(DocumentSnapshotHandle.TargetPath));
+        var fileKind = reader.ReadNonNullString(nameof(DocumentSnapshotHandle.FileKind));
 
-        return new DocumentSnapshotHandle(data.FilePath, data.TargetPath, data.FileKind);
+        return new DocumentSnapshotHandle(filePath, targetPath, fileKind);
     }
 
     public static ProjectWorkspaceState ReadProjectWorkspaceStateFromProperties(JsonDataReader reader)
