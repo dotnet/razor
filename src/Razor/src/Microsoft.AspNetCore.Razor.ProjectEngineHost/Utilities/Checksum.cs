@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
 #if NETCOREAPP
 using System.Runtime.CompilerServices;
 #endif
@@ -40,9 +39,6 @@ internal sealed partial record Checksum
 
         return new Checksum(hash);
     }
-
-    private void WriteTo(BinaryWriter writer)
-        => Data.WriteTo(writer);
 
     public string ToBase64String()
     {
