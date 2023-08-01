@@ -108,7 +108,7 @@ internal partial class JsonDataWriter
         WriteIfNotDefault(propertyName, value, defaultValue: 0);
     }
 
-    public void WriteIfNotDefault(string propertyName, long value, int defaultValue)
+    public void WriteIfNotDefault(string propertyName, long value, long defaultValue)
     {
         if (value != defaultValue)
         {
