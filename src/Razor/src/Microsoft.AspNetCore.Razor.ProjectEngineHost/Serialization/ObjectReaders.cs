@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
+using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
 namespace Microsoft.AspNetCore.Razor.Serialization;
 
@@ -202,5 +203,20 @@ internal static partial class ObjectReaders
         var documents = reader.ReadImmutableArray(nameof(ProjectRazorJson.Documents), static r => r.ReadNonNullObject(ReadDocumentSnapshotHandleFromProperties));
 
         return new ProjectRazorJson(serializedFilePath, filePath, configuration, rootNamespace, projectWorkspaceState, documents);
+    }
+
+    public static Checksum ReadChecksum(JsonDataReader reader)
+        => reader.ReadNonNullObject(ReadChecksumFromProperties);
+
+    public static Checksum ReadChecksumFromProperties(JsonDataReader reader)
+    {
+        var data1 = reader.ReadInt64();
+        var data2 = reader.ReadInt64();
+        var data3 = reader.ReadInt64();
+        var data4 = reader.ReadInt64();
+
+        var hashData = new Checksum.HashData(data1, data2, data3, data4);
+
+        return new Checksum(hashData);
     }
 }

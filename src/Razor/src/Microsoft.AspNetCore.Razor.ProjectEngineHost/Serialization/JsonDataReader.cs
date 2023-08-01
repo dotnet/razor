@@ -174,6 +174,41 @@ internal partial class JsonDataReader
         return ReadInt32();
     }
 
+    public long ReadInt64()
+    {
+        _reader.CheckToken(JsonToken.Integer);
+
+        var result = Convert.ToInt64(_reader.Value);
+        _reader.Read();
+
+        return result;
+    }
+
+    public long ReadInt64OrDefault(string propertyName, int defaultValue = default)
+        => TryReadPropertyName(propertyName) ? ReadInt64() : defaultValue;
+
+    public long ReadInt64OrZero(string propertyName)
+        => TryReadPropertyName(propertyName) ? ReadInt64() : 0;
+
+    public bool TryReadInt64(string propertyName, out long value)
+    {
+        if (TryReadPropertyName(propertyName))
+        {
+            value = ReadInt64();
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
+
+    public long ReadInt64(string propertyName)
+    {
+        ReadPropertyName(propertyName);
+
+        return ReadInt64();
+    }
+
     public string? ReadString()
     {
         if (TryReadNull())
