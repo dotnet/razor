@@ -12,7 +12,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
-internal sealed partial class Checksum
+internal sealed partial record Checksum
 {
     private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool = DefaultPool.Create(IncrementalHashPoolPolicy.Instance);
 
@@ -106,7 +106,8 @@ internal sealed partial class Checksum
         {
             AppendInt64Value(hash, value.Data1);
             AppendInt64Value(hash, value.Data2);
-            AppendInt32Value(hash, value.Data3);
+            AppendInt64Value(hash, value.Data3);
+            AppendInt64Value(hash, value.Data4);
         }
 
         public void AppendNull()

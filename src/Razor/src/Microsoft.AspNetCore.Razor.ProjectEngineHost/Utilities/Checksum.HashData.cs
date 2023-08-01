@@ -7,10 +7,10 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
-internal sealed partial class Checksum
+internal sealed partial record Checksum
 {
     [StructLayout(LayoutKind.Explicit, Size = HashSize)]
-    public readonly struct HashData(long data1, long data2, int data3) : IEquatable<HashData>
+    public readonly struct HashData(long data1, long data2, long data3, long data4) : IEquatable<HashData>
     {
         [FieldOffset(0)]
         public readonly long Data1 = data1;
@@ -19,13 +19,17 @@ internal sealed partial class Checksum
         public readonly long Data2 = data2;
 
         [FieldOffset(16)]
-        public readonly int Data3 = data3;
+        public readonly long Data3 = data3;
+
+        [FieldOffset(24)]
+        public readonly long Data4 = data4;
 
         public void WriteTo(BinaryWriter writer)
         {
             writer.Write(Data1);
             writer.Write(Data2);
             writer.Write(Data3);
+            writer.Write(Data4);
         }
 
         public override bool Equals(object? obj)
@@ -35,7 +39,8 @@ internal sealed partial class Checksum
         public bool Equals(HashData other)
             => Data1 == other.Data1 &&
                Data2 == other.Data2 &&
-               Data3 == other.Data3;
+               Data3 == other.Data3 &&
+               Data4 == other.Data4;
 
         public override int GetHashCode()
         {

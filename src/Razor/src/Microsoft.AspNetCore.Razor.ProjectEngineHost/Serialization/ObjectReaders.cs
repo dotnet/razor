@@ -214,9 +214,10 @@ internal static partial class ObjectReaders
     {
         var data1 = reader.ReadInt64();
         var data2 = reader.ReadInt64();
-        var data3 = reader.ReadInt32();
+        var data3 = reader.ReadInt64();
+        var data4 = reader.ReadInt64();
 
-        var hashData = new Checksum.HashData(data1, data2, data3);
+        var hashData = new Checksum.HashData(data1, data2, data3, data4);
 
         return new Checksum(hashData);
     }

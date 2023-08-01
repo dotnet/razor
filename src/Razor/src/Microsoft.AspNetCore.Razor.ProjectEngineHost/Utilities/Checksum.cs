@@ -2,18 +2,17 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
-internal sealed partial class Checksum : IEquatable<Checksum?>
+internal sealed partial record Checksum
 {
-    private const int HashSize = 20;
+    private const int HashSize = 32;
 
-    public static readonly Checksum Null = new(default);
+    public static readonly Checksum Null = new(default(HashData));
 
     public readonly HashData Data;
 
@@ -27,9 +26,9 @@ internal sealed partial class Checksum : IEquatable<Checksum?>
             return Null;
         }
 
-        if (source.Length < HashSize)
+        if (source.Length != HashSize)
         {
-            throw new ArgumentException($"{nameof(source)} must be equal to or larger than the hash size: {HashSize}", nameof(source));
+            throw new ArgumentException($"{nameof(source)} size must be equal to {HashSize}", nameof(source));
         }
 
         if (!MemoryMarshal.TryRead(source, out HashData hash))
@@ -69,22 +68,6 @@ internal sealed partial class Checksum : IEquatable<Checksum?>
             ? Null
             : From(Convert.FromBase64String(value));
 
-    public override bool Equals(object? obj)
-        => Equals(obj as Checksum);
-
-    public bool Equals(Checksum? other)
-        => other is not null &&
-           Data == other.Data;
-
-    public override int GetHashCode()
-        => Data.GetHashCode();
-
     public override string ToString()
         => ToBase64String();
-
-    public static bool operator ==(Checksum? left, Checksum? right)
-        => EqualityComparer<Checksum?>.Default.Equals(left, right);
-
-    public static bool operator !=(Checksum? left, Checksum? right)
-        => !(left == right);
 }

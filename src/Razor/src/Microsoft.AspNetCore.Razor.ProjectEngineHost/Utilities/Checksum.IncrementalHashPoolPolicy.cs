@@ -6,7 +6,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
 
-internal sealed partial class Checksum
+internal sealed partial record Checksum
 {
     private class IncrementalHashPoolPolicy : IPooledObjectPolicy<IncrementalHash>
     {

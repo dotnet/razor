@@ -238,5 +238,6 @@ internal static class ObjectWriters
         writer.Write(nameof(data.Data1), data.Data1);
         writer.Write(nameof(data.Data2), data.Data2);
         writer.Write(nameof(data.Data3), data.Data3);
+        writer.Write(nameof(data.Data4), data.Data4);
     }
 }

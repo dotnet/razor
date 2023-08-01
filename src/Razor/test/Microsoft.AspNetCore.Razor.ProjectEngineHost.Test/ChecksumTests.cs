@@ -7,7 +7,6 @@ using System.IO;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -100,6 +99,7 @@ public class ChecksumTests(ITestOutputHelper testOutput) : TestBase(testOutput)
             {
                 builder.AppendData(producer());
             }
+
             return builder.FreeAndGetChecksum();
         };
     }
