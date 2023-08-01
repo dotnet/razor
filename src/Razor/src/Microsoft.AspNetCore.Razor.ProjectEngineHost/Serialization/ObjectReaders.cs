@@ -60,12 +60,20 @@ internal static partial class ObjectReaders
 
     public static RazorDiagnostic ReadDiagnosticFromProperties(JsonDataReader reader)
     {
-        DiagnosticData data = default;
-        reader.ReadProperties(ref data, DiagnosticData.PropertyMap);
+        var id = reader.ReadNonNullString(nameof(RazorDiagnostic.Id));
+        var severity = (RazorDiagnosticSeverity)reader.ReadInt32OrZero(nameof(RazorDiagnostic.Severity));
+        var message = reader.ReadNonNullString(WellKnownPropertyNames.Message);
 
-        var descriptor = new RazorDiagnosticDescriptor(data.Id, MessageFormat(data.Message), data.Severity);
+        var filePath = reader.ReadStringOrNull(nameof(SourceSpan.FilePath));
+        var absoluteIndex = reader.ReadInt32OrZero(nameof(SourceSpan.AbsoluteIndex));
+        var lineIndex = reader.ReadInt32OrZero(nameof(SourceSpan.LineIndex));
+        var characterIndex = reader.ReadInt32OrZero(nameof(SourceSpan.CharacterIndex));
+        var length = reader.ReadInt32OrZero(nameof(SourceSpan.Length));
 
-        return RazorDiagnostic.Create(descriptor, data.Span);
+        var descriptor = new RazorDiagnosticDescriptor(id, MessageFormat(message), severity);
+        var span = new SourceSpan(filePath, absoluteIndex, lineIndex, characterIndex, length);
+
+        return RazorDiagnostic.Create(descriptor, span);
 
         static Func<string> MessageFormat(string message)
         {

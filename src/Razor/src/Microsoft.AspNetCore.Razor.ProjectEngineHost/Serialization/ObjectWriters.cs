@@ -30,14 +30,11 @@ internal static class ObjectWriters
     {
         writer.Write(nameof(value.ConfigurationName), value.ConfigurationName);
 
-        if (value.LanguageVersion == RazorLanguageVersion.Experimental)
-        {
-            writer.Write(nameof(value.LanguageVersion), "Experimental");
-        }
-        else
-        {
-            writer.Write(nameof(value.LanguageVersion), value.LanguageVersion.ToString());
-        }
+        var languageVersionText = value.LanguageVersion == RazorLanguageVersion.Experimental
+            ? nameof(RazorLanguageVersion.Experimental)
+            : value.LanguageVersion.ToString();
+
+        writer.Write(nameof(value.LanguageVersion), languageVersionText);
 
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.Extensions), value.Extensions, static (w, v) => w.Write(v.ExtensionName));
     }
@@ -49,15 +46,14 @@ internal static class ObjectWriters
     {
         writer.Write(nameof(value.Id), value.Id);
         writer.Write(nameof(value.Severity), (int)value.Severity);
-        writer.Write("Message", value.GetMessage(CultureInfo.CurrentCulture));
-        writer.WriteObject(nameof(value.Span), value.Span, static (writer, value) =>
-        {
-            writer.Write(nameof(value.FilePath), value.FilePath);
-            writer.Write(nameof(value.AbsoluteIndex), value.AbsoluteIndex);
-            writer.Write(nameof(value.LineIndex), value.LineIndex);
-            writer.Write(nameof(value.CharacterIndex), value.CharacterIndex);
-            writer.Write(nameof(value.Length), value.Length);
-        });
+        writer.Write(WellKnownPropertyNames.Message, value.GetMessage(CultureInfo.CurrentCulture));
+
+        var span = value.Span;
+        writer.WriteIfNotNull(nameof(span.FilePath), span.FilePath);
+        writer.WriteIfNotZero(nameof(span.AbsoluteIndex), span.AbsoluteIndex);
+        writer.WriteIfNotZero(nameof(span.LineIndex), span.LineIndex);
+        writer.WriteIfNotZero(nameof(span.CharacterIndex), span.CharacterIndex);
+        writer.WriteIfNotZero(nameof(span.Length), span.Length);
     }
 
     public static void Write(JsonDataWriter writer, ProjectSnapshotHandle? value)
