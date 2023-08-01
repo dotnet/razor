@@ -65,7 +65,6 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
 
     protected override VirtualDocument CreateVirtualDocument(Uri uri, ITextBuffer textBuffer)
     {
-        // Was `new CSharpVirtualDocument(uri, textBuffer);`
         throw new NotImplementedException("Multiple C# documents per Razor documents are supported, and should be accounted for.");
     }
 
@@ -76,8 +75,6 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
 
     public override bool TryCreateMultipleFor(ITextBuffer hostDocumentBuffer, [NotNullWhen(true)] out VirtualDocument[]? virtualDocuments)
     {
-        var newVirtualDocuments = new List<VirtualDocument>();
-
         if (hostDocumentBuffer is null)
         {
             throw new ArgumentNullException(nameof(hostDocumentBuffer));
@@ -89,6 +86,8 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
             virtualDocuments = null;
             return false;
         }
+        
+        var newVirtualDocuments = new List<VirtualDocument>();
 
         var hostDocumentUri = _fileUriProvider.GetOrCreate(hostDocumentBuffer);
 
