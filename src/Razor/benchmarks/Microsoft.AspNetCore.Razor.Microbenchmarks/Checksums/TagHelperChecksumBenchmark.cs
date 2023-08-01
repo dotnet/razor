@@ -5,11 +5,14 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Utilities;
 using System.Collections.Generic;
+using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Checksums;
 
 public class TagHelperChecksumBenchmarks
 {
+    private Checksum[]? _checksums;
+
     [ParamsAllValues]
     public ResourceSet ResourceSet { get; set; }
 
@@ -20,12 +23,18 @@ public class TagHelperChecksumBenchmarks
             _ => CommonResources.LegacyTagHelpers
         };
 
+    [IterationSetup]
+    public void Setup()
+    {
+        _checksums = new Checksum[TagHelpers.Count];
+    }
+
     [Benchmark(Description = "Create Checksums")]
     public void CreateChecksums()
     {
-        foreach (var descriptor in TagHelpers)
+        for (var i = 0; i < TagHelpers.Count; i++)
         {
-            _ = descriptor.CreateChecksum();
+            _checksums![i] = TagHelpers[i].CreateChecksum();
         }
     }
 }
