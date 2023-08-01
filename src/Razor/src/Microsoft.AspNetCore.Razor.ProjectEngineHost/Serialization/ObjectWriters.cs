@@ -39,7 +39,7 @@ internal static class ObjectWriters
             writer.Write(nameof(value.LanguageVersion), value.LanguageVersion.ToString());
         }
 
-        writer.WriteArray(nameof(value.Extensions), value.Extensions, Write);
+        writer.WriteArrayIfNotNullOrEmpty(nameof(value.Extensions), value.Extensions, static (w, v) => w.Write(v.ExtensionName));
     }
 
     public static void Write(JsonDataWriter writer, RazorDiagnostic? value)

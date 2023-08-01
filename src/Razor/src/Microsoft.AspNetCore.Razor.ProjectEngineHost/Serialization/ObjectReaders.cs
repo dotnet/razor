@@ -37,19 +37,22 @@ internal static partial class ObjectReaders
         return s_stringCache.GetOrAddValue(str);
     }
 
-    public static RazorExtension ReadExtensionFromProperties(JsonDataReader reader)
-    {
-        var extensionName = reader.ReadNonNullString(nameof(RazorExtension.ExtensionName));
-
-        return new SerializedRazorExtension(extensionName);
-    }
-
     public static RazorConfiguration ReadConfigurationFromProperties(JsonDataReader reader)
     {
-        ConfigurationData data = default;
-        reader.ReadProperties(ref data, ConfigurationData.PropertyMap);
+        var configurationName = reader.ReadNonNullString(nameof(RazorConfiguration.ConfigurationName));
+        var languageVersionText = reader.ReadNonNullString(nameof(RazorConfiguration.LanguageVersion));
+        var extensions = reader.ReadArrayOrEmpty(nameof(RazorConfiguration.Extensions),
+            static r =>
+            {
+                var extensionName = r.ReadNonNullString();
+                return new SerializedRazorExtension(extensionName);
+            });
 
-        return RazorConfiguration.Create(data.LanguageVersion, data.ConfigurationName, data.Extensions);
+        var languageVersion = RazorLanguageVersion.TryParse(languageVersionText, out var version)
+            ? version
+            : RazorLanguageVersion.Version_2_1;
+
+        return RazorConfiguration.Create(languageVersion, configurationName, extensions);
     }
 
     public static RazorDiagnostic ReadDiagnostic(JsonDataReader reader)
