@@ -3,7 +3,9 @@
 
 using System;
 using System.IO;
+#if NETCOREAPP
 using System.Runtime.CompilerServices;
+#endif
 using System.Runtime.InteropServices;
 
 namespace Microsoft.AspNetCore.Razor.Utilities;
