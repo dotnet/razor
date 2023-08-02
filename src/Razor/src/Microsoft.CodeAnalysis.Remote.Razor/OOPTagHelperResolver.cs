@@ -6,57 +6,41 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
-internal class OOPTagHelperResolver : TagHelperResolver
+internal class OOPTagHelperResolver : ITagHelperResolver
 {
     private readonly TagHelperResultCache _resultCache;
-    private readonly DefaultTagHelperResolver _defaultResolver;
+    private readonly CompilationTagHelperResolver _innerResolver;
     private readonly ProjectSnapshotProjectEngineFactory _factory;
     private readonly IErrorReporter _errorReporter;
     private readonly Workspace _workspace;
     private readonly ITelemetryReporter _telemetryReporter;
 
     public OOPTagHelperResolver(ProjectSnapshotProjectEngineFactory factory, IErrorReporter errorReporter, Workspace workspace, ITelemetryReporter telemetryReporter)
-        : base(telemetryReporter)
     {
-        if (factory is null)
-        {
-            throw new ArgumentNullException(nameof(factory));
-        }
+        _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+        _errorReporter = errorReporter ?? throw new ArgumentNullException(nameof(errorReporter));
+        _workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
+        _telemetryReporter = telemetryReporter ?? throw new ArgumentNullException(nameof(telemetryReporter));
 
-        if (errorReporter is null)
-        {
-            throw new ArgumentNullException(nameof(errorReporter));
-        }
-
-        if (workspace is null)
-        {
-            throw new ArgumentNullException(nameof(workspace));
-        }
-
-        if (telemetryReporter is null)
-        {
-            throw new ArgumentNullException(nameof(telemetryReporter));
-        }
-
-        _factory = factory;
-        _errorReporter = errorReporter;
-        _workspace = workspace;
-        _telemetryReporter = telemetryReporter;
-
-        _defaultResolver = new DefaultTagHelperResolver(telemetryReporter);
+        _innerResolver = new CompilationTagHelperResolver(telemetryReporter);
         _resultCache = new TagHelperResultCache();
     }
 
-    public override async Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
+    public async ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
+        Project workspaceProject,
+        IProjectSnapshot projectSnapshot,
+        CancellationToken cancellationToken = default)
     {
         if (workspaceProject is null)
         {
@@ -97,11 +81,11 @@ internal class OOPTagHelperResolver : TagHelperResolver
         }
         catch (Exception exception) when (exception is not TaskCanceledException && exception is not OperationCanceledException)
         {
-            throw new InvalidOperationException($"An unexpected exception occurred when invoking '{typeof(DefaultTagHelperResolver).FullName}.{nameof(GetTagHelpersAsync)}' on the Razor language service.", exception);
+            throw new InvalidOperationException($"An unexpected exception occurred when invoking '{typeof(CompilationTagHelperResolver).FullName}.{nameof(GetTagHelpersAsync)}' on the Razor language service.", exception);
         }
     }
 
-    protected virtual async Task<TagHelperResolutionResult?> ResolveTagHelpersOutOfProcessAsync(IProjectEngineFactory factory, Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+    protected virtual async ValueTask<TagHelperResolutionResult?> ResolveTagHelpersOutOfProcessAsync(IProjectEngineFactory factory, Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
         // We're being overly defensive here because the OOP host can return null for the client/session/operation
         // when it's disconnected (user stops the process).
@@ -180,8 +164,9 @@ internal class OOPTagHelperResolver : TagHelperResolver
         return tagHelpers;
     }
 
-    protected virtual Task<TagHelperResolutionResult> ResolveTagHelpersInProcessAsync(Project project, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
-    {
-        return _defaultResolver.GetTagHelpersAsync(project, projectSnapshot, cancellationToken);
-    }
+    protected virtual ValueTask<TagHelperResolutionResult> ResolveTagHelpersInProcessAsync(
+        Project workspaceProject,
+        IProjectSnapshot projectSnapshot,
+        CancellationToken cancellationToken)
+        => _innerResolver.GetTagHelpersAsync(workspaceProject, projectSnapshot.GetProjectEngine(), cancellationToken);
 }

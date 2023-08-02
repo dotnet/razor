@@ -22,7 +22,7 @@ internal class CompilationTagHelperResolver(ITelemetryReporter? telemetryReporte
 {
     private readonly ITelemetryReporter? _telemetryReporter = telemetryReporter;
 
-    public async Task<TagHelperResolutionResult> GetTagHelpersAsync(
+    public async ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
         Project workspaceProject,
         RazorProjectEngine projectEngine,
         CancellationToken cancellationToken)
