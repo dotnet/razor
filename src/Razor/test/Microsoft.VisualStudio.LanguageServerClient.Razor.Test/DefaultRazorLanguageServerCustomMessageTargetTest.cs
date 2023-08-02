@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
@@ -68,9 +69,16 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
     public void UpdateCSharpBuffer_UpdatesDocument()
     {
         // Arrange
+        var doc1 = new CSharpVirtualDocumentSnapshot(projectKey: default, new Uri("C:/path/to/file.razor.g.cs"), _textBuffer.CurrentSnapshot, 0);
+        var documents = new[] { doc1 };
+        var document = Mock.Of<LSPDocumentSnapshot>(d => d.VirtualDocuments == documents, MockBehavior.Strict);
         var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
         documentManager
+          .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
+          .Returns(true);
+        documentManager
             .Setup(manager => manager.UpdateVirtualDocument<CSharpVirtualDocument>(
+                It.IsAny<Uri>(),
                 It.IsAny<Uri>(),
                 It.IsAny<IReadOnlyList<ITextChange>>(),
                 1337,
@@ -81,6 +89,46 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
         var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, documentSynchronizer.Object);
         var request = new UpdateBufferRequest()
         {
+            HostDocumentFilePath = "C:/path/to/file.razor",
+            HostDocumentVersion = 1337,
+            Changes = Array.Empty<TextChange>(),
+        };
+
+        // Act
+        target.UpdateCSharpBuffer(request);
+
+        // Assert
+        documentManager.VerifyAll();
+    }
+
+    [Fact]
+    public void UpdateCSharpBuffer_UpdatesCorrectDocument()
+    {
+        // Arrange
+        var projectKey1 = TestProjectKey.Create("Project1");
+        var projectKey2 = TestProjectKey.Create("Project2");
+        var doc1 = new CSharpVirtualDocumentSnapshot(projectKey1, new Uri("C:/path/to/p1/file.razor.g.cs"), _textBuffer.CurrentSnapshot, 0);
+        var doc2 = new CSharpVirtualDocumentSnapshot(projectKey2, new Uri("C:/path/to/p2/file.razor.g.cs"), _textBuffer.CurrentSnapshot, 0);
+        var documents = new[] { doc1, doc2 };
+        var document = Mock.Of<LSPDocumentSnapshot>(d => d.VirtualDocuments == documents, MockBehavior.Strict);
+        var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+        documentManager
+          .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
+          .Returns(true);
+        documentManager
+            .Setup(manager => manager.UpdateVirtualDocument<CSharpVirtualDocument>(
+                It.IsAny<Uri>(),
+                doc2.Uri,
+                It.IsAny<IReadOnlyList<ITextChange>>(),
+                1337,
+                It.IsAny<object>()))
+            .Verifiable();
+        var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
+
+        var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, documentSynchronizer.Object);
+        var request = new UpdateBufferRequest()
+        {
+            ProjectKeyId = projectKey2.Id,
             HostDocumentFilePath = "C:/path/to/file.razor",
             HostDocumentVersion = 1337,
             Changes = Array.Empty<TextChange>(),
@@ -135,7 +183,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
         var testCSharpDocUri = new Uri("C:/path/to/file.razor.g.cs");
 
         var testVirtualDocument = new TestVirtualDocumentSnapshot(testVirtualDocUri, 0);
-        var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testCSharpDocUri, _textBuffer.CurrentSnapshot, 0);
+        var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(projectKey: default, testCSharpDocUri, _textBuffer.CurrentSnapshot, 0);
         LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, 0, testVirtualDocument, csharpVirtualDocument);
 
         var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
@@ -203,7 +251,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
     {
         // Arrange
         var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
-        var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(new Uri("C:/path/to/file.razor.g.cs"), _textBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0);
+        var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(projectKey: default, new Uri("C:/path/to/file.razor.g.cs"), _textBuffer.CurrentSnapshot, hostDocumentSyncVersion: 0);
         var documentManager = new TestDocumentManager();
         var razorUri = new Uri("C:/path/to/file.razor");
         documentManager.AddDocument(razorUri, new TestLSPDocumentSnapshot(razorUri, version: 0, "Some Content", csharpVirtualDocument));
@@ -329,7 +377,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
 
         var documentVersion = 0;
         var testVirtualDocument = new TestVirtualDocumentSnapshot(testVirtualDocUri, 0);
-        var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(testCSharpDocUri, _textBuffer.CurrentSnapshot, 0);
+        var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(projectKey: default, testCSharpDocUri, _textBuffer.CurrentSnapshot, 0);
         LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, documentVersion, testVirtualDocument, csharpVirtualDocument);
 
         var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
@@ -404,7 +452,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
         snapshot.Setup(s => s.TextBuffer)
             .Returns(_textBuffer);
 
-        var csharpDoc = new CSharpVirtualDocumentSnapshot(uri, snapshot.Object, hostDocumentSyncVersion);
+        var csharpDoc = new CSharpVirtualDocumentSnapshot(projectKey: default, uri, snapshot.Object, hostDocumentSyncVersion);
 
         return csharpDoc;
     }

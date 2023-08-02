@@ -146,9 +146,31 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             return;
         }
 
-        // TODO: Use request.ProjectKeyId somehow
-
         var hostDocumentUri = new Uri(request.HostDocumentFilePath);
+
+        if (_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot) &&
+            documentSnapshot.TryGetAllVirtualDocuments<CSharpVirtualDocumentSnapshot>(out var virtualDocuments))
+        {
+            foreach (var virtualDocument in virtualDocuments)
+            {
+                // TODO: Remove the null check from this line when multiple CSharpVirtualDocuments are actually being created
+                if (virtualDocument.ProjectKey.Id == request.ProjectKeyId || virtualDocument.ProjectKey.Id is null)
+                {
+                    _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
+                        hostDocumentUri,
+                        virtualDocument.Uri,
+                        request.Changes.Select(change => change.ToVisualStudioTextChange()).ToArray(),
+                        request.HostDocumentVersion.Value,
+                        state: null);
+                    return;
+                }
+            }
+
+            // If the particular document supports multiple virtual documents, we don't want to try to update a single one
+            Debug.Fail("Multiple virtual documents seem to be supported, but none were updated.");
+            return;
+        }
+
         _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
             hostDocumentUri,
             request.Changes.Select(change => change.ToVisualStudioTextChange()).ToArray(),
@@ -193,8 +215,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var (synchronized, htmlDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+            _documentManager,
             request.HostDocumentVersion,
-            request.TextDocument.Uri,
+            request.TextDocument,
             cancellationToken);
 
         var languageServerName = RazorLSPConstants.HtmlLanguageServerName;
@@ -229,11 +252,11 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     {
         var response = new RazorDocumentFormattingResponse() { Edits = Array.Empty<TextEdit>() };
 
-        var hostDocumentUri = request.TextDocument.Uri;
+        var hostDocument = request.TextDocument;
 
         var languageServerName = RazorLSPConstants.HtmlLanguageServerName;
         var (synchronized, htmlDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
-            request.HostDocumentVersion, hostDocumentUri, cancellationToken);
+            _documentManager, request.HostDocumentVersion, hostDocument, cancellationToken);
 
         if (!synchronized)
         {
@@ -274,16 +297,18 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         if (codeActionParams.LanguageKind == RazorLanguageKind.Html)
         {
             (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+                _documentManager,
                 codeActionParams.HostDocumentVersion,
-                codeActionParams.CodeActionParams.TextDocument.Uri,
+                codeActionParams.CodeActionParams.TextDocument,
                 cancellationToken);
             languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
         }
         else if (codeActionParams.LanguageKind == RazorLanguageKind.CSharp)
         {
             (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                _documentManager,
                 codeActionParams.HostDocumentVersion,
-                codeActionParams.CodeActionParams.TextDocument.Uri,
+                codeActionParams.CodeActionParams.TextDocument,
                 cancellationToken);
             languageServerName = RazorLSPConstants.HtmlLanguageServerName;
         }
@@ -340,6 +365,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         VirtualDocumentSnapshot virtualDocumentSnapshot;
         if (resolveCodeActionParams.LanguageKind == RazorLanguageKind.Html)
         {
+            // TODO: Need to get project context to pass to the synchronizer
             (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
                 resolveCodeActionParams.HostDocumentVersion,
                 resolveCodeActionParams.Uri,
@@ -347,6 +373,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         }
         else if (resolveCodeActionParams.LanguageKind == RazorLanguageKind.CSharp)
         {
+            // TODO: Need to get project context to pass to the synchronizer
             (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                 resolveCodeActionParams.HostDocumentVersion,
                 resolveCodeActionParams.Uri,
@@ -400,7 +427,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         }
 
         var (synchronized, csharpDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
-            (int)semanticTokensParams.RequiredHostDocumentVersion, semanticTokensParams.TextDocument.Uri, cancellationToken);
+            _documentManager, (int)semanticTokensParams.RequiredHostDocumentVersion, semanticTokensParams.TextDocument, cancellationToken);
 
         if (csharpDoc is null)
         {
@@ -454,7 +481,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         }
 
         var (synchronized, htmlDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
-            documentColorParams.HostDocumentVersion, documentColorParams.TextDocument.Uri, cancellationToken);
+            _documentManager, documentColorParams.HostDocumentVersion, documentColorParams.TextDocument, cancellationToken);
         if (!synchronized)
         {
             return new List<ColorInformation>();
@@ -489,7 +516,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         }
 
         var (synchronized, htmlDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
-            colorPresentationParams.RequiredHostDocumentVersion, colorPresentationParams.TextDocument.Uri, cancellationToken);
+            _documentManager, colorPresentationParams.RequiredHostDocumentVersion, colorPresentationParams.TextDocument, cancellationToken);
         if (!synchronized)
         {
             return new List<ColorPresentation>();
@@ -573,8 +600,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         var response = new VSInternalWrapWithTagResponse(wrapWithParams.Range, Array.Empty<TextEdit>());
 
         var (synchronized, htmlDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+            _documentManager,
             wrapWithParams.TextDocument.Version,
-            wrapWithParams.TextDocument.Uri,
+            wrapWithParams.TextDocument,
             cancellationToken);
 
         if (!synchronized)
@@ -622,6 +650,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             return null;
         }
 
+        // TODO: Support multiple C# documents per Razor document.
         if (!documentSnapshot.TryGetVirtualDocument<CSharpVirtualDocumentSnapshot>(out var csharpDoc))
         {
             return null;
@@ -657,7 +686,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         var csharpTask = Task.Run(async () =>
         {
             var (synchronized, csharpSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
-                foldingRangeParams.HostDocumentVersion, foldingRangeParams.TextDocument.Uri, cancellationToken);
+                _documentManager, foldingRangeParams.HostDocumentVersion, foldingRangeParams.TextDocument, cancellationToken);
 
             if (synchronized)
             {
@@ -691,7 +720,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         htmlTask = Task.Run(async () =>
         {
             var (synchronized, htmlDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
-                foldingRangeParams.HostDocumentVersion, foldingRangeParams.TextDocument.Uri, cancellationToken);
+                _documentManager, foldingRangeParams.HostDocumentVersion, foldingRangeParams.TextDocument, cancellationToken);
 
             if (synchronized)
             {
@@ -757,15 +786,15 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
     public override Task<WorkspaceEdit?> ProvideTextPresentationAsync(RazorTextPresentationParams presentationParams, CancellationToken cancellationToken)
     {
-        return ProvidePresentationAsync(presentationParams, presentationParams.TextDocument.Uri, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentTextPresentationName, cancellationToken);
+        return ProvidePresentationAsync(presentationParams, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentTextPresentationName, cancellationToken);
     }
 
     public override Task<WorkspaceEdit?> ProvideUriPresentationAsync(RazorUriPresentationParams presentationParams, CancellationToken cancellationToken)
     {
-        return ProvidePresentationAsync(presentationParams, presentationParams.TextDocument.Uri, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentUriPresentationName, cancellationToken);
+        return ProvidePresentationAsync(presentationParams, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentUriPresentationName, cancellationToken);
     }
 
-    public async Task<WorkspaceEdit?> ProvidePresentationAsync<TParams>(TParams presentationParams, Uri hostDocumentUri, int hostDocumentVersion, RazorLanguageKind kind, string methodName, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ProvidePresentationAsync<TParams>(TParams presentationParams, int hostDocumentVersion, RazorLanguageKind kind, string methodName, CancellationToken cancellationToken)
         where TParams : notnull, IPresentationParams
     {
         string languageServerName;
@@ -773,8 +802,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         if (kind == RazorLanguageKind.CSharp)
         {
             var syncResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                _documentManager,
                 hostDocumentVersion,
-                hostDocumentUri,
+                presentationParams.TextDocument,
                 cancellationToken);
             languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
             presentationParams.TextDocument = new TextDocumentIdentifier
@@ -786,8 +816,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         else if (kind == RazorLanguageKind.Html)
         {
             var syncResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+                _documentManager,
                 hostDocumentVersion,
-                hostDocumentUri,
+                presentationParams.TextDocument,
                 cancellationToken);
             languageServerName = RazorLSPConstants.HtmlLanguageServerName;
             presentationParams.TextDocument = new TextDocumentIdentifier
@@ -827,8 +858,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         if (request.ProjectedKind == RazorLanguageKind.Html)
         {
             (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+                _documentManager,
                 request.Identifier.Version,
-                request.Identifier.TextDocumentIdentifier.Uri,
+                request.Identifier.TextDocumentIdentifier,
                 cancellationToken);
             languageServerName = RazorLSPConstants.HtmlLanguageServerName;
             projectedUri = virtualDocumentSnapshot.Uri;
@@ -836,8 +868,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         else if (request.ProjectedKind == RazorLanguageKind.CSharp)
         {
             (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                _documentManager,
                 request.Identifier.Version,
-                hostDocumentUri,
+                request.Identifier.TextDocumentIdentifier,
                 cancellationToken);
             languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
             projectedUri = virtualDocumentSnapshot.Uri;
@@ -867,7 +900,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var provisionalChange = new VisualStudioTextChange(provisionalTextEdit, virtualDocumentSnapshot.Snapshot);
-            UpdateVirtualDocument(provisionalChange, request.ProjectedKind, request.Identifier.Version, hostDocumentUri);
+            UpdateVirtualDocument(provisionalChange, request.ProjectedKind, request.Identifier.Version, hostDocumentUri, virtualDocumentSnapshot.Uri);
 
             // We want the delegation to continue on the captured context because we're currently on the `main` thread and we need to get back to the
             // main thread in order to update the virtual buffer with the reverted text edit.
@@ -893,7 +926,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             {
                 var revertedProvisionalTextEdit = BuildRevertedEdit(provisionalTextEdit);
                 var revertedProvisionalChange = new VisualStudioTextChange(revertedProvisionalTextEdit, virtualDocumentSnapshot.Snapshot);
-                UpdateVirtualDocument(revertedProvisionalChange, request.ProjectedKind, request.Identifier.Version, hostDocumentUri);
+                UpdateVirtualDocument(revertedProvisionalChange, request.ProjectedKind, request.Identifier.Version, hostDocumentUri, virtualDocumentSnapshot.Uri);
             }
         }
     }
@@ -933,7 +966,8 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         VisualStudioTextChange textChange,
         RazorLanguageKind virtualDocumentKind,
         int hostDocumentVersion,
-        Uri documentSnapshotUri)
+        Uri documentSnapshotUri,
+        Uri virtualDocumentUri)
     {
         if (_documentManager is not TrackingLSPDocumentManager trackingDocumentManager)
         {
@@ -944,6 +978,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         {
             trackingDocumentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                 documentSnapshotUri,
+                virtualDocumentUri,
                 new[] { textChange },
                 hostDocumentVersion,
                 state: null);
@@ -952,6 +987,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         {
             trackingDocumentManager.UpdateVirtualDocument<HtmlVirtualDocument>(
                 documentSnapshotUri,
+                virtualDocumentUri,
                 new[] { textChange },
                 hostDocumentVersion,
                 state: null);
@@ -966,20 +1002,22 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         if (request.OriginatingKind == RazorLanguageKind.Html)
         {
             (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+                _documentManager,
                 request.Identifier.Version,
-                request.Identifier.TextDocumentIdentifier.Uri,
+                request.Identifier.TextDocumentIdentifier,
                 cancellationToken);
             languageServerName = RazorLSPConstants.HtmlLanguageServerName;
         }
         else if (request.OriginatingKind == RazorLanguageKind.CSharp)
         {
             // TODO this is a partial workaround to fix prefix completion by avoiding sync (which times out during resolve endpoint) if we are currently at a higher version value
-            // this does not fix postfix completion and should be superceded by eventual synchronization fix
+            // this does not fix postfix completion and should be superseded by eventual synchronization fix
 
             var futureDataSyncResult =
                 (_documentSynchronizer as DefaultLSPDocumentSynchronizer)?.TryReturnPossiblyFutureSnapshot<CSharpVirtualDocumentSnapshot>(
+                    _documentManager,
                     request.Identifier.Version,
-                    request.Identifier.TextDocumentIdentifier.Uri);
+                    request.Identifier.TextDocumentIdentifier);
             if (futureDataSyncResult?.Synchronized == true)
             {
                 (synchronized, virtualDocumentSnapshot) = futureDataSyncResult;
@@ -988,9 +1026,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             {
                 (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer
                         .TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                            _documentManager,
                             request.Identifier.Version,
-                            request.Identifier.TextDocumentIdentifier.Uri,
-                            rejectOnNewerParallelRequest: true,
+                            request.Identifier.TextDocumentIdentifier,
                             cancellationToken);
             }
 
@@ -1152,8 +1190,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
     {
         var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
+            _documentManager,
             identifier.Version,
-            identifier.TextDocumentIdentifier.Uri,
+            identifier.TextDocumentIdentifier,
             cancellationToken).ConfigureAwait(false);
         if (!synchronized)
         {
@@ -1192,8 +1231,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     {
         var hostDocument = request.Identifier.TextDocumentIdentifier;
         var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+            _documentManager,
             request.Identifier.Version,
-            hostDocument.Uri,
+            hostDocument,
             cancellationToken).ConfigureAwait(false);
         if (!synchronized)
         {
@@ -1227,8 +1267,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     {
         var hostDocument = request.Identifier.TextDocumentIdentifier;
         var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+            _documentManager,
             request.Identifier.Version,
-            hostDocument.Uri,
+            hostDocument,
             cancellationToken).ConfigureAwait(false);
 
         if (!synchronized)
@@ -1261,8 +1302,9 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     {
         var hostDocument = request.Identifier.TextDocumentIdentifier;
         var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+            _documentManager,
             request.Identifier.Version,
-            hostDocument.Uri,
+            hostDocument,
             cancellationToken).ConfigureAwait(false);
 
         if (!synchronized)
@@ -1327,19 +1369,21 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         if (request.ProjectedKind == RazorLanguageKind.Html)
         {
             (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
+                _documentManager,
                 request.Identifier.Version,
-                request.Identifier.TextDocumentIdentifier.Uri,
-                rejectOnNewerParallelRequest: false,
-                cancellationToken);
+                request.Identifier.TextDocumentIdentifier,
+                cancellationToken,
+                rejectOnNewerParallelRequest: false);
             languageServerName = RazorLSPConstants.HtmlLanguageServerName;
         }
         else if (request.ProjectedKind == RazorLanguageKind.CSharp)
         {
             (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                _documentManager,
                 request.Identifier.Version,
-                request.Identifier.TextDocumentIdentifier.Uri,
-                rejectOnNewerParallelRequest: false,
-                cancellationToken);
+                request.Identifier.TextDocumentIdentifier,
+                cancellationToken,
+                rejectOnNewerParallelRequest: false);
             languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
         }
         else
