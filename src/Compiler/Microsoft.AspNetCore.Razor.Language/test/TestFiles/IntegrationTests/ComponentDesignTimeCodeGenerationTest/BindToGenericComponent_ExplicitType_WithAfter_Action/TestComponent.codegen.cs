@@ -39,7 +39,7 @@ namespace Test
 #nullable disable
             );
             __o = new global::System.Action<int>(
-             __value => { ParentValue = __value;  global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate(
+             __value => { ParentValue = __value; global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate(
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                                                                            Update

@@ -827,7 +827,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
 
             changeExpressionTokens.Add(new IntermediateToken()
             {
-                Content = $"{asyncKeyword} __value => {{ {original.Content} = __value; {awaitKeyword} {invokeDelegateMethod}(",
+                Content = $"{asyncKeyword} __value => {{ {original.Content} = __value; {awaitKeyword}{invokeDelegateMethod}(",
                 Kind = TokenKind.CSharp
             });
             changeExpressionTokens.Add(after);

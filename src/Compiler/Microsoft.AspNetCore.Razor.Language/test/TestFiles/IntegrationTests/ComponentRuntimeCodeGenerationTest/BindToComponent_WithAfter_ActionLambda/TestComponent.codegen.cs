@@ -23,7 +23,7 @@ namespace Test
 #line hidden
 #nullable disable
             ));
-            __builder.AddComponentParameter(2, "ValueChanged", (global::System.Action<System.Int32>)( __value => { ParentValue = __value;  global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate(
+            __builder.AddComponentParameter(2, "ValueChanged", (global::System.Action<System.Int32>)( __value => { ParentValue = __value; global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate(
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                                                               () => { }
