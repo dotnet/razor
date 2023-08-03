@@ -35,10 +35,6 @@ internal abstract class RazorLanguageServerCustomMessageTarget
     [JsonRpcMethod(Methods.WorkspaceConfigurationName, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<object[]> WorkspaceConfigurationAsync(ConfigurationParams configParams, CancellationToken cancellationToken);
 
-    // Called by the Razor Language Server to update the contents of the virtual Html buffer.
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorUpdateHtmlBufferEndpoint, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task UpdateHtmlBufferAsync(UpdateBufferRequest token, CancellationToken cancellationToken);
-
     // Called by the Razor Language Server to invoke a textDocument/formatting request on the virtual Html buffer.
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorHtmlFormattingEndpoint, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<RazorDocumentFormattingResponse> HtmlFormattingAsync(RazorDocumentFormattingParams token, CancellationToken cancellationToken);

@@ -126,36 +126,6 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLang
         _documentSynchronizer = documentSynchronizer;
     }
 
-    public override async Task UpdateHtmlBufferAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
-    {
-        if (request is null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
-
-        await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        UpdateHtmlBuffer(request);
-    }
-
-    // Internal for testing
-    internal void UpdateHtmlBuffer(UpdateBufferRequest request)
-    {
-        if (request is null || request.HostDocumentFilePath is null || request.HostDocumentVersion is null)
-        {
-            return;
-        }
-
-        // TODO: Use request.ProjectKeyId somehow
-
-        var hostDocumentUri = new Uri(request.HostDocumentFilePath);
-        _documentManager.UpdateVirtualDocument<HtmlVirtualDocument>(
-            hostDocumentUri,
-            request.Changes.Select(change => change.ToVisualStudioTextChange()).ToArray(),
-            request.HostDocumentVersion.Value,
-            state: null);
-    }
-
     public override async Task<RazorDocumentFormattingResponse> HtmlFormattingAsync(RazorDocumentFormattingParams request, CancellationToken cancellationToken)
     {
         var response = new RazorDocumentFormattingResponse() { Edits = Array.Empty<TextEdit>() };
