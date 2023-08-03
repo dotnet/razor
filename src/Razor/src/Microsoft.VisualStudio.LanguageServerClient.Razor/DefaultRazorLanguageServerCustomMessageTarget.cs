@@ -126,35 +126,6 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLang
         _documentSynchronizer = documentSynchronizer;
     }
 
-    public override async Task<SumType<DocumentSymbol[], SymbolInformation[]>?> DocumentSymbolsAsync(DelegatedDocumentSymbolParams request, CancellationToken cancellationToken)
-    {
-        var hostDocument = request.Identifier.TextDocumentIdentifier;
-        var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
-            _documentManager,
-            request.Identifier.Version,
-            hostDocument,
-            cancellationToken).ConfigureAwait(false);
-
-        if (!synchronized)
-        {
-            return null;
-        }
-
-        var documentSymbolParams = new DocumentSymbolParams()
-        {
-            TextDocument = hostDocument.WithUri(virtualDocument.Uri)
-        };
-
-        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>?>(
-            virtualDocument.Snapshot.TextBuffer,
-            Methods.TextDocumentDocumentSymbolName,
-            RazorLSPConstants.RazorCSharpLanguageServerName,
-            documentSymbolParams,
-            cancellationToken).ConfigureAwait(false);
-
-        return response?.Response;
-    }
-
     private async Task<DelegationRequestDetails?> GetProjectedRequestDetailsAsync(IDelegatedParams request, CancellationToken cancellationToken)
     {
         string languageServerName;

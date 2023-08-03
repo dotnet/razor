@@ -29,6 +29,4 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 internal abstract class RazorLanguageServerCustomMessageTarget
 {
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorDocumentSymbolEndpoint, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<SumType<DocumentSymbol[], SymbolInformation[]>?> DocumentSymbolsAsync(DelegatedDocumentSymbolParams request, CancellationToken cancellationToken);
 }
