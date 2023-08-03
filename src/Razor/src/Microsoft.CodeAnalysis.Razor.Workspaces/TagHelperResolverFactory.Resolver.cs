@@ -21,7 +21,7 @@ internal partial class TagHelperResolverFactory
         public ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
             Project workspaceProject,
             IProjectSnapshot projectSnapshot,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             if (workspaceProject is null)
             {

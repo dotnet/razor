@@ -19,7 +19,7 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
         public ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
             Project workspaceProject,
             IProjectSnapshot projectSnapshot,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
             => new(new TagHelperResolutionResult(tagHelpers));
     }
 }

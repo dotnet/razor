@@ -29,14 +29,14 @@ internal class RemoteTagHelperResolver : ITagHelperResolver
     public ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
         Project workspaceProject,
         IProjectSnapshot projectSnapshot,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
         => throw new NotImplementedException();
 
     public ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
         Project workspaceProject,
         RazorConfiguration? configuration,
         string? factoryTypeName,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         if (workspaceProject is null)
         {

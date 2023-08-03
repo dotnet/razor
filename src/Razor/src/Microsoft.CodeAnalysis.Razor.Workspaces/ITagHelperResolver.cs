@@ -14,5 +14,5 @@ internal interface ITagHelperResolver : IWorkspaceService
     ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
         Project workspaceProject,
         IProjectSnapshot projectSnapshot,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 }

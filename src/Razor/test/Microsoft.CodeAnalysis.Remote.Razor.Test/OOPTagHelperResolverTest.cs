@@ -82,7 +82,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
             },
         };
 
-        var result = await resolver.GetTagHelpersAsync(_workspaceProject, projectSnapshot);
+        var result = await resolver.GetTagHelpersAsync(_workspaceProject, projectSnapshot, DisposalToken);
 
         // Assert
         Assert.Same(TagHelperResolutionResult.Empty, result);
@@ -106,7 +106,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
             },
         };
 
-        var result = await resolver.GetTagHelpersAsync(_workspaceProject, projectSnapshot);
+        var result = await resolver.GetTagHelpersAsync(_workspaceProject, projectSnapshot, DisposalToken);
 
         // Assert
         Assert.Same(TagHelperResolutionResult.Empty, result);

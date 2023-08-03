@@ -18,7 +18,7 @@ internal class TestTagHelperResolver : ITagHelperResolver
     public ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
         Project workspaceProject,
         IProjectSnapshot projectSnapshot,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         return new(new TagHelperResolutionResult(TagHelpers.ToImmutableArray()));
     }
