@@ -29,11 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 internal abstract class RazorLanguageServerCustomMessageTarget
 {
-    // Called by the Razor Language Server to retrieve the user's latest settings.
-    // NOTE: This method is a polyfill for VS. We only intend to do it this way until VS formally
-    // supports sending workspace configuration requests.
-    [JsonRpcMethod(Methods.WorkspaceConfigurationName, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<object[]> WorkspaceConfigurationAsync(ConfigurationParams configParams, CancellationToken cancellationToken);
 
     // Called by Visual Studio to wrap the current selection with a tag
     [JsonRpcMethod(LanguageServerConstants.RazorWrapWithTagEndpoint, UseSingleObjectParameterDeserialization = true)]

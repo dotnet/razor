@@ -126,34 +126,6 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLang
         _documentSynchronizer = documentSynchronizer;
     }
 
-    // NOTE: This method is a polyfill for VS. We only intend to do it this way until VS formally
-    // supports sending workspace configuration requests.
-    public override Task<object[]> WorkspaceConfigurationAsync(
-        ConfigurationParams configParams,
-        CancellationToken cancellationToken)
-    {
-        if (configParams is null)
-        {
-            throw new ArgumentNullException(nameof(configParams));
-        }
-
-        var result = new List<object>();
-        foreach (var item in configParams.Items)
-        {
-            // Right now in VS we only care about editor settings, but we should update this logic later if
-            // we want to support Razor and HTML settings as well.
-            var setting = item.Section switch
-            {
-                "vs.editor.razor" => _editorSettingsManager.GetClientSettings(),
-                _ => new object()
-            };
-
-            result.Add(setting);
-        }
-
-        return Task.FromResult(result.ToArray());
-    }
-
     public override async Task<VSInternalWrapWithTagResponse> RazorWrapWithTagAsync(VSInternalWrapWithTagParams wrapWithParams, CancellationToken cancellationToken)
     {
         // Same as in LanguageServerConstants, and in Web Tools
