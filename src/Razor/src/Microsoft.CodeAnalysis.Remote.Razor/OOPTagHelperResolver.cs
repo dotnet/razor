@@ -70,9 +70,11 @@ internal class OOPTagHelperResolver : ITagHelperResolver
 
             return result;
         }
-        catch (Exception exception) when (exception is not TaskCanceledException && exception is not OperationCanceledException)
+        catch (Exception ex) when (ex is not TaskCanceledException && ex is not OperationCanceledException)
         {
-            throw new InvalidOperationException($"An unexpected exception occurred when invoking '{typeof(CompilationTagHelperResolver).FullName}.{nameof(GetTagHelpersAsync)}' on the Razor language service.", exception);
+            throw new InvalidOperationException(
+                $"An unexpected exception occurred when invoking '{typeof(CompilationTagHelperResolver).FullName}.{nameof(GetTagHelpersAsync)}' on the Razor language service.",
+                ex);
         }
     }
 
