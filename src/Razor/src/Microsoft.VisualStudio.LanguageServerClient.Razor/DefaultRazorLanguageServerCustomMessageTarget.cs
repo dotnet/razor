@@ -126,31 +126,6 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLang
         _documentSynchronizer = documentSynchronizer;
     }
 
-    public override async Task<VSInternalDocumentOnAutoInsertResponseItem?> OnAutoInsertAsync(DelegatedOnAutoInsertParams request, CancellationToken cancellationToken)
-    {
-        var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
-        if (delegationDetails is null)
-        {
-            return default;
-        }
-
-        var onAutoInsertParams = new VSInternalDocumentOnAutoInsertParams
-        {
-            TextDocument = request.Identifier.TextDocumentIdentifier.WithUri(delegationDetails.Value.ProjectedUri),
-            Position = request.ProjectedPosition,
-            Character = request.Character,
-            Options = request.Options
-        };
-
-        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentOnAutoInsertParams, VSInternalDocumentOnAutoInsertResponseItem?>(
-           delegationDetails.Value.TextBuffer,
-           VSInternalMethods.OnAutoInsertName,
-           delegationDetails.Value.LanguageServerName,
-           onAutoInsertParams,
-           cancellationToken).ConfigureAwait(false);
-        return response?.Response;
-    }
-
     public override async Task<Range?> ValidateBreakpointRangeAsync(DelegatedValidateBreakpointRangeParams request, CancellationToken cancellationToken)
     {
         var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
