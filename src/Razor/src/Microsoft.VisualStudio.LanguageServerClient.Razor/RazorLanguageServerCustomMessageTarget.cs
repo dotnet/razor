@@ -29,11 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 internal abstract class RazorLanguageServerCustomMessageTarget
 {
-
-    // Called by Visual Studio to wrap the current selection with a tag
-    [JsonRpcMethod(LanguageServerConstants.RazorWrapWithTagEndpoint, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<VSInternalWrapWithTagResponse> RazorWrapWithTagAsync(VSInternalWrapWithTagParams wrapWithParams, CancellationToken cancellationToken);
-
     // Called by the Razor Language Server to provide inline completions from the platform.
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorInlineCompletionEndpoint, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<VSInternalInlineCompletionList?> ProvideInlineCompletionAsync(RazorInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken);

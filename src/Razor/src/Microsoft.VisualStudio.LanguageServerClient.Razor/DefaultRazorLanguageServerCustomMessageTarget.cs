@@ -126,51 +126,6 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLang
         _documentSynchronizer = documentSynchronizer;
     }
 
-    public override async Task<VSInternalWrapWithTagResponse> RazorWrapWithTagAsync(VSInternalWrapWithTagParams wrapWithParams, CancellationToken cancellationToken)
-    {
-        // Same as in LanguageServerConstants, and in Web Tools
-        const string HtmlWrapWithTagEndpoint = "textDocument/_vsweb_wrapWithTag";
-
-        var response = new VSInternalWrapWithTagResponse(wrapWithParams.Range, Array.Empty<TextEdit>());
-
-        var (synchronized, htmlDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
-            _documentManager,
-            wrapWithParams.TextDocument.Version,
-            wrapWithParams.TextDocument,
-            cancellationToken);
-
-        if (!synchronized)
-        {
-            Debug.Fail("Document was not synchronized");
-            return response;
-        }
-
-        var languageServerName = RazorLSPConstants.HtmlLanguageServerName;
-        var projectedUri = htmlDocument.Uri;
-
-        // We call the Html language server to do the actual work here, now that we have the vitrual document that they know about
-        var request = new VSInternalWrapWithTagParams(
-            wrapWithParams.Range,
-            wrapWithParams.TagName,
-            wrapWithParams.Options,
-            new VersionedTextDocumentIdentifier() { Uri = projectedUri, });
-
-        var textBuffer = htmlDocument.Snapshot.TextBuffer;
-        var result = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalWrapWithTagParams, VSInternalWrapWithTagResponse>(
-            textBuffer,
-            HtmlWrapWithTagEndpoint,
-            languageServerName,
-            request,
-            cancellationToken).ConfigureAwait(false);
-
-        if (result?.Response is not null)
-        {
-            response = result.Response;
-        }
-
-        return response;
-    }
-
     public override async Task<VSInternalInlineCompletionList?> ProvideInlineCompletionAsync(RazorInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken)
     {
         if (inlineCompletionParams is null)
