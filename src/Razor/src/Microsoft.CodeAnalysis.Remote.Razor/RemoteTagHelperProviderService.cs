@@ -15,11 +15,13 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 internal sealed class RemoteTagHelperProviderService : RazorServiceBase, IRemoteTagHelperProviderService
 {
+    private readonly RemoteTagHelperResolver _tagHelperResolver;
     private readonly RemoteTagHelperDeltaProvider _tagHelperDeltaProvider;
 
     internal RemoteTagHelperProviderService(IServiceBroker serviceBroker, ITelemetryReporter telemetryReporter)
-        : base(serviceBroker, telemetryReporter)
+        : base(serviceBroker)
     {
+        _tagHelperResolver = new RemoteTagHelperResolver(telemetryReporter);
         _tagHelperDeltaProvider = new RemoteTagHelperDeltaProvider();
     }
 
@@ -52,7 +54,7 @@ internal sealed class RemoteTagHelperProviderService : RazorServiceBase, IRemote
             return TagHelperResolutionResult.Empty;
         }
 
-        return await RazorServices.TagHelperResolver.GetTagHelpersAsync(workspaceProject, projectHandle.Configuration, factoryTypeName, cancellationToken).ConfigureAwait(false);
+        return await _tagHelperResolver.GetTagHelpersAsync(workspaceProject, projectHandle.Configuration, factoryTypeName, cancellationToken).ConfigureAwait(false);
     }
 
     public async ValueTask<TagHelperDeltaResult> GetTagHelpersDeltaCoreAsync(RazorPinnedSolutionInfoWrapper solutionInfo, ProjectSnapshotHandle projectHandle, string? factoryTypeName, int lastResultId, CancellationToken cancellationToken)

@@ -20,9 +20,9 @@ internal class RemoteTagHelperResolver : ITagHelperResolver
     private readonly IFallbackProjectEngineFactory _fallbackFactory;
     private readonly CompilationTagHelperResolver _compilationTagHelperResolver;
 
-    public RemoteTagHelperResolver(IFallbackProjectEngineFactory fallbackFactory, ITelemetryReporter telemetryReporter)
+    public RemoteTagHelperResolver(ITelemetryReporter telemetryReporter)
     {
-        _fallbackFactory = fallbackFactory ?? throw new ArgumentNullException(nameof(fallbackFactory));
+        _fallbackFactory = new FallbackProjectEngineFactory();
         _compilationTagHelperResolver = new CompilationTagHelperResolver(telemetryReporter);
     }
 
