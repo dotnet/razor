@@ -42,7 +42,7 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 [Export(typeof(RazorLanguageServerCustomMessageTarget))]
-internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServerCustomMessageTarget
+internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServerCustomMessageTarget
 {
     private readonly TrackingLSPDocumentManager _documentManager;
     private readonly JoinableTaskFactory _joinableTaskFactory;
