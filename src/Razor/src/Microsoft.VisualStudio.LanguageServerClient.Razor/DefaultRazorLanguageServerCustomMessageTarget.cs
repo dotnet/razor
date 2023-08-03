@@ -126,29 +126,6 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLang
         _documentSynchronizer = documentSynchronizer;
     }
 
-    public override async Task<Range?> ValidateBreakpointRangeAsync(DelegatedValidateBreakpointRangeParams request, CancellationToken cancellationToken)
-    {
-        var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
-        if (delegationDetails is null)
-        {
-            return default;
-        }
-
-        var validateBreakpointRangeParams = new VSInternalValidateBreakableRangeParams
-        {
-            TextDocument = request.Identifier.TextDocumentIdentifier.WithUri(delegationDetails.Value.ProjectedUri),
-            Range = request.ProjectedRange
-        };
-
-        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalValidateBreakableRangeParams, Range?>(
-            delegationDetails.Value.TextBuffer,
-            VSInternalMethods.TextDocumentValidateBreakableRangeName,
-            delegationDetails.Value.LanguageServerName,
-            validateBreakpointRangeParams,
-            cancellationToken).ConfigureAwait(false);
-        return response?.Response;
-    }
-
     public override async Task<VSInternalSpellCheckableRangeReport[]> SpellCheckAsync(DelegatedSpellCheckParams request, CancellationToken cancellationToken)
     {
         var hostDocument = request.Identifier.TextDocumentIdentifier;

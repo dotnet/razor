@@ -29,9 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 internal abstract class RazorLanguageServerCustomMessageTarget
 {
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorValidateBreakpointRangeName, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<Range?> ValidateBreakpointRangeAsync(DelegatedValidateBreakpointRangeParams request, CancellationToken cancellationToken);
-
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorSpellCheckEndpoint, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<VSInternalSpellCheckableRangeReport[]> SpellCheckAsync(DelegatedSpellCheckParams request, CancellationToken cancellationToken);
 
