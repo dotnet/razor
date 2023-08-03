@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -20,8 +21,20 @@ internal partial class RazorCustomMessageTarget
     [JsonRpcMethod(CustomMessageNames.RazorPullDiagnosticEndpointName, UseSingleObjectParameterDeserialization = true)]
     public async Task<RazorPullDiagnosticResponse?> DiagnosticsAsync(DelegatedDiagnosticParams request, CancellationToken cancellationToken)
     {
-        var csharpTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<CSharpVirtualDocumentSnapshot>(request.Identifier, request.CorrelationId, RazorLSPConstants.RazorCSharpLanguageServerName, cancellationToken), cancellationToken);
-        var htmlTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<HtmlVirtualDocumentSnapshot>(request.Identifier, request.CorrelationId, RazorLSPConstants.HtmlLanguageServerName, cancellationToken), cancellationToken);
+        // Normally we don't like to construct POCOs directly, because it removes potentially unknown data that has been
+        // deserialized from the JSON request. To ensure we don't do that we modify the request object (see WithUri call below)
+        // but in this case, where we asynchronously fire off two requests, that introduces a problem as we can end up modifying
+        // the object before its been used to synchronize one of the virtual documents.
+        // We're okay to construct this object _in this specific scenario_ because we know it is only used to synchronize
+        // requests inside Razor, and we only use ProjectContext and Uri to do that.
+        var hostDocument = new VSTextDocumentIdentifier
+        {
+            ProjectContext = request.Identifier.TextDocumentIdentifier.GetProjectContext(),
+            Uri = request.Identifier.TextDocumentIdentifier.Uri,
+        };
+
+        var csharpTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<CSharpVirtualDocumentSnapshot>(hostDocument, request.Identifier.Version, request.Identifier.TextDocumentIdentifier, request.CorrelationId, RazorLSPConstants.RazorCSharpLanguageServerName, cancellationToken), cancellationToken);
+        var htmlTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<HtmlVirtualDocumentSnapshot>(hostDocument, request.Identifier.Version, request.Identifier.TextDocumentIdentifier, request.CorrelationId, RazorLSPConstants.HtmlLanguageServerName, cancellationToken), cancellationToken);
 
         try
         {
@@ -49,13 +62,13 @@ internal partial class RazorCustomMessageTarget
         return new RazorPullDiagnosticResponse(csharpDiagnostics, htmlDiagnostics);
     }
 
-    private async Task<VSInternalDiagnosticReport[]?> GetVirtualDocumentPullDiagnosticsAsync<TVirtualDocumentSnapshot>(TextDocumentIdentifierAndVersion identifier, Guid correlationId, string delegatedLanguageServerName, CancellationToken cancellationToken)
+    private async Task<VSInternalDiagnosticReport[]?> GetVirtualDocumentPullDiagnosticsAsync<TVirtualDocumentSnapshot>(TextDocumentIdentifier hostDocument, int hostDocumentVersion, TextDocumentIdentifier identifierFromOriginalRequest, Guid correlationId, string delegatedLanguageServerName, CancellationToken cancellationToken)
         where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
     {
         var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(
             _documentManager,
-            identifier.Version,
-            identifier.TextDocumentIdentifier,
+            hostDocumentVersion,
+            hostDocument,
             cancellationToken).ConfigureAwait(false);
         if (!synchronized)
         {
@@ -64,7 +77,7 @@ internal partial class RazorCustomMessageTarget
 
         var request = new VSInternalDocumentDiagnosticsParams
         {
-            TextDocument = identifier.TextDocumentIdentifier.WithUri(virtualDocument.Uri),
+            TextDocument = identifierFromOriginalRequest.WithUri(virtualDocument.Uri),
         };
 
         var lspMethodName = VSInternalMethods.DocumentPullDiagnosticName;

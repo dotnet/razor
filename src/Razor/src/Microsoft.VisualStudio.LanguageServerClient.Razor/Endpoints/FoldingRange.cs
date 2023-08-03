@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -26,11 +27,23 @@ internal partial class RazorCustomMessageTarget
             throw new ArgumentNullException(nameof(foldingRangeParams));
         }
 
+        // Normally we don't like to construct POCOs directly, because it removes potentially unknown data that has been
+        // deserialized from the JSON request. To ensure we don't do that we modify the request object (see WithUri call below)
+        // but in this case, where we asynchronously fire off two requests, that introduces a problem as we can end up modifying
+        // the object before its been used to synchronize one of the virtual documents.
+        // We're okay to construct this object _in this specific scenario_ because we know it is only used to synchronize
+        // requests inside Razor, and we only use ProjectContext and Uri to do that.
+        var hostDocument = new VSTextDocumentIdentifier
+        {
+            ProjectContext = foldingRangeParams.TextDocument.GetProjectContext(),
+            Uri = foldingRangeParams.TextDocument.Uri,
+        };
+
         var csharpRanges = new List<FoldingRange>();
         var csharpTask = Task.Run(async () =>
         {
             var (synchronized, csharpSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
-                _documentManager, foldingRangeParams.HostDocumentVersion, foldingRangeParams.TextDocument, cancellationToken);
+                _documentManager, foldingRangeParams.HostDocumentVersion, hostDocument, cancellationToken);
 
             if (synchronized)
             {
@@ -64,7 +77,7 @@ internal partial class RazorCustomMessageTarget
         htmlTask = Task.Run(async () =>
         {
             var (synchronized, htmlDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
-                _documentManager, foldingRangeParams.HostDocumentVersion, foldingRangeParams.TextDocument, cancellationToken);
+                _documentManager, foldingRangeParams.HostDocumentVersion, hostDocument, cancellationToken);
 
             if (synchronized)
             {
