@@ -32,12 +32,12 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
+public class RazorCustomMessageTargetTest : TestBase
 {
     private readonly ITextBuffer _textBuffer;
     private readonly IClientSettingsManager _editorSettingsManager;
 
-    public DefaultRazorLanguageServerCustomMessageTargetTest(ITestOutputHelper testOutput)
+    public RazorCustomMessageTargetTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
         _textBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
@@ -54,7 +54,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
             .Returns(false);
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
-        var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, documentSynchronizer.Object);
+        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer.Object);
         var request = new UpdateBufferRequest()
         {
             HostDocumentFilePath = "C:/path/to/file.razor",
@@ -86,7 +86,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
             .Verifiable();
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
-        var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, documentSynchronizer.Object);
+        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer.Object);
         var request = new UpdateBufferRequest()
         {
             HostDocumentFilePath = "C:/path/to/file.razor",
@@ -125,7 +125,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
             .Verifiable();
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
-        var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, documentSynchronizer.Object);
+        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer.Object);
         var request = new UpdateBufferRequest()
         {
             ProjectKeyId = projectKey2.Id,
@@ -151,7 +151,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
             .Returns(false);
         var documentSynchronizer = GetDocumentSynchronizer();
-        var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, documentSynchronizer);
+        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer);
         var request = new DelegatedCodeActionParams()
         {
             HostDocumentVersion = 1,
@@ -218,7 +218,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
         telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
 
-        var target = new DefaultRazorLanguageServerCustomMessageTarget(
+        var target = new RazorCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
                 TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, telemetryReporter.Object, outputWindowLogger);
 
@@ -294,7 +294,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
         var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
 
-        var target = new DefaultRazorLanguageServerCustomMessageTarget(
+        var target = new RazorCustomMessageTarget(
             documentManager, JoinableTaskContext, requestInvoker.Object,
             TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, telemetryReporter.Object, outputWindowLogger);
 
@@ -321,7 +321,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
             .Returns(false);
         var documentSynchronizer = GetDocumentSynchronizer();
-        var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, documentSynchronizer);
+        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer);
         var request = new ProvideSemanticTokensRangeParams(
             textDocument: new TextDocumentIdentifier()
             {
@@ -350,7 +350,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
             .Returns(true);
         var documentSynchronizer = GetDocumentSynchronizer();
-        var target = new DefaultRazorLanguageServerCustomMessageTarget(documentManager.Object, documentSynchronizer);
+        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer);
         var request = new ProvideSemanticTokensRangeParams(
             textDocument: new TextDocumentIdentifier()
             {
@@ -408,7 +408,7 @@ public class DefaultRazorLanguageServerCustomMessageTargetTest : TestBase
         telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableDictionary<string, object>>())).Returns(NullScope.Instance);
         telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
 
-        var target = new DefaultRazorLanguageServerCustomMessageTarget(
+        var target = new RazorCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
             TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, telemetryReporter.Object, outputWindowLogger);
         var request = new ProvideSemanticTokensRangeParams(

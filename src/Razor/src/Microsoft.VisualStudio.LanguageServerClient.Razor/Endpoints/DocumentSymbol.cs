@@ -11,7 +11,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-internal partial class DefaultRazorLanguageServerCustomMessageTarget
+internal partial class RazorCustomMessageTarget
 {
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorDocumentSymbolEndpoint, UseSingleObjectParameterDeserialization = true)]
     public async Task<SumType<DocumentSymbol[], SymbolInformation[]>?> DocumentSymbolsAsync(DelegatedDocumentSymbolParams request, CancellationToken cancellationToken)

@@ -10,7 +10,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-internal partial class DefaultRazorLanguageServerCustomMessageTarget
+internal partial class RazorCustomMessageTarget
 {
     // These handlers do different jobs, but all take a  DelegatedPositionParams and in turn request a TextDocumentPositionParams
 

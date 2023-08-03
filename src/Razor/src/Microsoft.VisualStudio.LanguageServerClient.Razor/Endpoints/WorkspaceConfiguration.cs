@@ -10,7 +10,7 @@ using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-internal partial class DefaultRazorLanguageServerCustomMessageTarget
+internal partial class RazorCustomMessageTarget
 {
     // Called by the Razor Language Server to retrieve the user's latest settings.
     // NOTE: This method is a poly-fill for VS. We only intend to do it this way until VS formally
