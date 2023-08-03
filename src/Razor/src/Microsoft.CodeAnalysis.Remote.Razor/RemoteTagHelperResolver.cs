@@ -4,53 +4,53 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-internal class RemoteTagHelperResolver : TagHelperResolver
+internal class RemoteTagHelperResolver : ITagHelperResolver
 {
     private readonly static RazorConfiguration s_defaultConfiguration = FallbackRazorConfiguration.MVC_2_0;
 
     private readonly IFallbackProjectEngineFactory _fallbackFactory;
+    private readonly CompilationTagHelperResolver _compilationTagHelperResolver;
 
     public RemoteTagHelperResolver(IFallbackProjectEngineFactory fallbackFactory, ITelemetryReporter telemetryReporter)
-        : base(telemetryReporter)
     {
-        if (fallbackFactory is null)
-        {
-            throw new ArgumentNullException(nameof(fallbackFactory));
-        }
-
-        _fallbackFactory = fallbackFactory;
+        _fallbackFactory = fallbackFactory ?? throw new ArgumentNullException(nameof(fallbackFactory));
+        _compilationTagHelperResolver = new CompilationTagHelperResolver(telemetryReporter);
     }
 
-    public override Task<TagHelperResolutionResult> GetTagHelpersAsync(Project project, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
+    public ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
+        Project workspaceProject,
+        IProjectSnapshot projectSnapshot,
+        CancellationToken cancellationToken)
+        => throw new NotImplementedException();
 
-    public Task<TagHelperResolutionResult> GetTagHelpersAsync(
-        Project project,
+    public ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
+        Project workspaceProject,
         RazorConfiguration? configuration,
         string? factoryTypeName,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
-        if (project is null)
+        if (workspaceProject is null)
         {
-            throw new ArgumentNullException(nameof(project));
+            throw new ArgumentNullException(nameof(workspaceProject));
         }
 
-        if (configuration is null || project is null)
+        if (configuration is null || workspaceProject is null)
         {
-            return Task.FromResult(TagHelperResolutionResult.Empty);
+            return new(TagHelperResolutionResult.Empty);
         }
 
-        var engine = CreateProjectEngine(configuration, factoryTypeName);
-        return GetTagHelpersAsync(project, engine, cancellationToken);
+        var projectEngine = CreateProjectEngine(configuration, factoryTypeName);
+
+        return _compilationTagHelperResolver.GetTagHelpersAsync(workspaceProject, projectEngine, cancellationToken);
     }
 
     internal RazorProjectEngine CreateProjectEngine(RazorConfiguration? configuration, string? factoryTypeName)
