@@ -126,42 +126,6 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLang
         _documentSynchronizer = documentSynchronizer;
     }
 
-    public override async Task<VSInternalSpellCheckableRangeReport[]> SpellCheckAsync(DelegatedSpellCheckParams request, CancellationToken cancellationToken)
-    {
-        var hostDocument = request.Identifier.TextDocumentIdentifier;
-        var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
-            _documentManager,
-            request.Identifier.Version,
-            hostDocument,
-            cancellationToken).ConfigureAwait(false);
-        if (!synchronized)
-        {
-            return Array.Empty<VSInternalSpellCheckableRangeReport>();
-        }
-
-        var spellCheckParams = new VSInternalDocumentSpellCheckableParams
-        {
-            TextDocument = hostDocument.WithUri(virtualDocument.Uri),
-        };
-
-        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport[]>(
-            virtualDocument.Snapshot.TextBuffer,
-            VSInternalMethods.TextDocumentSpellCheckableRangesName,
-            RazorLSPConstants.RazorCSharpLanguageServerName,
-            SupportsSpellCheck,
-            spellCheckParams,
-            cancellationToken).ConfigureAwait(false);
-
-        return response?.Response ?? Array.Empty<VSInternalSpellCheckableRangeReport>();
-    }
-
-    private static bool SupportsSpellCheck(JToken token)
-    {
-        var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
-
-        return serverCapabilities?.SpellCheckingProvider ?? false;
-    }
-
     public override async Task<VSProjectContextList?> ProjectContextsAsync(DelegatedProjectContextsParams request, CancellationToken cancellationToken)
     {
         var hostDocument = request.Identifier.TextDocumentIdentifier;
