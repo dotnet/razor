@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
@@ -22,23 +21,8 @@ internal partial class TagHelperResolverFactory
             Project workspaceProject,
             IProjectSnapshot projectSnapshot,
             CancellationToken cancellationToken)
-        {
-            if (workspaceProject is null)
-            {
-                throw new ArgumentNullException(nameof(workspaceProject));
-            }
-
-            if (projectSnapshot is null)
-            {
-                throw new ArgumentNullException(nameof(projectSnapshot));
-            }
-
-            if (projectSnapshot.Configuration is null)
-            {
-                return new(TagHelperResolutionResult.Empty);
-            }
-
-            return _resolver.GetTagHelpersAsync(workspaceProject, projectSnapshot.GetProjectEngine(), cancellationToken);
-        }
+            => projectSnapshot.Configuration is not null
+                ? _resolver.GetTagHelpersAsync(workspaceProject, projectSnapshot.GetProjectEngine(), cancellationToken)
+                : new(TagHelperResolutionResult.Empty);
     }
 }

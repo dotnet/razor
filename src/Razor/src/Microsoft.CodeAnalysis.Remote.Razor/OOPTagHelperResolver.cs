@@ -42,16 +42,6 @@ internal class OOPTagHelperResolver : ITagHelperResolver
         IProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken)
     {
-        if (workspaceProject is null)
-        {
-            throw new ArgumentNullException(nameof(workspaceProject));
-        }
-
-        if (projectSnapshot is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshot));
-        }
-
         if (projectSnapshot.Configuration is null)
         {
             return TagHelperResolutionResult.Empty;
