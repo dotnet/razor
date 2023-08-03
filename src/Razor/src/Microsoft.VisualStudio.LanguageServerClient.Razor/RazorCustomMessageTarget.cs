@@ -2,47 +2,23 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
-using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
-using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
-using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
-using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
-using Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
-using Microsoft.VisualStudio.LanguageServerClient.Razor.WrapWithTag;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json.Linq;
-using ImplementationResult = Microsoft.VisualStudio.LanguageServer.Protocol.SumType<
-    Microsoft.VisualStudio.LanguageServer.Protocol.Location[],
-    Microsoft.VisualStudio.LanguageServer.Protocol.VSInternalReferenceItem[]>;
-using SemanticTokensRangeParams = Microsoft.VisualStudio.LanguageServer.Protocol.SemanticTokensRangeParams;
-using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-[Export(typeof(RazorLanguageServerCustomMessageTarget))]
-internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServerCustomMessageTarget
+[Export(typeof(RazorCustomMessageTarget))]
+internal partial class RazorCustomMessageTarget
 {
     private readonly TrackingLSPDocumentManager _documentManager;
     private readonly JoinableTaskFactory _joinableTaskFactory;
@@ -54,7 +30,7 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLang
     private readonly IOutputWindowLogger? _outputWindowLogger;
 
     [ImportingConstructor]
-    public DefaultRazorLanguageServerCustomMessageTarget(
+    public RazorCustomMessageTarget(
         LSPDocumentManager documentManager,
         JoinableTaskContext joinableTaskContext,
         LSPRequestInvoker requestInvoker,
@@ -118,7 +94,7 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLang
 
     // Testing constructor
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    internal DefaultRazorLanguageServerCustomMessageTarget(TrackingLSPDocumentManager documentManager,
+    internal RazorCustomMessageTarget(TrackingLSPDocumentManager documentManager,
         LSPDocumentSynchronizer documentSynchronizer)
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     {
