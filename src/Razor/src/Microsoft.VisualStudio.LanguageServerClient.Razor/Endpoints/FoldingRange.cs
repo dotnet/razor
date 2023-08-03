@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 internal partial class RazorCustomMessageTarget
 {
-    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorFoldingRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorFoldingRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
     public async Task<RazorFoldingRangeResponse?> ProvideFoldingRangesAsync(RazorFoldingRangeRequestParam foldingRangeParams, CancellationToken cancellationToken)
     {
         if (foldingRangeParams is null)

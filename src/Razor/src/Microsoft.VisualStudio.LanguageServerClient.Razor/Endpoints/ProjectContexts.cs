@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 internal partial class RazorCustomMessageTarget
 {
-    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorProjectContextsEndpoint, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorProjectContextsEndpoint, UseSingleObjectParameterDeserialization = true)]
     public async Task<VSProjectContextList?> ProjectContextsAsync(DelegatedProjectContextsParams request, CancellationToken cancellationToken)
     {
         var hostDocument = request.Identifier.TextDocumentIdentifier;

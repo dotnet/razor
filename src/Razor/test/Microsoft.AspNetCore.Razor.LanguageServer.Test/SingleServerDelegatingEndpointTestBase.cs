@@ -124,20 +124,20 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
             RequestCount++;
             object result = method switch
             {
-                RazorCustomLSPMethodNames.RazorDefinitionEndpointName => await HandleDefinitionAsync(@params),
-                RazorCustomLSPMethodNames.RazorImplementationEndpointName => await HandleImplementationAsync(@params),
-                RazorCustomLSPMethodNames.RazorSignatureHelpEndpointName => await HandleSignatureHelpAsync(@params),
-                RazorCustomLSPMethodNames.RazorRenameEndpointName => await HandleRenameAsync(@params),
-                RazorCustomLSPMethodNames.RazorOnAutoInsertEndpointName => await HandleOnAutoInsertAsync(@params),
-                RazorCustomLSPMethodNames.RazorValidateBreakpointRangeName => await HandleValidateBreakpointRangeAsync(@params),
-                RazorCustomLSPMethodNames.RazorReferencesEndpointName => await HandleReferencesAsync(@params),
-                RazorCustomLSPMethodNames.RazorProvideCodeActionsEndpoint => await HandleProvideCodeActionsAsync(@params),
-                RazorCustomLSPMethodNames.RazorResolveCodeActionsEndpoint => await HandleResolveCodeActionsAsync(@params),
-                RazorCustomLSPMethodNames.RazorPullDiagnosticEndpointName => await HandlePullDiagnosticsAsync(@params),
-                RazorCustomLSPMethodNames.RazorFoldingRangeEndpoint => await HandleFoldingRangeAsync(),
-                RazorCustomLSPMethodNames.RazorSpellCheckEndpoint => await HandleSpellCheckAsync(@params),
-                RazorCustomLSPMethodNames.RazorDocumentSymbolEndpoint => await HandleDocumentSymbolAsync(@params),
-                RazorCustomLSPMethodNames.RazorProjectContextsEndpoint => await HandleProjectContextsAsync(@params),
+                CustomMessageNames.RazorDefinitionEndpointName => await HandleDefinitionAsync(@params),
+                CustomMessageNames.RazorImplementationEndpointName => await HandleImplementationAsync(@params),
+                CustomMessageNames.RazorSignatureHelpEndpointName => await HandleSignatureHelpAsync(@params),
+                CustomMessageNames.RazorRenameEndpointName => await HandleRenameAsync(@params),
+                CustomMessageNames.RazorOnAutoInsertEndpointName => await HandleOnAutoInsertAsync(@params),
+                CustomMessageNames.RazorValidateBreakpointRangeName => await HandleValidateBreakpointRangeAsync(@params),
+                CustomMessageNames.RazorReferencesEndpointName => await HandleReferencesAsync(@params),
+                CustomMessageNames.RazorProvideCodeActionsEndpoint => await HandleProvideCodeActionsAsync(@params),
+                CustomMessageNames.RazorResolveCodeActionsEndpoint => await HandleResolveCodeActionsAsync(@params),
+                CustomMessageNames.RazorPullDiagnosticEndpointName => await HandlePullDiagnosticsAsync(@params),
+                CustomMessageNames.RazorFoldingRangeEndpoint => await HandleFoldingRangeAsync(),
+                CustomMessageNames.RazorSpellCheckEndpoint => await HandleSpellCheckAsync(@params),
+                CustomMessageNames.RazorDocumentSymbolEndpoint => await HandleDocumentSymbolAsync(@params),
+                CustomMessageNames.RazorProjectContextsEndpoint => await HandleProjectContextsAsync(@params),
                 _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
             };
 

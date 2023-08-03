@@ -48,7 +48,7 @@ internal sealed class DocumentColorEndpoint : IRazorRequestHandler<DocumentColor
         };
 
         var documentColors = await _languageServer.SendRequestAsync<DelegatedDocumentColorParams, ColorInformation[]>(
-            RazorCustomLSPMethodNames.RazorProvideHtmlDocumentColorEndpoint,
+            CustomMessageNames.RazorProvideHtmlDocumentColorEndpoint,
             delegatedRequest,
             cancellationToken).ConfigureAwait(false);
 

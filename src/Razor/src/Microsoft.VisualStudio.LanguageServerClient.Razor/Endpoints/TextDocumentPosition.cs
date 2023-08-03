@@ -14,27 +14,27 @@ internal partial class RazorCustomMessageTarget
 {
     // These handlers do different jobs, but all take a  DelegatedPositionParams and in turn request a TextDocumentPositionParams
 
-    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorDefinitionEndpointName, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorDefinitionEndpointName, UseSingleObjectParameterDeserialization = true)]
     public Task<Location[]?> DefinitionAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
         => DelegateTextDocumentPositionAndProjectContextAsync<Location[]>(request, Methods.TextDocumentDefinitionName, cancellationToken);
 
-    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorDocumentHighlightEndpointName, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorDocumentHighlightEndpointName, UseSingleObjectParameterDeserialization = true)]
     public Task<DocumentHighlight[]?> DocumentHighlightAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
         => DelegateTextDocumentPositionAndProjectContextAsync<DocumentHighlight[]>(request, Methods.TextDocumentDocumentHighlightName, cancellationToken);
 
-    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorHoverEndpointName, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorHoverEndpointName, UseSingleObjectParameterDeserialization = true)]
     public Task<VSInternalHover?> HoverAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
         => DelegateTextDocumentPositionAndProjectContextAsync<VSInternalHover>(request, Methods.TextDocumentHoverName, cancellationToken);
 
-    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorImplementationEndpointName, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorImplementationEndpointName, UseSingleObjectParameterDeserialization = true)]
     public Task<SumType<Location[], VSInternalReferenceItem[]>> ImplementationAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
         => DelegateTextDocumentPositionAndProjectContextAsync<SumType<Location[], VSInternalReferenceItem[]>>(request, Methods.TextDocumentImplementationName, cancellationToken);
 
-    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorReferencesEndpointName, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorReferencesEndpointName, UseSingleObjectParameterDeserialization = true)]
     public Task<VSInternalReferenceItem[]?> ReferencesAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
         => DelegateTextDocumentPositionAndProjectContextAsync<VSInternalReferenceItem[]>(request, Methods.TextDocumentReferencesName, cancellationToken);
 
-    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorSignatureHelpEndpointName, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorSignatureHelpEndpointName, UseSingleObjectParameterDeserialization = true)]
     public Task<SignatureHelp?> SignatureHelpAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
         => DelegateTextDocumentPositionAndProjectContextAsync<SignatureHelp>(request, Methods.TextDocumentSignatureHelpName, cancellationToken);
 

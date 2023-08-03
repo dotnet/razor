@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 internal partial class RazorCustomMessageTarget
 {
-    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorDocumentSymbolEndpoint, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorDocumentSymbolEndpoint, UseSingleObjectParameterDeserialization = true)]
     public async Task<SumType<DocumentSymbol[], SymbolInformation[]>?> DocumentSymbolsAsync(DelegatedDocumentSymbolParams request, CancellationToken cancellationToken)
     {
         var hostDocument = request.Identifier.TextDocumentIdentifier;

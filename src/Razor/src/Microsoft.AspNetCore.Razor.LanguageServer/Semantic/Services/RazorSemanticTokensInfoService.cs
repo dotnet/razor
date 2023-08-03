@@ -280,7 +280,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         var parameter = new ProvideSemanticTokensRangeParams(textDocumentIdentifier, documentVersion, csharpRange, correlationId);
 
         var csharpResponse = await _languageServer.SendRequestAsync<ProvideSemanticTokensRangeParams, ProvideSemanticTokensResponse>(
-            RazorCustomLSPMethodNames.RazorProvideSemanticTokensRangeEndpoint,
+            CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint,
             parameter,
             cancellationToken).ConfigureAwait(false);
 

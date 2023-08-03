@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 internal partial class RazorCustomMessageTarget
 {
-    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorPullDiagnosticEndpointName, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorPullDiagnosticEndpointName, UseSingleObjectParameterDeserialization = true)]
     public async Task<RazorPullDiagnosticResponse?> DiagnosticsAsync(DelegatedDiagnosticParams request, CancellationToken cancellationToken)
     {
         var csharpTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<CSharpVirtualDocumentSnapshot>(request.Identifier, request.CorrelationId, RazorLSPConstants.RazorCSharpLanguageServerName, cancellationToken), cancellationToken);

@@ -16,13 +16,13 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 internal partial class RazorCustomMessageTarget
 {
-    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorTextPresentationEndpoint, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorTextPresentationEndpoint, UseSingleObjectParameterDeserialization = true)]
     public Task<WorkspaceEdit?> ProvideTextPresentationAsync(RazorTextPresentationParams presentationParams, CancellationToken cancellationToken)
     {
         return ProvidePresentationAsync(presentationParams, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentTextPresentationName, cancellationToken);
     }
 
-    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorUriPresentationEndpoint, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorUriPresentationEndpoint, UseSingleObjectParameterDeserialization = true)]
     public Task<WorkspaceEdit?> ProvideUriPresentationAsync(RazorUriPresentationParams presentationParams, CancellationToken cancellationToken)
     {
         return ProvidePresentationAsync(presentationParams, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentUriPresentationName, cancellationToken);

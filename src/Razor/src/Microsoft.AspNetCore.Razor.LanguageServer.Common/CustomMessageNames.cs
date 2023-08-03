@@ -10,7 +10,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 /// Handlers for these methods live in either the RazorCustomMessageTarget class in this repo for VS,
 /// or in various TypeScript files in https://github.com/dotnet/vscode-csharp for VS Code.
 /// </remarks>
-internal static class RazorCustomLSPMethodNames
+internal static class CustomMessageNames
 {
     // VS Windows only
     public const string RazorInlineCompletionEndpoint = "razor/inlineCompletion";

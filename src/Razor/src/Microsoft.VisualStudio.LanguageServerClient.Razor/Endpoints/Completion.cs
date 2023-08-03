@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 internal partial class RazorCustomMessageTarget
 {
     // Called by the Razor Language Server to provide inline completions from the platform.
-    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorInlineCompletionEndpoint, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorInlineCompletionEndpoint, UseSingleObjectParameterDeserialization = true)]
     public async Task<VSInternalInlineCompletionList?> ProvideInlineCompletionAsync(RazorInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken)
     {
         if (inlineCompletionParams is null)

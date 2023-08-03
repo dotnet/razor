@@ -123,7 +123,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             HostDocumentVersion = hostDocumentVersion,
         };
 
-        _ = _server.SendNotificationAsync(RazorCustomLSPMethodNames.RazorUpdateCSharpBufferEndpoint, request, CancellationToken.None);
+        _ = _server.SendNotificationAsync(CustomMessageNames.RazorUpdateCSharpBufferEndpoint, request, CancellationToken.None);
     }
 
     public override void PublishHtml(ProjectKey projectKey, string filePath, SourceText sourceText, int hostDocumentVersion)
@@ -178,7 +178,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             HostDocumentVersion = hostDocumentVersion,
         };
 
-        _ = _server.SendNotificationAsync(RazorCustomLSPMethodNames.RazorUpdateHtmlBufferEndpoint, request, CancellationToken.None);
+        _ = _server.SendNotificationAsync(CustomMessageNames.RazorUpdateHtmlBufferEndpoint, request, CancellationToken.None);
     }
 
     private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs args)

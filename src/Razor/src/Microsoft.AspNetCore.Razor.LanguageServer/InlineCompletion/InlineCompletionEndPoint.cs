@@ -106,7 +106,7 @@ internal sealed class InlineCompletionEndpoint : IRazorRequestHandler<VSInternal
 
         request.Position = projectedPosition;
         var list = await _languageServer.SendRequestAsync<RazorInlineCompletionRequest, VSInternalInlineCompletionList?>(
-            RazorCustomLSPMethodNames.RazorInlineCompletionEndpoint,
+            CustomMessageNames.RazorInlineCompletionEndpoint,
             razorRequest,
             cancellationToken).ConfigureAwait(false);
         if (list is null || !list.Items.Any())

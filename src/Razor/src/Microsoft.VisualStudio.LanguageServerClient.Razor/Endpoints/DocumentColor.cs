@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 internal partial class RazorCustomMessageTarget
 {
     // Called by the Razor Language Server to provide document colors from the platform.
-    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorProvideHtmlDocumentColorEndpoint, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorProvideHtmlDocumentColorEndpoint, UseSingleObjectParameterDeserialization = true)]
     public async Task<IReadOnlyList<ColorInformation>?> ProvideHtmlDocumentColorAsync(DelegatedDocumentColorParams documentColorParams, CancellationToken cancellationToken)
     {
         if (documentColorParams is null)
@@ -56,7 +56,7 @@ internal partial class RazorCustomMessageTarget
     }
 
     // Called by the Razor Language Server to provide color presentation from the platform.
-    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorProvideHtmlColorPresentationEndpoint, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorProvideHtmlColorPresentationEndpoint, UseSingleObjectParameterDeserialization = true)]
     public async Task<IReadOnlyList<ColorPresentation>> ProvideHtmlColorPresentationAsync(DelegatedColorPresentationParams colorPresentationParams, CancellationToken cancellationToken)
     {
         if (colorPresentationParams is null)
