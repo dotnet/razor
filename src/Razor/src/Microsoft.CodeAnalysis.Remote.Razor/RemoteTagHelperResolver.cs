@@ -35,7 +35,7 @@ internal class RemoteTagHelperResolver : ITagHelperResolver
     public ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
         Project workspaceProject,
         RazorConfiguration? configuration,
-        string? factoryTypeName,
+        string factoryTypeName,
         CancellationToken cancellationToken)
     {
         if (workspaceProject is null)
@@ -43,7 +43,7 @@ internal class RemoteTagHelperResolver : ITagHelperResolver
             throw new ArgumentNullException(nameof(workspaceProject));
         }
 
-        if (configuration is null || workspaceProject is null)
+        if (configuration is null)
         {
             return new(TagHelperResolutionResult.Empty);
         }
@@ -53,7 +53,7 @@ internal class RemoteTagHelperResolver : ITagHelperResolver
         return _compilationTagHelperResolver.GetTagHelpersAsync(workspaceProject, projectEngine, cancellationToken);
     }
 
-    internal RazorProjectEngine CreateProjectEngine(RazorConfiguration? configuration, string? factoryTypeName)
+    private RazorProjectEngine CreateProjectEngine(RazorConfiguration? configuration, string factoryTypeName)
     {
         // This section is really similar to the code DefaultProjectEngineFactoryService
         // but with a few differences that are significant in the remote scenario
@@ -71,16 +71,20 @@ internal class RemoteTagHelperResolver : ITagHelperResolver
         // This will stop a crash from happening in this case (misconfigured project), but will still make
         // it obvious to the user that something is wrong.
         var factory = CreateFactory(factoryTypeName) ?? _fallbackFactory;
-        return factory.Create(configuration, RazorProjectFileSystem.Empty, b => { });
+
+        return factory.Create(configuration, RazorProjectFileSystem.Empty, static _ => { });
     }
 
-    private static IProjectEngineFactory? CreateFactory(string? factoryTypeName)
+    private static IProjectEngineFactory? CreateFactory(string factoryTypeName)
     {
-        if (factoryTypeName is null)
+        try
+        {
+            var factoryType = Type.GetType(factoryTypeName, throwOnError: true);
+            return (IProjectEngineFactory)Activator.CreateInstance(factoryType);
+        }
+        catch
         {
             return null;
         }
-
-        return (IProjectEngineFactory)Activator.CreateInstance(Type.GetType(factoryTypeName, throwOnError: true));
     }
 }
