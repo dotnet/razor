@@ -45,21 +45,6 @@ internal abstract class RazorLanguageServerCustomMessageTarget
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<WorkspaceEdit?> RenameAsync(DelegatedRenameParams request, CancellationToken cancellationToken);
 
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<VSInternalHover?> HoverAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
-
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<Location[]?> DefinitionAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
-
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorDocumentHighlightEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<DocumentHighlight[]?> DocumentHighlightAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
-
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<SignatureHelp?> SignatureHelpAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
-
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<ImplementationResult> ImplementationAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
-
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertEndpointName, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<VSInternalDocumentOnAutoInsertResponseItem?> OnAutoInsertAsync(DelegatedOnAutoInsertParams request, CancellationToken cancellationToken);
 
@@ -68,9 +53,6 @@ internal abstract class RazorLanguageServerCustomMessageTarget
 
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<RazorPullDiagnosticResponse?> DiagnosticsAsync(DelegatedDiagnosticParams request, CancellationToken cancellationToken);
-
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorReferencesEndpointName, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<VSInternalReferenceItem[]?> ReferencesAsync(DelegatedPositionParams request, CancellationToken cancellationToken);
 
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorSpellCheckEndpoint, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<VSInternalSpellCheckableRangeReport[]> SpellCheckAsync(DelegatedSpellCheckParams request, CancellationToken cancellationToken);

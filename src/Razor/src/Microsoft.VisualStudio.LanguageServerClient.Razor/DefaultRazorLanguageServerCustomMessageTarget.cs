@@ -457,24 +457,6 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLang
         return response?.Response;
     }
 
-    public override Task<VSInternalHover?> HoverAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionAndProjectContextAsync<VSInternalHover>(request, Methods.TextDocumentHoverName, cancellationToken);
-
-    public override Task<Location[]?> DefinitionAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionAndProjectContextAsync<Location[]>(request, Methods.TextDocumentDefinitionName, cancellationToken);
-
-    public override Task<DocumentHighlight[]?> DocumentHighlightAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionAndProjectContextAsync<DocumentHighlight[]>(request, Methods.TextDocumentDocumentHighlightName, cancellationToken);
-
-    public override Task<SignatureHelp?> SignatureHelpAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionAndProjectContextAsync<SignatureHelp>(request, Methods.TextDocumentSignatureHelpName, cancellationToken);
-
-    public override Task<ImplementationResult> ImplementationAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionAndProjectContextAsync<ImplementationResult>(request, Methods.TextDocumentImplementationName, cancellationToken);
-
-    public override Task<VSInternalReferenceItem[]?> ReferencesAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionAndProjectContextAsync<VSInternalReferenceItem[]>(request, Methods.TextDocumentReferencesName, cancellationToken);
-
     public override async Task<RazorPullDiagnosticResponse?> DiagnosticsAsync(DelegatedDiagnosticParams request, CancellationToken cancellationToken)
     {
         var csharpTask = Task.Run(() => GetVirtualDocumentPullDiagnosticsAsync<CSharpVirtualDocumentSnapshot>(request.Identifier, request.CorrelationId, RazorLSPConstants.RazorCSharpLanguageServerName, cancellationToken), cancellationToken);
@@ -645,39 +627,6 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLang
             cancellationToken).ConfigureAwait(false);
 
         return response?.Response;
-    }
-
-    private async Task<TResult?> DelegateTextDocumentPositionAndProjectContextAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
-    {
-        var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
-        if (delegationDetails is null)
-        {
-            return default;
-        }
-
-        var positionParams = new TextDocumentPositionParams()
-        {
-            TextDocument = new VSTextDocumentIdentifier()
-            {
-                Uri = delegationDetails.Value.ProjectedUri,
-                ProjectContext = null,
-            },
-            Position = request.ProjectedPosition,
-        };
-
-        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<TextDocumentPositionParams, TResult?>(
-            delegationDetails.Value.TextBuffer,
-            methodName,
-            delegationDetails.Value.LanguageServerName,
-            positionParams,
-            cancellationToken).ConfigureAwait(false);
-
-        if (response is null)
-        {
-            return default;
-        }
-
-        return response.Response;
     }
 
     private async Task<DelegationRequestDetails?> GetProjectedRequestDetailsAsync(IDelegatedParams request, CancellationToken cancellationToken)
