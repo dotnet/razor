@@ -124,20 +124,20 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
             RequestCount++;
             object result = method switch
             {
-                RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName => await HandleDefinitionAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorImplementationEndpointName => await HandleImplementationAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName => await HandleSignatureHelpAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName => await HandleRenameAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorOnAutoInsertEndpointName => await HandleOnAutoInsertAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorValidateBreakpointRangeName => await HandleValidateBreakpointRangeAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorReferencesEndpointName => await HandleReferencesAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint => await HandleProvideCodeActionsAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint => await HandleResolveCodeActionsAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorPullDiagnosticEndpointName => await HandlePullDiagnosticsAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorFoldingRangeEndpoint => await HandleFoldingRangeAsync(),
-                RazorLanguageServerCustomMessageTargets.RazorSpellCheckEndpoint => await HandleSpellCheckAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorDocumentSymbolEndpoint => await HandleDocumentSymbolAsync(@params),
-                RazorLanguageServerCustomMessageTargets.RazorProjectContextsEndpoint => await HandleProjectContextsAsync(@params),
+                RazorCustomLSPMethodNames.RazorDefinitionEndpointName => await HandleDefinitionAsync(@params),
+                RazorCustomLSPMethodNames.RazorImplementationEndpointName => await HandleImplementationAsync(@params),
+                RazorCustomLSPMethodNames.RazorSignatureHelpEndpointName => await HandleSignatureHelpAsync(@params),
+                RazorCustomLSPMethodNames.RazorRenameEndpointName => await HandleRenameAsync(@params),
+                RazorCustomLSPMethodNames.RazorOnAutoInsertEndpointName => await HandleOnAutoInsertAsync(@params),
+                RazorCustomLSPMethodNames.RazorValidateBreakpointRangeName => await HandleValidateBreakpointRangeAsync(@params),
+                RazorCustomLSPMethodNames.RazorReferencesEndpointName => await HandleReferencesAsync(@params),
+                RazorCustomLSPMethodNames.RazorProvideCodeActionsEndpoint => await HandleProvideCodeActionsAsync(@params),
+                RazorCustomLSPMethodNames.RazorResolveCodeActionsEndpoint => await HandleResolveCodeActionsAsync(@params),
+                RazorCustomLSPMethodNames.RazorPullDiagnosticEndpointName => await HandlePullDiagnosticsAsync(@params),
+                RazorCustomLSPMethodNames.RazorFoldingRangeEndpoint => await HandleFoldingRangeAsync(),
+                RazorCustomLSPMethodNames.RazorSpellCheckEndpoint => await HandleSpellCheckAsync(@params),
+                RazorCustomLSPMethodNames.RazorDocumentSymbolEndpoint => await HandleDocumentSymbolAsync(@params),
+                RazorCustomLSPMethodNames.RazorProjectContextsEndpoint => await HandleProjectContextsAsync(@params),
                 _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
             };
 

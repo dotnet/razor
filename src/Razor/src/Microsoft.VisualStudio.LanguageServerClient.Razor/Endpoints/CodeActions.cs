@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 internal partial class RazorCustomMessageTarget
 {
     // Called by the Razor Language Server to provide code actions from the platform.
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorProvideCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
     public async Task<IReadOnlyList<VSInternalCodeAction>?> ProvideCodeActionsAsync(DelegatedCodeActionParams codeActionParams, CancellationToken cancellationToken)
     {
         if (codeActionParams is null)
@@ -88,7 +88,7 @@ internal partial class RazorCustomMessageTarget
     }
 
     // Called by the Razor Language Server to resolve code actions from the platform.
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorResolveCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
     public async Task<VSInternalCodeAction?> ResolveCodeActionsAsync(RazorResolveCodeActionParams resolveCodeActionParams, CancellationToken cancellationToken)
     {
         if (resolveCodeActionParams is null)

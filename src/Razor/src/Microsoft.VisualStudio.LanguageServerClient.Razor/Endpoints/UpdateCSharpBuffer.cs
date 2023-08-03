@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 internal partial class RazorCustomMessageTarget
 {
     // Called by the Razor Language Server to update the contents of the virtual CSharp buffer.
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorUpdateCSharpBufferEndpoint, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorUpdateCSharpBufferEndpoint, UseSingleObjectParameterDeserialization = true)]
     public async Task UpdateCSharpBufferAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
     {
         if (request is null)

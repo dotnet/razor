@@ -3,9 +3,16 @@
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
-internal static class RazorLanguageServerCustomMessageTargets
+/// <summary>
+/// This lists all of the LSP methods that we support  that are not part of the LSP spec, or LSP++
+/// </summary>
+/// <remarks>
+/// Handlers for these methods live in either the RazorCustomMessageTarget class in this repo for VS,
+/// or in various TypeScript files in https://github.com/dotnet/vscode-csharp for VS Code.
+/// </remarks>
+internal static class RazorCustomLSPMethodNames
 {
-    // VS Internal
+    // VS Windows only
     public const string RazorInlineCompletionEndpoint = "razor/inlineCompletion";
     public const string RazorValidateBreakpointRangeName = "razor/validateBreakpointRange";
     public const string RazorOnAutoInsertEndpointName = "razor/onAutoInsert";
@@ -14,9 +21,8 @@ internal static class RazorLanguageServerCustomMessageTargets
     public const string RazorUriPresentationEndpoint = "razor/uriPresentation";
     public const string RazorSpellCheckEndpoint = "razor/spellCheck";
     public const string RazorProjectContextsEndpoint = "razor/projectContexts";
-    public const string RazorDocumentSymbolEndpoint = "razor/documentSymbol";
 
-    // Cross platform
+    // VS Windows and VS Code
     public const string RazorUpdateCSharpBufferEndpoint = "razor/updateCSharpBuffer";
     public const string RazorUpdateHtmlBufferEndpoint = "razor/updateHtmlBuffer";
     public const string RazorProvideCodeActionsEndpoint = "razor/provideCodeActions";
@@ -29,7 +35,9 @@ internal static class RazorLanguageServerCustomMessageTargets
     public const string RazorHtmlFormattingEndpoint = "razor/htmlFormatting";
     public const string RazorHtmlOnTypeFormattingEndpoint = "razor/htmlOnTypeFormatting";
 
-    // Still to migrate
+    // VS Windows only at the moment, but could/should be migrated
+    public const string RazorDocumentSymbolEndpoint = "razor/documentSymbol";
+
     public const string RazorRenameEndpointName = "razor/rename";
 
     public const string RazorHoverEndpointName = "razor/hover";

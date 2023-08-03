@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 internal partial class RazorCustomMessageTarget
 {
     // Called by the Razor Language Server to provide ranged semantic tokens from the platform.
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorProvideSemanticTokensRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
     public async Task<ProvideSemanticTokensResponse?> ProvideSemanticTokensRangeAsync(
         ProvideSemanticTokensRangeParams semanticTokensParams,
         CancellationToken cancellationToken)

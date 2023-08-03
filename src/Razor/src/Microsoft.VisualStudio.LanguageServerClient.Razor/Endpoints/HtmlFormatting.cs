@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 internal partial class RazorCustomMessageTarget
 {
     // Called by the Razor Language Server to invoke a razor/htmlFormatting request on the virtual Html buffer.
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorHtmlFormattingEndpoint, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorHtmlFormattingEndpoint, UseSingleObjectParameterDeserialization = true)]
     public async Task<RazorDocumentFormattingResponse> HtmlFormattingAsync(RazorDocumentFormattingParams request, CancellationToken cancellationToken)
     {
         var response = new RazorDocumentFormattingResponse() { Edits = Array.Empty<TextEdit>() };
@@ -58,7 +58,7 @@ internal partial class RazorCustomMessageTarget
     }
 
     // Called by the Razor Language Server to invoke a razor/htmlOnTypeFormatting request on the virtual Html buffer.
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorHtmlOnTypeFormattingEndpoint, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(RazorCustomLSPMethodNames.RazorHtmlOnTypeFormattingEndpoint, UseSingleObjectParameterDeserialization = true)]
     public async Task<RazorDocumentFormattingResponse> HtmlOnTypeFormattingAsync(RazorDocumentOnTypeFormattingParams request, CancellationToken cancellationToken)
     {
         var response = new RazorDocumentFormattingResponse() { Edits = Array.Empty<TextEdit>() };

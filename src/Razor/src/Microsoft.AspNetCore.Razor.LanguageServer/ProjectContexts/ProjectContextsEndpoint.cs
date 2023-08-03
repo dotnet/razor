@@ -46,7 +46,7 @@ internal class ProjectContextsEndpoint : IRazorRequestHandler<VSGetProjectContex
         var delegatedParams = new DelegatedProjectContextsParams(documentContext.Identifier);
 
         var response = await _languageServer.SendRequestAsync<DelegatedProjectContextsParams, VSProjectContextList>(
-            RazorLanguageServerCustomMessageTargets.RazorProjectContextsEndpoint,
+            RazorCustomLSPMethodNames.RazorProjectContextsEndpoint,
             delegatedParams,
             cancellationToken).ConfigureAwait(false);
 

@@ -51,7 +51,7 @@ internal class HtmlFormatter
         };
 
         var result = await _server.SendRequestAsync<DocumentFormattingParams, RazorDocumentFormattingResponse?>(
-            RazorLanguageServerCustomMessageTargets.RazorHtmlFormattingEndpoint,
+            RazorCustomLSPMethodNames.RazorHtmlFormattingEndpoint,
             @params,
             cancellationToken).ConfigureAwait(false);
 
@@ -78,7 +78,7 @@ internal class HtmlFormatter
         };
 
         var result = await _server.SendRequestAsync<RazorDocumentOnTypeFormattingParams, RazorDocumentFormattingResponse?>(
-            RazorLanguageServerCustomMessageTargets.RazorHtmlOnTypeFormattingEndpoint,
+            RazorCustomLSPMethodNames.RazorHtmlOnTypeFormattingEndpoint,
             @params,
             cancellationToken).ConfigureAwait(false);
 
