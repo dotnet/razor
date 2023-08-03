@@ -164,66 +164,6 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLang
         return request?.Response;
     }
 
-    public override Task<WorkspaceEdit?> ProvideTextPresentationAsync(RazorTextPresentationParams presentationParams, CancellationToken cancellationToken)
-    {
-        return ProvidePresentationAsync(presentationParams, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentTextPresentationName, cancellationToken);
-    }
-
-    public override Task<WorkspaceEdit?> ProvideUriPresentationAsync(RazorUriPresentationParams presentationParams, CancellationToken cancellationToken)
-    {
-        return ProvidePresentationAsync(presentationParams, presentationParams.HostDocumentVersion, presentationParams.Kind, VSInternalMethods.TextDocumentUriPresentationName, cancellationToken);
-    }
-
-    public async Task<WorkspaceEdit?> ProvidePresentationAsync<TParams>(TParams presentationParams, int hostDocumentVersion, RazorLanguageKind kind, string methodName, CancellationToken cancellationToken)
-        where TParams : notnull, IPresentationParams
-    {
-        string languageServerName;
-        VirtualDocumentSnapshot document;
-        if (kind == RazorLanguageKind.CSharp)
-        {
-            var syncResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
-                _documentManager,
-                hostDocumentVersion,
-                presentationParams.TextDocument,
-                cancellationToken);
-            languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
-            presentationParams.TextDocument = new TextDocumentIdentifier
-            {
-                Uri = syncResult.VirtualSnapshot.Uri,
-            };
-            document = syncResult.VirtualSnapshot;
-        }
-        else if (kind == RazorLanguageKind.Html)
-        {
-            var syncResult = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
-                _documentManager,
-                hostDocumentVersion,
-                presentationParams.TextDocument,
-                cancellationToken);
-            languageServerName = RazorLSPConstants.HtmlLanguageServerName;
-            presentationParams.TextDocument = new TextDocumentIdentifier
-            {
-                Uri = syncResult.VirtualSnapshot.Uri,
-            };
-            document = syncResult.VirtualSnapshot;
-        }
-        else
-        {
-            Debug.Fail("Unexpected RazorLanguageKind. This can't really happen in a real scenario.");
-            return null;
-        }
-
-        var textBuffer = document.Snapshot.TextBuffer;
-        var result = await _requestInvoker.ReinvokeRequestOnServerAsync<TParams, WorkspaceEdit?>(
-            textBuffer,
-            methodName,
-            languageServerName,
-            presentationParams,
-            cancellationToken).ConfigureAwait(false);
-
-        return result?.Response;
-    }
-
     // JToken returning because there's no value in converting the type into its final type because this method serves entirely as a delegation point (immedaitely re-serializes).
     public override async Task<JToken?> ProvideCompletionsAsync(
         DelegatedCompletionParams request,

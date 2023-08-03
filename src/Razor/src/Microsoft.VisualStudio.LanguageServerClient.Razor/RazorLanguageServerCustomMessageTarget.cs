@@ -33,12 +33,6 @@ internal abstract class RazorLanguageServerCustomMessageTarget
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorInlineCompletionEndpoint, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<VSInternalInlineCompletionList?> ProvideInlineCompletionAsync(RazorInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken);
 
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorTextPresentationEndpoint, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<WorkspaceEdit?> ProvideTextPresentationAsync(RazorTextPresentationParams presentationParams, CancellationToken cancellationToken);
-
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<WorkspaceEdit?> ProvideUriPresentationAsync(RazorUriPresentationParams presentationParams, CancellationToken cancellationToken);
-
     [JsonRpcMethod(LanguageServerConstants.RazorCompletionEndpointName, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<JToken?> ProvideCompletionsAsync(DelegatedCompletionParams completionParams, CancellationToken cancellationToken);
 
