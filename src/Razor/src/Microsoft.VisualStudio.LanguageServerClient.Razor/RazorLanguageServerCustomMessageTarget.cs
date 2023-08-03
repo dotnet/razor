@@ -35,14 +35,6 @@ internal abstract class RazorLanguageServerCustomMessageTarget
     [JsonRpcMethod(Methods.WorkspaceConfigurationName, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<object[]> WorkspaceConfigurationAsync(ConfigurationParams configParams, CancellationToken cancellationToken);
 
-    // Called by the Razor Language Server to invoke a textDocument/formatting request on the virtual Html buffer.
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorHtmlFormattingEndpoint, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<RazorDocumentFormattingResponse> HtmlFormattingAsync(RazorDocumentFormattingParams token, CancellationToken cancellationToken);
-
-    // Called by the Razor Language Server to invoke a textDocument/onTypeFormatting request on the virtual Html buffer.
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorHtmlOnTypeFormattingEndpoint, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<RazorDocumentFormattingResponse> HtmlOnTypeFormattingAsync(RazorDocumentOnTypeFormattingParams token, CancellationToken cancellationToken);
-
     // Called by the Razor Language Server to provide code actions from the platform.
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<IReadOnlyList<VSInternalCodeAction>?> ProvideCodeActionsAsync(DelegatedCodeActionParams codeActionParams, CancellationToken cancellationToken);
