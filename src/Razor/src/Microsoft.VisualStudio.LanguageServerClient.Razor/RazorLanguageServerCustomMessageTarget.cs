@@ -35,14 +35,6 @@ internal abstract class RazorLanguageServerCustomMessageTarget
     [JsonRpcMethod(Methods.WorkspaceConfigurationName, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<object[]> WorkspaceConfigurationAsync(ConfigurationParams configParams, CancellationToken cancellationToken);
 
-    // Called by the Razor Language Server to provide code actions from the platform.
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorProvideCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<IReadOnlyList<VSInternalCodeAction>?> ProvideCodeActionsAsync(DelegatedCodeActionParams codeActionParams, CancellationToken cancellationToken);
-
-    // Called by the Razor Language Server to resolve code actions from the platform.
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<VSInternalCodeAction?> ResolveCodeActionsAsync(RazorResolveCodeActionParams codeAction, CancellationToken cancellationToken);
-
     // Called by the Razor Language Server to provide ranged semantic tokens from the platform.
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<ProvideSemanticTokensResponse?> ProvideSemanticTokensRangeAsync(ProvideSemanticTokensRangeParams semanticTokensParams, CancellationToken cancellationToken);
