@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using Microsoft.VisualStudio.Threading;
+using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
@@ -150,5 +151,16 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget
         }
 
         return null;
+    }
+
+    private static bool SupportsCodeActionResolve(JToken token)
+    {
+        var serverCapabilities = token.ToObject<ServerCapabilities>();
+
+        var (providesCodeActions, resolvesCodeActions) = serverCapabilities?.CodeActionProvider?.Match(
+            boolValue => (boolValue, false),
+            options => (true, options.ResolveProvider)) ?? (false, false);
+
+        return providesCodeActions && resolvesCodeActions;
     }
 }

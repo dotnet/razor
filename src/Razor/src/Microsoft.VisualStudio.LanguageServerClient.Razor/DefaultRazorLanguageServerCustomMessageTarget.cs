@@ -126,17 +126,6 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLang
         _documentSynchronizer = documentSynchronizer;
     }
 
-    private static bool SupportsCodeActionResolve(JToken token)
-    {
-        var serverCapabilities = token.ToObject<ServerCapabilities>();
-
-        var (providesCodeActions, resolvesCodeActions) = serverCapabilities?.CodeActionProvider?.Match(
-            boolValue => (boolValue, false),
-            options => (true, options.ResolveProvider)) ?? (false, false);
-
-        return providesCodeActions && resolvesCodeActions;
-    }
-
     // NOTE: This method is a polyfill for VS. We only intend to do it this way until VS formally
     // supports sending workspace configuration requests.
     public override Task<object[]> WorkspaceConfigurationAsync(
