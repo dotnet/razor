@@ -126,75 +126,6 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLang
         _documentSynchronizer = documentSynchronizer;
     }
 
-    public override async Task<IReadOnlyList<ColorInformation>?> ProvideHtmlDocumentColorAsync(DelegatedDocumentColorParams documentColorParams, CancellationToken cancellationToken)
-    {
-        if (documentColorParams is null)
-        {
-            throw new ArgumentNullException(nameof(documentColorParams));
-        }
-
-        var (synchronized, htmlDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
-            _documentManager, documentColorParams.HostDocumentVersion, documentColorParams.TextDocument, cancellationToken);
-        if (!synchronized)
-        {
-            return new List<ColorInformation>();
-        }
-
-        documentColorParams.TextDocument.Uri = htmlDoc.Uri;
-        var htmlTextBuffer = htmlDoc.Snapshot.TextBuffer;
-        var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<DocumentColorParams, ColorInformation[]>(
-            htmlTextBuffer,
-            Methods.DocumentColorRequest.Name,
-            SupportsDocumentColor,
-            documentColorParams,
-            cancellationToken).ConfigureAwait(false);
-
-        var colorInformation = new List<ColorInformation>();
-        await foreach (var response in requests)
-        {
-            if (response.Response is not null)
-            {
-                colorInformation.AddRange(response.Response);
-            }
-        }
-
-        return colorInformation;
-    }
-
-    public override async Task<IReadOnlyList<ColorPresentation>> ProvideHtmlColorPresentationAsync(DelegatedColorPresentationParams colorPresentationParams, CancellationToken cancellationToken)
-    {
-        if (colorPresentationParams is null)
-        {
-            throw new ArgumentNullException(nameof(colorPresentationParams));
-        }
-
-        var (synchronized, htmlDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
-            _documentManager, colorPresentationParams.RequiredHostDocumentVersion, colorPresentationParams.TextDocument, cancellationToken);
-        if (!synchronized)
-        {
-            return new List<ColorPresentation>();
-        }
-
-        colorPresentationParams.TextDocument.Uri = htmlDoc.Uri;
-        var htmlTextBuffer = htmlDoc.Snapshot.TextBuffer;
-        var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<ColorPresentationParams, ColorPresentation[]>(
-            htmlTextBuffer,
-            ColorPresentationEndpoint.ColorPresentationMethodName,
-            colorPresentationParams,
-            cancellationToken).ConfigureAwait(false);
-
-        var colorPresentation = new List<ColorPresentation>();
-        await foreach (var response in requests)
-        {
-            if (response.Response is not null)
-            {
-                colorPresentation.AddRange(response.Response);
-            }
-        }
-
-        return colorPresentation;
-    }
-
     private static bool SupportsCodeActionResolve(JToken token)
     {
         var serverCapabilities = token.ToObject<ServerCapabilities>();
@@ -204,17 +135,6 @@ internal partial class DefaultRazorLanguageServerCustomMessageTarget : RazorLang
             options => (true, options.ResolveProvider)) ?? (false, false);
 
         return providesCodeActions && resolvesCodeActions;
-    }
-
-    private static bool SupportsDocumentColor(JToken token)
-    {
-        var serverCapabilities = token.ToObject<ServerCapabilities>();
-
-        var supportsDocumentColor = serverCapabilities?.DocumentColorProvider?.Match(
-            boolValue => boolValue,
-            options => options != null) ?? false;
-
-        return supportsDocumentColor;
     }
 
     // NOTE: This method is a polyfill for VS. We only intend to do it this way until VS formally

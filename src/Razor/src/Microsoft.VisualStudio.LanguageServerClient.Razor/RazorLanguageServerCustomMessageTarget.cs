@@ -43,14 +43,6 @@ internal abstract class RazorLanguageServerCustomMessageTarget
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorInlineCompletionEndpoint, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<VSInternalInlineCompletionList?> ProvideInlineCompletionAsync(RazorInlineCompletionRequest inlineCompletionParams, CancellationToken cancellationToken);
 
-    // Called by the Razor Language Server to provide document colors from the platform.
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorProvideHtmlDocumentColorEndpoint, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<IReadOnlyList<ColorInformation>?> ProvideHtmlDocumentColorAsync(DelegatedDocumentColorParams documentColorParams, CancellationToken cancellationToken);
-
-    // Called by the Razor Language Server to provide color presentation from the platform.
-    [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorProvideHtmlColorPresentationEndpoint, UseSingleObjectParameterDeserialization = true)]
-    public abstract Task<IReadOnlyList<ColorPresentation>> ProvideHtmlColorPresentationAsync(DelegatedColorPresentationParams colorPresentationParams, CancellationToken cancellationToken);
-
     [JsonRpcMethod(RazorLanguageServerCustomMessageTargets.RazorFoldingRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
     public abstract Task<RazorFoldingRangeResponse?> ProvideFoldingRangesAsync(RazorFoldingRangeRequestParam foldingRangeParams, CancellationToken cancellationToken);
 
