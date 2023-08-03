@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Serialization;
@@ -53,8 +52,8 @@ internal sealed class RemoteTagHelperProviderService : RazorServiceBase, IRemote
         ProjectSnapshotHandle projectHandle,
         string factoryTypeName,
         CancellationToken cancellationToken)
-        => solution.GetProject(projectHandle.ProjectId) is Project project
-            ? _tagHelperResolver.GetTagHelpersAsync(project, projectHandle.Configuration, factoryTypeName, cancellationToken)
+        => solution.GetProject(projectHandle.ProjectId) is Project workspaceProject
+            ? _tagHelperResolver.GetTagHelpersAsync(workspaceProject, projectHandle.Configuration, factoryTypeName, cancellationToken)
             : new(TagHelperResolutionResult.Empty);
 
     private async ValueTask<TagHelperDeltaResult> GetTagHelpersDeltaCoreAsync(
