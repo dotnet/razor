@@ -4,6 +4,7 @@
 using System;
 using System.Composition;
 using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -22,9 +23,6 @@ internal class DocumentFilePathProvider
 
     public string GetRazorCSharpFilePath(ProjectKey projectKey, string razorFilePath)
         => GetGeneratedFilePath(projectKey, razorFilePath, _languageServerFeatureOptions.CSharpVirtualDocumentSuffix);
-
-    public string GetRazorHtmlFilePath(ProjectKey projectKey, string razorFilePath)
-        => GetGeneratedFilePath(projectKey, razorFilePath, _languageServerFeatureOptions.HtmlVirtualDocumentSuffix);
 
     public Uri GetRazorDocumentUri(Uri virtualDocumentUri)
     {
@@ -53,10 +51,9 @@ internal class DocumentFilePathProvider
         {
             trimIndex = filePath.LastIndexOf(_languageServerFeatureOptions.HtmlVirtualDocumentSuffix);
         }
-
-        if (trimIndex != -1 && _languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
+        else if (_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
         {
-            trimIndex = filePath.LastIndexOf('.', trimIndex);
+            trimIndex = filePath.LastIndexOf('.', trimIndex - 1);
             Debug.Assert(trimIndex != -1, "There was no project element to the generated file name?");
         }
 
@@ -75,15 +72,23 @@ internal class DocumentFilePathProvider
         return razorFilePath + projectSuffix + suffix;
     }
 
-    private string GetProjectSuffix(ProjectKey _)
+    private string GetProjectSuffix(ProjectKey projectKey)
     {
         if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
         {
             return string.Empty;
         }
 
-        // TODO: Use projectKey to make this dynamic
-        var projectToken = "project";
+        // If there is no project key, we still want to generate something as otherwise the GetRazorFilePath method
+        // would end up unnecessarily overcomplicated
+        if (projectKey.Id is null)
+        {
+            return ".p";
+        }
+
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var crypto = sha256.ComputeHash(Encoding.Unicode.GetBytes(projectKey.Id));
+        var projectToken = Convert.ToBase64String(crypto, 0, 12).Replace('/', '_').Replace('+', '-');
 
         Debug.Assert(!projectToken.Contains("."), "Project token can't contain a dot or the GetRazorFilePath method will fail.");
         return "." + projectToken;

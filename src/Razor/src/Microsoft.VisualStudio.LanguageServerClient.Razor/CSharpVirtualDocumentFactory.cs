@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -29,7 +30,8 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
 
     private static IContentType? s_csharpContentType;
     private readonly FileUriProvider _fileUriProvider;
-    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly DocumentFilePathProvider _documentFilePathProvider;
+    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
 
     [ImportingConstructor]
     public CSharpVirtualDocumentFactory(
@@ -37,11 +39,13 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         ITextBufferFactoryService textBufferFactory,
         ITextDocumentFactoryService textDocumentFactory,
         FileUriProvider fileUriProvider,
-        LanguageServerFeatureOptions languageServerFeatureOptions)
+        DocumentFilePathProvider documentFilePathProvider,
+        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
         : base(contentTypeRegistry, textBufferFactory, textDocumentFactory, fileUriProvider)
     {
         _fileUriProvider = fileUriProvider;
-        _languageServerFeatureOptions = languageServerFeatureOptions;
+        _documentFilePathProvider = documentFilePathProvider;
+        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
     }
 
     protected override IContentType LanguageContentType
@@ -86,7 +90,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
             virtualDocuments = null;
             return false;
         }
-        
+
         var newVirtualDocuments = new List<VirtualDocument>();
 
         var hostDocumentUri = _fileUriProvider.GetOrCreate(hostDocumentBuffer);
@@ -101,18 +105,38 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         return virtualDocuments.Length > 0;
     }
 
-#pragma warning disable IDE0060 // Remove unused parameter
     private IEnumerable<ProjectKey> GetProjectKeys(Uri hostDocumentUri)
     {
-        // TODO: Actually return all of the projects that the host document is in
-        return new ProjectKey[] { default };
+        var projects = _projectSnapshotManagerAccessor.Instance.GetProjects();
+
+        var inAny = false;
+        var normalizedDocumentPath = FilePathNormalizer.Normalize(hostDocumentUri.GetAbsoluteOrUNCPath());
+        foreach (var projectSnapshot in projects)
+        {
+            // TODO: Can't call projectSnapshot.GetDocument as the paths are not normalized the same. Why?
+            foreach (var document in projectSnapshot.DocumentFilePaths)
+            {
+                if (FilePathNormalizer.FilePathsEquivalent(document, normalizedDocumentPath))
+                {
+                    inAny = true;
+                    yield return projectSnapshot.Key;
+                    break;
+                }
+            }
+        }
+
+        if (!inAny)
+        {
+            // We got called before we know about any projects. Probably just a .razor document being restored in VS from a previous session.
+            // All we can do is return a default key and hope for the best.
+            // TODO: We should create a Misc Files project on this (VS) side so the nav bar looks nicer
+            yield return default;
+        }
     }
-#pragma warning restore IDE0060 // Remove unused parameter
 
     private CSharpVirtualDocument CreateVirtualDocument(ProjectKey projectKey, Uri hostDocumentUri)
     {
-        // TODO: Calculate the correct virtual document uri using project information
-        var virtualLanguageFilePath = hostDocumentUri.GetAbsoluteOrUNCPath() + _languageServerFeatureOptions.CSharpVirtualDocumentSuffix;
+        var virtualLanguageFilePath = _documentFilePathProvider.GetRazorCSharpFilePath(projectKey, hostDocumentUri.GetAbsoluteOrUNCPath());
         var virtualLanguageUri = new Uri(virtualLanguageFilePath);
 
         var languageBuffer = CreateVirtualDocumentTextBuffer(virtualLanguageFilePath, virtualLanguageUri);

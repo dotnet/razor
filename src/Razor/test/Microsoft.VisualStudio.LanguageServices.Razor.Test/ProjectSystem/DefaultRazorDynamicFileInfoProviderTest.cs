@@ -93,7 +93,7 @@ public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
         // Arrange
         var info = await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document1.FilePath, DisposalToken);
 
-        Assert.Equal(@"C:\document1.razor.E_zugaJet5yF.ide.g.cs", info.FilePath);
+        Assert.Equal(@"C:\document1.razor.fJcYlbdqjCXiWYY1.ide.g.cs", info.FilePath);
     }
 
     [Fact]
