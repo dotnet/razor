@@ -127,9 +127,9 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
         // HACK: We know about a document being in multiple projects, but despite having ProjectKeyId in the request, currently the other end
         // of this LSP message only knows about a single document file path. To prevent confusing them, we just send an update for the first project
         // in the list.
-        if (_projectSnapshotManager is not null &&
-            _projectSnapshotManager.GetLoadedProject(projectKey) is { } projectSnapshot &&
-            _projectSnapshotManager.GetAllProjectKeys(projectSnapshot.FilePath).First() != projectKey)
+        if (_projectSnapshotManager is { } projectSnapshotManager
+            projectSnapshotManager.GetLoadedProject(projectKey) is { } projectSnapshot &&
+            projectSnapshotManager.GetAllProjectKeys(projectSnapshot.FilePath).First() != projectKey)
         {
             return;
         }
