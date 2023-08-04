@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
@@ -23,7 +22,7 @@ internal class CompilationTagHelperResolver(ITelemetryReporter? telemetryReporte
 {
     private readonly ITelemetryReporter? _telemetryReporter = telemetryReporter;
 
-    public async ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
+    public async ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(
         Project workspaceProject,
         RazorProjectEngine projectEngine,
         CancellationToken cancellationToken)
@@ -41,7 +40,7 @@ internal class CompilationTagHelperResolver(ITelemetryReporter? telemetryReporte
         var providers = projectEngine.Engine.Features.OfType<ITagHelperDescriptorProvider>().OrderBy(f => f.Order).ToArray();
         if (providers.Length == 0)
         {
-            return TagHelperResolutionResult.Empty;
+            return ImmutableArray<TagHelperDescriptor>.Empty;
         }
 
         var results = new HashSet<TagHelperDescriptor>(TagHelperChecksumComparer.Instance);
@@ -57,7 +56,7 @@ internal class CompilationTagHelperResolver(ITelemetryReporter? telemetryReporte
 
         ExecuteProviders(providers, context, _telemetryReporter);
 
-        return new TagHelperResolutionResult(results.ToImmutableArray());
+        return results.ToImmutableArray();
 
         static void ExecuteProviders(ITagHelperDescriptorProvider[] providers, TagHelperDescriptorProviderContext context, ITelemetryReporter? telemetryReporter)
         {

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Serialization;
@@ -50,7 +48,10 @@ public class ProjectSnapshotHandleSerializationTest : TestBase
         var obj = JsonConvert.DeserializeObject<ProjectSnapshotHandle>(json, _converters);
 
         // Assert
+        Assert.NotNull(obj);
         Assert.Equal(snapshot.ProjectId, obj.ProjectId);
+        Assert.NotNull(snapshot.Configuration);
+        Assert.NotNull(obj.Configuration);
         Assert.Equal(snapshot.Configuration.ConfigurationName, obj.Configuration.ConfigurationName);
         Assert.Collection(
             snapshot.Configuration.Extensions.OrderBy(e => e.ExtensionName),
@@ -72,6 +73,7 @@ public class ProjectSnapshotHandleSerializationTest : TestBase
         var obj = JsonConvert.DeserializeObject<ProjectSnapshotHandle>(json, _converters);
 
         // Assert
+        Assert.NotNull(obj);
         Assert.Equal(snapshot.ProjectId, obj.ProjectId);
         Assert.Null(obj.Configuration);
         Assert.Null(obj.RootNamespace);
