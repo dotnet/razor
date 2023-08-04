@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -142,6 +141,12 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
             };
 
             return (TResponse)result;
+        }
+
+        private static TextEdit[] HandleSimplifyMethod<TParams>(TParams @params)
+        {
+            Assert.IsType<DelegatedSimplifyMethodParams>(@params);
+            return null;
         }
 
         private async Task<VSProjectContextList> HandleProjectContextsAsync<TParams>(TParams @params)

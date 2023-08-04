@@ -64,8 +64,7 @@ internal record DelegatedProjectContextsParams(
 internal record DelegatedDocumentSymbolParams(
     TextDocumentIdentifierAndVersion Identifier);
 
-internal record DelegatedSimplifyTypeNamesParams(
+internal record DelegatedSimplifyMethodParams(
     TextDocumentIdentifierAndVersion Identifier,
-    OptionalVersionedTextDocumentIdentifier? CodeBehindIdentifier,
-    string[] FullyQualifiedTypeNames,
-    int AbsoluteIndex);
+    bool RequiresVirtualDocument,
+    TextEdit TextEdit);
