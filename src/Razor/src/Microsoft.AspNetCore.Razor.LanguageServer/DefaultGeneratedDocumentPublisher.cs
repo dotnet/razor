@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.TextDifferencing;
@@ -122,6 +123,15 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             Changes = textChanges,
             HostDocumentVersion = hostDocumentVersion,
         };
+
+        // HACK: We know about a document being in multiple projects, but despite having ProjectKeyId in the request, currently the other end
+        // of this LSP message only knows about a single document file path. To prevent confusing them, we just send an update for the first project
+        // in the list.
+        var snapshot = _projectSnapshotManager!.GetLoadedProject(projectKey);
+        if (_projectSnapshotManager.GetAllProjectKeys(snapshot.FilePath).First() != projectKey)
+        {
+            return;
+        }
 
         _ = _server.SendNotificationAsync(RazorLanguageServerCustomMessageTargets.RazorUpdateCSharpBufferEndpoint, request, CancellationToken.None);
     }
