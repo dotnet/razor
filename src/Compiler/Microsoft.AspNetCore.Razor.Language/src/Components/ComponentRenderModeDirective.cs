@@ -5,6 +5,7 @@
 using System;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
+
 internal class ComponentRenderModeDirective
 {
     // PROTOTYPE: localization
@@ -19,7 +20,6 @@ internal class ComponentRenderModeDirective
            builder.Usage = DirectiveUsage.FileScopedSinglyOccurring;
            builder.Description = "Set the render mode for this component.";
        });
-
 
     public static void Register(RazorProjectEngineBuilder builder)
     {

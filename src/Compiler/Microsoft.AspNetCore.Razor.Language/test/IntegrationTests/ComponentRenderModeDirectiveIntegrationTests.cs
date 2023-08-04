@@ -27,7 +27,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     internal override string FileKind => FileKinds.Component;
 
     [Fact]
-    public void RenderMOde_With_Fully_Qualified_Type()
+    public void RenderMode_With_Fully_Qualified_Type()
     {
         // Arrange & Act
         var component = CompileToComponent($@"
@@ -86,7 +86,6 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
         var compilationResult = CompileToCSharp($@"
 @rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
 @rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
-
 ");
 
         // Assert
