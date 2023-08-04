@@ -1,22 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test;
 
-public class FilePathNormalizerTest : TestBase
+public class FilePathNormalizerTest(ITestOutputHelper testOutput) : TestBase(testOutput)
 {
-    public FilePathNormalizerTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [OSSkipConditionFact(new[] { "OSX", "Linux" })]
     public void Normalize_Windows_StripsPrecedingSlash()
     {
@@ -127,7 +120,7 @@ public class FilePathNormalizerTest : TestBase
     public void Normalize_NullFilePath_ReturnsForwardSlash()
     {
         // Act
-        var normalized = FilePathNormalizer.Normalize((string)null);
+        var normalized = FilePathNormalizer.Normalize(null);
 
         // Assert
         Assert.Equal("/", normalized);
