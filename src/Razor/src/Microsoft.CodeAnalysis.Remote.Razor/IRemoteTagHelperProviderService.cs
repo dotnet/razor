@@ -19,7 +19,7 @@ internal interface IRemoteTagHelperProviderService
     ValueTask<TagHelperDeltaResult> GetTagHelpersDeltaAsync(
         RazorPinnedSolutionInfoWrapper solutionInfo,
         ProjectSnapshotHandle projectHandle,
-        string? factoryTypeName,
+        string factoryTypeName,
         int lastResultId,
         CancellationToken cancellationToken);
 }

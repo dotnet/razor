@@ -59,6 +59,7 @@ internal class OOPTagHelperResolver : ITagHelperResolver
         try
         {
             TagHelperResolutionResult? result = null;
+
             if (factory != null)
             {
                 result = await ResolveTagHelpersOutOfProcessAsync(factory, workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
@@ -69,9 +70,11 @@ internal class OOPTagHelperResolver : ITagHelperResolver
 
             return result;
         }
-        catch (Exception exception) when (exception is not TaskCanceledException && exception is not OperationCanceledException)
+        catch (Exception ex) when (ex is not TaskCanceledException && ex is not OperationCanceledException)
         {
-            throw new InvalidOperationException($"An unexpected exception occurred when invoking '{typeof(CompilationTagHelperResolver).FullName}.{nameof(GetTagHelpersAsync)}' on the Razor language service.", exception);
+            throw new InvalidOperationException(
+                $"An unexpected exception occurred when invoking '{typeof(CompilationTagHelperResolver).FullName}.{nameof(GetTagHelpersAsync)}' on the Razor language service.",
+                ex);
         }
     }
 
@@ -81,7 +84,11 @@ internal class OOPTagHelperResolver : ITagHelperResolver
         // when it's disconnected (user stops the process).
         //
         // This will change in the future to an easier to consume API but for VS RTM this is what we have.
-        var remoteClient = await RazorRemoteHostClient.TryGetClientAsync(_workspace.Services, RazorServiceDescriptors.TagHelperProviderServiceDescriptors, RazorRemoteServiceCallbackDispatcherRegistry.Empty, cancellationToken);
+        var remoteClient = await RazorRemoteHostClient.TryGetClientAsync(
+            _workspace.Services,
+            RazorServiceDescriptors.TagHelperProviderServiceDescriptors,
+            RazorRemoteServiceCallbackDispatcherRegistry.Empty,
+            cancellationToken);
 
         if (remoteClient is null)
         {
@@ -95,11 +102,13 @@ internal class OOPTagHelperResolver : ITagHelperResolver
         }
 
         var projectHandle = new ProjectSnapshotHandle(workspaceProject.Id, projectSnapshot.Configuration, projectSnapshot.RootNamespace);
+        var factoryTypeName = factory.GetType().AssemblyQualifiedName;
+
         var result = await remoteClient.TryInvokeAsync<IRemoteTagHelperProviderService, TagHelperDeltaResult>(
             workspaceProject.Solution,
-            (service, solutionInfo, innerCancellationToken) => service.GetTagHelpersDeltaAsync(solutionInfo, projectHandle, factory?.GetType().AssemblyQualifiedName, lastResultId, innerCancellationToken),
-            cancellationToken
-        );
+            (service, solutionInfo, innerCancellationToken) =>
+                service.GetTagHelpersDeltaAsync(solutionInfo, projectHandle, factoryTypeName, lastResultId, innerCancellationToken),
+            cancellationToken);
 
         if (!result.HasValue)
         {
