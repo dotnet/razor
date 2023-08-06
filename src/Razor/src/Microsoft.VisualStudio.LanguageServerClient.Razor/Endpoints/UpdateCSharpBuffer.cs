@@ -56,8 +56,16 @@ internal partial class RazorCustomMessageTarget
                 }
             }
 
-            // If the particular document supports multiple virtual documents, we don't want to try to update a single one
-            Debug.Fail("Multiple virtual documents seem to be supported, but none were updated.");
+            if (virtualDocuments.Length > 1)
+            {
+                // If the particular document supports multiple virtual documents, we don't want to try to update a single one
+                // TODO: Remove this eventually, as it is a possibly valid state (see comment below) but this assert will help track
+                // down bugs for now.
+                Debug.Fail("Multiple virtual documents seem to be supported, but none were updated, which is not impossible, but surprising.");
+            }
+
+            // Don't know about document, no-op. This can happen if the language server found a project.razor.json from an old build
+            // and is sending us updates.
             return;
         }
 
