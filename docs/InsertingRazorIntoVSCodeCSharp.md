@@ -44,7 +44,7 @@ At the end of this process you should have a folder containing 9 files. Rename t
 ### Upload to VS CDN
 
 1. Wait for the permissions you requested at the top of this document to be accepted.
-2. Go to the server, and the `release` share, then the `\ddpublish\vscode-razor` folder
+2. Go to the server, and the `release` share, then the `\\ddpublish\vscode-razor` folder
     - For the name of the server, skip to step 4, and you'll see it in the Azure DevOps UI. The actual server name is unimportant, and liable to change, as long as its the one the release pipeline linked below is looking at.
 3. Upload the entire folder you created above.
     - Alternatively, create a folder named the version that you'll be publishing, i.e. `7.0.0-preview.23328.2`, and then upload each of the 9 zip files you have after the above steps.
