@@ -60,9 +60,14 @@ internal class ComponentRenderModeDirectivePass : IntermediateNodePassBase, IRaz
         propertyDecl.Children.Add(new IntermediateToken()
         {
             Kind = TokenKind.CSharp,
-            Content = $"public override IComponentRenderMode Mode => {token.Content};"
+            Content = $"private static IComponentRenderMode ModeImpl => {token.Content};\n"
         });
-        
+        propertyDecl.Children.Add(new IntermediateToken()
+        {
+            Kind = TokenKind.CSharp,
+            Content = $"public override IComponentRenderMode Mode => ModeImpl;"
+        });
+
         classDecl.Children.Add(propertyDecl);
         @class.Children.Add(classDecl);
 

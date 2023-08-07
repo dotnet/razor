@@ -105,9 +105,9 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
 
         var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: false);
         assemblyResult.Diagnostics.Verify(
-                    // x:\dir\subdir\Test\TestComponent.cshtml(1,58): error CS0103: The name 'NoExist' does not exist in the current context
-                    //             public override IComponentRenderMode Mode => NoExist;
-                    Diagnostic(ErrorCode.ERR_NameNotInContext, "NoExist").WithArguments("NoExist").WithLocation(1, 58));
+                    // x:\dir\subdir\Test\TestComponent.cshtml(1,61): error CS0103: The name 'NoExist' does not exist in the current context
+                    //             private static IComponentRenderMode ModeImpl => NoExist;
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "NoExist").WithArguments("NoExist").WithLocation(1, 61));
     }
 
     [Fact]
@@ -124,6 +124,47 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
             // x:\dir\subdir\Test\TestComponent.cshtml(1,3): error CS0103: The name 'rendermode' does not exist in the current context
             // __builder.AddContent(0, rendermode);
             Diagnostic(ErrorCode.ERR_NameNotInContext, "rendermode").WithArguments("rendermode").WithLocation(1, 3)
+            );
+    }
+
+    [Fact]
+    public void LanguageVersion_BreakingChange_7_0()
+    {
+        var compilationResult = CompileToCSharp($@"
+@rendermode Foo
+
+@code{{
+    string rendermode = ""Something"";
+}}
+", configuration: Configuration.WithVersion(RazorLanguageVersion.Version_7_0));
+
+        Assert.Empty(compilationResult.Diagnostics);
+
+        var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: true);
+        assemblyResult.Diagnostics.Verify();
+    }
+
+    [Fact]
+    public void LanguageVersion_BreakingChange_8_0()
+    {
+        var compilationResult = CompileToCSharp($@"
+@rendermode Foo
+
+@code{{
+    string rendermode = ""Something"";
+}}
+", configuration: Configuration.WithVersion(RazorLanguageVersion.Version_8_0));
+
+        Assert.Empty(compilationResult.Diagnostics);
+
+        var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: false);
+        assemblyResult.Diagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,61): error CS0103: The name 'Foo' does not exist in the current context
+            //             private static IComponentRenderMode ModeImpl => Foo;
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(1, 61),
+            // x:\dir\subdir\Test\TestComponent.cshtml(4,12): warning CS0414: The field 'TestComponent.rendermode' is assigned but its value is never used
+            //     string rendermode = "Something";
+            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "rendermode").WithArguments("Test.TestComponent.rendermode").WithLocation(4, 12)
             );
     }
 
