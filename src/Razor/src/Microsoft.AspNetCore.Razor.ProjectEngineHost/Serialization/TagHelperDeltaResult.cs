@@ -2,9 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Microsoft.Extensions.Internal;
 
 #if DEBUG
 using System.Collections.Generic;
@@ -13,7 +15,7 @@ using System.Diagnostics;
 
 namespace Microsoft.AspNetCore.Razor.Serialization;
 
-internal record TagHelperDeltaResult(
+internal sealed record TagHelperDeltaResult(
     bool Delta,
     int ResultId,
     ImmutableArray<TagHelperDescriptor> Added,
@@ -48,5 +50,30 @@ internal record TagHelperDeltaResult(
 #endif
 
         return result.DrainToImmutable();
+    }
+
+    public bool Equals(TagHelperDeltaResult? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return Delta == other.Delta &&
+               ResultId == other.ResultId &&
+               Added.SequenceEqual(other.Added, TagHelperChecksumComparer.Instance) &&
+               Removed.SequenceEqual(other.Removed, TagHelperChecksumComparer.Instance);
+    }
+
+    public override int GetHashCode()
+    {
+        var hash = HashCodeCombiner.Start();
+
+        hash.Add(Delta);
+        hash.Add(ResultId);
+        hash.Add(Added, TagHelperChecksumComparer.Instance);
+        hash.Add(Removed, TagHelperChecksumComparer.Instance);
+
+        return hash.CombinedHash;
     }
 }

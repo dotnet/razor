@@ -37,14 +37,14 @@ internal class OOPTagHelperResolver : ITagHelperResolver
         _resultCache = new TagHelperResultCache();
     }
 
-    public async ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
+    public async ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(
         Project workspaceProject,
         IProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken)
     {
         if (projectSnapshot.Configuration is null)
         {
-            return TagHelperResolutionResult.Empty;
+            return ImmutableArray<TagHelperDescriptor>.Empty;
         }
 
         // Not every custom factory supports the OOP host. Our priority system should work like this:
@@ -58,7 +58,7 @@ internal class OOPTagHelperResolver : ITagHelperResolver
 
         try
         {
-            TagHelperResolutionResult? result = null;
+            ImmutableArray<TagHelperDescriptor> result = default;
 
             if (factory != null)
             {
@@ -66,7 +66,10 @@ internal class OOPTagHelperResolver : ITagHelperResolver
             }
 
             // Was unable to get tag helpers OOP, fallback to default behavior.
-            result ??= await ResolveTagHelpersInProcessAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
+            if (result.IsDefault)
+            {
+                result = await ResolveTagHelpersInProcessAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
+            }
 
             return result;
         }
@@ -78,7 +81,7 @@ internal class OOPTagHelperResolver : ITagHelperResolver
         }
     }
 
-    protected virtual async ValueTask<TagHelperResolutionResult?> ResolveTagHelpersOutOfProcessAsync(IProjectEngineFactory factory, Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+    protected virtual async ValueTask<ImmutableArray<TagHelperDescriptor>> ResolveTagHelpersOutOfProcessAsync(IProjectEngineFactory factory, Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
         // We're being overly defensive here because the OOP host can return null for the client/session/operation
         // when it's disconnected (user stops the process).
@@ -93,7 +96,7 @@ internal class OOPTagHelperResolver : ITagHelperResolver
         if (remoteClient is null)
         {
             // Could not resolve
-            return null;
+            return default;
         }
 
         if (!_resultCache.TryGetId(workspaceProject.Id, out var lastResultId))
@@ -112,12 +115,12 @@ internal class OOPTagHelperResolver : ITagHelperResolver
 
         if (!result.HasValue)
         {
-            return null;
+            return default;
         }
 
         var tagHelpers = ProduceTagHelpersFromDelta(workspaceProject.Id, lastResultId, result.Value);
 
-        return new TagHelperResolutionResult(tagHelpers);
+        return tagHelpers;
     }
 
     // Protected virtual for testing
@@ -163,7 +166,7 @@ internal class OOPTagHelperResolver : ITagHelperResolver
         return tagHelpers;
     }
 
-    protected virtual ValueTask<TagHelperResolutionResult> ResolveTagHelpersInProcessAsync(
+    protected virtual ValueTask<ImmutableArray<TagHelperDescriptor>> ResolveTagHelpersInProcessAsync(
         Project workspaceProject,
         IProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken)

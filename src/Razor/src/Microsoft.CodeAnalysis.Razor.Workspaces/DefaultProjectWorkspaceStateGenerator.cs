@@ -173,8 +173,8 @@ internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGene
                         csharpLanguageVersion = csharpParseOptions.LanguageVersion;
                     }
 
-                    var tagHelperResolutionResult = await _tagHelperResolver.GetTagHelpersAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
-                    workspaceState = new ProjectWorkspaceState(tagHelperResolutionResult.Descriptors, csharpLanguageVersion);
+                    var tagHelpers = await _tagHelperResolver.GetTagHelpersAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
+                    workspaceState = new ProjectWorkspaceState(tagHelpers, csharpLanguageVersion);
                 }
             }
             catch (OperationCanceledException)

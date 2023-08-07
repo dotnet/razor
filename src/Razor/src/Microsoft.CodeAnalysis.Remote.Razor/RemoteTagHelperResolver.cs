@@ -3,14 +3,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Razor;
 
-namespace Microsoft.CodeAnalysis.Razor;
+namespace Microsoft.CodeAnalysis.Remote.Razor;
 
 internal class RemoteTagHelperResolver(ITelemetryReporter telemetryReporter)
 {
@@ -18,7 +19,7 @@ internal class RemoteTagHelperResolver(ITelemetryReporter telemetryReporter)
     private readonly Dictionary<string, IProjectEngineFactory> _typeNameToFactoryMap = new(StringComparer.Ordinal);
     private readonly CompilationTagHelperResolver _compilationTagHelperResolver = new(telemetryReporter);
 
-    public ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
+    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(
         Project workspaceProject,
         RazorConfiguration? configuration,
         string factoryTypeName,
@@ -26,7 +27,7 @@ internal class RemoteTagHelperResolver(ITelemetryReporter telemetryReporter)
     {
         if (configuration is null)
         {
-            return new(TagHelperResolutionResult.Empty);
+            return new(ImmutableArray<TagHelperDescriptor>.Empty);
         }
 
         return _compilationTagHelperResolver.GetTagHelpersAsync(

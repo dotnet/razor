@@ -18,13 +18,8 @@ using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Test;
 
-public class TagHelperResolutionResultSerializationTest : TestBase
+public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput) : TestBase(testOutput)
 {
-    public TagHelperResolutionResultSerializationTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public void TagHelperResolutionResult_DefaultBlazorServerProject_RoundTrips()
     {
@@ -40,9 +35,13 @@ public class TagHelperResolutionResultSerializationTest : TestBase
                     static r => ObjectReaders.ReadTagHelper(r, useCache: false)));
         }
 
-        var expectedResult = new TagHelperResolutionResult(tagHelpers);
+        var expectedResult = new TagHelperDeltaResult(
+            Delta: true,
+            ResultId: 1,
+            Added: tagHelpers,
+            Removed: tagHelpers);
 
-        var serializer = new JsonSerializer { Converters = { TagHelperResolutionResultJsonConverter.Instance } };
+        var serializer = new JsonSerializer { Converters = { TagHelperDeltaResultJsonConverter.Instance } };
 
         // Act
         using var writeStream = new MemoryStream();
@@ -56,17 +55,17 @@ public class TagHelperResolutionResultSerializationTest : TestBase
         // Deserialize the result from the stream we just serialized to.
         writeStream.Seek(0, SeekOrigin.Begin);
 
-        TagHelperResolutionResult? actualResult;
+        TagHelperDeltaResult? actualResult;
 
         using (var reader = new StreamReader(writeStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 4096, leaveOpen: true))
         using (var jsonReader = new JsonTextReader(reader) { CloseInput = false })
         {
-            actualResult = serializer.Deserialize<TagHelperResolutionResult>(jsonReader);
+            actualResult = serializer.Deserialize<TagHelperDeltaResult>(jsonReader);
         }
 
         // Assert
         Assert.NotNull(actualResult);
-        Assert.Equal(expectedResult, actualResult, TagHelperResolutionResultComparer.Default);
+        Assert.Equal(expectedResult, actualResult);
     }
 
     [Fact]
@@ -105,14 +104,18 @@ public class TagHelperResolutionResultSerializationTest : TestBase
                 builder.Metadata("foo", "bar");
             });
 
-        var expectedResult = new TagHelperResolutionResult(ImmutableArray.Create(descriptor));
+        var expectedResult = new TagHelperDeltaResult(
+            Delta: true,
+            ResultId: 1,
+            Added: ImmutableArray.Create(descriptor),
+            Removed: ImmutableArray.Create(descriptor));
 
         // Act
-        var json = JsonConvert.SerializeObject(expectedResult, TagHelperResolutionResultJsonConverter.Instance);
-        var actualResult = JsonConvert.DeserializeObject<TagHelperResolutionResult>(json, TagHelperResolutionResultJsonConverter.Instance);
+        var json = JsonConvert.SerializeObject(expectedResult, TagHelperDeltaResultJsonConverter.Instance);
+        var actualResult = JsonConvert.DeserializeObject<TagHelperDeltaResult>(json, TagHelperDeltaResultJsonConverter.Instance);
 
         // Assert
-        Assert.Equal(expectedResult, actualResult, TagHelperResolutionResultComparer.Default);
+        Assert.Equal(expectedResult, actualResult);
     }
 
     [Fact]
@@ -151,14 +154,18 @@ public class TagHelperResolutionResultSerializationTest : TestBase
                 builder.Metadata("foo", "bar");
             });
 
-        var expectedResult = new TagHelperResolutionResult(ImmutableArray.Create(descriptor));
+        var expectedResult = new TagHelperDeltaResult(
+            Delta: true,
+            ResultId: 1,
+            Added: ImmutableArray.Create(descriptor),
+            Removed: ImmutableArray.Create(descriptor));
 
         // Act
-        var json = JsonConvert.SerializeObject(expectedResult, TagHelperResolutionResultJsonConverter.Instance);
-        var actualResult = JsonConvert.DeserializeObject<TagHelperResolutionResult>(json, TagHelperResolutionResultJsonConverter.Instance);
+        var json = JsonConvert.SerializeObject(expectedResult, TagHelperDeltaResultJsonConverter.Instance);
+        var actualResult = JsonConvert.DeserializeObject<TagHelperDeltaResult>(json, TagHelperDeltaResultJsonConverter.Instance);
 
         // Assert
-        Assert.Equal(expectedResult, actualResult, TagHelperResolutionResultComparer.Default);
+        Assert.Equal(expectedResult, actualResult);
     }
 
     [Fact]
@@ -195,14 +202,18 @@ public class TagHelperResolutionResultSerializationTest : TestBase
                 .AddDiagnostic(RazorDiagnostic.Create(
                     new RazorDiagnosticDescriptor("id", () => "Test Message", RazorDiagnosticSeverity.Error), new SourceSpan(null, 10, 20, 30, 40))));
 
-        var expectedResult = new TagHelperResolutionResult(ImmutableArray.Create(descriptor));
+        var expectedResult = new TagHelperDeltaResult(
+            Delta: true,
+            ResultId: 1,
+            Added: ImmutableArray.Create(descriptor),
+            Removed: ImmutableArray.Create(descriptor));
 
         // Act
-        var json = JsonConvert.SerializeObject(expectedResult, TagHelperResolutionResultJsonConverter.Instance);
-        var actualResult = JsonConvert.DeserializeObject<TagHelperResolutionResult>(json, TagHelperResolutionResultJsonConverter.Instance);
+        var json = JsonConvert.SerializeObject(expectedResult, TagHelperDeltaResultJsonConverter.Instance);
+        var actualResult = JsonConvert.DeserializeObject<TagHelperDeltaResult>(json, TagHelperDeltaResultJsonConverter.Instance);
 
         // Assert
-        Assert.Equal(expectedResult, actualResult, TagHelperResolutionResultComparer.Default);
+        Assert.Equal(expectedResult, actualResult);
     }
 
     [Fact]
@@ -240,14 +251,18 @@ public class TagHelperResolutionResultSerializationTest : TestBase
                 .Metadata("foo", "bar")
                 .TagOutputHint("Hint"));
 
-        var expectedResult = new TagHelperResolutionResult(ImmutableArray.Create(descriptor));
+        var expectedResult = new TagHelperDeltaResult(
+            Delta: true,
+            ResultId: 1,
+            Added: ImmutableArray.Create(descriptor),
+            Removed: ImmutableArray.Create(descriptor));
 
         // Act
-        var json = JsonConvert.SerializeObject(expectedResult, TagHelperResolutionResultJsonConverter.Instance);
-        var actualResult = JsonConvert.DeserializeObject<TagHelperResolutionResult>(json, TagHelperResolutionResultJsonConverter.Instance);
+        var json = JsonConvert.SerializeObject(expectedResult, TagHelperDeltaResultJsonConverter.Instance);
+        var actualResult = JsonConvert.DeserializeObject<TagHelperDeltaResult>(json, TagHelperDeltaResultJsonConverter.Instance);
 
         // Assert
-        Assert.Equal(expectedResult, actualResult, TagHelperResolutionResultComparer.Default);
+        Assert.Equal(expectedResult, actualResult);
     }
 
     private static TagHelperDescriptor CreateTagHelperDescriptor(
