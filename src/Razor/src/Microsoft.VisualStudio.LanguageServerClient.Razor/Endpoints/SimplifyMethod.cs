@@ -53,6 +53,8 @@ internal partial class RazorCustomMessageTarget
     {
         var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
 
-        return serverCapabilities?.Experimental is string methodName && methodName == RazorLSPConstants.RoslynSimplifyMethodEndpointName;
+        return serverCapabilities?.Experimental is JObject experimental
+            && experimental.TryGetValue(RazorLSPConstants.RoslynSimplifyMethodEndpointName, out var supportsSimplifyMethod)
+            && supportsSimplifyMethod.ToObject<bool>();
     }
 }
