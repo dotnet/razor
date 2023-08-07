@@ -806,11 +806,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         }
         else if (setter != null && after == null)
         {
-            changeExpressionTokens.Add(new IntermediateToken()
-            {
-                Content = setter.Content,
-                Kind = TokenKind.CSharp,
-            });
+            changeExpressionTokens.Add(setter);
         }
         else if (after != null && setter == null)
         {
@@ -880,11 +876,7 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         else if (setter != null && after == null)
         {
             // bind:set only
-            changeExpressionTokens.Add(new IntermediateToken()
-            {
-                Content = setter.Content,
-                Kind = TokenKind.CSharp
-            });
+            changeExpressionTokens.Add(setter);
         }
         else if (setter == null && after != null)
         {
@@ -904,10 +896,15 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         else
         {
             // bind:set and bind:after create the code even though we disallow this combination through a diagnostic
-            var setToEventCallback = $"{ComponentsApi.RuntimeHelpers.CreateInferredBindSetter}(callback: {setter.Content}, value: {original.Content})";
             changeExpressionTokens.Add(new IntermediateToken()
             {
-                Content = $"{ComponentsApi.RuntimeHelpers.CreateInferredEventCallback}(this, callback: async __value => {{ await {setToEventCallback}; await {ComponentsApi.RuntimeHelpers.InvokeAsynchronousDelegate}(callback: ",
+                Content = $"{ComponentsApi.RuntimeHelpers.CreateInferredEventCallback}(this, callback: async __value => {{ await {ComponentsApi.RuntimeHelpers.CreateInferredBindSetter}(callback: ",
+                Kind = TokenKind.CSharp
+            });
+            changeExpressionTokens.Add(setter);
+            changeExpressionTokens.Add(new IntermediateToken()
+            {
+                Content = $", value: {original.Content}); await {ComponentsApi.RuntimeHelpers.InvokeAsynchronousDelegate}(callback: ",
                 Kind = TokenKind.CSharp
             });
             changeExpressionTokens.Add(after);
@@ -1010,7 +1007,13 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
             // bind:set only
             changeExpressionTokens.Add(new IntermediateToken()
             {
-                Content = $"{ComponentsApi.RuntimeHelpers.CreateInferredBindSetter}(callback: {setter.Content}, value: {original.Content})",
+                Content = $"{ComponentsApi.RuntimeHelpers.CreateInferredBindSetter}(callback: ",
+                Kind = TokenKind.CSharp
+            });
+            changeExpressionTokens.Add(setter);
+            changeExpressionTokens.Add(new IntermediateToken()
+            {
+                Content = $", value: {original.Content})",
                 Kind = TokenKind.CSharp
             });
         }
@@ -1032,10 +1035,15 @@ internal class ComponentBindLoweringPass : ComponentIntermediateNodePassBase, IR
         else
         {
             // bind:set and bind:after create the code even though we disallow this combination through a diagnostic
-            var setterContentInvocation = $"{ComponentsApi.RuntimeHelpers.CreateInferredBindSetter}(callback: {setter.Content}, value: {original.Content})";
             changeExpressionTokens.Add(new IntermediateToken()
             {
-                Content = $"{ComponentsApi.RuntimeHelpers.CreateInferredEventCallback}(this, callback: async __value => {{ await {setterContentInvocation}(); await {ComponentsApi.RuntimeHelpers.InvokeAsynchronousDelegate}(callback: ",
+                Content = $"{ComponentsApi.RuntimeHelpers.CreateInferredEventCallback}(this, callback: async __value => {{ await {ComponentsApi.RuntimeHelpers.CreateInferredBindSetter}(callback: ",
+                Kind = TokenKind.CSharp
+            });
+            changeExpressionTokens.Add(setter);
+            changeExpressionTokens.Add(new IntermediateToken()
+            {
+                Content = $", value: {original.Content})(); await {ComponentsApi.RuntimeHelpers.InvokeAsynchronousDelegate}(callback: ",
                 Kind = TokenKind.CSharp
             });
             changeExpressionTokens.Add(after);
