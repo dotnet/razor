@@ -137,6 +137,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
                 CustomMessageNames.RazorSpellCheckEndpoint => await HandleSpellCheckAsync(@params),
                 CustomMessageNames.RazorDocumentSymbolEndpoint => await HandleDocumentSymbolAsync(@params),
                 CustomMessageNames.RazorProjectContextsEndpoint => await HandleProjectContextsAsync(@params),
+                CustomMessageNames.RazorSimplifyMethodEndpointName => HandleSimplifyMethod(@params),
                 _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
             };
 

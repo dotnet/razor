@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
 internal partial class RazorCustomMessageTarget
 {
-    [JsonRpcMethod(CustomMessageNames.RazorMethodEndpointName, UseSingleObjectParameterDeserialization = true)]
+    [JsonRpcMethod(CustomMessageNames.RazorSimplifyMethodEndpointName, UseSingleObjectParameterDeserialization = true)]
     public async Task<TextEdit[]?> SimplifyTypeAsync(DelegatedSimplifyMethodParams request, CancellationToken cancellationToken)
     {
         var identifier = request.Identifier.TextDocumentIdentifier;
@@ -40,7 +40,7 @@ internal partial class RazorCustomMessageTarget
         };
 
         var response = await _requestInvoker.ReinvokeRequestOnServerAsync<SimplifyMethodParams, TextEdit[]?>(
-            CustomMessageNames.RoslynSimplifyMethodEndpointName,
+            RazorLSPConstants.RoslynSimplifyMethodEndpointName,
             RazorLSPConstants.RazorCSharpLanguageServerName,
             SupportsSimplifyMethod,
             simplifyTypeNamesParams,
@@ -53,6 +53,6 @@ internal partial class RazorCustomMessageTarget
     {
         var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
 
-        return serverCapabilities?.Experimental is string methodName && methodName == CustomMessageNames.RoslynSimplifyMethodEndpointName;
+        return serverCapabilities?.Experimental is string methodName && methodName == RazorLSPConstants.RoslynSimplifyMethodEndpointName;
     }
 }

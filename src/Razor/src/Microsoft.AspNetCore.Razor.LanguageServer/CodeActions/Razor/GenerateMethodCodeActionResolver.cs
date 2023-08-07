@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -10,7 +11,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -138,7 +138,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
             edit);
 
         var result = await _languageServer.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
-            RazorLanguageServerCustomMessageTargets.RazorMethodEndpointName,
+            RazorLanguageServerCustomMessageTargets.RazorSimplifyMethodEndpointName,
             delegatedParams,
             cancellationToken).ConfigureAwait(false)
             ?? new TextEdit[] { edit };
@@ -162,8 +162,10 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
     {
         var templateWithMethodSignature = PopulateMethodSignature(documentContext, actionParams);
         var edits = CodeBlockService.CreateFormattedTextEdit(code, templateWithMethodSignature, _razorLSPOptionsMonitor.CurrentValue);
-        var editToSendToRoslyn = edits.Length == 1 ? edits[0] : edits[1];
 
+        // If there are 3 edits, this means that there is no existing @code block, so we have an edit for '@code {', the method stub, and '}'.
+        // Otherwise, a singular edit means that an @code block does exist and the only edit is adding the method stub.
+        var editToSendToRoslyn = edits.Length == 3 ? edits[1] : edits[0];
         if (edits.Length == 3
             && razorClassName is not null
             && (razorNamespace is not null || code.TryComputeNamespace(fallbackToRootNamespace: true, out razorNamespace))
@@ -184,15 +186,20 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
 
             var delegatedParams = new DelegatedSimplifyMethodParams(documentContext.Identifier, RequiresVirtualDocument: true, tempTextEdit);
             var result = await _languageServer.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
-                RazorLanguageServerCustomMessageTargets.RazorMethodEndpointName,
+                RazorLanguageServerCustomMessageTargets.RazorSimplifyMethodEndpointName,
                 delegatedParams,
                 cancellationToken).ConfigureAwait(false);
 
-            if (result is not null)
+            // Roslyn should have passed back 2 edits. One that contains the simplified method stub and the other that contains the new
+            // location for the class end brace since we had asked to insert the method stub at the original class end brace location.
+            // We will only use the edit that contains the method stub.
+            Debug.Assert(result is null || result.Length == 2, $"Unexpected response to {RazorLanguageServerCustomMessageTargets.RazorSimplifyMethodEndpointName} from Roslyn");
+            var simplificationEdit = result?.FirstOrDefault(edit => edit.NewText.Contains("private"));
+            if (simplificationEdit is not null)
             {
                 // Roslyn will have removed the beginning formatting, put it back.
                 var formatting = editToSendToRoslyn.NewText[0..editToSendToRoslyn.NewText.IndexOf("private")];
-                editToSendToRoslyn.NewText = $"{formatting}{result.First().NewText.TrimEnd()}";
+                editToSendToRoslyn.NewText = $"{formatting}{simplificationEdit.NewText.TrimEnd()}";
             }
         }
         else if (_documentMappingService.TryMapToGeneratedDocumentRange(code.GetCSharpDocument(), editToSendToRoslyn.Range, out var remappedRange))
@@ -211,7 +218,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
 
             var delegatedParams = new DelegatedSimplifyMethodParams(documentContext.Identifier, RequiresVirtualDocument: true, remappedEdit);
             var result = await _languageServer.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
-                RazorLanguageServerCustomMessageTargets.RazorMethodEndpointName,
+                RazorLanguageServerCustomMessageTargets.RazorSimplifyMethodEndpointName,
                 delegatedParams,
                 cancellationToken).ConfigureAwait(false);
 
