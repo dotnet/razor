@@ -1,25 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.ProjectEngineHost;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test;
 
-public class ProjectEngineFactory_UnsupportedTest : TestBase
+public class ProjectEngineFactory_UnsupportedTest(ITestOutputHelper testOutput) : TestBase(testOutput)
 {
-    public ProjectEngineFactory_UnsupportedTest(ITestOutputHelper testOutput)
-        : base(testOutput)
-    {
-    }
-
     [Fact]
     public void Create_IgnoresConfigureParameter()
     {

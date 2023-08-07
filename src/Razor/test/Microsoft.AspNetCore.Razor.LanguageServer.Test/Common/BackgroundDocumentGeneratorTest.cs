@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,24 +15,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Common;
 
 // These tests are really integration tests. There isn't a good way to unit test this functionality since
 // the only thing in here is threading.
-public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
+public class BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput) : LanguageServerTestBase(testOutput)
 {
-    private readonly HostDocument[] _documents;
-    private readonly HostProject _hostProject1;
-    private readonly HostProject _hostProject2;
-
-    public BackgroundDocumentGeneratorTest(ITestOutputHelper testOutput)
-        : base(testOutput)
+    private readonly HostDocument[] _documents = new HostDocument[]
     {
-        _documents = new HostDocument[]
-        {
-            new HostDocument("c:/Test1/Index.cshtml", "Index.cshtml"),
-            new HostDocument("c:/Test1/Components/Counter.cshtml", "Components/Counter.cshtml"),
-        };
+        new HostDocument("c:/Test1/Index.cshtml", "Index.cshtml"),
+        new HostDocument("c:/Test1/Components/Counter.cshtml", "Components/Counter.cshtml"),
+    };
 
-        _hostProject1 = new HostProject("c:/Test1/Test1.csproj", "c:/Test1/obj", RazorConfiguration.Default, "TestRootNamespace");
-        _hostProject2 = new HostProject("c:/Test2/Test2.csproj", "c:/Test2/obj", RazorConfiguration.Default, "TestRootNamespace");
-    }
+    private readonly HostProject _hostProject1 = new("c:/Test1/Test1.csproj", "c:/Test1/obj", RazorConfiguration.Default, "TestRootNamespace");
+    private readonly HostProject _hostProject2 = new("c:/Test2/Test2.csproj", "c:/Test2/obj", RazorConfiguration.Default, "TestRootNamespace");
 
     [Fact]
     public async Task Queue_ProcessesNotifications_AndGoesBackToSleep()
@@ -45,12 +35,14 @@ public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
-            projectManager.DocumentAdded(_hostProject1.Key, _documents[0], null);
-            projectManager.DocumentAdded(_hostProject1.Key, _documents[1], null);
+            projectManager.DocumentAdded(_hostProject1.Key, _documents[0], null!);
+            projectManager.DocumentAdded(_hostProject1.Key, _documents[1], null!);
         }, DisposalToken);
 
         var project = await Dispatcher.RunOnDispatcherThreadAsync(
             () => projectManager.GetLoadedProject(_hostProject1.Key), DisposalToken);
+
+        Assert.NotNull(project);
 
         var queue = new TestBackgroundDocumentGenerator(Dispatcher)
         {
@@ -63,7 +55,7 @@ public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
 
         // Act & Assert
         await Dispatcher.RunOnDispatcherThreadAsync(
-            () => queue.Enqueue(project.GetDocument(_documents[0].FilePath)), DisposalToken);
+            () => queue.Enqueue(project.GetDocument(_documents[0].FilePath).AssumeNotNull()), DisposalToken);
 
         Assert.True(queue.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
         Assert.True(queue.HasPendingNotifications, "Queue should have a notification created during Enqueue");
@@ -87,12 +79,14 @@ public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
-            projectManager.DocumentAdded(_hostProject1.Key, _documents[0], null);
-            projectManager.DocumentAdded(_hostProject1.Key, _documents[1], null);
+            projectManager.DocumentAdded(_hostProject1.Key, _documents[0], null!);
+            projectManager.DocumentAdded(_hostProject1.Key, _documents[1], null!);
         }, DisposalToken);
 
         var project = await Dispatcher.RunOnDispatcherThreadAsync(
             () => projectManager.GetLoadedProject(_hostProject1.Key), DisposalToken);
+
+        Assert.NotNull(project);
 
         var queue = new TestBackgroundDocumentGenerator(Dispatcher)
         {
@@ -106,7 +100,7 @@ public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
 
         // Act & Assert
         await Dispatcher.RunOnDispatcherThreadAsync(
-            () => queue.Enqueue(project.GetDocument(_documents[0].FilePath)), DisposalToken);
+            () => queue.Enqueue(project.GetDocument(_documents[0].FilePath).AssumeNotNull()), DisposalToken);
 
         Assert.True(queue.IsScheduledOrRunning, "Queue should be scheduled during Enqueue");
         Assert.True(queue.HasPendingNotifications, "Queue should have a notification created during Enqueue");
@@ -121,7 +115,7 @@ public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
         Assert.False(queue.HasPendingNotifications, "Worker should have taken all notifications");
 
         await Dispatcher.RunOnDispatcherThreadAsync(
-            () => queue.Enqueue(project.GetDocument(_documents[1].FilePath)), DisposalToken);
+            () => queue.Enqueue(project.GetDocument(_documents[1].FilePath).AssumeNotNull()), DisposalToken);
         Assert.True(queue.HasPendingNotifications); // Now we should see the worker restart when it finishes.
 
         // Allow work to complete, which should restart the timer.
