@@ -138,7 +138,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
             edit);
 
         var result = await _languageServer.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
-            RazorLanguageServerCustomMessageTargets.RazorSimplifyMethodEndpointName,
+            CustomMessageNames.RazorSimplifyMethodEndpointName,
             delegatedParams,
             cancellationToken).ConfigureAwait(false)
             ?? new TextEdit[] { edit };
@@ -186,14 +186,14 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
 
             var delegatedParams = new DelegatedSimplifyMethodParams(documentContext.Identifier, RequiresVirtualDocument: true, tempTextEdit);
             var result = await _languageServer.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
-                RazorLanguageServerCustomMessageTargets.RazorSimplifyMethodEndpointName,
+                CustomMessageNames.RazorSimplifyMethodEndpointName,
                 delegatedParams,
                 cancellationToken).ConfigureAwait(false);
 
             // Roslyn should have passed back 2 edits. One that contains the simplified method stub and the other that contains the new
             // location for the class end brace since we had asked to insert the method stub at the original class end brace location.
             // We will only use the edit that contains the method stub.
-            Debug.Assert(result is null || result.Length == 2, $"Unexpected response to {RazorLanguageServerCustomMessageTargets.RazorSimplifyMethodEndpointName} from Roslyn");
+            Debug.Assert(result is null || result.Length == 2, $"Unexpected response to {CustomMessageNames.RazorSimplifyMethodEndpointName} from Roslyn");
             var simplificationEdit = result?.FirstOrDefault(edit => edit.NewText.Contains("private"));
             if (simplificationEdit is not null)
             {
@@ -218,7 +218,7 @@ internal class GenerateMethodCodeActionResolver : IRazorCodeActionResolver
 
             var delegatedParams = new DelegatedSimplifyMethodParams(documentContext.Identifier, RequiresVirtualDocument: true, remappedEdit);
             var result = await _languageServer.SendRequestAsync<DelegatedSimplifyMethodParams, TextEdit[]?>(
-                RazorLanguageServerCustomMessageTargets.RazorSimplifyMethodEndpointName,
+                CustomMessageNames.RazorSimplifyMethodEndpointName,
                 delegatedParams,
                 cancellationToken).ConfigureAwait(false);
 
