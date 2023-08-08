@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -138,10 +137,17 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
                 CustomMessageNames.RazorSpellCheckEndpoint => await HandleSpellCheckAsync(@params),
                 CustomMessageNames.RazorDocumentSymbolEndpoint => await HandleDocumentSymbolAsync(@params),
                 CustomMessageNames.RazorProjectContextsEndpoint => await HandleProjectContextsAsync(@params),
+                CustomMessageNames.RazorSimplifyMethodEndpointName => HandleSimplifyMethod(@params),
                 _ => throw new NotImplementedException($"I don't know how to handle the '{method}' method.")
             };
 
             return (TResponse)result;
+        }
+
+        private static TextEdit[] HandleSimplifyMethod<TParams>(TParams @params)
+        {
+            Assert.IsType<DelegatedSimplifyMethodParams>(@params);
+            return null;
         }
 
         private async Task<VSProjectContextList> HandleProjectContextsAsync<TParams>(TParams @params)

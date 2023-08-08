@@ -51,4 +51,6 @@ internal static class CustomMessageNames
     public const string RazorImplementationEndpointName = "razor/implementation";
 
     public const string RazorReferencesEndpointName = "razor/references";
+
+    public const string RazorSimplifyMethodEndpointName = "razor/simplifyMethod";
 }
