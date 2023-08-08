@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+#if VALIDATE_MULTI_TARGET
 using System.Diagnostics;
+#endif
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 
@@ -37,9 +39,11 @@ public abstract class LSPDocument : IDisposable
         {
             if (VirtualDocuments[i] is TVirtualDocument actualVirtualDocument)
             {
+#if VALIDATE_MULTI_TARGET
                 Debug.Assert(virtualDocument is null, "Found multiple virtual documents of the same type. Should call TryGetAllVirtualDocuments instead.");
+#endif
                 virtualDocument = actualVirtualDocument;
-#if !DEBUG
+#if !VALIDATE_MULTI_TARGET
                 return true;
 #endif
             }
@@ -57,9 +61,11 @@ public abstract class LSPDocument : IDisposable
             if (VirtualDocuments[i] is TVirtualDocument actualVirtualDocument &&
                 actualVirtualDocument.Uri == virtualDocumentUri)
             {
+#if VALIDATE_MULTI_TARGET
                 Debug.Assert(virtualDocument is null, "Found multiple virtual documents of the same type. Should call TryGetAllVirtualDocuments instead.");
+#endif
                 virtualDocument = actualVirtualDocument;
-#if !DEBUG
+#if !VALIDATE_MULTI_TARGET
                 return true;
 #endif
             }
