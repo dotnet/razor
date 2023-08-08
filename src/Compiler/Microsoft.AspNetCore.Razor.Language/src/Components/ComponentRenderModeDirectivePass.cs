@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal class ComponentRenderModeDirectivePass : IntermediateNodePassBase, IRazorDirectiveClassifierPass
+internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBase, IRazorDirectiveClassifierPass
 {
     protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
     {
@@ -80,7 +80,8 @@ internal class ComponentRenderModeDirectivePass : IntermediateNodePassBase, IRaz
         });
 
         // Insert the new attribute on top of the class, and the definition underneath it
-        for (var i = 0; i < @namespace.Children.Count; i++)
+        var childCount = @namespace.Children.Count;
+        for (var i = 0; i < childCount; i++)
         {
             if (object.ReferenceEquals(@namespace.Children[i], @class))
             {
@@ -89,5 +90,6 @@ internal class ComponentRenderModeDirectivePass : IntermediateNodePassBase, IRaz
                 break;
             }
         }
+        Debug.Assert(@namespace.Children.Count == childCount + 2);
     }
 }

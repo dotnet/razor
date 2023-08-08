@@ -2,11 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
@@ -43,6 +39,15 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
 
         var modeProperty = attributeType.GetProperty("Mode");
         Assert.NotNull(modeProperty);
+
+        var instance = Activator.CreateInstance(attributeType);
+        Assert.NotNull(instance);
+
+        var modeValue = modeProperty.GetValue(instance);
+        Assert.NotNull(modeValue);
+
+        var valueType = modeValue.GetType();
+        Assert.Equal("Microsoft.AspNetCore.Components.DefaultRenderModes", valueType.FullName);
     }
 
     [Fact]
@@ -63,6 +68,15 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
 
         var modeProperty = attributeType.GetProperty("Mode");
         Assert.NotNull(modeProperty);
+
+        var instance = Activator.CreateInstance(attributeType);
+        Assert.NotNull(instance);
+
+        var modeValue = modeProperty.GetValue(instance);
+        Assert.NotNull(modeValue);
+
+        var valueType = modeValue.GetType();
+        Assert.Equal("Microsoft.AspNetCore.Components.DefaultRenderModes", valueType.FullName);
     }
 
     [Fact]
@@ -105,9 +119,9 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
 
         var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: false);
         assemblyResult.Diagnostics.Verify(
-                    // x:\dir\subdir\Test\TestComponent.cshtml(1,61): error CS0103: The name 'NoExist' does not exist in the current context
-                    //             private static IComponentRenderMode ModeImpl => NoExist;
-                    Diagnostic(ErrorCode.ERR_NameNotInContext, "NoExist").WithArguments("NoExist").WithLocation(1, 61));
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,61): error CS0103: The name 'NoExist' does not exist in the current context
+            //             private static IComponentRenderMode ModeImpl => NoExist;
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "NoExist").WithArguments("NoExist").WithLocation(1, 61));
     }
 
     [Fact]
@@ -184,7 +198,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
 
  public class DefaultRenderModes : IComponentRenderMode
  {
-    public static IComponentRenderMode Server = null!;
+    public static IComponentRenderMode Server = new DefaultRenderModes();
  }
  """;
 }

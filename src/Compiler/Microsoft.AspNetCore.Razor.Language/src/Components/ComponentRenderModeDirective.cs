@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal class ComponentRenderModeDirective
+internal sealed class ComponentRenderModeDirective
 {
     // PROTOTYPE: localization
 

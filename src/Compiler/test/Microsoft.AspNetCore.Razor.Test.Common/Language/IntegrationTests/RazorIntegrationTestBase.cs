@@ -256,7 +256,7 @@ public class RazorIntegrationTestBase
 
             // Add the 'temp' compilation as a metadata reference
             var references = baseCompilation.References.Concat(new[] { tempAssembly.Compilation.ToMetadataReference() }).ToArray();
-            projectEngine = CreateProjectEngine(Configuration, references, supportLocalizedComponentNames);
+            projectEngine = CreateProjectEngine(configuration, references, supportLocalizedComponentNames);
 
             // Now update the any additional files
             foreach (var item in AdditionalRazorItems)
