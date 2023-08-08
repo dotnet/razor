@@ -43,8 +43,7 @@ internal partial class RazorCustomMessageTarget
         {
             foreach (var virtualDocument in virtualDocuments)
             {
-                // TODO: Remove the null check from this line when multiple CSharpVirtualDocuments are actually being created
-                if (virtualDocument.ProjectKey.Id == request.ProjectKeyId || virtualDocument.ProjectKey.Id is null)
+                if (virtualDocument.ProjectKey.Id == request.ProjectKeyId)
                 {
                     _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                         hostDocumentUri,

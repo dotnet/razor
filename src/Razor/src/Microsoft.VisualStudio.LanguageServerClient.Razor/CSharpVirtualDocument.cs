@@ -8,15 +8,12 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-internal class CSharpVirtualDocument : VirtualDocumentBase<CSharpVirtualDocumentSnapshot>
+internal class CSharpVirtualDocument(ProjectKey projectKey, Uri uri, ITextBuffer textBuffer)
+    : VirtualDocumentBase<CSharpVirtualDocumentSnapshot>(uri, textBuffer)
 {
-    private readonly ProjectKey _projectKey;
-
-    public CSharpVirtualDocument(ProjectKey projectKey, Uri uri, ITextBuffer textBuffer)
-        : base(uri, textBuffer)
-    {
-        _projectKey = projectKey;
-    }
+    // NOTE: The base constructor calls GetUpdateSnapshot, so this only works because we're using primary constructors, which
+    //       will initialize the field before calling the base constructor.
+    private readonly ProjectKey _projectKey = projectKey;
 
     protected override CSharpVirtualDocumentSnapshot GetUpdatedSnapshot(object? state) => new(_projectKey, Uri, TextBuffer.CurrentSnapshot, HostDocumentVersion);
 }

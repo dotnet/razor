@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -72,10 +73,8 @@ internal static class LSPDocumentSynchronizerExtensions
         return null;
     }
 
-#pragma warning disable IDE0060 // Remove unused parameter
     private static bool IsMatch(ProjectKey projectKey, VSProjectContext projectContext)
     {
-        return true;
+        return FilePathComparer.Equals(projectKey.Id, projectContext.Id);
     }
-#pragma warning restore IDE0060 // Remove unused parameter
 }
