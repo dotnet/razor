@@ -8,26 +8,29 @@ namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal class HostProject
 {
-    public HostProject(string projectFilePath, RazorConfiguration razorConfiguration, string? rootNamespace)
+    public HostProject(string projectFilePath, string intermediateOutputPath, RazorConfiguration razorConfiguration, string? rootNamespace)
     {
-        if (projectFilePath is null)
-        {
-            throw new ArgumentNullException(nameof(projectFilePath));
-        }
-
-        if (razorConfiguration is null)
-        {
-            throw new ArgumentNullException(nameof(razorConfiguration));
-        }
-
-        FilePath = projectFilePath;
-        Configuration = razorConfiguration;
+        FilePath = projectFilePath ?? throw new ArgumentNullException(nameof(projectFilePath));
+        IntermediateOutputPath = intermediateOutputPath ?? throw new ArgumentNullException(nameof(intermediateOutputPath));
+        Configuration = razorConfiguration ?? throw new ArgumentNullException(nameof(razorConfiguration));
         RootNamespace = rootNamespace;
+
+        Key = ProjectKey.From(this);
     }
 
     public RazorConfiguration Configuration { get; }
 
+    public ProjectKey Key { get; }
+
+    /// <summary>
+    /// Gets the full path to the .csproj file for this project
+    /// </summary>
     public string FilePath { get; }
+
+    /// <summary>
+    /// Gets the full path to the folder under 'obj' where the project.razor.json file will live
+    /// </summary>
+    public string IntermediateOutputPath { get; }
 
     public string? RootNamespace { get; }
 }

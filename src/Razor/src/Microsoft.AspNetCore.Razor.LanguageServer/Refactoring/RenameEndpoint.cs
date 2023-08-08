@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 
 [LanguageServerEndpoint(Methods.TextDocumentRenameName)]
-internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParams, WorkspaceEdit?>, IRegistrationExtension
+internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParams, WorkspaceEdit?>, ICapabilitiesProvider
 {
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly DocumentContextFactory _documentContextFactory;
@@ -53,20 +53,17 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     }
 
-    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        const string ServerCapability = "renameProvider";
-        var options = new RenameOptions
+        serverCapabilities.RenameProvider = new RenameOptions
         {
             PrepareProvider = false,
         };
-
-        return new RegistrationExtensionResult(ServerCapability, new SumType<bool, RenameOptions>(options));
     }
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
-    protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName;
+    protected override string CustomMessageTarget => CustomMessageNames.RazorRenameEndpointName;
 
     protected override async Task<WorkspaceEdit?> TryHandleAsync(RenameParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
@@ -133,7 +130,8 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         }
 
         var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
-        AddFileRenameForComponent(documentChanges, originComponentDocumentSnapshot, newPath);
+        var fileRename = GetFileRenameForComponent(originComponentDocumentSnapshot, newPath);
+        documentChanges.Add(fileRename);
         AddEditsForCodeDocument(documentChanges, originTagHelpers, request.NewName, request.TextDocument.Uri, codeDocument);
 
         var documentSnapshots = await GetAllDocumentSnapshotsAsync(documentContext, cancellationToken).ConfigureAwait(false);
@@ -141,6 +139,15 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         foreach (var documentSnapshot in documentSnapshots)
         {
             await AddEditsForCodeDocumentAsync(documentChanges, originTagHelpers, request.NewName, documentSnapshot).ConfigureAwait(false);
+        }
+
+        foreach (var documentChange in documentChanges)
+        {
+            if (documentChange.TryGetFirst(out var textDocumentEdit) &&
+                textDocumentEdit.TextDocument.Uri == fileRename.OldUri)
+            {
+                textDocumentEdit.TextDocument.Uri = fileRename.NewUri;
+            }
         }
 
         return new WorkspaceEdit
@@ -154,7 +161,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         var documentSnapshots = new List<IDocumentSnapshot?>();
         var documentPaths = new HashSet<string>();
 
-        var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => _projectSnapshotManager.Projects, cancellationToken).ConfigureAwait(false);
+        var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => _projectSnapshotManager.GetProjects(), cancellationToken).ConfigureAwait(false);
 
         foreach (var project in projects)
         {
@@ -173,13 +180,13 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
                 }
 
                 // Add to the list and add the path to the set
-                var documentContext = await _documentContextFactory.TryCreateAsync(new Uri(documentPath), cancellationToken).ConfigureAwait(false);
-                if (documentContext is null)
+                var snapshot = project.GetDocument(documentPath);
+                if (snapshot is null)
                 {
                     throw new NotImplementedException($"{documentPath} in project {project.FilePath} but not retrievable");
                 }
 
-                documentSnapshots.Add(documentContext.Snapshot);
+                documentSnapshots.Add(snapshot);
                 documentPaths.Add(documentPath);
             }
         }
@@ -187,7 +194,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
         return documentSnapshots;
     }
 
-    public void AddFileRenameForComponent(List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges, IDocumentSnapshot documentSnapshot, string newPath)
+    public RenameFile GetFileRenameForComponent(IDocumentSnapshot documentSnapshot, string newPath)
     {
         // VS Code in Windows expects path to start with '/'
         var filePath = documentSnapshot.FilePath.AssumeNotNull();
@@ -213,11 +220,11 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
             Scheme = Uri.UriSchemeFile,
         }.Uri;
 
-        documentChanges.Add(new RenameFile
+        return new RenameFile
         {
             OldUri = oldUri,
             NewUri = newUri,
-        });
+        };
     }
 
     private static string MakeNewPath(string originalPath, string newName)
@@ -344,7 +351,7 @@ internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenamePar
             return null;
         }
 
-        var node = owner.Ancestors().FirstOrDefault(n => n.Kind == SyntaxKind.MarkupTagHelperStartTag);
+        var node = owner.Parent?.FirstAncestorOrSelf<SyntaxNode>(n => n.Kind == SyntaxKind.MarkupTagHelperStartTag);
         if (node is not MarkupTagHelperStartTagSyntax tagHelperStartTag)
         {
             return null;

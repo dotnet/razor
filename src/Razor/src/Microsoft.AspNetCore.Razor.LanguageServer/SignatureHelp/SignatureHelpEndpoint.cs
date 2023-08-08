@@ -15,7 +15,7 @@ using LS = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 
 [LanguageServerEndpoint(Methods.TextDocumentSignatureHelpName)]
-internal sealed class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<SignatureHelpParams, LS.SignatureHelp?>, IRegistrationExtension
+internal sealed class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<SignatureHelpParams, LS.SignatureHelp?>, ICapabilitiesProvider
 {
     public SignatureHelpEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
@@ -26,18 +26,15 @@ internal sealed class SignatureHelpEndpoint : AbstractRazorDelegatingEndpoint<Si
     {
     }
 
-    protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorSignatureHelpEndpointName;
+    protected override string CustomMessageTarget => CustomMessageNames.RazorSignatureHelpEndpointName;
 
-    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        const string ServerCapability = "signatureHelpProvider";
-        var option = new SignatureHelpOptions()
+        serverCapabilities.SignatureHelpProvider = new SignatureHelpOptions()
         {
             TriggerCharacters = new[] { "(", ",", "<" },
             RetriggerCharacters = new[] { ">", ")" }
         };
-
-        return new RegistrationExtensionResult(ServerCapability, option);
     }
 
     protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(SignatureHelpParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)

@@ -35,6 +35,7 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
             ResolvedCompilationReference.SchemaName,
             ContentItem.SchemaName,
             NoneItem.SchemaName,
+            ConfigurationGeneralSchemaName,
         });
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
@@ -84,7 +85,15 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
         if (mvcReferenceFullPath is null)
         {
             // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-            await UpdateAsync(() => UninitializeProjectUnsafe(CommonServices.UnconfiguredProject.FullPath), CancellationToken.None).ConfigureAwait(false);
+            await UpdateAsync(() =>
+            {
+                var projectManager = GetProjectManager();
+                var projectKeys = projectManager.GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
+                foreach (var projectKey in projectKeys)
+                {
+                    UninitializeProjectUnsafe(projectKey);
+                }
+            }, CancellationToken.None).ConfigureAwait(false);
             return;
         }
 
@@ -92,7 +101,21 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
         if (version is null)
         {
             // Ok we can't find an MVC version. Let's assume this project isn't using Razor then.
-            await UpdateAsync(() => UninitializeProjectUnsafe(CommonServices.UnconfiguredProject.FullPath), CancellationToken.None).ConfigureAwait(false);
+            await UpdateAsync(() =>
+            {
+                var projectManager = GetProjectManager();
+                var projectKeys = projectManager.GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
+                foreach (var projectKey in projectKeys)
+                {
+                    UninitializeProjectUnsafe(projectKey);
+                }
+            }, CancellationToken.None).ConfigureAwait(false);
+            return;
+        }
+
+        if (!TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
+        {
+            // Can't find an IntermediateOutputPath, so don't know what to do with this project
             return;
         }
 
@@ -109,24 +132,24 @@ internal class FallbackWindowsRazorProjectHost : WindowsRazorProjectHostBase
         await UpdateAsync(() =>
         {
             var configuration = FallbackRazorConfiguration.SelectConfiguration(version);
-            var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, configuration, rootNamespace: null);
+            var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace: null);
 
-            if (TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
+            if (_languageServerFeatureOptions is not null)
             {
                 var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
-                ProjectConfigurationFilePathStore.Set(hostProject.FilePath, projectConfigurationFile);
+                ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
             }
 
             UpdateProjectUnsafe(hostProject);
 
             for (var i = 0; i < changedDocuments.Length; i++)
             {
-                RemoveDocumentUnsafe(hostProject, changedDocuments[i]);
+                RemoveDocumentUnsafe(hostProject.Key, changedDocuments[i]);
             }
 
             for (var i = 0; i < documents.Length; i++)
             {
-                AddDocumentUnsafe(hostProject, documents[i]);
+                AddDocumentUnsafe(hostProject.Key, documents[i]);
             }
         }, CancellationToken.None).ConfigureAwait(false);
     }

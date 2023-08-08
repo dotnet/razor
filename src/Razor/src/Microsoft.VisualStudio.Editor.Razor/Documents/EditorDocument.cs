@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
@@ -33,6 +34,7 @@ internal sealed class EditorDocument : IDisposable
         JoinableTaskContext joinableTaskContext,
         string projectFilePath,
         string documentFilePath,
+        ProjectKey projectKey,
         TextLoader textLoader,
         FileChangeTracker fileTracker,
         ITextBuffer? textBuffer,
@@ -81,6 +83,7 @@ internal sealed class EditorDocument : IDisposable
         _joinableTaskContext = joinableTaskContext;
         ProjectFilePath = projectFilePath;
         DocumentFilePath = documentFilePath;
+        ProjectKey = projectKey;
         TextLoader = textLoader;
         _fileTracker = fileTracker;
         _changedOnDisk = changedOnDisk;
@@ -106,6 +109,8 @@ internal sealed class EditorDocument : IDisposable
             EditorTextContainer.TextChanged += TextContainer_Changed;
         }
     }
+
+    public ProjectKey ProjectKey { get; }
 
     public string ProjectFilePath { get; }
 

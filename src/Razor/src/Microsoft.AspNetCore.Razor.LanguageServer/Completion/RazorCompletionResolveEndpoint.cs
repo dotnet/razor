@@ -6,12 +6,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
-internal class RazorCompletionResolveEndpoint : IVSCompletionResolveEndpoint, IRegistrationExtension
+internal class RazorCompletionResolveEndpoint : IVSCompletionResolveEndpoint, ICapabilitiesProvider
 {
     private readonly AggregateCompletionItemResolver _completionItemResolver;
     private readonly CompletionListCache _completionListCache;
@@ -27,11 +26,9 @@ internal class RazorCompletionResolveEndpoint : IVSCompletionResolveEndpoint, IR
 
     public bool MutatesSolutionState => false;
 
-    public RegistrationExtensionResult? GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        _clientCapabilities = clientCapabilities.ToVSInternalClientCapabilities();
-
-        return null;
+        _clientCapabilities = clientCapabilities;
     }
 
     public async Task<VSInternalCompletionItem> HandleRequestAsync(VSInternalCompletionItem completionItem, RazorRequestContext requestContext, CancellationToken cancellationToken)

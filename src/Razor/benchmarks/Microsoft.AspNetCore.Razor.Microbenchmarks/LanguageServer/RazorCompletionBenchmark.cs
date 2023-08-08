@@ -54,7 +54,7 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
                 },
             },
         };
-        CompletionEndpoint.GetRegistration(clientCapabilities);
+        CompletionEndpoint.ApplyCapabilities(new(), clientCapabilities);
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         var projectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
         _filePath = Path.Combine(projectRoot, "Components", "Pages", $"Generated.razor");
@@ -74,7 +74,7 @@ public class RazorCompletionBenchmark : RazorLanguageServerBenchmarkBase
 
         RazorPosition = ToPosition(razorCodeActionIndex);
 
-        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, 1);
+        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, projectContext: null, 1);
         RazorRequestContext = new RazorRequestContext(documentContext, Logger, languageServer.GetLspServices());
 
         Position ToPosition(int index)

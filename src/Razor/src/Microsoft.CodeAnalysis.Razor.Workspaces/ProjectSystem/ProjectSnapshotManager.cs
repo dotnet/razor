@@ -4,7 +4,7 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -13,11 +13,11 @@ internal abstract class ProjectSnapshotManager : ILanguageService
 {
     public abstract event EventHandler<ProjectChangeEventArgs> Changed;
 
-    public abstract IReadOnlyList<IProjectSnapshot> Projects { get; }
+    public abstract ImmutableArray<IProjectSnapshot> GetProjects();
 
     public abstract bool IsDocumentOpen(string documentFilePath);
 
-    public abstract IProjectSnapshot GetLoadedProject(string filePath);
+    public abstract IProjectSnapshot GetLoadedProject(ProjectKey projectKey);
 
-    public abstract IProjectSnapshot GetOrCreateProject(string filePath);
+    public abstract ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName);
 }

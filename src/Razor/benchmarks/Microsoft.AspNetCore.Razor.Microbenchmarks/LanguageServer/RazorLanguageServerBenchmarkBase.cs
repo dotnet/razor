@@ -51,7 +51,8 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
 
     internal IDocumentSnapshot GetDocumentSnapshot(string projectFilePath, string filePath, string targetPath)
     {
-        var hostProject = new HostProject(projectFilePath, RazorConfiguration.Default, rootNamespace: null);
+        var intermediateOutputPath = Path.Combine(Path.GetDirectoryName(projectFilePath), "obj");
+        var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
         using var fileStream = new FileStream(filePath, FileMode.Open);
         var text = SourceText.From(fileStream);
         var textLoader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()));
@@ -61,9 +62,9 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         projectSnapshotManager.ProjectAdded(hostProject);
         var tagHelpers = CommonResources.LegacyTagHelpers;
         var projectWorkspaceState = new ProjectWorkspaceState(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.CSharp11);
-        projectSnapshotManager.ProjectWorkspaceStateChanged(projectFilePath, projectWorkspaceState);
-        projectSnapshotManager.DocumentAdded(hostProject, hostDocument, textLoader);
-        var projectSnapshot = projectSnapshotManager.GetOrCreateProject(projectFilePath);
+        projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.Key, projectWorkspaceState);
+        projectSnapshotManager.DocumentAdded(hostProject.Key, hostDocument, textLoader);
+        var projectSnapshot = projectSnapshotManager.GetLoadedProject(hostProject.Key);
 
         var documentSnapshot = projectSnapshot.GetDocument(filePath);
         return documentSnapshot;

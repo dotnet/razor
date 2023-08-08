@@ -178,7 +178,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
             return;
         }
 
-        _projectSnapshot = _projectManager.GetOrCreateProject(_projectPath);
+        _projectSnapshot = GetOrCreateProject(_projectPath);
         _isSupportedProject = true;
 
         _projectManager.Changed += ProjectManager_Changed;
@@ -188,6 +188,20 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
         _importDocumentManager.OnSubscribed(this);
 
         _ = OnContextChangedAsync(ContextChangeKind.ProjectChanged);
+    }
+
+    private IProjectSnapshot? GetOrCreateProject(string projectPath)
+    {
+        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+
+        var projectKey = _projectManager.GetAllProjectKeys(projectPath).FirstOrDefault();
+
+        if (_projectManager.GetLoadedProject(projectKey) is not { } project)
+        {
+            return new EphemeralProjectSnapshot(Workspace.Services, projectPath);
+        }
+
+        return project;
     }
 
     public void Unsubscribe()
@@ -233,7 +247,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
             string.Equals(_projectPath, e.ProjectFilePath, StringComparison.OrdinalIgnoreCase))
         {
             // This will be the new snapshot unless the project was removed.
-            _projectSnapshot = _projectManager.GetLoadedProject(e.ProjectFilePath);
+            _projectSnapshot = _projectManager.GetLoadedProject(e.ProjectKey);
 
             switch (e.Kind)
             {
@@ -261,7 +275,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
                 case ProjectChangeKind.ProjectRemoved:
 
                     // Fall back to ephemeral project
-                    _projectSnapshot = _projectManager.GetOrCreateProject(ProjectPath);
+                    _projectSnapshot = GetOrCreateProject(ProjectPath);
                     _ = OnContextChangedAsync(ContextChangeKind.ProjectChanged);
                     break;
 

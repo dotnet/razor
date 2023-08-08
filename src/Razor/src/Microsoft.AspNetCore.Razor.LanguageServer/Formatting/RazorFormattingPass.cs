@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using SyntaxNodeExtensions = Microsoft.AspNetCore.Razor.LanguageServer.Extensions.SyntaxNodeExtensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
@@ -298,7 +297,7 @@ internal class RazorFormattingPass : FormattingPassBase
             var edit = new TextEdit
             {
                 Range = node.GetRange(source),
-                NewText = context.NewLineString + context.GetIndentationString(directive.GetLinePositionSpan(source).Start.Character)
+                NewText = context.NewLineString + FormattingUtilities.GetIndentationString(directive.GetLinePositionSpan(source).Start.Character, context.Options.InsertSpaces, context.Options.TabSize)
             };
             edits.Add(edit);
         }
@@ -332,7 +331,7 @@ internal class RazorFormattingPass : FormattingPassBase
             var newText = context.NewLineString;
             if (additionalIndentationLevel > 0)
             {
-                newText += context.GetIndentationString(additionalIndentationLevel);
+                newText += FormattingUtilities.GetIndentationString(additionalIndentationLevel, context.Options.InsertSpaces, context.Options.TabSize);
             }
 
             var edit = new TextEdit
@@ -356,7 +355,7 @@ internal class RazorFormattingPass : FormattingPassBase
                 // there is a close brace
                 var edit = new TextEdit
                 {
-                    NewText = context.NewLineString + context.GetIndentationString(directiveNode.GetRange(source).Start.Character),
+                    NewText = context.NewLineString + FormattingUtilities.GetIndentationString(directiveNode.GetRange(source).Start.Character, context.Options.InsertSpaces, context.Options.TabSize),
                     Range = new Range { Start = codeRange.End, End = closeBraceRange.Start },
                 };
                 edits.Add(edit);

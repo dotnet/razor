@@ -8,7 +8,15 @@ namespace Test
     using global::System.Linq;
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
-    public partial class TestComponent<TParam> : global::Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent<
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+TParam
+
+#line default
+#line hidden
+#nullable disable
+    > : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
@@ -21,7 +29,15 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            , 2, __value => { ParentValue = __value; global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate(Update); });
+            , 2,  __value => { ParentValue = __value; global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate(
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+                                                              Update
+
+#line default
+#line hidden
+#nullable disable
+            ); });
         }
         #pragma warning restore 1998
 #nullable restore

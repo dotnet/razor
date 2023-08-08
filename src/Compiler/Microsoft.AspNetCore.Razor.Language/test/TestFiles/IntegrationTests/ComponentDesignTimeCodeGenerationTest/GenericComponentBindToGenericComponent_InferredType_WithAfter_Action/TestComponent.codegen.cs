@@ -8,18 +8,19 @@ namespace Test
     using global::System.Linq;
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
-    public partial class TestComponent<TParam> : global::Microsoft.AspNetCore.Components.ComponentBase
-    {
-        #pragma warning disable 219
-        private void __RazorDirectiveTokenHelpers__() {
-        ((global::System.Action)(() => {
+    public partial class TestComponent<
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-global::System.Object TParam = null!;
+TParam
 
 #line default
 #line hidden
 #nullable disable
+    > : global::Microsoft.AspNetCore.Components.ComponentBase
+    {
+        #pragma warning disable 219
+        private void __RazorDirectiveTokenHelpers__() {
+        ((global::System.Action)(() => {
         }
         ))();
         }
@@ -39,7 +40,15 @@ global::System.Object TParam = null!;
 #line hidden
 #nullable disable
             , -1, 
-            __value => { ParentValue = __value; global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate(Update); });
+             __value => { ParentValue = __value; global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate(
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+                                                              Update
+
+#line default
+#line hidden
+#nullable disable
+            ); });
             #pragma warning disable BL0005
             __typeInference_CreateMyComponent_0.
 #nullable restore

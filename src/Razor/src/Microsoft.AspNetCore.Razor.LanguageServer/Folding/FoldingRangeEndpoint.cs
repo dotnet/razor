@@ -20,7 +20,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 
 [LanguageServerEndpoint(Methods.TextDocumentFoldingRangeName)]
-internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangeParams, IEnumerable<FoldingRange>?>, IRegistrationExtension
+internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangeParams, IEnumerable<FoldingRange>?>, ICapabilitiesProvider
 {
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
@@ -41,13 +41,9 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
         _logger = loggerFactory.CreateLogger<FoldingRangeEndpoint>();
     }
 
-    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        const string AssociatedServerCapability = "foldingRangeProvider";
-
-        var registrationOptions = new SumType<bool, FoldingRangeOptions>(new FoldingRangeOptions());
-
-        return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
+        serverCapabilities.FoldingRangeProvider = new FoldingRangeOptions();
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(FoldingRangeParams request)
@@ -68,7 +64,7 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
         var requestParams = new RazorFoldingRangeRequestParam
         {
             HostDocumentVersion = documentContext.Version,
-            TextDocument = @params.TextDocument
+            TextDocument = @params.TextDocument,
         };
 
         IEnumerable<FoldingRange>? foldingRanges = null;
@@ -95,7 +91,7 @@ internal sealed class FoldingRangeEndpoint : IRazorRequestHandler<FoldingRangePa
     private async Task<IEnumerable<FoldingRange>?> HandleCoreAsync(RazorFoldingRangeRequestParam requestParams, DocumentContext documentContext, CancellationToken cancellationToken)
     {
         var foldingResponse = await _languageServer.SendRequestAsync<RazorFoldingRangeRequestParam, RazorFoldingRangeResponse?>(
-            RazorLanguageServerCustomMessageTargets.RazorFoldingRangeEndpoint,
+            CustomMessageNames.RazorFoldingRangeEndpoint,
             requestParams,
             cancellationToken).ConfigureAwait(false);
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);

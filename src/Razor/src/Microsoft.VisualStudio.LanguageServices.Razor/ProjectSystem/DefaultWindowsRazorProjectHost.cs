@@ -66,7 +66,8 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
     protected override async Task HandleProjectChangeAsync(IProjectVersionedValue<IProjectSubscriptionUpdate> update)
     {
-        if (TryGetConfiguration(update.Value.CurrentState, out var configuration))
+        if (TryGetConfiguration(update.Value.CurrentState, out var configuration) &&
+            TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
         {
             TryGetRootNamespace(update.Value.CurrentState, out var rootNamespace);
 
@@ -82,31 +83,39 @@ internal class DefaultWindowsRazorProjectHost : WindowsRazorProjectHostBase
 
             await UpdateAsync(() =>
             {
-                var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, configuration, rootNamespace);
+                var hostProject = new HostProject(CommonServices.UnconfiguredProject.FullPath, intermediatePath, configuration, rootNamespace);
 
-                if (TryGetIntermediateOutputPath(update.Value.CurrentState, out var intermediatePath))
+                if (_languageServerFeatureOptions is not null)
                 {
                     var projectConfigurationFile = Path.Combine(intermediatePath, _languageServerFeatureOptions.ProjectConfigurationFileName);
-                    ProjectConfigurationFilePathStore.Set(hostProject.FilePath, projectConfigurationFile);
+                    ProjectConfigurationFilePathStore.Set(hostProject.Key, projectConfigurationFile);
                 }
 
                 UpdateProjectUnsafe(hostProject);
 
                 for (var i = 0; i < changedDocuments.Length; i++)
                 {
-                    RemoveDocumentUnsafe(hostProject, changedDocuments[i]);
+                    RemoveDocumentUnsafe(hostProject.Key, changedDocuments[i]);
                 }
 
                 for (var i = 0; i < documents.Length; i++)
                 {
-                    AddDocumentUnsafe(hostProject, documents[i]);
+                    AddDocumentUnsafe(hostProject.Key, documents[i]);
                 }
             }, CancellationToken.None).ConfigureAwait(false);
         }
         else
         {
             // Ok we can't find a configuration. Let's assume this project isn't using Razor then.
-            await UpdateAsync(() => UninitializeProjectUnsafe(CommonServices.UnconfiguredProject.FullPath), CancellationToken.None).ConfigureAwait(false);
+            await UpdateAsync(() =>
+            {
+                var projectManager = GetProjectManager();
+                var projectKeys = projectManager.GetAllProjectKeys(CommonServices.UnconfiguredProject.FullPath);
+                foreach (var projectKey in projectKeys)
+                {
+                    UninitializeProjectUnsafe(projectKey);
+                }
+            }, CancellationToken.None).ConfigureAwait(false);
         }
     }
 

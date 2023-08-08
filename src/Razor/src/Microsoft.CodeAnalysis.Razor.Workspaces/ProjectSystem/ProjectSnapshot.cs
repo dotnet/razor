@@ -26,6 +26,8 @@ internal class ProjectSnapshot : IProjectSnapshot
         _documents = new Dictionary<string, DocumentSnapshot>(FilePathComparer.Instance);
     }
 
+    public ProjectKey Key => State.HostProject.Key;
+
     public ProjectState State { get; }
 
     public RazorConfiguration? Configuration => HostProject.Configuration;
@@ -33,6 +35,8 @@ internal class ProjectSnapshot : IProjectSnapshot
     public IEnumerable<string> DocumentFilePaths => State.Documents.Keys;
 
     public string FilePath => State.HostProject.FilePath;
+
+    public string IntermediateOutputPath => State.HostProject.IntermediateOutputPath;
 
     public string? RootNamespace => State.HostProject.RootNamespace;
 

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -111,5 +110,18 @@ internal static class RazorSyntaxFacts
 
             return new TextSpan(start, length);
         }
+    }
+
+    public static CSharpCodeBlockSyntax? TryGetCSharpCodeFromCodeBlock(SyntaxNode node)
+    {
+        if (node is CSharpCodeBlockSyntax block &&
+            block.Children.FirstOrDefault() is RazorDirectiveSyntax directive &&
+            directive.Body is RazorDirectiveBodySyntax directiveBody &&
+            directiveBody.Keyword.GetContent().Equals("code"))
+        {
+            return directiveBody.CSharpCode;
+        }
+
+        return null;
     }
 }

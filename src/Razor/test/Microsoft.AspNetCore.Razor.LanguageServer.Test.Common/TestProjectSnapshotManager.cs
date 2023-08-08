@@ -5,6 +5,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
@@ -15,18 +16,13 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 
 internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
 {
-    private TestProjectSnapshotManager(ProjectSnapshotManagerDispatcher dispatcher, IErrorReporter errorReporter, Workspace workspace)
-        : base(dispatcher, errorReporter, Array.Empty<ProjectSnapshotChangeTrigger>(), workspace)
+    private TestProjectSnapshotManager(IErrorReporter errorReporter, Workspace workspace)
+        : base(errorReporter, Array.Empty<IProjectSnapshotChangeTrigger>(), workspace)
     {
     }
 
-    public static TestProjectSnapshotManager Create(ProjectSnapshotManagerDispatcher dispatcher, IErrorReporter errorReporter)
+    public static TestProjectSnapshotManager Create(IErrorReporter errorReporter)
     {
-        if (dispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(dispatcher));
-        }
-
         var services = TestServices.Create(
             workspaceServices: new[]
             {
@@ -34,12 +30,28 @@ internal class TestProjectSnapshotManager : DefaultProjectSnapshotManager
             },
             razorLanguageServices: Enumerable.Empty<ILanguageService>());
         var workspace = TestWorkspace.Create(services);
-        var testProjectManager = new TestProjectSnapshotManager(dispatcher, errorReporter, workspace);
+        var testProjectManager = new TestProjectSnapshotManager(errorReporter, workspace);
 
         return testProjectManager;
     }
 
     public bool AllowNotifyListeners { get; set; }
+
+    public TestDocumentSnapshot CreateAndAddDocument(ProjectSnapshot projectSnapshot, string filePath)
+    {
+        var documentSnapshot = TestDocumentSnapshot.Create(Workspace, projectSnapshot, filePath);
+        DocumentAdded(projectSnapshot.Key, documentSnapshot.HostDocument, new DocumentSnapshotTextLoader(documentSnapshot));
+
+        return documentSnapshot;
+    }
+
+    internal TestProjectSnapshot CreateAndAddProject(string filePath)
+    {
+        var projectSnapshot = TestProjectSnapshot.Create(filePath);
+        ProjectAdded(projectSnapshot.HostProject);
+
+        return projectSnapshot;
+    }
 
     protected override void NotifyListeners(ProjectChangeEventArgs e)
     {
