@@ -19,7 +19,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     public ComponentRenderModeDirectiveIntegrationTests()
     {
         // Include the required runtime source
-        BaseCompilation = DefaultBaseCompilation.AddSyntaxTrees(Parse(RenderModeAttribute));
+        BaseCompilation = DefaultBaseCompilation.AddSyntaxTrees(Parse(RenderModeAttribute, path: "RuntimeAttributes.cs"));
     }
 
     internal override CSharpCompilation BaseCompilation { get; }
@@ -36,12 +36,12 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
 
         // Assert
         var attribute = Assert.Single(component.GetType().CustomAttributes);
-        Assert.Equal("PrivateComponentRenderModeAttribute", attribute.AttributeType.Name);
+        Assert.EndsWith("PrivateComponentRenderModeAttribute", attribute.AttributeType.Name);
 
-        var nestedType = component.GetType().GetNestedType("PrivateComponentRenderModeAttribute", System.Reflection.BindingFlags.NonPublic);
-        Assert.NotNull(nestedType);
+        var attributeType = component.GetType().Assembly.GetTypes().Single(t => t.Name.EndsWith("PrivateComponentRenderModeAttribute", StringComparison.Ordinal));
+        Assert.NotNull(attributeType);
 
-        var modeProperty = nestedType.GetProperty("Mode");
+        var modeProperty = attributeType.GetProperty("Mode");
         Assert.NotNull(modeProperty);
     }
 
@@ -56,12 +56,12 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
 
         // Assert
         var attribute = Assert.Single(component.GetType().CustomAttributes);
-        Assert.Equal("PrivateComponentRenderModeAttribute", attribute.AttributeType.Name);
+        Assert.EndsWith("PrivateComponentRenderModeAttribute", attribute.AttributeType.Name);
 
-        var nestedType = component.GetType().GetNestedType("PrivateComponentRenderModeAttribute", System.Reflection.BindingFlags.NonPublic);
-        Assert.NotNull(nestedType);
+        var attributeType = component.GetType().Assembly.GetTypes().Single(t => t.Name.EndsWith("PrivateComponentRenderModeAttribute", StringComparison.Ordinal));
+        Assert.NotNull(attributeType);
 
-        var modeProperty = nestedType.GetProperty("Mode");
+        var modeProperty = attributeType.GetProperty("Mode");
         Assert.NotNull(modeProperty);
     }
 

@@ -41,7 +41,8 @@ internal class ComponentRenderModeDirectivePass : IntermediateNodePassBase, IRaz
             ClassName = "PrivateComponentRenderModeAttribute",
             BaseType = "RenderModeAttribute",
         };
-        classDecl.Modifiers.Add("private");
+        classDecl.Modifiers.Add("file");
+        classDecl.Modifiers.Add("sealed");
 
         // PROTOTYPE: PropertyDeclarationIntermediateNode doens't support emitting anything other than autoprops right now so just use an interpolated string
         //var propertyDecl = new PropertyDeclarationIntermediateNode()
@@ -69,22 +70,22 @@ internal class ComponentRenderModeDirectivePass : IntermediateNodePassBase, IRaz
         });
 
         classDecl.Children.Add(propertyDecl);
-        @class.Children.Add(classDecl);
 
         // generate the attribute usage on top of the class
         var attributeNode = new CSharpCodeIntermediateNode();
         attributeNode.Children.Add(new IntermediateToken()
         {
             Kind = TokenKind.CSharp,
-            Content = $"[{@namespace.Content}.{@class.ClassName}.PrivateComponentRenderModeAttribute]",
+            Content = $"[global::{@namespace.Content}.PrivateComponentRenderModeAttribute]",
         });
 
-        // Insert the new attribute on top of the class
+        // Insert the new attribute on top of the class, and the definition underneath it
         for (var i = 0; i < @namespace.Children.Count; i++)
         {
             if (object.ReferenceEquals(@namespace.Children[i], @class))
             {
                 @namespace.Children.Insert(i, attributeNode);
+                @namespace.Children.Insert(i + 2, classDecl);
                 break;
             }
         }
