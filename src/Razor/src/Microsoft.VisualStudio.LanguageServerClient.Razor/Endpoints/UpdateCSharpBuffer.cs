@@ -78,6 +78,8 @@ internal partial class RazorCustomMessageTarget
             {
                 if (virtualDocument.ProjectKey.Id == request.ProjectKeyId)
                 {
+                    _outputWindowLogger?.LogDebug("UpdateCSharpBuffer virtual doc for {version} of {uri}", request.HostDocumentVersion.Value, virtualDocument.Uri);
+
                     _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
                         hostDocumentUri,
                         virtualDocument.Uri,
@@ -96,10 +98,14 @@ internal partial class RazorCustomMessageTarget
                 Debug.Fail("Multiple virtual documents seem to be supported, but none were updated, which is not impossible, but surprising.");
             }
 
+            _outputWindowLogger?.LogDebug("UpdateCSharpBuffer couldn't find any virtual docs for {version} of {uri}", request.HostDocumentVersion.Value, hostDocumentUri);
+
             // Don't know about document, no-op. This can happen if the language server found a project.razor.json from an old build
             // and is sending us updates.
             return;
         }
+
+        _outputWindowLogger?.LogDebug("UpdateCSharpBuffer fallback for {version} of {uri}", request.HostDocumentVersion.Value, hostDocumentUri);
 
         _documentManager.UpdateVirtualDocument<CSharpVirtualDocument>(
             hostDocumentUri,

@@ -73,6 +73,8 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
             {
                 return new DocumentSnapshotAndVersion(documentSnapshot, version.Value);
             }
+
+            _logger.LogWarning("Tried to create context for document {filePath} and project {projectContext} and a document was found, but version didn't match.", filePath, projectContext?.Id);
         }
 
         // This is super rare, if we get here it could mean many things. Some of which:
@@ -81,7 +83,7 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
         //          - Took too long to run and by the time the request needed the document context the
         //            version cache has evicted the entry
         //     2. Client is misbehaving and sending requests for a document that we've never seen before.
-        _logger.LogWarning("Tried to create context for document {filePath} and project {projectContext} which was not found.", filePath, projectContext);
+        _logger.LogWarning("Tried to create context for document {filePath} and project {projectContext} which was not found.", filePath, projectContext?.Id);
         return null;
     }
 

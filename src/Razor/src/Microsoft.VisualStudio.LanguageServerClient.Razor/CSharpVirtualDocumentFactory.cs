@@ -9,7 +9,9 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
@@ -103,6 +105,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         foreach (var projectKey in GetProjectKeys(hostDocumentUri))
         {
             // We just call the base class here, it will call back into us to produce the virtual document uri
+            _logger.LogDebug("Creating C# virtual document for {projectKey} for {uri}", projectKey, hostDocumentUri);
             newVirtualDocuments.Add(CreateVirtualDocument(projectKey, hostDocumentUri));
         }
 
@@ -127,6 +130,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         // host document has been removed completely from all projects, we assume the document manager will clean it up soon anyway.
         if (projectKeys.Count == 0)
         {
+            _logger.LogWarning("Can't refresh C# virtual documents because no projects found for {uri}", document.Uri);
             return false;
         }
 
@@ -153,6 +157,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
             {
                 // Project has been removed, or document is no longer in it. Dispose the old virtual document
                 didWork = true;
+                _logger.LogDebug("Disposing C# virtual document for {projectKey} for {uri}", csharpVirtualDocument.ProjectKey, csharpVirtualDocument.Uri);
                 virtualDocument.Dispose();
             }
         }
@@ -162,6 +167,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         {
             // We just call the base class here, it will call back into us to produce the virtual document uri
             didWork = true;
+            _logger.LogDebug("Creating C# virtual document for {projectKey} for {uri}", key, document.Uri);
             virtualDocuments.Add(CreateVirtualDocument(key, document.Uri));
         }
 

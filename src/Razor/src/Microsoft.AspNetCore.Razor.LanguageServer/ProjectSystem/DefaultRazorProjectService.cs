@@ -344,6 +344,8 @@ internal class DefaultRazorProjectService : RazorProjectService
 
     private void UpdateProjectDocuments(IReadOnlyList<DocumentSnapshotHandle> documents, ProjectKey projectKey)
     {
+        _logger.LogDebug("UpdateProjectDocuments for {projectKey} with {documentCount} documents.", projectKey, documents.Count);
+
         var project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectKey);
         var currentHostProject = project.HostProject;
         var projectDirectory = FilePathNormalizer.GetDirectory(project.FilePath);
@@ -358,6 +360,8 @@ internal class DefaultRazorProjectService : RazorProjectService
                 // This document still exists in the updated project
                 continue;
             }
+
+            _logger.LogDebug("Document '{documentFilePath}' no longer exists in project '{projectKey}'. Moving to miscellaneous project.", documentFilePath, projectKey);
 
             MoveDocument(documentFilePath, project, miscellaneousProject);
         }
