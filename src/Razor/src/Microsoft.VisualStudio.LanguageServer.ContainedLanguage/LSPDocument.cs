@@ -23,6 +23,11 @@ public abstract class LSPDocument : IDisposable
 
     public abstract IReadOnlyList<VirtualDocument> VirtualDocuments { get; }
 
+    internal virtual void SetVirtualDocuments(IReadOnlyList<VirtualDocument> virtualDocuments)
+    {
+        // No-op in the default implementation.
+    }
+
     public abstract LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object? state) where TVirtualDocument : VirtualDocument;
 
     public virtual LSPDocumentSnapshot UpdateVirtualDocument<TVirtualDocument>(TVirtualDocument virtualDocument, IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object? state) where TVirtualDocument : VirtualDocument
