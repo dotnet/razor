@@ -241,6 +241,11 @@ public abstract class RazorProjectEngine
             ComponentPreserveWhitespaceDirective.Register(builder);
         }
 
+        if (razorLanguageVersion.CompareTo(RazorLanguageVersion.Version_8_0) >= 0)
+        {
+            ComponentRenderModeDirective.Register(builder);
+        }
+
         // Document Classifier
         builder.Features.Add(new ComponentDocumentClassifierPass(razorLanguageVersion));
 
