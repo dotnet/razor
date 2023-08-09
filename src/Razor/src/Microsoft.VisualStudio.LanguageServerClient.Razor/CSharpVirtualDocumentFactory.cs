@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -105,23 +104,74 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         return virtualDocuments.Length > 0;
     }
 
+    internal override bool TryRefreshVirtualDocuments(LSPDocument document, [NotNullWhen(true)] out IReadOnlyList<VirtualDocument>? newVirtualDocuments)
+    {
+        newVirtualDocuments = null;
+        var projectKeys = GetProjectKeys(document.Uri).ToList();
+
+        // If the document is in no projects, we don't do anything, as it means we probably got a notification about the project being added
+        // before the document was added. If we didn't know about any projects, we would have gotten one project key back, and if the
+        // host document has been removed completely from all projects, we assume the document manager will clean it up soon anyway.
+        if (projectKeys.Count == 0)
+        {
+            return false;
+        }
+
+        var virtualDocuments = new List<VirtualDocument>();
+
+        var didWork = false;
+        foreach (var virtualDocument in document.VirtualDocuments)
+        {
+            if (virtualDocument is not CSharpVirtualDocument csharpVirtualDocument)
+            {
+                // We only care about CSharpVirtualDocuments
+                virtualDocuments.Add(virtualDocument);
+                continue;
+            }
+
+            var index = projectKeys.IndexOf(csharpVirtualDocument.ProjectKey);
+            if (index > -1)
+            {
+                // No change to our virtual document, remove this key from the list so we don't add a duplicate later
+                projectKeys.RemoveAt(index);
+                virtualDocuments.Add(virtualDocument);
+            }
+            else
+            {
+                // Project has been removed, or document is no longer in it. Dispose the old virtual document
+                didWork = true;
+                virtualDocument.Dispose();
+            }
+        }
+
+        // Any keys left mean new documents we need to create and add
+        foreach (var key in projectKeys)
+        {
+            // We just call the base class here, it will call back into us to produce the virtual document uri
+            didWork = true;
+            virtualDocuments.Add(CreateVirtualDocument(key, document.Uri));
+        }
+
+        if (didWork)
+        {
+            newVirtualDocuments = virtualDocuments.AsReadOnly();
+        }
+
+        return didWork;
+    }
+
     private IEnumerable<ProjectKey> GetProjectKeys(Uri hostDocumentUri)
     {
         var projects = _projectSnapshotManagerAccessor.Instance.GetProjects();
 
         var inAny = false;
-        var normalizedDocumentPath = FilePathNormalizer.Normalize(hostDocumentUri.GetAbsoluteOrUNCPath());
+        var normalizedDocumentPath = DocumentFilePathProvider.GetProjectSystemFilePath(hostDocumentUri);
         foreach (var projectSnapshot in projects)
         {
-            // TODO: Can't call projectSnapshot.GetDocument as the paths are not normalized the same. Why?
-            foreach (var document in projectSnapshot.DocumentFilePaths)
+            if (projectSnapshot.GetDocument(normalizedDocumentPath) is not null)
             {
-                if (FilePathNormalizer.FilePathsEquivalent(document, normalizedDocumentPath))
-                {
-                    inAny = true;
-                    yield return projectSnapshot.Key;
-                    break;
-                }
+                inAny = true;
+                yield return projectSnapshot.Key;
             }
         }
 
@@ -129,7 +179,8 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         {
             // We got called before we know about any projects. Probably just a .razor document being restored in VS from a previous session.
             // All we can do is return a default key and hope for the best.
-            // TODO: We should create a Misc Files project on this (VS) side so the nav bar looks nicer
+            // TODO: Do we need to create some sort of Misc Files project on this (VS) side so the nav bar looks nicer?
+            _logger.LogDebug("Could not find any documents in projects for {uri}", hostDocumentUri);
             yield return default;
         }
     }

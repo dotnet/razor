@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using StreamJsonRpc;
 
@@ -41,6 +42,30 @@ internal partial class RazorCustomMessageTarget
         if (_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot) &&
             documentSnapshot.TryGetAllVirtualDocuments<CSharpVirtualDocumentSnapshot>(out var virtualDocuments))
         {
+            if (request.ProjectKeyId is not null &&
+                virtualDocuments is [{ ProjectKey.Id: null }])
+            {
+                // If there is only a single virtual document, and its got a null id, then that means it's in our "misc files" project
+                // but the server clearly knows about it in a real project. That means its probably new, as Visual Studio opens a buffer
+                // for a document before we get the notifications about it being added to any projects. Lets try refreshing before
+                // we worry.
+                _documentManager.RefreshVirtualDocuments();
+
+                // Since we're dealing with snapshots, we have to get the new ones after refreshing
+                if (!_documentManager.TryGetDocument(hostDocumentUri, out documentSnapshot) ||
+                    !documentSnapshot.TryGetAllVirtualDocuments<CSharpVirtualDocumentSnapshot>(out virtualDocuments))
+                {
+                    // This should never happen.
+                    // The server clearly wants to tell us about a document in a project, but we don't know which project it's in.
+                    // Sadly there isn't anything we can do here to, we're just in a state where the server and client are out of
+                    // sync with their understanding of the document contents, and since changes come in as a list of changes,
+                    // the user experience is broken. All we can do is hope the user closes and re-opens the document.
+                    Debug.Fail($"Server wants to update {hostDocumentUri} in {request.ProjectKeyId} but we don't know about the document being in any projects");
+                    _outputWindowLogger?.LogError("Server wants to update {hostDocumentUri} in {projectKeyId} by we only know about that document in misc files. Server and client are now out of sync.", hostDocumentUri, request.ProjectKeyId);
+                    return;
+                }
+            }
+
             foreach (var virtualDocument in virtualDocuments)
             {
                 if (virtualDocument.ProjectKey.Id == request.ProjectKeyId)

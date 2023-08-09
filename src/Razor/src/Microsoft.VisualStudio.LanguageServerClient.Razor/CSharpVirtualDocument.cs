@@ -15,5 +15,7 @@ internal class CSharpVirtualDocument(ProjectKey projectKey, Uri uri, ITextBuffer
     //       will initialize the field before calling the base constructor.
     private readonly ProjectKey _projectKey = projectKey;
 
+    internal ProjectKey ProjectKey => _projectKey;
+
     protected override CSharpVirtualDocumentSnapshot GetUpdatedSnapshot(object? state) => new(_projectKey, Uri, TextBuffer.CurrentSnapshot, HostDocumentVersion);
 }
