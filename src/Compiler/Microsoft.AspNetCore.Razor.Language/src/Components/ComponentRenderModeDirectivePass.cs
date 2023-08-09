@@ -35,11 +35,11 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
         }
 
         // generate the inner attribute class
-        // PROTOTYPE: fully qualify type names and extract them out to consts
+        // PROTOTYPE: extract out to consts
         var classDecl = new ClassDeclarationIntermediateNode()
         {
             ClassName = "PrivateComponentRenderModeAttribute",
-            BaseType = "RenderModeAttribute",
+            BaseType = "global::Microsoft.AspNetCore.Components.RenderModeAttribute",
         };
         classDecl.Modifiers.Add("file");
         classDecl.Modifiers.Add("sealed");
