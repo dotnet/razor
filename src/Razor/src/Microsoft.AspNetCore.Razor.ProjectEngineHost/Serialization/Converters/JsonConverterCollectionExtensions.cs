@@ -17,7 +17,6 @@ internal static class JsonConverterCollectionExtensions
             ProjectRazorJsonJsonConverter.Instance,
             ProjectSnapshotHandleJsonConverter.Instance,
             TagHelperDeltaResultJsonConverter.Instance,
-            TagHelperResolutionResultJsonConverter.Instance,
         });
 
     public static void RegisterRazorConverters(this ICollection<JsonConverter> collection)
