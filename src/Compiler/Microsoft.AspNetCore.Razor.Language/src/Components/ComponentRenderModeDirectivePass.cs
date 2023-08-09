@@ -43,33 +43,45 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
         };
         classDecl.Modifiers.Add("file");
         classDecl.Modifiers.Add("sealed");
-
-        // PROTOTYPE: PropertyDeclarationIntermediateNode doens't support emitting anything other than autoprops right now so just use an interpolated string
-        //var propertyDecl = new PropertyDeclarationIntermediateNode()
-        //{
-        //    PropertyName = "Mode",
-        //    PropertyType = "IComponentRenderMode",
-        //    Modifiers =
-        //    {
-        //        "public",
-        //        "override"
-        //    }
-        //};
-
-        var propertyDecl = new CSharpCodeIntermediateNode();
-        propertyDecl.Source = token.Source; // PROTOYPE: this is the best we can do until we can emit properties properly
-        propertyDecl.Children.Add(new IntermediateToken()
+        classDecl.Children.Add(new CSharpCodeIntermediateNode()
         {
-            Kind = TokenKind.CSharp,
-            Content = $"private static IComponentRenderMode ModeImpl => {token.Content};\n"
+            Children =
+            {
+                new IntermediateToken()
+                {
+                    Kind = TokenKind.CSharp,
+                    Content = $"private static IComponentRenderMode ModeImpl => "
+                },
+                new CSharpCodeIntermediateNode() {
+                    Source = token.Source,
+                    Children =
+                    {
+                        new IntermediateToken()
+                        {
+                            Kind = TokenKind.CSharp,
+                            Content = token.Content
+                        }
+                    }
+                },
+                new IntermediateToken()
+                {
+                    Source = token.Source,
+                    Kind = TokenKind.CSharp,
+                    Content = ";"
+                }
+            }
         });
-        propertyDecl.Children.Add(new IntermediateToken()
+        classDecl.Children.Add(new CSharpCodeIntermediateNode()
         {
-            Kind = TokenKind.CSharp,
-            Content = $"public override IComponentRenderMode Mode => ModeImpl;"
+            Children =
+            {
+                new IntermediateToken()
+                {
+                    Kind = TokenKind.CSharp,
+                    Content = $"public override IComponentRenderMode Mode => ModeImpl;"
+                }
+            }
         });
-
-        classDecl.Children.Add(propertyDecl);
 
         // generate the attribute usage on top of the class
         var attributeNode = new CSharpCodeIntermediateNode();
