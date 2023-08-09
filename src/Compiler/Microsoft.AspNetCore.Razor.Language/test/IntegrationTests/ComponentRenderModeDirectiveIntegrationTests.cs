@@ -15,10 +15,10 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     public ComponentRenderModeDirectiveIntegrationTests()
     {
         // Include the required runtime source
-        BaseCompilation = DefaultBaseCompilation.AddSyntaxTrees(Parse(RenderModeAttribute, path: "RuntimeAttributes.cs"));
+        BaseCompilation = (CSharpCompilation)AddRequiredAttributes(DefaultBaseCompilation);
     }
 
-    internal override CSharpCompilation BaseCompilation { get; }
+    internal override CSharpCompilation BaseCompilation { get; } 
 
     internal override string FileKind => FileKinds.Component;
 
@@ -185,6 +185,8 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
             Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "rendermode").WithArguments("Test.TestComponent.rendermode").WithLocation(5, 12)
             );
     }
+
+    internal static Compilation AddRequiredAttributes(Compilation compilation) => compilation.AddSyntaxTrees(Parse(RenderModeAttribute, path: "RuntimeAttributes.cs"));
 
     private const string RenderModeAttribute = """
          using System;

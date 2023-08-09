@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -9986,6 +9986,26 @@ Time: @DateTime.Now
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, throwOnFailure: false);
+    }
+
+    #endregion
+
+    #region RenderMode
+
+    [Fact]
+    public void RenderMode_Directive_FullyQualified()
+    {
+        var generated = CompileToCSharp("""
+                @rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+                """, throwOnFailure: false);    
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+
+        // add the required attributes
+        generated.BaseCompilation = ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(generated.BaseCompilation);
+        CompileToAssembly(generated, throwOnFailure: true);
     }
 
     #endregion
