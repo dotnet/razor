@@ -26,9 +26,9 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     public void RenderMode_With_Fully_Qualified_Type()
     {
         // Arrange & Act
-        var component = CompileToComponent($@"
-@rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
-");
+        var component = CompileToComponent("""
+            @rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+            """);
 
         // Assert
         var attribute = Assert.Single(component.GetType().CustomAttributes);
@@ -54,10 +54,10 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     public void RenderMode_With_Static_Usings()
     {
         // Arrange & Act
-        var component = CompileToComponent($@"
-@using static Microsoft.AspNetCore.Components.DefaultRenderModes
-@rendermode Server
-");
+        var component = CompileToComponent("""
+            @using static Microsoft.AspNetCore.Components.DefaultRenderModes
+            @rendermode Server
+            """);
 
         // Assert
         var attribute = Assert.Single(component.GetType().CustomAttributes);
@@ -83,9 +83,10 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     public void RenderMode_Missing_Value()
     {
         // Arrange & Act
-        var compilationResult = CompileToCSharp($@"
-@rendermode
-");
+        var compilationResult = CompileToCSharp("""
+            @rendermode
+
+            """);
 
         // Assert
         // Error RZ1014: The 'rendermode' directive expects a namespace name.
@@ -97,10 +98,10 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     public void DuplicateRenderModes()
     {
         // Arrange & Act
-        var compilationResult = CompileToCSharp($@"
-@rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
-@rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
-");
+        var compilationResult = CompileToCSharp("""
+            @rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+            @rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+            """);
 
         // Assert
         //Error RZ2001: The 'rendermode' directive may only occur once per document.
@@ -111,25 +112,26 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     [Fact]
     public void RenderMode_With_InvalidIdentifier()
     {
-        var compilationResult = CompileToCSharp($@"
-@rendermode NoExist
-");
+        var compilationResult = CompileToCSharp("""
+            @rendermode NoExist
+            """);
 
         Assert.Empty(compilationResult.Diagnostics);
 
         var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: false);
         assemblyResult.Diagnostics.Verify(
-            // x:\dir\subdir\Test\TestComponent.cshtml(1,61): error CS0103: The name 'NoExist' does not exist in the current context
-            //             private static IComponentRenderMode ModeImpl => NoExist;
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "NoExist").WithArguments("NoExist").WithLocation(1, 61));
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,13): error CS0103: The name 'NoExist' does not exist in the current context
+            //             NoExist
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "NoExist").WithArguments("NoExist").WithLocation(1, 13)
+            );
     }
 
     [Fact]
     public void LanguageVersion()
     {
-        var compilationResult = CompileToCSharp($@"
-@rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
-", configuration: Configuration.WithVersion(RazorLanguageVersion.Version_7_0));
+        var compilationResult = CompileToCSharp("""
+            @rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+            """, configuration: Configuration.WithVersion(RazorLanguageVersion.Version_7_0));
 
         Assert.Empty(compilationResult.Diagnostics);
 
@@ -144,13 +146,14 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     [Fact]
     public void LanguageVersion_BreakingChange_7_0()
     {
-        var compilationResult = CompileToCSharp($@"
-@rendermode Foo
+        var compilationResult = CompileToCSharp("""
+            @rendermode Foo
 
-@code{{
-    string rendermode = ""Something"";
-}}
-", configuration: Configuration.WithVersion(RazorLanguageVersion.Version_7_0));
+            @code
+            {
+                string rendermode = "Something";
+            }
+            """, configuration: Configuration.WithVersion(RazorLanguageVersion.Version_7_0));
 
         Assert.Empty(compilationResult.Diagnostics);
 
@@ -161,45 +164,46 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     [Fact]
     public void LanguageVersion_BreakingChange_8_0()
     {
-        var compilationResult = CompileToCSharp($@"
-@rendermode Foo
+        var compilationResult = CompileToCSharp("""
+            @rendermode Foo
 
-@code{{
-    string rendermode = ""Something"";
-}}
-", configuration: Configuration.WithVersion(RazorLanguageVersion.Version_8_0));
+            @code
+            {
+                string rendermode = "Something";
+            }
+            """, configuration: Configuration.WithVersion(RazorLanguageVersion.Version_8_0));
 
         Assert.Empty(compilationResult.Diagnostics);
 
         var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: false);
         assemblyResult.Diagnostics.Verify(
-            // x:\dir\subdir\Test\TestComponent.cshtml(1,61): error CS0103: The name 'Foo' does not exist in the current context
-            //             private static IComponentRenderMode ModeImpl => Foo;
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(1, 61),
-            // x:\dir\subdir\Test\TestComponent.cshtml(4,12): warning CS0414: The field 'TestComponent.rendermode' is assigned but its value is never used
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,13): error CS0103: The name 'Foo' does not exist in the current context
+            //             Foo
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(1, 13),
+            // x:\dir\subdir\Test\TestComponent.cshtml(5,12): warning CS0414: The field 'TestComponent.rendermode' is assigned but its value is never used
             //     string rendermode = "Something";
-            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "rendermode").WithArguments("Test.TestComponent.rendermode").WithLocation(4, 12)
+            Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "rendermode").WithArguments("Test.TestComponent.rendermode").WithLocation(5, 12)
             );
     }
 
     private const string RenderModeAttribute = """
- using System;
- namespace Microsoft.AspNetCore.Components;
+         using System;
+         namespace Microsoft.AspNetCore.Components;
 
- public interface IComponentRenderMode
- {
- }
+         public interface IComponentRenderMode
+         {
+         }
 
- [AttributeUsage(AttributeTargets.Class)]
- public abstract class RenderModeAttribute : Attribute
- {
-     public abstract IComponentRenderMode Mode { get; }
- }
+         [AttributeUsage(AttributeTargets.Class)]
+         public abstract class RenderModeAttribute : Attribute
+         {
+             public abstract IComponentRenderMode Mode { get; }
+         }
 
- public class DefaultRenderModes : IComponentRenderMode
- {
-    public static IComponentRenderMode Server = new DefaultRenderModes();
- }
- """;
+         public class DefaultRenderModes : IComponentRenderMode
+         {
+            public static IComponentRenderMode Server = new DefaultRenderModes();
+         }
+         """;
 }
 

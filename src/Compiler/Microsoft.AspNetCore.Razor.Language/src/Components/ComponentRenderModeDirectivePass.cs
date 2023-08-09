@@ -50,9 +50,10 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
                 new IntermediateToken()
                 {
                     Kind = TokenKind.CSharp,
-                    Content = $"private static IComponentRenderMode ModeImpl => "
+                    Content = "private static IComponentRenderMode ModeImpl => "
                 },
-                new CSharpCodeIntermediateNode() {
+                new CSharpCodeIntermediateNode()
+                {
                     Source = token.Source,
                     Children =
                     {
@@ -78,7 +79,7 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
                 new IntermediateToken()
                 {
                     Kind = TokenKind.CSharp,
-                    Content = $"public override IComponentRenderMode Mode => ModeImpl;"
+                    Content = "public override IComponentRenderMode Mode => ModeImpl;"
                 }
             }
         });
