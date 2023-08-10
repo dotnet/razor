@@ -28,7 +28,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            , -1, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::TItem[]>(this, 
+            , -1, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create(this, 
             global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => Selected = __value, Selected)), -1, () => Selected);
             #pragma warning disable BL0005
             __typeInference_CreateMyComponent_0.

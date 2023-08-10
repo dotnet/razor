@@ -22,24 +22,45 @@ internal class DefaultTypeNameFeature : TypeNameFeature
         }
 
         var parsed = SyntaxFactory.ParseTypeName(typeName);
+
         if (parsed is IdentifierNameSyntax identifier)
         {
             return Array.Empty<string>();
         }
-        else if (parsed is ArrayTypeSyntax array)
+
+        if (TryParseCore(parsed) is { } list)
         {
-            return new[] { array.ElementType.ToString() };
+            return list;
         }
-        else if (parsed is TupleTypeSyntax tuple)
+
+        return parsed.DescendantNodesAndSelf()
+            .OfType<TypeArgumentListSyntax>()
+            .SelectMany(arg => arg.Arguments)
+            .SelectMany(ParseCore).ToArray();
+
+        static IReadOnlyList<string> TryParseCore(TypeSyntax parsed)
         {
-            return tuple.Elements.Select(a => a.ToString()).ToList();
+            if (parsed is ArrayTypeSyntax array)
+            {
+                return new[] { array.ElementType.ToString() };
+            }
+
+            if (parsed is TupleTypeSyntax tuple)
+            {
+                return tuple.Elements.Select(a => a.ToString()).ToList();
+            }
+
+            return null;
         }
-        else
+
+        static IReadOnlyList<string> ParseCore(TypeSyntax parsed)
         {
-            return parsed.DescendantNodesAndSelf()
-                .OfType<TypeArgumentListSyntax>()
-                .SelectMany(arg => arg.Arguments)
-                .Select(a => a.ToString()).ToList();
+            if (TryParseCore(parsed) is { } list)
+            {
+                return list;
+            }
+
+            return new[] { parsed.ToString() };
         }
     }
 

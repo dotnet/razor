@@ -21,7 +21,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            , 2, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::TItem[]>(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => Selected = __value, Selected)), 3, () => Selected);
+            , 2, global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => Selected = __value, Selected)), 3, () => Selected);
         }
         #pragma warning restore 1998
 #nullable restore
