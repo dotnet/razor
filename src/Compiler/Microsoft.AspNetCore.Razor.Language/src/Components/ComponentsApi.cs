@@ -57,6 +57,11 @@ internal static class ComponentsApi
         public const string RenderModeVariableName = "__renderMode";
     }
 
+    public static class RenderModeAttribute
+    {
+        public const string FullTypeName = "Microsoft.AspNetCore.Component.RenderModeAttribute";
+    }
+
     public static class RenderFragment
     {
         public const string Namespace = "Microsoft.AspNetCore.Components";
