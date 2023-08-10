@@ -160,6 +160,6 @@ internal static class ComponentMetadata
     {
         public const string TagHelperKind = "Components.RenderMode";
 
-        public const string RuntimeName = "Components.None"; // PROTOTYPE: correct?
+        public const string RuntimeName = "Components.None";
     }
 }

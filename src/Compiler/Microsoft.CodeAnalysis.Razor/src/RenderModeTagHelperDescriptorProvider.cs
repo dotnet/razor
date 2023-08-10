@@ -32,7 +32,7 @@ internal class RenderModeTagHelperDescriptorProvider : ITagHelperDescriptorProvi
             return;
         }
 
-        var iComponentRenderMode = compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Components.IComponentRenderMode"); // PROTOTYPE: Use (ComponentsApi.IComponentRenderMode.FullTypeName);
+        var iComponentRenderMode = compilation.GetTypeByMetadataName(ComponentsApi.IComponentRenderMode.FullTypeName);
         if (iComponentRenderMode == null)
         {
             // If we can't find IComponentRenderMode, then just bail. We won't be able to compile the
@@ -61,7 +61,7 @@ internal class RenderModeTagHelperDescriptorProvider : ITagHelperDescriptorProvi
 
             builder.CaseSensitive = true;
 
-            // PROTOYPE: docs
+            // PROTOTYPE: docs
             //builder.SetDocumentation(DocumentationDescriptor.RenderModeTagHelper);
 
             builder.SetMetadata(
@@ -69,9 +69,6 @@ internal class RenderModeTagHelperDescriptorProvider : ITagHelperDescriptorProvi
                 MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
                 RuntimeName(ComponentMetadata.RenderMode.RuntimeName),
                 TypeName("Microsoft.AspNetCore.Components.RenderMode"));
-
-            // PROTOTYPE: so we need both, right? TagMatchingRule allows us to say 'this tag helper matches any element with a @rendermode attribute.
-            //            BindAttribute causes the actual 'model binding' to happen that allows us to access it as a boundAttribute
 
             builder.TagMatchingRule(rule =>
             {
@@ -86,12 +83,12 @@ internal class RenderModeTagHelperDescriptorProvider : ITagHelperDescriptorProvi
             builder.BindAttribute(attribute =>
             {
                 // PROTOTYPE: docs
-                //attribute.SetDocumentation(DocumentationDescriptor.RefTagHelper);
+                //attribute.SetDocumentation(DocumentationDescriptor.RenderModeTagHelper);
                 attribute.Name = "@rendermode";
 
-                attribute.TypeName = "Microsoft.AspNetCore.Components.IComponentRenderMode"; // PROTOTYPE: Extract out consts
+                attribute.TypeName = ComponentsApi.IComponentRenderMode.FullTypeName;
                 attribute.SetMetadata(
-                    PropertyName("RenderMode"), // PROTOTYPE: are we using this metadata anywhere?
+                    PropertyName("RenderMode"),
                     IsDirectiveAttribute); 
             });
 

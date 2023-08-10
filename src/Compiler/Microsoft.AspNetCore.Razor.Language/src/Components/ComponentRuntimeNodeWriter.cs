@@ -421,8 +421,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 // _builder.SetRenderMode(__renderMode);
                 context.CodeWriter.Write(_scopeStack.BuilderVarName);
                 context.CodeWriter.Write(".");
-                //context.CodeWriter.Write(ComponentsApi.RenderTreeBuilder.CloseComponent); // PROTOTYPE
-                context.CodeWriter.Write("SetRenderMode");
+                context.CodeWriter.Write(ComponentsApi.RenderTreeBuilder.SetRenderMode);
                 context.CodeWriter.Write("(__renderMode);");
                 context.CodeWriter.WriteLine();
             }
@@ -980,7 +979,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 new IntermediateToken
                 {
                     Kind = TokenKind.CSharp,
-                    Content = "global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = " // PROTOTYPE: extract out consts
+                    Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {ComponentsApi.IComponentRenderMode.RenderModeVariableName} = " 
                 },
                 node.ExpressionNode,
                 new IntermediateToken

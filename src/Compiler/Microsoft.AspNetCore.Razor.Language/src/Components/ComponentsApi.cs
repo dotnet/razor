@@ -50,6 +50,13 @@ internal static class ComponentsApi
         public const string MetadataName = "System.Collection.IDictionary`2";
     }
 
+    public static class IComponentRenderMode
+    {
+        public const string FullTypeName = "Microsoft.AspNetCore.Component.IComponentRenderMode";
+
+        public const string RenderModeVariableName = "__renderMode";
+    }
+
     public static class RenderFragment
     {
         public const string Namespace = "Microsoft.AspNetCore.Components";
@@ -105,6 +112,8 @@ internal static class ComponentsApi
         public const string AddEventPreventDefaultAttribute = nameof(AddEventPreventDefaultAttribute);
 
         public const string AddEventStopPropagationAttribute = nameof(AddEventStopPropagationAttribute);
+
+        public const string SetRenderMode = nameof(SetRenderMode);
     }
 
     public static class RuntimeHelpers

@@ -1239,7 +1239,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 new IntermediateToken
                 {
                     Kind = TokenKind.CSharp,
-                    Content = "global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = " // PROTOTYPE: extract out consts
+                    Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {ComponentsApi.IComponentRenderMode.RenderModeVariableName} = " 
                 },
                 node.ExpressionNode,
                 new IntermediateToken
