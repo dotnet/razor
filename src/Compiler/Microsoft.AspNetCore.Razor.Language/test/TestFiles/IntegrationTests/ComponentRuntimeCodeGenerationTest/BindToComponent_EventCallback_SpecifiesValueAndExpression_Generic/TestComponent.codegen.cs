@@ -3,11 +3,11 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -44,9 +44,9 @@ namespace __Blazor.Test.TestComponent
         public static void CreateMyComponent_0<T>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, T __arg0, int __seq1, global::Microsoft.AspNetCore.Components.EventCallback<T> __arg1, int __seq2, global::System.Linq.Expressions.Expression<global::System.Func<T>> __arg2)
         {
         __builder.OpenComponent<global::Test.MyComponent<T>>(seq);
-        __builder.AddAttribute(__seq0, "SomeParam", __arg0);
-        __builder.AddAttribute(__seq1, "SomeParamChanged", __arg1);
-        __builder.AddAttribute(__seq2, "SomeParamExpression", __arg2);
+        __builder.AddComponentParameter(__seq0, "SomeParam", __arg0);
+        __builder.AddComponentParameter(__seq1, "SomeParamChanged", __arg1);
+        __builder.AddComponentParameter(__seq2, "SomeParamExpression", __arg2);
         __builder.CloseComponent();
         }
     }

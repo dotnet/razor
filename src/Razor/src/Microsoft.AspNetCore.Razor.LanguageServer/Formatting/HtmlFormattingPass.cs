@@ -25,7 +25,7 @@ internal class HtmlFormattingPass : FormattingPassBase
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
     public HtmlFormattingPass(
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase server,
         DocumentVersionCache documentVersionCache,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor,
@@ -56,7 +56,7 @@ internal class HtmlFormattingPass : FormattingPassBase
 
         TextEdit[] htmlEdits;
 
-        if (context.IsFormatOnType && result.Kind == RazorLanguageKind.Html && _optionsMonitor.CurrentValue.FormatOnType)
+        if (context.IsFormatOnType && result.Kind == RazorLanguageKind.Html)
         {
             htmlEdits = await HtmlFormatter.FormatOnTypeAsync(context, cancellationToken).ConfigureAwait(false);
         }
@@ -80,7 +80,7 @@ internal class HtmlFormattingPass : FormattingPassBase
             var changes = htmlEdits.Select(e => e.AsTextChange(originalText));
             changedText = originalText.WithChanges(changes);
             // Create a new formatting context for the changed razor document.
-            changedContext = await context.WithTextAsync(changedText);
+            changedContext = await context.WithTextAsync(changedText).ConfigureAwait(false);
 
             _logger.LogTestOnly("After normalizedEdits:\r\n{changedText}", changedText);
         }
@@ -210,7 +210,7 @@ internal class HtmlFormattingPass : FormattingPassBase
                 // Instead, we should just add to the existing indentation.
                 //
                 var razorDesiredIndentationString = context.GetIndentationLevelString(razorDesiredIndentationLevel);
-                var existingIndentationString = context.GetIndentationString(indentations[i].ExistingIndentationSize);
+                var existingIndentationString = FormattingUtilities.GetIndentationString(indentations[i].ExistingIndentationSize, context.Options.InsertSpaces, context.Options.TabSize);
                 var desiredIndentationString = existingIndentationString + razorDesiredIndentationString;
                 var spanToReplace = new TextSpan(line.Start, indentations[i].ExistingIndentation);
                 var change = new TextChange(spanToReplace, desiredIndentationString);

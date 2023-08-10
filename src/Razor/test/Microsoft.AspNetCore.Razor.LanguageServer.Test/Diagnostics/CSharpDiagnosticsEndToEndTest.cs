@@ -43,11 +43,23 @@ public class CSharpDiagnosticsEndToEndTest : SingleServerDelegatingEndpointTestB
         await ValidateDiagnosticsAsync(input);
     }
 
-    private async Task ValidateDiagnosticsAsync(string input)
+    [Fact]
+    public async Task Handle_Razor()
+    {     
+        var input = """
+
+            {|RZ10012:<NonExistentComponent />|}
+
+            """;
+
+        await ValidateDiagnosticsAsync(input, "File.razor");
+    }
+
+    private async Task ValidateDiagnosticsAsync(string input, string? filePath = null)
     {
         TestFileMarkupParser.GetSpans(input, out input, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
 
-        var codeDocument = CreateCodeDocument(input);
+        var codeDocument = CreateCodeDocument(input, filePath: filePath);
         var sourceText = codeDocument.GetSourceText();
         var razorFilePath = "file://C:/path/test.razor";
         var uri = new Uri(razorFilePath);
@@ -56,7 +68,7 @@ public class CSharpDiagnosticsEndToEndTest : SingleServerDelegatingEndpointTestB
         var requestContext = new RazorRequestContext(documentContext, Logger, null!);
 
         var translateDiagnosticsService = new RazorTranslateDiagnosticsService(DocumentMappingService, LoggerFactory);
-        var diagnosticsEndPoint = new RazorPullDiagnosticsEndpoint(LanguageServerFeatureOptions, translateDiagnosticsService, DocumentMappingService, LanguageServer);
+        var diagnosticsEndPoint = new DocumentPullDiagnosticsEndpoint(LanguageServerFeatureOptions, translateDiagnosticsService, LanguageServer, telemetryReporter: null);
 
         var diagnosticsRequest = new VSInternalDocumentDiagnosticsParams
         {
@@ -64,8 +76,7 @@ public class CSharpDiagnosticsEndToEndTest : SingleServerDelegatingEndpointTestB
         };
         var diagnostics = await diagnosticsEndPoint.HandleRequestAsync(diagnosticsRequest, requestContext, DisposalToken);
 
-        var actual = diagnostics!.First().Diagnostics!;
-        Assert.NotEmpty(actual);
+        var actual = diagnostics!.SelectMany(d => d.Diagnostics!);
 
         // Because the test razor project isn't set up properly, we get some extra diagnostics that we don't care about
         // so lets just validate that we get the ones we expect. We're testing the communication and translation between

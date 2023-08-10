@@ -11,20 +11,22 @@ using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 
-internal class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoint<ReferenceParamsBridge, VSInternalReferenceItem[]>, IVSFindAllReferencesEndpoint
+[LanguageServerEndpoint(Methods.TextDocumentReferencesName)]
+internal sealed class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoint<ReferenceParams, VSInternalReferenceItem[]>, ICapabilitiesProvider
 {
     private readonly LanguageServerFeatureOptions _featureOptions;
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
     public FindAllReferencesEndpoint(
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         ILoggerFactory loggerFactory,
         LanguageServerFeatureOptions featureOptions)
@@ -34,27 +36,25 @@ internal class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoint<Refer
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     }
 
-    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        const string AssociatedServerCapability = "referencesProvider";
-
-        var registrationOptions = new ReferenceOptions()
+        serverCapabilities.ReferencesProvider = new ReferenceOptions()
         {
             // https://github.com/dotnet/razor/issues/8033
             WorkDoneProgress = false,
         };
-
-        return new RegistrationExtensionResult(AssociatedServerCapability, new SumType<bool, ReferenceOptions>(registrationOptions));
     }
 
-    protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorReferencesEndpointName;
+    protected override string CustomMessageTarget => CustomMessageNames.RazorReferencesEndpointName;
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(ReferenceParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
+
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(ReferenceParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         // HTML doesn't need to do FAR
-        if (projection.LanguageKind != RazorLanguageKind.CSharp)
+        if (positionInfo.LanguageKind != RazorLanguageKind.CSharp)
         {
             return Task.FromResult<IDelegatedParams?>(null);
         }
@@ -62,11 +62,11 @@ internal class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoint<Refer
         var documentContext = requestContext.GetRequiredDocumentContext();
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
-                projection.Position,
-                projection.LanguageKind));
+                positionInfo.Position,
+                positionInfo.LanguageKind));
     }
 
-    protected override async Task<VSInternalReferenceItem[]> HandleDelegatedResponseAsync(VSInternalReferenceItem[] delegatedResponse, ReferenceParamsBridge originalRequest, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override async Task<VSInternalReferenceItem[]> HandleDelegatedResponseAsync(VSInternalReferenceItem[] delegatedResponse, ReferenceParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var remappedLocations = new List<VSInternalReferenceItem>();
 
@@ -93,7 +93,7 @@ internal class FindAllReferencesEndpoint : AbstractRazorDelegatingEndpoint<Refer
                 continue;
             }
 
-            var (itemUri, mappedRange) = await _documentMappingService.MapFromProjectedDocumentRangeAsync(referenceItem.Location.Uri, referenceItem.Location.Range, cancellationToken);
+            var (itemUri, mappedRange) = await _documentMappingService.MapToHostDocumentUriAndRangeAsync(referenceItem.Location.Uri, referenceItem.Location.Range, cancellationToken).ConfigureAwait(false);
 
             referenceItem.Location.Uri = itemUri;
             referenceItem.DisplayPath = itemUri.AbsolutePath;

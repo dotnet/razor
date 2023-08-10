@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
+internal sealed class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
 {
     // Usually when we need to format code, we utilize the formatting options provided
     // by the platform. However, we aren't provided such options in the case of code actions
@@ -33,12 +33,12 @@ internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
     };
 
     private readonly DocumentContextFactory _documentContextFactory;
-    private readonly RazorFormattingService _razorFormattingService;
+    private readonly IRazorFormattingService _razorFormattingService;
 
     public DefaultCSharpCodeActionResolver(
         DocumentContextFactory documentContextFactory,
         ClientNotifierServiceBase languageServer,
-        RazorFormattingService razorFormattingService)
+        IRazorFormattingService razorFormattingService)
         : base(languageServer)
     {
         if (documentContextFactory is null)
@@ -72,7 +72,7 @@ internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
             throw new ArgumentNullException(nameof(codeAction));
         }
 
-        var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
+        var documentContext = _documentContextFactory.TryCreateForOpenDocument(csharpParams.RazorFileUri);
         if (documentContext is null)
         {
             return codeAction;
@@ -111,7 +111,7 @@ internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
             RazorLanguageKind.CSharp,
             csharpTextEdits,
             s_defaultFormattingOptions,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -125,12 +125,12 @@ internal class DefaultCSharpCodeActionResolver : CSharpCodeActionResolver
         resolvedCodeAction.Edit = new WorkspaceEdit()
         {
             DocumentChanges = new TextDocumentEdit[] {
-                    new TextDocumentEdit()
-                    {
-                        TextDocument = codeDocumentIdentifier,
-                        Edits = formattedEdits,
-                    }
+                new TextDocumentEdit()
+                {
+                    TextDocument = codeDocumentIdentifier,
+                    Edits = formattedEdits,
                 }
+            }
         };
 
         return resolvedCodeAction;

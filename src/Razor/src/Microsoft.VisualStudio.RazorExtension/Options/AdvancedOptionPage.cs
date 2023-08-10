@@ -2,12 +2,9 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServerClient.Razor.Options;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.RazorExtension.Options;
@@ -16,7 +13,12 @@ namespace Microsoft.VisualStudio.RazorExtension.Options;
 [ComVisible(true)]
 internal class AdvancedOptionPage : DialogPage
 {
-    private Lazy<OptionsStorage> _optionsStorage;
+    private readonly Lazy<OptionsStorage> _optionsStorage;
+
+    private bool? _formatOnType;
+    private bool? _autoClosingTags;
+    private bool? _autoInsertAttributeQuotes;
+    private bool? _colorBackground;
 
     public AdvancedOptionPage()
     {
@@ -34,7 +36,65 @@ internal class AdvancedOptionPage : DialogPage
     [LocDisplayName(nameof(VSPackage.Setting_FormattingOnTypeDisplayName))]
     public bool FormatOnType
     {
-        get => _optionsStorage.Value.FormatOnType;
-        set => _optionsStorage.Value.FormatOnType = value;
+        get => _formatOnType ?? _optionsStorage.Value.FormatOnType;
+        set => _formatOnType = value;
+    }
+
+    [LocCategory(nameof(VSPackage.Typing))]
+    [LocDescription(nameof(VSPackage.Setting_AutoClosingTagsDescription))]
+    [LocDisplayName(nameof(VSPackage.Setting_AutoClosingTagsDisplayName))]
+    public bool AutoClosingTags
+    {
+        get => _autoClosingTags ?? _optionsStorage.Value.AutoClosingTags;
+        set => _autoClosingTags = value;
+    }
+
+    [LocCategory(nameof(VSPackage.Completion))]
+    [LocDescription(nameof(VSPackage.Setting_AutoInsertAttributeQuotesDescription))]
+    [LocDisplayName(nameof(VSPackage.Setting_AutoInsertAttributeQuotesDisplayName))]
+    public bool AutoInsertAttributeQuotes
+    {
+        get => _autoInsertAttributeQuotes ?? _optionsStorage.Value.AutoInsertAttributeQuotes;
+        set => _autoInsertAttributeQuotes = value;
+    }
+
+    [LocCategory(nameof(VSPackage.Formatting))]
+    [LocDescription(nameof(VSPackage.Setting_ColorBackgroundDescription))]
+    [LocDisplayName(nameof(VSPackage.Setting_ColorBackgroundDisplayName))]
+    public bool ColorBackground
+    {
+        get => _colorBackground ?? _optionsStorage.Value.ColorBackground;
+        set => _colorBackground = value;
+    }
+
+    protected override void OnApply(PageApplyEventArgs e)
+    {
+        if (_formatOnType is not null)
+        {
+            _optionsStorage.Value.FormatOnType = _formatOnType.Value;
+        }
+
+        if (_autoClosingTags is not null)
+        {
+            _optionsStorage.Value.AutoClosingTags = _autoClosingTags.Value;
+        }
+
+        if (_autoInsertAttributeQuotes is not null)
+        {
+            _optionsStorage.Value.AutoInsertAttributeQuotes = _autoInsertAttributeQuotes.Value;
+        }
+
+        if (_colorBackground is not null)
+        {
+            _optionsStorage.Value.ColorBackground = _colorBackground.Value;
+        }
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        _formatOnType = null;
+        _autoClosingTags = null;
+        _autoInsertAttributeQuotes = null;
+        _colorBackground = null;
     }
 }

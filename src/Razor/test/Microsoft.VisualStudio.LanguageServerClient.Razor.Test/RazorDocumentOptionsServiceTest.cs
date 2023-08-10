@@ -7,7 +7,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
@@ -99,7 +98,7 @@ public class RazorDocumentOptionsServiceTest : WorkspaceTestBase
     {
         var baseDirectory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "c:\\users\\example\\src" : "/home/example";
         var hostProject = new HostProject(
-            Path.Combine(baseDirectory, "SomeProject", "SomeProject.csproj"), RazorConfiguration.Default, "SomeProject");
+            Path.Combine(baseDirectory, "SomeProject", "SomeProject.csproj"), Path.Combine(baseDirectory, "SomeProject", "obj"), RazorConfiguration.Default, "SomeProject");
         var hostDocument = new HostDocument(
             Path.Combine(baseDirectory, "SomeProject", "File1.cshtml"), "File1.cshtml", FileKinds.Legacy);
 

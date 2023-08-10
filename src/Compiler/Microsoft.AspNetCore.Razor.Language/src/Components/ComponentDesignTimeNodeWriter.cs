@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
+using CSharpSyntaxFacts = Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
+using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
+
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
 // Based on the DesignTimeNodeWriter from Razor repo.
@@ -19,6 +22,10 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
     private readonly ScopeStack _scopeStack = new ScopeStack();
 
     private const string DesignTimeVariable = "__o";
+
+    public ComponentDesignTimeNodeWriter(RazorLanguageVersion version) : base(version)
+    {
+    }
 
     public override void WriteMarkupBlock(CodeRenderingContext context, MarkupBlockIntermediateNode node)
     {
@@ -357,7 +364,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
-        // We might need a scope for inferring types, 
+        // We might need a scope for inferring types,
         CodeWriterExtensions.CSharpCodeWritingScope? typeInferenceCaptureScope = null;
         string typeInferenceLocalName = null;
 
@@ -366,8 +373,8 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             // Writes something like:
             //
             // __builder.OpenComponent<MyComponent>(0);
-            // __builder.AddAttribute(1, "Foo", ...);
-            // __builder.AddAttribute(2, "ChildContent", ...);
+            // __builder.AddComponentParameter(1, "Foo", ...);
+            // __builder.AddComponentParameter(2, "ChildContent", ...);
             // __builder.SetKey(someValue);
             // __builder.AddElementCapture(3, (__value) => _field = __value);
             // __builder.CloseComponent();
@@ -508,13 +515,29 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         }
 
         // We need to write property access here in case we're in a scope for capturing types, because we need to re-use
-        // the type inference local for accessing property names
+        // the type inference local for accessing property names.
+        // We also need to disable BL0005, which is an analyzer provided by the runtime that will warn if a component
+        // parameter is explicitly set, but that's exactly what we will be doing in order to represent the attribute
+        // being set.
+
+        var wrotePragmaDisable = false;
         foreach (var child in node.Children)
         {
             if (child is ComponentAttributeIntermediateNode attribute)
             {
-                WritePropertyAccess(context, attribute, node, typeInferenceLocalName);
+                WritePropertyAccess(context, attribute, node, typeInferenceLocalName, shouldWriteBL0005Disable: !wrotePragmaDisable, out var wrotePropertyAccess);
+
+                if (wrotePropertyAccess)
+                {
+                    wrotePragmaDisable = true;
+                }
             }
+        }
+
+        if (wrotePragmaDisable)
+        {
+            // Restore the warning in case the user has written other code that explicitly sets a property
+            context.CodeWriter.WriteLine("#pragma warning restore BL0005");
         }
 
         typeInferenceCaptureScope?.Dispose();
@@ -589,7 +612,12 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 // The value should be populated before we use it, because we emit code for creating ancestors
                 // first, and that's where it's populated. However if this goes wrong somehow, we don't want to
                 // throw, so use a fallback
-                context.CodeWriter.Write(syntheticArg.ValueExpression ?? "default");
+                var valueExpression = syntheticArg.ValueExpression ?? "default";
+                context.CodeWriter.Write(valueExpression);
+                if (!context.Options.SuppressNullabilityEnforcement && IsDefaultExpression(valueExpression))
+                {
+                    context.CodeWriter.Write("!");
+                }
                 break;
             case TypeInferenceCapturedVariable capturedVariable:
                 context.CodeWriter.Write(capturedVariable.VariableName);
@@ -611,6 +639,12 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
+        // This attribute might only be here in order to allow us to generate code in WritePropertyAccess
+        if (node.IsDesignTimePropertyAccessHelper())
+        {
+            return;
+        }
+
         // Looks like:
         // __o = 17;
         context.CodeWriter.Write(DesignTimeVariable);
@@ -623,10 +657,19 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         context.CodeWriter.WriteLine();
     }
 
-    private void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node, ComponentIntermediateNode componentNode, string typeInferenceLocalName)
+    private void WritePropertyAccess(CodeRenderingContext context, ComponentAttributeIntermediateNode node, ComponentIntermediateNode componentNode, string typeInferenceLocalName, bool shouldWriteBL0005Disable, out bool wrotePropertyAccess)
     {
-        if (node?.TagHelper?.Name is null || node.Annotations["OriginalAttributeSpan"] is null)
+        wrotePropertyAccess = false;
+        if (node?.TagHelper?.Name is null || node.Annotations[ComponentMetadata.Common.OriginalAttributeSpan] is null)
         {
+            return;
+        }
+
+        if (node.BoundAttribute.Metadata.TryGetValue(ComponentMetadata.Component.InitOnlyProperty, out var isInitOnlyValue) &&
+            bool.TryParse(isInitOnlyValue, out var isInitOnly) &&
+            isInitOnly)
+        {
+            // If a component property is init only then the code we generate for it won't compile.
             return;
         }
 
@@ -648,11 +691,13 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             return;
         }
 
-        var attributeSourceSpan = (SourceSpan)node.Annotations["OriginalAttributeSpan"];
-        attributeSourceSpan = new SourceSpan(attributeSourceSpan.FilePath, attributeSourceSpan.AbsoluteIndex + offset, attributeSourceSpan.LineIndex, attributeSourceSpan.CharacterIndex + offset, node.PropertyName.Length, attributeSourceSpan.LineCount, attributeSourceSpan.CharacterIndex + offset + node.PropertyName.Length);
+        if (shouldWriteBL0005Disable)
+        {
+            context.CodeWriter.WriteLine("#pragma warning disable BL0005");
+        }
 
-        context.CodeWriter.Write(DesignTimeVariable);
-        context.CodeWriter.Write(" = ");
+        var attributeSourceSpan = (SourceSpan)node.Annotations[ComponentMetadata.Common.OriginalAttributeSpan];
+        attributeSourceSpan = new SourceSpan(attributeSourceSpan.FilePath, attributeSourceSpan.AbsoluteIndex + offset, attributeSourceSpan.LineIndex, attributeSourceSpan.CharacterIndex + offset, node.PropertyName.Length, attributeSourceSpan.LineCount, attributeSourceSpan.CharacterIndex + offset + node.PropertyName.Length);
 
         if (componentNode.TypeInferenceNode == null)
         {
@@ -674,16 +719,25 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                         context.CodeWriter.Write(", ");
                     }
 
-                    foreach (var token in typeArgumentNode.Children.OfType<IntermediateToken>())
+                    writeTypeArgument(typeArgumentNode.Children);
+
+                    void writeTypeArgument(IntermediateNodeCollection typeArgumentComponents)
                     {
-                        // As per WriteComponentTypeArgument, we expect every token to be C#, but check just in case
-                        if (token.IsCSharp)
+                        foreach (var typeArgumentNodeComponent in typeArgumentComponents)
                         {
-                            context.CodeWriter.Write(token.Content);
-                        }
-                        else
-                        {
-                            Debug.Fail($"Unexpected non-C# content in a generic type parameter: '{token.Content}'");
+                            switch (typeArgumentNodeComponent)
+                            {
+                                case IntermediateToken { IsCSharp: true } token:
+                                    context.CodeWriter.Write(token.Content);
+                                    break;
+                                case CSharpExpressionIntermediateNode cSharpExpression:
+                                    writeTypeArgument(cSharpExpression.Children);
+                                    break;
+                                default:
+                                    // As per WriteComponentTypeArgument, we expect every token to be C#, but check just in case
+                                    Debug.Fail($"Unexpected non-C# content in a generic type parameter: '{typeArgumentNodeComponent}'");
+                                    break;
+                            }
                         }
                     }
                 }
@@ -709,12 +763,20 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
         using (context.CodeWriter.BuildLinePragma(attributeSourceSpan, context))
         {
             context.CodeWriter.WritePadding(0, attributeSourceSpan, context);
+            // Escape the property name in case it's a C# keyword
+            if (CSharpSyntaxFacts.GetKeywordKind(node.PropertyName) != CSharpSyntaxKind.None ||
+                CSharpSyntaxFacts.GetContextualKeywordKind(node.PropertyName) != CSharpSyntaxKind.None)
+            {
+                context.CodeWriter.Write("@");
+            }
             context.AddSourceMappingFor(attributeSourceSpan);
             context.CodeWriter.WriteLine(node.PropertyName);
         }
 
-        context.CodeWriter.Write(";");
+        context.CodeWriter.Write(" = default;");
         context.CodeWriter.WriteLine();
+
+        wrotePropertyAccess = true;
     }
 
     private void WriteComponentAttributeInnards(CodeRenderingContext context, ComponentAttributeIntermediateNode node, bool canTypeCheck)
@@ -801,7 +863,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 context.CodeWriter.Write(".");
                 context.CodeWriter.Write(ComponentsApi.EventCallbackFactory.CreateMethod);
 
-                if (isInferred != true && node.TryParseEventCallbackTypeArgument(out StringSegment argument))
+                if (isInferred != true && node.TryParseEventCallbackTypeArgument(out ReadOnlyMemory<char> argument))
                 {
                     context.CodeWriter.Write("<");
                     if (explicitType == true)
@@ -868,7 +930,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
             static void QualifyEventCallback(CodeWriter codeWriter, string typeName, bool? explicitType)
             {
-                if (ComponentAttributeIntermediateNode.TryGetEventCallbackArgument(typeName, out var argument))
+                if (ComponentAttributeIntermediateNode.TryGetEventCallbackArgument(typeName.AsMemory(), out var argument))
                 {
                     codeWriter.Write("global::");
                     codeWriter.Write(ComponentsApi.EventCallback.FullTypeName);
@@ -917,9 +979,9 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
 
         // Writes something like:
         //
-        // __builder.AddAttribute(1, "ChildContent", (RenderFragment)((__builder73) => { ... }));
+        // __builder.AddComponentParameter(1, "ChildContent", (RenderFragment)((__builder73) => { ... }));
         // OR
-        // __builder.AddAttribute(1, "ChildContent", (RenderFragment<Person>)((person) => (__builder73) => { ... }));
+        // __builder.AddComponentParameter(1, "ChildContent", (RenderFragment<Person>)((person) => (__builder73) => { ... }));
         BeginWriteAttribute(context, node.AttributeName);
         context.CodeWriter.WriteParameterSeparator();
         context.CodeWriter.Write("(");

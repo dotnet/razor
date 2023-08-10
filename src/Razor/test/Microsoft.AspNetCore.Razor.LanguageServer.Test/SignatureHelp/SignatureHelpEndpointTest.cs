@@ -7,7 +7,6 @@ using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -15,7 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.SignatureHelp;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 
 public class SignatureHelpEndpointTest : SingleServerDelegatingEndpointTestBase
 {
@@ -83,7 +82,7 @@ public class SignatureHelpEndpointTest : SingleServerDelegatingEndpointTestBase
             LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, LoggerFactory);
 
         codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
-        var request = new SignatureHelpParamsBridge
+        var request = new SignatureHelpParams
         {
             TextDocument = new TextDocumentIdentifier
             {
@@ -92,7 +91,7 @@ public class SignatureHelpEndpointTest : SingleServerDelegatingEndpointTestBase
             Position = new Position(line, offset)
         };
 
-        var documentContext = await DocumentContextFactory.TryCreateForOpenDocumentAsync(request.TextDocument.Uri, DisposalToken);
+        var documentContext = DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument);
 
         var requestContext = CreateRazorRequestContext(documentContext);
 

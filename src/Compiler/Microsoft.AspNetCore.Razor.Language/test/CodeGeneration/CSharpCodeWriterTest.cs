@@ -21,9 +21,9 @@ public class CSharpCodeWriterTest
         {
             return new object[][]
             {
-                    new object[] { "\r" },
-                    new object[] { "\n" },
-                    new object[] { "\r\n" },
+                new object[] { "\r" },
+                new object[] { "\n" },
+                new object[] { "\r\n" },
             };
         }
     }
@@ -266,6 +266,21 @@ public class CSharpCodeWriterTest
     }
 
     [Fact]
+    public void CSharpCodeWriter_LinesBreaksOutsideOfContentAreNotCounted()
+    {
+        // Arrange
+        var writer = new CodeWriter();
+
+        // Act
+        writer.Write("\r\nHello\r\nWorld\r\n", startIndex: 2, count: 12);
+        var location = writer.Location;
+
+        // Assert
+        var expected = new SourceLocation(absoluteIndex: 12, lineIndex: 1, characterIndex: 5);
+        Assert.Equal(expected, location);
+    }
+
+    [Fact]
     public void WriteLineNumberDirective_UsesFilePath_FromSourceLocation()
     {
         // Arrange
@@ -376,7 +391,7 @@ public class CSharpCodeWriterTest
         var writer = new CodeWriter(Environment.NewLine, options);
 
         // Act
-        writer.BuildClassDeclaration(Array.Empty<string>(), "C", "", Array.Empty<string>(), Array.Empty<TypeParameter>());
+        writer.BuildClassDeclaration(Array.Empty<string>(), "C", "", Array.Empty<string>(), Array.Empty<TypeParameter>(), context: null);
         writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
 
         // Assert
@@ -397,7 +412,7 @@ public class CSharpCodeWriterTest
         var writer = new CodeWriter(Environment.NewLine, options);
 
         // Act
-        writer.BuildClassDeclaration(Array.Empty<string>(), "C", "", Array.Empty<string>(), Array.Empty<TypeParameter>());
+        writer.BuildClassDeclaration(Array.Empty<string>(), "C", "", Array.Empty<string>(), Array.Empty<TypeParameter>(), context: null);
         writer.WriteField(Array.Empty<string>(), Array.Empty<string>(), "int", "f");
 
         // Assert

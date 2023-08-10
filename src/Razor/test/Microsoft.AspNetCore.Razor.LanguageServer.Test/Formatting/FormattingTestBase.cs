@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -14,17 +13,17 @@ using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.AspNetCore.Razor.Serialization;
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Serialization;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
-using Newtonsoft.Json;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -39,8 +38,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 [Collection("FormattingTestSerialRuns")]
 public class FormattingTestBase : RazorIntegrationTestBase
 {
-    private static readonly AsyncLocal<string> s_fileName = new AsyncLocal<string>();
-    private static readonly IReadOnlyList<TagHelperDescriptor> s_defaultComponents = GetDefaultRuntimeComponents();
+    private static readonly AsyncLocal<string> s_fileName = new();
+    private static readonly ImmutableArray<TagHelperDescriptor> s_defaultComponents = GetDefaultRuntimeComponents();
 
     public FormattingTestBase(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -65,12 +64,13 @@ public class FormattingTestBase : RazorIntegrationTestBase
         int tabSize = 4,
         bool insertSpaces = true,
         string? fileKind = null,
-        IReadOnlyList<TagHelperDescriptor>? tagHelpers = null,
+        ImmutableArray<TagHelperDescriptor> tagHelpers = default,
         bool allowDiagnostics = false,
         RazorLSPOptions? razorLSPOptions = null)
     {
         // Arrange
         fileKind ??= FileKinds.Component;
+        tagHelpers = tagHelpers.NullToEmpty();
 
         TestFileMarkupParser.GetSpans(input, out input, out ImmutableArray<TextSpan> spans);
 
@@ -89,7 +89,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         };
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument, documentSnapshot, LoggerFactory, razorLSPOptions);
-        var documentContext = new VersionedDocumentContext(uri, documentSnapshot, version: 1);
+        var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
 
         // Act
         var edits = await formattingService.FormatAsync(documentContext, range, options, DisposalToken);
@@ -98,7 +98,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         var edited = ApplyEdits(source, edits);
         var actual = edited.ToString();
 
-        new XUnitVerifier().EqualOrDiff(expected, actual);
+        AssertEx.EqualOrDiff(expected, actual);
 
         if (input.Equals(expected))
         {
@@ -126,7 +126,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         var uri = new Uri(path);
         var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
 
-        var mappingService = new DefaultRazorDocumentMappingService(
+        var mappingService = new RazorDocumentMappingService(
             TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
@@ -136,7 +136,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             TabSize = tabSize,
             InsertSpaces = insertSpaces,
         };
-        var documentContext = new VersionedDocumentContext(uri, documentSnapshot, version: 1);
+        var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
 
         // Act
         var edits = await formattingService.FormatOnTypeAsync(documentContext, languageKind, Array.Empty<TextEdit>(), options, hostDocumentIndex: positionAfterTrigger, triggerCharacter: triggerCharacter, DisposalToken);
@@ -145,7 +145,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         var edited = ApplyEdits(razorSourceText, edits);
         var actual = edited.ToString();
 
-        new XUnitVerifier().EqualOrDiff(expected, actual);
+        AssertEx.EqualOrDiff(expected, actual);
 
         if (input.Equals(expected))
         {
@@ -184,16 +184,14 @@ public class FormattingTestBase : RazorIntegrationTestBase
         var uri = new Uri(path);
         var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        var mappingService = new DefaultRazorDocumentMappingService();
-#pragma warning restore CS0618 // Type or member is obsolete
+        var mappingService = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
         if (languageKind == RazorLanguageKind.Html)
         {
             throw new NotImplementedException("Code action formatting is not yet supported for HTML in Razor.");
         }
 
-        if (!mappingService.TryMapToProjectedDocumentPosition(codeDocument.GetCSharpDocument(), positionAfterTrigger, out _, out var _))
+        if (!mappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), positionAfterTrigger, out _, out var _))
         {
             throw new InvalidOperationException("Could not map from Razor document to generated document");
         }
@@ -204,7 +202,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
             TabSize = tabSize,
             InsertSpaces = insertSpaces,
         };
-        var documentContext = new VersionedDocumentContext(uri, documentSnapshot, version: 1);
+        var documentContext = new VersionedDocumentContext(uri, documentSnapshot, projectContext: null, version: 1);
 
         // Act
         var edits = await formattingService.FormatCodeActionAsync(documentContext, languageKind, codeActionEdits, options, DisposalToken);
@@ -213,7 +211,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         var edited = ApplyEdits(razorSourceText, edits);
         var actual = edited.ToString();
 
-        new XUnitVerifier().EqualOrDiff(expected, actual);
+        AssertEx.EqualOrDiff(expected, actual);
     }
 
     protected static TextEdit Edit(int startLine, int startChar, int endLine, int endChar, string newText)
@@ -233,22 +231,21 @@ public class FormattingTestBase : RazorIntegrationTestBase
         return source.WithChanges(changes);
     }
 
-    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? fileKind = default, bool allowDiagnostics = false)
+    private static (RazorCodeDocument, IDocumentSnapshot) CreateCodeDocumentAndSnapshot(SourceText text, string path, ImmutableArray<TagHelperDescriptor> tagHelpers = default, string? fileKind = default, bool allowDiagnostics = false)
     {
         fileKind ??= FileKinds.Component;
-        tagHelpers ??= Array.Empty<TagHelperDescriptor>();
+        tagHelpers = tagHelpers.NullToEmpty();
         if (fileKind == FileKinds.Component)
         {
-            tagHelpers = tagHelpers.Concat(s_defaultComponents).ToArray();
+            tagHelpers = tagHelpers.AddRange(s_defaultComponents);
         }
 
         var sourceDocument = text.GetRazorSourceDocument(path, path);
 
-        // Yes I know "BlazorServer_31 is weird, but thats what is in the taghelpers.json file
         const string DefaultImports = """
-                @using BlazorServer_31
-                @using BlazorServer_31.Pages
-                @using BlazorServer_31.Shared
+                @using BlazorApp1
+                @using BlazorApp1.Pages
+                @using BlazorApp1.Shared
                 @using Microsoft.AspNetCore.Components
                 @using Microsoft.AspNetCore.Components.Authorization
                 @using Microsoft.AspNetCore.Components.Routing
@@ -296,6 +293,9 @@ public class FormattingTestBase : RazorIntegrationTestBase
             .Setup(d => d.FilePath)
             .Returns(path);
         documentSnapshot
+            .Setup(d => d.Project.Key)
+            .Returns(TestProjectKey.Create("/obj"));
+        documentSnapshot
             .Setup(d => d.TargetPath)
             .Returns(path);
         documentSnapshot
@@ -336,24 +336,15 @@ public class FormattingTestBase : RazorIntegrationTestBase
         return null;
     }
 
-    private static IReadOnlyList<TagHelperDescriptor> GetDefaultRuntimeComponents()
+    private static ImmutableArray<TagHelperDescriptor> GetDefaultRuntimeComponents()
     {
-        var testFileName = "test.taghelpers.json";
-        var current = new DirectoryInfo(AppContext.BaseDirectory);
-        while (current != null && !File.Exists(Path.Combine(current.FullName, testFileName)))
-        {
-            current = current.Parent;
-        }
+        var bytes = RazorTestResources.GetResourceBytes(RazorTestResources.BlazorServerAppTagHelpersJson);
 
-        var tagHelperFilePath = Path.Combine(current!.FullName, testFileName);
-        var buffer = File.ReadAllBytes(tagHelperFilePath);
-        var serializer = new JsonSerializer();
-        serializer.Converters.Add(TagHelperDescriptorJsonConverter.Instance);
+        using var stream = new MemoryStream(bytes);
+        using var reader = new StreamReader(stream);
 
-        using var stream = new MemoryStream(buffer);
-        using var streamReader = new StreamReader(stream);
-        using var reader = new JsonTextReader(streamReader);
-
-        return serializer.Deserialize<IReadOnlyList<TagHelperDescriptor>>(reader)!;
+        return JsonDataConvert.DeserializeData(reader,
+            static r => r.ReadImmutableArray(
+                static r => ObjectReaders.ReadTagHelper(r, useCache: false)));
     }
 }

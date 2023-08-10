@@ -30,7 +30,7 @@ public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
 {
     private string _filePath;
 
-    private RazorFormattingService RazorFormattingService { get; set; }
+    private IRazorFormattingService RazorFormattingService { get; set; }
 
     private Uri DocumentUri { get; set; }
 
@@ -118,7 +118,7 @@ public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
             InsertSpaces = true
         };
 
-        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, version: 1);
+        var documentContext = new VersionedDocumentContext(DocumentUri, DocumentSnapshot, projectContext: null, version: 1);
 
         var edits = await RazorFormattingService.FormatAsync(documentContext, range: null, options, CancellationToken.None);
 
@@ -143,6 +143,6 @@ public class RazorCSharpFormattingBenchmark : RazorLanguageServerBenchmarkBase
     private void EnsureServicesInitialized()
     {
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-        RazorFormattingService = languageServer.GetRequiredService<RazorFormattingService>();
+        RazorFormattingService = languageServer.GetRequiredService<IRazorFormattingService>();
     }
 }

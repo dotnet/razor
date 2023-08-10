@@ -2,10 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -165,6 +166,55 @@ public class ComponentAccessibilityCodeActionProviderTest : LanguageServerTestBa
     }
 
     [Fact]
+    public async Task Handle_ExistingGenericComponent_SupportsFileCreationTrue_ReturnsResults()
+    {
+        // Arrange
+        var documentPath = "c:/Test.razor";
+        var contents = """
+            <$$GenericComponent></GenericComponent>
+            """;
+        TestFileMarkupParser.GetPosition(contents, out contents, out var cursorPosition);
+
+        var request = new VSCodeActionParams()
+        {
+            TextDocument = new VSTextDocumentIdentifier { Uri = new Uri(documentPath) },
+            Range = new Range { Start = new Position(0, 0), End = new Position(0, 0) },
+            Context = new VSInternalCodeActionContext()
+        };
+
+        var location = new SourceLocation(cursorPosition, -1, -1);
+        var context = CreateRazorCodeActionContext(request, location, documentPath, contents, new SourceSpan(contents.IndexOf("GenericComponent", StringComparison.Ordinal), "GenericComponent".Length), supportsFileCreation: true);
+
+        var provider = new ComponentAccessibilityCodeActionProvider(new DefaultTagHelperFactsService());
+
+        // Act
+        var commandOrCodeActionContainer = await provider.ProvideAsync(context, default);
+
+        // Assert
+        Assert.NotNull(commandOrCodeActionContainer);
+        Assert.Collection(commandOrCodeActionContainer,
+            e =>
+            {
+                Assert.Equal("@using Fully.Qualified", e.Title);
+                Assert.NotNull(e.Data);
+                Assert.Null(e.Edit);
+            },
+            e =>
+            {
+                Assert.Equal("Fully.Qualified.GenericComponent", e.Title);
+                Assert.NotNull(e.Edit);
+                Assert.NotNull(e.Edit.DocumentChanges);
+                Assert.Null(e.Data);
+            },
+            e =>
+            {
+                Assert.Equal(LanguageServerSR.Create_Component_FromTag_Title, e.Title);
+                Assert.NotNull(e.Data);
+                Assert.Null(e.Edit);
+            });
+    }
+
+    [Fact]
     public async Task Handle_NewComponent_SupportsFileCreationTrue_ReturnsResult()
     {
         // Arrange
@@ -308,7 +358,12 @@ public class ComponentAccessibilityCodeActionProviderTest : LanguageServerTestBa
         var fullyQualifiedComponent = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "Fully.Qualified.Component", "TestAssembly");
         fullyQualifiedComponent.TagMatchingRule(rule => rule.TagName = "Fully.Qualified.Component");
 
-        var tagHelpers = new[] { shortComponent.Build(), fullyQualifiedComponent.Build() };
+        var shortGenericComponent = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "Fully.Qualified.GenericComponent<T>", "TestAssembly");
+        shortGenericComponent.TagMatchingRule(rule => rule.TagName = "GenericComponent");
+        var fullyQualifiedGenericComponent = TagHelperDescriptorBuilder.Create(ComponentMetadata.Component.TagHelperKind, "Fully.Qualified.GenericComponent<T>", "TestAssembly");
+        fullyQualifiedGenericComponent.TagMatchingRule(rule => rule.TagName = "Fully.Qualified.GenericComponent");
+
+        var tagHelpers = ImmutableArray.Create(shortComponent.Build(), fullyQualifiedComponent.Build(), shortGenericComponent.Build(), fullyQualifiedGenericComponent.Build());
 
         var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath, relativePath: filePath);
         var projectEngine = RazorProjectEngine.Create(builder => builder.AddTagHelpers(tagHelpers));

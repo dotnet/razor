@@ -3,11 +3,11 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -53,7 +53,8 @@ __o = typeof(global::Test.Passthrough);
 #nullable disable
                 }
                 );
-                __o = __typeInference_CreateAncestor_0.
+                #pragma warning disable BL0005
+                __typeInference_CreateAncestor_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
           Items
@@ -61,7 +62,8 @@ __o = typeof(global::Test.Passthrough);
 #line default
 #line hidden
 #nullable disable
-                ;
+                 = default;
+                #pragma warning restore BL0005
             }
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -82,8 +84,8 @@ namespace __Blazor.Test.TestComponent
         public static global::Test.Ancestor<TItem> CreateAncestor_0<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, global::System.Collections.Generic.IEnumerable<TItem> __arg0, int __seq1, global::Microsoft.AspNetCore.Components.RenderFragment __arg1)
         {
         __builder.OpenComponent<global::Test.Ancestor<TItem>>(seq);
-        __builder.AddAttribute(__seq0, "Items", __arg0);
-        __builder.AddAttribute(__seq1, "ChildContent", __arg1);
+        __builder.AddComponentParameter(__seq0, "Items", __arg0);
+        __builder.AddComponentParameter(__seq1, "ChildContent", __arg1);
         __builder.CloseComponent();
         return default;
         }
@@ -92,7 +94,7 @@ namespace __Blazor.Test.TestComponent
         {
             __arg0_out = __arg0;
         }
-        public static global::Test.Child<TItem> CreateChild_1<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, System.Collections.Generic.IEnumerable<TItem> __syntheticArg0)
+        public static global::Test.Child<TItem> CreateChild_1<TItem>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, global::System.Collections.Generic.IEnumerable<TItem> __syntheticArg0)
         {
         __builder.OpenComponent<global::Test.Child<TItem>>(seq);
         __builder.CloseComponent();

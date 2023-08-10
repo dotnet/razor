@@ -1,37 +1,24 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
-using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-internal class TestTagHelperResolver : TagHelperResolver
+internal class TestTagHelperResolver : ITagHelperResolver
 {
-    public TestTagHelperResolver() : base(NoOpTelemetryReporter.Instance)
+    public ImmutableArray<TagHelperDescriptor> TagHelpers { get; set; } = ImmutableArray<TagHelperDescriptor>.Empty;
+
+    public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(
+        Project workspaceProject,
+        IProjectSnapshot projectSnapshot,
+        CancellationToken cancellationToken)
     {
-    }
-
-    public TaskCompletionSource<TagHelperResolutionResult> CompletionSource { get; set; }
-
-    public List<TagHelperDescriptor> TagHelpers { get; set; } = new List<TagHelperDescriptor>();
-
-    public override Task<TagHelperResolutionResult> GetTagHelpersAsync(Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken = default)
-    {
-        if (CompletionSource is null)
-        {
-            return Task.FromResult(new TagHelperResolutionResult(TagHelpers.ToArray(), Array.Empty<RazorDiagnostic>()));
-        }
-        else
-        {
-            return CompletionSource.Task;
-        }
+        return new(TagHelpers.ToImmutableArray());
     }
 }

@@ -40,7 +40,8 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
     private readonly ILanguageServiceBroker2 _languageServiceBroker;
     private readonly ITelemetryReporter _telemetryReporter;
     private readonly IClientSettingsManager _clientSettingsManager;
-    private readonly RazorLanguageServerCustomMessageTarget _customMessageTarget;
+    private readonly ILspServerActivationTracker _lspServerActivationTracker;
+    private readonly RazorCustomMessageTarget _customMessageTarget;
     private readonly ILanguageClientMiddleLayer _middleLayer;
     private readonly LSPRequestInvoker _requestInvoker;
     private readonly ProjectConfigurationFilePathStore _projectConfigurationFilePathStore;
@@ -63,7 +64,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
     [ImportingConstructor]
     public RazorLanguageServerClient(
-        RazorLanguageServerCustomMessageTarget customTarget,
+        RazorCustomMessageTarget customTarget,
         RazorLanguageClientMiddleLayer middleLayer,
         LSPRequestInvoker requestInvoker,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
@@ -75,6 +76,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         ILanguageServiceBroker2 languageServiceBroker,
         ITelemetryReporter telemetryReporter,
         IClientSettingsManager clientSettingsManager,
+        ILspServerActivationTracker lspServerActivationTracker,
         [Import(AllowDefault = true)] VisualStudioHostServicesProvider? vsHostWorkspaceServicesProvider)
     {
         if (customTarget is null)
@@ -100,11 +102,6 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         if (logHubLoggerProviderFactory is null)
         {
             throw new ArgumentNullException(nameof(logHubLoggerProviderFactory));
-        }
-
-        if (outputWindowLogger is null)
-        {
-            throw new ArgumentNullException(nameof(outputWindowLogger));
         }
 
         if (projectSnapshotManagerDispatcher is null)
@@ -137,6 +134,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             throw new ArgumentNullException(nameof(clientSettingsManager));
         }
 
+        if (lspServerActivationTracker is null)
+        {
+            throw new ArgumentNullException(nameof(lspServerActivationTracker));
+        }
+
         _customMessageTarget = customTarget;
         _middleLayer = middleLayer;
         _requestInvoker = requestInvoker;
@@ -150,6 +152,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _telemetryReporter = telemetryReporter;
         _clientSettingsManager = clientSettingsManager;
+        _lspServerActivationTracker = lspServerActivationTracker;
     }
 
     public string Name => RazorLSPConstants.RazorLanguageServerName;
@@ -184,19 +187,22 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
         // Initialize Logging Infrastructure
         _loggerProvider = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync(LogFileIdentifier, token).ConfigureAwait(false);
-
+        var traceSource = _loggerProvider.GetTraceSource();
         var logHubLogger = _loggerProvider.CreateLogger("Razor");
         var loggers = _outputWindowLogger == null ? new ILogger[] { logHubLogger } : new ILogger[] { logHubLogger, _outputWindowLogger };
-        var razorLogger = new LoggerAdapter(loggers, _telemetryReporter);
-        var lspOptions = RazorLSPOptions.Default.With(_clientSettingsManager.GetClientSettings());
+        var razorLogger = new LoggerAdapter(loggers, _telemetryReporter, traceSource);
+        var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
         _server = RazorLanguageServerWrapper.Create(
             serverStream,
             serverStream,
             razorLogger,
+            _telemetryReporter,
             _projectSnapshotManagerDispatcher,
             ConfigureLanguageServer,
             _languageServerFeatureOptions,
-            lspOptions);
+            lspOptions,
+            _lspServerActivationTracker,
+            traceSource);
 
         // This must not happen on an RPC endpoint due to UIThread concerns, so ActivateAsync was chosen.
         await EnsureContainedLanguageServersInitializedAsync();
@@ -257,6 +263,9 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         }
 
         await Task.WhenAll(clientLoadTasks).ConfigureAwait(false);
+
+        // We only want to mark the server as activated after the delegated language servers have been initialized.
+        _lspServerActivationTracker.Activated();
     }
 
     private void ConfigureLanguageServer(IServiceCollection serviceCollection)
@@ -265,6 +274,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         {
             logging.AddFilter<LogHubLoggerProvider>(level => true);
             logging.AddProvider(_loggerProvider);
+
+            if (_outputWindowLogger is not null)
+            {
+                logging.AddProvider(new RazorOutputWindowLoggerProvider(_outputWindowLogger));
+            }
         });
 
         if (_vsHostWorkspaceServicesProvider is not null)
@@ -309,7 +323,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         {
             var parameter = new MonitorProjectConfigurationFilePathParams()
             {
-                ProjectFilePath = args.ProjectFilePath,
+                ProjectKeyId = args.ProjectKey.Id,
                 ConfigurationFilePath = args.ConfigurationFilePath,
             };
 
@@ -339,6 +353,8 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
     public Task<InitializationFailureContext?> OnServerInitializeFailedAsync(ILanguageClientInitializationInfo initializationState)
     {
+        _lspServerActivationTracker.Deactivated();
+
         var initializationFailureContext = new InitializationFailureContext
         {
             FailureMessage = string.Format(SR.LanguageServer_Initialization_Failed,

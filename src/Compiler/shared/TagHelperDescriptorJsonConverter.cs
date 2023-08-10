@@ -30,7 +30,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
         var descriptorKind = reader.ReadNextStringProperty(nameof(TagHelperDescriptor.Kind));
         var typeName = reader.ReadNextStringProperty(nameof(TagHelperDescriptor.Name));
         var assemblyName = reader.ReadNextStringProperty(nameof(TagHelperDescriptor.AssemblyName));
-        var builder = TagHelperDescriptorBuilder.Create(descriptorKind, typeName, assemblyName);
+        using var _ = TagHelperDescriptorBuilder.GetPooledInstance(descriptorKind, typeName, assemblyName, out var builder);
 
         reader.ReadProperties(propertyName =>
         {
@@ -40,7 +40,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
                     if (reader.Read())
                     {
                         var documentation = (string)reader.Value;
-                        builder.Documentation = documentation;
+                        builder.SetDocumentation(documentation);
                     }
                     break;
                 case nameof(TagHelperDescriptor.TagOutputHint):
@@ -410,7 +410,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
                         if (reader.Read())
                         {
                             var documentation = (string)reader.Value;
-                            attribute.Documentation = documentation;
+                            attribute.SetDocumentation(documentation);
                         }
                         break;
                     case nameof(BoundAttributeDescriptor.IndexerNamePrefix):
@@ -524,7 +524,7 @@ internal class TagHelperDescriptorJsonConverter : JsonConverter
                         if (reader.Read())
                         {
                             var documentation = (string)reader.Value;
-                            parameter.Documentation = documentation;
+                            parameter.SetDocumentation(documentation);
                         }
                         break;
                     case nameof(BoundAttributeParameterDescriptor.Metadata):

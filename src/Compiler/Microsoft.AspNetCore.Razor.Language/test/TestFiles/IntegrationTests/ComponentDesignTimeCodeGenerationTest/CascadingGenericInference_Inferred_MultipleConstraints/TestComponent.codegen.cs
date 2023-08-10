@@ -3,11 +3,11 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -41,8 +41,9 @@ namespace Test
 #nullable disable
             ;
             __builder.AddAttribute(-1, "ColumnsTemplate", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
-                var __typeInference_CreateColumn_0 = global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_0(__builder2, -1, default(WeatherForecast), -1, "", -1, "", -1, "", -1, "");
-                __o = __typeInference_CreateColumn_0.
+                var __typeInference_CreateColumn_0 = global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_0(__builder2, -1, default(WeatherForecast)!, -1, "", -1, "", -1, "", -1, "");
+                #pragma warning disable BL0005
+                __typeInference_CreateColumn_0.
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
                              FieldName
@@ -50,7 +51,8 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-                ;
+                 = default;
+                #pragma warning restore BL0005
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.Column<>);
@@ -80,10 +82,10 @@ namespace __Blazor.Test.TestComponent
             where TItem : class, new()
         {
         __builder.OpenComponent<global::Test.Column<TItem>>(seq);
-        __builder.AddAttribute(__seq0, "Title", __arg0);
-        __builder.AddAttribute(__seq1, "FieldName", __arg1);
-        __builder.AddAttribute(__seq2, "Format", __arg2);
-        __builder.AddAttribute(__seq3, "Width", __arg3);
+        __builder.AddComponentParameter(__seq0, "Title", __arg0);
+        __builder.AddComponentParameter(__seq1, "FieldName", __arg1);
+        __builder.AddComponentParameter(__seq2, "Format", __arg2);
+        __builder.AddComponentParameter(__seq3, "Width", __arg3);
         __builder.CloseComponent();
         return default;
         }

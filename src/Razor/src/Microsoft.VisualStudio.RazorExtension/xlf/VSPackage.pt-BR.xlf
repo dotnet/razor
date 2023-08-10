@@ -22,6 +22,11 @@
         <target state="translated">Fornece serviços de idiomas para ASP.NET Core Razor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="translated">Conclusão</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Formatting">
         <source>Formatting</source>
         <target state="translated">Formatação</target>
@@ -32,6 +37,36 @@
         <target state="translated">Razor Syntax Visualizer</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_AutoClosingTagsDescription">
+        <source>If true, closing tags will be automatically inserted</source>
+        <target state="translated">Se verdadeiro, as tags de fechamento serão inseridas automaticamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoClosingTagsDisplayName">
+        <source>Auto Insert Closing Tag</source>
+        <target state="translated">Inserir a Tag de Fechamento Automaticamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoInsertAttributeQuotesDescription">
+        <source>If true, completion on attributes will add quotation marks</source>
+        <target state="translated">Se for true, a conclusão nos atributos adicionará aspas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoInsertAttributeQuotesDisplayName">
+        <source>Auto Insert Attribute Quotes</source>
+        <target state="translated">Inserir Aspas de Atributo Automaticamente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ColorBackgroundDescription">
+        <source>If true, gives C# code in Razor files a background color</source>
+        <target state="translated">Se verdadeiro, dá ao código C# nos arquivos Razor uma cor de fundo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ColorBackgroundDisplayName">
+        <source>Background for C# Code</source>
+        <target state="translated">Plano de fundo para o código C#</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDescription">
         <source>If true, formatting will be enabled while typing</source>
         <target state="translated">Se verdadeiro, a formatação será habilitada durante a digitação</target>
@@ -40,6 +75,11 @@
       <trans-unit id="Setting_FormattingOnTypeDisplayName">
         <source>Format On Type</source>
         <target state="translated">Formatar no Tipo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Typing">
+        <source>Typing</source>
+        <target state="translated">Digitação</target>
         <note />
       </trans-unit>
     </body>

@@ -8,18 +8,17 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts.LinkedEditingRange;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
 
-internal class LinkedEditingRangeEndpoint : ILinkedEditingRangeEndpoint
+[LanguageServerEndpoint(Methods.TextDocumentLinkedEditingRangeName)]
+internal class LinkedEditingRangeEndpoint : IRazorRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?>, ICapabilitiesProvider
 {
     // The regex below excludes characters that can never be valid in a TagHelper name.
     // This is loosely based off logic from the Razor compiler:
@@ -41,12 +40,9 @@ internal class LinkedEditingRangeEndpoint : ILinkedEditingRangeEndpoint
 
     public bool MutatesSolutionState => false;
 
-    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        const string ServerCapability = "linkedEditingRangeProvider";
-        var option = new SumType<bool, LinkedEditingRangeOptions>(new LinkedEditingRangeOptions { });
-
-        return new RegistrationExtensionResult(ServerCapability, option);
+        serverCapabilities.LinkedEditingRangeProvider = new LinkedEditingRangeOptions();
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(LinkedEditingRangeParams request)
@@ -66,14 +62,14 @@ internal class LinkedEditingRangeEndpoint : ILinkedEditingRangeEndpoint
             return null;
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
         {
             _logger.LogWarning("FileKind {FileKind} is unsupported", codeDocument.GetFileKind());
             return null;
         }
 
-        var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken);
+        var syntaxTree = await documentContext.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
         var location = await GetSourceLocation(request, documentContext, cancellationToken).ConfigureAwait(false);
 

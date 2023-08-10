@@ -3,11 +3,11 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -44,7 +44,7 @@ namespace __Blazor.Test.TestComponent
         public static void CreateMyComponent_0<T, T2>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, global::System.Object __arg0)
         {
         __builder.OpenComponent<global::Test.MyComponent<System.Object, System.Object>>(seq);
-        __builder.AddAttribute(__seq0, "OnClick", __arg0);
+        __builder.AddComponentParameter(__seq0, "OnClick", __arg0);
         __builder.CloseComponent();
         }
     }

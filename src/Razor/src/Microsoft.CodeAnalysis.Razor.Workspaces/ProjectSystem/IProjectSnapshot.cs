@@ -4,19 +4,32 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 internal interface IProjectSnapshot
 {
+    ProjectKey Key { get; }
+
     RazorConfiguration? Configuration { get; }
     IEnumerable<string> DocumentFilePaths { get; }
+
+    /// <summary>
+    /// Gets the full path to the .csproj file for this project
+    /// </summary>
     string FilePath { get; }
+
+    /// <summary>
+    /// Gets the full path to the folder under 'obj' where the project.razor.json file will live
+    /// </summary>
+    string IntermediateOutputPath { get; }
+
     string? RootNamespace { get; }
     VersionStamp Version { get; }
     LanguageVersion CSharpLanguageVersion { get; }
-    IReadOnlyList<TagHelperDescriptor> TagHelpers { get; }
+    ImmutableArray<TagHelperDescriptor> TagHelpers { get; }
     ProjectWorkspaceState? ProjectWorkspaceState { get; }
 
     RazorProjectEngine GetProjectEngine();

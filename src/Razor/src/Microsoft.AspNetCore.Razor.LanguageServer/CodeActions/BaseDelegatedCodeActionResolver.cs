@@ -11,19 +11,16 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal abstract class BaseDelegatedCodeActionResolver : BaseCodeActionResolver
+internal abstract class BaseDelegatedCodeActionResolver : ICodeActionResolver
 {
     protected readonly ClientNotifierServiceBase LanguageServer;
 
     public BaseDelegatedCodeActionResolver(ClientNotifierServiceBase languageServer)
     {
-        if (languageServer is null)
-        {
-            throw new ArgumentNullException(nameof(languageServer));
-        }
-
-        LanguageServer = languageServer;
+        LanguageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
     }
+
+    public abstract string Action { get; }
 
     public abstract Task<CodeAction> ResolveAsync(CodeActionResolveParams resolveParams, CodeAction codeAction, CancellationToken cancellationToken);
 
@@ -32,7 +29,7 @@ internal abstract class BaseDelegatedCodeActionResolver : BaseCodeActionResolver
         var resolveCodeActionParams = new RazorResolveCodeActionParams(razorFileUri, hostDocumentVersion, languageKind, codeAction);
 
         var resolvedCodeAction = await LanguageServer.SendRequestAsync<RazorResolveCodeActionParams, CodeAction?>(
-            RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint,
+            CustomMessageNames.RazorResolveCodeActionsEndpoint,
             resolveCodeActionParams,
             cancellationToken).ConfigureAwait(false);
 

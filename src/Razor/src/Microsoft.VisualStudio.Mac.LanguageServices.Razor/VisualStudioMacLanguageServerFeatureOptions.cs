@@ -33,13 +33,19 @@ internal class VisualStudioMacLanguageServerFeatureOptions : LanguageServerFeatu
 
     public override string HtmlVirtualDocumentSuffix => "__virtual.html";
 
-    public override bool SingleServerCompletionSupport => false;
+    public override bool SingleServerCompletionSupport => true;
 
-    public override bool SingleServerSupport => false;
+    public override bool SingleServerSupport => true;
 
     public override bool SupportsDelegatedCodeActions => true;
 
+    public override bool SupportsDelegatedDiagnostics => false;
+
+    public override bool ShowAllCSharpCodeActions => false;
+
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => false;
+
+    public override bool UpdateBuffersForClosedDocuments => false;
 
     private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
 

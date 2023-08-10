@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
-internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger, IDisposable
+internal class OpenDocumentGenerator : IProjectSnapshotChangeTrigger, IDisposable
 {
     // Using 10 milliseconds for the delay here because we want document synchronization to be very fast,
     // so that features like completion are not delayed, but at the same time we don't want to do more work
@@ -26,6 +26,7 @@ internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger, IDisposable
     private static readonly TimeSpan s_batchingTimeSpan = TimeSpan.FromMilliseconds(10);
 
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly IReadOnlyList<DocumentProcessedListener> _documentProcessedListeners;
     private readonly BatchingWorkQueue _workQueue;
     private ProjectSnapshotManagerBase? _projectManager;
@@ -33,6 +34,7 @@ internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger, IDisposable
     public OpenDocumentGenerator(
         IEnumerable<DocumentProcessedListener> documentProcessedListeners,
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
+        LanguageServerFeatureOptions languageServerFeatureOptions,
         IErrorReporter errorReporter)
     {
         if (documentProcessedListeners is null)
@@ -45,20 +47,21 @@ internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger, IDisposable
             throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
         }
 
+        if (languageServerFeatureOptions is null)
+        {
+            throw new ArgumentNullException(nameof(languageServerFeatureOptions));
+        }
+
         _documentProcessedListeners = documentProcessedListeners.ToArray();
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
+        _languageServerFeatureOptions = languageServerFeatureOptions;
         _workQueue = new BatchingWorkQueue(s_batchingTimeSpan, FilePathComparer.Instance, errorReporter);
     }
 
     private ProjectSnapshotManagerBase ProjectManager => _projectManager ?? throw new InvalidOperationException($"{nameof(ProjectManager)} was unexpectedly 'null'. Has {nameof(Initialize)} been called?");
 
-    public override void Initialize(ProjectSnapshotManagerBase projectManager)
+    public void Initialize(ProjectSnapshotManagerBase projectManager)
     {
-        if (projectManager is null)
-        {
-            throw new ArgumentNullException(nameof(projectManager));
-        }
-
         _projectManager = projectManager;
 
         ProjectManager.Changed += ProjectSnapshotManager_Changed;
@@ -161,15 +164,14 @@ internal class OpenDocumentGenerator : ProjectSnapshotChangeTrigger, IDisposable
 
                 void TryEnqueue(IDocumentSnapshot document)
                 {
-                    var filePath = document.FilePath.AssumeNotNull();
-
-                    if (!ProjectManager.IsDocumentOpen(filePath))
+                    if (!ProjectManager.IsDocumentOpen(document.FilePath) && !_languageServerFeatureOptions.UpdateBuffersForClosedDocuments)
                     {
                         return;
                     }
 
+                    var key = $"{document.Project.Key.Id}:{document.FilePath.AssumeNotNull()}";
                     var workItem = new ProcessWorkItem(document, _documentProcessedListeners, _projectSnapshotManagerDispatcher);
-                    _workQueue.Enqueue(filePath, workItem);
+                    _workQueue.Enqueue(key, workItem);
                 }
         }
     }

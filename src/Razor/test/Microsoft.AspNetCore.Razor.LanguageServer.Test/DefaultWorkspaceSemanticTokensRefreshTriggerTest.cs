@@ -22,12 +22,12 @@ public class DefaultWorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTe
     public DefaultWorkspaceSemanticTokensRefreshTriggerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _projectManager = TestProjectSnapshotManager.Create(LegacyDispatcher, ErrorReporter);
+        _projectManager = TestProjectSnapshotManager.Create(ErrorReporter);
         _projectManager.AllowNotifyListeners = true;
-        _hostProject = new HostProject("/path/to/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
+        _hostProject = new HostProject("/path/to/project.csproj", "/path/to/obj", RazorConfiguration.Default, "TestRootNamespace");
         _projectManager.ProjectAdded(_hostProject);
         _hostDocument = new HostDocument("/path/to/file.razor", "file.razor");
-        _projectManager.DocumentAdded(_hostProject, _hostDocument, new EmptyTextLoader(_hostDocument.FilePath));
+        _projectManager.DocumentAdded(_hostProject.Key, _hostDocument, new EmptyTextLoader(_hostDocument.FilePath));
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class DefaultWorkspaceSemanticTokensRefreshTriggerTest : LanguageServerTe
 
         // Act
         var newDocument = new HostDocument("/path/to/newFile.razor", "newFile.razor");
-        _projectManager.DocumentAdded(_hostProject, newDocument, new EmptyTextLoader(newDocument.FilePath));
+        _projectManager.DocumentAdded(_hostProject.Key, newDocument, new EmptyTextLoader(newDocument.FilePath));
 
         // Assert
         workspaceChangedPublisher.VerifyAll();

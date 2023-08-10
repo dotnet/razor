@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -19,15 +18,15 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 /// <summary>
 /// Resolves and remaps the code action, without running formatting passes.
 /// </summary>
-internal class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeActionResolver
+internal sealed class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeActionResolver
 {
     private readonly DocumentContextFactory _documentContextFactory;
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
     public UnformattedRemappingCSharpCodeActionResolver(
         DocumentContextFactory documentContextFactory,
         ClientNotifierServiceBase languageServer,
-        RazorDocumentMappingService documentMappingService)
+        IRazorDocumentMappingService documentMappingService)
         : base(languageServer)
     {
         _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
@@ -53,7 +52,7 @@ internal class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeActionRe
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(csharpParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
+        var documentContext = _documentContextFactory.TryCreateForOpenDocument(csharpParams.RazorFileUri);
         if (documentContext is null)
         {
             return codeAction;
@@ -93,7 +92,7 @@ internal class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeActionRe
             return codeAction;
         }
 
-        if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), textEdit.Range, MappingBehavior.Inclusive, out var originalRange))
+        if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), textEdit.Range, MappingBehavior.Inclusive, out var originalRange))
         {
             // Text edit failed to map
             return codeAction;
@@ -109,12 +108,12 @@ internal class UnformattedRemappingCSharpCodeActionResolver : CSharpCodeActionRe
         resolvedCodeAction.Edit = new WorkspaceEdit()
         {
             DocumentChanges = new[] {
-                        new TextDocumentEdit()
-                        {
-                            TextDocument = codeDocumentIdentifier,
-                            Edits = new[] { textEdit },
-                        }
-                },
+                new TextDocumentEdit()
+                {
+                    TextDocument = codeDocumentIdentifier,
+                    Edits = new[] { textEdit },
+                }
+            },
         };
 
         return resolvedCodeAction;

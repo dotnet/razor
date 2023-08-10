@@ -13,6 +13,8 @@ internal class CapabilitiesManager : IInitializeManager<InitializeParams, Initia
     private InitializeParams? _initializeParams;
     private readonly ILspServices _lspServices;
 
+    public bool HasInitialized => _initializeParams is not null;
+
     public CapabilitiesManager(ILspServices lspServices)
     {
         _lspServices = lspServices;
@@ -36,14 +38,10 @@ internal class CapabilitiesManager : IInitializeManager<InitializeParams, Initia
 
         var serverCapabilities = new VSInternalServerCapabilities();
 
-        var registrationExtensions = _lspServices.GetRequiredServices<IRegistrationExtension>();
-        foreach (var registrationExtension in registrationExtensions)
+        var capabilitiesProviders = _lspServices.GetRequiredServices<ICapabilitiesProvider>();
+        foreach (var provider in capabilitiesProviders)
         {
-            var registrationResult = registrationExtension.GetRegistration(vsClientCapabilities);
-            if (registrationResult is not null)
-            {
-                serverCapabilities.ApplyRegistrationResult(registrationResult);
-            }
+            provider.ApplyCapabilities(serverCapabilities, vsClientCapabilities);
         }
 
         var initializeResult = new InitializeResult

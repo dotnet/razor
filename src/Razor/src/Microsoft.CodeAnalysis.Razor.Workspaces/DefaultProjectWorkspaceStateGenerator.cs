@@ -9,23 +9,25 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
 [Shared]
 [Export(typeof(ProjectWorkspaceStateGenerator))]
-[Export(typeof(ProjectSnapshotChangeTrigger))]
+[Export(typeof(IProjectSnapshotChangeTrigger))]
 internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGenerator, IDisposable
 {
     // Internal for testing
-    internal readonly Dictionary<string, UpdateItem> Updates;
+    internal readonly Dictionary<ProjectKey, UpdateItem> Updates;
 
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly SemaphoreSlim _semaphore;
     private ProjectSnapshotManagerBase _projectManager;
-    private TagHelperResolver _tagHelperResolver;
+    private ITagHelperResolver _tagHelperResolver;
     private bool _disposed;
 
     [ImportingConstructor]
@@ -39,7 +41,7 @@ internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGene
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
 
         _semaphore = new SemaphoreSlim(initialCount: 1);
-        Updates = new Dictionary<string, UpdateItem>(FilePathComparer.Instance);
+        Updates = new Dictionary<ProjectKey, UpdateItem>();
     }
 
     // Used in unit tests to ensure we can control when background work starts.
@@ -57,7 +59,7 @@ internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGene
 
         _projectManager = projectManager;
 
-        _tagHelperResolver = _projectManager.Workspace.Services.GetRequiredService<TagHelperResolver>();
+        _tagHelperResolver = _projectManager.Workspace.Services.GetRequiredService<ITagHelperResolver>();
     }
 
     public override void Update(Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
@@ -74,7 +76,7 @@ internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGene
             return;
         }
 
-        if (Updates.TryGetValue(projectSnapshot.FilePath, out var updateItem) &&
+        if (Updates.TryGetValue(projectSnapshot.Key, out var updateItem) &&
             !updateItem.Task.IsCompleted &&
             !updateItem.Cts.IsCancellationRequested)
         {
@@ -93,7 +95,7 @@ internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGene
             TaskCreationOptions.None,
             TaskScheduler.Default).Unwrap();
         updateItem = new UpdateItem(updateTask, lcts);
-        Updates[projectSnapshot.FilePath] = updateItem;
+        Updates[projectSnapshot.Key] = updateItem;
     }
 
     public void Dispose()
@@ -137,7 +139,7 @@ internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGene
             // Only allow a single TagHelper resolver request to process at a time in order to reduce Visual Studio memory pressure. Typically a TagHelper resolution result can be upwards of 10mb+.
             // So if we now do multiple requests to resolve TagHelpers simultaneously it results in only a single one executing at a time so that we don't have N number of requests in flight with these
             // 10mb payloads waiting to be processed.
-            await _semaphore.WaitAsync(cancellationToken);
+            await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
         }
         catch (Exception)
         {
@@ -171,8 +173,8 @@ internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGene
                         csharpLanguageVersion = csharpParseOptions.LanguageVersion;
                     }
 
-                    var tagHelperResolutionResult = await _tagHelperResolver.GetTagHelpersAsync(workspaceProject, projectSnapshot, cancellationToken);
-                    workspaceState = new ProjectWorkspaceState(tagHelperResolutionResult.Descriptors, csharpLanguageVersion);
+                    var tagHelpers = await _tagHelperResolver.GetTagHelpersAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
+                    workspaceState = new ProjectWorkspaceState(tagHelpers, csharpLanguageVersion);
                 }
             }
             catch (OperationCanceledException)
@@ -203,7 +205,7 @@ internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGene
                         return;
                     }
 
-                    ReportWorkspaceStateChange(projectSnapshot.FilePath, workspaceState);
+                    ReportWorkspaceStateChange(projectSnapshot.Key, workspaceState);
                 },
                 cancellationToken).ConfigureAwait(false);
         }
@@ -240,11 +242,11 @@ internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGene
         OnBackgroundWorkCompleted();
     }
 
-    private void ReportWorkspaceStateChange(string projectFilePath, ProjectWorkspaceState workspaceStateChange)
+    private void ReportWorkspaceStateChange(ProjectKey projectKey, ProjectWorkspaceState workspaceStateChange)
     {
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-        _projectManager.ProjectWorkspaceStateChanged(projectFilePath, workspaceStateChange);
+        _projectManager.ProjectWorkspaceStateChanged(projectKey, workspaceStateChange);
     }
 
     private void OnStartingBackgroundWork()

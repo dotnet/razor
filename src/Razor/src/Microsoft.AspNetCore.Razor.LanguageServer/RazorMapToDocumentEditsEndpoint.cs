@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -35,7 +34,7 @@ internal class RazorMapToDocumentEditsEndpoint : IRazorMapToDocumentEditsHandler
 
         var documentContext = requestContext.GetRequiredDocumentContext();
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
         {
             return new RazorMapToDocumentEditsResponse()
@@ -45,10 +44,10 @@ internal class RazorMapToDocumentEditsEndpoint : IRazorMapToDocumentEditsHandler
             };
         }
 
-        var razorFormattingService = requestContext.GetRequiredService<RazorFormattingService>();
+        var razorFormattingService = requestContext.GetRequiredService<IRazorFormattingService>();
         if (request.TextEditKind == TextEditKind.FormatOnType)
         {
-            var mappedEdits = await razorFormattingService.FormatOnTypeAsync(documentContext, request.Kind, request.ProjectedTextEdits, request.FormattingOptions, hostDocumentIndex: 0, triggerCharacter: '\0', cancellationToken);
+            var mappedEdits = await razorFormattingService.FormatOnTypeAsync(documentContext, request.Kind, request.ProjectedTextEdits, request.FormattingOptions, hostDocumentIndex: 0, triggerCharacter: '\0', cancellationToken).ConfigureAwait(false);
 
             return new RazorMapToDocumentEditsResponse()
             {
@@ -63,7 +62,7 @@ internal class RazorMapToDocumentEditsEndpoint : IRazorMapToDocumentEditsHandler
                 WrapCSharpSnippets(request.ProjectedTextEdits);
             }
 
-            var mappedEdits = await razorFormattingService.FormatSnippetAsync(documentContext, request.Kind, request.ProjectedTextEdits, request.FormattingOptions, cancellationToken);
+            var mappedEdits = await razorFormattingService.FormatSnippetAsync(documentContext, request.Kind, request.ProjectedTextEdits, request.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
             if (request.Kind == RazorLanguageKind.CSharp)
             {
@@ -87,12 +86,12 @@ internal class RazorMapToDocumentEditsEndpoint : IRazorMapToDocumentEditsHandler
             };
         }
 
-        var documentMappingService = requestContext.GetRequiredService<RazorDocumentMappingService>();
+        var documentMappingService = requestContext.GetRequiredService<IRazorDocumentMappingService>();
         var edits = new List<TextEdit>();
         for (var i = 0; i < request.ProjectedTextEdits.Length; i++)
         {
             var projectedRange = request.ProjectedTextEdits[i].Range;
-            if (!documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), projectedRange, out var originalRange))
+            if (!documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), projectedRange, out var originalRange))
             {
                 // Can't map range. Discard this edit.
                 continue;

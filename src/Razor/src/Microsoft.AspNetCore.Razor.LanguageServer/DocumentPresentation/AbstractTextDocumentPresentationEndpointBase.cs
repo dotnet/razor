@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -18,15 +17,15 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 
-internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : IRazorRequestHandler<TParams, WorkspaceEdit?>, IRegistrationExtension
+internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : IRazorRequestHandler<TParams, WorkspaceEdit?>, ICapabilitiesProvider
     where TParams : IPresentationParams
 {
-    private readonly RazorDocumentMappingService _razorDocumentMappingService;
+    private readonly IRazorDocumentMappingService _razorDocumentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
     protected AbstractTextDocumentPresentationEndpointBase(
-        RazorDocumentMappingService razorDocumentMappingService,
+        IRazorDocumentMappingService razorDocumentMappingService,
         ClientNotifierServiceBase languageServer,
         LanguageServerFeatureOptions languageServerFeatureOptions)
     {
@@ -54,7 +53,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
 
     public bool MutatesSolutionState => false;
 
-    public abstract RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities);
+    public abstract void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities);
 
     protected abstract IRazorPresentationParams CreateRazorRequestParameters(TParams request);
 
@@ -107,7 +106,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
         // For CSharp we need to map the range to the generated document
         if (languageKind == RazorLanguageKind.CSharp)
         {
-            if (!_razorDocumentMappingService.TryMapToProjectedDocumentRange(codeDocument.GetCSharpDocument(), request.Range, out var projectedRange))
+            if (!_razorDocumentMappingService.TryMapToGeneratedDocumentRange(codeDocument.GetCSharpDocument(), request.Range, out var projectedRange))
             {
                 return null;
             }
@@ -234,7 +233,7 @@ internal abstract class AbstractTextDocumentPresentationEndpointBase<TParams> : 
         var mappedEdits = new List<TextEdit>();
         foreach (var edit in edits)
         {
-            if (!_razorDocumentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), edit.Range, out var newRange))
+            if (!_razorDocumentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), edit.Range, out var newRange))
             {
                 return null;
             }

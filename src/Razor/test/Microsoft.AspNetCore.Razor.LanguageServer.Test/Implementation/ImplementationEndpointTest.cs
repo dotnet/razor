@@ -7,7 +7,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
@@ -105,7 +104,7 @@ public class ImplementationEndpointTest : SingleServerDelegatingEndpointTestBase
             LanguageServerFeatureOptions, DocumentMappingService, LanguageServer, LoggerFactory);
 
         codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
-        var request = new TextDocumentPositionParamsBridge
+        var request = new TextDocumentPositionParams
         {
             TextDocument = new TextDocumentIdentifier
             {
@@ -113,7 +112,7 @@ public class ImplementationEndpointTest : SingleServerDelegatingEndpointTestBase
             },
             Position = new Position(line, offset)
         };
-        var documentContext = await DocumentContextFactory.TryCreateForOpenDocumentAsync(request.TextDocument.Uri, DisposalToken);
+        var documentContext = DocumentContextFactory.TryCreateForOpenDocument(request.TextDocument);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act

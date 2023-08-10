@@ -5,7 +5,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -14,9 +13,9 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class RazorMapToDocumentRangesEndpoint : IRazorMapToDocumentRangesHandler
 {
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
-    public RazorMapToDocumentRangesEndpoint(RazorDocumentMappingService documentMappingService)
+    public RazorMapToDocumentRangesEndpoint(IRazorDocumentMappingService documentMappingService)
     {
         _documentMappingService = documentMappingService;
     }
@@ -47,13 +46,13 @@ internal class RazorMapToDocumentRangesEndpoint : IRazorMapToDocumentRangesHandl
             };
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         var ranges = new Range[request.ProjectedRanges.Length];
         for (var i = 0; i < request.ProjectedRanges.Length; i++)
         {
             var projectedRange = request.ProjectedRanges[i];
             if (codeDocument.IsUnsupported() ||
-                !_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), projectedRange, request.MappingBehavior, out var originalRange))
+                !_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), projectedRange, request.MappingBehavior, out var originalRange))
             {
                 // All language queries on unsupported documents return Html. This is equivalent to what pre-VSCode Razor was capable of.
                 ranges[i] = RangeExtensions.UndefinedRange;

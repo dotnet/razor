@@ -7,9 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -24,11 +22,11 @@ internal class CSharpFormatter
 {
     private const string MarkerId = "RazorMarker";
 
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _server;
 
     public CSharpFormatter(
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer)
     {
         if (documentMappingService is null)
@@ -45,11 +43,7 @@ internal class CSharpFormatter
         _server = languageServer;
     }
 
-    public async Task<TextEdit[]> FormatAsync(
-        FormattingContext context,
-        Range rangeToFormat,
-        CancellationToken cancellationToken,
-        bool formatOnClient = false)
+    public async Task<TextEdit[]> FormatAsync(FormattingContext context, Range rangeToFormat, CancellationToken cancellationToken)
     {
         if (context is null)
         {
@@ -61,14 +55,12 @@ internal class CSharpFormatter
             throw new ArgumentNullException(nameof(rangeToFormat));
         }
 
-        if (!_documentMappingService.TryMapToProjectedDocumentRange(context.CodeDocument.GetCSharpDocument(), rangeToFormat, out var projectedRange))
+        if (!_documentMappingService.TryMapToGeneratedDocumentRange(context.CodeDocument.GetCSharpDocument(), rangeToFormat, out var projectedRange))
         {
             return Array.Empty<TextEdit>();
         }
 
-        var edits = formatOnClient
-            ? await FormatOnClientAsync(context, projectedRange, cancellationToken)
-            : await FormatOnServerAsync(context, projectedRange, cancellationToken);
+        var edits = await GetFormattingEditsAsync(context, projectedRange, cancellationToken).ConfigureAwait(false);
         var mappedEdits = MapEditsToHostDocument(context.CodeDocument, edits);
         return mappedEdits;
     }
@@ -92,46 +84,22 @@ internal class CSharpFormatter
         // We also want to ensure there are no duplicates to avoid duplicate markers.
         var filteredLocations = projectedDocumentLocations.Distinct().OrderBy(l => l).ToList();
 
-        var indentations = await GetCSharpIndentationCoreAsync(context, filteredLocations, cancellationToken);
+        var indentations = await GetCSharpIndentationCoreAsync(context, filteredLocations, cancellationToken).ConfigureAwait(false);
         return indentations;
     }
 
     private TextEdit[] MapEditsToHostDocument(RazorCodeDocument codeDocument, TextEdit[] csharpEdits)
     {
-        var actualEdits = _documentMappingService.GetProjectedDocumentEdits(codeDocument.GetCSharpDocument(), csharpEdits);
+        var actualEdits = _documentMappingService.GetHostDocumentEdits(codeDocument.GetCSharpDocument(), csharpEdits);
 
         return actualEdits;
     }
 
-    private async Task<TextEdit[]> FormatOnClientAsync(
-        FormattingContext context,
-        Range projectedRange,
-        CancellationToken cancellationToken)
-    {
-        var @params = new RazorDocumentRangeFormattingParams()
-        {
-            Kind = RazorLanguageKind.CSharp,
-            ProjectedRange = projectedRange,
-            HostDocumentFilePath = FilePathNormalizer.Normalize(context.Uri.GetAbsoluteOrUNCPath()),
-            Options = context.Options
-        };
-
-        var result = await _server.SendRequestAsync<RazorDocumentRangeFormattingParams, RazorDocumentFormattingResponse>(
-            RazorLanguageServerCustomMessageTargets.RazorRangeFormattingEndpoint,
-            @params,
-            cancellationToken);
-
-        return result?.Edits ?? Array.Empty<TextEdit>();
-    }
-
-    private static async Task<TextEdit[]> FormatOnServerAsync(
-        FormattingContext context,
-        Range projectedRange,
-        CancellationToken cancellationToken)
+    private static async Task<TextEdit[]> GetFormattingEditsAsync(FormattingContext context, Range projectedRange, CancellationToken cancellationToken)
     {
         var csharpSourceText = context.CodeDocument.GetCSharpSourceText();
         var spanToFormat = projectedRange.AsTextSpan(csharpSourceText);
-        var root = await context.CSharpWorkspaceDocument.GetSyntaxRootAsync(cancellationToken);
+        var root = await context.CSharpWorkspaceDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         Assumes.NotNull(root);
 
         var workspace = context.CSharpWorkspace;
@@ -153,7 +121,7 @@ internal class CSharpFormatter
 
         var (indentationMap, syntaxTree) = InitializeIndentationData(context, projectedDocumentLocations, cancellationToken);
 
-        var root = await syntaxTree.GetRootAsync(cancellationToken);
+        var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
         root = AttachAnnotations(indentationMap, projectedDocumentLocations, root);
 

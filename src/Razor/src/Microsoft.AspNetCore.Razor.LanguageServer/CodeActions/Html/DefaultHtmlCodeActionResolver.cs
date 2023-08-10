@@ -11,15 +11,15 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 
-internal class DefaultHtmlCodeActionResolver : HtmlCodeActionResolver
+internal sealed class DefaultHtmlCodeActionResolver : HtmlCodeActionResolver
 {
     private readonly DocumentContextFactory _documentContextFactory;
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
     public DefaultHtmlCodeActionResolver(
         DocumentContextFactory documentContextFactory,
         ClientNotifierServiceBase languageServer,
-        RazorDocumentMappingService documentMappingService)
+        IRazorDocumentMappingService documentMappingService)
         : base(languageServer)
     {
         if (documentContextFactory is null)
@@ -53,7 +53,7 @@ internal class DefaultHtmlCodeActionResolver : HtmlCodeActionResolver
             throw new ArgumentNullException(nameof(codeAction));
         }
 
-        var documentContext = await _documentContextFactory.TryCreateForOpenDocumentAsync(resolveParams.RazorFileUri, cancellationToken).ConfigureAwait(false);
+        var documentContext = _documentContextFactory.TryCreateForOpenDocument(resolveParams.RazorFileUri);
         if (documentContext is null)
         {
             return codeAction;
@@ -67,7 +67,7 @@ internal class DefaultHtmlCodeActionResolver : HtmlCodeActionResolver
         }
 
         var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
-        await DefaultHtmlCodeActionProvider.RemapeAndFixHtmlCodeActionEditAsync(_documentMappingService, codeDocument, resolvedCodeAction, cancellationToken).ConfigureAwait(false);
+        await DefaultHtmlCodeActionProvider.RemapAndFixHtmlCodeActionEditAsync(_documentMappingService, codeDocument, resolvedCodeAction, cancellationToken).ConfigureAwait(false);
 
         return resolvedCodeAction;
     }

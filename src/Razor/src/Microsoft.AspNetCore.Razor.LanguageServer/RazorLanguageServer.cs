@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 using Microsoft.AspNetCore.Razor.LanguageServer.ColorPresentation;
@@ -10,12 +9,14 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Debugging;
 using Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentColor;
 using Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting;
+using Microsoft.AspNetCore.Razor.LanguageServer.DocumentSymbol;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.FindAllReferences;
 using Microsoft.AspNetCore.Razor.LanguageServer.Folding;
 using Microsoft.AspNetCore.Razor.LanguageServer.Implementation;
 using Microsoft.AspNetCore.Razor.LanguageServer.LinkedEditingRange;
+using Microsoft.AspNetCore.Razor.LanguageServer.ProjectContexts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 using Microsoft.AspNetCore.Razor.LanguageServer.SignatureHelp;
 using Microsoft.AspNetCore.Razor.LanguageServer.WrapWithTag;
@@ -27,7 +28,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
-using Microsoft.VisualStudio.Telemetry;
 using StreamJsonRpc;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -39,6 +39,8 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
     private readonly ProjectSnapshotManagerDispatcher? _projectSnapshotManagerDispatcher;
     private readonly Action<IServiceCollection>? _configureServer;
     private readonly RazorLSPOptions _lspOptions;
+    private readonly ILspServerActivationTracker? _lspServerActivationTracker;
+    private readonly ITelemetryReporter _telemetryReporter;
 
     // Cached for testing
     private IHandlerProvider? _handlerProvider;
@@ -49,7 +51,9 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         ProjectSnapshotManagerDispatcher? projectSnapshotManagerDispatcher,
         LanguageServerFeatureOptions? featureOptions,
         Action<IServiceCollection>? configureServer,
-        RazorLSPOptions? lspOptions)
+        RazorLSPOptions? lspOptions,
+        ILspServerActivationTracker? lspServerActivationTracker,
+        ITelemetryReporter telemetryReporter)
         : base(jsonRpc, logger)
     {
         _jsonRpc = jsonRpc;
@@ -57,8 +61,19 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _configureServer = configureServer;
         _lspOptions = lspOptions ?? RazorLSPOptions.Default;
+        _lspServerActivationTracker = lspServerActivationTracker;
+        _telemetryReporter = telemetryReporter;
 
         Initialize();
+    }
+
+    protected override IRequestExecutionQueue<RazorRequestContext> ConstructRequestExecutionQueue()
+    {
+        var handlerProvider = GetHandlerProvider();
+        var queue = new RazorRequestExecutionQueue(this, _logger, handlerProvider);
+        queue.Start();
+        return queue;
+
     }
 
     protected override ILspServices ConstructLspServices()
@@ -85,7 +100,7 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         }
         else
         {
-            services.AddSingleton<LoggerAdapter>((provider) =>
+            services.AddSingleton<LoggerAdapter>(static (provider) =>
             {
                 var loggers = provider.GetServices<ILogger>();
                 if (!loggers.Any())
@@ -120,11 +135,11 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         var featureOptions = _featureOptions ?? new DefaultLanguageServerFeatureOptions();
         services.AddSingleton(featureOptions);
 
-        services.AddLifeCycleServices(this, serverManager);
+        services.AddLifeCycleServices(this, serverManager, _lspServerActivationTracker);
 
         services.AddDiagnosticServices();
         services.AddSemanticTokensServices();
-        services.AddDocumentManagmentServices();
+        services.AddDocumentManagementServices(featureOptions);
         services.AddCompletionServices(featureOptions);
         services.AddFormattingServices();
         services.AddCodeActionsServices();
@@ -133,30 +148,24 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         services.AddTextDocumentServices();
 
         // Auto insert
-        services.AddSingleton<RazorOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
-        services.AddSingleton<RazorOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
+        services.AddSingleton<IOnAutoInsertProvider, CloseTextTagOnAutoInsertProvider>();
+        services.AddSingleton<IOnAutoInsertProvider, AutoClosingTagOnAutoInsertProvider>();
 
         // Folding Range Providers
-        services.AddSingleton<RazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
+        services.AddSingleton<IRazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
+        services.AddSingleton<IRazorFoldingRangeProvider, UsingsFoldingRangeProvider>();
 
         // Other
         services.AddSingleton<HtmlFactsService, DefaultHtmlFactsService>();
         services.AddSingleton<WorkspaceDirectoryPathResolver, DefaultWorkspaceDirectoryPathResolver>();
         services.AddSingleton<RazorComponentSearchEngine, DefaultRazorComponentSearchEngine>();
 
-        // Folding Range Providers
-        services.AddSingleton<RazorFoldingRangeProvider, RazorCodeBlockFoldingProvider>();
-
         services.AddSingleton<IFaultExceptionHandler, JsonRPCFaultExceptionHandler>();
 
         // Get the DefaultSession for telemetry. This is set by VS with
         // TelemetryService.SetDefaultSession and provides the correct
         // appinsights keys etc
-        services.AddSingleton<ITelemetryReporter>(provider =>
-            new TelemetryReporter(
-                ImmutableArray.Create(TelemetryService.DefaultSession),
-                provider.GetRequiredService<ILoggerFactory>(),
-                provider.GetServices<IFaultExceptionHandler>()));
+        services.AddSingleton<ITelemetryReporter>(_telemetryReporter);
 
         // Defaults: For when the caller hasn't provided them through the `configure` action.
         services.TryAddSingleton<HostServicesProvider, DefaultHostServicesProvider>();
@@ -169,23 +178,25 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
 
         static void AddHandlers(IServiceCollection services)
         {
-            services.AddRegisteringHandler<ImplementationEndpoint>();
-            services.AddRegisteringHandler<SignatureHelpEndpoint>();
-            services.AddRegisteringHandler<DocumentHighlightEndpoint>();
+            services.AddHandlerWithCapabilities<ImplementationEndpoint>();
+            services.AddHandlerWithCapabilities<SignatureHelpEndpoint>();
+            services.AddHandlerWithCapabilities<DocumentHighlightEndpoint>();
             services.AddHandler<RazorConfigurationEndpoint>();
-            services.AddRegisteringHandler<OnAutoInsertEndpoint>();
+            services.AddHandlerWithCapabilities<OnAutoInsertEndpoint>();
             services.AddHandler<MonitorProjectConfigurationFilePathEndpoint>();
-            services.AddRegisteringHandler<RenameEndpoint>();
-            services.AddRegisteringHandler<RazorDefinitionEndpoint>();
-            services.AddRegisteringHandler<LinkedEditingRangeEndpoint>();
+            services.AddHandlerWithCapabilities<RenameEndpoint>();
+            services.AddHandlerWithCapabilities<DefinitionEndpoint>();
+            services.AddHandlerWithCapabilities<LinkedEditingRangeEndpoint>();
             services.AddHandler<WrapWithTagEndpoint>();
             services.AddHandler<RazorBreakpointSpanEndpoint>();
             services.AddHandler<RazorProximityExpressionsEndpoint>();
-            services.AddRegisteringHandler<DocumentColorEndpoint>();
+            services.AddHandlerWithCapabilities<DocumentColorEndpoint>();
             services.AddHandler<ColorPresentationEndpoint>();
-            services.AddRegisteringHandler<FoldingRangeEndpoint>();
-            services.AddRegisteringHandler<ValidateBreakpointRangeEndpoint>();
-            services.AddRegisteringHandler<FindAllReferencesEndpoint>();
+            services.AddHandlerWithCapabilities<FoldingRangeEndpoint>();
+            services.AddHandlerWithCapabilities<ValidateBreakpointRangeEndpoint>();
+            services.AddHandlerWithCapabilities<FindAllReferencesEndpoint>();
+            services.AddHandlerWithCapabilities<ProjectContextsEndpoint>();
+            services.AddHandlerWithCapabilities<DocumentSymbolEndpoint>();
         }
     }
 
@@ -221,6 +232,11 @@ internal class RazorLanguageServer : AbstractLanguageServer<RazorRequestContext>
         public IHandlerProvider GetHandlerProvider()
         {
             return _server.GetHandlerProvider();
+        }
+
+        public RazorRequestExecutionQueue GetRequestExecutionQueue()
+        {
+            return (RazorRequestExecutionQueue)_server.GetRequestExecutionQueue();
         }
     }
 }

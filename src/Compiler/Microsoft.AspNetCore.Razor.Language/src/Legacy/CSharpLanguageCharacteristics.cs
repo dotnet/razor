@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
+// Removal of this type is tracked by https://github.com/dotnet/razor/issues/8445
 internal class CSharpLanguageCharacteristics : LanguageCharacteristics<CSharpTokenizer>
 {
     private static readonly Dictionary<SyntaxKind, string> _tokenSamples = new Dictionary<SyntaxKind, string>()

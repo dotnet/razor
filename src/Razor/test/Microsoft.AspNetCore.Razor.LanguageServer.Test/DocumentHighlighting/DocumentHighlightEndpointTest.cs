@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
@@ -24,7 +23,7 @@ using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting.Test;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentHighlighting;
 
 [UseExportProvider]
 public class DocumentHighlightEndpointTest : LanguageServerTestBase
@@ -111,7 +110,7 @@ public class DocumentHighlightEndpointTest : LanguageServerTestBase
         var codeDocument = CreateCodeDocument(output);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
-        var serverCapabilities = new ServerCapabilities()
+        var serverCapabilities = new VSInternalServerCapabilities()
         {
             DocumentHighlightProvider = true
         };
@@ -129,13 +128,13 @@ public class DocumentHighlightEndpointTest : LanguageServerTestBase
             MockBehavior.Strict);
 
         var languageServer = new DocumentHighlightServer(csharpServer, csharpDocumentUri);
-        var documentMappingService = new DefaultRazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
+        var documentMappingService = new RazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
 
         var endpoint = new DocumentHighlightEndpoint(
             languageServerFeatureOptions, documentMappingService, languageServer, LoggerFactory);
 
         codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
-        var request = new DocumentHighlightParamsBridge
+        var request = new DocumentHighlightParams
         {
             TextDocument = new TextDocumentIdentifier
             {
@@ -193,7 +192,7 @@ public class DocumentHighlightEndpointTest : LanguageServerTestBase
 
         public override async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         {
-            Assert.Equal(RazorLanguageServerCustomMessageTargets.RazorDocumentHighlightEndpointName, method);
+            Assert.Equal(CustomMessageNames.RazorDocumentHighlightEndpointName, method);
             var highlightParams = Assert.IsType<DelegatedPositionParams>(@params);
 
             var highlightRequest = new DocumentHighlightParams()

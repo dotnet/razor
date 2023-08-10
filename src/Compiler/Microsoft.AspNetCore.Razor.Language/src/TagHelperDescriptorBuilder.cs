@@ -5,10 +5,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
-public abstract class TagHelperDescriptorBuilder
+public abstract partial class TagHelperDescriptorBuilder
 {
     public static TagHelperDescriptorBuilder Create(string name, string assemblyName)
     {
@@ -45,6 +46,52 @@ public abstract class TagHelperDescriptorBuilder
         return new DefaultTagHelperDescriptorBuilder(kind, name, assemblyName);
     }
 
+    /// <summary>
+    ///  Retrieves a pooled <see cref="TagHelperDescriptorBuilder"/> instance.
+    /// </summary>
+    /// <remarks>
+    ///  The <see cref="PooledBuilder"/> returned by this method should be disposed
+    ///  to return the <see cref="TagHelperDescriptorBuilder"/> to its pool.
+    ///  The correct way to achieve this is with a using statement:
+    ///
+    /// <code>
+    ///  using var _ = TagHelperDescriptorBuilder.GetPooledInstance(..., out var builder);
+    /// </code>
+    /// 
+    ///  Once disposed, the builder can no longer be used.
+    /// </remarks>
+    public static PooledBuilder GetPooledInstance(
+        string kind, string name, string assemblyName,
+        out TagHelperDescriptorBuilder builder)
+    {
+        var defaultBuilder = DefaultTagHelperDescriptorBuilder.GetInstance(kind, name, assemblyName);
+        builder = defaultBuilder;
+        return new(defaultBuilder);
+    }
+
+    /// <summary>
+    ///  Retrieves a pooled <see cref="TagHelperDescriptorBuilder"/> instance.
+    /// </summary>
+    /// <remarks>
+    ///  The <see cref="PooledBuilder"/> returned by this method should be disposed
+    ///  to return the <see cref="TagHelperDescriptorBuilder"/> to its pool.
+    ///  The correct way to achieve this is with a using statement:
+    ///
+    /// <code>
+    ///  using var _ = TagHelperDescriptorBuilder.GetPooledInstance(..., out var builder);
+    /// </code>
+    /// 
+    ///  Once disposed, the builder can no longer be used.
+    /// </remarks>
+    public static PooledBuilder GetPooledInstance(
+        string name, string assemblyName,
+        out TagHelperDescriptorBuilder builder)
+    {
+        var defaultBuilder = DefaultTagHelperDescriptorBuilder.GetInstance(name, assemblyName);
+        builder = defaultBuilder;
+        return new(defaultBuilder);
+    }
+
     public abstract string Name { get; }
 
     public abstract string AssemblyName { get; }
@@ -78,4 +125,31 @@ public abstract class TagHelperDescriptorBuilder
     public abstract TagHelperDescriptor Build();
 
     public abstract void Reset();
+
+#nullable enable
+
+    internal virtual void SetDocumentation(string? text)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal virtual void SetDocumentation(DocumentationDescriptor? documentation)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual void SetMetadata(MetadataCollection metadata)
+    {
+        throw new NotImplementedException();
+    }
+
+    public virtual bool TryGetMetadataValue(string key, [NotNullWhen(true)] out string? value)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal virtual MetadataBuilder GetMetadataBuilder(string? runtimeName = null)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -26,7 +26,7 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
         ILoggerFactory loggerFactory)
         : base(
             responseRewriters,
-            new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory),
+            new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory),
             new TestLanguageServer(new Dictionary<string, Func<object, Task<object>>>()
             {
                 [LanguageServerConstants.RazorCompletionEndpointName] = completionFactory.OnDelegationAsync,
@@ -109,7 +109,7 @@ internal class TestDelegatedCompletionListProvider : DelegatedCompletionListProv
             var completionParams = (DelegatedCompletionParams)parameters;
             _delegatedParams = completionParams;
 
-            var csharpDocumentPath = completionParams.HostDocument.Uri.OriginalString + "__virtual.g.cs";
+            var csharpDocumentPath = completionParams.Identifier.TextDocumentIdentifier.Uri.OriginalString + "__virtual.g.cs";
             var csharpDocumentUri = new Uri(csharpDocumentPath);
             var csharpCompletionParams = new CompletionParams()
             {

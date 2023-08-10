@@ -14,8 +14,8 @@ using MonoDevelop.Projects;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor;
 
-[Export(typeof(ProjectSnapshotChangeTrigger))]
-internal class ProjectBuildChangeTrigger : ProjectSnapshotChangeTrigger
+[Export(typeof(IProjectSnapshotChangeTrigger))]
+internal class ProjectBuildChangeTrigger : IProjectSnapshotChangeTrigger
 {
     private readonly TextBufferProjectService _projectService;
     private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
@@ -81,13 +81,8 @@ internal class ProjectBuildChangeTrigger : ProjectSnapshotChangeTrigger
         _workspaceStateGenerator = workspaceStateGenerator;
     }
 
-    public override void Initialize(ProjectSnapshotManagerBase projectManager)
+    public void Initialize(ProjectSnapshotManagerBase projectManager)
     {
-        if (projectManager is null)
-        {
-            throw new ArgumentNullException(nameof(projectManager));
-        }
-
         _projectManager = projectManager;
 
         if (IdeApp.ProjectOperations is not null)
@@ -116,26 +111,35 @@ internal class ProjectBuildChangeTrigger : ProjectSnapshotChangeTrigger
         }
 
         return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync((projectItem, ct) =>
-               {
-                   if (!_projectService.IsSupportedProject(projectItem))
-                   {
-                       // We're hooked into all build events, it's possible to get called with an unsupported project item type.
-                       return;
-                   }
+        {
+            if (!_projectService.IsSupportedProject(projectItem))
+            {
+                // We're hooked into all build events, it's possible to get called with an unsupported project item type.
+                return;
+            }
 
-                   var projectPath = _projectService.GetProjectPath(projectItem);
-                   var projectSnapshot = _projectManager?.GetLoadedProject(projectPath);
-                   if (projectSnapshot is not null)
-                   {
-                       var workspaceProject = _projectManager?.Workspace.CurrentSolution?.Projects.FirstOrDefault(
-                           project => FilePathComparer.Instance.Equals(project.FilePath, projectSnapshot.FilePath));
-                       if (workspaceProject is not null)
-                       {
-                           // Trigger a tag helper update by forcing the project manager to see the workspace Project
-                           // from the current solution.
-                           _workspaceStateGenerator.Update(workspaceProject, projectSnapshot, CancellationToken.None);
-                       }
-                   }
-               }, args.SolutionItem, CancellationToken.None);
+            var projectPath = _projectService.GetProjectPath(projectItem);
+
+            if (_projectManager is null)
+            {
+                return;
+            }
+
+            var projectKeys = _projectManager.GetAllProjectKeys(projectPath);
+            foreach (var projectKey in projectKeys)
+            {
+                var projectSnapshot = _projectManager?.GetLoadedProject(projectKey);
+                if (projectSnapshot is not null)
+                {
+                    var workspaceProject = _projectManager?.Workspace.CurrentSolution.Projects.FirstOrDefault(wp => ProjectKey.From(wp) == projectSnapshot.Key);
+                    if (workspaceProject is not null)
+                    {
+                        // Trigger a tag helper update by forcing the project manager to see the workspace Project
+                        // from the current solution.
+                        _workspaceStateGenerator.Update(workspaceProject, projectSnapshot, CancellationToken.None);
+                    }
+                }
+            }
+        }, args.SolutionItem, CancellationToken.None);
     }
 }

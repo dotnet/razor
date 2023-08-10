@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common.Extensions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -29,25 +30,32 @@ internal class CSharpTestLspServerHelpers
     public static Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
         SourceText csharpSourceText,
         Uri csharpDocumentUri,
-        ServerCapabilities serverCapabilities,
+        VSInternalServerCapabilities serverCapabilities,
         CancellationToken cancellationToken) =>
         CreateCSharpLspServerAsync(csharpSourceText, csharpDocumentUri, serverCapabilities, new EmptyMappingService(), cancellationToken);
 
-    public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
+    public static Task<CSharpTestLspServer> CreateCSharpLspServerAsync(
         SourceText csharpSourceText,
         Uri csharpDocumentUri,
-        ServerCapabilities serverCapabilities,
+        VSInternalServerCapabilities serverCapabilities,
         IRazorSpanMappingService razorSpanMappingService,
         CancellationToken cancellationToken)
     {
         var files = new[]
         {
-            new CSharpFile(csharpDocumentUri, csharpSourceText)
+            (csharpDocumentUri, csharpSourceText)
         };
+
+        return CreateCSharpLspServerAsync(files, serverCapabilities, razorSpanMappingService, cancellationToken);
+    }
+
+    public static async Task<CSharpTestLspServer> CreateCSharpLspServerAsync(IEnumerable<(Uri Uri, SourceText SourceText)> files, VSInternalServerCapabilities serverCapabilities, IRazorSpanMappingService razorSpanMappingService, CancellationToken cancellationToken)
+    {
+        var cSharpFiles = files.Select(f => new CSharpFile(f.Uri, f.SourceText));
 
         var exportProvider = RoslynTestCompositions.Roslyn.ExportProviderFactory.CreateExportProvider();
         var metadataReferences = await ReferenceAssemblies.Default.ResolveAsync(language: LanguageNames.CSharp, cancellationToken);
-        var workspace = CreateCSharpTestWorkspace(files, exportProvider, metadataReferences, razorSpanMappingService);
+        var workspace = CreateCSharpTestWorkspace(cSharpFiles, exportProvider, metadataReferences, razorSpanMappingService);
         var clientCapabilities = new VSInternalClientCapabilities
         {
             SupportsVisualStudioExtensions = true,
@@ -84,19 +92,30 @@ internal class CSharpTestLspServerHelpers
         var workspace = TestWorkspace.Create(hostServices);
 
         // Add project and solution to workspace
-        var projectInfo = ProjectInfo.Create(
-            id: ProjectId.CreateNewId("TestProject"),
+        var projectInfoNet60 = ProjectInfo.Create(
+            id: ProjectId.CreateNewId("TestProject (net6.0)"),
             version: VersionStamp.Default,
-            name: "TestProject",
+            name: "TestProject (net6.0)",
+            assemblyName: "TestProject.dll",
+            language: LanguageNames.CSharp,
+            filePath: @"C:\TestSolution\TestProject.csproj",
+            metadataReferences: metadataReferences).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(@"C:\TestSolution\obj\TestProject.dll"));
+
+        var projectInfoNet80 = ProjectInfo.Create(
+            id: ProjectId.CreateNewId("TestProject (net8.0)"),
+            version: VersionStamp.Default,
+            name: "TestProject (net8.0)",
             assemblyName: "TestProject.dll",
             language: LanguageNames.CSharp,
             filePath: @"C:\TestSolution\TestProject.csproj",
             metadataReferences: metadataReferences);
 
+        var projectInfos = new ProjectInfo[] { projectInfoNet60, projectInfoNet80 };
+
         var solutionInfo = SolutionInfo.Create(
             id: SolutionId.CreateNewId("TestSolution"),
             version: VersionStamp.Default,
-            projects: new ProjectInfo[] { projectInfo });
+            projects: projectInfos);
 
         workspace.AddSolution(solutionInfo);
 
@@ -111,14 +130,19 @@ internal class CSharpTestLspServerHelpers
         {
             var documentFilePath = documentUri.AbsolutePath;
             var textAndVersion = TextAndVersion.Create(csharpSourceText, VersionStamp.Default, documentFilePath);
-            var documentInfo = languageServerFactory.CreateDocumentInfo(
-                id: DocumentId.CreateNewId(projectInfo.Id),
-                name: "TestDocument" + documentCount,
-                filePath: documentFilePath,
-                loader: TextLoader.From(textAndVersion),
-                razorDocumentServiceProvider: new TestRazorDocumentServiceProvider(razorSpanMappingService));
 
-            workspace.AddDocument(documentInfo);
+            foreach (var projectInfo in projectInfos)
+            {
+                var documentInfo = languageServerFactory.CreateDocumentInfo(
+                    id: DocumentId.CreateNewId(projectInfo.Id),
+                    name: "TestDocument" + documentCount,
+                    filePath: documentFilePath,
+                    loader: TextLoader.From(textAndVersion),
+                    razorDocumentServiceProvider: new TestRazorDocumentServiceProvider(razorSpanMappingService));
+
+                workspace.AddDocument(documentInfo);
+            }
+
             documentCount++;
         }
 
@@ -130,7 +154,7 @@ internal class CSharpTestLspServerHelpers
         var analyzerLoader = RazorTestAnalyzerLoader.CreateAnalyzerAssemblyLoader();
 
         var analyzerPaths = new DirectoryInfo(AppContext.BaseDirectory).GetFiles("*.dll")
-            .Where(f => f.Name.StartsWith("Microsoft.CodeAnalysis.", StringComparison.Ordinal) && !f.Name.Contains("LanguageServer"))
+            .Where(f => f.Name.StartsWith("Microsoft.CodeAnalysis.", StringComparison.Ordinal) && !f.Name.Contains("LanguageServer") && !f.Name.Contains("Test.Utilities"))
             .Select(f => f.FullName)
             .ToImmutableArray();
         var references = new List<AnalyzerFileReference>();

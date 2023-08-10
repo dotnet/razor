@@ -3,39 +3,29 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 
 namespace Microsoft.VisualStudio.LiveShare.Razor;
 
 public sealed class ProjectSnapshotHandleProxy
 {
+    public Uri FilePath { get; }
+    public Uri IntermediateOutputPath { get; }
+    public RazorConfiguration Configuration { get; }
+    public string? RootNamespace { get; }
+    public ProjectWorkspaceState? ProjectWorkspaceState { get; }
+
     public ProjectSnapshotHandleProxy(
         Uri filePath,
+        Uri intermediateOutputPath,
         RazorConfiguration configuration,
         string? rootNamespace,
         ProjectWorkspaceState? projectWorkspaceState)
     {
-        if (filePath is null)
-        {
-            throw new ArgumentNullException(nameof(filePath));
-        }
-
-        if (configuration is null)
-        {
-            throw new ArgumentNullException(nameof(configuration));
-        }
-
-        FilePath = filePath;
-        Configuration = configuration;
+        FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
+        IntermediateOutputPath = intermediateOutputPath ?? throw new ArgumentNullException(nameof(intermediateOutputPath));
+        Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         RootNamespace = rootNamespace;
         ProjectWorkspaceState = projectWorkspaceState;
     }
-
-    public Uri FilePath { get; }
-
-    public RazorConfiguration Configuration { get; }
-
-    public string? RootNamespace { get; }
-
-    public ProjectWorkspaceState? ProjectWorkspaceState { get; }
 }

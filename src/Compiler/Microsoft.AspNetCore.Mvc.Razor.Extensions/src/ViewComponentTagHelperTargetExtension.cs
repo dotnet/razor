@@ -5,7 +5,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
@@ -71,7 +70,8 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
             node.ClassName,
             TagHelperTypeName,
             interfaces: null,
-            typeParameters: null))
+            typeParameters: null,
+            context))
         {
             // Add view component helper.
             context.CodeWriter.WriteVariableDeclaration(

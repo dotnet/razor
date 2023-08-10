@@ -8,6 +8,7 @@ root = true
 indent_style = space
 # (Please don't specify an indent_size here; that has too many unintended consequences.)
 trim_trailing_whitespace = true
+spelling_exclusion_path = SpellingExclusions.dic
 
 # Code files
 [*.{cs,csx,vb,vbx}]
@@ -40,7 +41,7 @@ dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
 
 # IDE0005 - Remove unnecessary imports
-dotnet_diagnostic.IDE0005.severity = suggestion
+dotnet_diagnostic.IDE0005.severity = warning
 
 # IDE0046: If expression can be simplified
 dotnet_style_prefer_conditional_expression_over_return = false:silent
@@ -96,6 +97,9 @@ csharp_style_allow_blank_line_after_token_in_conditional_expression_experimental
 
 # CA2254: The logging message template should not vary between calls to 'ILogger.Log*'
 dotnet_diagnostic.CA2254.severity = warning
+
+# CA1305: Provide a value for the 'IFormatProvider' argument
+dotnet_diagnostic.CA1305.severity = none
 
 # IDE0058
 csharp_style_unused_value_expression_statement_preference = discard_variable:none

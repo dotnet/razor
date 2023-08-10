@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
@@ -24,24 +25,22 @@ public class ProjectStateTest : WorkspaceTestBase
     private readonly HostProject _hostProjectWithConfigurationChange;
     private readonly ProjectWorkspaceState _projectWorkspaceState;
     private TestTagHelperResolver _tagHelperResolver;
-    private readonly List<TagHelperDescriptor> _someTagHelpers;
+    private readonly ImmutableArray<TagHelperDescriptor> _someTagHelpers;
     private readonly Func<Task<TextAndVersion>> _textLoader;
     private readonly SourceText _text;
 
     public ProjectStateTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _hostProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
-        _hostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
-        _projectWorkspaceState = new ProjectWorkspaceState(new[]
-        {
-            TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build(),
-        }, default);
+        _hostProject = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
+        _hostProjectWithConfigurationChange = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
+        _projectWorkspaceState = new ProjectWorkspaceState(
+            ImmutableArray.Create(
+                TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()),
+            csharpLanguageVersion: default);
 
-        _someTagHelpers = new List<TagHelperDescriptor>
-        {
-            TagHelperDescriptorBuilder.Create("Test1", "TestAssembly").Build()
-        };
+        _someTagHelpers = ImmutableArray.Create(
+            TagHelperDescriptorBuilder.Create("Test1", "TestAssembly").Build());
 
         _documents = new HostDocument[]
         {
@@ -251,7 +250,13 @@ public class ProjectStateTest : WorkspaceTestBase
         var actualProjectWorkspaceStateVersion = state.ProjectWorkspaceStateVersion;
 
         Assert.Same(original.ProjectEngine, state.ProjectEngine);
-        Assert.Same(originalTagHelpers, actualTagHelpers);
+
+        Assert.Equal(originalTagHelpers.Length, actualTagHelpers.Length);
+        for (var i = 0; i < originalTagHelpers.Length; i++)
+        {
+            Assert.Same(originalTagHelpers[i], actualTagHelpers[i]);
+        }
+
         Assert.Equal(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
         Assert.Same(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
@@ -333,7 +338,13 @@ public class ProjectStateTest : WorkspaceTestBase
         var actualProjectWorkspaceStateVersion = state.ProjectWorkspaceStateVersion;
 
         Assert.Same(original.ProjectEngine, state.ProjectEngine);
-        Assert.Same(originalTagHelpers, actualTagHelpers);
+
+        Assert.Equal(originalTagHelpers.Length, actualTagHelpers.Length);
+        for (var i = 0; i < originalTagHelpers.Length; i++)
+        {
+            Assert.Same(originalTagHelpers[i], actualTagHelpers[i]);
+        }
+
         Assert.Equal(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
         Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
@@ -359,7 +370,13 @@ public class ProjectStateTest : WorkspaceTestBase
         var actualProjectWorkspaceStateVersion = state.ProjectWorkspaceStateVersion;
 
         Assert.Same(original.ProjectEngine, state.ProjectEngine);
-        Assert.Same(originalTagHelpers, actualTagHelpers);
+
+        Assert.Equal(originalTagHelpers.Length, actualTagHelpers.Length);
+        for (var i = 0; i < originalTagHelpers.Length; i++)
+        {
+            Assert.Same(originalTagHelpers[i], actualTagHelpers[i]);
+        }
+
         Assert.Equal(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
         Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
@@ -498,7 +515,13 @@ public class ProjectStateTest : WorkspaceTestBase
         var actualProjectWorkspaceStateVersion = state.ProjectWorkspaceStateVersion;
 
         Assert.Same(original.ProjectEngine, state.ProjectEngine);
-        Assert.Same(originalTagHelpers, actualTagHelpers);
+
+        Assert.Equal(originalTagHelpers.Length, actualTagHelpers.Length);
+        for (var i = 0; i < originalTagHelpers.Length; i++)
+        {
+            Assert.Same(originalTagHelpers[i], actualTagHelpers[i]);
+        }
+
         Assert.Equal(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
         Assert.Same(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
@@ -544,7 +567,13 @@ public class ProjectStateTest : WorkspaceTestBase
         var actualProjectWorkspaceStateVersion = state.ConfigurationVersion;
 
         Assert.NotSame(original.ProjectEngine, state.ProjectEngine);
-        Assert.Same(originalTagHelpers, actualTagHelpers);
+
+        Assert.Equal(originalTagHelpers.Length, actualTagHelpers.Length);
+        for (var i = 0; i < originalTagHelpers.Length; i++)
+        {
+            Assert.Same(originalTagHelpers[i], actualTagHelpers[i]);
+        }
+
         Assert.NotEqual(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
         Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
@@ -562,6 +591,7 @@ public class ProjectStateTest : WorkspaceTestBase
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
         var hostProjectWithRootNamespaceChange = new HostProject(
             original.HostProject.FilePath,
+            original.HostProject.IntermediateOutputPath,
             original.HostProject.Configuration,
             "ChangedRootNamespace");
 
@@ -638,7 +668,7 @@ public class ProjectStateTest : WorkspaceTestBase
     public void ProjectState_WithProjectWorkspaceState_Removed()
     {
         // Arrange
-        var emptyProjectWorkspaceState = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), default);
+        var emptyProjectWorkspaceState = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, csharpLanguageVersion: default);
         var original = ProjectState.Create(Workspace.Services, _hostProject, emptyProjectWorkspaceState)
             .WithAddedHostDocument(_documents[2], DocumentState.EmptyLoader)
             .WithAddedHostDocument(_documents[1], DocumentState.EmptyLoader);
@@ -659,7 +689,13 @@ public class ProjectStateTest : WorkspaceTestBase
 
         // The configuration didn't change, and the tag helpers didn't actually change
         Assert.Same(original.ProjectEngine, state.ProjectEngine);
-        Assert.Same(originalTagHelpers, actualTagHelpers);
+
+        Assert.Equal(originalTagHelpers.Length, actualTagHelpers.Length);
+        for (var i = 0; i < originalTagHelpers.Length; i++)
+        {
+            Assert.Same(originalTagHelpers[i], actualTagHelpers[i]);
+        }
+
         Assert.NotEqual(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
         Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
@@ -691,7 +727,13 @@ public class ProjectStateTest : WorkspaceTestBase
 
         // The configuration didn't change, and the tag helpers didn't actually change
         Assert.Same(original.ProjectEngine, state.ProjectEngine);
-        Assert.Same(originalTagHelpers, actualTagHelpers);
+
+        Assert.Equal(originalTagHelpers.Length, actualTagHelpers.Length);
+        for (var i = 0; i < originalTagHelpers.Length; i++)
+        {
+            Assert.Same(originalTagHelpers[i], actualTagHelpers[i]);
+        }
+
         Assert.NotEqual(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
         Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
@@ -724,7 +766,13 @@ public class ProjectStateTest : WorkspaceTestBase
 
         // The C# language version changed, and the tag helpers didn't change
         Assert.NotSame(original.ProjectEngine, state.ProjectEngine);
-        Assert.Same(originalTagHelpers, actualTagHelpers);
+
+        Assert.Equal(originalTagHelpers.Length, actualTagHelpers.Length);
+        for (var i = 0; i < originalTagHelpers.Length; i++)
+        {
+            Assert.Same(originalTagHelpers[i], actualTagHelpers[i]);
+        }
+
         Assert.NotEqual(originalProjectWorkspaceStateVersion, actualProjectWorkspaceStateVersion);
 
         Assert.NotSame(original.Documents[_documents[1].FilePath], state.Documents[_documents[1].FilePath]);
@@ -743,7 +791,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var originalTagHelpers = original.TagHelpers;
         var originalProjectWorkspaceStateVersion = original.ProjectWorkspaceStateVersion;
 
-        var changed = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), default);
+        var changed = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, csharpLanguageVersion: default);
 
         // Now create some tag helpers
         _tagHelperResolver.TagHelpers = _someTagHelpers;
@@ -805,7 +853,7 @@ public class ProjectStateTest : WorkspaceTestBase
         var original = ProjectState.Create(Workspace.Services, _hostProject, _projectWorkspaceState);
         original.Documents = documents.ToImmutable();
 
-        var changed = new ProjectWorkspaceState(Array.Empty<TagHelperDescriptor>(), default);
+        var changed = new ProjectWorkspaceState(ImmutableArray<TagHelperDescriptor>.Empty, csharpLanguageVersion: default);
 
         // Act
         var state = original.WithProjectWorkspaceState(changed);

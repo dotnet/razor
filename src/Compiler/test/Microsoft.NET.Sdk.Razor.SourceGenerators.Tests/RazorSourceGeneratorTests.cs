@@ -3,30 +3,21 @@
 
 #nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Extensions.DependencyModel;
-using Microsoft.Extensions.DependencyModel.Resolution;
+using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
-    public class RazorSourceGeneratorTests
+    public sealed class RazorSourceGeneratorTests : RazorSourceGeneratorTestsBase
     {
-        private static readonly Project _baseProject = CreateBaseProject();
-
         [Fact]
         public async Task SourceGenerator_RazorFiles_Works()
         {
@@ -47,11 +38,11 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -71,19 +62,172 @@ namespace MyApp.Pages
             Assert.Single(result.GeneratedSources);
         }
 
-        internal class InMemoryAdditionalText : AdditionalText
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/8610")]
+        public async Task SourceGenerator_RazorFiles_Using_NestedClass()
         {
-            private readonly SourceText _content;
-
-            public InMemoryAdditionalText(string path, string content)
+            // Arrange
+            var project = CreateTestProject(new()
             {
-                Path = path;
-                _content = SourceText.From(content, Encoding.UTF8);
-            }
+                ["Pages/Index.razor"] = """
+                    @code {
+                        public class MyModel { }
+                    }
+                    """,
+                ["Shared/MyComponent.razor"] = """
 
-            public override string Path { get; }
+                    <MyComponent Data="@Data" />
 
-            public override SourceText GetText(CancellationToken cancellationToken = default) => _content;
+                    @code {
+                        [Parameter]
+                        public Pages.Index.MyModel? Data { get; set; }
+                    }
+                    """,
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project, options =>
+            {
+                options.TestGlobalOptions["build_property.RazorLangVersion"] = "7.0";
+            });
+
+            // Act
+            var result = RunGenerator(compilation!, ref driver);
+
+            // Assert
+            Assert.Empty(result.Diagnostics);
+            Assert.Equal(2, result.GeneratedSources.Length);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/8610")]
+        public async Task SourceGenerator_RazorFiles_UsingAlias_NestedClass()
+        {
+            // Arrange
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.razor"] = """
+                    @code {
+                        public class MyModel { }
+                    }
+                    """,
+                ["Shared/MyComponent.razor"] = """
+                    @using MyAlias = Pages.Index.MyModel;
+
+                    <MyComponent Data="@Data" />
+
+                    @code {
+                        [Parameter]
+                        public MyAlias? Data { get; set; }
+                    }
+                    """,
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project, options =>
+            {
+                options.TestGlobalOptions["build_property.RazorLangVersion"] = "7.0";
+            });
+
+            // Act
+            var result = RunGenerator(compilation!, ref driver);
+
+            // Assert
+            Assert.Empty(result.Diagnostics);
+            Assert.Equal(2, result.GeneratedSources.Length);
+        }
+
+        [Fact]
+        public async Task SourceGenerator_RazorFiles_DesignTime()
+        {
+            // Arrange
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.razor"] = "<h1>Hello world</h1>",
+            });
+
+            var compilation = await project.GetCompilationAsync();
+            var (driver, additionalTexts, optionsProvider) = await GetDriverWithAdditionalTextAndProviderAsync(project, hostOutputs: true);
+
+            // Enable design-time.
+            var options = optionsProvider.Clone();
+            options.TestGlobalOptions["build_property.RazorDesignTime"] = "true";
+            options.TestGlobalOptions["build_property.EnableRazorHostOutputs"] = "true";
+            var driver2 = driver.WithUpdatedAnalyzerConfigOptions(options);
+
+            var result = RunGenerator(compilation!, ref driver2);
+
+            var pageOutput =
+@"#pragma checksum ""Pages/Index.razor"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""6b5db227a6aa2228c777b0771108b184b1fc5df3""
+// <auto-generated/>
+#pragma warning disable 1591
+namespace MyApp.Pages
+{
+    #line hidden
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
+    #nullable restore
+    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
+    {
+        #pragma warning disable 1998
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        {
+            __builder.AddMarkupContent(0, ""<h1>Hello world</h1>"");
+        }
+        #pragma warning restore 1998
+    }
+}
+#pragma warning restore 1591
+";
+            result.VerifyPageOutput(pageOutput);
+
+            result.VerifyHostOutput(
+                (@"Pages_Index_razor.rsg.cs", @"// <auto-generated/>
+#pragma warning disable 1591
+namespace MyApp.Pages
+{
+    #line hidden
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
+    #nullable restore
+    public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
+    {
+        #pragma warning disable 219
+        private void __RazorDirectiveTokenHelpers__() {
+        }
+        #pragma warning restore 219
+        #pragma warning disable 0414
+        private static object __o = null;
+        #pragma warning restore 0414
+        #pragma warning disable 1998
+        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+        {
+        }
+        #pragma warning restore 1998
+    }
+}
+#pragma warning restore 1591
+"),
+                (@"Pages_Index_razor.rsg.html", @"<h1>Hello world</h1>"));
+
+            Assert.Empty(result.Diagnostics);
+            Assert.Single(result.GeneratedSources);
+
+            // Enable design-time without host outputs.
+            options = optionsProvider.Clone();
+            options.TestGlobalOptions["build_property.RazorDesignTime"] = "true";
+            driver2 = driver.WithUpdatedAnalyzerConfigOptions(options);
+
+            result = RunGenerator(compilation!, ref driver2);
+            result.VerifyPageOutput(pageOutput);
+            result.VerifyHostOutput();
+
+            Assert.Empty(result.Diagnostics);
+            Assert.Single(result.GeneratedSources);
         }
 
         [Fact]
@@ -107,11 +251,11 @@ namespace MyApp.Pages
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -132,11 +276,11 @@ namespace MyApp.Pages
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -157,70 +301,33 @@ namespace MyApp.Pages
 
             Assert.Collection(eventListener.Events,
                 e => Assert.Equal("ComputeRazorSourceGeneratorOptions", e.EventName),
-                e =>
-                {
-                    Assert.Equal("GenerateDeclarationCodeStart", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Index.razor", file);
-                },
-                e =>
-                {
-                    Assert.Equal("GenerateDeclarationCodeStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Index.razor", file);
-                },
-                e =>
-                {
-                    Assert.Equal("GenerateDeclarationCodeStart", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Counter.razor", file);
-                },
-                e =>
-                {
-                    Assert.Equal("GenerateDeclarationCodeStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Counter.razor", file);
-                },
+                e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Index.razor"),
+                e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Index.razor"),
+                e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Index.razor"),
+                e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Index.razor"),
+                e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Counter.razor"),
+                e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Counter.razor"),
                 e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
                 e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
                 e => Assert.Equal("DiscoverTagHelpersFromReferencesStart", e.EventName),
                 e => Assert.Equal("DiscoverTagHelpersFromReferencesStop", e.EventName),
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Index.razor", file);
-                },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Index.razor", file);
-                },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Counter.razor", file);
-                },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Counter.razor", file);
-                },
-                e =>
-                {
-                    Assert.Equal("AddSyntaxTrees", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("Pages_Index_razor.g.cs", file);
-                },
-                e =>
-                {
-                    Assert.Equal("AddSyntaxTrees", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("Pages_Counter_razor.g.cs", file);
-                });
+                e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Index.razor"),
+                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Index.razor"),
+                e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.razor"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
+                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+            );
         }
 
         [Fact]
@@ -244,11 +351,11 @@ namespace MyApp.Pages
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -269,11 +376,11 @@ namespace MyApp.Pages
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -323,11 +430,11 @@ namespace MyApp.Pages
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -348,11 +455,11 @@ namespace MyApp.Pages
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -385,18 +492,18 @@ namespace MyApp.Pages
             driver = driver.ReplaceAdditionalText(additionalTexts.First(f => f.Path == updatedText.Path), updatedText);
 
             result = RunGenerator(compilation!, ref driver)
-                        .VerifyOutputsMatch(result, (1, 
+                        .VerifyOutputsMatch(result, (1,
 @"#pragma checksum ""Pages/Counter.razor"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""e022c3eac864ad044e9b7d56f4c493ab4eab36da""
 // <auto-generated/>
 #pragma warning disable 1591
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -410,42 +517,24 @@ namespace MyApp.Pages
     }
 }
 #pragma warning restore 1591
-")); 
+"));
 
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
             Assert.Collection(eventListener.Events,
-               e =>
-               {
-                   Assert.Equal("GenerateDeclarationCodeStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("GenerateDeclarationCodeStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("AddSyntaxTrees", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("Pages_Counter_razor.g.cs", file);
-               });
+                e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Counter.razor"),
+                e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Counter.razor"),
+                e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
+                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+            );
         }
 
         [Fact]
@@ -469,11 +558,11 @@ namespace MyApp.Pages
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -494,11 +583,11 @@ namespace MyApp.Pages
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -525,16 +614,19 @@ namespace MyApp.Pages
             Assert.Empty(result.Diagnostics);
             Assert.Equal(2, result.GeneratedSources.Length);
 
-            project = project.AddDocument("Person.cs", SourceText.From(@"
-public class Person
-{
-    public string Name { get; set; }
-}", Encoding.UTF8)).Project;
+            project = project.AddDocument("Person.cs", SourceText.From("""
+                public class Person
+                {
+                    public string Name { get; set; }
+                }
+                """, Encoding.UTF8)).Project;
             compilation = await project.GetCompilationAsync();
 
             result = RunGenerator(compilation!, ref driver,
-                // Person.cs(4,19): warning CS8618: Non-nullable property 'Name' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
-                d => Assert.Equal(("SourceFile(Person.cs[44..48))", "CS8618"), (d.Location.ToString(), d.Id)));
+                // Person.cs(3,19): warning CS8618: Non-nullable property 'Name' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public string Name { get; set; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Name").WithArguments("property", "Name").WithLocation(3, 19)
+            );
 
             result.VerifyOutputsMatch(result);
 
@@ -567,10 +659,11 @@ public class Person
             var compilation = await project.GetCompilationAsync();
             var (driver, additionalTexts) = await GetDriverWithAdditionalTextAsync(project);
 
-            var expectedDiagnostics = new Action<Diagnostic>[]
+            var expectedDiagnostics = new DiagnosticDescription[]
             {
                 // Person.cs(4,19): warning CS8618: Non-nullable property 'Name' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
-                d => Assert.Equal(("SourceFile(Person.cs[44..48))", "CS8618"), (d.Location.ToString(), d.Id))
+                //     public string Name { get; set; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Name").WithArguments("property", "Name").WithLocation(4, 19)
             };
 
             var result = RunGenerator(compilation!, ref driver, expectedDiagnostics)
@@ -581,11 +674,11 @@ public class Person
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -606,11 +699,11 @@ namespace MyApp.Pages
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -677,11 +770,11 @@ public class Person
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -702,11 +795,11 @@ namespace MyApp.Pages
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -758,11 +851,11 @@ namespace MyApp.Pages
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -787,7 +880,7 @@ __builder.AddContent(3, count);
         #pragma warning restore 1998
 #nullable restore
 #line 7 ""Pages/Counter.razor""
- 
+
     private int count;
 
     public void Click() => count++;
@@ -804,38 +897,20 @@ __builder.AddContent(3, count);
             Assert.Equal(2, result.GeneratedSources.Length);
 
             Assert.Collection(eventListener.Events,
-               e =>
-               {
-                   Assert.Equal("GenerateDeclarationCodeStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("GenerateDeclarationCodeStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("AddSyntaxTrees", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("Pages_Counter_razor.g.cs", file);
-               });
+                e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Counter.razor"),
+                e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Counter.razor"),
+                e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
+                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
+                e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
+                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+            );
         }
 
         [Fact]
@@ -859,11 +934,11 @@ __builder.AddContent(3, count);
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -884,11 +959,11 @@ namespace MyApp.Pages
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -942,11 +1017,11 @@ namespace MyApp.Pages
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -971,7 +1046,7 @@ __builder.AddContent(3, count);
         #pragma warning restore 1998
 #nullable restore
 #line 7 ""Pages/Counter.razor""
- 
+
     private int count;
 
     public void Click() => count++;
@@ -990,50 +1065,24 @@ __builder.AddContent(3, count);
             Assert.Equal(2, result.GeneratedSources.Length);
 
             Assert.Collection(eventListener.Events,
-               e =>
-               {
-                   Assert.Equal("GenerateDeclarationCodeStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("GenerateDeclarationCodeStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
+               e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Counter.razor"),
+               e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Counter.razor"),
+               e => e.AssertSingleItem("GenerateDeclarationCodeStart", "/Pages/Counter.razor"),
+               e => e.AssertSingleItem("GenerateDeclarationCodeStop", "/Pages/Counter.razor"),
                e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Index.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Index.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("AddSyntaxTrees", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("Pages_Counter_razor.g.cs", file);
-               });
+               e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Counter.razor"),
+               e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Counter.razor"),
+               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.razor"),
+               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
+               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
+               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
+               e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
+               e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
+               e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
+               e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
+               e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Counter_razor.g.cs")
+            );
         }
 
         [Fact]
@@ -1056,7 +1105,9 @@ __builder.AddContent(3, count);
 
             var result = RunGenerator(compilation!, ref driver,
                 // Pages/Index.razor(2,7): error CS0246: The type or namespace name 'SurveyPromptRootNamspace' could not be found (are you missing a using directive or an assembly reference?)
-                d => Assert.Equal(("SourceFile(Microsoft.NET.Sdk.Razor.SourceGenerators\\Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator\\Pages_Index_razor.g.cs[433..457))", "CS0246"), (d.Location.ToString(), d.Id)));
+                // using SurveyPromptRootNamspace;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SurveyPromptRootNamspace").WithArguments("SurveyPromptRootNamspace").WithLocation(2, 7)
+            );
 
             result.VerifyPageOutput(
 @"#pragma checksum ""Pages/Index.razor"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""4745828f8a0ab77b58022ed5d1095a0242f2a7ee""
@@ -1065,11 +1116,11 @@ __builder.AddContent(3, count);
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
 #nullable restore
 #line 2 ""Pages/Index.razor""
 using SurveyPromptRootNamspace;
@@ -1099,11 +1150,11 @@ using SurveyPromptRootNamspace;
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -1136,11 +1187,11 @@ namespace MyApp.Pages
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
 #nullable restore
 #line 2 ""Pages/Index.razor""
 using SurveyPromptRootNamspace;
@@ -1170,40 +1221,20 @@ using SurveyPromptRootNamspace;
             Assert.Equal(2, result.GeneratedSources.Length);
 
             Assert.Collection(eventListener.Events,
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-               e => Assert.Equal("DiscoverTagHelpersFromReferencesStart", e.EventName),
-               e => Assert.Equal("DiscoverTagHelpersFromReferencesStop", e.EventName),
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Index.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Index.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Counter.razor", file);
-               },
-               e =>
-               {
-                   Assert.Equal("AddSyntaxTrees", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("Pages_Index_razor.g.cs", file);
-               });
+                e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
+                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
+                e => Assert.Equal("DiscoverTagHelpersFromReferencesStart", e.EventName),
+                e => Assert.Equal("DiscoverTagHelpersFromReferencesStop", e.EventName),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.razor"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.razor"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Counter.razor"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Counter.razor"),
+                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.razor", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.razor", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Counter.razor", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Counter.razor", "Runtime"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_razor.g.cs")
+            );
 
             // Verify caching
             eventListener.Events.Clear();
@@ -1256,13 +1287,13 @@ public class SurveyPrompt : ComponentBase
 namespace AspNetCoreGeneratedDocument
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Pages/Index.cshtml"")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -1306,13 +1337,13 @@ namespace AspNetCoreGeneratedDocument
 namespace AspNetCoreGeneratedDocument
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Views/Shared/_Layout.cshtml"")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -1355,46 +1386,169 @@ namespace AspNetCoreGeneratedDocument
 
             Assert.Collection(eventListener.Events,
                 e => Assert.Equal("ComputeRazorSourceGeneratorOptions", e.EventName),
+                e => e.AssertSingleItem("ParseRazorDocumentStart", "Pages/Index.cshtml"),
+                e => e.AssertSingleItem("ParseRazorDocumentStop", "Pages/Index.cshtml"),
+                e => e.AssertSingleItem("ParseRazorDocumentStart", "Views/Shared/_Layout.cshtml"),
+                e => e.AssertSingleItem("ParseRazorDocumentStop", "Views/Shared/_Layout.cshtml"),
                 e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
                 e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
                 e => Assert.Equal("DiscoverTagHelpersFromReferencesStart", e.EventName),
                 e => Assert.Equal("DiscoverTagHelpersFromReferencesStop", e.EventName),
-                e =>
+                e => e.AssertSingleItem("RewriteTagHelpersStart", "Pages/Index.cshtml"),
+                e => e.AssertSingleItem("RewriteTagHelpersStop", "Pages/Index.cshtml"),
+                e => e.AssertSingleItem("RewriteTagHelpersStart", "Views/Shared/_Layout.cshtml"),
+                e => e.AssertSingleItem("RewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.cshtml"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.cshtml"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Views/Shared/_Layout.cshtml"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
+                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.cshtml", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.cshtml", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStart", "Views/Shared/_Layout.cshtml", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStop", "Views/Shared/_Layout.cshtml", "Runtime"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_cshtml.g.cs"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Views_Shared__Layout_cshtml.g.cs")
+            );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/7049")]
+        public async Task SourceGenerator_CshtmlFiles_TagHelperInFunction()
+        {
+            // Arrange
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.cshtml"] = """
+                @addTagHelper *, TestProject
+                @{ await RenderMyRazor(); }
+                @functions {
+                    async Task RenderMyRazor()
+                    {
+                        <email>first tag helper</email>
+                        <email>
+                            second tag helper
+                            <email>nested tag helper</email>
+                        </email>
+                    }
+                }
+                """,
+            }, new()
+            {
+                ["EmailTagHelper.cs"] = """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+                public class EmailTagHelper : TagHelper
                 {
-                    Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Index.cshtml", file);
-                },
-                e =>
+                    public override void Process(TagHelperContext context, TagHelperOutput output)
+                    {
+                        output.TagName = "a";
+                    }
+                }
+                """
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project);
+
+            // Act
+            var result = RunGenerator(compilation!, ref driver,
+                // Microsoft.NET.Sdk.Razor.SourceGenerators/Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator/Pages_Index_cshtml.g.cs(64,167): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //         __tagHelperExecutionContext = __tagHelperScopeManager.Begin("email", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(64, 167),
+                // Microsoft.NET.Sdk.Razor.SourceGenerators/Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator/Pages_Index_cshtml.g.cs(80,171): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //             __tagHelperExecutionContext = __tagHelperScopeManager.Begin("email", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.StartTagAndEndTag, "test", async() => {
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(80, 171)
+            );
+
+            // Assert
+            Assert.Empty(result.Diagnostics);
+            Assert.Single(result.GeneratedSources);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/7049")]
+        public async Task SourceGenerator_CshtmlFiles_TagHelperInFunction_ManualSuppression()
+        {
+            // Arrange
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.cshtml"] = """
+                @addTagHelper *, TestProject
+
+                @{ await RenderMyRazor(); }
+
+                @functions {
+                    #pragma warning disable 1998
+                    async Task RenderMyRazor()
+                    {
+                        var lambdaWithUnnecessaryAsync1 = async () => { };
+                        <email>first tag helper</email>
+                        <email>
+                            second tag helper
+                            <email>nested tag helper</email>
+                        </email>
+                        var lambdaWithUnnecessaryAsync2 = async () => { };
+                    }
+                }
+                """,
+            }, new()
+            {
+                ["EmailTagHelper.cs"] = """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                public class EmailTagHelper : TagHelper
                 {
-                    Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Index.cshtml", file);
-                },
-                e =>
+                    public override void Process(TagHelperContext context, TagHelperOutput output)
+                    {
+                        output.TagName = "a";
+                    }
+                }
+                """
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project);
+
+            // Act
+            var result = RunGenerator(compilation!, ref driver);
+
+            // Assert
+            Assert.Empty(result.Diagnostics);
+            Assert.Single(result.GeneratedSources);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/7049")]
+        public async Task SourceGenerator_CshtmlFiles_TagHelperInBody()
+        {
+            // Arrange
+            var project = CreateTestProject(new()
+            {
+                ["Pages/Index.cshtml"] = """
+                @addTagHelper *, TestProject
+
+                <email>tag helper</email>
+                @section MySection {
+                    <p>my section</p>
+                }
+                """,
+            }, new()
+            {
+                ["EmailTagHelper.cs"] = """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                public class EmailTagHelper : TagHelper
                 {
-                    Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Views/Shared/_Layout.cshtml", file);
-                },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Views/Shared/_Layout.cshtml", file);
-                },
-                e =>
-                {
-                    Assert.Equal("AddSyntaxTrees", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("Pages_Index_cshtml.g.cs", file);
-                },
-                e =>
-                {
-                    Assert.Equal("AddSyntaxTrees", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("Views_Shared__Layout_cshtml.g.cs", file);
-                });
+                    public override void Process(TagHelperContext context, TagHelperOutput output)
+                    {
+                        output.TagName = "a";
+                    }
+                }
+                """
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project);
+
+            // Act
+            var result = RunGenerator(compilation!, ref driver);
+
+            // Assert
+            Assert.Empty(result.Diagnostics);
+            Assert.Single(result.GeneratedSources);
         }
 
         [Fact]
@@ -1419,13 +1573,13 @@ namespace AspNetCoreGeneratedDocument
 namespace AspNetCoreGeneratedDocument
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Pages/Index.cshtml"")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -1469,13 +1623,13 @@ namespace AspNetCoreGeneratedDocument
 namespace AspNetCoreGeneratedDocument
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Views/Shared/_Layout.cshtml"")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -1538,13 +1692,13 @@ namespace AspNetCoreGeneratedDocument
 namespace AspNetCoreGeneratedDocument
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Views/Shared/_Layout.cshtml"")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -1586,24 +1740,16 @@ namespace AspNetCoreGeneratedDocument
             Assert.Equal(2, result.GeneratedSources.Length);
 
             Assert.Collection(eventListener.Events,
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Views/Shared/_Layout.cshtml", file);
-               },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Views/Shared/_Layout.cshtml", file);
-                },
-                e =>
-                {
-                    Assert.Equal("AddSyntaxTrees", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("Views_Shared__Layout_cshtml.g.cs", file);
-                });
+               e => e.AssertSingleItem("ParseRazorDocumentStart", "Views/Shared/_Layout.cshtml"),
+               e => e.AssertSingleItem("ParseRazorDocumentStop", "Views/Shared/_Layout.cshtml"),
+               e => e.AssertSingleItem("RewriteTagHelpersStart", "Views/Shared/_Layout.cshtml"),
+               e => e.AssertSingleItem("RewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
+               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Views/Shared/_Layout.cshtml"),
+               e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
+               e => e.AssertPair("RazorCodeGenerateStart", "Views/Shared/_Layout.cshtml", "Runtime"),
+               e => e.AssertPair("RazorCodeGenerateStop", "Views/Shared/_Layout.cshtml", "Runtime"),
+               e => e.AssertSingleItem("AddSyntaxTrees", "Views_Shared__Layout_cshtml.g.cs")
+            );
         }
 
         [Fact]
@@ -1627,10 +1773,11 @@ public class Person
             var compilation = await project.GetCompilationAsync();
             var (driver, additionalTexts) = await GetDriverWithAdditionalTextAsync(project);
 
-            var expectedDiagnostics = new Action<Diagnostic>[]
+            var expectedDiagnostics = new DiagnosticDescription[]
             {
                 // Person.cs(4,19): warning CS8618: Non-nullable property 'Name' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
-                d => Assert.Equal(("SourceFile(Person.cs[44..48))", "CS8618"), (d.Location.ToString(), d.Id))
+                //     public string Name { get; set; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Name").WithArguments("property", "Name").WithLocation(4, 19)
             };
 
             var result = RunGenerator(compilation!, ref driver, expectedDiagnostics)
@@ -1641,13 +1788,13 @@ public class Person
 namespace AspNetCoreGeneratedDocument
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Pages/Index.cshtml"")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -1691,13 +1838,13 @@ namespace AspNetCoreGeneratedDocument
 namespace AspNetCoreGeneratedDocument
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Views/Shared/_Layout.cshtml"")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -1791,13 +1938,13 @@ public class Person
 namespace AspNetCoreGeneratedDocument
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Pages/Index.cshtml"")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -1842,13 +1989,13 @@ namespace AspNetCoreGeneratedDocument
 namespace AspNetCoreGeneratedDocument
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Views/Shared/_Layout.cshtml"")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -1919,38 +2066,16 @@ public class HeaderTagHelper : TagHelper
             Assert.Equal(2, result.GeneratedSources.Length);
 
             Assert.Collection(eventListener.Events,
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
-               e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Pages/Index.cshtml", file);
-               },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Pages/Index.cshtml", file);
-                },
-               e =>
-               {
-                   Assert.Equal("RazorCodeGenerateStart", e.EventName);
-                   var file = Assert.Single(e.Payload);
-                   Assert.Equal("/Views/Shared/_Layout.cshtml", file);
-               },
-                e =>
-                {
-                    Assert.Equal("RazorCodeGenerateStop", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("/Views/Shared/_Layout.cshtml", file);
-                },
-                e =>
-                {
-                    Assert.Equal("AddSyntaxTrees", e.EventName);
-                    var file = Assert.Single(e.Payload);
-                    Assert.Equal("Pages_Index_cshtml.g.cs", file);
-                });
+                e => Assert.Equal("DiscoverTagHelpersFromCompilationStart", e.EventName),
+                e => Assert.Equal("DiscoverTagHelpersFromCompilationStop", e.EventName),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Pages/Index.cshtml"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Pages/Index.cshtml"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStart", "Views/Shared/_Layout.cshtml"),
+                e => e.AssertSingleItem("CheckAndRewriteTagHelpersStop", "Views/Shared/_Layout.cshtml"),
+                e => e.AssertPair("RazorCodeGenerateStart", "Pages/Index.cshtml", "Runtime"),
+                e => e.AssertPair("RazorCodeGenerateStop", "Pages/Index.cshtml", "Runtime"),
+                e => e.AssertSingleItem("AddSyntaxTrees", "Pages_Index_cshtml.g.cs")
+           );
         }
 
         [Fact]
@@ -1979,13 +2104,13 @@ public class HeaderTagHelper : TagHelper
 namespace AspNetCoreGeneratedDocument
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Pages/Index.cshtml"")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -2030,13 +2155,13 @@ namespace AspNetCoreGeneratedDocument
 namespace AspNetCoreGeneratedDocument
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Views/Shared/_Layout.cshtml"")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -2090,13 +2215,13 @@ namespace AspNetCoreGeneratedDocument
 namespace AspNetCoreGeneratedDocument
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Pages/Index.cshtml"")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -2159,13 +2284,13 @@ namespace AspNetCoreGeneratedDocument
 namespace AspNetCoreGeneratedDocument
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Pages/Index.cshtml"")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -2209,13 +2334,13 @@ namespace AspNetCoreGeneratedDocument
 namespace AspNetCoreGeneratedDocument
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Views/Shared/_Layout.cshtml"")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -2272,13 +2397,13 @@ namespace AspNetCoreGeneratedDocument
 namespace AspNetCoreGeneratedDocument
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Mvc;
+    using global::Microsoft.AspNetCore.Mvc.Rendering;
+    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Pages/Index.cshtml"")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
@@ -2322,7 +2447,7 @@ namespace AspNetCoreGeneratedDocument
             Assert.Equal(2, result.GeneratedSources.Length);
         }
 
-        [Fact] // https://github.com/dotnet/razor/issues/8281
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/8281")]
         public async Task SourceGenerator_CshtmlFiles_ViewComponentTagHelper()
         {
             // Arrange
@@ -2352,129 +2477,130 @@ namespace AspNetCoreGeneratedDocument
 
             // Assert
             result.VerifyPageOutput(
-@"#pragma checksum ""Views/Home/Index.cshtml"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""209ff2a910aa467bb7942ed3e6cb586652327a44""
-// <auto-generated/>
-#pragma warning disable 1591
-[assembly: global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute(typeof(AspNetCoreGeneratedDocument.Views_Home_Index), @""mvc.1.0.view"", @""/Views/Home/Index.cshtml"")]
-namespace AspNetCoreGeneratedDocument
-{
-    #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.Mvc.Rendering;
-    using Microsoft.AspNetCore.Mvc.ViewFeatures;
-    [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute(""Identifier"", ""/Views/Home/Index.cshtml"")]
-    [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
-    #nullable restore
-    internal sealed class Views_Home_Index : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
-    #nullable disable
-    {
-        #line hidden
-        #pragma warning disable 0649
-        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperExecutionContext __tagHelperExecutionContext;
-        #pragma warning restore 0649
-        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperRunner __tagHelperRunner = new global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperRunner();
-        #pragma warning disable 0169
-        private string __tagHelperStringValueBuffer;
-        #pragma warning restore 0169
-        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeManager __backed__tagHelperScopeManager = null;
-        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeManager __tagHelperScopeManager
-        {
-            get
-            {
-                if (__backed__tagHelperScopeManager == null)
+                """
+                #pragma checksum "Views/Home/Index.cshtml" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "209ff2a910aa467bb7942ed3e6cb586652327a44"
+                // <auto-generated/>
+                #pragma warning disable 1591
+                [assembly: global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemAttribute(typeof(AspNetCoreGeneratedDocument.Views_Home_Index), @"mvc.1.0.view", @"/Views/Home/Index.cshtml")]
+                namespace AspNetCoreGeneratedDocument
                 {
-                    __backed__tagHelperScopeManager = new global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeManager(StartTagHelperWritingScope, EndTagHelperWritingScope);
+                    #line hidden
+                    using global::System;
+                    using global::System.Collections.Generic;
+                    using global::System.Linq;
+                    using global::System.Threading.Tasks;
+                    using global::Microsoft.AspNetCore.Mvc;
+                    using global::Microsoft.AspNetCore.Mvc.Rendering;
+                    using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
+                    [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/Views/Home/Index.cshtml")]
+                    [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
+                    #nullable restore
+                    internal sealed class Views_Home_Index : global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
+                    #nullable disable
+                    {
+                        #line hidden
+                        #pragma warning disable 0649
+                        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperExecutionContext __tagHelperExecutionContext;
+                        #pragma warning restore 0649
+                        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperRunner __tagHelperRunner = new global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperRunner();
+                        #pragma warning disable 0169
+                        private string __tagHelperStringValueBuffer;
+                        #pragma warning restore 0169
+                        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeManager __backed__tagHelperScopeManager = null;
+                        private global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeManager __tagHelperScopeManager
+                        {
+                            get
+                            {
+                                if (__backed__tagHelperScopeManager == null)
+                                {
+                                    __backed__tagHelperScopeManager = new global::Microsoft.AspNetCore.Razor.Runtime.TagHelpers.TagHelperScopeManager(StartTagHelperWritingScope, EndTagHelperWritingScope);
+                                }
+                                return __backed__tagHelperScopeManager;
+                            }
+                        }
+                        private global::AspNetCoreGeneratedDocument.Views_Home_Index.__Generated__TestViewComponentTagHelper __TestViewComponentTagHelper;
+                        #pragma warning disable 1998
+                        public async override global::System.Threading.Tasks.Task ExecuteAsync()
+                        {
+                            __tagHelperExecutionContext = __tagHelperScopeManager.Begin("vc:test", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, "test", async() => {
+                            }
+                            );
+                            __TestViewComponentTagHelper = CreateTagHelper<global::AspNetCoreGeneratedDocument.Views_Home_Index.__Generated__TestViewComponentTagHelper>();
+                            __tagHelperExecutionContext.Add(__TestViewComponentTagHelper);
+                            BeginWriteTagHelperAttribute();
+                            WriteLiteral("Jan");
+                            __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
+                            __TestViewComponentTagHelper.firstName = __tagHelperStringValueBuffer;
+                            __tagHelperExecutionContext.AddTagHelperAttribute("first-name", __TestViewComponentTagHelper.firstName, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
+                            await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
+                            if (!__tagHelperExecutionContext.Output.IsContentModified)
+                            {
+                                await __tagHelperExecutionContext.SetOutputContentAsync();
+                            }
+                            Write(__tagHelperExecutionContext.Output);
+                            __tagHelperExecutionContext = __tagHelperScopeManager.End();
+                        }
+                        #pragma warning restore 1998
+                        #nullable restore
+                        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+                        public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
+                        #nullable disable
+                        #nullable restore
+                        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+                        public global::Microsoft.AspNetCore.Mvc.IUrlHelper Url { get; private set; } = default!;
+                        #nullable disable
+                        #nullable restore
+                        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+                        public global::Microsoft.AspNetCore.Mvc.IViewComponentHelper Component { get; private set; } = default!;
+                        #nullable disable
+                        #nullable restore
+                        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+                        public global::Microsoft.AspNetCore.Mvc.Rendering.IJsonHelper Json { get; private set; } = default!;
+                        #nullable disable
+                        #nullable restore
+                        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+                        public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<dynamic> Html { get; private set; } = default!;
+                        #nullable disable
+                        [Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute("vc:test")]
+                        public class __Generated__TestViewComponentTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
+                        {
+                            private readonly global::Microsoft.AspNetCore.Mvc.IViewComponentHelper __helper = null;
+                            public __Generated__TestViewComponentTagHelper(global::Microsoft.AspNetCore.Mvc.IViewComponentHelper helper)
+                            {
+                                __helper = helper;
+                            }
+                            [Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeNotBoundAttribute, global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewContextAttribute]
+                            public global::Microsoft.AspNetCore.Mvc.Rendering.ViewContext ViewContext { get; set; }
+                            public System.String firstName { get; set; }
+                            public override async global::System.Threading.Tasks.Task ProcessAsync(Microsoft.AspNetCore.Razor.TagHelpers.TagHelperContext __context, Microsoft.AspNetCore.Razor.TagHelpers.TagHelperOutput __output)
+                            {
+                                (__helper as global::Microsoft.AspNetCore.Mvc.ViewFeatures.IViewContextAware)?.Contextualize(ViewContext);
+                                var __helperContent = await __helper.InvokeAsync("Test", ProcessInvokeAsyncArgs(__context));
+                                __output.TagName = null;
+                                __output.Content.SetHtmlContent(__helperContent);
+                            }
+                            private Dictionary<string, object> ProcessInvokeAsyncArgs(Microsoft.AspNetCore.Razor.TagHelpers.TagHelperContext __context)
+                            {
+                                Dictionary<string, object> args = new Dictionary<string, object>();
+                                if (__context.AllAttributes.ContainsName("first-name"))
+                                {
+                                    args[nameof(firstName)] = firstName;
+                                }
+                                return args;
+                            }
+                        }
+                    }
                 }
-                return __backed__tagHelperScopeManager;
-            }
-        }
-        private global::AspNetCoreGeneratedDocument.Views_Home_Index.__Generated__TestViewComponentTagHelper __TestViewComponentTagHelper;
-        #pragma warning disable 1998
-        public async override global::System.Threading.Tasks.Task ExecuteAsync()
-        {
-            __tagHelperExecutionContext = __tagHelperScopeManager.Begin(""vc:test"", global::Microsoft.AspNetCore.Razor.TagHelpers.TagMode.SelfClosing, ""209ff2a910aa467bb7942ed3e6cb586652327a442587"", async() => {
-            }
-            );
-            __TestViewComponentTagHelper = CreateTagHelper<global::AspNetCoreGeneratedDocument.Views_Home_Index.__Generated__TestViewComponentTagHelper>();
-            __tagHelperExecutionContext.Add(__TestViewComponentTagHelper);
-            BeginWriteTagHelperAttribute();
-            WriteLiteral(""Jan"");
-            __tagHelperStringValueBuffer = EndWriteTagHelperAttribute();
-            __TestViewComponentTagHelper.firstName = __tagHelperStringValueBuffer;
-            __tagHelperExecutionContext.AddTagHelperAttribute(""first-name"", __TestViewComponentTagHelper.firstName, global::Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeValueStyle.DoubleQuotes);
-            await __tagHelperRunner.RunAsync(__tagHelperExecutionContext);
-            if (!__tagHelperExecutionContext.Output.IsContentModified)
-            {
-                await __tagHelperExecutionContext.SetOutputContentAsync();
-            }
-            Write(__tagHelperExecutionContext.Output);
-            __tagHelperExecutionContext = __tagHelperScopeManager.End();
-        }
-        #pragma warning restore 1998
-        #nullable restore
-        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
-        public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
-        #nullable disable
-        #nullable restore
-        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
-        public global::Microsoft.AspNetCore.Mvc.IUrlHelper Url { get; private set; } = default!;
-        #nullable disable
-        #nullable restore
-        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
-        public global::Microsoft.AspNetCore.Mvc.IViewComponentHelper Component { get; private set; } = default!;
-        #nullable disable
-        #nullable restore
-        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
-        public global::Microsoft.AspNetCore.Mvc.Rendering.IJsonHelper Json { get; private set; } = default!;
-        #nullable disable
-        #nullable restore
-        [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
-        public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<dynamic> Html { get; private set; } = default!;
-        #nullable disable
-        [Microsoft.AspNetCore.Razor.TagHelpers.HtmlTargetElementAttribute(""vc:test"")]
-        public class __Generated__TestViewComponentTagHelper : Microsoft.AspNetCore.Razor.TagHelpers.TagHelper
-        {
-            private readonly global::Microsoft.AspNetCore.Mvc.IViewComponentHelper __helper = null;
-            public __Generated__TestViewComponentTagHelper(global::Microsoft.AspNetCore.Mvc.IViewComponentHelper helper)
-            {
-                __helper = helper;
-            }
-            [Microsoft.AspNetCore.Razor.TagHelpers.HtmlAttributeNotBoundAttribute, global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewContextAttribute]
-            public global::Microsoft.AspNetCore.Mvc.Rendering.ViewContext ViewContext { get; set; }
-            public System.String firstName { get; set; }
-            public override async global::System.Threading.Tasks.Task ProcessAsync(Microsoft.AspNetCore.Razor.TagHelpers.TagHelperContext __context, Microsoft.AspNetCore.Razor.TagHelpers.TagHelperOutput __output)
-            {
-                (__helper as global::Microsoft.AspNetCore.Mvc.ViewFeatures.IViewContextAware)?.Contextualize(ViewContext);
-                var __helperContent = await __helper.InvokeAsync(""Test"", ProcessInvokeAsyncArgs(__context));
-                __output.TagName = null;
-                __output.Content.SetHtmlContent(__helperContent);
-            }
-            private Dictionary<string, object> ProcessInvokeAsyncArgs(Microsoft.AspNetCore.Razor.TagHelpers.TagHelperContext __context)
-            {
-                Dictionary<string, object> args = new Dictionary<string, object>();
-                if (__context.AllAttributes.ContainsName(""first-name""))
-                {
-                    args[nameof(firstName)] = firstName;
-                }
-                return args;
-            }
-        }
-    }
-}
-#pragma warning restore 1591
-");
+                #pragma warning restore 1591
+
+                """);
             Assert.Empty(result.Diagnostics);
             Assert.Single(result.GeneratedSources);
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/36227")]
         public async Task SourceGenerator_DoesNotUpdateSources_WhenSourceGeneratorIsSuppressed()
         {
-            // Regression test for https://github.com/dotnet/aspnetcore/issues/36227
             var project = CreateTestProject(new()
             {
                 ["Pages/Index.razor"] = "<h1>Hello world</h1>",
@@ -2492,11 +2618,11 @@ namespace AspNetCoreGeneratedDocument
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Index : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -2517,11 +2643,11 @@ namespace MyApp.Pages
 namespace MyApp.Pages
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Counter : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -2553,7 +2679,7 @@ namespace MyApp.Pages
                 .VerifyOutputsMatch(result);
         }
 
-        [Fact] // https://github.com/dotnet/razor/issues/7914
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/7914")]
         public async Task SourceGenerator_UppercaseRazor_GeneratesComponent()
         {
             var project = CreateTestProject(new()
@@ -2571,11 +2697,11 @@ namespace MyApp.Pages
 namespace MyApp
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class Component : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -2595,7 +2721,7 @@ namespace MyApp
             Assert.Single(result.GeneratedSources);
         }
 
-        [Theory] // https://github.com/dotnet/razor/issues/7236
+        [Theory, WorkItem("https://github.com/dotnet/razor/issues/7236")]
         [InlineData("")]
         [InlineData(" ")]
         [InlineData("\n")]
@@ -2625,262 +2751,85 @@ namespace MyApp
             Assert.Empty(result.GeneratedSources);
         }
 
-        private static async ValueTask<GeneratorDriver> GetDriverAsync(Project project)
+        [Fact]
+        public async Task SourceGenerator_Class_Inside_CodeBlock()
         {
-            var (driver, _) = await GetDriverWithAdditionalTextAsync(project);
-            return driver;
-        }
-
-        private static async ValueTask<(GeneratorDriver, ImmutableArray<AdditionalText>)> GetDriverWithAdditionalTextAsync(Project project, Action<TestAnalyzerConfigOptionsProvider>? configureGlobalOptions = null)
-        {
-            var result = await GetDriverWithAdditionalTextAndProviderAsync(project, configureGlobalOptions);
-            return (result.Item1, result.Item2);
-        }
-
-        private static async ValueTask<(GeneratorDriver, ImmutableArray<AdditionalText>, TestAnalyzerConfigOptionsProvider)> GetDriverWithAdditionalTextAndProviderAsync(Project project, Action<TestAnalyzerConfigOptionsProvider>? configureGlobalOptions = null)
-        {
-            var razorSourceGenerator = new RazorSourceGenerator().AsSourceGenerator();
-            var driver = (GeneratorDriver)CSharpGeneratorDriver.Create(new[] { razorSourceGenerator }, parseOptions: (CSharpParseOptions)project.ParseOptions!, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, true));
-
-            var optionsProvider = new TestAnalyzerConfigOptionsProvider();
-            optionsProvider.TestGlobalOptions["build_property.RazorConfiguration"] = "Default";
-            optionsProvider.TestGlobalOptions["build_property.RootNamespace"] = "MyApp";
-            optionsProvider.TestGlobalOptions["build_property.RazorLangVersion"] = "Latest";
-            optionsProvider.TestGlobalOptions["build_property.GenerateRazorMetadataSourceChecksumAttributes"] = "false";
-
-            var additionalTexts = ImmutableArray<AdditionalText>.Empty;
-
-            foreach (var document in project.AdditionalDocuments)
+            var project = CreateTestProject(new()
             {
-                var additionalText = new TestAdditionalText(document.Name, await document.GetTextAsync());
-                additionalTexts = additionalTexts.Add(additionalText);
+                ["Component.Razor"] =
+"""
+<h1>Hello world</h1>
 
-                var additionalTextOptions = new TestAnalyzerConfigOptions
+@code
+{
+    public class X {}
+}
+"""});
+
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project);
+
+            var result = RunGenerator(compilation!, ref driver).VerifyPageOutput(
+                """
+                #pragma checksum "Component.Razor" "{ff1816ec-aa5e-4d10-87f7-6f4963833460}" "20b14071a74e1fd554d7b3dff6ff41722270ebee"
+                // <auto-generated/>
+                #pragma warning disable 1591
+                namespace MyApp
                 {
-                    ["build_metadata.AdditionalFiles.TargetPath"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(additionalText.Path)),
-                };
-
-                optionsProvider.AdditionalTextOptions[additionalText.Path] = additionalTextOptions;
-            }
-
-            configureGlobalOptions?.Invoke(optionsProvider);
-
-            driver = driver
-                .AddAdditionalTexts(additionalTexts)
-                .WithUpdatedAnalyzerConfigOptions(optionsProvider);
-
-            return (driver, additionalTexts, optionsProvider);
-        }
-
-        private static GeneratorRunResult RunGenerator(Compilation compilation, ref GeneratorDriver driver, params Action<Diagnostic>[] expectedDiagnostics)
-        {
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out compilation, out _);
-
-            var actualDiagnostics = compilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
-            Assert.Collection(actualDiagnostics, expectedDiagnostics);
-
-            var result = driver.GetRunResult();
-            return result.Results.Single();
-        }
-
-        private static Project CreateTestProject(
-            Dictionary<string, string> additonalSources,
-            Dictionary<string, string>? sources = null)
-        {
-            var project = _baseProject;
-
-            if (sources is not null)
-            {
-                foreach (var (name, source) in sources)
-                {
-                    project = project.AddDocument(name, source).Project;
-                }
-            }
-
-            foreach (var (name, source) in additonalSources)
-            {
-                project = project.AddAdditionalDocument(name, source).Project;
-            }
-
-            return project;
-        }
-
-        private class AppLocalResolver : ICompilationAssemblyResolver
-        {
-            public bool TryResolveAssemblyPaths(CompilationLibrary library, List<string>? assemblies)
-            {
-                foreach (var assembly in library.Assemblies)
-                {
-                    var dll = Path.Combine(Directory.GetCurrentDirectory(), "refs", Path.GetFileName(assembly));
-                    if (File.Exists(dll))
+                    #line hidden
+                    using global::System;
+                    using global::System.Collections.Generic;
+                    using global::System.Linq;
+                    using global::System.Threading.Tasks;
+                    using global::Microsoft.AspNetCore.Components;
+                    #nullable restore
+                    public partial class Component : global::Microsoft.AspNetCore.Components.ComponentBase
+                    #nullable disable
                     {
-                        assemblies!.Add(dll);
-                        return true;
-                    }
+                        #pragma warning disable 1998
+                        protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                        {
+                            __builder.AddMarkupContent(0, "<h1>Hello world</h1>");
+                        }
+                        #pragma warning restore 1998
+                #nullable restore
+                #line 4 "Component.Razor"
+                  
+                    public class X {}
 
-                    dll = Path.Combine(Directory.GetCurrentDirectory(), Path.GetFileName(assembly));
-                    if (File.Exists(dll))
-                    {
-                        assemblies!.Add(dll);
-                        return true;
+                #line default
+                #line hidden
+                #nullable disable
                     }
                 }
+                #pragma warning restore 1591
 
-                return false;
-            }
+                """);
+
+            Assert.Empty(result.Diagnostics);
+            Assert.Single(result.GeneratedSources);
         }
 
-        private static Project CreateBaseProject()
+        [Fact, WorkItem("https://github.com/dotnet/razor/issues/8850")]
+        public async Task SystemFolder()
         {
-            var projectId = ProjectId.CreateNewId(debugName: "TestProject");
-
-            var solution = new AdhocWorkspace()
-               .CurrentSolution
-               .AddProject(projectId, "TestProject", "TestProject", LanguageNames.CSharp);
-
-            var project = solution.Projects.Single()
-                .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-                .WithNullableContextOptions(NullableContextOptions.Enable));
-
-            project = project.WithParseOptions(((CSharpParseOptions)project.ParseOptions!).WithLanguageVersion(LanguageVersion.Preview));
-
-
-            foreach (var defaultCompileLibrary in DependencyContext.Load(typeof(RazorSourceGeneratorTests).Assembly)!.CompileLibraries)
+            var project = CreateTestProject(new()
             {
-                foreach (var resolveReferencePath in defaultCompileLibrary.ResolveReferencePaths(new AppLocalResolver()))
-                {
-                    project = project.AddMetadataReference(MetadataReference.CreateFromFile(resolveReferencePath));
-                }
-            }
+                ["Pages/__Host.cshtml"] = """
+                    @page "/"
+                    @namespace MyApp.Pages
+                    """,
+                ["Pages/System/MyComponent.razor"] = """
+                    <h1>My component</h1>
+                    """,
+            });
+            var compilation = await project.GetCompilationAsync();
+            var driver = await GetDriverAsync(project);
 
-            // The deps file in the project is incorrect and does not contain "compile" nodes for some references.
-            // However these binaries are always present in the bin output. As a "temporary" workaround, we'll add
-            // every dll file that's present in the test's build output as a metadatareference.
-            foreach (var assembly in Directory.EnumerateFiles(AppContext.BaseDirectory, "*.dll"))
-            {
-                if (!project.MetadataReferences.Any(c => string.Equals(Path.GetFileNameWithoutExtension(c.Display), Path.GetFileNameWithoutExtension(assembly), StringComparison.OrdinalIgnoreCase)))
-                {
-                    project = project.AddMetadataReference(MetadataReference.CreateFromFile(assembly));
-                }
-            }
+            var result = RunGenerator(compilation!, ref driver);
 
-            return project;
-        }
-
-        private class TestAnalyzerConfigOptionsProvider : AnalyzerConfigOptionsProvider
-        {
-            public override AnalyzerConfigOptions GlobalOptions => TestGlobalOptions;
-
-            public TestAnalyzerConfigOptions TestGlobalOptions { get; } = new TestAnalyzerConfigOptions();
-
-            public override AnalyzerConfigOptions GetOptions(SyntaxTree tree) => throw new NotImplementedException();
-
-            public Dictionary<string, TestAnalyzerConfigOptions> AdditionalTextOptions { get; } = new();
-
-            public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
-            {
-                return AdditionalTextOptions.TryGetValue(textFile.Path, out var options) ? options : new TestAnalyzerConfigOptions();
-            }
-
-            public TestAnalyzerConfigOptionsProvider Clone()
-            {
-                var provider = new TestAnalyzerConfigOptionsProvider();
-                foreach (var option in this.TestGlobalOptions.Options)
-                {
-                    provider.TestGlobalOptions[option.Key] = option.Value;
-                }
-                foreach (var option in this.AdditionalTextOptions)
-                {
-                    TestAnalyzerConfigOptions newOptions = new TestAnalyzerConfigOptions();
-                    foreach (var subOption in option.Value.Options)
-                    {
-                        newOptions[subOption.Key] = subOption.Value;
-                    }
-                    provider.AdditionalTextOptions[option.Key] = newOptions;
-
-                }
-                return provider;
-            }
-        }
-
-        private class TestAnalyzerConfigOptions : AnalyzerConfigOptions
-        {
-            public Dictionary<string, string> Options { get; } = new();
-
-            public string this[string name]
-            {
-                get => Options[name];
-                set => Options[name] = value;
-            }
-
-            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-                => Options.TryGetValue(key, out value);
+            Assert.Empty(result.Diagnostics);
+            Assert.Equal(2, result.GeneratedSources.Length);
         }
     }
-
-    internal static class Extensions
-    {
-        public static GeneratorRunResult VerifyPageOutput(this GeneratorRunResult result, params string[] expectedOutput)
-        {
-            if (expectedOutput.Length == 1 && string.IsNullOrWhiteSpace(expectedOutput[0]))
-            {
-                GenerateExpectedOutput(result);
-            }
-            else
-            {
-                Assert.Equal(expectedOutput.Length, result.GeneratedSources.Length);
-                for (int i = 0; i < result.GeneratedSources.Length; i++)
-                {
-                    var text = TrimChecksum(result.GeneratedSources[i].SourceText.ToString());
-                    Assert.Equal(text, TrimChecksum(expectedOutput[i]), ignoreWhiteSpaceDifferences: true);
-                }
-            }
-
-            return result;
-        }
-
-        private static void GenerateExpectedOutput(GeneratorRunResult result)
-        {
-            StringBuilder sb = new StringBuilder("Generated Output:").AppendLine().AppendLine();
-            for (int i = 0; i < result.GeneratedSources.Length; i++)
-            {
-                if (i > 0)
-                {
-                    sb.AppendLine(",");
-                }
-                sb.Append("@\"").Append(result.GeneratedSources[i].SourceText.ToString().Replace("\"", "\"\"")).Append('"');
-            }
-            Assert.True(false, sb.ToString());
-        }
-
-        public static GeneratorRunResult VerifyOutputsMatch(this GeneratorRunResult actual, GeneratorRunResult expected, params (int index, string replacement)[] diffs)
-        {
-            Assert.Equal(actual.GeneratedSources.Length, expected.GeneratedSources.Length);
-            for (int i = 0; i < actual.GeneratedSources.Length; i++)
-            {
-                var diff = diffs.FirstOrDefault(p => p.index == i).replacement;
-                if (diff is null)
-                {
-                    var actualText = actual.GeneratedSources[i].SourceText.ToString();
-                    Assert.True(expected.GeneratedSources[i].SourceText.ToString() == actualText, $"No diff supplied. But index {i} was:\r\n\r\n{actualText.Replace("\"", "\"\"")}");
-                }
-                else
-                {
-                    Assert.Equal(TrimChecksum(diff), TrimChecksum(actual.GeneratedSources[i].SourceText.ToString()));
-                }
-            }
-
-            return actual;
-        }
-
-        private static string TrimChecksum(string text)
-        {
-            var trimmed = text.Trim('\r', '\n')                                // start and end
-                .Replace("\r\n", "\r").Replace('\n', '\r').Replace('\r', '\n') // regular new-lines
-                .Replace("\\r\\n", "\\n");                                     // embedded new-lines
-            Assert.StartsWith("#pragma", trimmed);
-            return trimmed.Substring(trimmed.IndexOf('\n') + 1);
-        }
-    }
-
 }

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>$(DefaultNetCoreWindowsTargetFramework)</TargetFramework>
+    <TargetFrameworks>$(DefaultNetCoreWindowsTargetFrameworks)</TargetFrameworks>
 
     <!-- To generate baselines, run tests with /p:GenerateBaselines=true -->
     <DefineConstants Condition="'$(GenerateBaselines)'=='true'">$(DefineConstants);GENERATE_BASELINES</DefineConstants>
@@ -13,7 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\test.taghelpers.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="..\OSSkipConditionFactAttribute.cs" LinkBase="Shared" />
   </ItemGroup>
@@ -40,6 +39,7 @@
         packages dependencies. We reference them here directly in order to do so, and set ExcludeAssets and PrivateAssets so
         the references have no other affect on build etc.
     -->
+    <PackageReference Include="Microsoft.IO.Redist" Version="$(MicrosoftIORedistPackageVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioShellPackagesVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.GraphModel" Version="$(MicrosoftVisualStudioShellPackagesVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioPackagesVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />

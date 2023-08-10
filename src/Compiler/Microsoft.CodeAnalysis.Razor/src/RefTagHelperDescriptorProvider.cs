@@ -6,11 +6,14 @@
 using System;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
 internal class RefTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 {
+    private static TagHelperDescriptor s_refTagHelper;
+
     // Run after the component tag helper provider, because later we may want component-type-specific variants of this
     public int Order { get; set; } = 1000;
 
@@ -43,45 +46,50 @@ internal class RefTagHelperDescriptorProvider : ITagHelperDescriptorProvider
             return;
         }
 
-        context.Results.Add(CreateRefTagHelper());
+        context.Results.Add(GetOrCreateRefTagHelper());
     }
 
-    private TagHelperDescriptor CreateRefTagHelper()
+    private static TagHelperDescriptor GetOrCreateRefTagHelper()
     {
-        var builder = TagHelperDescriptorBuilder.Create(ComponentMetadata.Ref.TagHelperKind, "Ref", ComponentsApi.AssemblyName);
-        builder.CaseSensitive = true;
-        builder.Documentation = ComponentResources.RefTagHelper_Documentation;
+        return s_refTagHelper ??= CreateRefTagHelper();
 
-        builder.Metadata.Add(ComponentMetadata.SpecialKindKey, ComponentMetadata.Ref.TagHelperKind);
-        builder.Metadata.Add(TagHelperMetadata.Common.ClassifyAttributesOnly, bool.TrueString);
-        builder.Metadata[TagHelperMetadata.Runtime.Name] = ComponentMetadata.Ref.RuntimeName;
-
-        // WTE has a bug in 15.7p1 where a Tag Helper without a display-name that looks like
-        // a C# property will crash trying to create the tooltips.
-        builder.SetTypeName("Microsoft.AspNetCore.Components.Ref");
-
-        builder.TagMatchingRule(rule =>
+        static TagHelperDescriptor CreateRefTagHelper()
         {
-            rule.TagName = "*";
-            rule.Attribute(attribute =>
+            using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
+                ComponentMetadata.Ref.TagHelperKind, "Ref", ComponentsApi.AssemblyName,
+                out var builder);
+
+            builder.CaseSensitive = true;
+            builder.SetDocumentation(DocumentationDescriptor.RefTagHelper);
+
+            builder.SetMetadata(
+                SpecialKind(ComponentMetadata.Ref.TagHelperKind),
+                MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
+                RuntimeName(ComponentMetadata.Ref.RuntimeName),
+                TypeName("Microsoft.AspNetCore.Components.Ref"));
+
+            builder.TagMatchingRule(rule =>
             {
-                attribute.Name = "@ref";
-                attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
+                rule.TagName = "*";
+                rule.Attribute(attribute =>
+                {
+                    attribute.Name = "@ref";
+                    attribute.SetMetadata(Attributes.IsDirectiveAttribute);
+                });
             });
-        });
 
-        builder.BindAttribute(attribute =>
-        {
-            attribute.Documentation = ComponentResources.RefTagHelper_Documentation;
-            attribute.Name = "@ref";
+            builder.BindAttribute(attribute =>
+            {
+                attribute.SetDocumentation(DocumentationDescriptor.RefTagHelper);
+                attribute.Name = "@ref";
 
-                // WTE has a bug 15.7p1 where a Tag Helper without a display-name that looks like
-                // a C# property will crash trying to create the tooltips.
-                attribute.SetPropertyName("Ref");
-            attribute.TypeName = typeof(object).FullName;
-            attribute.Metadata[ComponentMetadata.Common.DirectiveAttribute] = bool.TrueString;
-        });
+                attribute.TypeName = typeof(object).FullName;
+                attribute.SetMetadata(
+                    PropertyName("Ref"),
+                    IsDirectiveAttribute);
+            });
 
-        return builder.Build();
+            return builder.Build();
+        }
     }
 }

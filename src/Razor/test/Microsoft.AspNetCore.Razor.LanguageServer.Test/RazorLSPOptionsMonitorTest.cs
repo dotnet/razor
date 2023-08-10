@@ -3,7 +3,6 @@
 
 #nullable disable
 
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,7 +28,7 @@ public class RazorLSPOptionsMonitorTest : TestBase
     public async Task UpdateAsync_Invokes_OnChangeRegistration()
     {
         // Arrange
-        var expectedOptions = new RazorLSPOptions(Trace.Messages, EnableFormatting: false, AutoClosingTags: true, InsertSpaces: true, TabSize: 4, FormatOnType: true);
+        var expectedOptions = new RazorLSPOptions(Trace.Messages, EnableFormatting: false, AutoClosingTags: true, InsertSpaces: true, TabSize: 4, FormatOnType: true, AutoInsertAttributeQuotes: true, ColorBackground: false);
         var configService = Mock.Of<IConfigurationSyncService>(
             f => f.GetLatestOptionsAsync(DisposalToken) == Task.FromResult(expectedOptions),
             MockBehavior.Strict);
@@ -51,7 +50,7 @@ public class RazorLSPOptionsMonitorTest : TestBase
     public async Task UpdateAsync_DoesNotInvoke_OnChangeRegistration_AfterDispose()
     {
         // Arrange
-        var expectedOptions = new RazorLSPOptions(Trace.Messages, EnableFormatting: false, AutoClosingTags: true, InsertSpaces: true, TabSize: 4, FormatOnType: true);
+        var expectedOptions = new RazorLSPOptions(Trace.Messages, EnableFormatting: false, AutoClosingTags: true, InsertSpaces: true, TabSize: 4, FormatOnType: true, AutoInsertAttributeQuotes: true, ColorBackground: false);
         var configService = Mock.Of<IConfigurationSyncService>(
             f => f.GetLatestOptionsAsync(DisposalToken) == Task.FromResult(expectedOptions),
             MockBehavior.Strict);
@@ -97,7 +96,7 @@ public class RazorLSPOptionsMonitorTest : TestBase
     public void InitializedOptionsAreCurrent()
     {
         // Arrange
-        var expectedOptions = new RazorLSPOptions(Trace.Messages, EnableFormatting: false, AutoClosingTags: true, InsertSpaces: true, TabSize: 4, FormatOnType: true);
+        var expectedOptions = new RazorLSPOptions(Trace.Messages, EnableFormatting: false, AutoClosingTags: true, InsertSpaces: true, TabSize: 4, FormatOnType: true, AutoInsertAttributeQuotes: true, ColorBackground: false);
         var configService = Mock.Of<IConfigurationSyncService>(
             f => f.GetLatestOptionsAsync(DisposalToken) == Task.FromResult(expectedOptions),
             MockBehavior.Strict);

@@ -3,11 +3,11 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
 using Test;
@@ -16,19 +16,20 @@ using Test;
 #line hidden
 #nullable disable
     #nullable restore
-    public partial class TestComponent<TChild> : global::Microsoft.AspNetCore.Components.ComponentBase
-    #nullable disable
-    {
-        #pragma warning disable 219
-        private void __RazorDirectiveTokenHelpers__() {
-        ((System.Action)(() => {
+    public partial class TestComponent<
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-global::System.Object TChild = null!;
+TChild
 
 #line default
 #line hidden
 #nullable disable
+    > : global::Microsoft.AspNetCore.Components.ComponentBase
+    #nullable disable
+    {
+        #pragma warning disable 219
+        private void __RazorDirectiveTokenHelpers__() {
+        ((global::System.Action)(() => {
         }
         ))();
         }
@@ -60,7 +61,8 @@ global::System.Object TChild = null!;
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
             }
             ));
-            __o = ((global::Test.MyComponent<TChild>)default).
+            #pragma warning disable BL0005
+            ((global::Test.MyComponent<TChild>)default).
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
                             MyEvent
@@ -68,7 +70,8 @@ global::System.Object TChild = null!;
 #line default
 #line hidden
 #nullable disable
-            ;
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);

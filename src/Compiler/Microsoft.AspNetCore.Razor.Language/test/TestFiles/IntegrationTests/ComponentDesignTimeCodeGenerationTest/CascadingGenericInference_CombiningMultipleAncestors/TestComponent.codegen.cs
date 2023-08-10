@@ -3,11 +3,11 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -54,7 +54,8 @@ __o = typeof(global::Test.Child<,>);
 #nullable disable
                         }
                         );
-                        __o = __typeInference_CreateParentTwo_1.
+                        #pragma warning disable BL0005
+                        __typeInference_CreateParentTwo_1.
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                Value
@@ -62,7 +63,8 @@ __o = typeof(global::Test.Child<,>);
 #line default
 #line hidden
 #nullable disable
-                        ;
+                         = default;
+                        #pragma warning restore BL0005
                     }
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -73,7 +75,8 @@ __o = typeof(global::Test.ParentTwo<>);
 #nullable disable
                 }
                 );
-                __o = __typeInference_CreateParentOne_0.
+                #pragma warning disable BL0005
+                __typeInference_CreateParentOne_0.
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
            Value
@@ -81,7 +84,8 @@ __o = typeof(global::Test.ParentTwo<>);
 #line default
 #line hidden
 #nullable disable
-                ;
+                 = default;
+                #pragma warning restore BL0005
             }
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
@@ -102,8 +106,8 @@ namespace __Blazor.Test.TestComponent
         public static global::Test.ParentOne<TOne> CreateParentOne_0<TOne>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TOne __arg0, int __seq1, global::Microsoft.AspNetCore.Components.RenderFragment __arg1)
         {
         __builder.OpenComponent<global::Test.ParentOne<TOne>>(seq);
-        __builder.AddAttribute(__seq0, "Value", __arg0);
-        __builder.AddAttribute(__seq1, "ChildContent", __arg1);
+        __builder.AddComponentParameter(__seq0, "Value", __arg0);
+        __builder.AddComponentParameter(__seq1, "ChildContent", __arg1);
         __builder.CloseComponent();
         return default;
         }
@@ -115,8 +119,8 @@ namespace __Blazor.Test.TestComponent
         public static global::Test.ParentTwo<TTwo> CreateParentTwo_1<TTwo>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TTwo __arg0, int __seq1, global::Microsoft.AspNetCore.Components.RenderFragment __arg1)
         {
         __builder.OpenComponent<global::Test.ParentTwo<TTwo>>(seq);
-        __builder.AddAttribute(__seq0, "Value", __arg0);
-        __builder.AddAttribute(__seq1, "ChildContent", __arg1);
+        __builder.AddComponentParameter(__seq0, "Value", __arg0);
+        __builder.AddComponentParameter(__seq1, "ChildContent", __arg1);
         __builder.CloseComponent();
         return default;
         }

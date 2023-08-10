@@ -34,7 +34,7 @@ public class DefaultHtmlCodeActionResolverTest : LanguageServerTestBase
         var documentPath = "c:/Test.razor";
         var documentUri = new Uri(documentPath);
         var documentContextFactory = CreateDocumentContextFactory(documentUri, contents);
-        var context = await documentContextFactory.TryCreateAsync(documentUri, DisposalToken);
+        var context = documentContextFactory.TryCreate(documentUri);
         Assert.NotNull(context);
         var sourceText = await context.GetSourceTextAsync(DisposalToken);
         var remappedEdit = new WorkspaceEdit
@@ -57,7 +57,7 @@ public class DefaultHtmlCodeActionResolverTest : LanguageServerTestBase
             Edit = remappedEdit
         };
 
-        var documentMappingServiceMock = new Mock<RazorDocumentMappingService>(MockBehavior.Strict);
+        var documentMappingServiceMock = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
         documentMappingServiceMock
             .Setup(c => c.RemapWorkspaceEditAsync(It.IsAny<WorkspaceEdit>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(remappedEdit);
@@ -114,7 +114,7 @@ public class DefaultHtmlCodeActionResolverTest : LanguageServerTestBase
 
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         languageServer
-            .Setup(l => l.SendRequestAsync<RazorResolveCodeActionParams, CodeAction>(RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>(), It.IsAny<CancellationToken>()))
+            .Setup(l => l.SendRequestAsync<RazorResolveCodeActionParams, CodeAction>(CustomMessageNames.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         return languageServer.Object;

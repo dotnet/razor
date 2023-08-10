@@ -3,11 +3,11 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -50,7 +50,7 @@ __builder2.AddContent(4, context.Item.ToLower());
 #line hidden
 #nullable disable
             __builder.OpenComponent<global::Test.MyComponent>(5);
-            __builder.AddAttribute(6, "Template", (global::Microsoft.AspNetCore.Components.RenderFragment<Test.Context>)(
+            __builder.AddComponentParameter(6, "Template", (global::Microsoft.AspNetCore.Components.RenderFragment<Test.Context>)(
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
                         template

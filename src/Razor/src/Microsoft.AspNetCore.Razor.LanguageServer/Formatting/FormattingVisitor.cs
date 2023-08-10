@@ -8,7 +8,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
@@ -16,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
 internal class FormattingVisitor : SyntaxWalker
 {
-    private const string HtmlTagName = "html";
+    private const string HtmlTag = "html";
 
     private readonly List<FormattingSpan> _spans;
     private FormattingBlockKind _currentBlockKind;
@@ -127,8 +126,13 @@ internal class FormattingVisitor : SyntaxWalker
     {
         Visit(node.StartTag);
 
-        // Temporary fix to not break the default Html formatting behavior. Remove after https://github.com/dotnet/aspnetcore/issues/25475.
-        if (!string.Equals(node.StartTag?.Name?.Content, HtmlTagName, StringComparison.OrdinalIgnoreCase))
+        // Void elements, like <meta> or <input> which don't need an end tag don't cause indentation.
+        // We also cheat and treat the <html> tag as a void element, so it doesn't cause indentation,
+        // as that's what the Html formatter does, to avoid one level of indentation in every html file.
+        var voidElement = node.StartTag is { } startTag &&
+            (startTag.IsVoidElement() || string.Equals(startTag.Name.Content, HtmlTag, StringComparison.OrdinalIgnoreCase));
+
+        if (!voidElement)
         {
             _currentHtmlIndentationLevel++;
         }
@@ -138,8 +142,7 @@ internal class FormattingVisitor : SyntaxWalker
             Visit(child);
         }
 
-        // Temporary fix to not break the default Html formatting behavior. Remove after https://github.com/dotnet/aspnetcore/issues/25475.
-        if (!string.Equals(node.StartTag?.Name?.Content, HtmlTagName, StringComparison.OrdinalIgnoreCase))
+        if (!voidElement)
         {
             _currentHtmlIndentationLevel--;
         }
@@ -502,18 +505,12 @@ internal class FormattingVisitor : SyntaxWalker
             var tokenBuilder = SyntaxListBuilder<SyntaxToken>.Create();
             tokenBuilder.AddRange(tokens, 0, tokens.Length);
             var markupTransition = SyntaxFactory.MarkupTransition(tokenBuilder.ToList(), node.ChunkGenerator).Green.CreateRed(node, node.Position);
-            var editHandler = node.GetEditHandler();
-            if (editHandler != null)
-            {
-                markupTransition = markupTransition.WithEditHandler(editHandler);
-            }
 
             var builder = new SyntaxListBuilder(1);
             builder.Add(markupTransition);
             return new SyntaxList<RazorSyntaxNode>(builder.ToListNode().CreateRed(node, node.Position));
         }
 
-        SpanEditHandler? latestSpanEditHandler = null;
         var children = node.Children;
         var newChildren = new SyntaxListBuilder(children.Count);
         var literals = new List<MarkupTextLiteralSyntax>();
@@ -522,7 +519,6 @@ internal class FormattingVisitor : SyntaxWalker
             if (child is MarkupTextLiteralSyntax literal)
             {
                 literals.Add(literal);
-                latestSpanEditHandler = literal.GetEditHandler() ?? latestSpanEditHandler;
             }
             else if (child is MarkupMiscAttributeContentSyntax miscContent)
             {
@@ -531,7 +527,6 @@ internal class FormattingVisitor : SyntaxWalker
                     if (contentChild is MarkupTextLiteralSyntax contentLiteral)
                     {
                         literals.Add(contentLiteral);
-                        latestSpanEditHandler = contentLiteral.GetEditHandler() ?? latestSpanEditHandler;
                     }
                     else
                     {
@@ -557,9 +552,7 @@ internal class FormattingVisitor : SyntaxWalker
             if (literals.Count > 0)
             {
                 var mergedLiteral = SyntaxUtilities.MergeTextLiterals(literals.ToArray());
-                mergedLiteral = mergedLiteral.WithEditHandler(latestSpanEditHandler);
                 literals.Clear();
-                latestSpanEditHandler = null;
                 newChildren.Add(mergedLiteral);
             }
         }
@@ -574,11 +567,6 @@ internal class FormattingVisitor : SyntaxWalker
             var tokenBuilder = SyntaxListBuilder<SyntaxToken>.Create();
             tokenBuilder.AddRange(tokens, 0, tokens.Length);
             var markupTransition = SyntaxFactory.MarkupTransition(tokenBuilder.ToList(), node.ChunkGenerator).Green.CreateRed(node, node.Position);
-            var editHandler = node.GetEditHandler();
-            if (editHandler != null)
-            {
-                markupTransition = markupTransition.WithEditHandler(editHandler);
-            }
 
             var builder = new SyntaxListBuilder(1);
             builder.Add(markupTransition);

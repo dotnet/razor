@@ -3,9 +3,10 @@
 
 #nullable disable
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
@@ -103,35 +104,6 @@ public class HtmlFormattingTest : FormattingTestBase
                     """,
             triggerCharacter: ';',
             fileKind: FileKinds.Legacy);
-    }
-
-    [Fact]
-    public async Task FormatsSimpleHtmlTag_OnTypeDisabled()
-    {
-        await RunOnTypeFormattingTestAsync(
-            input: """
-                    <html>
-                    <head>
-                        <title>Hello</title>
-                            <script>
-                                var x = 2;$$
-                            </script>
-                    </head>
-                    </html>
-                    """,
-            expected: """
-                    <html>
-                    <head>
-                        <title>Hello</title>
-                            <script>
-                                var x = 2;
-                            </script>
-                    </head>
-                    </html>
-                    """,
-            triggerCharacter: ';',
-            fileKind: FileKinds.Legacy,
-            razorLSPOptions: RazorLSPOptions.Default with { FormatOnType = false });
     }
 
     [Fact]
@@ -485,6 +457,76 @@ public class HtmlFormattingTest : FormattingTestBase
                                 }
                             </GridRow>
                         }
+                    </GridTable>
+                    """,
+            tagHelpers: tagHelpers);
+    }
+
+    [Fact]
+    public async Task FormatsComponentTag_WithExplicitExpression()
+    {
+        var tagHelpers = GetComponents();
+        await RunFormattingTestAsync(
+            input: """
+                        <GridTable>
+                            <GridRow >
+                        <GridCell>@(cell)</GridCell>
+                        </GridRow>
+                    </GridTable>
+                    """,
+            expected: """
+                    <GridTable>
+                        <GridRow>
+                            <GridCell>@(cell)</GridCell>
+                        </GridRow>
+                    </GridTable>
+                    """,
+            tagHelpers: tagHelpers);
+    }
+
+    [Fact]
+    public async Task FormatsComponentTag_WithExplicitExpression_FormatsInside()
+    {
+        var tagHelpers = GetComponents();
+        await RunFormattingTestAsync(
+            input: """
+                        <GridTable>
+                            <GridRow >
+                        <GridCell>@(""  +    "")</GridCell>
+                        </GridRow>
+                    </GridTable>
+                    """,
+            expected: """
+                    <GridTable>
+                        <GridRow>
+                            <GridCell>@("" + "")</GridCell>
+                        </GridRow>
+                    </GridTable>
+                    """,
+            tagHelpers: tagHelpers);
+    }
+
+    [Fact]
+    public async Task FormatsComponentTag_WithExplicitExpression_MovesStart()
+    {
+        var tagHelpers = GetComponents();
+        await RunFormattingTestAsync(
+            input: """
+                        <GridTable>
+                            <GridRow >
+                        <GridCell>
+                        @(""  +    "")
+                        </GridCell>
+                        </GridRow>
+                    </GridTable>
+                    """,
+            expected: """
+                    <GridTable>
+                        <GridRow>
+                            <GridCell>
+                                @("" + "")
+                            </GridCell>
+                        </GridRow>
                     </GridTable>
                     """,
             tagHelpers: tagHelpers);
@@ -1608,7 +1650,7 @@ public class HtmlFormattingTest : FormattingTestBase
                     """,
             tagHelpers: CreateTagHelpers());
 
-        IReadOnlyList<TagHelperDescriptor> CreateTagHelpers()
+        ImmutableArray<TagHelperDescriptor> CreateTagHelpers()
         {
             var select = """
                     @typeparam TValue
@@ -1640,10 +1682,11 @@ public class HtmlFormattingTest : FormattingTestBase
             var selectComponent = CompileToCSharp("Select.razor", select, throwOnFailure: true, fileKind: FileKinds.Component);
             var selectItemComponent = CompileToCSharp("SelectItem.razor", selectItem, throwOnFailure: true, fileKind: FileKinds.Component);
 
-            var tagHelpers = new List<TagHelperDescriptor>();
+            using var _ = ArrayBuilderPool<TagHelperDescriptor>.GetPooledObject(out var tagHelpers);
             tagHelpers.AddRange(selectComponent.CodeDocument.GetTagHelperContext().TagHelpers);
             tagHelpers.AddRange(selectItemComponent.CodeDocument.GetTagHelperContext().TagHelpers);
-            return tagHelpers.AsReadOnly();
+
+            return tagHelpers.ToImmutable();
         }
     }
 
@@ -1919,7 +1962,7 @@ public class HtmlFormattingTest : FormattingTestBase
                     """);
     }
 
-    private IReadOnlyList<TagHelperDescriptor> GetComponents()
+    private ImmutableArray<TagHelperDescriptor> GetComponents()
     {
         AdditionalSyntaxTrees.Add(Parse("""
                 using Microsoft.AspNetCore.Components;
@@ -1958,7 +2001,7 @@ public class HtmlFormattingTest : FormattingTestBase
                 """));
 
         var generated = CompileToCSharp("Test.razor", string.Empty, throwOnFailure: false, fileKind: FileKinds.Component);
-        var tagHelpers = generated.CodeDocument.GetTagHelperContext().TagHelpers;
-        return tagHelpers;
+
+        return generated.CodeDocument.GetTagHelperContext().TagHelpers.ToImmutableArray();
     }
 }

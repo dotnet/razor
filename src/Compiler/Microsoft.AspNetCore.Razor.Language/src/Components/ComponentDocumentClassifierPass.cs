@@ -6,7 +6,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -14,6 +13,13 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 
 internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
 {
+    private readonly RazorLanguageVersion _version;
+
+    public ComponentDocumentClassifierPass(RazorLanguageVersion version)
+    {
+        _version = version;
+    }
+
     public const string ComponentDocumentKind = "component.1.0";
 
     /// <summary>
@@ -46,7 +52,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
 
     protected override CodeTarget CreateTarget(RazorCodeDocument codeDocument, RazorCodeGenerationOptions options)
     {
-        return new ComponentCodeTarget(options, TargetExtensions);
+        return new ComponentCodeTarget(options, _version, TargetExtensions);
     }
 
     /// <inheritdoc />
@@ -118,10 +124,16 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
                     continue;
                 }
 
+                // The first token is the type parameter's name, the rest are its constraints, if any.
+                var typeParameter = typeParamNode.Tokens.First();
+                var constraints = typeParamNode.Tokens.Skip(1).FirstOrDefault();
+
                 @class.TypeParameters.Add(new TypeParameter()
                 {
-                    ParameterName = typeParamNode.Tokens.First().Content,
-                    Constraints = typeParamNode.Tokens.Skip(1).FirstOrDefault()?.Content
+                    ParameterName = typeParameter.Content,
+                    ParameterNameSource = typeParameter.Source,
+                    Constraints = constraints?.Content,
+                    ConstraintsSource = constraints?.Source,
                 });
             }
 
@@ -149,7 +161,7 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
         }
 
         var relativePath = NormalizePath(codeDocument.Source.RelativePath);
-        className = CSharpIdentifier.SanitizeIdentifier(Path.GetFileNameWithoutExtension(relativePath));
+        className = CSharpIdentifier.SanitizeIdentifier(Path.GetFileNameWithoutExtension(relativePath).AsSpanOrDefault());
         return true;
     }
 

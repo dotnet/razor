@@ -3,22 +3,50 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
-    public partial class TestComponent<TDomain, TValue> : global::Microsoft.AspNetCore.Components.ComponentBase
-    where TDomain : struct
-    where TValue : struct
+    public partial class TestComponent<
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+TDomain
+
+#line default
+#line hidden
+#nullable disable
+    ,
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+TValue
+
+#line default
+#line hidden
+#nullable disable
+    > : global::Microsoft.AspNetCore.Components.ComponentBase
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+where TDomain : struct
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+where TValue : struct
+
+#line default
+#line hidden
+#nullable disable
     #nullable disable
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenComponent<global::Test.TestComponent<decimal, decimal>>(0);
-            __builder.AddAttribute(1, "Data", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Collections.Generic.List<(decimal Domain, decimal Value)>>(
+            __builder.AddComponentParameter(1, "Data", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Collections.Generic.List<(decimal Domain, decimal Value)>>(
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
                      null

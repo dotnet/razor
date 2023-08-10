@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 #nullable disable
@@ -7,6 +7,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
@@ -322,6 +323,120 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8711")]
+    public void ComponentWithTypeParameters_Interconnected()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            public class C<T> { }
+            public class D<T1, T2> where T1 : C<T2> { }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @typeparam T1 where T1 : C<T2>
+            @typeparam T2 where T2 : D<T1, T2>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void Component_WithEscapedParameterName()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class MyComponent : ComponentBase
+                {
+                    [Parameter]
+                    public int @class { get; set; }
+                    [Parameter]
+                    public int Prop2 { get; set; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent class="1" Prop2="2">
+            </MyComponent>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void Component_WithWriteOnlyParameter()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            namespace Test
+            {
+                public class MyComponent : ComponentBase
+                {
+                    [Parameter]
+                    public int Prop { set { _ = value; } }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent Prop="1">
+            </MyComponent>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void Component_WithInitOnlyParameter()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            namespace System.Runtime.CompilerServices;
+            internal static class IsExternalInit
+            {
+            }
+            """));
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            namespace Test
+            {
+                public class MyComponent : ComponentBase
+                {
+                    [Parameter]
+                    public int Prop { get; init; }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <MyComponent Prop="1">
+            </MyComponent>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [Fact]
     public void ComponentWithTypeParameters_WithSemicolon()
     {
@@ -533,7 +648,7 @@ public struct MyStruct
         CompileToAssembly(generated);
     }
 
-    [Fact] // https://github.com/dotnet/razor/issues/7628
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7628")]
     public void ComponentWithTypeParameterValueTuple_ExplicitGenericArguments()
     {
         // Act
@@ -1044,6 +1159,37 @@ namespace Test
         Assert.Empty(generated.Diagnostics);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7395")]
+    public void Component_WithEditorRequiredParameter_ValueSpecifiedUsingBind()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class ComponentWithEditorRequiredParameters : ComponentBase
+            {
+                [Parameter]
+                [EditorRequired]
+                public string Property1 { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <ComponentWithEditorRequiredParameters @bind-Property1="myField" />
+
+            @code {
+                private string myField = "Some Value";
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+        Assert.Empty(generated.Diagnostics);
+    }
+
     [Fact]
     public void Component_WithEditorRequiredChildContent_NoValueSpecified()
     {
@@ -1223,6 +1369,272 @@ namespace Test
 
         Assert.Empty(generated.Diagnostics);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
+    public void AddAttribute_ImplicitStringConversion_TypeInference()
+    {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            public class MyClass<T>
+            {
+                public static implicit operator string(MyClass<T> c) => throw null!;
+            }
+
+            public class MyComponent<T> : ComponentBase
+            {
+                [Parameter]
+                public MyClass<T> MyParameter { get; set; } = null!;
+
+                [Parameter]
+                public bool BoolParameter { get; set; }
+
+                [Parameter]
+                public string StringParameter { get; set; } = null!;
+
+                [Parameter]
+                public System.Delegate DelegateParameter { get; set; } = null!;
+
+                [Parameter]
+                public object ObjectParameter { get; set; } = null!;
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent MyParameter="c"
+                BoolParameter="true"
+                StringParameter="str"
+                DelegateParameter="() => { }"
+                ObjectParameter="c" />
+
+            @code {
+                private readonly MyClass<string> c = new();
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
+    public void AddAttribute_ImplicitStringConversion_Bind()
+    {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+            
+            public class MyClass<T>
+            {
+                public static implicit operator string(MyClass<T> c) => throw null!;
+            }
+
+            public class MyComponent<T> : ComponentBase
+            {
+                [Parameter]
+                public MyClass<T> MyParameter { get; set; }
+
+                [Parameter]
+                public EventCallback<MyClass<T>> MyParameterChanged { get; set; }
+            
+                [Parameter]
+                public bool BoolParameter { get; set; }
+            
+                [Parameter]
+                public string StringParameter { get; set; } = null!;
+            
+                [Parameter]
+                public System.Delegate DelegateParameter { get; set; } = null!;
+            
+                [Parameter]
+                public object ObjectParameter { get; set; } = null!;
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent @bind-MyParameter="c"
+                BoolParameter="true"
+                StringParameter="str"
+                DelegateParameter="() => { }"
+                ObjectParameter="c" />
+
+            @code {
+                private MyClass<string> c = new();
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
+    public void AddAttribute_ImplicitStringConversion_CustomEvent()
+    {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+            
+            public class MyClass<T>
+            {
+                public static implicit operator string(MyClass<T> c) => throw null!;
+            }
+
+            public class MyComponent<T> : ComponentBase
+            {
+                [Parameter]
+                public MyClass<T> MyParameter { get; set; }
+
+                [Parameter]
+                public EventCallback MyEvent { get; set; }
+            
+                [Parameter]
+                public bool BoolParameter { get; set; }
+            
+                [Parameter]
+                public string StringParameter { get; set; } = null!;
+            
+                [Parameter]
+                public System.Delegate DelegateParameter { get; set; } = null!;
+            
+                [Parameter]
+                public object ObjectParameter { get; set; } = null!;
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent MyParameter="c"
+                MyEvent="() => { }"
+                BoolParameter="true"
+                StringParameter="str"
+                DelegateParameter="() => { }"
+                ObjectParameter="c" />
+
+            @code {
+                private MyClass<string> c = new();
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
+    public void AddAttribute_ImplicitStringConversion_BindUnknown()
+    {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+            
+            public class MyClass
+            {
+                public static implicit operator string(MyClass c) => throw null!;
+            }
+
+            public class MyComponent : ComponentBase
+            {
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent @bind-Value="c" />
+
+            @code {
+                private MyClass c = new();
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
+    public void AddAttribute_ImplicitStringConversion_BindUnknown_Assignment()
+    {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+            
+            public class MyClass
+            {
+                public static implicit operator string(MyClass c) => throw null!;
+            }
+
+            public class MyComponent : ComponentBase
+            {
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent @bind-Value="c1 = c2" />
+
+            @code {
+                private MyClass c1 = new();
+                private MyClass c2 = new();
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/aspnetcore/issues/18042")]
+    public void AddAttribute_ImplicitBooleanConversion()
+    {
+        _configuration = base.Configuration.WithVersion(RazorLanguageVersion.Version_7_0);
+
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+            
+            public class MyClass<T>
+            {
+                public static implicit operator bool(MyClass<T> c) => throw null!;
+            }
+
+            public class MyComponent<T> : ComponentBase
+            {
+                [Parameter]
+                public MyClass<T> MyParameter { get; set; }
+            
+                [Parameter]
+                public bool BoolParameter { get; set; }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            <MyComponent MyParameter="c" BoolParameter="c" />
+
+            @code {
+                private MyClass<string> c = new();
+            }
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     #endregion
 
     #region Bind
@@ -5519,6 +5931,27 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8467")]
+    public void ChildComponent_AtSpecifiedInRazorFileForTypeParameter()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+            namespace Test
+            {
+                public class C<T> : ComponentBase
+                {
+                    [Parameter] public int Item { get; set; }
+                }
+            }
+            """));
+
+        var generated = CompileToCSharp("""<C T="@string" Item="1" />""");
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [Fact]
     public void GenericComponent_NonPrimitiveType()
     {
@@ -6387,6 +6820,111 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7103")]
+    public void CascadingGenericInference_ParameterInNamespace()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace MyApp
+            {
+                public class MyClass<T> { }
+            }
+
+            namespace MyApp.Components
+            {
+                [CascadingTypeParameter(nameof(T))]
+                public class ParentComponent<T> : ComponentBase
+                {
+                    [Parameter] public MyApp.MyClass<T> Parameter { get; set; } = null!;
+                }
+
+                public class ChildComponent<T> : ComponentBase { }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            @namespace MyApp.Components
+
+            <ParentComponent Parameter="new MyClass<string>()">
+                <ChildComponent />
+            </ParentComponent>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
+    public void CascadingGenericInference_Tuple()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                [CascadingTypeParameter(nameof(T))]
+                public class ParentComponent<T> : ComponentBase
+                {
+                    [Parameter] public (T, T) Parameter { get; set; }
+                }
+
+                public class ChildComponent<T> : ComponentBase { }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <ParentComponent Parameter="(1, 2)">
+                <ChildComponent />
+            </ParentComponent>
+            """);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7428")]
+    public void CascadingGenericInference_NullableEnabled()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test;
+
+            [CascadingTypeParameter(nameof(TRow))]
+            public class Parent<TRow>: ComponentBase
+            {
+                [Parameter]
+                public RenderFragment<TRow>? ChildContent { get; set; }
+            }
+
+            public class Child<TRow> : ComponentBase
+            {
+                [Parameter]
+                public RenderFragment<TRow>? ChildContent { get; set; }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("""
+            <Parent TRow="string">
+                <Child Context="childContext">@childContext.Length</Child>
+            </Parent>
+            """, nullableEnable: true);
+
+        // Assert
+        CompileToAssembly(generated);
+    }
+
     [Fact]
     public void ChildComponent_GenericWeaklyTypedAttribute()
     {
@@ -7200,7 +7738,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Theory] // https://github.com/dotnet/razor/issues/7074
+    [Theory, WorkItem("https://github.com/dotnet/razor/issues/7074")]
     [InlineData("struct", null, "1")]
     [InlineData("class", null, "string.Empty")]
     [InlineData("notnull", null, "1")]
@@ -7652,7 +8190,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Fact] // https://github.com/dotnet/razor/issues/8170
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8170")]
     public void Component_WithRef_Nullable()
     {
         // Act
@@ -7672,7 +8210,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Fact] // https://github.com/dotnet/razor/issues/8170
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8170")]
     public void Component_WithRef_Nullable_Generic()
     {
         // Arrange
@@ -8529,6 +9067,34 @@ namespace Test
     }
 
     [Fact]
+    public void ComponentImports_GlobalPrefix()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace MyComponents
+            {
+                public class Counter : ComponentBase
+                {
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp("Index.razor", """
+            @using global::MyComponents
+
+            <Counter />
+            """);
+
+        // Assert
+        CompileToAssembly(generated);
+        Assert.DoesNotContain("<Counter", generated.Code);
+        Assert.Contains("global::MyComponents.Counter", generated.Code);
+    }
+
+    [Fact]
     public void Component_NamespaceDirective_InImports()
     {
         // Arrange
@@ -8594,6 +9160,18 @@ namespace New.Test
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/7091")]
+    public void Component_NamespaceDirective_ContainsSystem()
+    {
+        // Act
+        var generated = CompileToCSharp("""
+            @namespace X.System.Y
+            """);
+
+        // Assert
         CompileToAssembly(generated);
     }
 
@@ -9059,26 +9637,7 @@ namespace Test
         Assert.Same(ComponentDiagnosticFactory.DuplicateComponentParameterDirective.Id, diagnostic.Id);
     }
 
-    [Fact]
-    public void ScriptTag_WithErrorSuppressed()
-    {
-        // Arrange/Act
-        var generated = CompileToCSharp(@"
-<div>
-    <script src='some/url.js' anotherattribute suppress-error='BL9992'>
-        some text
-        some more text
-    </script>
-</div>
-");
-
-        // Assert
-        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated);
-    }
-
-    [Fact] // https://github.com/dotnet/blazor/issues/597
+    [Fact, WorkItem("https://github.com/dotnet/blazor/issues/597")]
     public void Regression_597()
     {
         // Arrange
@@ -9144,7 +9703,7 @@ namespace Test
         CompileToAssembly(generated);
     }
 
-    [Fact] // https://github.com/dotnet/blazor/issues/772
+    [Fact, WorkItem("https://github.com/dotnet/blazor/issues/772")]
     public void Regression_772()
     {
         // Arrange
@@ -9182,7 +9741,7 @@ Welcome to your new app.
             d => Assert.Equal("RZ1035", d.Id));
     }
 
-    [Fact] // https://github.com/dotnet/blazor/issues/773
+    [Fact, WorkItem("https://github.com/dotnet/blazor/issues/773")]
     public void Regression_773()
     {
         // Arrange

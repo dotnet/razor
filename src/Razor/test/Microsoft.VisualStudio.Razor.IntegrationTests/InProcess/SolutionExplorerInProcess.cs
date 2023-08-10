@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
 using Microsoft.VisualStudio.Razor.IntegrationTests;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Shell;
@@ -87,6 +86,15 @@ internal partial class SolutionExplorerInProcess
             cancellationToken => solutionRestoreStatusProvider.IsRestoreCompleteAsync(cancellationToken),
             TimeSpan.FromMilliseconds(50),
             cancellationToken);
+    }
+
+    public async Task OpenSolutionAsync(string solutionFileName, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+
+        dte.Solution.Open(solutionFileName);
     }
 
     public async Task OpenFileAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
@@ -277,7 +285,7 @@ internal partial class SolutionExplorerInProcess
         };
     }
 
-    private async Task<string> GetAbsolutePathForProjectRelativeFilePathAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
+    public async Task<string> GetAbsolutePathForProjectRelativeFilePathAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -297,7 +305,7 @@ internal partial class SolutionExplorerInProcess
         return Path.Combine(projectPath, relativeFilePath);
     }
 
-    private async Task<string> GetDirectoryNameAsync(CancellationToken cancellationToken)
+    public async Task<string> GetDirectoryNameAsync(CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

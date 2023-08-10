@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis;
@@ -27,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 internal class RazorTranslateDiagnosticsService
 {
     private readonly ILogger _logger;
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
     // Internal for testing
     internal static readonly IReadOnlyCollection<string> CSharpDiagnosticsToIgnore = new HashSet<string>()
@@ -36,7 +35,14 @@ internal class RazorTranslateDiagnosticsService
         "IDE0005_gen", // Using directive is unnecessary
     };
 
-    public RazorTranslateDiagnosticsService(RazorDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
+    /// <summary>
+    /// Contains several methods for mapping and filtering Razor and C# diagnostics. It allows for
+    /// translating code diagnostics from one representation into another, such as from C# to Razor.
+    /// </summary>
+    /// <param name="documentMappingService">The <see cref="IRazorDocumentMappingService"/>.</param>
+    /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
+    /// <exception cref="ArgumentNullException"/>
+    public RazorTranslateDiagnosticsService(IRazorDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
     {
         if (documentMappingService is null)
         {
@@ -52,6 +58,14 @@ internal class RazorTranslateDiagnosticsService
         _logger = loggerFactory.CreateLogger<RazorTranslateDiagnosticsService>();
     }
 
+    /// <summary>
+    /// Translates code diagnostics from one representation into another.
+    /// </summary>
+    /// <param name="diagnosticKind">The `RazorLanguageKind` of the `Diagnostic` objects included in `diagnostics`.</param>
+    /// <param name="diagnostics">An array of `Diagnostic` objects to translate.</param>
+    /// <param name="documentContext">The `DocumentContext` for the code document associated with the diagnostics.</param>
+    /// <param name="cancellationToken">A `CancellationToken` to observe while waiting for the task to complete.</param>
+    /// <returns>An array of translated diagnostics</returns>
     internal async Task<Diagnostic[]> TranslateAsync(
         RazorLanguageKind diagnosticKind,
         Diagnostic[] diagnostics,
@@ -65,7 +79,7 @@ internal class RazorTranslateDiagnosticsService
             return Array.Empty<Diagnostic>();
         }
 
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
 
         var filteredDiagnostics = diagnosticKind == RazorLanguageKind.CSharp
         ? FilterCSharpDiagnostics(diagnostics, codeDocument, sourceText)
@@ -241,7 +255,7 @@ internal class RazorTranslateDiagnosticsService
             var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>(n => n.StartTag?.Name.Content == "style");
             var csharp = owner.FirstAncestorOrSelf<CSharpCodeBlockSyntax>();
 
-            return element.Body.Any(c => c is CSharpCodeBlockSyntax) || csharp is not null;
+            return element?.Body.Any(c => c is CSharpCodeBlockSyntax) ?? false || csharp is not null;
         }
 
         // Ideally this would be solved instead by not emitting the "!" at the HTML backing file,
@@ -255,6 +269,10 @@ internal class RazorTranslateDiagnosticsService
             }
 
             var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
+            if (element is null)
+            {
+                return false;
+            }
 
             if (element.StartTag?.Name.Content != "html")
             {
@@ -280,8 +298,8 @@ internal class RazorTranslateDiagnosticsService
             }
 
             var element = owner.FirstAncestorOrSelf<MarkupElementSyntax>();
-            var startNode = element.StartTag;
-            var endNode = element.EndTag;
+            var startNode = element?.StartTag;
+            var endNode = element?.EndTag;
 
             if (startNode is null || endNode is null)
             {
@@ -290,9 +308,9 @@ internal class RazorTranslateDiagnosticsService
             }
 
             var haveBang = startNode.Bang is not null && endNode.Bang is not null;
-            var namesEquivilant = startNode.Name.Content == endNode.Name.Content;
+            var namesEquivalent = startNode.Name.Content == endNode.Name.Content;
 
-            return haveBang && namesEquivilant;
+            return haveBang && namesEquivalent;
         }
 
         static bool IsAnyFilteredInvalidNestingError(Diagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree, ILogger logger)
@@ -334,7 +352,7 @@ internal class RazorTranslateDiagnosticsService
                 return false;
             }
 
-            return diagnostic.Message.EndsWith("cannot be nested inside element 'html'.") && body.StartTag?.Bang is not null;
+            return diagnostic.Message.EndsWith("cannot be nested inside element 'html'.") && body?.StartTag?.Bang is not null;
         }
     }
 
@@ -443,7 +461,7 @@ internal class RazorTranslateDiagnosticsService
             return false;
         }
 
-        if (!_documentMappingService.TryMapFromProjectedDocumentRange(
+        if (!_documentMappingService.TryMapToHostDocumentRange(
             codeDocument.GetCSharpDocument(),
             diagnostic.Range,
             MappingBehavior.Inferred,

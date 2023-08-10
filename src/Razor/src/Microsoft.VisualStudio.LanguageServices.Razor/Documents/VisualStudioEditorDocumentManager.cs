@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -95,7 +94,7 @@ internal class VisualStudioEditorDocumentManager : EditorDocumentManagerBase
         var cookie = _runningDocumentTable.GetDocumentCookie(document.DocumentFilePath);
         if (cookie != VSConstants.VSCOOKIE_NIL)
         {
-            TrackOpenDocument(cookie, new DocumentKey(document.ProjectFilePath, document.DocumentFilePath));
+            TrackOpenDocument(cookie, new DocumentKey(document.ProjectKey, document.DocumentFilePath));
         }
     }
 
@@ -105,7 +104,7 @@ internal class VisualStudioEditorDocumentManager : EditorDocumentManagerBase
 
         EnsureDocumentTableAdvised();
 
-        var key = new DocumentKey(document.ProjectFilePath, document.DocumentFilePath);
+        var key = new DocumentKey(document.ProjectKey, document.DocumentFilePath);
         if (_cookiesByDocument.TryGetValue(key, out var cookie))
         {
             UntrackOpenDocument(cookie, key);

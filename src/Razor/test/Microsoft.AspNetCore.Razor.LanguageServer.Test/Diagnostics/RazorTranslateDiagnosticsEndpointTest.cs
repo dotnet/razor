@@ -7,8 +7,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
@@ -17,17 +15,18 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Diagnostics;
 
 public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
 {
-    private readonly RazorDocumentMappingService _mappingService;
+    private readonly IRazorDocumentMappingService _mappingService;
 
     public RazorTranslateDiagnosticsEndpointTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _mappingService = new DefaultRazorDocumentMappingService(
+        _mappingService = new RazorDocumentMappingService(
             TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
     }
 
@@ -345,6 +344,45 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         // Assert
         Assert.NotNull(response.Diagnostics);
         Assert.Empty(response.Diagnostics);
+    }
+
+    [Fact]
+    public async Task Handle_FilterDiagnostics_CSharpInsideStyleBlockSpace_NotStyleTag()
+    {
+        // Arrange
+        var documentPath = new Uri("C:/path/to/document.cshtml");
+        var codeDocument = CreateCodeDocumentWithCSharpProjection(
+            "<stile> @DateTime.Now </stile>",
+            "var __o = DateTime.Now",
+            new[] {
+                new SourceMapping(
+                    new SourceSpan(4, 12),
+                    new SourceSpan(10, 12))
+            });
+        var documentContext = CreateDocumentContext(documentPath, codeDocument);
+        var diagnosticsService = new RazorTranslateDiagnosticsService(_mappingService, LoggerFactory);
+        var diagnosticsEndpoint = new RazorTranslateDiagnosticsEndpoint(diagnosticsService, LoggerFactory);
+        var request = new RazorDiagnosticsParams()
+        {
+            Kind = RazorLanguageKind.Html,
+            Diagnostics = new[] {
+                new VSDiagnostic() {
+                    Range = new Range { Start = new Position(0, 7),End =  new Position(0, 7) },
+                    Code = CSSErrorCodes.MissingSelectorBeforeCombinatorCode,
+                    Severity = DiagnosticSeverity.Warning
+                }
+            },
+            RazorDocumentUri = documentPath,
+        };
+        var expectedRange = new Range { Start = new Position(0, 8), End = new Position(0, 15) };
+        var requestContext = CreateRazorRequestContext(documentContext);
+
+        // Act
+        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+
+        // Assert
+        Assert.NotNull(response.Diagnostics);
+        Assert.Equal(CSSErrorCodes.MissingSelectorBeforeCombinatorCode, response.Diagnostics![0].Code);
     }
 
     [Fact]
@@ -1015,7 +1053,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("C:/path/to/document.razor");
-        var codeDocument = CreateCodeDocument("<p>@DateTime.Now", kind: FileKinds.Component);
+        var codeDocument = CreateCodeDocument("<p>@DateTime.Now", filePath: "Document.razor");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var diagnosticsService = new RazorTranslateDiagnosticsService(_mappingService, LoggerFactory);
         var diagnosticsEndpoint = new RazorTranslateDiagnosticsEndpoint(diagnosticsService, LoggerFactory);
@@ -1047,7 +1085,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("C:/path/to/document.razor");
-        var codeDocument = CreateCodeDocument("<!body></body>", kind: FileKinds.Component);
+        var codeDocument = CreateCodeDocument("<!body></body>", filePath: "Document.razor");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var diagnosticsService = new RazorTranslateDiagnosticsService(_mappingService, LoggerFactory);
         var diagnosticsEndpoint = new RazorTranslateDiagnosticsEndpoint(diagnosticsService, LoggerFactory);
@@ -1082,7 +1120,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("C:/path/to/document.razor");
-        var codeDocument = CreateCodeDocument("<html><!body><div></div></!body></html>", kind: FileKinds.Component);
+        var codeDocument = CreateCodeDocument("<html><!body><div></div></!body></html>", filePath: "Document.razor");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var diagnosticsService = new RazorTranslateDiagnosticsService(_mappingService, LoggerFactory);
         var diagnosticsEndpoint = new RazorTranslateDiagnosticsEndpoint(diagnosticsService, LoggerFactory);
@@ -1125,7 +1163,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     {
         // Arrange
         var documentPath = new Uri("C:/path/to/document.razor");
-        var codeDocument = CreateCodeDocument("<!body></!body>", kind: FileKinds.Component);
+        var codeDocument = CreateCodeDocument("<!body></!body>", filePath: "Document.razor");
         var documentContext = CreateDocumentContext(documentPath, codeDocument);
         var diagnosticsService = new RazorTranslateDiagnosticsService(_mappingService, LoggerFactory);
         var diagnosticsEndpoint = new RazorTranslateDiagnosticsEndpoint(diagnosticsService, LoggerFactory);
@@ -1155,23 +1193,14 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     private static TagHelperDescriptorBuilder GetButtonTagHelperDescriptor()
     {
         var descriptor = TagHelperDescriptorBuilder.Create("ButtonTagHelper", "TestAssembly");
-        descriptor.SetTypeName("TestNamespace.ButtonTagHelper");
+        descriptor.SetMetadata(TypeName("TestNamespace.ButtonTagHelper"));
         descriptor.TagMatchingRule(builder => builder.RequireTagName("button"));
         descriptor.BindAttribute(builder =>
             builder
                 .Name("onactivate")
-                .PropertyName("onactivate")
+                .Metadata(PropertyName("onactivate"))
                 .TypeName(typeof(string).FullName));
         return descriptor;
-    }
-
-    private static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? kind = null)
-    {
-        tagHelpers ??= Array.Empty<TagHelperDescriptor>();
-        var sourceDocument = TestRazorSourceDocument.Create(text);
-        var projectEngine = RazorProjectEngine.Create(builder => { });
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, kind ?? FileKinds.Legacy, Array.Empty<RazorSourceDocument>(), tagHelpers);
-        return codeDocument;
     }
 
     private static RazorCodeDocument CreateCodeDocumentWithCSharpProjection(
@@ -1195,7 +1224,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     class TestRazorDiagnosticsServiceWithRazorDiagnostic : RazorTranslateDiagnosticsService
     {
         public TestRazorDiagnosticsServiceWithRazorDiagnostic(
-            RazorDocumentMappingService documentMappingService,
+            IRazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
             : base(documentMappingService, loggerFactory)
         {
@@ -1210,7 +1239,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
     class TestRazorDiagnosticsServiceWithoutRazorDiagnostic : RazorTranslateDiagnosticsService
     {
         public TestRazorDiagnosticsServiceWithoutRazorDiagnostic(
-            RazorDocumentMappingService documentMappingService,
+            IRazorDocumentMappingService documentMappingService,
             ILoggerFactory loggerFactory)
             : base(documentMappingService, loggerFactory)
         {

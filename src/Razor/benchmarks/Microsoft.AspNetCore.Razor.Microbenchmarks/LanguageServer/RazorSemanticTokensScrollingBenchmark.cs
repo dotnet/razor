@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 
 public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmarkBase
 {
-    private RazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
+    private IRazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
 
     private DocumentVersionCache VersionCache { get; set; }
 
@@ -33,6 +33,8 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
     private Range Range { get; set; }
 
     private ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
+
+    private RazorSemanticTokensLegend SemanticTokensLegend { get; set; }
 
     private string PagesDirectory { get; set; }
 
@@ -53,7 +55,9 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 
         var documentUri = new Uri(filePath);
         var documentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
-        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, version: 1);
+        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version: 1);
+
+        SemanticTokensLegend = new RazorSemanticTokensLegend(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true });
 
         var text = await DocumentSnapshot.GetTextAsync().ConfigureAwait(false);
         Range = new Range
@@ -81,6 +85,7 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
             Uri = DocumentUri
         };
         var cancellationToken = CancellationToken.None;
+        var correlationId = Guid.Empty;
         var documentVersion = 1;
 
         await UpdateDocumentAsync(documentVersion, DocumentSnapshot).ConfigureAwait(false);
@@ -100,6 +105,8 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
                 textDocumentIdentifier,
                 range,
                 DocumentContext,
+                SemanticTokensLegend,
+                correlationId,
                 cancellationToken);
 
             lineCount = newLineCount;
@@ -123,13 +130,13 @@ public class RazorSemanticTokensScrollingBenchmark : RazorLanguageServerBenchmar
 
     protected internal override void Builder(IServiceCollection collection)
     {
-        collection.AddSingleton<RazorSemanticTokensInfoService, TestRazorSemanticTokensInfoService>();
+        collection.AddSingleton<IRazorSemanticTokensInfoService, TestRazorSemanticTokensInfoService>();
     }
 
     private void EnsureServicesInitialized()
     {
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-        RazorSemanticTokenService = languageServer.GetRequiredService<RazorSemanticTokensInfoService>();
+        RazorSemanticTokenService = languageServer.GetRequiredService<IRazorSemanticTokensInfoService>();
         VersionCache = languageServer.GetRequiredService<DocumentVersionCache>();
         ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<ProjectSnapshotManagerDispatcher>();
     }

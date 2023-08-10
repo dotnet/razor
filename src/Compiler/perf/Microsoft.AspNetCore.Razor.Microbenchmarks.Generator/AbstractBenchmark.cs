@@ -14,9 +14,7 @@ public abstract class AbstractBenchmark
 
     internal ProjectSetup.RazorProject? Project => _project;
 
-    public enum StartupKind { Warm, Cold };
-    [ParamsAllUnlessDebug(StartupKind.Warm)]
-    public StartupKind Startup { get; set; }
+    protected bool Cold { get; set; }
 
     [ModuleInitializer]
     public static void LoadMSBuild() => MSBuildLocator.RegisterDefaults();
@@ -24,14 +22,13 @@ public abstract class AbstractBenchmark
     [GlobalSetup]
     public void Setup()
     {
-        _project = ProjectSetup.GetRazorProject(cold: Startup == StartupKind.Cold);
+        _project = ProjectSetup.GetRazorProject(Cold);
     }
 
     protected GeneratorDriver RunBenchmark(Func<ProjectSetup.RazorProject, GeneratorDriver> updateDriver)
     {
         var compilation = _project!.Compilation;
-        var driver = _project!.GeneratorDriver;
-        driver = updateDriver(_project!);
+        var driver = updateDriver(_project!);
 
         driver = driver.RunGenerators(compilation);
         return driver;

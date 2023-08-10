@@ -12,14 +12,16 @@ public record RazorLSPOptions(
     bool AutoClosingTags,
     bool InsertSpaces,
     int TabSize,
-    bool FormatOnType)
+    bool FormatOnType,
+    bool AutoInsertAttributeQuotes,
+    bool ColorBackground)
 {
     public RazorLSPOptions(Trace trace, bool enableFormatting, bool autoClosingTags, ClientSettings settings)
-        : this(trace, enableFormatting, autoClosingTags, !settings.ClientSpaceSettings.IndentWithTabs, settings.ClientSpaceSettings.IndentSize, settings.AdvancedSettings.FormatOnType)
+        : this(trace, enableFormatting, autoClosingTags, !settings.ClientSpaceSettings.IndentWithTabs, settings.ClientSpaceSettings.IndentSize, settings.AdvancedSettings.FormatOnType, settings.AdvancedSettings.AutoInsertAttributeQuotes, settings.AdvancedSettings.ColorBackground)
     {
     }
 
-    public readonly static RazorLSPOptions Default = new(Trace: default, EnableFormatting: true, AutoClosingTags: true, InsertSpaces: true, TabSize: 4, FormatOnType: true);
+    public readonly static RazorLSPOptions Default = new(Trace: default, EnableFormatting: true, AutoClosingTags: true, InsertSpaces: true, TabSize: 4, FormatOnType: true, AutoInsertAttributeQuotes: true, ColorBackground: false);
 
     public LogLevel MinLogLevel => GetLogLevelForTrace(Trace);
 
@@ -32,6 +34,13 @@ public record RazorLSPOptions(
             _ => LogLevel.None,
         };
 
-    internal RazorLSPOptions With(ClientSettings clientSettings)
-        => new(Trace, EnableFormatting, AutoClosingTags, clientSettings);
+    /// <summary>
+    /// Initializes the LSP options with the settings from the passed in client settings, and default values for anything
+    /// not defined in client settings.
+    /// </summary>
+    internal static RazorLSPOptions From(ClientSettings clientSettings)
+        => new(Default.Trace,
+            Default.EnableFormatting,
+            clientSettings.AdvancedSettings.AutoClosingTags,
+            clientSettings);
 }

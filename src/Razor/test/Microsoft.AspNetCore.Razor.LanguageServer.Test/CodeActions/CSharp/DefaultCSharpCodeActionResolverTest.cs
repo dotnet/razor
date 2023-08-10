@@ -184,7 +184,7 @@ public class DefaultCSharpCodeActionResolverTest : LanguageServerTestBase
         out CodeActionResolveParams codeActionParams,
         out DefaultCSharpCodeActionResolver csharpCodeActionResolver,
         ClientNotifierServiceBase? languageServer = null,
-        RazorFormattingService? razorFormattingService = null)
+        IRazorFormattingService? razorFormattingService = null)
     {
         var documentPath = "c:/Test.razor";
         var documentUri = new Uri(documentPath);
@@ -206,9 +206,9 @@ public class DefaultCSharpCodeActionResolverTest : LanguageServerTestBase
             razorFormattingService);
     }
 
-    private static RazorFormattingService CreateRazorFormattingService(Uri documentUri)
+    private static IRazorFormattingService CreateRazorFormattingService(Uri documentUri)
     {
-        var razorFormattingService = Mock.Of<RazorFormattingService>(
+        var razorFormattingService = Mock.Of<IRazorFormattingService>(
                         rfs => rfs.FormatCodeActionAsync(
                             It.Is<DocumentContext>(c => c.Uri == documentUri),
                             RazorLanguageKind.CSharp,
@@ -224,7 +224,7 @@ public class DefaultCSharpCodeActionResolverTest : LanguageServerTestBase
 
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         languageServer
-            .Setup(l => l.SendRequestAsync<RazorResolveCodeActionParams, CodeAction>(RazorLanguageServerCustomMessageTargets.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>(), It.IsAny<CancellationToken>()))
+            .Setup(l => l.SendRequestAsync<RazorResolveCodeActionParams, CodeAction>(CustomMessageNames.RazorResolveCodeActionsEndpoint, It.IsAny<RazorResolveCodeActionParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         return languageServer.Object;

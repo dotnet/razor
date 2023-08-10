@@ -4,22 +4,25 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Serialization;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
+using Microsoft.AspNetCore.Razor.Serialization;
+using Microsoft.AspNetCore.Razor.Serialization.Converters;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Newtonsoft.Json;
@@ -67,20 +70,31 @@ public abstract class LanguageServerTestBase : TestBase
         return requestContext;
     }
 
-    protected static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null)
+    protected static RazorCodeDocument CreateCodeDocument(string text, IReadOnlyList<TagHelperDescriptor>? tagHelpers = null, string? filePath = null)
     {
+        var fileKind = FileKinds.GetFileKindFromFilePath(filePath ?? "test.cshtml");
         tagHelpers ??= Array.Empty<TagHelperDescriptor>();
-        var sourceDocument = TestRazorSourceDocument.Create(text);
-        var projectEngine = RazorProjectEngine.Create(RazorConfiguration.Default, RazorProjectFileSystem.Create("C:/"), builder =>
+        if (fileKind == FileKinds.Component)
         {
-            RazorExtensions.Register(builder);
-        });
+            tagHelpers = tagHelpers.Concat(GetDefaultRuntimeComponents()).ToArray();
+        }
+
+        var sourceDocument = TestRazorSourceDocument.Create(text, filePath: filePath);
+        var projectEngine = RazorProjectEngine.Create(RazorExtensions.Register);
+        var importDocumentName = fileKind == FileKinds.Legacy ? "_ViewImports.cshtml" : "_Imports.razor";
         var defaultImportDocument = TestRazorSourceDocument.Create(
             """
+                @using BlazorApp1
+                @using BlazorApp1.Pages
+                @using BlazorApp1.Shared
                 @using System;
+                @using Microsoft.AspNetCore.Components
+                @using Microsoft.AspNetCore.Components.Authorization
+                @using Microsoft.AspNetCore.Components.Routing
+                @using Microsoft.AspNetCore.Components.Web
                 """,
-            new RazorSourceDocumentProperties("_ViewImports.cshtml", "_ViewImports.cshtml"));
-        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, "mvc", new[] { defaultImportDocument }, tagHelpers);
+            new RazorSourceDocumentProperties(importDocumentName, importDocumentName));
+        var codeDocument = projectEngine.ProcessDesignTime(sourceDocument, fileKind, new[] { defaultImportDocument }, tagHelpers);
         return codeDocument;
     }
 
@@ -117,7 +131,27 @@ public abstract class LanguageServerTestBase : TestBase
 
     internal static VersionedDocumentContext CreateDocumentContext(Uri uri, IDocumentSnapshot snapshot)
     {
-        return new VersionedDocumentContext(uri, snapshot, version: 0);
+        return new VersionedDocumentContext(uri, snapshot, projectContext: null, version: 0);
+    }
+
+    internal static IOptionsMonitor<RazorLSPOptions> GetOptionsMonitor(bool enableFormatting = true, bool formatOnType = true, bool autoInsertAttributeQuotes = true, bool colorBackground = false)
+    {
+        var monitor = new Mock<IOptionsMonitor<RazorLSPOptions>>(MockBehavior.Strict);
+        monitor.SetupGet(m => m.CurrentValue).Returns(new RazorLSPOptions(default, enableFormatting, true, InsertSpaces: true, TabSize: 4, formatOnType, autoInsertAttributeQuotes, colorBackground));
+        return monitor.Object;
+    }
+
+    private static IReadOnlyList<TagHelperDescriptor> GetDefaultRuntimeComponents()
+    {
+        var bytes = RazorTestResources.GetResourceBytes(RazorTestResources.BlazorServerAppTagHelpersJson);
+
+        using var stream = new MemoryStream(bytes);
+        using var reader = new StreamReader(stream);
+
+        return JsonDataConvert.DeserializeData(reader,
+            static r => r.ReadArray(
+                static r => ObjectReaders.ReadTagHelper(r, useCache: false)))
+            ?? Array.Empty<TagHelperDescriptor>();
     }
 
     [Obsolete("Use " + nameof(LSPProjectSnapshotManagerDispatcher))]

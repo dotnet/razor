@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -25,6 +26,8 @@ internal class ProjectSnapshot : IProjectSnapshot
         _documents = new Dictionary<string, DocumentSnapshot>(FilePathComparer.Instance);
     }
 
+    public ProjectKey Key => State.HostProject.Key;
+
     public ProjectState State { get; }
 
     public RazorConfiguration? Configuration => HostProject.Configuration;
@@ -32,6 +35,8 @@ internal class ProjectSnapshot : IProjectSnapshot
     public IEnumerable<string> DocumentFilePaths => State.Documents.Keys;
 
     public string FilePath => State.HostProject.FilePath;
+
+    public string IntermediateOutputPath => State.HostProject.IntermediateOutputPath;
 
     public string? RootNamespace => State.HostProject.RootNamespace;
 
@@ -41,7 +46,7 @@ internal class ProjectSnapshot : IProjectSnapshot
 
     public virtual VersionStamp Version => State.Version;
 
-    public IReadOnlyList<TagHelperDescriptor> TagHelpers => State.TagHelpers;
+    public ImmutableArray<TagHelperDescriptor> TagHelpers => State.TagHelpers;
 
     public ProjectWorkspaceState? ProjectWorkspaceState => State.ProjectWorkspaceState;
 

@@ -7,14 +7,13 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Generator;
 
 public class RazorTests
 {
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/7982")]
     public void Project_Load_Cold()
     {
         // arrange
-        var razorBenchmarks = new RazorBenchmarks();
+        var razorBenchmarks = new ColdBenchmarks();
 
         // act
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Cold;
         razorBenchmarks.Setup();
 
         // assert
@@ -32,14 +31,13 @@ public class RazorTests
         Assert.Throws<NullReferenceException>(() => project.GeneratorDriver.GetRunResult());
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/7982")]
     public void Project_Load_Warm()
     {
         // arrange
         var razorBenchmarks = new RazorBenchmarks();
 
         // act
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Warm;
         razorBenchmarks.Setup();
 
         // assert
@@ -51,12 +49,11 @@ public class RazorTests
         Assert.Equal(110, results.GeneratedTrees.Length);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/7982")]
     public void Razor_Add_Independent()
     {
         // arrange
         var razorBenchmarks = new RazorBenchmarks();
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Warm;
         razorBenchmarks.Setup();
 
         // act
@@ -69,12 +66,11 @@ public class RazorTests
         Assert.Equal("Independent_razor.g.cs", results.Results[0].GeneratedSources.Last().HintName);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/7982")]
     public void Razor_Edit_Independent()
     {
         // arrange
         var razorBenchmarks = new RazorBenchmarks();
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Warm;
         razorBenchmarks.Setup();
 
         // check the contents of the generated 0 page
@@ -90,12 +86,11 @@ public class RazorTests
         Assert.Contains("<h1>Independent file</h1>", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Generated_0_razor.g.cs").SourceText.ToString());
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/7982")]
     public void Razor_Remove_Independent()
     {
         // arrange
         var razorBenchmarks = new RazorBenchmarks();
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Warm;
         razorBenchmarks.Setup();
 
         // act
@@ -107,12 +102,11 @@ public class RazorTests
         Assert.Equal(109, results.GeneratedTrees.Length);
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/7982")]
     public void Razor_Edit_DependentIgnorable()
     {
         // arrange
         var razorBenchmarks = new RazorBenchmarks();
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Warm;
         razorBenchmarks.Setup();
 
         // check the contents of the counter page
@@ -128,18 +122,17 @@ public class RazorTests
         Assert.Contains("<h1>Counter edited</h1>", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Counter_razor.g.cs").SourceText.ToString());
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/7982")]
     public void Razor_Edit_Dependent()
     {
         // arrange
         var razorBenchmarks = new RazorBenchmarks();
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Warm;
         razorBenchmarks.Setup();
 
         // check the contents of the counter and index page
         var initialResults = razorBenchmarks.Project!.GeneratorDriver.GetRunResult();
         Assert.Contains("public int IncrementAmount", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Counter_razor.g.cs").SourceText.ToString());
-        Assert.Contains("__builder.AddAttribute(6, \"IncrementAmount\", global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>(", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Index_razor.g.cs").SourceText.ToString());
+        Assert.Contains("__builder.AddAttribute(6, \"IncrementAmount\", (object)(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>(", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Index_razor.g.cs").SourceText.ToString());
 
         // act
         var driver = razorBenchmarks.Razor_Edit_Dependent();
@@ -148,15 +141,14 @@ public class RazorTests
         var results = driver.GetRunResult();
         Assert.Empty(results.Diagnostics);
         Assert.DoesNotContain("public int IncrementAmount", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Counter_razor.g.cs").SourceText.ToString());
-        Assert.Contains("__builder.AddAttribute(6, \"IncrementAmount\", \"5\");", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Index_razor.g.cs").SourceText.ToString());
+        Assert.Contains("__builder.AddAttribute(6, \"IncrementAmount\", (object)(\"5\"));", results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Index_razor.g.cs").SourceText.ToString());
     }
 
-    [Fact]
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/7982")]
     public void Razor_Remove_Dependent()
     {
         // arrange
         var razorBenchmarks = new RazorBenchmarks();
-        razorBenchmarks.Startup = AbstractBenchmark.StartupKind.Warm;
         razorBenchmarks.Setup();
 
         // check the contents of the index page

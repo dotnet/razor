@@ -1,13 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
-using System.Linq;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LiveShare.Razor.Serialization;
 using Newtonsoft.Json;
 using Xunit;
@@ -26,22 +24,21 @@ public class SerializationTest : TestBase
     public void ProjectSnapshotHandleProxy_RoundTripsProperly()
     {
         // Arrange
-        var tagHelpers = new[]
-        {
+        var tagHelpers = ImmutableArray.Create(
             TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build(),
-            TagHelperDescriptorBuilder.Create("TestTagHelper2", "TestAssembly2").Build(),
-        };
+            TagHelperDescriptorBuilder.Create("TestTagHelper2", "TestAssembly2").Build());
+
         var projectWorkspaceState = new ProjectWorkspaceState(tagHelpers, default);
         var expectedConfiguration = RazorConfiguration.Default;
         var expectedRootNamespace = "project";
-        var handle = new ProjectSnapshotHandleProxy(new Uri("vsls://some/path/project.csproj"), RazorConfiguration.Default, expectedRootNamespace, projectWorkspaceState);
-        var converterCollection = new JsonConverterCollection();
-        converterCollection.RegisterRazorLiveShareConverters();
-        var converters = converterCollection.ToArray();
-        var serializedHandle = JsonConvert.SerializeObject(handle, converters);
+        var handle = new ProjectSnapshotHandleProxy(new Uri("vsls://some/path/project.csproj"), new Uri("vsls://some/path/obj"), RazorConfiguration.Default, expectedRootNamespace, projectWorkspaceState);
+
+        var json = JsonConvert.SerializeObject(handle, ProjectSnapshotHandleProxyJsonConverter.Instance);
+        Assert.NotNull(json);
 
         // Act
-        var deserializedHandle = JsonConvert.DeserializeObject<ProjectSnapshotHandleProxy>(serializedHandle, converters);
+        var deserializedHandle = JsonConvert.DeserializeObject<ProjectSnapshotHandleProxy>(json, ProjectSnapshotHandleProxyJsonConverter.Instance);
+        Assert.NotNull(deserializedHandle);
 
         // Assert
         Assert.Equal("vsls://some/path/project.csproj", deserializedHandle.FilePath.ToString());

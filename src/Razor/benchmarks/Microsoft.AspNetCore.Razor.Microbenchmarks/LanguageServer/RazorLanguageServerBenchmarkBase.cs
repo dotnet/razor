@@ -9,8 +9,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -25,15 +28,21 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
     {
         var (_, serverStream) = FullDuplexStream.CreatePair();
         Logger = new NoopLogger();
-        RazorLanguageServer = RazorLanguageServerWrapper.Create(serverStream, serverStream, Logger, configure: (collection) =>
+        RazorLanguageServer = RazorLanguageServerWrapper.Create(serverStream, serverStream, Logger, NoOpTelemetryReporter.Instance, configure: (collection) =>
         {
+            collection.AddSingleton<IOnInitialized, NoopClientNotifierService>();
             collection.AddSingleton<ClientNotifierServiceBase, NoopClientNotifierService>();
             Builder(collection);
-        });
+        }, featureOptions: BuildFeatureOptions());
     }
 
     protected internal virtual void Builder(IServiceCollection collection)
     {
+    }
+
+    private protected virtual LanguageServerFeatureOptions BuildFeatureOptions()
+    {
+        return null;
     }
 
     private protected RazorLanguageServerWrapper RazorLanguageServer { get; }
@@ -42,7 +51,8 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
 
     internal IDocumentSnapshot GetDocumentSnapshot(string projectFilePath, string filePath, string targetPath)
     {
-        var hostProject = new HostProject(projectFilePath, RazorConfiguration.Default, rootNamespace: null);
+        var intermediateOutputPath = Path.Combine(Path.GetDirectoryName(projectFilePath), "obj");
+        var hostProject = new HostProject(projectFilePath, intermediateOutputPath, RazorConfiguration.Default, rootNamespace: null);
         using var fileStream = new FileStream(filePath, FileMode.Open);
         var text = SourceText.From(fileStream);
         var textLoader = TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()));
@@ -50,11 +60,11 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
 
         var projectSnapshotManager = CreateProjectSnapshotManager();
         projectSnapshotManager.ProjectAdded(hostProject);
-        var tagHelpers = GetTagHelperDescriptors();
+        var tagHelpers = CommonResources.LegacyTagHelpers;
         var projectWorkspaceState = new ProjectWorkspaceState(tagHelpers, CodeAnalysis.CSharp.LanguageVersion.CSharp11);
-        projectSnapshotManager.ProjectWorkspaceStateChanged(projectFilePath, projectWorkspaceState);
-        projectSnapshotManager.DocumentAdded(hostProject, hostDocument, textLoader);
-        var projectSnapshot = projectSnapshotManager.GetOrCreateProject(projectFilePath);
+        projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.Key, projectWorkspaceState);
+        projectSnapshotManager.DocumentAdded(hostProject.Key, hostDocument, textLoader);
+        var projectSnapshot = projectSnapshotManager.GetLoadedProject(hostProject.Key);
 
         var documentSnapshot = projectSnapshot.GetDocument(filePath);
         return documentSnapshot;
@@ -83,7 +93,7 @@ public class RazorLanguageServerBenchmarkBase : ProjectSnapshotManagerBenchmarkB
         }
     }
 
-    private class NoopLogger : IRazorLogger
+    internal class NoopLogger : IRazorLogger
     {
         public IDisposable BeginScope<TState>(TState state)
         {

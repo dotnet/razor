@@ -3,10 +3,10 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 using Microsoft.AspNetCore.Components;
@@ -15,7 +15,23 @@ using Microsoft.AspNetCore.Components;
 #line hidden
 #nullable disable
     #nullable restore
-    public partial class TestComponent<TItem1, TItem2> : global::Microsoft.AspNetCore.Components.ComponentBase
+    public partial class TestComponent<
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+TItem1
+
+#line default
+#line hidden
+#nullable disable
+    ,
+#nullable restore
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
+TItem2
+
+#line default
+#line hidden
+#nullable disable
+    > : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
         #pragma warning disable 1998

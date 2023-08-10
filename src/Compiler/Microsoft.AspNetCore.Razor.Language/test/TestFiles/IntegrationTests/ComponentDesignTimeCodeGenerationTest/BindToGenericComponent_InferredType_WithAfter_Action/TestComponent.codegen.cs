@@ -3,11 +3,11 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
+    using global::Microsoft.AspNetCore.Components;
     #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
@@ -31,7 +31,35 @@ namespace Test
 #line hidden
 #nullable disable
             , -1, 
-            __value => { ParentValue = __value; global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate(Update); });
+             __value => { ParentValue = __value; global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate(
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+                                                              Update
+
+#line default
+#line hidden
+#nullable disable
+            ); });
+            #pragma warning disable BL0005
+            __typeInference_CreateMyComponent_0.
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+                   Value
+
+#line default
+#line hidden
+#nullable disable
+             = default;
+            __typeInference_CreateMyComponent_0.
+#nullable restore
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
+                                                 Value
+
+#line default
+#line hidden
+#nullable disable
+             = default;
+            #pragma warning restore BL0005
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.MyComponent<>);
@@ -61,8 +89,8 @@ namespace __Blazor.Test.TestComponent
         public static global::Test.MyComponent<TValue> CreateMyComponent_0<TValue>(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder, int seq, int __seq0, TValue __arg0, int __seq1, global::System.Action<TValue> __arg1)
         {
         __builder.OpenComponent<global::Test.MyComponent<TValue>>(seq);
-        __builder.AddAttribute(__seq0, "Value", __arg0);
-        __builder.AddAttribute(__seq1, "ValueChanged", __arg1);
+        __builder.AddComponentParameter(__seq0, "Value", __arg0);
+        __builder.AddComponentParameter(__seq1, "ValueChanged", __arg1);
         __builder.CloseComponent();
         return default;
         }

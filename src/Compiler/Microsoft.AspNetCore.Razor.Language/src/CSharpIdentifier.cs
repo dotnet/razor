@@ -1,81 +1,67 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
-using System.Globalization;
+using System;
 using System.Text;
+using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
 internal static class CSharpIdentifier
 {
-    // CSharp Spec §2.4.2
-    private static bool IsIdentifierStart(char character)
+    public static string GetClassNameFromPath(string path)
     {
-        return char.IsLetter(character) ||
-            character == '_' ||
-            CharUnicodeInfo.GetUnicodeCategory(character) == UnicodeCategory.LetterNumber;
+        var span = path.AsSpanOrDefault();
+
+        if (span.Length == 0)
+        {
+            return path;
+        }
+
+        const string cshtmlExtension = ".cshtml";
+
+        if (span.EndsWith(cshtmlExtension.AsSpan(), StringComparison.OrdinalIgnoreCase))
+        {
+            span = span[..^cshtmlExtension.Length];
+        }
+
+        return SanitizeIdentifier(span);
     }
 
-    public static bool IsIdentifierPart(char character)
+    public static string SanitizeIdentifier(ReadOnlySpan<char> inputName)
     {
-        return char.IsDigit(character) ||
-               IsIdentifierStart(character) ||
-               IsIdentifierPartByUnicodeCategory(character);
-    }
-
-    private static bool IsIdentifierPartByUnicodeCategory(char character)
-    {
-        var category = CharUnicodeInfo.GetUnicodeCategory(character);
-
-        return category == UnicodeCategory.NonSpacingMark || // Mn
-            category == UnicodeCategory.SpacingCombiningMark || // Mc
-            category == UnicodeCategory.ConnectorPunctuation || // Pc
-            category == UnicodeCategory.Format; // Cf
-    }
-
-    public static string SanitizeIdentifier(StringSegment inputName)
-    {
-        if (StringSegment.IsNullOrEmpty(inputName))
+        if (inputName.Length == 0)
         {
             return string.Empty;
         }
 
-        var length = inputName.Length;
-        var prependUnderscore = false;
-        if (!IsIdentifierStart(inputName[0]) && IsIdentifierPart(inputName[0]))
-        {
-            length++;
-            prependUnderscore = true;
-        }
-
-        var builder = new StringBuilder(length);
-        if (prependUnderscore)
-        {
-            builder.Append('_');
-        }
-
-        for (var i = 0; i < inputName.Length; i++)
-        {
-            var ch = inputName[i];
-            builder.Append(IsIdentifierPart(ch) ? ch : '_');
-        }
-
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+        AppendSanitized(builder, inputName);
         return builder.ToString();
     }
 
-    public static void AppendSanitized(StringBuilder builder, StringSegment inputName)
+    public static void AppendSanitized(StringBuilder builder, ReadOnlySpan<char> inputName)
     {
-        if (!IsIdentifierStart(inputName[0]) && IsIdentifierPart(inputName[0]))
+        if (inputName.Length == 0)
         {
-            builder.Append('_');
+            return;
         }
 
-        for (var i = 0; i < inputName.Length; i++)
+        var firstChar = inputName[0];
+        if (!SyntaxFacts.IsIdentifierStartCharacter(firstChar) && SyntaxFacts.IsIdentifierPartCharacter(firstChar))
         {
-            var ch = inputName[i];
-            builder.Append(IsIdentifierPart(ch) ? ch : '_');
+            builder.SetCapacityIfLarger(builder.Length + inputName.Length + 1);
+            builder.Append('_');
+        }
+        else
+        {
+            builder.SetCapacityIfLarger(builder.Length + inputName.Length);
+        }
+
+        foreach (var ch in inputName)
+        {
+            builder.Append(SyntaxFacts.IsIdentifierPartCharacter(ch) ? ch : '_');
         }
     }
 }

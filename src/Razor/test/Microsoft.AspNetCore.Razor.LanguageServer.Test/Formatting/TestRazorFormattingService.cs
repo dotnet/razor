@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,13 +15,9 @@ using Moq;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 
-internal class TestRazorFormattingService
+internal static class TestRazorFormattingService
 {
-    private TestRazorFormattingService()
-    {
-    }
-
-    public static async Task<RazorFormattingService> CreateWithFullSupportAsync(
+    public static async Task<IRazorFormattingService> CreateWithFullSupportAsync(
         RazorCodeDocument? codeDocument = null,
         IDocumentSnapshot? documentSnapshot = null,
         ILoggerFactory? loggerFactory = null,
@@ -31,10 +26,10 @@ internal class TestRazorFormattingService
         codeDocument ??= TestRazorCodeDocument.CreateEmpty();
         loggerFactory ??= NullLoggerFactory.Instance;
 
-        var mappingService = new DefaultRazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory);
+        var mappingService = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), loggerFactory);
 
         var dispatcher = new LSPProjectSnapshotManagerDispatcher(loggerFactory);
-        var versionCache = new DefaultDocumentVersionCache(dispatcher);
+        var versionCache = new DefaultDocumentVersionCache();
         if (documentSnapshot is not null)
         {
             await dispatcher.RunOnDispatcherThreadAsync(() =>
@@ -53,26 +48,25 @@ internal class TestRazorFormattingService
 
         var optionsMonitorCache = new OptionsCache<RazorLSPOptions>();
 
-
-        var optionsMoniter = new TestRazorLSPOptionsMonitor(
+        var optionsMonitor = TestRazorLSPOptionsMonitor.Create(
             configurationSyncService.Object,
             optionsMonitorCache);
 
         if (razorLSPOptions is not null)
         {
-            await optionsMoniter.UpdateAsync(CancellationToken.None);
+            await optionsMonitor.UpdateAsync(CancellationToken.None);
         }
 
         var passes = new List<IFormattingPass>()
         {
-            new HtmlFormattingPass(mappingService, client, versionCache, optionsMoniter, loggerFactory),
+            new HtmlFormattingPass(mappingService, client, versionCache, optionsMonitor, loggerFactory),
             new CSharpFormattingPass(mappingService, client, loggerFactory),
-            new CSharpOnTypeFormattingPass(mappingService, client, optionsMoniter, loggerFactory),
+            new CSharpOnTypeFormattingPass(mappingService, client, optionsMonitor, loggerFactory),
             new RazorFormattingPass(mappingService, client, loggerFactory),
             new FormattingDiagnosticValidationPass(mappingService, client, loggerFactory),
             new FormattingContentValidationPass(mappingService, client, loggerFactory),
         };
 
-        return new DefaultRazorFormattingService(passes, loggerFactory, TestAdhocWorkspaceFactory.Instance);
+        return new RazorFormattingService(passes, TestAdhocWorkspaceFactory.Instance);
     }
 }

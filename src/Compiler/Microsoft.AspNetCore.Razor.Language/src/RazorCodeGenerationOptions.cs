@@ -22,7 +22,9 @@ public abstract class RazorCodeGenerationOptions
             suppressNullabilityEnforcement: false,
             omitMinimizedComponentAttributeValues: false,
             supportLocalizedComponentNames: false,
-            useEnhancedLinePragma: true);
+            useEnhancedLinePragma: true,
+            suppressUniqueIds: null,
+            suppressAddComponentParameter: false);
     }
 
     public static RazorCodeGenerationOptions CreateDesignTimeDefault()
@@ -38,7 +40,9 @@ public abstract class RazorCodeGenerationOptions
             suppressNullabilityEnforcement: false,
             omitMinimizedComponentAttributeValues: false,
             supportLocalizedComponentNames: false,
-            useEnhancedLinePragma: true);
+            useEnhancedLinePragma: true,
+            suppressUniqueIds: null,
+            suppressAddComponentParameter: false);
     }
 
     public static RazorCodeGenerationOptions Create(Action<RazorCodeGenerationOptionsBuilder> configure)
@@ -146,4 +150,14 @@ public abstract class RazorCodeGenerationOptions
     /// Gets a value that determines if enhanced line pragmas are to be utilized.
     /// </summary>
     public virtual bool UseEnhancedLinePragma { get; }
+
+    /// <summary>
+    /// Gets a value used for unique ids for testing purposes. Null for unique ids.
+    /// </summary>
+    internal string SuppressUniqueIds { get; private protected init; }
+
+    /// <summary>
+    /// Determines whether RenderTreeBuilder.AddComponentParameter should not be used.
+    /// </summary>
+    internal bool SuppressAddComponentParameter { get; private protected init; }
 }

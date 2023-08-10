@@ -22,6 +22,11 @@
         <target state="translated">ASP.NET Core Razor の言語サービスを提供します。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="translated">入力候補</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Formatting">
         <source>Formatting</source>
         <target state="translated">書式設定</target>
@@ -32,6 +37,36 @@
         <target state="translated">Razor Syntax Visualizer</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_AutoClosingTagsDescription">
+        <source>If true, closing tags will be automatically inserted</source>
+        <target state="translated">true の場合、終了タグは自動的に挿入されます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoClosingTagsDisplayName">
+        <source>Auto Insert Closing Tag</source>
+        <target state="translated">終了タグを自動挿入する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoInsertAttributeQuotesDescription">
+        <source>If true, completion on attributes will add quotation marks</source>
+        <target state="translated">true の場合、属性を入力するとき引用符が追加されます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoInsertAttributeQuotesDisplayName">
+        <source>Auto Insert Attribute Quotes</source>
+        <target state="translated">属性引用符の自動挿入</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ColorBackgroundDescription">
+        <source>If true, gives C# code in Razor files a background color</source>
+        <target state="translated">true の場合、Razor ファイルの C# コードに背景色を表示します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ColorBackgroundDisplayName">
+        <source>Background for C# Code</source>
+        <target state="translated">C# コードの背景</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_FormattingOnTypeDescription">
         <source>If true, formatting will be enabled while typing</source>
         <target state="translated">true の場合、入力中に書式設定が有効になります</target>
@@ -40,6 +75,11 @@
       <trans-unit id="Setting_FormattingOnTypeDisplayName">
         <source>Format On Type</source>
         <target state="translated">入力時に書式設定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Typing">
+        <source>Typing</source>
+        <target state="translated">入力</target>
         <note />
       </trans-unit>
     </body>

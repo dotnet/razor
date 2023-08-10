@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -22,7 +23,7 @@ namespace Microsoft.AspNetCore.Razor.Microbenchmarks.LanguageServer;
 
 public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 {
-    private RazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
+    private IRazorSemanticTokensInfoService RazorSemanticTokenService { get; set; }
 
     private DocumentVersionCache VersionCache { get; set; }
 
@@ -36,11 +37,16 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 
     private ProjectSnapshotManagerDispatcher ProjectSnapshotManagerDispatcher { get; set; }
 
+    private RazorSemanticTokensLegend SemanticTokensLegend { get; set; }
+
     private string PagesDirectory { get; set; }
 
     private string ProjectFilePath { get; set; }
 
     private string TargetPath { get; set; }
+
+    [ParamsAllValues]
+    public bool WithMultiLineComment { get; set; }
 
     [GlobalSetup(Target = nameof(RazorSemanticTokensRangeAsync))]
     public async Task InitializeRazorSemanticAsync()
@@ -50,13 +56,15 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "ComponentApp");
         ProjectFilePath = Path.Combine(projectRoot, "ComponentApp.csproj");
         PagesDirectory = Path.Combine(projectRoot, "Components", "Pages");
-        var filePath = Path.Combine(PagesDirectory, $"SemanticTokens.razor");
-        TargetPath = "/Components/Pages/SemanticTokens.razor";
+
+        var fileName = WithMultiLineComment ? "SemanticTokens_LargeMultiLineComment" : "SemanticTokens";
+        var filePath = Path.Combine(PagesDirectory, $"{fileName}.razor");
+        TargetPath = $"/Components/Pages/{fileName}.razor";
 
         var documentUri = new Uri(filePath);
         var documentSnapshot = GetDocumentSnapshot(ProjectFilePath, filePath, TargetPath);
         var version = 1;
-        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, version);
+        DocumentContext = new VersionedDocumentContext(documentUri, documentSnapshot, projectContext: null, version);
 
         var text = await DocumentContext.GetSourceTextAsync(CancellationToken.None).ConfigureAwait(false);
         Range = new Range
@@ -72,6 +80,8 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
                 Character = text.Lines.Last().Span.Length - 1
             }
         };
+
+        SemanticTokensLegend = new RazorSemanticTokensLegend(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true });
     }
 
     [Benchmark(Description = "Razor Semantic Tokens Range Handling")]
@@ -83,15 +93,11 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
         };
         var cancellationToken = CancellationToken.None;
         var documentVersion = 1;
+        var correlationId = Guid.Empty;
 
         await UpdateDocumentAsync(documentVersion, DocumentSnapshot, cancellationToken).ConfigureAwait(false);
         await RazorSemanticTokenService.GetSemanticTokensAsync(
-            textDocumentIdentifier, Range, DocumentContext, cancellationToken).ConfigureAwait(false);
-    }
-
-    private static LspServices GetLspServices()
-    {
-        throw new NotImplementedException();
+            textDocumentIdentifier, Range, DocumentContext, SemanticTokensLegend, correlationId, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task UpdateDocumentAsync(int newVersion, IDocumentSnapshot documentSnapshot, CancellationToken cancellationToken)
@@ -110,38 +116,40 @@ public class RazorSemanticTokensBenchmark : RazorLanguageServerBenchmarkBase
 
     protected internal override void Builder(IServiceCollection collection)
     {
-        collection.AddSingleton<RazorSemanticTokensInfoService, TestRazorSemanticTokensInfoService>();
+        collection.AddSingleton<IRazorSemanticTokensInfoService, TestRazorSemanticTokensInfoService>();
     }
 
     private void EnsureServicesInitialized()
     {
         var languageServer = RazorLanguageServer.GetInnerLanguageServerForTesting();
-        RazorSemanticTokenService = languageServer.GetRequiredService<RazorSemanticTokensInfoService>();
+        RazorSemanticTokenService = languageServer.GetRequiredService<IRazorSemanticTokensInfoService>();
         VersionCache = languageServer.GetRequiredService<DocumentVersionCache>();
         ProjectSnapshotManagerDispatcher = languageServer.GetRequiredService<ProjectSnapshotManagerDispatcher>();
     }
 
-    internal class TestRazorSemanticTokensInfoService : DefaultRazorSemanticTokensInfoService
+    internal class TestRazorSemanticTokensInfoService : RazorSemanticTokensInfoService
     {
         public TestRazorSemanticTokensInfoService(
             ClientNotifierServiceBase languageServer,
-            RazorDocumentMappingService documentMappingService,
+            IRazorDocumentMappingService documentMappingService,
+            RazorLSPOptionsMonitor razorLSPOptionsMonitor,
             ILoggerFactory loggerFactory)
-            : base(languageServer, documentMappingService, loggerFactory)
+            : base(languageServer, documentMappingService, razorLSPOptionsMonitor, loggerFactory)
         {
         }
 
         // We can't get C# responses without significant amounts of extra work, so let's just shim it for now, any non-Null result is fine.
-        internal override Task<SemanticRange[]> GetCSharpSemanticRangesAsync(
+        internal override Task<List<SemanticRange>> GetCSharpSemanticRangesAsync(
             RazorCodeDocument codeDocument,
             TextDocumentIdentifier textDocumentIdentifier,
             Range razorRange,
+            RazorSemanticTokensLegend razorSemanticTokensLegend,
             long documentVersion,
+            Guid correlationId,
             CancellationToken cancellationToken,
             string previousResultId = null)
         {
-            var result = Array.Empty<SemanticRange>();
-            return Task.FromResult(result);
+            return Task.FromResult(new List<SemanticRange>());
         }
     }
 }

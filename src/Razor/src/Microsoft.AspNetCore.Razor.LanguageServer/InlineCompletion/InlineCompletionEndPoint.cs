@@ -12,24 +12,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.AspNetCore.Razor.LanguageServer.InlineCompletion;
 
-internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
+[LanguageServerEndpoint(VSInternalMethods.TextDocumentInlineCompletionName)]
+internal sealed class InlineCompletionEndpoint : IRazorRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>, ICapabilitiesProvider
 {
     private static readonly ImmutableHashSet<string> s_cSharpKeywords = ImmutableHashSet.Create(
         "~", "Attribute", "checked", "class", "ctor", "cw", "do", "else", "enum", "equals", "Exception", "for", "foreach", "forr",
         "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly ClientNotifierServiceBase _languageServer;
     private readonly AdhocWorkspaceFactory _adhocWorkspaceFactory;
 
@@ -37,40 +38,21 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 
     [ImportingConstructor]
     public InlineCompletionEndpoint(
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         AdhocWorkspaceFactory adhocWorkspaceFactory)
     {
-        if (documentMappingService is null)
-        {
-            throw new ArgumentNullException(nameof(documentMappingService));
-        }
-
-        if (languageServer is null)
-        {
-            throw new ArgumentNullException(nameof(languageServer));
-        }
-
-        if (adhocWorkspaceFactory is null)
-        {
-            throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
-        }
-
-        _documentMappingService = documentMappingService;
-        _languageServer = languageServer;
-        _adhocWorkspaceFactory = adhocWorkspaceFactory;
+        _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
+        _languageServer = languageServer ?? throw new ArgumentNullException(nameof(languageServer));
+        _adhocWorkspaceFactory = adhocWorkspaceFactory ?? throw new ArgumentNullException(nameof(adhocWorkspaceFactory));
     }
 
-    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        const string AssociatedServerCapability = "_vs_inlineCompletionOptions";
-
-        var registrationOptions = new VSInternalInlineCompletionOptions()
+        serverCapabilities.InlineCompletionOptions = new VSInternalInlineCompletionOptions()
         {
             Pattern = new Regex(string.Join("|", s_cSharpKeywords))
         };
-
-        return new RegistrationExtensionResult(AssociatedServerCapability, registrationOptions);
     }
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
@@ -93,13 +75,13 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
             return null;
         }
 
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (codeDocument.IsUnsupported())
         {
             return null;
         }
 
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken);
+        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
         var linePosition = new LinePosition(request.Position.Line, request.Position.Character);
         var hostDocumentIndex = sourceText.Lines.GetPosition(linePosition);
 
@@ -107,7 +89,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 
         // Map to the location in the C# document.
         if (languageKind != RazorLanguageKind.CSharp ||
-            !_documentMappingService.TryMapToProjectedDocumentPosition(codeDocument.GetCSharpDocument(), hostDocumentIndex, out var projectedPosition, out _))
+            !_documentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), hostDocumentIndex, out var projectedPosition, out _))
         {
             requestContext.Logger.LogInformation("Unsupported location for {textDocumentUri}.", request.TextDocument.Uri);
             return null;
@@ -124,7 +106,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
 
         request.Position = projectedPosition;
         var list = await _languageServer.SendRequestAsync<RazorInlineCompletionRequest, VSInternalInlineCompletionList?>(
-            RazorLanguageServerCustomMessageTargets.RazorInlineCompletionEndpoint,
+            CustomMessageNames.RazorInlineCompletionEndpoint,
             razorRequest,
             cancellationToken).ConfigureAwait(false);
         if (list is null || !list.Items.Any())
@@ -139,7 +121,7 @@ internal class InlineCompletionEndpoint : IVSInlineCompletionEndpoint
             var containsSnippet = item.TextFormat == InsertTextFormat.Snippet;
             var range = item.Range ?? new Range { Start = projectedPosition, End = projectedPosition };
 
-            if (!_documentMappingService.TryMapFromProjectedDocumentRange(codeDocument.GetCSharpDocument(), range, out var rangeInRazorDoc))
+            if (!_documentMappingService.TryMapToHostDocumentRange(codeDocument.GetCSharpDocument(), range, out var rangeInRazorDoc))
             {
                 requestContext.Logger.LogWarning("Could not remap projected range {range} to razor document", range);
                 continue;

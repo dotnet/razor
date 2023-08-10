@@ -494,6 +494,18 @@ public class RazorFormattingTest : FormattingTestBase
     }
 
     [Fact]
+    public async Task TypeParam()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @typeparam     T     where    T    :   IDisposable
+                    """,
+            expected: """
+                    @typeparam T where T : IDisposable
+                    """);
+    }
+
+    [Fact]
     public async Task Model()
     {
         await RunFormattingTestAsync(
@@ -578,32 +590,6 @@ public class RazorFormattingTest : FormattingTestBase
     }
 
     [Fact]
-    public async Task OnTypeFormatting_Disabled()
-    {
-        await RunOnTypeFormattingTestAsync(
-            input: """
-            @functions {
-            	private int currentCount = 0;
-            
-            	private void IncrementCount (){
-            		currentCount++;
-            	}$$
-            }
-            """,
-            expected: """
-            @functions {
-            	private int currentCount = 0;
-            
-            	private void IncrementCount (){
-            		currentCount++;
-            	}
-            }
-            """,
-            triggerCharacter: '}',
-            razorLSPOptions: RazorLSPOptions.Default with { FormatOnType = false });
-    }
-
-    [Fact]
     public async Task OnTypeFormatting_Enabled()
     {
         await RunOnTypeFormattingTestAsync(
@@ -634,8 +620,8 @@ public class RazorFormattingTest : FormattingTestBase
     public async Task LargeFile()
     {
         await RunFormattingTestAsync(
-            input: TestResources.GetResourceText("FormattingTest.razor"),
-            expected: TestResources.GetResourceText("FormattingTest_Expected.razor"),
+            input: RazorTestResources.GetResourceText("FormattingTest.razor"),
+            expected: RazorTestResources.GetResourceText("FormattingTest_Expected.razor"),
             allowDiagnostics: true);
     }
 }

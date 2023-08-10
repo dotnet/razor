@@ -5,7 +5,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer;
@@ -30,6 +29,6 @@ internal class RazorConfigurationEndpoint : IDidChangeConfigurationEndpoint
     {
         requestContext.Logger.LogInformation("Settings changed. Updating the server.");
 
-        await _optionsMonitor.UpdateAsync(cancellationToken);
+        await _optionsMonitor.UpdateAsync(cancellationToken).ConfigureAwait(false);
     }
 }

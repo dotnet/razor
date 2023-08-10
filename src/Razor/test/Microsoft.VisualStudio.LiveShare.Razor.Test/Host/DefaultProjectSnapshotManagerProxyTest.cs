@@ -5,8 +5,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LiveShare.Razor.Test;
@@ -28,25 +30,24 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
         _workspace = TestWorkspace.Create();
         AddDisposable(_workspace);
 
-        var projectWorkspaceState1 = new ProjectWorkspaceState(new[]
-        {
-            TagHelperDescriptorBuilder.Create("test1", "TestAssembly1").Build(),
-        },
-        default);
+        var projectWorkspaceState1 = new ProjectWorkspaceState(ImmutableArray.Create(
+            TagHelperDescriptorBuilder.Create("test1", "TestAssembly1").Build()),
+            csharpLanguageVersion: default);
+
         _projectSnapshot1 = new ProjectSnapshot(
             ProjectState.Create(
                 _workspace.Services,
-                new HostProject("/host/path/to/project1.csproj", RazorConfiguration.Default, "project1"),
+                new HostProject("/host/path/to/project1.csproj", "/host/path/to/obj", RazorConfiguration.Default, "project1"),
                 projectWorkspaceState1));
-        var projectWorkspaceState2 = new ProjectWorkspaceState(new[]
-        {
-            TagHelperDescriptorBuilder.Create("test2", "TestAssembly2").Build(),
-        },
-        default);
+
+        var projectWorkspaceState2 = new ProjectWorkspaceState(ImmutableArray.Create(
+            TagHelperDescriptorBuilder.Create("test2", "TestAssembly2").Build()),
+            csharpLanguageVersion: default);
+
         _projectSnapshot2 = new ProjectSnapshot(
             ProjectState.Create(
                 _workspace.Services,
-                new HostProject("/host/path/to/project2.csproj", RazorConfiguration.Default, "project2"),
+                new HostProject("/host/path/to/project2.csproj", "/host/path/to/obj", RazorConfiguration.Default, "project2"),
                 projectWorkspaceState2));
     }
 
@@ -62,7 +63,7 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
             JoinableTaskFactory);
 
         // Act
-        var state = await JoinableTaskFactory.RunAsync(() => proxy.CalculateUpdatedStateAsync(projectSnapshotManager.Projects));
+        var state = await JoinableTaskFactory.RunAsync(() => proxy.CalculateUpdatedStateAsync(projectSnapshotManager.GetProjects()));
 
         // Assert
         Assert.Collection(
@@ -70,12 +71,12 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
             handle =>
             {
                 Assert.Equal("vsls:/path/to/project1.csproj", handle.FilePath.ToString());
-                Assert.Equal(_projectSnapshot1.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+                Assert.Equal(_projectSnapshot1.TagHelpers, handle.ProjectWorkspaceState.TagHelpers, TagHelperDescriptorComparer.Default);
             },
             handle =>
             {
                 Assert.Equal("vsls:/path/to/project2.csproj", handle.FilePath.ToString());
-                Assert.Equal(_projectSnapshot2.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+                Assert.Equal(_projectSnapshot2.TagHelpers, handle.ProjectWorkspaceState.TagHelpers, TagHelperDescriptorComparer.Default);
             });
     }
 
@@ -167,12 +168,12 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
             handle =>
             {
                 Assert.Equal("vsls:/path/to/project1.csproj", handle.FilePath.ToString());
-                Assert.Equal(_projectSnapshot1.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+                Assert.Equal(_projectSnapshot1.TagHelpers, handle.ProjectWorkspaceState.TagHelpers, TagHelperDescriptorComparer.Default);
             },
             handle =>
             {
                 Assert.Equal("vsls:/path/to/project2.csproj", handle.FilePath.ToString());
-                Assert.Equal(_projectSnapshot2.TagHelpers, handle.ProjectWorkspaceState.TagHelpers);
+                Assert.Equal(_projectSnapshot2.TagHelpers, handle.ProjectWorkspaceState.TagHelpers, TagHelperDescriptorComparer.Default);
             });
     }
 
@@ -197,12 +198,13 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
 
     private class TestProjectSnapshotManager : ProjectSnapshotManager
     {
+        private ImmutableArray<IProjectSnapshot> _projects;
         public TestProjectSnapshotManager(params IProjectSnapshot[] projects)
         {
-            Projects = projects;
+            _projects = projects.ToImmutableArray();
         }
 
-        public override IReadOnlyList<IProjectSnapshot> Projects { get; }
+        public override ImmutableArray<IProjectSnapshot> GetProjects() => _projects;
 
         public override event EventHandler<ProjectChangeEventArgs> Changed;
 
@@ -211,12 +213,12 @@ public class DefaultProjectSnapshotManagerProxyTest : ProjectSnapshotManagerDisp
             Changed?.Invoke(this, args);
         }
 
-        public override IProjectSnapshot GetLoadedProject(string filePath)
+        public override IProjectSnapshot GetLoadedProject(ProjectKey projectKey)
         {
             throw new NotImplementedException();
         }
 
-        public override IProjectSnapshot GetOrCreateProject(string filePath)
+        public override ImmutableArray<ProjectKey> GetAllProjectKeys(string projectFileName)
         {
             throw new NotImplementedException();
         }

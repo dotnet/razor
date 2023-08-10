@@ -4,10 +4,12 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LiveShare.Razor.Test;
@@ -30,11 +32,9 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
 
         _projectSnapshotManager = new TestProjectSnapshotManager(Workspace);
 
-        _projectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(new[]
-        {
-            TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()
-        },
-        default);
+        _projectWorkspaceStateWithTagHelpers = new ProjectWorkspaceState(ImmutableArray.Create(
+            TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()),
+            csharpLanguageVersion: default);
     }
 
     [Fact]
@@ -43,6 +43,7 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
         // Arrange
         var projectHandle = new ProjectSnapshotHandleProxy(
             new Uri("vsls:/path/project.csproj"),
+            new Uri("vsls:/path/obj"),
             RazorConfiguration.Default,
             "project",
             _projectWorkspaceStateWithTagHelpers);
@@ -59,10 +60,15 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
         await synchronizationService.InitializeAsync(DisposalToken);
 
         // Assert
-        var project = Assert.Single(_projectSnapshotManager.Projects);
+        var project = Assert.Single(_projectSnapshotManager.GetProjects());
         Assert.Equal("/guest/path/project.csproj", project.FilePath);
         Assert.Same(RazorConfiguration.Default, project.Configuration);
-        Assert.Same(_projectWorkspaceStateWithTagHelpers.TagHelpers, project.TagHelpers);
+
+        Assert.Equal(_projectWorkspaceStateWithTagHelpers.TagHelpers.Length, project.TagHelpers.Length);
+        for (var i = 0; i < _projectWorkspaceStateWithTagHelpers.TagHelpers.Length; i++)
+        {
+            Assert.Same(_projectWorkspaceStateWithTagHelpers.TagHelpers[i], project.TagHelpers[i]);
+        }
     }
 
     [Fact]
@@ -71,6 +77,7 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
         // Arrange
         var newHandle = new ProjectSnapshotHandleProxy(
             new Uri("vsls:/path/project.csproj"),
+            new Uri("vsls:/path/obj"),
             RazorConfiguration.Default,
             "project",
             _projectWorkspaceStateWithTagHelpers);
@@ -85,10 +92,15 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
         synchronizationService.UpdateGuestProjectManager(args);
 
         // Assert
-        var project = Assert.Single(_projectSnapshotManager.Projects);
+        var project = Assert.Single(_projectSnapshotManager.GetProjects());
         Assert.Equal("/guest/path/project.csproj", project.FilePath);
         Assert.Same(RazorConfiguration.Default, project.Configuration);
-        Assert.Same(_projectWorkspaceStateWithTagHelpers.TagHelpers, project.TagHelpers);
+
+        Assert.Equal(_projectWorkspaceStateWithTagHelpers.TagHelpers.Length, project.TagHelpers.Length);
+        for (var i = 0; i < _projectWorkspaceStateWithTagHelpers.TagHelpers.Length; i++)
+        {
+            Assert.Same(_projectWorkspaceStateWithTagHelpers.TagHelpers[i], project.TagHelpers[i]);
+        }
     }
 
     [Fact]
@@ -97,6 +109,7 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
         // Arrange
         var olderHandle = new ProjectSnapshotHandleProxy(
             new Uri("vsls:/path/project.csproj"),
+            new Uri("vsls:/path/obj"),
             RazorConfiguration.Default,
             "project",
             projectWorkspaceState: null);
@@ -105,7 +118,7 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
             _sessionContext,
             Mock.Of<IProjectSnapshotManagerProxy>(MockBehavior.Strict),
             _projectSnapshotManager);
-        var hostProject = new HostProject("/guest/path/project.csproj", RazorConfiguration.Default, "project");
+        var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
         _projectSnapshotManager.ProjectAdded(hostProject);
         var args = new ProjectChangeEventProxyArgs(olderHandle, newer: null, ProjectProxyChangeKind.ProjectRemoved);
 
@@ -113,7 +126,7 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
         synchronizationService.UpdateGuestProjectManager(args);
 
         // Assert
-        Assert.Empty(_projectSnapshotManager.Projects);
+        Assert.Empty(_projectSnapshotManager.GetProjects());
     }
 
     [Fact]
@@ -122,12 +135,14 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
         // Arrange
         var oldHandle = new ProjectSnapshotHandleProxy(
             new Uri("vsls:/path/project.csproj"),
+            new Uri("vsls:/path/obj"),
             RazorConfiguration.Default,
             "project",
             projectWorkspaceState: null);
         var newConfiguration = RazorConfiguration.Create(RazorLanguageVersion.Version_1_0, "Custom-1.0", Enumerable.Empty<RazorExtension>());
         var newHandle = new ProjectSnapshotHandleProxy(
             oldHandle.FilePath,
+            oldHandle.IntermediateOutputPath,
             newConfiguration,
             oldHandle.RootNamespace,
             oldHandle.ProjectWorkspaceState);
@@ -136,7 +151,7 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
             _sessionContext,
             Mock.Of<IProjectSnapshotManagerProxy>(MockBehavior.Strict),
             _projectSnapshotManager);
-        var hostProject = new HostProject("/guest/path/project.csproj", RazorConfiguration.Default, "project");
+        var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
         _projectSnapshotManager.ProjectAdded(hostProject);
         _projectSnapshotManager.ProjectConfigurationChanged(hostProject);
         var args = new ProjectChangeEventProxyArgs(oldHandle, newHandle, ProjectProxyChangeKind.ProjectChanged);
@@ -145,7 +160,7 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
         synchronizationService.UpdateGuestProjectManager(args);
 
         // Assert
-        var project = Assert.Single(_projectSnapshotManager.Projects);
+        var project = Assert.Single(_projectSnapshotManager.GetProjects());
         Assert.Equal("/guest/path/project.csproj", project.FilePath);
         Assert.Same(newConfiguration, project.Configuration);
         Assert.Empty(project.TagHelpers);
@@ -157,12 +172,14 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
         // Arrange
         var oldHandle = new ProjectSnapshotHandleProxy(
             new Uri("vsls:/path/project.csproj"),
+            new Uri("vsls:/path/obj"),
             RazorConfiguration.Default,
             "project",
             ProjectWorkspaceState.Default);
         var newProjectWorkspaceState = _projectWorkspaceStateWithTagHelpers;
         var newHandle = new ProjectSnapshotHandleProxy(
             oldHandle.FilePath,
+            oldHandle.IntermediateOutputPath,
             oldHandle.Configuration,
             oldHandle.RootNamespace,
             newProjectWorkspaceState);
@@ -171,18 +188,23 @@ public class ProjectSnapshotSynchronizationServiceTest : WorkspaceTestBase
             _sessionContext,
             Mock.Of<IProjectSnapshotManagerProxy>(MockBehavior.Strict),
             _projectSnapshotManager);
-        var hostProject = new HostProject("/guest/path/project.csproj", RazorConfiguration.Default, "project");
+        var hostProject = new HostProject("/guest/path/project.csproj", "/guest/path/obj", RazorConfiguration.Default, "project");
         _projectSnapshotManager.ProjectAdded(hostProject);
-        _projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.FilePath, oldHandle.ProjectWorkspaceState);
+        _projectSnapshotManager.ProjectWorkspaceStateChanged(hostProject.Key, oldHandle.ProjectWorkspaceState);
         var args = new ProjectChangeEventProxyArgs(oldHandle, newHandle, ProjectProxyChangeKind.ProjectChanged);
 
         // Act
         synchronizationService.UpdateGuestProjectManager(args);
 
         // Assert
-        var project = Assert.Single(_projectSnapshotManager.Projects);
+        var project = Assert.Single(_projectSnapshotManager.GetProjects());
         Assert.Equal("/guest/path/project.csproj", project.FilePath);
         Assert.Same(RazorConfiguration.Default, project.Configuration);
-        Assert.Same(newProjectWorkspaceState.TagHelpers, project.TagHelpers);
+
+        Assert.Equal(_projectWorkspaceStateWithTagHelpers.TagHelpers.Length, project.TagHelpers.Length);
+        for (var i = 0; i < _projectWorkspaceStateWithTagHelpers.TagHelpers.Length; i++)
+        {
+            Assert.Same(_projectWorkspaceStateWithTagHelpers.TagHelpers[i], project.TagHelpers[i]);
+        }
     }
 }

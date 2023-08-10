@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -10,7 +11,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Editor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
-using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Threading;
@@ -108,7 +108,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
 
     public override ClientSpaceSettings EditorSettings => _workspaceEditorSettings.Current.ClientSpaceSettings;
 
-    public override IReadOnlyList<TagHelperDescriptor>? TagHelpers => ProjectSnapshot?.TagHelpers;
+    public override ImmutableArray<TagHelperDescriptor> TagHelpers => ProjectSnapshot?.TagHelpers ?? ImmutableArray<TagHelperDescriptor>.Empty;
 
     public override bool IsSupportedProject => _isSupportedProject;
 
@@ -178,7 +178,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
             return;
         }
 
-        _projectSnapshot = _projectManager.GetOrCreateProject(_projectPath);
+        _projectSnapshot = GetOrCreateProject(_projectPath);
         _isSupportedProject = true;
 
         _projectManager.Changed += ProjectManager_Changed;
@@ -188,6 +188,20 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
         _importDocumentManager.OnSubscribed(this);
 
         _ = OnContextChangedAsync(ContextChangeKind.ProjectChanged);
+    }
+
+    private IProjectSnapshot? GetOrCreateProject(string projectPath)
+    {
+        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
+
+        var projectKey = _projectManager.GetAllProjectKeys(projectPath).FirstOrDefault();
+
+        if (_projectManager.GetLoadedProject(projectKey) is not { } project)
+        {
+            return new EphemeralProjectSnapshot(Workspace.Services, projectPath);
+        }
+
+        return project;
     }
 
     public void Unsubscribe()
@@ -233,7 +247,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
             string.Equals(_projectPath, e.ProjectFilePath, StringComparison.OrdinalIgnoreCase))
         {
             // This will be the new snapshot unless the project was removed.
-            _projectSnapshot = _projectManager.GetLoadedProject(e.ProjectFilePath);
+            _projectSnapshot = _projectManager.GetLoadedProject(e.ProjectKey);
 
             switch (e.Kind)
             {
@@ -251,7 +265,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
                     _ = OnContextChangedAsync(ContextChangeKind.ProjectChanged);
 
                     if (e.Older is null ||
-                        !Enumerable.SequenceEqual(e.Older.TagHelpers, e.Newer!.TagHelpers))
+                        !e.Older.TagHelpers.SequenceEqual(e.Newer!.TagHelpers))
                     {
                         _ = OnContextChangedAsync(ContextChangeKind.TagHelpersChanged);
                     }
@@ -261,7 +275,7 @@ internal class DefaultVisualStudioDocumentTracker : VisualStudioDocumentTracker
                 case ProjectChangeKind.ProjectRemoved:
 
                     // Fall back to ephemeral project
-                    _projectSnapshot = _projectManager.GetOrCreateProject(ProjectPath);
+                    _projectSnapshot = GetOrCreateProject(ProjectPath);
                     _ = OnContextChangedAsync(ContextChangeKind.ProjectChanged);
                     break;
 

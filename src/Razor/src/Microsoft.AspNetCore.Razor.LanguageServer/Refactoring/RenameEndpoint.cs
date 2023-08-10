@@ -12,26 +12,27 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Refactoring;
 
-internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBridge, WorkspaceEdit?>, IRenameEndpoint
+[LanguageServerEndpoint(Methods.TextDocumentRenameName)]
+internal sealed class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParams, WorkspaceEdit?>, ICapabilitiesProvider
 {
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly DocumentContextFactory _documentContextFactory;
     private readonly ProjectSnapshotManager _projectSnapshotManager;
     private readonly RazorComponentSearchEngine _componentSearchEngine;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
-    private readonly RazorDocumentMappingService _documentMappingService;
+    private readonly IRazorDocumentMappingService _documentMappingService;
 
     public RenameEndpoint(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
@@ -39,7 +40,7 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
         RazorComponentSearchEngine componentSearchEngine,
         ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase languageServer,
         ILoggerFactory loggerFactory)
         : base(languageServerFeatureOptions, documentMappingService, languageServer, loggerFactory.CreateLogger<RenameEndpoint>())
@@ -52,22 +53,19 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
         _documentMappingService = documentMappingService ?? throw new ArgumentNullException(nameof(documentMappingService));
     }
 
-    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        const string ServerCapability = "renameProvider";
-        var options = new RenameOptions
+        serverCapabilities.RenameProvider = new RenameOptions
         {
             PrepareProvider = false,
         };
-
-        return new RegistrationExtensionResult(ServerCapability, new SumType<bool, RenameOptions>(options));
     }
 
     protected override bool PreferCSharpOverHtmlIfPossible => true;
 
-    protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorRenameEndpointName;
+    protected override string CustomMessageTarget => CustomMessageNames.RazorRenameEndpointName;
 
-    protected override async Task<WorkspaceEdit?> TryHandleAsync(RenameParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override async Task<WorkspaceEdit?> TryHandleAsync(RenameParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
         // We only support renaming of .razor components, not .cshtml tag helpers
@@ -77,40 +75,40 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
         }
 
         // If we're in C# then there is no point checking for a component tag, because there won't be one
-        if (projection.LanguageKind == RazorLanguageKind.CSharp)
+        if (positionInfo.LanguageKind == RazorLanguageKind.CSharp)
         {
             return null;
         }
 
-        return await TryGetRazorComponentRenameEditsAsync(request, projection.AbsoluteIndex, documentContext, cancellationToken).ConfigureAwait(false);
+        return await TryGetRazorComponentRenameEditsAsync(request, positionInfo.HostDocumentIndex, documentContext, cancellationToken).ConfigureAwait(false);
     }
 
     protected override bool IsSupported()
         => _languageServerFeatureOptions.SupportsFileManipulation;
 
-    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(RenameParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override Task<IDelegatedParams?> CreateDelegatedParamsAsync(RenameParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         var documentContext = requestContext.GetRequiredDocumentContext();
         return Task.FromResult<IDelegatedParams?>(new DelegatedRenameParams(
                 documentContext.Identifier,
-                projection.Position,
-                projection.LanguageKind,
+                positionInfo.Position,
+                positionInfo.LanguageKind,
                 request.NewName));
     }
 
-    protected override async Task<WorkspaceEdit?> HandleDelegatedResponseAsync(WorkspaceEdit? response, RenameParamsBridge request, RazorRequestContext requestContext, Projection projection, CancellationToken cancellationToken)
+    protected override async Task<WorkspaceEdit?> HandleDelegatedResponseAsync(WorkspaceEdit? response, RenameParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
     {
         if (response is null)
         {
             return null;
         }
 
-        return await _documentMappingService.RemapWorkspaceEditAsync(response, cancellationToken);
+        return await _documentMappingService.RemapWorkspaceEditAsync(response, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<WorkspaceEdit?> TryGetRazorComponentRenameEditsAsync(RenameParams request, int absoluteIndex, DocumentContext documentContext, CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken);
+        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var originTagHelpers = await GetOriginTagHelpersAsync(documentContext, absoluteIndex, cancellationToken).ConfigureAwait(false);
         if (originTagHelpers is null || originTagHelpers.Count == 0)
@@ -132,14 +130,24 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
         }
 
         var documentChanges = new List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
-        AddFileRenameForComponent(documentChanges, originComponentDocumentSnapshot, newPath);
+        var fileRename = GetFileRenameForComponent(originComponentDocumentSnapshot, newPath);
+        documentChanges.Add(fileRename);
         AddEditsForCodeDocument(documentChanges, originTagHelpers, request.NewName, request.TextDocument.Uri, codeDocument);
 
         var documentSnapshots = await GetAllDocumentSnapshotsAsync(documentContext, cancellationToken).ConfigureAwait(false);
 
         foreach (var documentSnapshot in documentSnapshots)
         {
-            await AddEditsForCodeDocumentAsync(documentChanges, originTagHelpers, request.NewName, documentSnapshot);
+            await AddEditsForCodeDocumentAsync(documentChanges, originTagHelpers, request.NewName, documentSnapshot).ConfigureAwait(false);
+        }
+
+        foreach (var documentChange in documentChanges)
+        {
+            if (documentChange.TryGetFirst(out var textDocumentEdit) &&
+                textDocumentEdit.TextDocument.Uri == fileRename.OldUri)
+            {
+                textDocumentEdit.TextDocument.Uri = fileRename.NewUri;
+            }
         }
 
         return new WorkspaceEdit
@@ -153,43 +161,40 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
         var documentSnapshots = new List<IDocumentSnapshot?>();
         var documentPaths = new HashSet<string>();
 
-        await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(GetAllDocumentSnapshotsInternalAsync, cancellationToken).ConfigureAwait(false);
+        var projects = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() => _projectSnapshotManager.GetProjects(), cancellationToken).ConfigureAwait(false);
 
-        return documentSnapshots;
-
-        async Task GetAllDocumentSnapshotsInternalAsync()
+        foreach (var project in projects)
         {
-            foreach (var project in _projectSnapshotManager.Projects)
+            foreach (var documentPath in project.DocumentFilePaths)
             {
-                foreach (var documentPath in project.DocumentFilePaths)
+                // We've already added refactoring edits for our document snapshot
+                if (string.Equals(documentPath, skipDocumentContext.FilePath, FilePathComparison.Instance))
                 {
-                    // We've already added refactoring edits for our document snapshot
-                    if (string.Equals(documentPath, skipDocumentContext.FilePath, FilePathComparison.Instance))
-                    {
-                        continue;
-                    }
-
-                    // Don't add duplicates between projects
-                    if (documentPaths.Contains(documentPath))
-                    {
-                        continue;
-                    }
-
-                    // Add to the list and add the path to the set
-                    var documentContext = await _documentContextFactory.TryCreateAsync(new Uri(documentPath), cancellationToken);
-                    if (documentContext is null)
-                    {
-                        throw new NotImplementedException($"{documentPath} in project {project.FilePath} but not retrievable");
-                    }
-
-                    documentSnapshots.Add(documentContext.Snapshot);
-                    documentPaths.Add(documentPath);
+                    continue;
                 }
+
+                // Don't add duplicates between projects
+                if (documentPaths.Contains(documentPath))
+                {
+                    continue;
+                }
+
+                // Add to the list and add the path to the set
+                var snapshot = project.GetDocument(documentPath);
+                if (snapshot is null)
+                {
+                    throw new NotImplementedException($"{documentPath} in project {project.FilePath} but not retrievable");
+                }
+
+                documentSnapshots.Add(snapshot);
+                documentPaths.Add(documentPath);
             }
         }
+
+        return documentSnapshots;
     }
 
-    public void AddFileRenameForComponent(List<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges, IDocumentSnapshot documentSnapshot, string newPath)
+    public RenameFile GetFileRenameForComponent(IDocumentSnapshot documentSnapshot, string newPath)
     {
         // VS Code in Windows expects path to start with '/'
         var filePath = documentSnapshot.FilePath.AssumeNotNull();
@@ -215,11 +220,11 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
             Scheme = Uri.UriSchemeFile,
         }.Uri;
 
-        documentChanges.Add(new RenameFile
+        return new RenameFile
         {
             OldUri = oldUri,
             NewUri = newUri,
-        });
+        };
     }
 
     private static string MakeNewPath(string originalPath, string newName)
@@ -346,7 +351,7 @@ internal class RenameEndpoint : AbstractRazorDelegatingEndpoint<RenameParamsBrid
             return null;
         }
 
-        var node = owner.Ancestors().FirstOrDefault(n => n.Kind == SyntaxKind.MarkupTagHelperStartTag);
+        var node = owner.Parent?.FirstAncestorOrSelf<SyntaxNode>(n => n.Kind == SyntaxKind.MarkupTagHelperStartTag);
         if (node is not MarkupTagHelperStartTagSyntax tagHelperStartTag)
         {
             return null;

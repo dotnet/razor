@@ -12,6 +12,7 @@ using System.Text;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -23,6 +24,10 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
     private readonly List<IntermediateToken> _currentAttributeValues = new List<IntermediateToken>();
     private readonly ScopeStack _scopeStack = new ScopeStack();
     private int _sourceSequence;
+
+    public ComponentRuntimeNodeWriter(RazorLanguageVersion version) : base(version)
+    {
+    }
 
     public override void WriteCSharpCode(CodeRenderingContext context, CSharpCodeIntermediateNode node)
     {
@@ -355,8 +360,8 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             // Writes something like:
             //
             // _builder.OpenComponent<MyComponent>(0);
-            // _builder.AddAttribute(1, "Foo", ...);
-            // _builder.AddAttribute(2, "ChildContent", ...);
+            // _builder.AddComponentParameter(1, "Foo", ...);
+            // _builder.AddComponentParameter(2, "ChildContent", ...);
             // _builder.SetKey(someValue);
             // _builder.AddElementCapture(3, (__value) => _field = __value);
             // _builder.CloseComponent();
@@ -501,7 +506,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         {
             case ComponentAttributeIntermediateNode attribute:
                 // Don't type check generics, since we can't actually write the type name.
-                // The type checking with happen anyway since we defined a method and we're generating
+                // The type checking will happen anyway since we defined a method and we're generating
                 // a call to it.
                 WriteComponentAttributeInnards(context, attribute, canTypeCheck: false);
                 break;
@@ -521,7 +526,12 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 // The value should be populated before we use it, because we emit code for creating ancestors
                 // first, and that's where it's populated. However if this goes wrong somehow, we don't want to
                 // throw, so use a fallback
-                context.CodeWriter.Write(syntheticArg.ValueExpression ?? "default");
+                var valueExpression = syntheticArg.ValueExpression ?? "default";
+                context.CodeWriter.Write(valueExpression);
+                if (!context.Options.SuppressNullabilityEnforcement && IsDefaultExpression(valueExpression))
+                {
+                    context.CodeWriter.Write("!");
+                }
                 break;
             case TypeInferenceCapturedVariable capturedVariable:
                 context.CodeWriter.Write(capturedVariable.VariableName);
@@ -543,9 +553,14 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             throw new ArgumentNullException(nameof(node));
         }
 
-        var addAttributeMethod = node.Annotations[ComponentMetadata.Common.AddAttributeMethodName] as string ?? ComponentsApi.RenderTreeBuilder.AddAttribute;
+        if (node.IsDesignTimePropertyAccessHelper())
+        {
+            return;
+        }
 
-        // _builder.AddAttribute(1, "Foo", 42);
+        var addAttributeMethod = node.Annotations[ComponentMetadata.Common.AddAttributeMethodName] as string ?? GetAddComponentParameterMethodName(context);
+
+        // _builder.AddComponentParameter(1, "Foo", 42);
         context.CodeWriter.Write(_scopeStack.BuilderVarName);
         context.CodeWriter.Write(".");
         context.CodeWriter.Write(addAttributeMethod);
@@ -555,7 +570,17 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         context.CodeWriter.WriteStringLiteral(node.AttributeName);
         context.CodeWriter.Write(", ");
 
+        if (addAttributeMethod == ComponentsApi.RenderTreeBuilder.AddAttribute)
+        {
+            context.CodeWriter.Write("(object)(");
+        }
+
         WriteComponentAttributeInnards(context, node, canTypeCheck: true);
+
+        if (addAttributeMethod == ComponentsApi.RenderTreeBuilder.AddAttribute)
+        {
+            context.CodeWriter.Write(")");
+        }
 
         context.CodeWriter.Write(");");
         context.CodeWriter.WriteLine();
@@ -625,7 +650,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 context.CodeWriter.Write(".");
                 context.CodeWriter.Write(ComponentsApi.EventCallbackFactory.CreateMethod);
 
-                if (isInferred != true && node.TryParseEventCallbackTypeArgument(out StringSegment argument))
+                if (isInferred != true && node.TryParseEventCallbackTypeArgument(out ReadOnlyMemory<char> argument))
                 {
                     context.CodeWriter.Write("<");
                     if (explicitType == true)
@@ -688,7 +713,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
             static void QualifyEventCallback(CodeWriter codeWriter, string typeName, bool? explicitType)
             {
-                if (ComponentAttributeIntermediateNode.TryGetEventCallbackArgument(typeName, out var argument))
+                if (ComponentAttributeIntermediateNode.TryGetEventCallbackArgument(typeName.AsMemory(), out var argument))
                 {
                     codeWriter.Write("global::");
                     codeWriter.Write(ComponentsApi.EventCallback.FullTypeName);
@@ -716,9 +741,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             return html.FindDescendantNodes<IntermediateToken>().Where(t => t.IsHtml).ToArray();
         }
 
-        bool NeedsTypeCheck(ComponentAttributeIntermediateNode n)
+        static bool NeedsTypeCheck(ComponentAttributeIntermediateNode n)
         {
-            return node.BoundAttribute != null && !node.BoundAttribute.IsWeaklyTyped();
+            return n.BoundAttribute != null && !n.BoundAttribute.IsWeaklyTyped();
         }
     }
 
@@ -742,9 +767,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
         // Writes something like:
         //
-        // _builder.AddAttribute(1, "ChildContent", (RenderFragment)((__builder73) => { ... }));
+        // _builder.AddComponentParameter(1, "ChildContent", (RenderFragment)((__builder73) => { ... }));
         // OR
-        // _builder.AddAttribute(1, "ChildContent", (RenderFragment<Person>)((person) => (__builder73) => { ... }));
+        // _builder.AddComponentParameter(1, "ChildContent", (RenderFragment<Person>)((person) => (__builder73) => { ... }));
         BeginWriteAttribute(context, node.AttributeName);
         context.CodeWriter.WriteParameterSeparator();
         context.CodeWriter.Write("(");
@@ -979,12 +1004,14 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
     private static string GetHtmlContent(HtmlContentIntermediateNode node)
     {
-        var builder = new StringBuilder();
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+
         var htmlTokens = node.Children.OfType<IntermediateToken>().Where(t => t.IsHtml);
         foreach (var htmlToken in htmlTokens)
         {
             builder.Append(htmlToken.Content);
         }
+
         return builder.ToString();
     }
 

@@ -33,7 +33,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
     public CSharpOnTypeFormattingPass(
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase server,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor,
         ILoggerFactory loggerFactory)
@@ -50,7 +50,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
 
     public async override Task<FormattingResult> ExecuteAsync(FormattingContext context, FormattingResult result, CancellationToken cancellationToken)
     {
-        if (!context.IsFormatOnType || result.Kind != RazorLanguageKind.CSharp || !_optionsMonitor.CurrentValue.FormatOnType)
+        if (!context.IsFormatOnType || result.Kind != RazorLanguageKind.CSharp)
         {
             // We don't want to handle regular formatting or non-C# on type formatting here.
             return result;
@@ -63,7 +63,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         var textEdits = result.Edits;
         if (textEdits.Length == 0)
         {
-            if (!DocumentMappingService.TryMapToProjectedDocumentPosition(codeDocument.GetCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
+            if (!DocumentMappingService.TryMapToGeneratedDocumentPosition(codeDocument.GetCSharpDocument(), context.HostDocumentIndex, out _, out var projectedIndex))
             {
                 _logger.LogWarning("Failed to map to projected position for document {context.Uri}.", context.Uri);
                 return result;
@@ -117,7 +117,13 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         var filteredEdits = FilterCSharpTextEdits(context, mappedEdits);
         if (filteredEdits.Length == 0)
         {
-            // There are no CSharp edits for us to apply. No op.
+            // There are no C# edits for us to apply that could be mapped, but we might still need to check for using statements
+            // because they are non mappable, but might be the only thing changed (eg from the Add Using code action)
+            //
+            // If there aren't any edits that are likely to contain using statement changes, this call will no-op.
+
+            filteredEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, filteredEdits, cancellationToken).ConfigureAwait(false);
+
             return new FormattingResult(filteredEdits);
         }
 
@@ -127,7 +133,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
 
         // Apply the format on type edits sent over by the client.
         var formattedText = ApplyChangesAndTrackChange(originalText, changes, out _, out var spanAfterFormatting);
-        var changedContext = await context.WithTextAsync(formattedText);
+        var changedContext = await context.WithTextAsync(formattedText).ConfigureAwait(false);
         var rangeAfterFormatting = spanAfterFormatting.AsRange(formattedText);
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -135,7 +141,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         // We make an optimistic attempt at fixing corner cases.
         var cleanupChanges = CleanupDocument(changedContext, rangeAfterFormatting);
         var cleanedText = formattedText.WithChanges(cleanupChanges);
-        changedContext = await changedContext.WithTextAsync(cleanedText);
+        changedContext = await changedContext.WithTextAsync(cleanedText).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -162,7 +168,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         //
         // We'll happy format lines 1 and 2, and ignore the closing brace altogether. So, by looking one line further
         // we won't have that problem.
-        if (rangeAfterFormatting.End.Line + lineDelta < cleanedText.Lines.Count)
+        if (rangeAfterFormatting.End.Line + lineDelta < cleanedText.Lines.Count - 1)
         {
             lineDelta++;
         }
@@ -197,7 +203,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
 
         Debug.Assert(rangeToAdjust.End.IsValid(cleanedText), "Invalid range. This is unexpected.");
 
-        var indentationChanges = await AdjustIndentationAsync(changedContext, cancellationToken, rangeToAdjust);
+        var indentationChanges = await AdjustIndentationAsync(changedContext, cancellationToken, rangeToAdjust).ConfigureAwait(false);
         if (indentationChanges.Count > 0)
         {
             // Apply the edits that modify indentation.
@@ -208,17 +214,24 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         var finalChanges = cleanedText.GetTextChanges(originalText);
         var finalEdits = finalChanges.Select(f => f.AsTextEdit(originalText)).ToArray();
 
+        finalEdits = await AddUsingStatementEditsIfNecessaryAsync(context, codeDocument, csharpText, textEdits, originalTextWithChanges, finalEdits, cancellationToken).ConfigureAwait(false);
+
+        return new FormattingResult(finalEdits);
+    }
+
+    private static async Task<TextEdit[]> AddUsingStatementEditsIfNecessaryAsync(FormattingContext context, RazorCodeDocument codeDocument, SourceText csharpText, TextEdit[] textEdits, SourceText originalTextWithChanges, TextEdit[] finalEdits, CancellationToken cancellationToken)
+    {
         if (context.AutomaticallyAddUsings)
         {
             // Because we need to parse the C# code twice for this operation, lets do a quick check to see if its even necessary
             if (textEdits.Any(e => e.NewText.IndexOf("using") != -1))
             {
-                var usingStatementEdits = await AddUsingsCodeActionProviderHelper.GetUsingStatementEditsAsync(codeDocument, csharpText, originalTextWithChanges, cancellationToken);
+                var usingStatementEdits = await AddUsingsCodeActionProviderHelper.GetUsingStatementEditsAsync(codeDocument, csharpText, originalTextWithChanges, cancellationToken).ConfigureAwait(false);
                 finalEdits = usingStatementEdits.Concat(finalEdits).ToArray();
             }
         }
 
-        return new FormattingResult(finalEdits);
+        return finalEdits;
     }
 
     // Returns the minimal TextSpan that encompasses all the differences between the old and the new text.
@@ -333,12 +346,21 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
         }
 
         if (owner is CSharpStatementLiteralSyntax &&
-            owner.PreviousSpan() is { } prevNode &&
-            prevNode.AncestorsAndSelf().FirstOrDefault(a => a is CSharpTemplateBlockSyntax) is { } template &&
+            owner.TryGetPreviousSibling(out var prevNode) &&
+            prevNode.FirstAncestorOrSelf<SyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
             owner.SpanStart == template.Span.End &&
             IsOnSingleLine(template, text))
         {
             // Special case, we don't want to add a line break after a single line template
+            return;
+        }
+
+        // Parent.Parent.Parent is because the tree is
+        //  ExplicitExpression -> ExplicitExpressionBody -> CSharpCodeBlock -> CSharpExpressionLiteral
+        if (owner is CSharpExpressionLiteralSyntax { Parent.Parent.Parent: CSharpExplicitExpressionSyntax explicitExpression } &&
+            IsOnSingleLine(explicitExpression, text))
+        {
+            // Special case, we don't want to add line breaks inside a single line explicit expression (ie @( ... ))
             return;
         }
 
@@ -480,7 +502,7 @@ internal class CSharpOnTypeFormattingPass : CSharpFormattingPassBase
 
         if (owner is CSharpStatementLiteralSyntax &&
             owner.NextSpan() is { } nextNode &&
-            nextNode.AncestorsAndSelf().FirstOrDefault(a => a is CSharpTemplateBlockSyntax) is { } template &&
+            nextNode.FirstAncestorOrSelf<SyntaxNode>(a => a is CSharpTemplateBlockSyntax) is { } template &&
             template.SpanStart == owner.Span.End &&
             IsOnSingleLine(template, text))
         {

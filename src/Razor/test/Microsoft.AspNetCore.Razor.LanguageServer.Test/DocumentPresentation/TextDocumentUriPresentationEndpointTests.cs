@@ -2,12 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Common.Extensions;
-using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -15,6 +14,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.DocumentPresentation;
 
@@ -30,13 +30,13 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.Create("<div></div>");
-        var documentMappingService = Mock.Of<RazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var componentCodeDocument = TestRazorCodeDocument.Create("<div></div>");
         var droppedUri = new Uri("file:///c:/path/MyTagHelper.razor");
         var builder = TagHelperDescriptorBuilder.Create("MyTagHelper", "MyAssembly");
-        builder.SetTypeNameIdentifier("MyTagHelper");
+        builder.Metadata(TypeNameIdentifier("MyTagHelper"));
         var tagHelperDescriptor = builder.Build();
 
         var uri = new Uri("file://path/test.razor");
@@ -91,13 +91,13 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.Create("<div></div>");
-        var documentMappingService = Mock.Of<RazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var componentCodeDocument = TestRazorCodeDocument.Create("<div></div>");
         var droppedUri = new Uri("file:///c:/path/MyTagHelper.razor");
         var builder = TagHelperDescriptorBuilder.Create("MyTagHelper", "MyAssembly");
-        builder.SetTypeNameIdentifier("MyTagHelper");
+        builder.Metadata(TypeNameIdentifier("MyTagHelper"));
         var tagHelperDescriptor = builder.Build();
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(s => s.GetGeneratedOutputAsync() == Task.FromResult(componentCodeDocument), MockBehavior.Strict);
@@ -153,13 +153,13 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.Create("<div></div>");
-        var documentMappingService = Mock.Of<RazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var componentCodeDocument = TestRazorCodeDocument.Create("<div></div>");
         var droppedUri = new Uri("file:///c:/path/MyTagHelper.razor");
         var builder = TagHelperDescriptorBuilder.Create("MyTagHelper", "MyAssembly");
-        builder.SetTypeNameIdentifier("MyTagHelper");
+        builder.Metadata(TypeNameIdentifier("MyTagHelper"));
         builder.BindAttribute(b =>
         {
             b.IsEditorRequired = true;
@@ -219,7 +219,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.Create("<div></div>");
-        var documentMappingService = Mock.Of<RazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var componentCodeDocument = TestRazorCodeDocument.Create("<div></div>");
@@ -240,7 +240,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         languageServer
-            .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
+            .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
@@ -282,7 +282,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.Create("<div></div>");
-        var documentMappingService = Mock.Of<RazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(s => s.GetGeneratedOutputAsync() == Task.FromResult(codeDocument), MockBehavior.Strict);
@@ -296,7 +296,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         languageServer
-            .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
+            .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
@@ -340,7 +340,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.Create("<div></div>");
-        var documentMappingService = Mock.Of<RazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(s => s.GetGeneratedOutputAsync() == Task.FromResult(codeDocument), MockBehavior.Strict);
@@ -355,7 +355,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         languageServer
-            .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
+            .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
@@ -393,6 +393,72 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
     }
 
     [Fact]
+    public async Task Handle_ComponentWithNestedFiles_ReturnsResult()
+    {
+        // Arrange
+        var codeDocument = TestRazorCodeDocument.Create(@"<FetchData\>");
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
+            s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
+
+        var documentSnapshot = Mock.Of<IDocumentSnapshot>(s => s.GetGeneratedOutputAsync() == Task.FromResult(codeDocument), MockBehavior.Strict);
+
+        var droppedUri1 = new Uri("file:///c:/path/fetchdata.razor.cs");
+        var droppedUri2 = new Uri("file:///c:/path/fetchdata.razor");
+        var builder = TagHelperDescriptorBuilder.Create("FetchData", "MyAssembly");
+        builder.SetMetadata(TypeNameIdentifier("FetchData"));
+        var tagHelperDescriptor = builder.Build();
+
+        var uri = new Uri("file://path/index.razor");
+        var documentContextFactory = CreateDocumentContextFactory(uri, codeDocument);
+        var documentContext = CreateDocumentContext(uri, codeDocument);
+        var searchEngine = Mock.Of<RazorComponentSearchEngine>(
+            s => s.TryGetTagHelperDescriptorAsync(It.IsAny<IDocumentSnapshot>(), It.IsAny<CancellationToken>()) == Task.FromResult(tagHelperDescriptor),
+            MockBehavior.Strict);
+
+        var response = (WorkspaceEdit?)null;
+
+        var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+        languageServer
+            .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(response);
+
+        var endpoint = new TextDocumentUriPresentationEndpoint(
+            documentMappingService,
+            searchEngine,
+            languageServer.Object,
+            TestLanguageServerFeatureOptions.Instance,
+            documentContextFactory,
+            Dispatcher,
+            LoggerFactory);
+
+        var parameters = new UriPresentationParams()
+        {
+            TextDocument = new TextDocumentIdentifier
+            {
+                Uri = uri
+            },
+            Range = new Range
+            {
+                Start = new Position(0, 1),
+                End = new Position(0, 2)
+            },
+            Uris = new[]
+            {
+                droppedUri1,
+                droppedUri2,
+            }
+        };
+        var requestContext = CreateRazorRequestContext(documentContext);
+
+        // Act
+        var result = await endpoint.HandleRequestAsync(parameters, requestContext, DisposalToken);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("<FetchData />", result!.DocumentChanges!.Value.First[0].Edits[0].NewText);
+    }
+
+    [Fact]
     public async Task Handle_CSharp_ReturnsNull()
     {
         // Arrange
@@ -401,9 +467,9 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
         var projectedRange = It.IsAny<Range>();
-        var documentMappingService = Mock.Of<RazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.CSharp &&
-            s.TryMapToProjectedDocumentRange(csharpDocument, It.IsAny<Range>(), out projectedRange) == true, MockBehavior.Strict);
+            s.TryMapToGeneratedDocumentRange(csharpDocument, It.IsAny<Range>(), out projectedRange) == true, MockBehavior.Strict);
         var searchEngine = Mock.Of<RazorComponentSearchEngine>(MockBehavior.Strict);
 
         var documentSnapshot = Mock.Of<IDocumentSnapshot>(s => s.GetGeneratedOutputAsync() == Task.FromResult(codeDocument), MockBehavior.Strict);
@@ -413,7 +479,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         languageServer
-            .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
+            .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
@@ -453,7 +519,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
         var codeDocument = TestRazorCodeDocument.Create("<div></div>");
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var documentMappingService = Mock.Of<RazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
         var searchEngine = Mock.Of<RazorComponentSearchEngine>(MockBehavior.Strict);
 
@@ -464,7 +530,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         languageServer
-            .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
+            .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
@@ -505,7 +571,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
         codeDocument.SetUnsupported();
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var documentMappingService = Mock.Of<RazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
         var searchEngine = Mock.Of<RazorComponentSearchEngine>(MockBehavior.Strict);
 
@@ -516,7 +582,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         languageServer
-            .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
+            .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(
@@ -556,7 +622,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
         var codeDocument = TestRazorCodeDocument.Create("<div></div>");
         var uri = new Uri("file://path/test.razor");
         var documentContext = CreateDocumentContext(uri, codeDocument);
-        var documentMappingService = Mock.Of<RazorDocumentMappingService>(
+        var documentMappingService = Mock.Of<IRazorDocumentMappingService>(
             s => s.GetLanguageKind(codeDocument, It.IsAny<int>(), It.IsAny<bool>()) == RazorLanguageKind.Html, MockBehavior.Strict);
         var searchEngine = Mock.Of<RazorComponentSearchEngine>(MockBehavior.Strict);
 
@@ -567,7 +633,7 @@ public class TextDocumentUriPresentationEndpointTests : LanguageServerTestBase
 
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         languageServer
-            .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(RazorLanguageServerCustomMessageTargets.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
+            .Setup(l => l.SendRequestAsync<IRazorPresentationParams, WorkspaceEdit?>(CustomMessageNames.RazorUriPresentationEndpoint, It.IsAny<IRazorPresentationParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(response);
 
         var endpoint = new TextDocumentUriPresentationEndpoint(

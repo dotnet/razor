@@ -20,7 +20,7 @@ internal class RazorFormattingPass : FormattingPassBase
     private readonly ILogger _logger;
 
     public RazorFormattingPass(
-        RazorDocumentMappingService documentMappingService,
+        IRazorDocumentMappingService documentMappingService,
         ClientNotifierServiceBase server,
         ILoggerFactory loggerFactory)
         : base(documentMappingService, server)
@@ -54,7 +54,7 @@ internal class RazorFormattingPass : FormattingPassBase
         {
             var changes = result.Edits.Select(e => e.AsTextChange(originalText)).ToArray();
             changedText = changedText.WithChanges(changes);
-            changedContext = await context.WithTextAsync(changedText);
+            changedContext = await context.WithTextAsync(changedText).ConfigureAwait(false);
 
             cancellationToken.ThrowIfCancellationRequested();
         }
@@ -255,8 +255,7 @@ internal class RazorFormattingPass : FormattingPassBase
         // @attribute [Obsolete("old")]
         //
         // The CSharpCodeBlockSyntax covers everything from the end of "attribute" to the end of the line
-        if (IsSingleLineDirective(node, out var children) ||
-            IsUsingDirective(node, out children))
+        if (IsSingleLineDirective(node, out var children) || node.IsUsingDirective(out children))
         {
             // Shrink any block of C# that only has whitespace down to a single space.
             // In the @attribute case above this would only be the whitespace between the directive and code
@@ -283,26 +282,6 @@ internal class RazorFormattingPass : FormattingPassBase
             children = null;
             return false;
         }
-
-        static bool IsUsingDirective(SyntaxNode node, [NotNullWhen(true)] out SyntaxList<SyntaxNode>? children)
-        {
-            // Using directives are weird, because the directive keyword ("using") is part of the C# statement it represents
-            if (node is RazorDirectiveSyntax razorDirective &&
-                razorDirective.DirectiveDescriptor is null &&
-                razorDirective.Body is RazorDirectiveBodySyntax body &&
-                body.Keyword is CSharpStatementLiteralSyntax literal &&
-                literal.LiteralTokens.Count > 0)
-            {
-                if (literal.LiteralTokens[0] is { Kind: SyntaxKind.Keyword, Content: "using" })
-                {
-                    children = literal.LiteralTokens;
-                    return true;
-                }
-            }
-
-            children = null;
-            return false;
-        }
     }
 
     private static void FormatWhitespaceBetweenDirectiveAndBrace(SyntaxNode node, RazorDirectiveSyntax directive, List<TextEdit> edits, RazorSourceDocument source, FormattingContext context)
@@ -318,7 +297,7 @@ internal class RazorFormattingPass : FormattingPassBase
             var edit = new TextEdit
             {
                 Range = node.GetRange(source),
-                NewText = context.NewLineString + context.GetIndentationString(directive.GetLinePositionSpan(source).Start.Character)
+                NewText = context.NewLineString + FormattingUtilities.GetIndentationString(directive.GetLinePositionSpan(source).Start.Character, context.Options.InsertSpaces, context.Options.TabSize)
             };
             edits.Add(edit);
         }
@@ -352,7 +331,7 @@ internal class RazorFormattingPass : FormattingPassBase
             var newText = context.NewLineString;
             if (additionalIndentationLevel > 0)
             {
-                newText += context.GetIndentationString(additionalIndentationLevel);
+                newText += FormattingUtilities.GetIndentationString(additionalIndentationLevel, context.Options.InsertSpaces, context.Options.TabSize);
             }
 
             var edit = new TextEdit
@@ -376,7 +355,7 @@ internal class RazorFormattingPass : FormattingPassBase
                 // there is a close brace
                 var edit = new TextEdit
                 {
-                    NewText = context.NewLineString + context.GetIndentationString(directiveNode.GetRange(source).Start.Character),
+                    NewText = context.NewLineString + FormattingUtilities.GetIndentationString(directiveNode.GetRange(source).Start.Character, context.Options.InsertSpaces, context.Options.TabSize),
                     Range = new Range { Start = codeRange.End, End = closeBraceRange.Start },
                 };
                 edits.Add(edit);

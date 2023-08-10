@@ -17,8 +17,8 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Razor;
 
-[Export(typeof(ProjectSnapshotChangeTrigger))]
-internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : ProjectSnapshotChangeTrigger, IVsUpdateSolutionEvents2, IDisposable
+[Export(typeof(IProjectSnapshotChangeTrigger))]
+internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : IProjectSnapshotChangeTrigger, IVsUpdateSolutionEvents2, IDisposable
 {
     private readonly IServiceProvider _services;
     private readonly TextBufferProjectService _projectService;
@@ -73,7 +73,7 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : ProjectSnapshotCh
 
     internal Task? CurrentUpdateTaskForTests { get; private set; }
 
-    public override void Initialize(ProjectSnapshotManagerBase projectManager)
+    public void Initialize(ProjectSnapshotManagerBase projectManager)
     {
         _projectManager = projectManager;
         _projectManager.Changed += ProjectManager_Changed;
@@ -144,16 +144,24 @@ internal class VsSolutionUpdatesProjectSnapshotChangeTrigger : ProjectSnapshotCh
         var projectFilePath = _projectService.GetProjectPath(projectHierarchy);
         return _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
         {
-            var projectSnapshot = _projectManager?.GetLoadedProject(projectFilePath);
-            if (projectSnapshot is not null)
+            if (_projectManager is null)
             {
-                var workspaceProject = _projectManager?.Workspace.CurrentSolution.Projects.FirstOrDefault(
-                    wp => FilePathComparer.Instance.Equals(wp.FilePath, projectSnapshot.FilePath));
-                if (workspaceProject is not null)
+                return;
+            }
+
+            var projectKeys = _projectManager.GetAllProjectKeys(projectFilePath);
+            foreach (var projectKey in projectKeys)
+            {
+                var projectSnapshot = _projectManager?.GetLoadedProject(projectKey);
+                if (projectSnapshot is not null)
                 {
-                    // Trigger a tag helper update by forcing the project manager to see the workspace Project
-                    // from the current solution.
-                    _workspaceStateGenerator.Update(workspaceProject, projectSnapshot, cancellationToken);
+                    var workspaceProject = _projectManager?.Workspace.CurrentSolution.Projects.FirstOrDefault(wp => ProjectKey.From(wp) == projectSnapshot.Key);
+                    if (workspaceProject is not null)
+                    {
+                        // Trigger a tag helper update by forcing the project manager to see the workspace Project
+                        // from the current solution.
+                        _workspaceStateGenerator.Update(workspaceProject, projectSnapshot, cancellationToken);
+                    }
                 }
             }
         }, cancellationToken);

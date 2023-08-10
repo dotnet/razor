@@ -2,12 +2,10 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
@@ -17,11 +15,10 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 
-internal class AutoClosingTagOnAutoInsertProvider : RazorOnAutoInsertProvider
+internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 {
     // From http://dev.w3.org/html5/spec/Overview.html#elements-0
-    private static readonly IReadOnlyList<string> s_voidElements = new[]
-    {
+    private static readonly ImmutableHashSet<string> s_voidElements = ImmutableHashSet.Create(StringComparer.OrdinalIgnoreCase,
         "area",
         "base",
         "br",
@@ -39,35 +36,32 @@ internal class AutoClosingTagOnAutoInsertProvider : RazorOnAutoInsertProvider
         "source",
         "track",
         "wbr"
-    };
+    );
+    private static readonly ImmutableHashSet<string> s_voidElementsCaseSensitive = s_voidElements.WithComparer(StringComparer.Ordinal);
 
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
+    private readonly ILogger<IOnAutoInsertProvider> _logger;
 
     public AutoClosingTagOnAutoInsertProvider(IOptionsMonitor<RazorLSPOptions> optionsMonitor, ILoggerFactory loggerFactory)
-        : base(loggerFactory)
     {
         if (optionsMonitor is null)
         {
             throw new ArgumentNullException(nameof(optionsMonitor));
         }
 
+        if (loggerFactory is null)
+        {
+            throw new ArgumentNullException(nameof(loggerFactory));
+        }
+
         _optionsMonitor = optionsMonitor;
+        _logger = loggerFactory.CreateLogger<IOnAutoInsertProvider>();
     }
 
-    public override string TriggerCharacter => ">";
+    public string TriggerCharacter => ">";
 
-    public override bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
+    public bool TryResolveInsertion(Position position, FormattingContext context, [NotNullWhen(true)] out TextEdit? edit, out InsertTextFormat format)
     {
-        if (position is null)
-        {
-            throw new ArgumentNullException(nameof(position));
-        }
-
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
-
         if (!_optionsMonitor.CurrentValue.AutoClosingTags)
         {
             format = default;
@@ -75,7 +69,7 @@ internal class AutoClosingTagOnAutoInsertProvider : RazorOnAutoInsertProvider
             return false;
         }
 
-        if (!position.TryGetAbsoluteIndex(context.SourceText, Logger, out var afterCloseAngleIndex))
+        if (!position.TryGetAbsoluteIndex(context.SourceText, _logger, out var afterCloseAngleIndex))
         {
             format = default;
             edit = default;
@@ -97,51 +91,43 @@ internal class AutoClosingTagOnAutoInsertProvider : RazorOnAutoInsertProvider
                 NewText = $"$0</{tagName}>",
                 Range = new Range { Start = position, End = position },
             };
+
+            return true;
         }
-        else
+
+        Debug.Assert(autoClosingBehavior == AutoClosingBehavior.SelfClosing);
+
+        format = InsertTextFormat.Plaintext;
+
+        // Need to replace the `>` with ' />$0' or '/>$0' depending on if there's prefixed whitespace.
+        var insertionText = char.IsWhiteSpace(context.SourceText[afterCloseAngleIndex - 2]) ? "/" : " /";
+        var insertionPosition = new Position(position.Line, position.Character - 1);
+        edit = new TextEdit()
         {
-            Debug.Assert(autoClosingBehavior == AutoClosingBehavior.SelfClosing);
-
-            format = InsertTextFormat.Plaintext;
-
-            // Need to replace the `>` with ' />$0' or '/>$0' depending on if there's prefixed whitespace.
-            var insertionText = char.IsWhiteSpace(context.SourceText[afterCloseAngleIndex - 2]) ? "/" : " /";
-            var insertionPosition = new Position(position.Line, position.Character - 1);
-            var insertionRange = new Range
+            NewText = insertionText,
+            Range = new Range
             {
                 Start = insertionPosition,
                 End = insertionPosition
-            };
-            edit = new TextEdit()
-            {
-                NewText = insertionText,
-                Range = insertionRange
-            };
-
-        }
+            }
+        };
 
         return true;
     }
 
     private static bool TryResolveAutoClosingBehavior(FormattingContext context, int afterCloseAngleIndex, [NotNullWhen(true)] out string? name, out AutoClosingBehavior autoClosingBehavior)
     {
-        var change = new SourceChange(afterCloseAngleIndex, 0, string.Empty);
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
-        var originalOwner = syntaxTree.Root.LocateOwner(change);
+        var closeAngle = syntaxTree.Root.FindToken(afterCloseAngleIndex - 1);
 
-        if (!TryEnsureOwner_WorkaroundCompilerQuirks(afterCloseAngleIndex, syntaxTree, originalOwner, out var owner))
-        {
-            name = null;
-            autoClosingBehavior = default;
-            return false;
-        }
-
-        if (owner.Parent is MarkupStartTagSyntax startTag &&
-            startTag.ForwardSlash is null &&
-            startTag.Parent is MarkupElementSyntax htmlElement)
+        if (closeAngle.Parent is MarkupStartTagSyntax
+            {
+                ForwardSlash: null,
+                Parent: MarkupElementSyntax htmlElement
+            } startTag)
         {
             var unescapedTagName = startTag.Name.Content;
-            autoClosingBehavior = InferAutoClosingBehavior(unescapedTagName);
+            autoClosingBehavior = InferAutoClosingBehavior(unescapedTagName, caseSensitive: false);
 
             if (autoClosingBehavior == AutoClosingBehavior.EndTag && !CouldAutoCloseParentOrSelf(unescapedTagName, htmlElement))
             {
@@ -156,15 +142,17 @@ internal class AutoClosingTagOnAutoInsertProvider : RazorOnAutoInsertProvider
             return true;
         }
 
-        if (owner.Parent is MarkupTagHelperStartTagSyntax startTagHelper &&
-            startTagHelper.ForwardSlash is null &&
-            startTagHelper.Parent is MarkupTagHelperElementSyntax tagHelperElement)
+        if (closeAngle.Parent is MarkupTagHelperStartTagSyntax
+            {
+                ForwardSlash: null,
+                Parent: MarkupTagHelperElementSyntax tagHelperElement
+            } startTagHelper)
         {
             name = startTagHelper.Name.Content;
 
             if (!TryGetTagHelperAutoClosingBehavior(tagHelperElement.TagHelperInfo.BindingResult, out autoClosingBehavior))
             {
-                autoClosingBehavior = InferAutoClosingBehavior(name, tagNameComparer: StringComparer.Ordinal);
+                autoClosingBehavior = InferAutoClosingBehavior(name, caseSensitive: true);
             }
 
             if (autoClosingBehavior == AutoClosingBehavior.EndTag && !CouldAutoCloseParentOrSelf(name, tagHelperElement))
@@ -183,151 +171,11 @@ internal class AutoClosingTagOnAutoInsertProvider : RazorOnAutoInsertProvider
         return false;
     }
 
-    private static bool TryEnsureOwner_WorkaroundCompilerQuirks(int afterCloseAngleIndex, RazorSyntaxTree syntaxTree, SyntaxNode? currentOwner, [NotNullWhen(true)] out SyntaxNode? newOwner)
+    private static AutoClosingBehavior InferAutoClosingBehavior(string name, bool caseSensitive)
     {
-        // All of these owner modifications are to account for https://github.com/dotnet/aspnetcore/issues/33919
+        var voidElements = caseSensitive ? s_voidElementsCaseSensitive : s_voidElements;
 
-        if (currentOwner?.Parent is null)
-        {
-            newOwner = null;
-            return false;
-        }
-
-        if (currentOwner.Parent is MarkupElementSyntax parentElement &&
-            parentElement.StartTag != null)
-        {
-            // In cases where a user types ">" in a C# code block there can be uncertainty as to "who owns" the edge of the element. Reason being that the tag
-            // could be malformed and you could be in a situation like this:
-            //
-            // @{
-            //     <div>|
-            // }
-            //
-            // In this situation <div> is unclosed and is overriding the `}` understanding of `@{`. Because of this we're in an errored state and the syntax tree
-            // doesn't indicate the appropriate language delimiter.
-
-            if (parentElement.StartTag.EndPosition == afterCloseAngleIndex)
-            {
-                currentOwner = parentElement.StartTag.CloseAngle;
-            }
-        }
-        else if (currentOwner.Parent is MarkupTagHelperElementSyntax parentTagHelperElement &&
-            parentTagHelperElement.StartTag != null)
-        {
-            // Same reasoning as the above block here.
-
-            if (afterCloseAngleIndex == parentTagHelperElement.StartTag.EndPosition)
-            {
-                currentOwner = parentTagHelperElement.StartTag.CloseAngle;
-            }
-        }
-        else if (currentOwner is CSharpStatementLiteralSyntax)
-        {
-            // In cases where a user types ">" in a C# code block there can be uncertainty as to "who owns" the edge of the element in void element
-            // scenarios. In a situation like this:
-            //
-            // @{
-            //     <input>|
-            // }
-            //
-            // In this situation <input> is a 100% valid HTML element but after it the C# context begins. When querying owner for the location after
-            // the ">" we get the C# statement block instead of the end close-angle (Razor compiler quirk).
-
-            var closeAngleIndex = afterCloseAngleIndex - 1;
-            var closeAngleSourceChange = new SourceChange(closeAngleIndex, length: 0, newText: string.Empty);
-            currentOwner = syntaxTree.Root.LocateOwner(closeAngleSourceChange);
-        }
-        else if (currentOwner.Parent is MarkupEndTagSyntax ||
-                 currentOwner.Parent is MarkupTagHelperEndTagSyntax)
-        {
-            // Quirk: https://github.com/dotnet/aspnetcore/issues/33919#issuecomment-870233627
-            // When tags are nested within each other within a C# block like:
-            //
-            // @if (true)
-            // {
-            //     <div><em>|</div>
-            // }
-            //
-            // The owner will be the </div>. Note this does not happen outside of C# blocks.
-
-            var closeAngleSourceChange = new SourceChange(afterCloseAngleIndex - 1, length: 0, newText: string.Empty);
-            currentOwner = syntaxTree.Root.LocateOwner(closeAngleSourceChange);
-
-            // Get the real closing angle if we get the quote from an attribute syntax. See https://github.com/dotnet/razor-tooling/issues/5694
-            switch (currentOwner)
-            {
-                case MarkupTextLiteralSyntax { Parent.Parent: MarkupStartTagSyntax startTag }:
-                    currentOwner = startTag.CloseAngle;
-                    break;
-                case MarkupTextLiteralSyntax { Parent.Parent: MarkupTagHelperStartTagSyntax startTagHelper }:
-                    currentOwner = startTagHelper.CloseAngle;
-                    break;
-            }
-        }
-        else if (currentOwner.Parent is MarkupStartTagSyntax startTag &&
-            startTag.OpenAngle.Position == afterCloseAngleIndex)
-        {
-            // We found the wrong owner. We really need a SyntaxTree API which is "get me the token at position x" :(
-            // This can happen when you are at the following:
-            //
-            // @if (true)
-            // {
-            //     <em>|<div></div>
-            // }
-            //
-            // It's picking up the trailing <div> as the owner
-
-            var startElement = startTag.Parent;
-            if (startElement.TryGetPreviousSibling(out var previousSibling))
-            {
-                var potentialCloseAngle = previousSibling.GetLastToken();
-                if (potentialCloseAngle.Kind == SyntaxKind.CloseAngle &&
-                    potentialCloseAngle.Position == afterCloseAngleIndex - 1)
-                {
-                    currentOwner = potentialCloseAngle;
-                }
-            }
-        }
-        else if (currentOwner.Parent is MarkupTagHelperStartTagSyntax startTagHelperSyntax &&
-            startTagHelperSyntax.OpenAngle.Position == afterCloseAngleIndex)
-        {
-            // We found the wrong owner. We really need a SyntaxTree API which is "get me the token at position x" :(
-            // This can happen when you are at the following:
-            //
-            // @if (true)
-            // {
-            //     <em>|<th2></th2>
-            // }
-            //
-            // It's picking up the trailing <th2> as the owner
-
-            var startTagHelperElement = startTagHelperSyntax.Parent;
-            if (startTagHelperElement.TryGetPreviousSibling(out var previousSibling))
-            {
-                var potentialCloseAngle = previousSibling.GetLastToken();
-                if (potentialCloseAngle.Kind == SyntaxKind.CloseAngle &&
-                    potentialCloseAngle.Position == afterCloseAngleIndex - 1)
-                {
-                    currentOwner = potentialCloseAngle;
-                }
-            }
-        }
-
-        if (currentOwner?.Parent is null)
-        {
-            newOwner = null;
-            return false;
-        }
-
-        newOwner = currentOwner;
-        return true;
-    }
-
-    private static AutoClosingBehavior InferAutoClosingBehavior(string name, StringComparer? tagNameComparer = null)
-    {
-        tagNameComparer ??= StringComparer.OrdinalIgnoreCase;
-
-        if (s_voidElements.Contains(name, tagNameComparer))
+        if (voidElements.Contains(name))
         {
             return AutoClosingBehavior.SelfClosing;
         }
@@ -430,7 +278,7 @@ internal class AutoClosingTagOnAutoInsertProvider : RazorOnAutoInsertProvider
             }
 
             node = node.Parent;
-        } while (node != null);
+        } while (node is not null);
 
         return false;
     }

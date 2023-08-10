@@ -6,6 +6,7 @@
 using Microsoft.AspNetCore.Razor.Language;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.VisualStudio.Editor.Razor;
 
@@ -25,10 +26,10 @@ public class DefaultRazorSyntaxFactsServiceTest : RazorProjectEngineTestBase
         // Arrange
         var expectedSpans = new[]
         {
-            new ClassifiedSpan(new SourceSpan("test.cshtml", 0, 0, 0, 5), new SourceSpan("test.cshtml", 0, 0, 0, 5), SpanKind.Markup, BlockKind.Tag, AcceptedCharacters.Any),
-            new ClassifiedSpan(new SourceSpan("test.cshtml", 5, 0, 5, 6), new SourceSpan("test.cshtml", 0, 0, 0, 42), SpanKind.Markup, BlockKind.Markup, AcceptedCharacters.Any),
-            new ClassifiedSpan(new SourceSpan("test.cshtml", 34, 1, 27, 2), new SourceSpan("test.cshtml", 0, 0, 0, 42), SpanKind.Markup, BlockKind.Markup, AcceptedCharacters.Any),
-            new ClassifiedSpan(new SourceSpan("test.cshtml", 36, 2, 0, 6), new SourceSpan("test.cshtml", 36, 2, 0, 6), SpanKind.Markup, BlockKind.Tag, AcceptedCharacters.Any),
+            new ClassifiedSpan(new SourceSpan("test.cshtml", 0, 0, 0, 5), new SourceSpan("test.cshtml", 0, 0, 0, 5), SpanKind.Markup, BlockKind.Tag),
+            new ClassifiedSpan(new SourceSpan("test.cshtml", 5, 0, 5, 6), new SourceSpan("test.cshtml", 0, 0, 0, 42), SpanKind.Markup, BlockKind.Markup),
+            new ClassifiedSpan(new SourceSpan("test.cshtml", 34, 1, 27, 2), new SourceSpan("test.cshtml", 0, 0, 0, 42), SpanKind.Markup, BlockKind.Markup),
+            new ClassifiedSpan(new SourceSpan("test.cshtml", 36, 2, 0, 6), new SourceSpan("test.cshtml", 36, 2, 0, 6), SpanKind.Markup, BlockKind.Tag),
         };
         var codeDocument = GetCodeDocument(
 @"<div>
@@ -50,9 +51,9 @@ public class DefaultRazorSyntaxFactsServiceTest : RazorProjectEngineTestBase
         // Arrange
         var expectedSpans = new[]
         {
-            new ClassifiedSpan(new SourceSpan("test.cshtml", 14, 0, 14, 1), new SourceSpan("test.cshtml", 0, 0, 0, 49), SpanKind.Code, BlockKind.Tag, AcceptedCharacters.AnyExceptNewline),
-            new ClassifiedSpan(new SourceSpan("test.cshtml", 23, 0, 23, 2), new SourceSpan("test.cshtml", 0, 0, 0, 49), SpanKind.Markup, BlockKind.Tag, AcceptedCharacters.Any),
-            new ClassifiedSpan(new SourceSpan("test.cshtml", 32, 0, 32, 4), new SourceSpan("test.cshtml", 0, 0, 0, 49), SpanKind.Code, BlockKind.Tag, AcceptedCharacters.AnyExceptNewline),
+            new ClassifiedSpan(new SourceSpan("test.cshtml", 14, 0, 14, 1), new SourceSpan("test.cshtml", 0, 0, 0, 49), SpanKind.Code, BlockKind.Tag),
+            new ClassifiedSpan(new SourceSpan("test.cshtml", 23, 0, 23, 2), new SourceSpan("test.cshtml", 0, 0, 0, 49), SpanKind.Markup, BlockKind.Tag),
+            new ClassifiedSpan(new SourceSpan("test.cshtml", 32, 0, 32, 4), new SourceSpan("test.cshtml", 0, 0, 0, 49), SpanKind.Code, BlockKind.Tag),
         };
         var codeDocument = GetCodeDocument(
 @"<taghelper id=1 class=""th"" show=true></taghelper>");
@@ -96,14 +97,14 @@ public class DefaultRazorSyntaxFactsServiceTest : RazorProjectEngineTestBase
             .BoundAttributeDescriptor(attr => attr.Name("show").TypeName("System.Boolean"))
             .BoundAttributeDescriptor(attr => attr.Name("id").TypeName("System.Int32"))
             .TagMatchingRuleDescriptor(rule => rule.RequireTagName("taghelper"))
-            .TypeName("TestTagHelper")
+            .Metadata(TypeName("TestTagHelper"))
             .Build();
         var engine = CreateProjectEngine();
 
         var sourceDocument = TestRazorSourceDocument.Create(source, normalizeNewLines: true);
         var importDocument = TestRazorSourceDocument.Create("@addTagHelper *, TestAssembly", filePath: "import.cshtml", relativePath: "import.cshtml");
 
-        var codeDocument = engine.ProcessDesignTime(sourceDocument, FileKinds.Legacy, importSources: new []{ importDocument }, new []{ taghelper });
+        var codeDocument = engine.ProcessDesignTime(sourceDocument, FileKinds.Legacy, importSources: new[] { importDocument }, new[] { taghelper });
 
         return codeDocument;
     }

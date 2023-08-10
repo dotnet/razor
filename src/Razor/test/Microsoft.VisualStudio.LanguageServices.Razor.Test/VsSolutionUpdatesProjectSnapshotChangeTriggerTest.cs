@@ -4,6 +4,8 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -32,8 +34,8 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : TestBase
     public VsSolutionUpdatesProjectSnapshotChangeTriggerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _someProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
-        _someOtherProject = new HostProject(TestProjectData.AnotherProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.AnotherProject.RootNamespace);
+        _someProject = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_1_0, TestProjectData.SomeProject.RootNamespace);
+        _someOtherProject = new HostProject(TestProjectData.AnotherProject.FilePath, TestProjectData.AnotherProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.AnotherProject.RootNamespace);
 
         _workspace = TestWorkspace.Create(w => _someWorkspaceProject = w.AddProject(ProjectInfo.Create(
                 ProjectId.CreateNewId(),
@@ -41,7 +43,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : TestBase
                 "SomeProject",
                 "SomeProject",
                 LanguageNames.CSharp,
-                filePath: _someProject.FilePath)));
+                filePath: _someProject.FilePath).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(Path.Combine(_someProject.IntermediateOutputPath, "SomeProject.dll")))));
 
         AddDisposable(_workspace);
     }
@@ -118,7 +120,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : TestBase
             projectManager.ProjectAdded(_someProject);
             projectManager.ProjectAdded(_someOtherProject);
 
-            return projectManager.GetLoadedProject(_someProject.FilePath);
+            return projectManager.GetLoadedProject(_someProject.Key);
         }, DisposalToken);
 
         var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
@@ -134,7 +136,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : TestBase
         await s_dispatcher.RunOnDispatcherThreadAsync(() =>
         {
             projectManager.SolutionClosed();
-            projectManager.ProjectRemoved(_someProject);
+            projectManager.ProjectRemoved(_someProject.Key);
         }, DisposalToken);
 
         // Assert
@@ -155,7 +157,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : TestBase
             projectManager.ProjectAdded(_someProject);
             projectManager.ProjectAdded(_someOtherProject);
 
-            return projectManager.GetLoadedProject(_someProject.FilePath);
+            return projectManager.GetLoadedProject(_someProject.Key);
         }, DisposalToken);
 
         var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
@@ -189,7 +191,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : TestBase
         var projectSnapshot = new ProjectSnapshot(
             ProjectState.Create(
                 _workspace.Services,
-                new HostProject("/Some/Unknown/Path.csproj", RazorConfiguration.Default, "Path")));
+                new HostProject("/Some/Unknown/Path.csproj", "/Some/Unknown/obj", RazorConfiguration.Default, "Path")));
         var expectedProjectPath = projectSnapshot.FilePath;
 
         var projectService = new Mock<TextBufferProjectService>(MockBehavior.Strict);
@@ -198,7 +200,10 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : TestBase
         var projectManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         projectManager.SetupGet(p => p.Workspace).Returns(_workspace);
         projectManager
-            .Setup(p => p.GetLoadedProject(expectedProjectPath))
+            .Setup(p => p.GetAllProjectKeys(projectSnapshot.FilePath))
+            .Returns(ImmutableArray.Create(projectSnapshot.Key));
+        projectManager
+            .Setup(p => p.GetLoadedProject(projectSnapshot.Key))
             .Returns(projectSnapshot);
         var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
@@ -216,7 +221,7 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : TestBase
     public async Task OnProjectBuiltAsync_UnknownProject_DoesNotEnqueueUpdate()
     {
         // Arrange
-        var expectedProjectPath = "Path/To/Project";
+        var expectedProjectPath = "Path/To/Project/proj.csproj";
 
         uint cookie;
         var buildManager = new Mock<IVsSolutionBuildManager>(MockBehavior.Strict);
@@ -233,8 +238,8 @@ public class VsSolutionUpdatesProjectSnapshotChangeTriggerTest : TestBase
         var projectManager = new Mock<ProjectSnapshotManagerBase>(MockBehavior.Strict);
         projectManager.SetupGet(p => p.Workspace).Returns(_workspace);
         projectManager
-            .Setup(p => p.GetLoadedProject(expectedProjectPath))
-            .Returns((IProjectSnapshot)null);
+            .Setup(p => p.GetAllProjectKeys(expectedProjectPath))
+            .Returns(ImmutableArray<ProjectKey>.Empty);
         var workspaceStateGenerator = new TestProjectWorkspaceStateGenerator();
 
         var trigger = new VsSolutionUpdatesProjectSnapshotChangeTrigger(services.Object, projectService.Object, workspaceStateGenerator, s_dispatcher, JoinableTaskFactory.Context);

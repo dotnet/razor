@@ -3,10 +3,10 @@
 namespace Test
 {
     #line hidden
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Threading.Tasks;
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 using Microsoft.AspNetCore.Components;
@@ -15,10 +15,52 @@ using Microsoft.AspNetCore.Components;
 #line hidden
 #nullable disable
     #nullable restore
-    public partial class TestComponent<TItem1, TItem2, TItem3> : global::Microsoft.AspNetCore.Components.ComponentBase
-    where TItem1 : Image
-    where TItem2 : ITag
-    where TItem3 : Image, new()
+    public partial class TestComponent<
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+TItem1
+
+#line default
+#line hidden
+#nullable disable
+    ,
+#nullable restore
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
+TItem2
+
+#line default
+#line hidden
+#nullable disable
+    ,
+#nullable restore
+#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
+TItem3
+
+#line default
+#line hidden
+#nullable disable
+    > : global::Microsoft.AspNetCore.Components.ComponentBase
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+where TItem1 : Image
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
+where TItem2 : ITag
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
+where TItem3 : Image, new()
+
+#line default
+#line hidden
+#nullable disable
     #nullable disable
     {
         #pragma warning disable 1998

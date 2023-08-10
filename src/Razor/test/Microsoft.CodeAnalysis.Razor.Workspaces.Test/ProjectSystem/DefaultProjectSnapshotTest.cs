@@ -4,8 +4,10 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Host;
 using Xunit;
 using Xunit.Abstractions;
@@ -24,12 +26,10 @@ public class DefaultProjectSnapshotTest : WorkspaceTestBase
     {
         _tagHelperResolver = new TestTagHelperResolver();
 
-        _hostProject = new HostProject(TestProjectData.SomeProject.FilePath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
-        _projectWorkspaceState = new ProjectWorkspaceState(new[]
-        {
-            TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build(),
-        },
-        default);
+        _hostProject = new HostProject(TestProjectData.SomeProject.FilePath, TestProjectData.SomeProject.IntermediateOutputPath, FallbackRazorConfiguration.MVC_2_0, TestProjectData.SomeProject.RootNamespace);
+        _projectWorkspaceState = new ProjectWorkspaceState(ImmutableArray.Create(
+            TagHelperDescriptorBuilder.Create("TestTagHelper", "TestAssembly").Build()),
+            csharpLanguageVersion: default);
 
         _documents = new HostDocument[]
         {

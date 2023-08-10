@@ -28,8 +28,9 @@ public abstract class AbstractRazorEditorTest : AbstractEditorTest
 
         VisualStudioLogging.AddCustomLoggers();
 
-        await TestServices.SolutionExplorer.CreateSolutionAsync("BlazorSolution", ControlledHangMitigatingCancellationToken);
-        await TestServices.SolutionExplorer.AddProjectAsync("BlazorProject", WellKnownProjectTemplates.BlazorProject, groupId: WellKnownProjectTemplates.GroupIdentifiers.Server, templateId: null, LanguageName, ControlledHangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.CreateSolutionAsync(RazorProjectConstants.BlazorSolutionName, ControlledHangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddProjectAsync(RazorProjectConstants.BlazorProjectName, WellKnownProjectTemplates.BlazorProject, groupId: WellKnownProjectTemplates.GroupIdentifiers.Server, templateId: null, LanguageName, ControlledHangMitigatingCancellationToken);
+
         await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ControlledHangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
 
@@ -52,8 +53,15 @@ public abstract class AbstractRazorEditorTest : AbstractEditorTest
         await TestServices.Editor.PlaceCaretAsync("</PageTitle>", charsOffset: 1, ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
 
+        // Making a code change gets us flowing new generated code versions around the system
+        // which seems to have a positive effect on Web Tools in particular. Given the relatively
+        // fast pace of running integration tests, it's worth taking a slight delay at the start for a more reliable run.
+        TestServices.Input.Send("{ENTER}");
+
+        await Task.Delay(2500);
+
         // Close the file we opened, just in case, so the test can start with a clean slate
-        await TestServices.Editor.CloseDocumentWindowAsync(ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, saveFile: false, ControlledHangMitigatingCancellationToken);
     }
 
     private static void EnsureLSPEditorEnabled()
@@ -134,7 +142,7 @@ public abstract class AbstractRazorEditorTest : AbstractEditorTest
         if (!assembly.Location.StartsWith(localAppData, StringComparison.OrdinalIgnoreCase))
         {
             var version = assembly.GetName().Version;
-            throw new NotImplementedException($"Integration test not running against Experimental Extension assembly: {assembly.Location} verion: {version}");
+            throw new NotImplementedException($"Integration test not running against Experimental Extension assembly: {assembly.Location} version: {version}");
         }
 
         void CurrentDomain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
