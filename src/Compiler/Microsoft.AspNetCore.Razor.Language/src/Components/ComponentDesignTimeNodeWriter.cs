@@ -384,7 +384,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 context.RenderNode(typeArgument);
             }
 
-            // We need to preserve order for attibutes and attribute splats since the ordering
+            // We need to preserve order for attributes and attribute splats since the ordering
             // has a semantic effect.
 
             foreach (var child in node.Children)
@@ -396,6 +396,10 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 else if (child is SplatIntermediateNode splat)
                 {
                     context.RenderNode(splat);
+                }
+                else if (child is RenderModeIntermediateNode renderMode)
+                {
+                    context.RenderNode(renderMode);
                 }
             }
 
@@ -1221,6 +1225,30 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 });
             }
         }
+    }
+
+    public override void WriteRenderMode(CodeRenderingContext context, RenderModeIntermediateNode node)
+    {
+        // Looks like:
+        // global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = expression;
+        WriteCSharpCode(context, new CSharpCodeIntermediateNode
+        {
+            Source = node.Source,
+            Children =
+            {
+                new IntermediateToken
+                {
+                    Kind = TokenKind.CSharp,
+                    Content = "global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = " // PROTOTYPE: extract out consts
+                },
+                node.ExpressionNode,
+                new IntermediateToken
+                {
+                    Kind = TokenKind.CSharp,
+                    Content = ";"
+                }
+            }
+        });
     }
 
     private void WriteCSharpToken(CodeRenderingContext context, IntermediateToken token)

@@ -50,6 +50,7 @@ public class RazorProjectEngineTest
             features,
             feature => Assert.IsType<AttributeDirectivePass>(feature),
             feature => Assert.IsType<ComponentBindLoweringPass>(feature),
+            feature => Assert.IsType<ComponentRenderModeLoweringPass>(feature),
             feature => Assert.IsType<ComponentChildContentDiagnosticPass>(feature),
             feature => Assert.IsType<ComponentComplexAttributeContentPass>(feature),
             feature => Assert.IsType<ComponentCssScopePass>(feature),

@@ -380,6 +380,8 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             // We can skip type arguments during runtime codegen, they are handled in the
             // type/parameter declarations.
 
+            bool hasRenderMode = false;
+
             // Preserve order of attributes and splats
             foreach (var child in node.Children)
             {
@@ -390,6 +392,12 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 else if (child is SplatIntermediateNode splat)
                 {
                     context.RenderNode(splat);
+                }
+                else if (child is RenderModeIntermediateNode renderMode)
+                {
+                    Debug.Assert(hasRenderMode == false);
+                    context.RenderNode(renderMode);
+                    hasRenderMode = true;
                 }
             }
 
@@ -406,6 +414,17 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             foreach (var capture in node.Captures)
             {
                 context.RenderNode(capture);
+            }
+
+            if (hasRenderMode)
+            {
+                // _builder.SetRenderMode(__renderMode);
+                context.CodeWriter.Write(_scopeStack.BuilderVarName);
+                context.CodeWriter.Write(".");
+                //context.CodeWriter.Write(ComponentsApi.RenderTreeBuilder.CloseComponent); // PROTOTYPE
+                context.CodeWriter.Write("SetRenderMode");
+                context.CodeWriter.Write("(__renderMode);");
+                context.CodeWriter.WriteLine();
             }
 
             // _builder.CloseComponent();
@@ -947,6 +966,30 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                     }
             });
         }
+    }
+
+    public override void WriteRenderMode(CodeRenderingContext context, RenderModeIntermediateNode node)
+    {
+        // Looks like:
+        // global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = expression;
+        WriteCSharpCode(context, new CSharpCodeIntermediateNode
+        {
+            Source = node.Source,
+            Children =
+            {
+                new IntermediateToken
+                {
+                    Kind = TokenKind.CSharp,
+                    Content = "global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = " // PROTOTYPE: extract out consts
+                },
+                node.ExpressionNode,
+                new IntermediateToken
+                {
+                    Kind = TokenKind.CSharp,
+                    Content = ";"
+                }
+            }
+        });
     }
 
     private void WriteAttribute(CodeRenderingContext context, string key, IList<IntermediateToken> value)
