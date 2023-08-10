@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="File_Externally_Modified">
         <source>File was externally modified: {0}</source>
-        <target state="new">File was externally modified: {0}</target>
+        <target state="translated">Le fichier a été modifié en externe : {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_Async_Event_Handler_Title">
@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Language_Services_Missing_Service">
         <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="new">Razor language services not configured properly, missing language service '{0}'.</target>
+        <target state="translated">Les services de langage Razor ne sont pas configurés correctement, le service de langage «{0}» manquant.</target>
         <note />
       </trans-unit>
       <trans-unit id="PositionIndex_Outside_Range">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Unknown_ProjectChangeKind">
         <source>Unknown ProjectChangeKind {0}</source>
-        <target state="new">Unknown ProjectChangeKind {0}</target>
+        <target state="translated">ProjectChangeKind inconnu {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_RazorMetaCode">
