@@ -52,14 +52,14 @@ internal static class ComponentsApi
 
     public static class IComponentRenderMode
     {
-        public const string FullTypeName = "Microsoft.AspNetCore.Component.IComponentRenderMode";
+        public const string FullTypeName = "Microsoft.AspNetCore.Components.IComponentRenderMode";
 
         public const string RenderModeVariableName = "__renderMode";
     }
 
     public static class RenderModeAttribute
     {
-        public const string FullTypeName = "Microsoft.AspNetCore.Component.RenderModeAttribute";
+        public const string FullTypeName = "Microsoft.AspNetCore.Components.RenderModeAttribute";
     }
 
     public static class RenderFragment
