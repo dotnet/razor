@@ -8,7 +8,9 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
@@ -62,7 +64,7 @@ public class CSharpVirtualDocumentFactoryTest : TestBase
         var uri = new Uri("C:/path/to/file.razor");
         var uriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(It.IsAny<ITextBuffer>()) == uri, MockBehavior.Strict);
         var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict);
-        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, TestDocumentFilePathProvider.Instance, projectSnapshotManagerAccessor);
+        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, TestDocumentFilePathProvider.Instance, projectSnapshotManagerAccessor, TestLanguageServerFeatureOptions.Instance, new TestOutputWindowLogger());
 
         // Act
         var result = factory.TryCreateMultipleFor(_nonRazorLSPBuffer, out var virtualDocuments);
@@ -85,7 +87,7 @@ public class CSharpVirtualDocumentFactoryTest : TestBase
         projectSnapshotManager.CreateAndAddDocument(project, @"C:\path\to\file.razor");
         var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == projectSnapshotManager, MockBehavior.Strict);
 
-        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, TestDocumentFilePathProvider.Instance, projectSnapshotManagerAccessor);
+        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, TestDocumentFilePathProvider.Instance, projectSnapshotManagerAccessor, TestLanguageServerFeatureOptions.Instance, new TestOutputWindowLogger());
 
         // Act
         var result = factory.TryCreateMultipleFor(_razorLSPBuffer, out var virtualDocuments);
@@ -113,8 +115,9 @@ public class CSharpVirtualDocumentFactoryTest : TestBase
         projectSnapshotManager.CreateAndAddDocument(project, @"C:\path\to\file.razor");
         var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == projectSnapshotManager, MockBehavior.Strict);
 
-        var documentFilePathProvider = new TestDocumentFilePathProvider(new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true));
-        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, documentFilePathProvider, projectSnapshotManagerAccessor);
+        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true);
+        var documentFilePathProvider = new TestDocumentFilePathProvider(languageServerFeatureOptions);
+        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, documentFilePathProvider, projectSnapshotManagerAccessor, languageServerFeatureOptions, new TestOutputWindowLogger());
 
         // Act
         var result = factory.TryCreateMultipleFor(_razorLSPBuffer, out var virtualDocuments);
@@ -125,5 +128,22 @@ public class CSharpVirtualDocumentFactoryTest : TestBase
         Assert.Collection(virtualDocuments,
             item => Assert.Equal("C:/path/to/file.razor.ooJmNcWMKXNlf5MK.ide.g.cs", item.Uri.OriginalString),
             item => Assert.Equal("C:/path/to/file.razor.jGYrFHvWEciJi85y.ide.g.cs", item.Uri.OriginalString));
+    }
+
+    private class TestOutputWindowLogger : IOutputWindowLogger
+    {
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            return null;
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return false;
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+        }
     }
 }

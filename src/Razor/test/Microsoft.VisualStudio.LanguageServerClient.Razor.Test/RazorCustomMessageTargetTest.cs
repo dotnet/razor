@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
@@ -17,6 +18,7 @@ using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -45,7 +47,7 @@ public class RazorCustomMessageTargetTest : TestBase
     }
 
     [Fact]
-    public void UpdateCSharpBuffer_CannotLookupDocument_NoopsGracefully()
+    public async Task UpdateCSharpBuffer_CannotLookupDocument_NoopsGracefully()
     {
         // Arrange
         LSPDocumentSnapshot document;
@@ -62,11 +64,11 @@ public class RazorCustomMessageTargetTest : TestBase
         };
 
         // Act & Assert
-        target.UpdateCSharpBuffer(request);
+        await target.UpdateCSharpBufferCoreAsync(request, CancellationToken.None);
     }
 
     [Fact]
-    public void UpdateCSharpBuffer_UpdatesDocument()
+    public async Task UpdateCSharpBuffer_UpdatesDocument()
     {
         // Arrange
         var doc1 = new CSharpVirtualDocumentSnapshot(projectKey: default, new Uri("C:/path/to/file.razor.g.cs"), _textBuffer.CurrentSnapshot, 0);
@@ -95,14 +97,14 @@ public class RazorCustomMessageTargetTest : TestBase
         };
 
         // Act
-        target.UpdateCSharpBuffer(request);
+        await target.UpdateCSharpBufferCoreAsync(request, CancellationToken.None);
 
         // Assert
         documentManager.VerifyAll();
     }
 
     [Fact]
-    public void UpdateCSharpBuffer_UpdatesCorrectDocument()
+    public async Task UpdateCSharpBuffer_UpdatesCorrectDocument()
     {
         // Arrange
         var projectKey1 = TestProjectKey.Create("Project1");
@@ -135,7 +137,7 @@ public class RazorCustomMessageTargetTest : TestBase
         };
 
         // Act
-        target.UpdateCSharpBuffer(request);
+        await target.UpdateCSharpBufferCoreAsync(request, CancellationToken.None);
 
         // Assert
         documentManager.VerifyAll();
@@ -214,13 +216,14 @@ public class RazorCustomMessageTargetTest : TestBase
             .Returns(expectedResults);
 
         var documentSynchronizer = GetDocumentSynchronizer(GetCSharpSnapshot());
-        var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
+        var outputWindowLogger = new TestOutputWindowLogger();
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
         telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
+        var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(outputWindowLogger);
 
         var target = new RazorCustomMessageTarget(
                 documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, telemetryReporter.Object, outputWindowLogger);
+                TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, outputWindowLogger);
 
         var request = new DelegatedCodeActionParams()
         {
@@ -291,12 +294,13 @@ public class RazorCustomMessageTargetTest : TestBase
                 It.IsAny<Uri>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
-        var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
+        var outputWindowLogger = new TestOutputWindowLogger();
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
+        var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(outputWindowLogger);
 
         var target = new RazorCustomMessageTarget(
             documentManager, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, telemetryReporter.Object, outputWindowLogger);
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, outputWindowLogger);
 
         var codeAction = new VSInternalCodeAction()
         {
@@ -401,16 +405,19 @@ public class RazorCustomMessageTargetTest : TestBase
             .Setup(r => r.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                 0,
                 It.IsAny<Uri>(),
+                It.IsAny<Uri>(),
+                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
-        var outputWindowLogger = Mock.Of<IOutputWindowLogger>(MockBehavior.Strict);
+        var outputWindowLogger = new TestOutputWindowLogger();
         var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
         telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableDictionary<string, object>>())).Returns(NullScope.Instance);
         telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
+        var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(outputWindowLogger);
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, telemetryReporter.Object, outputWindowLogger);
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, outputWindowLogger);
         var request = new ProvideSemanticTokensRangeParams(
             textDocument: new TextDocumentIdentifier()
             {
@@ -432,6 +439,9 @@ public class RazorCustomMessageTargetTest : TestBase
     {
         var synchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
         synchronizer.Setup(s => s.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(It.IsAny<int>(), It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(csharpDoc is not null, csharpDoc));
+
+        synchronizer.Setup(s => s.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(It.IsAny<int>(), It.IsAny<Uri>(), It.IsAny<Uri>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(csharpDoc is not null, csharpDoc));
 
         synchronizer.Setup(s => s.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(It.IsAny<int>(), It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
@@ -462,5 +472,22 @@ public class RazorCustomMessageTargetTest : TestBase
         public static NullScope Instance { get; } = new NullScope();
         private NullScope() { }
         public void Dispose() { }
+    }
+
+    private class TestOutputWindowLogger : IOutputWindowLogger
+    {
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            return null;
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return false;
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+        }
     }
 }

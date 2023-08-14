@@ -26,11 +26,11 @@ internal partial class RazorCustomMessageTarget
 
         await _joinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        UpdateCSharpBuffer(request);
+        await UpdateCSharpBufferCoreAsync(request, cancellationToken);
     }
 
     // Internal for testing
-    internal void UpdateCSharpBuffer(UpdateBufferRequest request)
+    internal async Task UpdateCSharpBufferCoreAsync(UpdateBufferRequest request, CancellationToken cancellationToken)
     {
         if (request is null || request.HostDocumentFilePath is null || request.HostDocumentVersion is null)
         {
@@ -39,7 +39,11 @@ internal partial class RazorCustomMessageTarget
 
         var hostDocumentUri = new Uri(request.HostDocumentFilePath);
 
-        if (_documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot) &&
+        _outputWindowLogger?.LogDebug("UpdateCSharpBuffer for {version} of {uri}", request.HostDocumentVersion.Value, hostDocumentUri);
+
+        // If we're generating unique file paths for virtual documents, then we have to take a different path here, and do more work
+        if (_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath &&
+            _documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot) &&
             documentSnapshot.TryGetAllVirtualDocuments<CSharpVirtualDocumentSnapshot>(out var virtualDocuments))
         {
             if (request.ProjectKeyId is not null &&
@@ -49,7 +53,11 @@ internal partial class RazorCustomMessageTarget
                 // but the server clearly knows about it in a real project. That means its probably new, as Visual Studio opens a buffer
                 // for a document before we get the notifications about it being added to any projects. Lets try refreshing before
                 // we worry.
+                _outputWindowLogger?.LogDebug("Refreshing virtual documents, and waiting for them, (for {hostDocumentUri})", hostDocumentUri);
+
+                var task = _csharpVirtualDocumentAddListener.WaitForDocumentAddAsync(TimeSpan.FromMilliseconds(500), cancellationToken);
                 _documentManager.RefreshVirtualDocuments();
+                var added = await task.ConfigureAwait(true);
 
                 // Since we're dealing with snapshots, we have to get the new ones after refreshing
                 if (!_documentManager.TryGetDocument(hostDocumentUri, out documentSnapshot) ||

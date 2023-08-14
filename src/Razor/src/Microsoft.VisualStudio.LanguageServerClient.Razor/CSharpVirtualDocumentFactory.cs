@@ -31,6 +31,8 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
     private readonly FileUriProvider _fileUriProvider;
     private readonly DocumentFilePathProvider _documentFilePathProvider;
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
+    private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly IOutputWindowLogger _logger;
 
     [ImportingConstructor]
     public CSharpVirtualDocumentFactory(
@@ -39,12 +41,16 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         ITextDocumentFactoryService textDocumentFactory,
         FileUriProvider fileUriProvider,
         DocumentFilePathProvider documentFilePathProvider,
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
+        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
+        LanguageServerFeatureOptions languageServerFeatureOptions,
+        IOutputWindowLogger logger)
         : base(contentTypeRegistry, textBufferFactory, textDocumentFactory, fileUriProvider)
     {
         _fileUriProvider = fileUriProvider;
         _documentFilePathProvider = documentFilePathProvider;
         _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
+        _languageServerFeatureOptions = languageServerFeatureOptions;
+        _logger = logger;
     }
 
     protected override IContentType LanguageContentType
@@ -107,6 +113,13 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
     internal override bool TryRefreshVirtualDocuments(LSPDocument document, [NotNullWhen(true)] out IReadOnlyList<VirtualDocument>? newVirtualDocuments)
     {
         newVirtualDocuments = null;
+
+        // If generated file paths are not unique, then there is nothing to refresh
+        if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
+        {
+            return false;
+        }
+
         var projectKeys = GetProjectKeys(document.Uri).ToList();
 
         // If the document is in no projects, we don't do anything, as it means we probably got a notification about the project being added
@@ -162,6 +175,13 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
 
     private IEnumerable<ProjectKey> GetProjectKeys(Uri hostDocumentUri)
     {
+        // If generated file paths are not unique, then we just act as though we're in one unknown project
+        if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
+        {
+            yield return default;
+            yield break;
+        }
+
         var projects = _projectSnapshotManagerAccessor.Instance.GetProjects();
 
         var inAny = false;
