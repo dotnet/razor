@@ -26,11 +26,10 @@ internal class ComponentRenderModeLoweringPass : ComponentIntermediateNodePassBa
             return;
         }
 
-        var reference = documentNode.FindDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>().SingleOrDefault();
-
-        if (reference is { Node: TagHelperDirectiveAttributeIntermediateNode node, Parent: ComponentIntermediateNode})
+        var references = documentNode.FindDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>();
+        foreach (var reference in references)
         {
-            if (node.TagHelper.IsRenderModeTagHelper())
+            if (reference is { Node: TagHelperDirectiveAttributeIntermediateNode node, Parent: ComponentIntermediateNode } && node.TagHelper.IsRenderModeTagHelper())
             {
                 var expression = node.Children[0] switch
                 {
@@ -39,6 +38,7 @@ internal class ComponentRenderModeLoweringPass : ComponentIntermediateNodePassBa
                 };
 
                 reference.Replace(new RenderModeIntermediateNode(expression));
+                break;
             }
         }
     }
