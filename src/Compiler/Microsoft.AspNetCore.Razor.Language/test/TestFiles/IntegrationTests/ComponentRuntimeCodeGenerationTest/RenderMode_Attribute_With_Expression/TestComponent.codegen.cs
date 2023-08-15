@@ -15,7 +15,7 @@ namespace Test
         {
             __builder.OpenComponent<global::Test.TestComponent>(0);
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.razor"
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                               global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = new MyRenderMode() { Extra = "Hello" };
 
 #line default
@@ -26,7 +26,7 @@ namespace Test
         }
         #pragma warning restore 1998
 #nullable restore
-#line 3 "x:\dir\subdir\Test\TestComponent.razor"
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
  
     class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
     {

@@ -7,6 +7,6 @@
         UsingDirective - (136:5,1 [47] ) - global::Microsoft.AspNetCore.Components
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
-                MarkupElement - (0:0,0 [81] x:\dir\subdir\Test\TestComponent.razor) - input
-                    TagHelperDirectiveAttribute - (20:0,20 [57] x:\dir\subdir\Test\TestComponent.razor) - rendermode - Microsoft.AspNetCore.Components.IComponentRenderMode Microsoft.AspNetCore.Components.RenderMode.RenderMode - HtmlAttributeValueStyle.DoubleQuotes
-                        LazyIntermediateToken - (20:0,20 [57] x:\dir\subdir\Test\TestComponent.razor) - CSharp - Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+                MarkupElement - (0:0,0 [81] x:\dir\subdir\Test\TestComponent.cshtml) - input
+                    TagHelperDirectiveAttribute - (20:0,20 [57] x:\dir\subdir\Test\TestComponent.cshtml) - rendermode - Microsoft.AspNetCore.Components.IComponentRenderMode Microsoft.AspNetCore.Components.RenderMode.RenderMode - HtmlAttributeValueStyle.DoubleQuotes
+                        LazyIntermediateToken - (20:0,20 [57] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.DefaultRenderModes.Server

@@ -21,7 +21,7 @@ namespace Test
     {
         private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.razor"
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
             Microsoft.AspNetCore.Components.DefaultRenderModes.Server
 
 #line default

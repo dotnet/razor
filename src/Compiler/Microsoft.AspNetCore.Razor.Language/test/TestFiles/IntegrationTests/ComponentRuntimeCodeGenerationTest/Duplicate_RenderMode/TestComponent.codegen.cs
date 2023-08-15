@@ -15,7 +15,7 @@ namespace Test
         {
             __builder.OpenComponent<global::Test.TestComponent>(0);
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.razor"
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                             global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
 
 #line default

@@ -1,11 +1,11 @@
-﻿Source Location: (12:0,12 [57] x:\dir\subdir\Test\TestComponent.razor)
+﻿Source Location: (12:0,12 [57] x:\dir\subdir\Test\TestComponent.cshtml)
 |Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
-Generated Location: (698:18,44 [57] )
+Generated Location: (699:18,44 [57] )
 |Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
 
-Source Location: (12:0,12 [57] x:\dir\subdir\Test\TestComponent.razor)
+Source Location: (12:0,12 [57] x:\dir\subdir\Test\TestComponent.cshtml)
 |Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
-Generated Location: (1912:53,0 [57] )
+Generated Location: (1914:53,0 [57] )
 |        ;
         public override global::Microsoft.AspN|
 

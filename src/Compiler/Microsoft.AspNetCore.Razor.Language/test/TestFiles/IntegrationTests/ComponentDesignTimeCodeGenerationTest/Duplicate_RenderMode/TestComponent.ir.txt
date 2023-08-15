@@ -14,8 +14,8 @@
             CSharpCode - 
                 IntermediateToken -  - CSharp - #pragma warning restore 0414
             MethodDeclaration -  - protected override - void - BuildRenderTree
-                Component - (0:0,0 [181] x:\dir\subdir\Test\TestComponent.razor) - TestComponent
-                    RenderMode - (28:0,28 [57] x:\dir\subdir\Test\TestComponent.razor)
+                Component - (0:0,0 [181] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                    RenderMode - (28:0,28 [57] x:\dir\subdir\Test\TestComponent.cshtml)
                     ComponentAttribute -  - @rendermode -  - AttributeStructure.DoubleQuotes
-                        HtmlContent - (120:1,32 [57] x:\dir\subdir\Test\TestComponent.razor)
-                            LazyIntermediateToken - (120:1,32 [57] x:\dir\subdir\Test\TestComponent.razor) - Html - Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+                        HtmlContent - (120:1,32 [57] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (120:1,32 [57] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Microsoft.AspNetCore.Components.DefaultRenderModes.Server

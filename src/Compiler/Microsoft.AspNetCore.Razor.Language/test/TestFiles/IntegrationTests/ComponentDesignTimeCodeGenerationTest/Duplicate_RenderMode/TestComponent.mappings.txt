@@ -1,5 +1,5 @@
-﻿Source Location: (28:0,28 [57] x:\dir\subdir\Test\TestComponent.razor)
+﻿Source Location: (28:0,28 [57] x:\dir\subdir\Test\TestComponent.cshtml)
 |Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
-Generated Location: (1004:24,104 [57] )
+Generated Location: (1005:24,104 [57] )
 |Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
 

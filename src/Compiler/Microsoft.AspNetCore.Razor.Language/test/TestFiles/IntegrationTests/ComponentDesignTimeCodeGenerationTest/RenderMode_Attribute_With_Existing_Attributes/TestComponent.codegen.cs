@@ -22,7 +22,7 @@ namespace Test
         {
             __o = "";
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.razor"
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                                      global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
 
 #line default
@@ -35,7 +35,7 @@ namespace Test
             #pragma warning disable BL0005
             ((global::Test.TestComponent)default).
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.razor"
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                P2
 
 #line default
@@ -44,7 +44,7 @@ namespace Test
              = default;
             ((global::Test.TestComponent)default).
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.razor"
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                                                                                                 P1
 
 #line default
@@ -53,7 +53,7 @@ namespace Test
              = default;
             #pragma warning restore BL0005
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.razor"
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.TestComponent);
 
 #line default
@@ -62,7 +62,7 @@ __o = typeof(global::Test.TestComponent);
         }
         #pragma warning restore 1998
 #nullable restore
-#line 4 "x:\dir\subdir\Test\TestComponent.razor"
+#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
  
     [Parameter]public string P1 {get; set;}
 

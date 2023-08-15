@@ -25,7 +25,7 @@ public abstract class ComponentCodeGenerationTestBase : RazorBaselineIntegration
 
     internal string ComponentName = "TestComponent";
 
-    internal override string DefaultFileName => ComponentName + ".razor";
+    internal override string DefaultFileName => ComponentName + ".cshtml";
 
     protected ComponentCodeGenerationTestBase()
         : base(generateBaselines: null)

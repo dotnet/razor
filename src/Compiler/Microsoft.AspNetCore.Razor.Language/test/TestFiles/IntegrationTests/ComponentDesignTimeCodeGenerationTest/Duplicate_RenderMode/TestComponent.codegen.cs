@@ -21,7 +21,7 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.razor"
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                             global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
 
 #line default
@@ -32,7 +32,7 @@ namespace Test
             }
             ));
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.razor"
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 __o = typeof(global::Test.TestComponent);
 
 #line default

@@ -15,7 +15,7 @@ namespace Test
         private void __RazorDirectiveTokenHelpers__() {
         ((global::System.Action)(() => {
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.razor"
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
 global::System.Object __typeHelper = nameof(Microsoft.AspNetCore.Components.DefaultRenderModes.Server);
 
 #line default
@@ -45,7 +45,7 @@ global::System.Object __typeHelper = nameof(Microsoft.AspNetCore.Components.Defa
         #pragma warning restore 0414
         private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.razor"
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
             Microsoft.AspNetCore.Components.DefaultRenderModes.Server
 
 #line default

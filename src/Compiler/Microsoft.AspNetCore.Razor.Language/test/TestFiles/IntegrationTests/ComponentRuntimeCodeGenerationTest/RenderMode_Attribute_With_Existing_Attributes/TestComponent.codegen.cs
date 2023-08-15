@@ -16,7 +16,7 @@ namespace Test
             __builder.OpenComponent<global::Test.TestComponent>(0);
             __builder.AddComponentParameter(1, "P2", "abc");
 #nullable restore
-#line 1 "x:\dir\subdir\Test\TestComponent.razor"
+#line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
                                      global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
 
 #line default
@@ -28,7 +28,7 @@ namespace Test
         }
         #pragma warning restore 1998
 #nullable restore
-#line 4 "x:\dir\subdir\Test\TestComponent.razor"
+#line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
  
     [Parameter]public string P1 {get; set;}
 
