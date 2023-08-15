@@ -56,7 +56,19 @@ public class RazorCustomMessageTargetTest : TestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
             .Returns(false);
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
-        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer.Object);
+        var outputWindowLogger = new TestOutputWindowLogger();
+
+        var target = new RazorCustomMessageTarget(
+            documentManager.Object,
+            JoinableTaskContext,
+            Mock.Of<LSPRequestInvoker>(MockBehavior.Strict),
+            TestFormattingOptionsProvider.Default,
+            _editorSettingsManager,
+            documentSynchronizer.Object,
+            new CSharpVirtualDocumentAddListener(outputWindowLogger),
+            Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
+            TestLanguageServerFeatureOptions.Instance,
+            outputWindowLogger);
         var request = new UpdateBufferRequest()
         {
             HostDocumentFilePath = "C:/path/to/file.razor",
@@ -76,11 +88,7 @@ public class RazorCustomMessageTargetTest : TestBase
         var document = Mock.Of<LSPDocumentSnapshot>(d => d.VirtualDocuments == documents, MockBehavior.Strict);
         var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
         documentManager
-          .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
-          .Returns(true);
-        documentManager
             .Setup(manager => manager.UpdateVirtualDocument<CSharpVirtualDocument>(
-                It.IsAny<Uri>(),
                 It.IsAny<Uri>(),
                 It.IsAny<IReadOnlyList<ITextChange>>(),
                 1337,
@@ -88,7 +96,19 @@ public class RazorCustomMessageTargetTest : TestBase
             .Verifiable();
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
-        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer.Object);
+        var outputWindowLogger = new TestOutputWindowLogger();
+
+        var target = new RazorCustomMessageTarget(
+            documentManager.Object,
+            JoinableTaskContext,
+            Mock.Of<LSPRequestInvoker>(MockBehavior.Strict),
+            TestFormattingOptionsProvider.Default,
+            _editorSettingsManager,
+            documentSynchronizer.Object,
+            new CSharpVirtualDocumentAddListener(outputWindowLogger),
+            Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
+            TestLanguageServerFeatureOptions.Instance,
+            outputWindowLogger);
         var request = new UpdateBufferRequest()
         {
             HostDocumentFilePath = "C:/path/to/file.razor",
@@ -127,7 +147,19 @@ public class RazorCustomMessageTargetTest : TestBase
             .Verifiable();
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
 
-        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer.Object);
+        var outputWindowLogger = new TestOutputWindowLogger();
+
+        var target = new RazorCustomMessageTarget(
+            documentManager.Object,
+            JoinableTaskContext,
+            Mock.Of<LSPRequestInvoker>(MockBehavior.Strict),
+            TestFormattingOptionsProvider.Default,
+            _editorSettingsManager,
+            documentSynchronizer.Object,
+            new CSharpVirtualDocumentAddListener(outputWindowLogger),
+            Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
+            new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true),
+            outputWindowLogger);
         var request = new UpdateBufferRequest()
         {
             ProjectKeyId = projectKey2.Id,
@@ -153,7 +185,19 @@ public class RazorCustomMessageTargetTest : TestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
             .Returns(false);
         var documentSynchronizer = GetDocumentSynchronizer();
-        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer);
+        var outputWindowLogger = new TestOutputWindowLogger();
+
+        var target = new RazorCustomMessageTarget(
+            documentManager.Object,
+            JoinableTaskContext,
+            Mock.Of<LSPRequestInvoker>(MockBehavior.Strict),
+            TestFormattingOptionsProvider.Default,
+            _editorSettingsManager,
+            documentSynchronizer,
+            new CSharpVirtualDocumentAddListener(outputWindowLogger),
+            Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
+            TestLanguageServerFeatureOptions.Instance,
+            outputWindowLogger);
         var request = new DelegatedCodeActionParams()
         {
             HostDocumentVersion = 1,
@@ -325,7 +369,19 @@ public class RazorCustomMessageTargetTest : TestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out document))
             .Returns(false);
         var documentSynchronizer = GetDocumentSynchronizer();
-        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer);
+        var outputWindowLogger = new TestOutputWindowLogger();
+
+        var target = new RazorCustomMessageTarget(
+            documentManager.Object,
+            JoinableTaskContext,
+            Mock.Of<LSPRequestInvoker>(MockBehavior.Strict),
+            TestFormattingOptionsProvider.Default,
+            _editorSettingsManager,
+            documentSynchronizer,
+            new CSharpVirtualDocumentAddListener(outputWindowLogger),
+            Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
+            TestLanguageServerFeatureOptions.Instance,
+            outputWindowLogger);
         var request = new ProvideSemanticTokensRangeParams(
             textDocument: new TextDocumentIdentifier()
             {
@@ -354,7 +410,19 @@ public class RazorCustomMessageTargetTest : TestBase
             .Setup(manager => manager.TryGetDocument(It.IsAny<Uri>(), out testDocument))
             .Returns(true);
         var documentSynchronizer = GetDocumentSynchronizer();
-        var target = new RazorCustomMessageTarget(documentManager.Object, documentSynchronizer);
+        var outputWindowLogger = new TestOutputWindowLogger();
+
+        var target = new RazorCustomMessageTarget(
+            documentManager.Object,
+            JoinableTaskContext,
+            Mock.Of<LSPRequestInvoker>(MockBehavior.Strict),
+            TestFormattingOptionsProvider.Default,
+            _editorSettingsManager,
+            documentSynchronizer,
+            new CSharpVirtualDocumentAddListener(outputWindowLogger),
+            Mock.Of<ITelemetryReporter>(MockBehavior.Strict),
+            TestLanguageServerFeatureOptions.Instance,
+            outputWindowLogger);
         var request = new ProvideSemanticTokensRangeParams(
             textDocument: new TextDocumentIdentifier()
             {
@@ -405,8 +473,6 @@ public class RazorCustomMessageTargetTest : TestBase
             .Setup(r => r.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                 0,
                 It.IsAny<Uri>(),
-                It.IsAny<Uri>(),
-                It.IsAny<bool>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
         var outputWindowLogger = new TestOutputWindowLogger();

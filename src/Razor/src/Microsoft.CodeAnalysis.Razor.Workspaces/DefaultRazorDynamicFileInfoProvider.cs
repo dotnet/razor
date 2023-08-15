@@ -144,7 +144,6 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
             throw new ArgumentNullException(nameof(propertiesService));
         }
 
-        // TODO: Get the project info out of the documentUri so that the DocumentFilePathProvider can reconstruct the ProjectKey
         var filePath = GetProjectSystemFilePath(documentUri);
         foreach (var associatedKvp in GetAllKeysForPath(filePath))
         {

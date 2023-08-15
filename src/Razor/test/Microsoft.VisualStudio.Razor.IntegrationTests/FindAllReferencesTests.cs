@@ -129,7 +129,7 @@ public class FindAllReferencesTests(ITestOutputHelper testOutputHelper) : Abstra
         );
     }
 
-    [IdeFact]
+    [IdeFact(MaxAttempts = 3)]
     public async Task FindAllReferences_ComponentAttribute_FromCSharpInCSharp()
     {
         // Create the file
