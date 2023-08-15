@@ -422,7 +422,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 context.CodeWriter.Write(_scopeStack.BuilderVarName);
                 context.CodeWriter.Write(".");
                 context.CodeWriter.Write(ComponentsApi.RenderTreeBuilder.SetRenderMode);
-                context.CodeWriter.Write("(__renderMode);");
+                context.CodeWriter.Write("(");
+                context.CodeWriter.Write(ComponentsApi.RenderTreeBuilder.RenderModeVariableName);
+                context.CodeWriter.Write(");");
                 context.CodeWriter.WriteLine();
             }
 
@@ -979,7 +981,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 new IntermediateToken
                 {
                     Kind = TokenKind.CSharp,
-                    Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {ComponentsApi.IComponentRenderMode.RenderModeVariableName} = " 
+                    Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {ComponentsApi.RenderTreeBuilder.RenderModeVariableName} = " 
                 },
                 node.ExpressionNode,
                 new IntermediateToken

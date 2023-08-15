@@ -206,6 +206,11 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
          {
             public static IComponentRenderMode Server = new DefaultRenderModes();
          }
+         
+         public static class Extensions
+         {
+            public static void SetRenderMode(this Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder, IComponentRenderMode mode) { }
+         }
          """;
 }
 

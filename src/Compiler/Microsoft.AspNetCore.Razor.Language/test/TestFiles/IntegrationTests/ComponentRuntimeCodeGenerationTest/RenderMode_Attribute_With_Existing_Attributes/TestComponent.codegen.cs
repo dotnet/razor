@@ -8,27 +8,35 @@ namespace Test
     using global::System.Linq;
     using global::System.Threading.Tasks;
     using global::Microsoft.AspNetCore.Components;
-    [global::Test.PrivateComponentRenderModeAttribute]
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     {
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
-        }
-        #pragma warning restore 1998
-    }
-    file sealed class PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
-    {
-        private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
+            __builder.OpenComponent<global::Test.TestComponent>(0);
+            __builder.AddComponentParameter(1, "P2", "abc");
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.razor"
-            Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+                                     global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
 
 #line default
 #line hidden
 #nullable disable
-        ;
-        public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;
+            __builder.AddComponentParameter(2, "P1", "def");
+            __builder.SetRenderMode(__renderMode);
+            __builder.CloseComponent();
+        }
+        #pragma warning restore 1998
+#nullable restore
+#line 4 "x:\dir\subdir\Test\TestComponent.razor"
+ 
+    [Parameter]public string P1 {get; set;}
+
+    [Parameter]public string P2 {get; set;}
+
+#line default
+#line hidden
+#nullable disable
     }
 }
 #pragma warning restore 1591

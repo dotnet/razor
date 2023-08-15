@@ -7,6 +7,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -21,6 +22,10 @@ public abstract class ComponentCodeGenerationTestBase : RazorBaselineIntegration
     internal override bool UseTwoPhaseCompilation => true;
 
     internal override RazorConfiguration Configuration => _configuration ?? base.Configuration;
+
+    internal string ComponentName = "TestComponent";
+
+    internal override string DefaultFileName => ComponentName + ".razor";
 
     protected ComponentCodeGenerationTestBase()
         : base(generateBaselines: null)
@@ -10005,6 +10010,96 @@ Time: @DateTime.Now
 
         // add the required attributes
         generated.BaseCompilation = ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(generated.BaseCompilation);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Attribute_With_SimpleIdentifier()
+    {
+        var baseCompilation = (CSharpCompilation)ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
+
+        var generated = CompileToCSharp($"""
+                <{ComponentName} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
+                """, throwOnFailure: false, baseCompilation: baseCompilation);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Attribute_With_Expression()
+    {
+        var baseCompilation = (CSharpCompilation)ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
+
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="@(new MyRenderMode() { Extra = "Hello" })" />
+                @code
+                {
+                    class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
+                    {
+                        public string Extra {get;set;}
+                    }
+                }
+                """, throwOnFailure: false, baseCompilation: baseCompilation);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Attribute_With_Existing_Attributes()
+    {
+        var baseCompilation = (CSharpCompilation)ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
+
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} P2="abc" @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" P1="def" />
+
+                @code
+                {
+                    [Parameter]public string P1 {get; set;}
+
+                    [Parameter]public string P2 {get; set;}
+                }
+                """, throwOnFailure: false, baseCompilation: baseCompilation);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Attribute_On_Html_Element()
+    {
+        var baseCompilation = (CSharpCompilation)ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
+
+        var generated = CompileToCSharp("""
+                <input @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
+                """, throwOnFailure: false, baseCompilation: baseCompilation);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void Duplicate_RenderMode()
+    {
+        var baseCompilation = (CSharpCompilation)ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
+
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server"
+                                   @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
+                """, throwOnFailure: false, baseCompilation: baseCompilation);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, throwOnFailure: true);
     }
 

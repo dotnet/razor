@@ -1239,7 +1239,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 new IntermediateToken
                 {
                     Kind = TokenKind.CSharp,
-                    Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {ComponentsApi.IComponentRenderMode.RenderModeVariableName} = " 
+                    Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {ComponentsApi.RenderTreeBuilder.RenderModeVariableName} = " 
                 },
                 node.ExpressionNode,
                 new IntermediateToken

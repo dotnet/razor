@@ -1,0 +1,18 @@
+﻿Source Location: (37:0,37 [57] x:\dir\subdir\Test\TestComponent.razor)
+|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
+Generated Location: (883:19,113 [57] )
+|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
+
+Source Location: (119:3,1 [94] x:\dir\subdir\Test\TestComponent.razor)
+|
+    [Parameter]public string P1 {get; set;}
+
+    [Parameter]public string P2 {get; set;}
+|
+Generated Location: (1267:31,1 [94] )
+|
+    [Parameter]public string P1 {get; set;}
+
+    [Parameter]public string P2 {get; set;}
+|
+

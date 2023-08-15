@@ -182,7 +182,8 @@ public class RazorIntegrationTestBase
         string cssScope = null,
         bool supportLocalizedComponentNames = false,
         bool nullableEnable = false,
-        RazorConfiguration configuration = null)
+        RazorConfiguration configuration = null,
+        CSharpCompilation baseCompilation = null)
     {
         return CompileToCSharp(
             DefaultFileName,
@@ -191,7 +192,8 @@ public class RazorIntegrationTestBase
             cssScope: cssScope,
             supportLocalizedComponentNames: supportLocalizedComponentNames,
             nullableEnable: nullableEnable,
-            configuration: configuration);
+            configuration: configuration,
+            baseCompilation: baseCompilation);
     }
 
     protected CompileToCSharpResult CompileToCSharp(
@@ -202,7 +204,8 @@ public class RazorIntegrationTestBase
         string cssScope = null,
         bool supportLocalizedComponentNames = false,
         bool nullableEnable = false,
-        RazorConfiguration configuration = null)
+        RazorConfiguration configuration = null,
+        CSharpCompilation baseCompilation = null)
     {
         if (DeclarationOnly && DesignTime)
         {
@@ -214,7 +217,7 @@ public class RazorIntegrationTestBase
             throw new InvalidOperationException($"{nameof(DeclarationOnly)} cannot be used with {nameof(UseTwoPhaseCompilation)}.");
         }
 
-        var baseCompilation = BaseCompilation;
+        baseCompilation ??= BaseCompilation;
 
         if (nullableEnable)
         {

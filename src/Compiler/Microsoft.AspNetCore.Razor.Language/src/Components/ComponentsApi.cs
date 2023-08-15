@@ -53,8 +53,6 @@ internal static class ComponentsApi
     public static class IComponentRenderMode
     {
         public const string FullTypeName = "Microsoft.AspNetCore.Components.IComponentRenderMode";
-
-        public const string RenderModeVariableName = "__renderMode";
     }
 
     public static class RenderModeAttribute
@@ -119,6 +117,8 @@ internal static class ComponentsApi
         public const string AddEventStopPropagationAttribute = nameof(AddEventStopPropagationAttribute);
 
         public const string SetRenderMode = nameof(SetRenderMode);
+
+        public const string RenderModeVariableName = "__renderMode";
     }
 
     public static class RuntimeHelpers
