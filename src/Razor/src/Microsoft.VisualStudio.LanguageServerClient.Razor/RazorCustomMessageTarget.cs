@@ -31,6 +31,7 @@ internal partial class RazorCustomMessageTarget
     private readonly LSPRequestInvoker _requestInvoker;
     private readonly ITelemetryReporter _telemetryReporter;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
+    private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
     private readonly FormattingOptionsProvider _formattingOptionsProvider;
     private readonly IClientSettingsManager _editorSettingsManager;
     private readonly LSPDocumentSynchronizer _documentSynchronizer;
@@ -48,6 +49,7 @@ internal partial class RazorCustomMessageTarget
         CSharpVirtualDocumentAddListener csharpVirtualDocumentAddListener,
         ITelemetryReporter telemetryReporter,
         LanguageServerFeatureOptions languageServerFeatureOptions,
+        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
         [Import(AllowDefault = true)] IOutputWindowLogger? outputWindowLogger)
     {
         if (documentManager is null)
@@ -102,6 +104,11 @@ internal partial class RazorCustomMessageTarget
             throw new ArgumentNullException(nameof(languageServerFeatureOptions));
         }
 
+        if (projectSnapshotManagerAccessor is null)
+        {
+            throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
+        }
+
         _joinableTaskFactory = joinableTaskContext.Factory;
 
         _requestInvoker = requestInvoker;
@@ -111,6 +118,7 @@ internal partial class RazorCustomMessageTarget
         _csharpVirtualDocumentAddListener = csharpVirtualDocumentAddListener;
         _telemetryReporter = telemetryReporter;
         _languageServerFeatureOptions = languageServerFeatureOptions;
+        _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
         _outputWindowLogger = outputWindowLogger;
     }
 

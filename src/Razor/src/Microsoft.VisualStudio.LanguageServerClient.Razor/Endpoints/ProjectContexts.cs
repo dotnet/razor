@@ -1,11 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -17,34 +20,36 @@ internal partial class RazorCustomMessageTarget
     public Task<VSProjectContextList?> ProjectContextsAsync(DelegatedProjectContextsParams request, CancellationToken _)
     {
         // Previously we would have asked Roslyn for their ProjectContexts, so we can make sure we pass a ProjectContext they understand
-        // to them when we ask them for things. Now that we generate unique file names for generated files, we no longer need to do that
+        // to them when we ask them for things. When we generate unique file names for generated files, we no longer need to do that
         // as the generated file will only be in one project, so we can just use our own ProjectContexts. This makes other things much
         // easier because we're not trying to understand Roslyn concepts.
 
-        if (!_documentManager.TryGetDocument(request.Uri, out var lspDocument) ||
-            !lspDocument.TryGetAllVirtualDocuments<CSharpVirtualDocumentSnapshot>(out var virtualDocuments))
+        var projects = _projectSnapshotManagerAccessor.Instance.GetProjects();
+
+        using var projectContexts = new PooledArrayBuilder<VSProjectContext>(capacity: projects.Length);
+
+        var documentFilePath = DocumentFilePathProvider.GetProjectSystemFilePath(request.Uri);
+
+        foreach (var project in projects)
         {
-            return Task.FromResult<VSProjectContextList?>(null);
+            if (project is ProjectSnapshot snapshot &&
+                project.GetDocument(documentFilePath) is not null)
+            {
+                var projectFileName = Path.GetFileNameWithoutExtension(snapshot.HostProject.FilePath);
+                projectContexts.Add(new VSProjectContext
+                {
+                    Id = project.Key.Id,
+                    Kind = VSProjectKind.CSharp,
+                    Label = snapshot.HostProject.DisplayName is { } displayName
+                        ? $"{projectFileName} ({displayName})"
+                        : projectFileName
+                });
+            }
         }
 
-        using var projectContexts = new PooledArrayBuilder<VSProjectContext>(capacity: virtualDocuments.Length);
-
-        foreach (var doc in virtualDocuments)
+        if (projectContexts.Count == 0)
         {
-            // We can sometimes get requests before we have project information in our virtual documents, which
-            // means a null key, which would cause deserialization issues.
-            // TODO: Make this say "Misc Files"?
-            if (doc.ProjectKey.Id is null)
-            {
-                return Task.FromResult<VSProjectContextList?>(null);
-            }
-
-            projectContexts.Add(new VSProjectContext
-            {
-                Id = doc.ProjectKey.Id,
-                Kind = VSProjectKind.CSharp,
-                Label = doc.ProjectKey.Id
-            });
+            return Task.FromResult<VSProjectContextList?>(null);
         }
 
         var result = new VSProjectContextList

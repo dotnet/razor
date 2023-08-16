@@ -8,7 +8,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -74,7 +73,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
         documentContainer.SupportsDiagnostics = true;
 
         // TODO: This needs to use the project key somehow, rather than assuming all generated content is the same
-        var filePath = GetProjectSystemFilePath(documentUri);
+        var filePath = DocumentFilePathProvider.GetProjectSystemFilePath(documentUri);
 
         var foundAny = false;
         foreach (var associatedKvp in GetAllKeysForPath(filePath))
@@ -144,7 +143,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
             throw new ArgumentNullException(nameof(propertiesService));
         }
 
-        var filePath = GetProjectSystemFilePath(documentUri);
+        var filePath = DocumentFilePathProvider.GetProjectSystemFilePath(documentUri);
         foreach (var associatedKvp in GetAllKeysForPath(filePath))
         {
             var associatedKey = associatedKvp.Key;
@@ -356,22 +355,6 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
         var filename = _documentFilePathProvider.GetRazorCSharpFilePath(projectKey, key.FilePath);
         var textLoader = document.GetTextLoader(filename);
         return new RazorDynamicFileInfo(filename, SourceCodeKind.Regular, textLoader, _factory.Create(document));
-    }
-
-    private static string GetProjectSystemFilePath(Uri uri)
-    {
-        // In VS Windows project system file paths always utilize `\`. In VSMac they don't. This is a bit of a hack
-        // however, it's the only way to get the correct file path for a document to map to a corresponding project
-        // system.
-
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            // VSWin
-            return uri.GetAbsoluteOrUNCPath().Replace('/', '\\');
-        }
-
-        // VSMac
-        return uri.AbsolutePath;
     }
 
     // Using a separate handle to the 'current' file info so that can allow Roslyn to send
