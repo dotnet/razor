@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -395,53 +396,53 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
         {
             return _count switch
             {
-                1 => ComputeHashCodeForOneItem(),
-                2 => ComputeHashCodeForTwoItems(),
-                _ => ComputeHashCodeForThreeItems()
+                1 => ComputeHashCodeForOneItem(_key1, _value1),
+                2 => ComputeHashCodeForTwoItems(_key1, _value1, _key2, _value2),
+                _ => ComputeHashCodeForThreeItems(_key1, _value1, _key2, _value2, _key3, _value3)
             };
 
-            int ComputeHashCodeForOneItem()
+            static int ComputeHashCodeForOneItem(string key1, string? value1)
             {
                 var hash = HashCodeCombiner.Start();
 
-                hash.Add(_key1, StringComparer.Ordinal);
-                hash.Add(_value1, StringComparer.Ordinal);
+                hash.Add(key1, StringComparer.Ordinal);
+                hash.Add(value1, StringComparer.Ordinal);
 
                 return hash.CombinedHash;
             }
 
-            int ComputeHashCodeForTwoItems()
+            static int ComputeHashCodeForTwoItems(string key1, string? value1, string key2, string? value2)
             {
                 var hash = HashCodeCombiner.Start();
 
-                if (string.CompareOrdinal(_key1, _key2) < 0)
+                if (string.CompareOrdinal(key1, key2) < 0)
                 {
-                    hash.Add(_key1, StringComparer.Ordinal);
-                    hash.Add(_value1, StringComparer.Ordinal);
-                    hash.Add(_key2, StringComparer.Ordinal);
-                    hash.Add(_value2, StringComparer.Ordinal);
+                    hash.Add(key1, StringComparer.Ordinal);
+                    hash.Add(value1, StringComparer.Ordinal);
+                    hash.Add(key2, StringComparer.Ordinal);
+                    hash.Add(value2, StringComparer.Ordinal);
                 }
                 else
                 {
-                    hash.Add(_key2, StringComparer.Ordinal);
-                    hash.Add(_value2, StringComparer.Ordinal);
-                    hash.Add(_key1, StringComparer.Ordinal);
-                    hash.Add(_value1, StringComparer.Ordinal);
+                    hash.Add(key2, StringComparer.Ordinal);
+                    hash.Add(value2, StringComparer.Ordinal);
+                    hash.Add(key1, StringComparer.Ordinal);
+                    hash.Add(value1, StringComparer.Ordinal);
                 }
 
                 return hash.CombinedHash;
             }
 
-            int ComputeHashCodeForThreeItems()
+            static int ComputeHashCodeForThreeItems(string key1, string? value1, string key2, string? value2, string key3, string? value3)
             {
                 var hash = HashCodeCombiner.Start();
 
                 // Note: Because we've already eliminated duplicate strings, all of the
                 // CompareOrdinal calls below should be either less than zero or greater
                 // than zero.
-                var key1LessThanKey2 = string.CompareOrdinal(_key1, _key2) < 0;
-                var key1LessThanKey3 = string.CompareOrdinal(_key1, _key3) < 0;
-                var key2LessThanKey3 = string.CompareOrdinal(_key2, _key3) < 0;
+                var key1LessThanKey2 = string.CompareOrdinal(key1, key2) < 0;
+                var key1LessThanKey3 = string.CompareOrdinal(key1, key3) < 0;
+                var key2LessThanKey3 = string.CompareOrdinal(key2, key3) < 0;
 
                 var key1Added = false;
                 var key2Added = false;
@@ -450,64 +451,64 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
                 if (key1LessThanKey2 && key1LessThanKey3)
                 {
                     // If key1 is less than key2 and key3, it must go first.
-                    hash.Add(_key1, StringComparer.Ordinal);
-                    hash.Add(_value1, StringComparer.Ordinal);
+                    hash.Add(key1, StringComparer.Ordinal);
+                    hash.Add(value1, StringComparer.Ordinal);
                     key1Added = true;
                 }
                 else if (!key1LessThanKey2 && key2LessThanKey3)
                 {
                     // Since key1 isn't first, add key2 if it is less than key1 and key3
-                    hash.Add(_key2, StringComparer.Ordinal);
-                    hash.Add(_value2, StringComparer.Ordinal);
+                    hash.Add(key2, StringComparer.Ordinal);
+                    hash.Add(value2, StringComparer.Ordinal);
                     key2Added = true;
                 }
                 else
                 {
                     // Otherwise, key3 must go first.
-                    hash.Add(_key3, StringComparer.Ordinal);
-                    hash.Add(_value3, StringComparer.Ordinal);
+                    hash.Add(key3, StringComparer.Ordinal);
+                    hash.Add(value3, StringComparer.Ordinal);
                 }
 
                 // Add the second item
                 if (!key1Added && (key1LessThanKey2 || key1LessThanKey3))
                 {
                     // If we haven't added key1 and it is less than key2 or key3, it must be second.
-                    hash.Add(_key1, StringComparer.Ordinal);
-                    hash.Add(_value1, StringComparer.Ordinal);
+                    hash.Add(key1, StringComparer.Ordinal);
+                    hash.Add(value1, StringComparer.Ordinal);
                     key1Added = true;
                 }
                 else if (!key2Added && (!key1LessThanKey2 || key2LessThanKey3))
                 {
                     // If we haven't added key2 and it is less than key1 or key3, it must be second.
-                    hash.Add(_key2, StringComparer.Ordinal);
-                    hash.Add(_value2, StringComparer.Ordinal);
+                    hash.Add(key2, StringComparer.Ordinal);
+                    hash.Add(value2, StringComparer.Ordinal);
                     key2Added = true;
                 }
                 else
                 {
                     // Otherwise, key3 must be go first.
-                    hash.Add(_key3, StringComparer.Ordinal);
-                    hash.Add(_value3, StringComparer.Ordinal);
+                    hash.Add(key3, StringComparer.Ordinal);
+                    hash.Add(value3, StringComparer.Ordinal);
                 }
 
                 // Add the final item
                 if (!key1Added)
                 {
                     // If we haven't added key, it must go last.
-                    hash.Add(_key1, StringComparer.Ordinal);
-                    hash.Add(_value1, StringComparer.Ordinal);
+                    hash.Add(key1, StringComparer.Ordinal);
+                    hash.Add(value1, StringComparer.Ordinal);
                 }
                 else if (!key2Added)
                 {
                     // If we haven't added key2, it must go last.
-                    hash.Add(_key2, StringComparer.Ordinal);
-                    hash.Add(_value2, StringComparer.Ordinal);
+                    hash.Add(key2, StringComparer.Ordinal);
+                    hash.Add(value2, StringComparer.Ordinal);
                 }
                 else
                 {
                     // Otherwise, key3 must go last.
-                    hash.Add(_key3, StringComparer.Ordinal);
-                    hash.Add(_value3, StringComparer.Ordinal);
+                    hash.Add(key3, StringComparer.Ordinal);
+                    hash.Add(value3, StringComparer.Ordinal);
                 }
 
                 return hash.CombinedHash;
@@ -529,35 +530,45 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
                 throw new ArgumentNullException(nameof(pairs));
             }
 
-            using var _1 = ListPool<string>.GetPooledObject(out var keys);
-            using var _2 = ListPool<string?>.GetPooledObject(out var values);
             var count = pairs.Count;
 
-            keys.SetCapacityIfLarger(count);
-            values.SetCapacityIfLarger(count);
+            // Create a sorted array of keys.
+            var keys = new string[count];
 
-            // Be careful not to foreach here in case the IReadOnlyList<> implementated passed to us
-            // has a struct-based enumerator.
+            for (var i = 0; i < count; i++)
+            {
+                keys[i] = pairs[i].Key;
+            }
+
+            Array.Sort(keys, StringComparer.Ordinal);
+
+            // Ensure that there are no duplicate keys.
+            for (var i = 1; i < count; i++)
+            {
+                if (keys[i] == keys[i - 1])
+                {
+                    throw new ArgumentException(
+                        Resources.FormatAn_item_with_the_same_key_has_already_been_added_Key_0(keys[i]), nameof(pairs));
+                }
+            }
+
+            // Create an array for the values.
+            var values = new string?[count];
+
+            // Loop through our pairs and add each value at the correct index.
             for (var i = 0; i < count; i++)
             {
                 var (key, value) = pairs[i];
+                var index = Array.BinarySearch(keys, key, StringComparer.Ordinal);
 
-                var index = keys.BinarySearch(key, StringComparer.Ordinal);
+                // We know that every key is in the array, so we can assume that index is >= 0.
+                Debug.Assert(index >= 0);
 
-                if (index >= 0)
-                {
-                    throw new ArgumentException(
-                        Resources.FormatAn_item_with_the_same_key_has_already_been_added_Key_0(key), nameof(pairs));
-                }
-
-                index = ~index;
-
-                keys.Insert(index, key);
-                values.Insert(index, value);
+                values[index] = value;
             }
 
-            _keys = keys.ToArrayOrEmpty();
-            _values = values.ToArrayOrEmpty();
+            _keys = keys;
+            _values = values;
             _count = count;
         }
 
