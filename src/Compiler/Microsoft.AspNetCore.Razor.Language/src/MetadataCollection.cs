@@ -104,20 +104,76 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
     public static MetadataCollection Create(Dictionary<string, string?> map)
     {
-        using var builder = new PooledArrayBuilder<KeyValuePair<string, string?>>(capacity: map.Count);
+        var count = map.Count;
+
+        if (count == 0)
+        {
+            return Empty;
+        }
+
+        if (count < 4)
+        {
+            // Optimize for the 1-3 case. On this path, we use the enumerator
+            // to acquire key/value pairs.
+
+            // Get the first pair.
+            using var enumerator = map.GetEnumerator();
+
+            if (!enumerator.MoveNext())
+            {
+                Assumed.Unreachable();
+            }
+
+            var pair1 = enumerator.Current;
+
+            if (count == 1)
+            {
+                return new OneToThreeItems(pair1.Key, pair1.Value);
+            }
+
+            // We know there are at least two pairs, so get the second one.
+            if (!enumerator.MoveNext())
+            {
+                Assumed.Unreachable();
+            }
+
+            var pair2 = enumerator.Current;
+
+            if (count == 2)
+            {
+                return new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value);
+            }
+
+            // We know that there are three pairs, so get the final one.
+            if (!enumerator.MoveNext())
+            {
+                Assumed.Unreachable();
+            }
+
+            var pair3 = enumerator.Current;
+
+            return new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value, pair3.Key, pair3.Value);
+        }
+
+        // Finally, if there are four or more items, add the pairs to a list in order to construct
+        // a FourOrMoreItems instance. Note that the constructor will copy the key-value pairs and won't
+        // hold onto the list we're passing, so it's safe to use a pooled list.
+        using var _ = ListPool<KeyValuePair<string, string?>>.GetPooledObject(out var list);
+        list.SetCapacityIfLarger(count);
 
         foreach (var pair in map)
         {
-            builder.Add(pair);
+            list.Add(pair);
         }
 
-        return Create(builder.DrainToImmutable());
+        return Create(list);
     }
 
     public static MetadataCollection Create(IReadOnlyDictionary<string, string?> map)
     {
         // Take a faster path if Dictionary<string, string?> is passed to us. This ensures that
-        // we use Dictionary's struct-based enumerator.
+        // we use Dictionary's struct-based enumerator rather than going through
+        // IEnumerable<KeyValuePair<string, string>>.ToArray() below.
 
         if (map is Dictionary<string, string?> dictionary)
         {
@@ -524,7 +580,7 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
     /// <summary>
     ///  This implementation represents a MetadataCollection with 4 or more items that are stored
-    ///  in a pair of arrays. The arrays are sorted so that lookup is O(log n).
+    ///  in a pair of arrays. The keys are sorted so that lookup is O(log n).
     /// </summary>
     private sealed class FourOrMoreItems : MetadataCollection
     {
