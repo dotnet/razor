@@ -142,7 +142,10 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
     public static MetadataCollection CreateOrEmpty(IReadOnlyDictionary<string, string?>? map)
         => map is not null ? Create(map) : Empty;
 
-    private class NoItems : MetadataCollection
+    /// <summary>
+    ///  This implementation represents an empty MetadataCollection.
+    /// </summary>
+    private sealed class NoItems : MetadataCollection
     {
         public static readonly NoItems Instance = new();
 
@@ -171,7 +174,11 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
         public override bool Equals(MetadataCollection other) => ReferenceEquals(this, other);
     }
 
-    private class OneToThreeItems : MetadataCollection
+    /// <summary>
+    ///  This implementation represents a MetadataCollection with 1, 2, or 3 key/value pairs that are
+    ///  stored in explicit fields.
+    /// </summary>
+    private sealed class OneToThreeItems : MetadataCollection
     {
         private readonly string _key1;
         private readonly string? _value1;
@@ -515,7 +522,11 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
         }
     }
 
-    private class FourOrMoreItems : MetadataCollection
+    /// <summary>
+    ///  This implementation represents a MetadataCollection with 4 or more items that are stored
+    ///  in a pair of arrays. The arrays are sorted so that lookup is O(log n).
+    /// </summary>
+    private sealed class FourOrMoreItems : MetadataCollection
     {
         private readonly string[] _keys;
         private readonly string?[] _values;
