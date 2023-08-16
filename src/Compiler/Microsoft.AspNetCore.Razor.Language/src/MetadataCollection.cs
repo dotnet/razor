@@ -354,39 +354,38 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
                 return false;
             }
 
-            if (_count != otherCollection._count)
+            var count = _count;
+
+            if (count != otherCollection._count)
             {
                 return false;
             }
 
-            if (_count == 1)
+            switch (count)
             {
-                return _key1 == otherCollection._key1 && _value1 == otherCollection._value1;
-            }
+                case 1:
+                    return _key1 == otherCollection._key1 && _value1 == otherCollection._value1;
 
-            if (_count == 2)
-            {
-                if (_key1 == otherCollection._key1)
-                {
-                    return _value1 == otherCollection._value1 &&
-                           _key2 == otherCollection._key2 &&
-                           _value2 == otherCollection._value2;
-                }
+                case 2:
+                    if (_key1 == otherCollection._key1)
+                    {
+                        return _value1 == otherCollection._value1 &&
+                               _key2 == otherCollection._key2 &&
+                               _value2 == otherCollection._value2;
+                    }
 
-                return _key1 == otherCollection._key2 &&
-                       _value1 == otherCollection._value2 &&
-                       _key2 == otherCollection._key1 &&
-                       _value2 == otherCollection._value1;
-            }
+                    return _key1 == otherCollection._key2 &&
+                           _value1 == otherCollection._value2 &&
+                           _key2 == otherCollection._key1 &&
+                           _value2 == otherCollection._value1;
 
-            if (_count == 3)
-            {
-                return otherCollection.TryGetValue(_key1, out var otherValue1) &&
-                       _value1 == otherValue1 &&
-                       otherCollection.TryGetValue(_key2, out var otherValue2) &&
-                       _value2 == otherValue2 &&
-                       otherCollection.TryGetValue(_key3, out var otherValue3) &&
-                       _value3 == otherValue3;
+                case 3:
+                    return otherCollection.TryGetValue(_key1, out var otherValue1) &&
+                           _value1 == otherValue1 &&
+                           otherCollection.TryGetValue(_key2, out var otherValue2) &&
+                           _value2 == otherValue2 &&
+                           otherCollection.TryGetValue(_key3, out var otherValue3) &&
+                           _value3 == otherValue3;
             }
 
             return false;
@@ -620,20 +619,20 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
                 return true;
             }
 
-            if (other is not FourOrMoreItems typedOther)
+            if (other is not FourOrMoreItems otherCollection)
             {
                 return false;
             }
 
-            if (_count != typedOther.Count)
+            if (_count != otherCollection.Count)
             {
                 return false;
             }
 
             var keys = _keys;
             var values = _values;
-            var otherKeys = typedOther._keys;
-            var otherValues = typedOther._values;
+            var otherKeys = otherCollection._keys;
+            var otherValues = otherCollection._values;
             var count = keys.Length;
 
             // The keys are pre-sorted by the constructor, so keys/values should be in
