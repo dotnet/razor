@@ -4,7 +4,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.Internal;
 
@@ -69,6 +71,26 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
             _ => new FourOrMoreItems(pairs),
         };
 
+    public static MetadataCollection Create(ImmutableArray<KeyValuePair<string, string?>> pairs)
+        => pairs switch
+        {
+            [] => Empty,
+            [var pair] => new OneToThreeItems(pair.Key, pair.Value),
+            [var pair1, var pair2] => new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value),
+            [var pair1, var pair2, var pair3] => new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value, pair3.Key, pair3.Value),
+            _ => new FourOrMoreItems(pairs),
+        };
+
+    public static MetadataCollection Create(List<KeyValuePair<string, string?>> pairs)
+        => pairs switch
+        {
+            [] => Empty,
+            [var pair] => new OneToThreeItems(pair.Key, pair.Value),
+            [var pair1, var pair2] => new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value),
+            [var pair1, var pair2, var pair3] => new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value, pair3.Key, pair3.Value),
+            _ => new FourOrMoreItems(pairs),
+        };
+
     public static MetadataCollection Create(IReadOnlyList<KeyValuePair<string, string?>> pairs)
         => pairs switch
         {
@@ -79,83 +101,42 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
             _ => new FourOrMoreItems(pairs),
         };
 
+    public static MetadataCollection Create(Dictionary<string, string?> map)
+    {
+        using var builder = new PooledArrayBuilder<KeyValuePair<string, string?>>(capacity: map.Count);
+
+        foreach (var pair in map)
+        {
+            builder.Add(pair);
+        }
+
+        return Create(builder.DrainToImmutable());
+    }
+
     public static MetadataCollection Create(IReadOnlyDictionary<string, string?> map)
     {
-        switch (map.Count)
+        // Take a faster path if Dictionary<string, string?> is passed to us. This ensures that
+        // we use Dictionary's struct-based enumerator.
+
+        if (map is Dictionary<string, string?> dictionary)
         {
-            case 0:
-                return Empty;
-
-            case 1:
-                {
-                    using var enumerable = map.GetEnumerator();
-
-                    if (!enumerable.MoveNext())
-                    {
-                        Assumed.Unreachable();
-                    }
-
-                    var pair = enumerable.Current;
-
-                    return new OneToThreeItems(pair.Key, pair.Value);
-                }
-
-            case 2:
-                {
-                    using var enumerable = map.GetEnumerator();
-
-                    if (!enumerable.MoveNext())
-                    {
-                        Assumed.Unreachable();
-                    }
-
-                    var pair1 = enumerable.Current;
-
-                    if (!enumerable.MoveNext())
-                    {
-                        Assumed.Unreachable();
-                    }
-
-                    var pair2 = enumerable.Current;
-
-                    return new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value);
-                }
-
-            case 3:
-                {
-                    using var enumerable = map.GetEnumerator();
-
-                    if (!enumerable.MoveNext())
-                    {
-                        Assumed.Unreachable();
-                    }
-
-                    var pair1 = enumerable.Current;
-
-                    if (!enumerable.MoveNext())
-                    {
-                        Assumed.Unreachable();
-                    }
-
-                    var pair2 = enumerable.Current;
-
-                    if (!enumerable.MoveNext())
-                    {
-                        Assumed.Unreachable();
-                    }
-
-                    var pair3 = enumerable.Current;
-
-                    return new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value, pair3.Key, pair3.Value);
-                }
-
-            default:
-                return new FourOrMoreItems(map);
+            return Create(dictionary);
         }
+
+        return Create(map.ToArray());
     }
+
+    public static MetadataCollection CreateOrEmpty(ImmutableArray<KeyValuePair<string, string?>>? pairs)
+        => pairs is not null ? Create(pairs) : Empty;
+
+    public static MetadataCollection CreateOrEmpty(List<KeyValuePair<string, string?>>? pairs)
+        => pairs is not null ? Create(pairs) : Empty;
 
     public static MetadataCollection CreateOrEmpty(IReadOnlyList<KeyValuePair<string, string?>>? pairs)
         => pairs is not null ? Create(pairs) : Empty;
+
+    public static MetadataCollection CreateOrEmpty(Dictionary<string, string?>? map)
+        => map is not null ? Create(map) : Empty;
 
     public static MetadataCollection CreateOrEmpty(IReadOnlyDictionary<string, string?>? map)
         => map is not null ? Create(map) : Empty;
@@ -541,37 +522,6 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
         private readonly int _count;
 
-        public FourOrMoreItems(IReadOnlyDictionary<string, string?> map)
-        {
-            if (map is null)
-            {
-                throw new ArgumentNullException(nameof(map));
-            }
-
-            using var _1 = ListPool<string>.GetPooledObject(out var keys);
-            using var _2 = ListPool<string?>.GetPooledObject(out var values);
-
-            var count = map.Count;
-            keys.SetCapacityIfLarger(count);
-            values.SetCapacityIfLarger(count);
-
-            foreach (var (key, value) in map)
-            {
-                // Because the keys are strings that are already in a dictionary, we are
-                // guaranteed that there won't ever be a match. So, we can assume that
-                // the result of BinarySearch will always be negative and can immediately
-                // convert from the bitwise complement.
-                var index = ~keys.BinarySearch(key, StringComparer.Ordinal);
-
-                keys.Insert(index, key);
-                values.Insert(index, value);
-            }
-
-            _keys = keys.ToArrayOrEmpty();
-            _values = values.ToArrayOrEmpty();
-            _count = count;
-        }
-
         public FourOrMoreItems(IReadOnlyList<KeyValuePair<string, string?>> pairs)
         {
             if (pairs is null)
@@ -581,8 +531,8 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
             using var _1 = ListPool<string>.GetPooledObject(out var keys);
             using var _2 = ListPool<string?>.GetPooledObject(out var values);
-
             var count = pairs.Count;
+
             keys.SetCapacityIfLarger(count);
             values.SetCapacityIfLarger(count);
 
