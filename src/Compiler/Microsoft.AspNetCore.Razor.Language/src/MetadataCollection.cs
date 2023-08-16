@@ -92,7 +92,7 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
                     if (!enumerable.MoveNext())
                     {
-                        throw new InvalidOperationException();
+                        Assumed.Unreachable();
                     }
 
                     var pair = enumerable.Current;
@@ -106,15 +106,14 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
                     if (!enumerable.MoveNext())
                     {
-                        throw new InvalidOperationException();
+                        Assumed.Unreachable();
                     }
 
                     var pair1 = enumerable.Current;
 
-
                     if (!enumerable.MoveNext())
                     {
-                        throw new InvalidOperationException();
+                        Assumed.Unreachable();
                     }
 
                     var pair2 = enumerable.Current;
@@ -128,21 +127,21 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
                     if (!enumerable.MoveNext())
                     {
-                        throw new InvalidOperationException();
+                        Assumed.Unreachable();
                     }
 
                     var pair1 = enumerable.Current;
 
                     if (!enumerable.MoveNext())
                     {
-                        throw new InvalidOperationException();
+                        Assumed.Unreachable();
                     }
 
                     var pair2 = enumerable.Current;
 
                     if (!enumerable.MoveNext())
                     {
-                        throw new InvalidOperationException();
+                        Assumed.Unreachable();
                     }
 
                     var pair3 = enumerable.Current;
