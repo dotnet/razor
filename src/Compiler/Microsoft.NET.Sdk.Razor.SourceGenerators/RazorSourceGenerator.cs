@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
@@ -123,7 +122,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     var tagHelperFeature = GetStaticTagHelperFeature(compilation);
                     var result = tagHelperFeature.GetDescriptors(compilation.Assembly);
-                    
+
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStop();
                     return result;
                 })
@@ -281,7 +280,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     var kind = designTime ? "DesignTime" : "Runtime";
                     RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(filePath, kind);
                     document = projectEngine.ProcessRemaining(document);
-                    
+
                     RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(filePath, kind);
                     return (filePath, document);
                 });
@@ -321,13 +320,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 context.AddSource(hintName, csharpDocument.GeneratedCode);
             });
 
-            context.RegisterHostOutput(processed(designTime: true), static (context, pair, _) =>
-            {
-                var (filePath, document) = pair;
-                var hintName = GetIdentifierFromPath(filePath);
-                context.AddOutput(hintName + ".rsg.cs", document.CodeDocument.GetCSharpDocument().GeneratedCode);
-                context.AddOutput(hintName + ".rsg.html", document.CodeDocument.GetHtmlDocument().GeneratedCode);
-            });
+            // PROTOTYPE: ExternalAccess.RazorCompiler does not have IVT to the new assembly.
+            // context.RegisterHostOutput(processed(designTime: true), static (context, pair, _) =>
+            // {
+            //     var (filePath, document) = pair;
+            //     var hintName = GetIdentifierFromPath(filePath);
+            //     context.AddOutput(hintName + ".rsg.cs", document.CodeDocument.GetCSharpDocument().GeneratedCode);
+            //     context.AddOutput(hintName + ".rsg.html", document.CodeDocument.GetHtmlDocument().GeneratedCode);
+            // });
         }
     }
 }

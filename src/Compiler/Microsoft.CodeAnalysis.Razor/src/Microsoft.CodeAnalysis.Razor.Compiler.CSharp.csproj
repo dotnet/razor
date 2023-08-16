@@ -9,7 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.AspNetCore.Razor.Language\src\Microsoft.AspNetCore.Razor.Language.csproj" />
+    <ProjectReference Include="..\..\Microsoft.AspNetCore.Razor.Language\src\Microsoft.CodeAnalysis.Razor.Compiler.Language.csproj" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="*.resx">
+      <Namespace>Microsoft.CodeAnalysis.Razor</Namespace>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

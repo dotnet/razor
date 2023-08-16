@@ -10,9 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.AspNetCore.Mvc.Razor.Extensions\src\Microsoft.AspNetCore.Mvc.Razor.Extensions.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\Microsoft.AspNetCore.Mvc.Razor.Extensions\src\Microsoft.CodeAnalysis.Razor.Compiler.Mvc.csproj" ReferenceOutputAssembly="false" />
 
-    <Content Include="$(ArtifactsDir)bin\Microsoft.AspNetCore.Mvc.Razor.Extensions\$(Configuration)\netstandard2.0\Microsoft.AspNetCore.Mvc.Razor.Extensions.dll" PackagePath="lib\$(TargetFramework)" />
+    <Content Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler.Mvc\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Razor.Compiler.Mvc.dll" PackagePath="lib\$(TargetFramework)" />
   </ItemGroup>
 
 </Project>

@@ -14,4 +14,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="*.resx">
+      <Namespace>Microsoft.AspNetCore.Razor.Language</Namespace>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>
