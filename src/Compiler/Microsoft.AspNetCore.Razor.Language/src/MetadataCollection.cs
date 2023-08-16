@@ -656,24 +656,29 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
                 return true;
             }
 
-            if (other is not FourOrMoreItems)
+            if (other is not FourOrMoreItems typedOther)
             {
                 return false;
             }
 
-            if (_count != other.Count)
+            if (_count != typedOther.Count)
             {
                 return false;
             }
 
             var keys = _keys;
             var values = _values;
+            var otherKeys = typedOther._keys;
+            var otherValues = typedOther._values;
             var count = keys.Length;
+
+            // The keys are pre-sorted by the constructor, so keys/values should be in
+            // the same order event if they were added in a different order.
 
             for (var i = 0; i < count; i++)
             {
-                if (!other.TryGetValue(keys[i], out var otherValue) ||
-                    values[i] != otherValue)
+                if (keys[i] != otherKeys[i] ||
+                    values[i] != otherValues[i])
                 {
                     return false;
                 }
@@ -690,21 +695,13 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
             var values = _values;
             var count = keys.Length;
 
-            using var _ = ListPool<KeyValuePair<string, string?>>.GetPooledObject(out var list);
-
-            list.SetCapacityIfLarger(count);
+            // The keys are pre-sorted by the constructor, so keys/values should be in
+            // the same order event if they were added in a different order.
 
             for (var i = 0; i < count; i++)
             {
-                list.Add(new(keys[i], values[i]));
-            }
-
-            list.Sort((kvp1, kvp2) => string.CompareOrdinal(kvp1.Key, kvp2.Key));
-
-            foreach (var (key, value) in list)
-            {
-                hash.Add(key, StringComparer.Ordinal);
-                hash.Add(value, StringComparer.Ordinal);
+                hash.Add(keys[i], StringComparer.Ordinal);
+                hash.Add(values[i], StringComparer.Ordinal);
             }
 
             return hash.CombinedHash;
