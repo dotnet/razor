@@ -586,8 +586,12 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
             keys.SetCapacityIfLarger(count);
             values.SetCapacityIfLarger(count);
 
-            foreach (var (key, value) in pairs)
+            // Be careful not to foreach here in case the IReadOnlyList<> implementated passed to us
+            // has a struct-based enumerator.
+            for (var i = 0; i < count; i++)
             {
+                var (key, value) = pairs[i];
+
                 var index = keys.BinarySearch(key, StringComparer.Ordinal);
 
                 if (index >= 0)
