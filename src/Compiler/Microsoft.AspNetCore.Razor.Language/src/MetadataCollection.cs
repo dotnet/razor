@@ -562,7 +562,7 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
                 // guaranteed that there won't ever be a match. So, we can assume that
                 // the result of BinarySearch will always be negative and can immediately
                 // convert from the bitwise complement.
-                var index = ~keys.BinarySearch(key);
+                var index = ~keys.BinarySearch(key, StringComparer.Ordinal);
 
                 keys.Insert(index, key);
                 values.Insert(index, value);
@@ -589,7 +589,7 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
             foreach (var (key, value) in pairs)
             {
-                var index = keys.BinarySearch(key);
+                var index = keys.BinarySearch(key, StringComparer.Ordinal);
 
                 if (index >= 0)
                 {
@@ -612,7 +612,7 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
         {
             get
             {
-                var index = Array.BinarySearch(_keys, key);
+                var index = Array.BinarySearch(_keys, key, StringComparer.Ordinal);
 
                 return index >= 0
                     ? _values[index]
@@ -627,7 +627,7 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
         public override bool ContainsKey(string key)
         {
-            var index = Array.BinarySearch(_keys, key);
+            var index = Array.BinarySearch(_keys, key, StringComparer.Ordinal);
 
             return index >= 0;
         }
@@ -637,7 +637,7 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
 
         public override bool TryGetValue(string key, out string? value)
         {
-            var index = Array.BinarySearch(_keys, key);
+            var index = Array.BinarySearch(_keys, key, StringComparer.Ordinal);
 
             if (index >= 0)
             {
