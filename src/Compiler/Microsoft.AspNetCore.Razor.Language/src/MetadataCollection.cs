@@ -4,7 +4,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -72,27 +71,8 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
             _ => new FourOrMoreItems(pairs),
         };
 
-    public static MetadataCollection Create(ImmutableArray<KeyValuePair<string, string?>> pairs)
-        => pairs switch
-        {
-            [] => Empty,
-            [var pair] => new OneToThreeItems(pair.Key, pair.Value),
-            [var pair1, var pair2] => new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value),
-            [var pair1, var pair2, var pair3] => new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value, pair3.Key, pair3.Value),
-            _ => new FourOrMoreItems(pairs),
-        };
-
-    public static MetadataCollection Create(List<KeyValuePair<string, string?>> pairs)
-        => pairs switch
-        {
-            [] => Empty,
-            [var pair] => new OneToThreeItems(pair.Key, pair.Value),
-            [var pair1, var pair2] => new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value),
-            [var pair1, var pair2, var pair3] => new OneToThreeItems(pair1.Key, pair1.Value, pair2.Key, pair2.Value, pair3.Key, pair3.Value),
-            _ => new FourOrMoreItems(pairs),
-        };
-
-    public static MetadataCollection Create(IReadOnlyList<KeyValuePair<string, string?>> pairs)
+    public static MetadataCollection Create<T>(T pairs)
+        where T : IReadOnlyList<KeyValuePair<string, string?>>
         => pairs switch
         {
             [] => Empty,
@@ -183,14 +163,9 @@ public abstract partial class MetadataCollection : IReadOnlyDictionary<string, s
         return Create(map.ToArray());
     }
 
-    public static MetadataCollection CreateOrEmpty(ImmutableArray<KeyValuePair<string, string?>>? pairs)
-        => pairs is not null ? Create(pairs) : Empty;
-
-    public static MetadataCollection CreateOrEmpty(List<KeyValuePair<string, string?>>? pairs)
-        => pairs is not null ? Create(pairs) : Empty;
-
-    public static MetadataCollection CreateOrEmpty(IReadOnlyList<KeyValuePair<string, string?>>? pairs)
-        => pairs is not null ? Create(pairs) : Empty;
+    public static MetadataCollection CreateOrEmpty<T>(T? pairs)
+        where T : IReadOnlyList<KeyValuePair<string, string?>>
+        => pairs is { } realPairs ? Create(realPairs) : Empty;
 
     public static MetadataCollection CreateOrEmpty(Dictionary<string, string?>? map)
         => map is not null ? Create(map) : Empty;
