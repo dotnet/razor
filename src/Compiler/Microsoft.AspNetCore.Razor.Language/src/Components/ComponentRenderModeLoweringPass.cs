@@ -38,7 +38,6 @@ internal class ComponentRenderModeLoweringPass : ComponentIntermediateNodePassBa
                 };
 
                 reference.Replace(new RenderModeIntermediateNode(expression));
-                break;
             }
         }
     }

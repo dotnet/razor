@@ -28,7 +28,7 @@ public abstract class ComponentCodeGenerationTestBase : RazorBaselineIntegration
     internal override string DefaultFileName => ComponentName + ".cshtml";
 
     protected ComponentCodeGenerationTestBase()
-        : base(generateBaselines: null)
+        : base(generateBaselines: true)
     {
     }
 
@@ -10020,7 +10020,7 @@ Time: @DateTime.Now
 
         var generated = CompileToCSharp($"""
                 <{ComponentName} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
-                """, throwOnFailure: false, baseCompilation: baseCompilation);
+                """, throwOnFailure: true, baseCompilation: baseCompilation);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10042,7 +10042,7 @@ Time: @DateTime.Now
                         public string Extra {get;set;}
                     }
                 }
-                """, throwOnFailure: false, baseCompilation: baseCompilation);
+                """, throwOnFailure: true, baseCompilation: baseCompilation);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10064,7 +10064,7 @@ Time: @DateTime.Now
 
                     [Parameter]public string P2 {get; set;}
                 }
-                """, throwOnFailure: false, baseCompilation: baseCompilation);
+                """, throwOnFailure: true, baseCompilation: baseCompilation);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10079,7 +10079,7 @@ Time: @DateTime.Now
 
         var generated = CompileToCSharp("""
                 <input @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
-                """, throwOnFailure: false, baseCompilation: baseCompilation);
+                """, throwOnFailure: true, baseCompilation: baseCompilation);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10095,7 +10095,52 @@ Time: @DateTime.Now
         var generated = CompileToCSharp($$"""
                 <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server"
                                    @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
-                """, throwOnFailure: false, baseCompilation: baseCompilation);
+                """, throwOnFailure: true, baseCompilation: baseCompilation);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Multiple_Components()
+    {
+        var baseCompilation = (CSharpCompilation)ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
+
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
+                """, throwOnFailure: true, baseCompilation: baseCompilation);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Child_Components()
+    {
+        var baseCompilation = (CSharpCompilation)ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
+
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server">
+                    <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server">
+                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
+                    </{{ComponentName}}>
+                 <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server">
+                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
+                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
+                    </{{ComponentName}}>
+                </{{ComponentName}}>
+
+                @code
+                {
+                    [Parameter]
+                    public RenderFragment ChildContent { get; set; }
+                }
+                """, throwOnFailure: true, baseCompilation: baseCompilation);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);

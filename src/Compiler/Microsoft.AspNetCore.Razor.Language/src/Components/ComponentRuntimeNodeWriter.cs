@@ -24,6 +24,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
     private readonly List<IntermediateToken> _currentAttributeValues = new List<IntermediateToken>();
     private readonly ScopeStack _scopeStack = new ScopeStack();
     private int _sourceSequence;
+    //private int _renderModeSequence;
 
     public ComponentRuntimeNodeWriter(RazorLanguageVersion version) : base(version)
     {
@@ -395,7 +396,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 }
                 else if (child is RenderModeIntermediateNode renderMode)
                 {
-                    Debug.Assert(hasRenderMode == false);
+                    Debug.Assert(!hasRenderMode);
                     context.RenderNode(renderMode);
                     hasRenderMode = true;
                 }
@@ -418,14 +419,15 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
             if (hasRenderMode)
             {
-                // _builder.SetRenderMode(__renderMode);
+                // _builder.SetRenderMode(__renderMode_0);
                 context.CodeWriter.Write(_scopeStack.BuilderVarName);
                 context.CodeWriter.Write(".");
                 context.CodeWriter.Write(ComponentsApi.RenderTreeBuilder.SetRenderMode);
                 context.CodeWriter.Write("(");
-                context.CodeWriter.Write(ComponentsApi.RenderTreeBuilder.RenderModeVariableName);
+                context.CodeWriter.Write($"{_scopeStack.RenderModeVarName}");
                 context.CodeWriter.Write(");");
                 context.CodeWriter.WriteLine();
+                _scopeStack.IncrementRenderMode();
             }
 
             // _builder.CloseComponent();
@@ -972,7 +974,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
     public override void WriteRenderMode(CodeRenderingContext context, RenderModeIntermediateNode node)
     {
         // Looks like:
-        // global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = expression;
+        // global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode0 = expression;
         WriteCSharpCode(context, new CSharpCodeIntermediateNode
         {
             Source = node.Source,
@@ -981,7 +983,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 new IntermediateToken
                 {
                     Kind = TokenKind.CSharp,
-                    Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {ComponentsApi.RenderTreeBuilder.RenderModeVariableName} = " 
+                    Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {_scopeStack.RenderModeVarName} = " 
                 },
                 node.ExpressionNode,
                 new IntermediateToken

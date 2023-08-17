@@ -1249,6 +1249,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 }
             }
         });
+        _scopeStack.IncrementRenderMode();
     }
 
     private void WriteCSharpToken(CodeRenderingContext context, IntermediateToken token)
