@@ -48,7 +48,7 @@ internal class TelemetryReporter : ITelemetryReporter
         var telemetryEvent = new TelemetryEvent(GetTelemetryName(name), ToTelemetrySeverity(severity));
         foreach (var (propertyName, propertyValue) in values)
         {
-            telemetryEvent.Properties.Add(GetPropertyName(propertyName), new TelemetryComplexProperty(propertyValue));
+            telemetryEvent.Properties.Add(GetPropertyName(propertyName), propertyValue);
         }
 
         Report(telemetryEvent);
