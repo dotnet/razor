@@ -177,9 +177,9 @@ internal class RazorTranslateDiagnosticsService
             return true;
         }
 
-        if (owner is CSharpImplicitExpressionSyntax implicitExpressionSyntax &&
-            implicitExpressionSyntax.Body is CSharpImplicitExpressionBodySyntax bodySyntax &&
-            bodySyntax.CSharpCode is CSharpCodeBlockSyntax codeBlock)
+        if (owner is CSharpImplicitExpressionSyntax implicitExpressionSyntax
+            && implicitExpressionSyntax.Body is CSharpImplicitExpressionBodySyntax bodySyntax
+            && bodySyntax.CSharpCode is CSharpCodeBlockSyntax codeBlock)
         {
             return codeBlock.Children.Count == 1
                 && IsCsharpKind(codeBlock.Children[0]);
