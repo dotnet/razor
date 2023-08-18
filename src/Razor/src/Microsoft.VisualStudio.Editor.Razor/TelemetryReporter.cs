@@ -255,23 +255,21 @@ internal class TelemetryReporter : ITelemetryReporter
     }
 
     private static bool IsNumeric(object? o)
-        => o is not null && IsNumeric(o.GetType());
-       
-    private static bool IsNumeric(this Type type)
-        => !type.IsEnum &&
-        type.GetTypeCode() switch 
+        => o is not null &&
+        !o.GetType().IsEnum &&
+        Type.GetTypeCode(o.GetType()) switch
         {
-        	TypeCode.Char or
+            TypeCode.Char or
             TypeCode.SByte or
             TypeCode.Byte or
             TypeCode.Int16 or
-            TypeCode.Int32 or 
+            TypeCode.Int32 or
             TypeCode.Int64 or
             TypeCode.Double or
             TypeCode.Single or
             TypeCode.UInt16 or
             TypeCode.UInt32 or
-            TypeCode.UInt64 
+            TypeCode.UInt64
             => true,
             _ => false
         };
