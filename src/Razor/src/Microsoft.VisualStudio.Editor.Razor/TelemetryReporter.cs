@@ -48,7 +48,14 @@ internal class TelemetryReporter : ITelemetryReporter
         var telemetryEvent = new TelemetryEvent(GetTelemetryName(name), ToTelemetrySeverity(severity));
         foreach (var (propertyName, propertyValue) in values)
         {
-            telemetryEvent.Properties.Add(GetPropertyName(propertyName), propertyValue);
+            if (IsNumeric(propertyValue))
+            {
+                telemetryEvent.Properties.Add(GetPropertyName(propertyName), propertyValue);
+            }
+            else
+            {
+                telemetryEvent.Properties.Add(GetPropertyName(propertyName), new TelemetryComplexProperty(propertyValue));
+            }
         }
 
         Report(telemetryEvent);
@@ -246,6 +253,8 @@ internal class TelemetryReporter : ITelemetryReporter
             new("eventscope.correlationid", correlationId),
         }));
     }
+
+    private static bool IsNumeric(object? value) => double.TryParse(Convert.ToString(value), out _);
 
     private class NullTelemetryScope : IDisposable
     {
