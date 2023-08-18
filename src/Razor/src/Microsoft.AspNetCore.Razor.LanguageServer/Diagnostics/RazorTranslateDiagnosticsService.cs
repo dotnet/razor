@@ -121,7 +121,7 @@ internal class RazorTranslateDiagnosticsService
 
         var filteredDiagnostics = unmappedDiagnostics
             .Where(d =>
-                !InCSharpLiteral(d, sourceText, syntaxTree, logger) &&
+                !InCSharpLiteral(d, sourceText, syntaxTree) &&
                 !InAttributeContainingCSharp(d, sourceText, syntaxTree, processedAttributes, logger) &&
                 !AppliesToTagHelperTagName(d, sourceText, syntaxTree, logger) &&
                 !ShouldFilterHtmlDiagnosticBasedOnErrorCode(d, sourceText, syntaxTree, logger))
@@ -163,55 +163,28 @@ internal class RazorTranslateDiagnosticsService
     private static bool InCSharpLiteral(
         Diagnostic d,
         SourceText sourceText,
-        RazorSyntaxTree syntaxTree,
-        ILogger logger)
+        RazorSyntaxTree syntaxTree)
     {
         if (d.Range is null)
         {
             return false;
         }
 
-        var owner = syntaxTree.FindInnermostNode(sourceText, d.Range.End, logger);
-        if (owner is null)
-        {
-            return false;
-        }
-
+        
+        var owner = syntaxTree.Root.FindNode(d.Range.AsRazorTextSpan(sourceText), getInnermostNodeForTie: true);
         if (IsCsharpKind(owner))
         {
             return true;
         }
 
-        // If the owner is a markup text literal, the token found
-        // could still have been the end of a csharp statement. For example:
-        // CSS123456 gets reported with the following range
-        // <style> body { overflow: [|@DateTime.Now|]; } </style>
-        // FindInnermostNode will find the encompasing MarkupTextLiteral that ends with
-        // ';' but contains the @DateTime.Now csharp expression. Check for these cases
-        // by looking to see if the start is a transition before modifying the end position
-        // to be left one.
-        if (owner.Kind is SyntaxKind.MarkupTextLiteral)
+        if (owner is CSharpImplicitExpressionSyntax implicitExpressionSyntax &&
+            implicitExpressionSyntax.Body is CSharpImplicitExpressionBodySyntax bodySyntax &&
+            bodySyntax.CSharpCode is CSharpCodeBlockSyntax codeBlock)
         {
-            if (!d.Range.Start.TryGetAbsoluteIndex(sourceText, logger, out var startIndex))
-            {
-                return false;
-            }
-
-            var startToken = syntaxTree.Root.FindToken(startIndex);
-            if (startToken.Kind is not SyntaxKind.Transition)
-            {
-                return false;
-            }
-
-            if (!d.Range.End.TryGetAbsoluteIndex(sourceText, logger, out var endIndex))
-            {
-                return false;
-            }
-
-            var newOwner = syntaxTree.Root.FindInnermostNode(endIndex - 1);
-            return IsCsharpKind(newOwner);
+            return codeBlock.Children.Count == 1
+                && IsCsharpKind(codeBlock.Children[0]);
         }
-        
+
         return false;
 
         static bool IsCsharpKind([NotNullWhen(true)] SyntaxNode? node)
