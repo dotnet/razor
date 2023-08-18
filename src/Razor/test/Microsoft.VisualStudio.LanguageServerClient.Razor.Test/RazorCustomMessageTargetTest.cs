@@ -328,7 +328,7 @@ public class RazorCustomMessageTargetTest : TestBase
                 Uri = new Uri("C:/path/to/file.razor")
             },
             requiredHostDocumentVersion: 1,
-            range: new Range(),
+            ranges: new[] { new Range() },
             correlationId: Guid.Empty);
 
         // Act
@@ -357,7 +357,7 @@ public class RazorCustomMessageTargetTest : TestBase
                 Uri = new Uri("C:/path/to/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            range: new Range(),
+            ranges: new [] { new Range() },
             correlationId: Guid.Empty);
 
         // Act
@@ -417,7 +417,7 @@ public class RazorCustomMessageTargetTest : TestBase
                 Uri = new Uri("C:/path/to%20-%20project/file.razor")
             },
             requiredHostDocumentVersion: 0,
-            range: new Range(),
+            ranges: new[] { new Range() },
             correlationId: Guid.Empty);
         var expectedResults = new ProvideSemanticTokensResponse(expectedCSharpResults.Data, documentVersion);
 

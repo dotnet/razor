@@ -119,7 +119,8 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
                 responses[i] = result;
             }
 
-            csharpTokens = StitchSemanticTokenResponsesTogether(responses);
+            var responseData = responses.Select(r => r.Data).ToArray();
+            csharpTokens = StitchSemanticTokenResponsesTogether(responseData);
         }
 
         var csharpResponse = new ProvideSemanticTokensResponse(tokens: csharpTokens, hostDocumentSyncVersion);
@@ -127,16 +128,16 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
     }
 
     // Duplicated from SemanticTokens.cs
-    private int[] StitchSemanticTokenResponsesTogether(SemanticTokens[] responses)
+    private int[] StitchSemanticTokenResponsesTogether(int[][] responseData)
     {
-        var count = responses.Sum(r => r.Data.Length);
+        var count = responseData.Sum(r => r.Length);
         var data = new int[count];
         var dataIndex = 0;
         var lastTokenLine = 0;
 
-        for (var i = 0; i < responses.Length; i++)
+        for (var i = 0; i < responseData.Length; i++)
         {
-            var curData = responses[i].Data;
+            var curData = responseData[i];
 
             if (curData.Length == 0)
             {

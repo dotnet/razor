@@ -79,7 +79,7 @@ internal partial class RazorCustomMessageTarget
         }
 
         var results = await Task.WhenAll(requestTasks).ConfigureAwait(false);
-        var nonEmptyResults = results.Select(r => r?.Response).WithoutNull().ToArray();
+        var nonEmptyResults = results.Select(r => r?.Response?.Data).WithoutNull().ToArray();
 
         if (nonEmptyResults.Length != semanticTokensParams.Ranges.Length)
         {
@@ -94,16 +94,16 @@ internal partial class RazorCustomMessageTarget
         return response;
     }
 
-    private int[] StitchSemanticTokenResponsesTogether(SemanticTokens[] responses)
+    private int[] StitchSemanticTokenResponsesTogether(int[][] responseData)
     {
-        var count = responses.Sum(r => r.Data.Length);
+        var count = responseData.Sum(r => r.Length);
         var data = new int[count];
         var dataIndex = 0;
         var lastTokenLine = 0;
 
-        for (var i = 0; i < responses.Length; i++)
+        for (var i = 0; i < responseData.Length; i++)
         {
-            var curData = responses[i].Data;
+            var curData = responseData[i];
 
             if (curData.Length == 0)
             {
