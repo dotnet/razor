@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 {
-    private const int TokenSize = 5;
+    public const int TokenSize = 5;
 
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly RazorLSPOptionsMonitor _razorLSPOptionsMonitor;

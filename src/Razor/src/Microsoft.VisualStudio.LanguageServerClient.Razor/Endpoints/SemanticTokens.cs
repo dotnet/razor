@@ -124,8 +124,8 @@ internal partial class RazorCustomMessageTarget
                 {
                     var lastTokenCol = 0;
 
-                    // Walk back
-                    for (var j = dataIndex - 5; j >= 0; j -= 5)
+                    // Walk back accumulating column deltas until we find a start column (indicated by it's line offset being non-zero)
+                    for (var j = dataIndex - RazorSemanticTokensInfoService.TokenSize; j >= 0; j -= RazorSemanticTokensInfoService.TokenSize)
                     {
                         lastTokenCol += data[dataIndex + 1];
                         if (data[dataIndex] != 0)
@@ -139,7 +139,7 @@ internal partial class RazorCustomMessageTarget
             }
 
             lastTokenLine = 0;
-            for (var j = 0; j < curData.Length; j += 5)
+            for (var j = 0; j < curData.Length; j += RazorSemanticTokensInfoService.TokenSize)
             {
                 lastTokenLine += curData[j];
             }

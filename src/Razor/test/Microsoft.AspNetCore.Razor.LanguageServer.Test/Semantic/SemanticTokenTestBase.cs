@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Test.Common;
@@ -158,8 +159,8 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
                 {
                     var lastTokenCol = 0;
 
-                    // Walk back
-                    for (var j = dataIndex - 5; j >= 0; j -= 5)
+                    // Walk back accumulating column deltas until we find a start column (indicated by it's line offset being non-zero)
+                    for (var j = dataIndex - RazorSemanticTokensInfoService.TokenSize; j >= 0; j -= RazorSemanticTokensInfoService.TokenSize)
                     {
                         lastTokenCol += data[dataIndex + 1];
                         if (data[dataIndex] != 0)
@@ -173,7 +174,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
             }
 
             lastTokenLine = 0;
-            for (var j = 0; j < curData.Length; j += 5)
+            for (var j = 0; j < curData.Length; j += RazorSemanticTokensInfoService.TokenSize)
             {
                 lastTokenLine += curData[j];
             }
@@ -223,7 +224,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         var prevLength = 0;
         var lineIndex = 0;
         var lineOffset = 0;
-        for (var i = 0; i < data.Length; i += 5)
+        for (var i = 0; i < data.Length; i += TokenSize)
         {
             var lineDelta = data[i];
             var charDelta = data[i + 1];
