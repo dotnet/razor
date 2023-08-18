@@ -2,11 +2,15 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using StreamJsonRpc;
@@ -26,9 +30,9 @@ internal partial class RazorCustomMessageTarget
             throw new ArgumentNullException(nameof(semanticTokensParams));
         }
 
-        if (semanticTokensParams.Range is null)
+        if (semanticTokensParams.Ranges is null)
         {
-            throw new ArgumentNullException(nameof(semanticTokensParams.Range));
+            throw new ArgumentNullException(nameof(semanticTokensParams.Ranges));
         }
 
         var (synchronized, csharpDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
@@ -46,35 +50,103 @@ internal partial class RazorCustomMessageTarget
             return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: -1);
         }
 
+        // Ensure the C# ranges are sorted
+        Array.Sort(semanticTokensParams.Ranges, static (r1, r2) => r1.CompareTo(r2));
+
         semanticTokensParams.TextDocument.Uri = csharpDoc.Uri;
-
-        var newParams = new SemanticTokensRangeParams
-        {
-            TextDocument = semanticTokensParams.TextDocument,
-            PartialResultToken = semanticTokensParams.PartialResultToken,
-            Range = semanticTokensParams.Range,
-        };
-
+        var requestTasks = new List<Task<ReinvocationResponse<VSSemanticTokensResponse>?>>(semanticTokensParams.Ranges.Length);
         var textBuffer = csharpDoc.Snapshot.TextBuffer;
         var languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
         var lspMethodName = Methods.TextDocumentSemanticTokensRangeName;
-        using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, semanticTokensParams.CorrelationId);
-        var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
-            textBuffer,
-            lspMethodName,
-            languageServerName,
-            newParams,
-            cancellationToken).ConfigureAwait(false);
 
-        var result = csharpResults?.Response;
-        if (result is null)
+        foreach (var range in semanticTokensParams.Ranges)
+        {
+            var newParams = new SemanticTokensRangeParams
+            {
+                TextDocument = semanticTokensParams.TextDocument,
+                PartialResultToken = semanticTokensParams.PartialResultToken,
+                Range = range,
+            };
+
+            using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, semanticTokensParams.CorrelationId);
+            var task = _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
+                textBuffer,
+                lspMethodName,
+                languageServerName,
+                newParams,
+                cancellationToken);
+            requestTasks.Add(task);
+        }
+
+        var results = await Task.WhenAll(requestTasks).ConfigureAwait(false);
+        var nonEmptyResults = results.Select(r => r?.Response).WithoutNull().ToArray();
+
+        if (nonEmptyResults.Length != semanticTokensParams.Ranges.Length)
         {
             // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
             return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
         }
 
-        var response = new ProvideSemanticTokensResponse(result.Data, semanticTokensParams.RequiredHostDocumentVersion);
+        var data = StitchSemanticTokenResponsesTogether(nonEmptyResults);
+
+        var response = new ProvideSemanticTokensResponse(data, semanticTokensParams.RequiredHostDocumentVersion);
 
         return response;
+    }
+
+    private int[] StitchSemanticTokenResponsesTogether(SemanticTokens[] responses)
+    {
+        var count = responses.Sum(r => r.Data.Length);
+        var data = new int[count];
+        var dataIndex = 0;
+        var lastTokenLine = 0;
+
+        for (var i = 0; i < responses.Length; i++)
+        {
+            var curData = responses[i].Data;
+
+            if (curData.Length == 0)
+            {
+                continue;
+            }
+
+            Array.Copy(curData, 0, data, dataIndex, curData.Length);
+            if (i != 0)
+            {
+                // The first two items in result.Data will potentially need it's line/col offset modified
+                var lineDelta = data[dataIndex] - lastTokenLine;
+
+                // Update the first line copied over from curData
+                data[dataIndex] = lineDelta;
+
+                // Update the first column copied over from curData if on the same line as the previous token
+                if (lineDelta == 0)
+                {
+                    var lastTokenCol = 0;
+
+                    // Walk back
+                    for (var j = dataIndex - 5; j >= 0; j -= 5)
+                    {
+                        lastTokenCol += data[dataIndex + 1];
+                        if (data[dataIndex] != 0)
+                        {
+                            break;
+                        }
+                    }
+
+                    data[dataIndex + 1] -= lastTokenCol;
+                }
+            }
+
+            lastTokenLine = 0;
+            for (var j = 0; j < curData.Length; j += 5)
+            {
+                lastTokenLine += curData[j];
+            }
+
+            dataIndex += curData.Length;
+        }
+
+        return data;
     }
 }

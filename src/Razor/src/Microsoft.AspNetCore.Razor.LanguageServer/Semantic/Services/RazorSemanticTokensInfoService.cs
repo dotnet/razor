@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -118,17 +117,14 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         CancellationToken cancellationToken,
         string? previousResultId = null)
     {
-        // We'll try to call into the mapping service to map to the projected range for us. If that doesn't work,
-        // we'll try to find the minimal range ourselves.
         var generatedDocument = codeDocument.GetCSharpDocument();
-        if (!_documentMappingService.TryMapToGeneratedDocumentRange(generatedDocument, razorRange, out var csharpRange) &&
-            !TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
+        if (!TryGetCSharpRanges(codeDocument, razorRange, out var csharpRanges))
         {
             // There's no C# in the range.
             return new List<SemanticRange>();
         }
 
-        var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRange, correlationId, cancellationToken).ConfigureAwait(false);
+        var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false);
 
         // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
         // Unrecoverable, return default to indicate no change. We've already queued up a refresh request in
@@ -223,12 +219,10 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         return true;
     }
 
-    // Internal for testing only
-    internal static bool TryGetMinimalCSharpRange(RazorCodeDocument codeDocument, Range razorRange, [NotNullWhen(true)] out Range? csharpRange)
+    internal static bool TryGetCSharpRanges(RazorCodeDocument codeDocument, Range razorRange, out Range[] ranges)
     {
-        SourceSpan? minGeneratedSpan = null;
-        SourceSpan? maxGeneratedSpan = null;
-
+        var csharpRanges = new List<Range>();
+        var csharpSourceText = codeDocument.GetCSharpSourceText();
         var sourceText = codeDocument.GetSourceText();
         var textSpan = razorRange.AsTextSpan(sourceText);
         var csharpDoc = codeDocument.GetCSharpDocument();
@@ -240,44 +234,24 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
             if (textSpan.OverlapsWith(mappedTextSpan))
             {
-                if (minGeneratedSpan is null || mapping.GeneratedSpan.AbsoluteIndex < minGeneratedSpan.Value.AbsoluteIndex)
-                {
-                    minGeneratedSpan = mapping.GeneratedSpan;
-                }
-
-                var mappingEndIndex = mapping.GeneratedSpan.AbsoluteIndex + mapping.GeneratedSpan.Length;
-                if (maxGeneratedSpan is null || mappingEndIndex > maxGeneratedSpan.Value.AbsoluteIndex + maxGeneratedSpan.Value.Length)
-                {
-                    maxGeneratedSpan = mapping.GeneratedSpan;
-                }
+                var mappedRange = mapping.GeneratedSpan.AsRange(csharpSourceText);
+                csharpRanges.Add(mappedRange);
             }
         }
 
-        // Create a new projected range based on our calculated min/max source spans.
-        if (minGeneratedSpan is not null && maxGeneratedSpan is not null)
-        {
-            var csharpSourceText = codeDocument.GetCSharpSourceText();
-            var startRange = minGeneratedSpan.Value.AsRange(csharpSourceText);
-            var endRange = maxGeneratedSpan.Value.AsRange(csharpSourceText);
+        ranges = csharpRanges.ToArray();
 
-            csharpRange = new Range { Start = startRange.Start, End = endRange.End };
-            Debug.Assert(csharpRange.Start.CompareTo(csharpRange.End) <= 0, "Range.Start should not be larger than Range.End");
-
-            return true;
-        }
-
-        csharpRange = null;
-        return false;
+        return ranges.Length > 0;
     }
 
     private async Task<int[]?> GetMatchingCSharpResponseAsync(
         TextDocumentIdentifier textDocumentIdentifier,
         long documentVersion,
-        Range csharpRange,
+        Range[] csharpRanges,
         Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var parameter = new ProvideSemanticTokensRangeParams(textDocumentIdentifier, documentVersion, csharpRange, correlationId);
+        var parameter = new ProvideSemanticTokensRangeParams(textDocumentIdentifier, documentVersion, csharpRanges, correlationId);
 
         var csharpResponse = await _languageServer.SendRequestAsync<ProvideSemanticTokensRangeParams, ProvideSemanticTokensResponse>(
             CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint,
