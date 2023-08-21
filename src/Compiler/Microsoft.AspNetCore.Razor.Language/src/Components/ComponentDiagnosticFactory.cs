@@ -541,6 +541,17 @@ internal static class ComponentDiagnosticFactory
         () => "Attribute '{0}' can only be used with RazorLanguageVersion 7.0 or higher.",
         RazorDiagnosticSeverity.Error);
 
+    public static readonly RazorDiagnosticDescriptor UnknownMarkupAttribute =
+        new RazorDiagnosticDescriptor(
+            $"{DiagnosticPrefix}10021",
+            () => "The attribute '{0}' does not correspond to any of the parent component's parameters.",
+            RazorDiagnosticSeverity.Warning);
+
+    public static RazorDiagnostic Create_UnknownMarkupAttribute(string attributeName, SourceSpan? source = null)
+    {
+        return RazorDiagnostic.Create(UnknownMarkupAttribute, source ?? SourceSpan.Undefined, attributeName);
+    }
+
     public static RazorDiagnostic CreateBindAttributeParameter_UnsupportedSyntaxBindGetSet(SourceSpan? source, string attribute)
     {
         var diagnostic = RazorDiagnostic.Create(
