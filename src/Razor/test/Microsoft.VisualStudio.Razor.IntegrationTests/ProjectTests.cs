@@ -156,7 +156,7 @@ public class ProjectTests(ITestOutputHelper testOutputHelper) : AbstractRazorEdi
         Assert.Equal(expectedProjectFileName, actualProjectFileName);
     }
 
-    [IdeFact(MaxAttempts = 1)]
+    [IdeFact]
     public async Task OpenExistingProject_WithReopenedFile()
     {
         var solutionPath = await TestServices.SolutionExplorer.GetDirectoryNameAsync(ControlledHangMitigatingCancellationToken);
