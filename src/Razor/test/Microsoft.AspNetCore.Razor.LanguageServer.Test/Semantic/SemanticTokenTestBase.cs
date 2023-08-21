@@ -224,7 +224,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         var prevLength = 0;
         var lineIndex = 0;
         var lineOffset = 0;
-        for (var i = 0; i < data.Length; i += TokenSize)
+        for (var i = 0; i < data.Length; i += RazorSemanticTokensInfoService.TokenSize)
         {
             var lineDelta = data[i];
             var charDelta = data[i + 1];
