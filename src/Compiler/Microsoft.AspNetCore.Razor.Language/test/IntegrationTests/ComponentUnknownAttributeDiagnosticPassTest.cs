@@ -2,12 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Xunit;
 
@@ -56,6 +52,39 @@ namespace Test
 }
 "));
         var result = CompileToCSharp(@"<MyComponent Value=""123"" />");
+        var document = result.CodeDocument;
+        var documentNode = Lower(document);
+
+        // Act
+        Pass.Execute(document, documentNode);
+
+        // Assert
+        Assert.Empty(documentNode.GetAllDiagnostics());
+    }
+
+    [Fact]
+    public void Execute_AttributeBinding()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent : ComponentBase
+    {
+        [Parameter] public int Value { get; set; }
+        [Parameter] public EventCallback<int> ValueChanged { get; set; }
+    }
+}
+"));
+        var result = CompileToCSharp(@"
+<MyComponent @bind-Value=""@_value"" />
+@code {
+    private int _value = 0;
+}
+");
         var document = result.CodeDocument;
         var documentNode = Lower(document);
 
