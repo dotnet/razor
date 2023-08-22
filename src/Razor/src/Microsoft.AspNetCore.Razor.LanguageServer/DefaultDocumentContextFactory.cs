@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -102,7 +103,7 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
 
         foreach (var project in projectSnapshots)
         {
-            if (FilePathComparer.Instance.Equals(project.Key.Id, projectContext.Id))
+            if (project.Key.Equals(projectContext.ToProjectKey()))
             {
                 documentSnapshot = project.GetDocument(filePath);
                 return documentSnapshot is not null;

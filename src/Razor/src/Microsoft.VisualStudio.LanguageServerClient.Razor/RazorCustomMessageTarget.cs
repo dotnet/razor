@@ -281,7 +281,7 @@ internal partial class RazorCustomMessageTarget
             // In both cases we'll just return the first virtual document we find.
             return projectKey.Id is null ||
                 projectContext is null ||
-                FilePathComparer.Instance.Equals(projectKey.Id, projectContext.Id);
+                projectKey.Id.Equals(projectContext.ToProjectKey());
         }
     }
 }

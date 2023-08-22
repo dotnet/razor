@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServerClient.Razor.Extensions;
 using StreamJsonRpc;
@@ -43,11 +44,11 @@ internal partial class RazorCustomMessageTarget
 
         // If we're generating unique file paths for virtual documents, then we have to take a different path here, and do more work
         if (_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath &&
+            request.ProjectKeyId is not null &&
             _documentManager.TryGetDocument(hostDocumentUri, out var documentSnapshot) &&
             documentSnapshot.TryGetAllVirtualDocuments<CSharpVirtualDocumentSnapshot>(out var virtualDocuments))
         {
-            if (request.ProjectKeyId is not null &&
-                virtualDocuments is [{ ProjectKey.Id: null }])
+            if (virtualDocuments is [{ ProjectKey.Id: null }])
             {
                 // If there is only a single virtual document, and its got a null id, then that means it's in our "misc files" project
                 // but the server clearly knows about it in a real project. That means its probably new, as Visual Studio opens a buffer
@@ -55,7 +56,7 @@ internal partial class RazorCustomMessageTarget
                 // we worry.
                 _outputWindowLogger?.LogDebug("Refreshing virtual documents, and waiting for them, (for {hostDocumentUri})", hostDocumentUri);
 
-                var task = _csharpVirtualDocumentAddListener.WaitForDocumentAddAsync(TimeSpan.FromMilliseconds(500), cancellationToken);
+                var task = _csharpVirtualDocumentAddListener.WaitForDocumentAddAsync(cancellationToken);
                 _documentManager.RefreshVirtualDocuments();
                 var added = await task.ConfigureAwait(true);
 
@@ -76,7 +77,7 @@ internal partial class RazorCustomMessageTarget
 
             foreach (var virtualDocument in virtualDocuments)
             {
-                if (virtualDocument.ProjectKey.Id == request.ProjectKeyId)
+                if (virtualDocument.ProjectKey.Equals(ProjectKey.FromString(request.ProjectKeyId)))
                 {
                     _outputWindowLogger?.LogDebug("UpdateCSharpBuffer virtual doc for {version} of {uri}", request.HostDocumentVersion.Value, virtualDocument.Uri);
 
