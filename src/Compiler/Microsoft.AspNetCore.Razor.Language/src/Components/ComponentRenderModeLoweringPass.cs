@@ -1,12 +1,12 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Linq;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal class ComponentRenderModeLoweringPass : ComponentIntermediateNodePassBase, IRazorOptimizationPass
+internal sealed class ComponentRenderModeLoweringPass : ComponentIntermediateNodePassBase, IRazorOptimizationPass
 {
     // Run after component lowering pass
     public override int Order => 50;
@@ -18,19 +18,12 @@ internal class ComponentRenderModeLoweringPass : ComponentIntermediateNodePassBa
             return;
         }
 
-        var @namespace = documentNode.FindPrimaryNamespace();
-        var @class = documentNode.FindPrimaryClass();
-        if (@namespace == null || @class == null)
-        {
-            // Nothing to do, bail. We can't function without the standard structure.
-            return;
-        }
-
         var references = documentNode.FindDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>();
         foreach (var reference in references)
         {
             if (reference is { Node: TagHelperDirectiveAttributeIntermediateNode node, Parent: IntermediateNode parentNode } && node.TagHelper.IsRenderModeTagHelper())
             {
+                Debug.Assert(node.Diagnostics.Count == 0);
                 if (parentNode is ComponentIntermediateNode)
                 {
                     var expression = node.Children[0] switch

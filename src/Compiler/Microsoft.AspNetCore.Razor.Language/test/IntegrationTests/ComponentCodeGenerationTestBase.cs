@@ -28,7 +28,7 @@ public abstract class ComponentCodeGenerationTestBase : RazorBaselineIntegration
     internal override string DefaultFileName => ComponentName + ".cshtml";
 
     protected ComponentCodeGenerationTestBase()
-        : base(generateBaselines: null)
+        : base(generateBaselines: true)
     {
     }
 
@@ -10153,6 +10153,23 @@ Time: @DateTime.Now
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_With_Diagnostics()
+    {
+        var baseCompilation = (CSharpCompilation)ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
+
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="@Microsoft.AspNetCore.Components.DefaultRenderModes.Server)" />
+                """, throwOnFailure: false, baseCompilation: baseCompilation);
+
+       // var diag = Assert.Single(generated.Diagnostics);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: false);
     }
 
     #endregion
