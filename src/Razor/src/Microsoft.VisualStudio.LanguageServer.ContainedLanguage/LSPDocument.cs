@@ -3,9 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-#if VALIDATE_MULTI_TARGET
-using System.Diagnostics;
-#endif
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 
@@ -38,45 +35,33 @@ public abstract class LSPDocument : IDisposable
 
     public bool TryGetVirtualDocument<TVirtualDocument>([NotNullWhen(returnValue: true)] out TVirtualDocument? virtualDocument) where TVirtualDocument : VirtualDocument
     {
-        virtualDocument = null;
-
         for (var i = 0; i < VirtualDocuments.Count; i++)
         {
             if (VirtualDocuments[i] is TVirtualDocument actualVirtualDocument)
             {
-#if VALIDATE_MULTI_TARGET
-                Debug.Assert(virtualDocument is null, "Found multiple virtual documents of the same type. Should call TryGetAllVirtualDocuments instead.");
-#endif
                 virtualDocument = actualVirtualDocument;
-#if !VALIDATE_MULTI_TARGET
                 return true;
-#endif
             }
         }
 
-        return virtualDocument is not null;
+        virtualDocument = null;
+        return false;
     }
 
     public bool TryGetVirtualDocument<TVirtualDocument>(Uri virtualDocumentUri, [NotNullWhen(returnValue: true)] out TVirtualDocument? virtualDocument) where TVirtualDocument : VirtualDocument
     {
-        virtualDocument = null;
-
         for (var i = 0; i < VirtualDocuments.Count; i++)
         {
             if (VirtualDocuments[i] is TVirtualDocument actualVirtualDocument &&
                 actualVirtualDocument.Uri == virtualDocumentUri)
             {
-#if VALIDATE_MULTI_TARGET
-                Debug.Assert(virtualDocument is null, "Found multiple virtual documents of the same type. Should call TryGetAllVirtualDocuments instead.");
-#endif
                 virtualDocument = actualVirtualDocument;
-#if !VALIDATE_MULTI_TARGET
                 return true;
-#endif
             }
         }
 
-        return virtualDocument is not null;
+        virtualDocument = null;
+        return false;
     }
 
     [SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize", Justification = "https://github.com/dotnet/roslyn-analyzers/issues/4801")]
