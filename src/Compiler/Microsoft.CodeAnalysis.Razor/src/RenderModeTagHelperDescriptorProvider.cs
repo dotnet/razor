@@ -10,9 +10,9 @@ using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-internal class RenderModeTagHelperDescriptorProvider : ITagHelperDescriptorProvider
+internal sealed class RenderModeTagHelperDescriptorProvider : ITagHelperDescriptorProvider
 {
-    private static TagHelperDescriptor? s_refTagHelper;
+    private static readonly Lazy<TagHelperDescriptor> s_refTagHelper = new(CreateRenderModeTagHelper);
 
     // Run after the component tag helper provider
     public int Order { get; set; } = 1000;
@@ -46,53 +46,48 @@ internal class RenderModeTagHelperDescriptorProvider : ITagHelperDescriptorProvi
             return;
         }
 
-        context.Results.Add(GetOrCreateRenderModeTagHelper());
+        context.Results.Add(s_refTagHelper.Value);
     }
 
-    private static TagHelperDescriptor GetOrCreateRenderModeTagHelper()
+    private static TagHelperDescriptor CreateRenderModeTagHelper()
     {
-        return s_refTagHelper ??= CreateRenderModeTagHelper();
+        using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
+            ComponentMetadata.RenderMode.TagHelperKind, "RenderMode", ComponentsApi.AssemblyName,
+            out var builder);
 
-        static TagHelperDescriptor CreateRenderModeTagHelper()
+        builder.CaseSensitive = true;
+
+        // PROTOTYPE: docs
+        //builder.SetDocumentation(DocumentationDescriptor.RenderModeTagHelper);
+
+        builder.SetMetadata(
+            SpecialKind(ComponentMetadata.RenderMode.TagHelperKind),
+            MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
+            RuntimeName(ComponentMetadata.RenderMode.RuntimeName),
+            TypeName("Microsoft.AspNetCore.Components.RenderMode"));
+
+        builder.TagMatchingRule(rule =>
         {
-            using var _ = TagHelperDescriptorBuilder.GetPooledInstance(
-                ComponentMetadata.RenderMode.TagHelperKind, "RenderMode", ComponentsApi.AssemblyName,
-                out var builder);
-
-            builder.CaseSensitive = true;
-
-            // PROTOTYPE: docs
-            //builder.SetDocumentation(DocumentationDescriptor.RenderModeTagHelper);
-
-            builder.SetMetadata(
-                SpecialKind(ComponentMetadata.RenderMode.TagHelperKind),
-                MakeTrue(TagHelperMetadata.Common.ClassifyAttributesOnly),
-                RuntimeName(ComponentMetadata.RenderMode.RuntimeName),
-                TypeName("Microsoft.AspNetCore.Components.RenderMode"));
-
-            builder.TagMatchingRule(rule =>
+            rule.TagName = "*";
+            rule.Attribute(attribute =>
             {
-                rule.TagName = "*";
-                rule.Attribute(attribute =>
-                {
-                    attribute.Name = "@rendermode";
-                    attribute.SetMetadata(Attributes.IsDirectiveAttribute);
-                });
-            });
-
-            builder.BindAttribute(attribute =>
-            {
-                // PROTOTYPE: docs
-                //attribute.SetDocumentation(DocumentationDescriptor.RenderModeTagHelper);
                 attribute.Name = "@rendermode";
-
-                attribute.TypeName = ComponentsApi.IComponentRenderMode.FullTypeName;
-                attribute.SetMetadata(
-                    PropertyName("RenderMode"),
-                    IsDirectiveAttribute); 
+                attribute.SetMetadata(Attributes.IsDirectiveAttribute);
             });
+        });
 
-            return builder.Build();
-        }
+        builder.BindAttribute(attribute =>
+        {
+            // PROTOTYPE: docs
+            //attribute.SetDocumentation(DocumentationDescriptor.RenderModeTagHelper);
+            attribute.Name = "@rendermode";
+
+            attribute.TypeName = ComponentsApi.IComponentRenderMode.FullTypeName;
+            attribute.SetMetadata(
+                PropertyName("RenderMode"),
+                IsDirectiveAttribute);
+        });
+
+        return builder.Build();
     }
 }
