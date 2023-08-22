@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Telemetry;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
@@ -181,8 +180,8 @@ internal partial class RazorCustomMessageTarget
 
         if (virtualDocument is { ProjectKey.Id: null })
         {
-            _outputWindowLogger?.LogDebug("Trying to sync to a doc with no project Id. Waiting 500ms for document add.");
-            if (await _csharpVirtualDocumentAddListener.WaitForDocumentAddAsync(TimeSpan.FromMilliseconds(500), cancellationToken).ConfigureAwait(false))
+            _outputWindowLogger?.LogDebug("Trying to sync to a doc with no project Id. Waiting for document add.");
+            if (await _csharpVirtualDocumentAddListener.WaitForDocumentAddAsync(cancellationToken).ConfigureAwait(false))
             {
                 _outputWindowLogger?.LogDebug("Wait successful!");
                 virtualDocument = FindVirtualDocument<TVirtualDocumentSnapshot>(hostDocument.Uri, hostDocument.GetProjectContext());

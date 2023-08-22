@@ -19,12 +19,14 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 [method: ImportingConstructor]
 internal class CSharpVirtualDocumentAddListener(IOutputWindowLogger logger) : LSPDocumentChangeListener
 {
+    private static readonly TimeSpan s_waitTimeout = TimeSpan.FromMilliseconds(500);
+
     private TaskCompletionSource<bool>? _tcs;
     private CancellationTokenSource? _cts;
 
     private static readonly object _gate = new();
 
-    public Task<bool> WaitForDocumentAddAsync(TimeSpan timeout, CancellationToken cancellationToken)
+    public Task<bool> WaitForDocumentAddAsync(CancellationToken cancellationToken)
     {
         if (_tcs is null)
         {
@@ -45,7 +47,7 @@ internal class CSharpVirtualDocumentAddListener(IOutputWindowLogger logger) : LS
                     }
                 }
             });
-            _cts.CancelAfter(timeout);
+            _cts.CancelAfter(s_waitTimeout);
             _tcs = new TaskCompletionSource<bool>();
         }
 
