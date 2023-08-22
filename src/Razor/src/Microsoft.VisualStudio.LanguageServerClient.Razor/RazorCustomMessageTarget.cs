@@ -280,7 +280,7 @@ internal partial class RazorCustomMessageTarget
             // In both cases we'll just return the first virtual document we find.
             return projectKey.Id is null ||
                 projectContext is null ||
-                projectKey.Id.Equals(projectContext.ToProjectKey());
+                projectKey.Equals(projectContext.ToProjectKey());
         }
     }
 }
