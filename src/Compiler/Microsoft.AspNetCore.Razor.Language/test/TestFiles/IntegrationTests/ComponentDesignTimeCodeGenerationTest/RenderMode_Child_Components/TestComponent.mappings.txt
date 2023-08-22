@@ -1,0 +1,41 @@
+﻿Source Location: (28:0,28 [57] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
+Generated Location: (997:24,96 [57] )
+|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
+
+Source Location: (121:1,32 [57] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
+Generated Location: (1408:32,100 [57] )
+|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
+
+Source Location: (218:2,36 [57] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
+Generated Location: (1828:40,104 [57] )
+|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
+
+Source Location: (332:4,29 [57] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
+Generated Location: (2659:66,97 [57] )
+|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
+
+Source Location: (429:5,36 [57] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
+Generated Location: (3079:74,104 [57] )
+|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
+
+Source Location: (528:6,36 [57] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
+Generated Location: (3714:91,104 [57] )
+|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
+
+Source Location: (641:11,1 [73] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+|
+Generated Location: (4694:128,1 [73] )
+|
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+|
+

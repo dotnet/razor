@@ -20,8 +20,34 @@ namespace Test
         #pragma warning disable 1998
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
+            __o = 
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+                      str
+
+#line default
+#line hidden
+#nullable disable
+            ;
+            __o = 
+#nullable restore
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
+                      Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+
+#line default
+#line hidden
+#nullable disable
+            ;
         }
         #pragma warning restore 1998
+#nullable restore
+#line 6 "x:\dir\subdir\Test\TestComponent.cshtml"
+ 
+    string str = "abc";
+
+#line default
+#line hidden
+#nullable disable
     }
 }
 #pragma warning restore 1591

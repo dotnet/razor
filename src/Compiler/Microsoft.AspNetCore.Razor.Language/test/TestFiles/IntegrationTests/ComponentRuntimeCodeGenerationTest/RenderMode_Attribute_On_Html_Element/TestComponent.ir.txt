@@ -8,5 +8,20 @@
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupElement - (0:0,0 [81] x:\dir\subdir\Test\TestComponent.cshtml) - input
-                    TagHelperDirectiveAttribute - (20:0,20 [57] x:\dir\subdir\Test\TestComponent.cshtml) - rendermode - Microsoft.AspNetCore.Components.IComponentRenderMode Microsoft.AspNetCore.Components.RenderMode.RenderMode - HtmlAttributeValueStyle.DoubleQuotes
-                        LazyIntermediateToken - (20:0,20 [57] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+                    HtmlAttribute - (20:0,20 [57] x:\dir\subdir\Test\TestComponent.cshtml) -  - 
+                        HtmlAttributeValue - (20:0,20 [57] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                            LazyIntermediateToken - (20:0,20 [57] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+                HtmlContent - (81:0,81 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (81:0,81 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                MarkupElement - (83:1,0 [30] x:\dir\subdir\Test\TestComponent.cshtml) - input
+                    HtmlAttribute - (103:1,20 [6] x:\dir\subdir\Test\TestComponent.cshtml) -  - 
+                        CSharpExpressionAttributeValue - (103:1,20 [6] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                            LazyIntermediateToken - (105:1,22 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - str
+                HtmlContent - (113:1,30 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (113:1,30 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                MarkupElement - (115:2,0 [84] x:\dir\subdir\Test\TestComponent.cshtml) - input
+                    HtmlAttribute - (135:2,20 [60] x:\dir\subdir\Test\TestComponent.cshtml) -  - 
+                        CSharpExpressionAttributeValue - (135:2,20 [60] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                            LazyIntermediateToken - (137:2,22 [57] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+            CSharpCode - (211:5,1 [27] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (211:5,1 [27] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string str = "abc";\n

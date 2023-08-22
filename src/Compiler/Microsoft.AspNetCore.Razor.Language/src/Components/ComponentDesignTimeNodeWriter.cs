@@ -1230,7 +1230,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
     public override void WriteRenderMode(CodeRenderingContext context, RenderModeIntermediateNode node)
     {
         // Looks like:
-        // global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = expression;
+        // __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)expression;
         WriteCSharpCode(context, new CSharpCodeIntermediateNode
         {
             Source = node.Source,
@@ -1239,7 +1239,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 new IntermediateToken
                 {
                     Kind = TokenKind.CSharp,
-                    Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {ComponentsApi.RenderTreeBuilder.RenderModeVariableName} = " 
+                    Content = $"{DesignTimeVariable} = (global::{ComponentsApi.IComponentRenderMode.FullTypeName})" 
                 },
                 node.ExpressionNode,
                 new IntermediateToken
@@ -1249,7 +1249,6 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 }
             }
         });
-        _scopeStack.IncrementRenderMode();
     }
 
     private void WriteCSharpToken(CodeRenderingContext context, IntermediateToken token)

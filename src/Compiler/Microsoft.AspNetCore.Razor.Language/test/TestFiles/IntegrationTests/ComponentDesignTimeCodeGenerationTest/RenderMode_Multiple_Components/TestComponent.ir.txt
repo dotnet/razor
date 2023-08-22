@@ -19,5 +19,4 @@
                 HtmlContent - (89:0,89 [2] x:\dir\subdir\Test\TestComponent.cshtml)
                     LazyIntermediateToken - (89:0,89 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
                 Component - (91:1,0 [89] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
-                    TagHelperDirectiveAttribute - (119:1,28 [57] x:\dir\subdir\Test\TestComponent.cshtml) - rendermode - Microsoft.AspNetCore.Components.IComponentRenderMode Microsoft.AspNetCore.Components.RenderMode.RenderMode - HtmlAttributeValueStyle.DoubleQuotes
-                        LazyIntermediateToken - (119:1,28 [57] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+                    RenderMode - (119:1,28 [57] x:\dir\subdir\Test\TestComponent.cshtml)

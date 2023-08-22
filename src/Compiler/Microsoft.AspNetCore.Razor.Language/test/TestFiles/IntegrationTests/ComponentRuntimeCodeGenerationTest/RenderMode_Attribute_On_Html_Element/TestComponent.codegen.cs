@@ -14,9 +14,42 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenElement(0, "input");
+            __builder.AddAttribute(1, "@rendermode", "Microsoft.AspNetCore.Components.DefaultRenderModes.Server");
+            __builder.CloseElement();
+            __builder.AddMarkupContent(2, "\r\n");
+            __builder.OpenElement(3, "input");
+            __builder.AddAttribute(4, "@rendermode", 
+#nullable restore
+#line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
+                      str
+
+#line default
+#line hidden
+#nullable disable
+            );
+            __builder.CloseElement();
+            __builder.AddMarkupContent(5, "\r\n");
+            __builder.OpenElement(6, "input");
+            __builder.AddAttribute(7, "@rendermode", 
+#nullable restore
+#line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
+                      Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+
+#line default
+#line hidden
+#nullable disable
+            );
             __builder.CloseElement();
         }
         #pragma warning restore 1998
+#nullable restore
+#line 6 "x:\dir\subdir\Test\TestComponent.cshtml"
+ 
+    string str = "abc";
+
+#line default
+#line hidden
+#nullable disable
     }
 }
 #pragma warning restore 1591

@@ -22,7 +22,7 @@ namespace Test
         {
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                              global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = new MyRenderMode() { Extra = "Hello" };
+                              __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)new MyRenderMode() { Extra = "Hello" };
 
 #line default
 #line hidden

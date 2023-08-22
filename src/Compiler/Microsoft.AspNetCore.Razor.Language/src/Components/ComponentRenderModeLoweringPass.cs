@@ -29,15 +29,45 @@ internal class ComponentRenderModeLoweringPass : ComponentIntermediateNodePassBa
         var references = documentNode.FindDescendantReferences<TagHelperDirectiveAttributeIntermediateNode>();
         foreach (var reference in references)
         {
-            if (reference is { Node: TagHelperDirectiveAttributeIntermediateNode node, Parent: ComponentIntermediateNode } && node.TagHelper.IsRenderModeTagHelper())
+            if (reference is { Node: TagHelperDirectiveAttributeIntermediateNode node, Parent: IntermediateNode parentNode } && node.TagHelper.IsRenderModeTagHelper())
             {
-                var expression = node.Children[0] switch
+                if (parentNode is ComponentIntermediateNode)
                 {
-                    CSharpExpressionIntermediateNode cSharpNode => cSharpNode.Children[0],
-                    IntermediateNode token => token
-                };
+                    var expression = node.Children[0] switch
+                    {
+                        CSharpExpressionIntermediateNode cSharpNode => cSharpNode.Children[0],
+                        IntermediateNode token => token
+                    };
 
-                reference.Replace(new RenderModeIntermediateNode(expression));
+                    reference.Replace(new RenderModeIntermediateNode(expression));
+                }
+                else
+                {
+                    // This is on a regular HTML element, not a component, so lower it to a regular HTML attribute
+                    var attributeNode = new HtmlAttributeIntermediateNode()
+                    {
+                        Source = node.Source,
+                        AttributeName = node.OriginalAttributeName,
+                        Children =
+                        {
+                            node.Children[0] switch
+                            {
+                                CSharpExpressionIntermediateNode cSharpNode => new CSharpExpressionAttributeValueIntermediateNode()
+                                {
+                                    Source = node.Source,
+                                    Children = { cSharpNode.Children[0] }
+                                },
+                                IntermediateNode token => new HtmlAttributeValueIntermediateNode()
+                                {
+                                    Source = node.Source,
+                                    Children = { token }
+                                }
+                            }
+                        }
+                    };
+                    attributeNode.Diagnostics.AddRange(node.Diagnostics);
+                    reference.Replace(attributeNode);
+                }
             }
         }
     }

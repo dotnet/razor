@@ -28,7 +28,7 @@ public abstract class ComponentCodeGenerationTestBase : RazorBaselineIntegration
     internal override string DefaultFileName => ComponentName + ".cshtml";
 
     protected ComponentCodeGenerationTestBase()
-        : base(generateBaselines: true)
+        : base(generateBaselines: null)
     {
     }
 
@@ -10079,6 +10079,13 @@ Time: @DateTime.Now
 
         var generated = CompileToCSharp("""
                 <input @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
+                <input @rendermode="@(str)" />
+                <input @rendermode="@(Microsoft.AspNetCore.Components.DefaultRenderModes.Server)" />
+
+                @code
+                {
+                    string str = "abc";
+                }
                 """, throwOnFailure: true, baseCompilation: baseCompilation);
 
         // Assert

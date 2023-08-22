@@ -24,7 +24,6 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
     private readonly List<IntermediateToken> _currentAttributeValues = new List<IntermediateToken>();
     private readonly ScopeStack _scopeStack = new ScopeStack();
     private int _sourceSequence;
-    //private int _renderModeSequence;
 
     public ComponentRuntimeNodeWriter(RazorLanguageVersion version) : base(version)
     {
