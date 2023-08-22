@@ -93,7 +93,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
         // For example, when a document moves from the Misc Project to a real project, we will update it here, and each version would
         // have a different project key. On the receiving end however, there is only one file path, therefore one version of the contents,
         // so we must ensure we only have a single document to compute diffs from, or things get out of sync.
-        // if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
+        if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
         {
             projectKey = default;
         }
@@ -136,17 +136,6 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             Changes = textChanges,
             HostDocumentVersion = hostDocumentVersion,
         };
-
-        // We know about a document being in multiple projects, but if the generated file name doesn't use the project key as part of its name, then
-        // it means the receiver of this LSP message only knows about a single document file path. To prevent confusing them, we just send an update
-        // for the first project in the list.
-        if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath &&
-            _projectSnapshotManager is { } projectSnapshotManager &&
-            projectSnapshotManager.GetLoadedProject(projectKey) is { } projectSnapshot &&
-            projectSnapshotManager.GetAllProjectKeys(projectSnapshot.FilePath).First() != projectKey)
-        {
-            return;
-        }
 
         _ = _server.SendNotificationAsync(CustomMessageNames.RazorUpdateCSharpBufferEndpoint, request, CancellationToken.None);
     }
@@ -201,16 +190,6 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             Changes = textChanges,
             HostDocumentVersion = hostDocumentVersion,
         };
-
-        // Since Html generated files don't use the project key as part of their name, then
-        // it means the receiver of this LSP message only knows about a single document file path.
-        // To prevent confusing them, we just send an update for the first project in the list.
-        if (_projectSnapshotManager is { } projectSnapshotManager &&
-            projectSnapshotManager.GetLoadedProject(projectKey) is { } projectSnapshot &&
-            projectSnapshotManager.GetAllProjectKeys(projectSnapshot.FilePath).First() != projectKey)
-        {
-            return;
-        }
 
         _ = _server.SendNotificationAsync(CustomMessageNames.RazorUpdateHtmlBufferEndpoint, request, CancellationToken.None);
     }
