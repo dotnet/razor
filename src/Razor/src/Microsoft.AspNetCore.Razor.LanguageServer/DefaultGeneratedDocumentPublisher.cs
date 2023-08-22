@@ -213,7 +213,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
                 if (!_projectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
                 {
                     var projectKey = args.ProjectKey;
-                    // if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
+                    if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
                     {
                         projectKey = default;
                     }
