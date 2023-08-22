@@ -54,6 +54,11 @@ internal class DocumentFilePathProvider
         }
         else if (_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
         {
+            // If this is a C# generated file, and we're including the project suffix, then filename will be
+            // <Page>.razor.<project slug><c# suffix>
+            // This means we can remove the project key easily, by just looking for the last '.'. The project
+            // slug itself cannot a '.', enforced by the assert below in GetProjectSuffix
+
             trimIndex = filePath.LastIndexOf('.', trimIndex - 1);
             Debug.Assert(trimIndex != -1, "There was no project element to the generated file name?");
         }
