@@ -320,7 +320,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 context.AddSource(hintName, csharpDocument.GeneratedCode);
             });
 
-            // PROTOTYPE: ExternalAccess.RazorCompiler does not have IVT to the new assembly.
+            // ExternalAccess.RazorCompiler does not have IVT to the new assembly.
+            // https://github.com/dotnet/razor/issues/8400
             // context.RegisterHostOutput(processed(designTime: true), static (context, pair, _) =>
             // {
             //     var (filePath, document) = pair;

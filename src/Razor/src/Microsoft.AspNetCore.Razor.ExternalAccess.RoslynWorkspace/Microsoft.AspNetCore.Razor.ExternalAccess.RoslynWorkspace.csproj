@@ -30,7 +30,7 @@
       * Microsoft.CodeAnalysis.Razor.Compiler.Mvc.dll
       * Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll
       * Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll
-      * Microsoft.AspNetCore.Razor.Language.dll
+      * Microsoft.CodeAnalysis.Razor.Compiler.Language.dll
       * Microsoft.AspNetCore.Razor.ProjectEngineHost.dll
       * Microsoft.AspNetCore.Razor.Utilities.Shared.dll
       * Microsoft.CodeAnalysis.Razor.Compiler.CSharp.dll
