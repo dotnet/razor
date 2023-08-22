@@ -101,6 +101,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
         var key = new DocumentKey(projectKey, filePath);
         if (!_publishedCSharpData.TryGetValue(key, out var previouslyPublishedData))
         {
+            _logger.LogDebug("New publish data created for {project} and {filePath}", projectKey, filePath);
             previouslyPublishedData = PublishData.Default;
         }
 
@@ -212,13 +213,6 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
                 Assumes.NotNull(args.DocumentFilePath);
                 if (!_projectSnapshotManager.IsDocumentOpen(args.DocumentFilePath))
                 {
-                    var projectKey = args.ProjectKey;
-                    if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
-                    {
-                        projectKey = default;
-                    }
-
-                    var key = new DocumentKey(projectKey, args.DocumentFilePath);
                     // Document closed, evict published source text, unless the server doesn't want us to.
                     if (_languageServerFeatureOptions.UpdateBuffersForClosedDocuments)
                     {
@@ -227,6 +221,13 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
                         return;
                     }
 
+                    var projectKey = args.ProjectKey;
+                    if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
+                    {
+                        projectKey = default;
+                    }
+
+                    var key = new DocumentKey(projectKey, args.DocumentFilePath);
                     if (_publishedCSharpData.ContainsKey(key))
                     {
                         var removed = _publishedCSharpData.Remove(key);

@@ -203,7 +203,7 @@ internal partial class RazorCustomMessageTarget
         // If we failed to sync on version 1, then it could be that we got new information while waiting, so try again
         if (requiredHostDocumentVersion == 1 && !result.Synchronized)
         {
-            _outputWindowLogger?.LogDebug("Sync failed for v1 document. Trying again");
+            _outputWindowLogger?.LogDebug("Sync failed for v1 document. Trying to get virtual document again.");
             virtualDocument = FindVirtualDocument<TVirtualDocumentSnapshot>(hostDocument.Uri, hostDocument.GetProjectContext());
 
             if (virtualDocument is null)
@@ -212,7 +212,7 @@ internal partial class RazorCustomMessageTarget
                 return await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(requiredHostDocumentVersion, hostDocument.Uri, cancellationToken).ConfigureAwait(false);
             }
 
-            _outputWindowLogger?.LogDebug("Got virtual document after trying again {uri}.Trying again.", virtualDocument.Uri);
+            _outputWindowLogger?.LogDebug("Got virtual document after trying again {uri}. Trying to synchronize again.", virtualDocument.Uri);
 
             // try again
             result = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(requiredHostDocumentVersion, hostDocument.Uri, virtualDocument.Uri, rejectOnNewerParallelRequest, cancellationToken).ConfigureAwait(false);

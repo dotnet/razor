@@ -40,7 +40,7 @@ internal partial class RazorCustomMessageTarget
 
         var hostDocumentUri = new Uri(request.HostDocumentFilePath);
 
-        _outputWindowLogger?.LogDebug("UpdateCSharpBuffer for {version} of {uri}", request.HostDocumentVersion.Value, hostDocumentUri);
+        _outputWindowLogger?.LogDebug("UpdateCSharpBuffer for {version} of {uri} in {projectKey}", request.HostDocumentVersion.Value, hostDocumentUri, request.ProjectKeyId);
 
         // If we're generating unique file paths for virtual documents, then we have to take a different path here, and do more work
         if (_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath &&

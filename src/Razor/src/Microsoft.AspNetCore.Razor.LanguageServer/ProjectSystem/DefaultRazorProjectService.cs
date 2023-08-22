@@ -119,7 +119,7 @@ internal class DefaultRazorProjectService : RazorProjectService
             var textLoader = _remoteTextLoaderFactory.Create(textDocumentPath);
 
             var projectSnapshotManager = _projectSnapshotManagerAccessor.Instance;
-            _logger.LogInformation("Adding document '{filePath}' to project '{projectSnapshotFilePath}'.", filePath, projectSnapshot.FilePath);
+            _logger.LogInformation("Adding document '{filePath}' to project '{projectKey}'.", filePath, projectSnapshot.Key);
             projectSnapshotManager.DocumentAdded(projectSnapshot.Key, hostDocument, textLoader);
 
             // Adding a document to a project could also happen because a target was added to a project, or we're moving a document
@@ -152,7 +152,7 @@ internal class DefaultRazorProjectService : RazorProjectService
 
         ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
         {
-            _logger.LogInformation("Opening document '{textDocumentPath}' in project '{projectSnapshotFilePath}'.", textDocumentPath, projectSnapshot.FilePath);
+            _logger.LogInformation("Opening document '{textDocumentPath}' in project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
             _projectSnapshotManagerAccessor.Instance.DocumentOpened(projectSnapshot.Key, textDocumentPath, sourceText);
         });
 
@@ -170,7 +170,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         ActOnDocumentInMultipleProjects(filePath, (projectSnapshot, textDocumentPath) =>
         {
             var textLoader = _remoteTextLoaderFactory.Create(filePath);
-            _logger.LogInformation("Closing document '{textDocumentPath}' in project '{projectSnapshotFilePath}'.", textDocumentPath, projectSnapshot.FilePath);
+            _logger.LogInformation("Closing document '{textDocumentPath}' in project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
             _projectSnapshotManagerAccessor.Instance.DocumentClosed(projectSnapshot.Key, textDocumentPath, textLoader);
         });
     }
@@ -198,7 +198,7 @@ internal class DefaultRazorProjectService : RazorProjectService
             // a remove via the project.razor.json
             if (_projectSnapshotManagerAccessor.Instance.IsDocumentOpen(textDocumentPath))
             {
-                _logger.LogInformation("Moving document '{textDocumentPath}' from project '{projectSnapshotFilePath}' to misc files because it is open.", textDocumentPath, projectSnapshot.FilePath);
+                _logger.LogInformation("Moving document '{textDocumentPath}' from project '{projectKey}' to misc files because it is open.", textDocumentPath, projectSnapshot.Key);
                 var miscellaneousProject = (ProjectSnapshot)_snapshotResolver.GetMiscellaneousProject();
                 if (projectSnapshot != miscellaneousProject)
                 {
@@ -207,7 +207,7 @@ internal class DefaultRazorProjectService : RazorProjectService
             }
             else
             {
-                _logger.LogInformation("Removing document '{textDocumentPath}' from project '{projectSnapshotFilePath}'.", textDocumentPath, projectSnapshot.FilePath);
+                _logger.LogInformation("Removing document '{textDocumentPath}' from project '{projectKey}'.", textDocumentPath, projectSnapshot.Key);
                 _projectSnapshotManagerAccessor.Instance.DocumentRemoved(projectSnapshot.Key, documentSnapshot.State.HostDocument);
             }
         });
@@ -520,8 +520,8 @@ internal class DefaultRazorProjectService : RazorProjectService
             var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
             var defaultProject = (ProjectSnapshot)projectSnapshot;
             var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath);
-            _logger.LogInformation("Migrating '{documentFilePath}' from the '{miscellaneousProject.FilePath}' project to '{projectSnapshot.FilePath}' project.",
-                documentFilePath, miscellaneousProject.FilePath, projectSnapshot.FilePath);
+            _logger.LogInformation("Migrating '{documentFilePath}' from the '{miscellaneousProject.Key}' project to '{projectSnapshot.Key}' project.",
+                documentFilePath, miscellaneousProject.FilePath, projectSnapshot.Key);
             _projectSnapshotManagerAccessor.Instance.DocumentAdded(defaultProject.Key, newHostDocument, textLoader);
         }
     }
