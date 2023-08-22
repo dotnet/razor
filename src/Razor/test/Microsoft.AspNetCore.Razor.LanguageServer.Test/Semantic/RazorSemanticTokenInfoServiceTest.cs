@@ -862,7 +862,7 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
             .ReturnsAsync(csharpTokens);
 
         var documentContextFactory = new TestDocumentContextFactory(documentSnapshots);
-        var documentMappingService = new RazorDocumentMappingService(TestDocumentFilePathProvider.Instance, documentContextFactory, LoggerFactory);
+        var documentMappingService = new RazorDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
         var configurationSyncService = new Mock<IConfigurationSyncService>(MockBehavior.Strict);
 

@@ -34,7 +34,8 @@ public class RazorDocumentInfoProviderTest : WorkspaceTestBase
         var lspEditorEnabledFeatureDetector = Mock.Of<LSPEditorFeatureDetector>(detector => detector.IsLSPEditorAvailable() == true, MockBehavior.Strict);
         var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == _projectSnapshotManager, MockBehavior.Strict);
 
-        _innerDynamicDocumentInfoProvider = new DefaultRazorDynamicFileInfoProvider(serviceProviderFactory, lspEditorEnabledFeatureDetector, TestDocumentFilePathProvider.Instance, projectSnapshotManagerAccessor);
+        var filePathService = new FilePathService(TestLanguageServerFeatureOptions.Instance);
+        _innerDynamicDocumentInfoProvider = new DefaultRazorDynamicFileInfoProvider(serviceProviderFactory, lspEditorEnabledFeatureDetector, filePathService, projectSnapshotManagerAccessor);
 
         var hostProject = new HostProject("C:/path/to/project.csproj", "C:/path/to/obj", RazorConfiguration.Default, "RootNamespace");
         _projectSnapshotManager.ProjectAdded(hostProject);

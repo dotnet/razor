@@ -53,10 +53,10 @@ public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
         _document2 = (DocumentSnapshot)_project.GetDocument(hostDocument2.FilePath);
 
         var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true);
-        var documentFilePathProvider = new TestDocumentFilePathProvider(languageServerFeatureOptions);
+        var filePathService = new FilePathService(languageServerFeatureOptions);
         var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == _projectSnapshotManager, MockBehavior.Strict);
 
-        _provider = new DefaultRazorDynamicFileInfoProvider(_documentServiceFactory, _editorFeatureDetector, documentFilePathProvider, projectSnapshotManagerAccessor);
+        _provider = new DefaultRazorDynamicFileInfoProvider(_documentServiceFactory, _editorFeatureDetector, filePathService, projectSnapshotManagerAccessor);
         _testAccessor = _provider.GetTestAccessor();
         _provider.Initialize(_projectSnapshotManager);
 

@@ -23,16 +23,16 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 {
-    private readonly DocumentFilePathProvider _documentFilePathProvider;
+    private readonly FilePathService _documentFilePathService;
     private readonly DocumentContextFactory _documentContextFactory;
     private readonly ILogger _logger;
 
     public RazorDocumentMappingService(
-        DocumentFilePathProvider documentFilePathProvider,
+        FilePathService filePathService,
         DocumentContextFactory documentContextFactory,
         ILoggerFactory loggerFactory)
     {
-        _documentFilePathProvider = documentFilePathProvider ?? throw new ArgumentNullException(nameof(documentFilePathProvider));
+        _documentFilePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
         _documentContextFactory = documentContextFactory ?? throw new ArgumentNullException(nameof(documentContextFactory));
         _logger = loggerFactory?.CreateLogger<RazorDocumentMappingService>() ?? throw new ArgumentNullException(nameof(loggerFactory));
     }
@@ -442,16 +442,16 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
     public async Task<(Uri MappedDocumentUri, Range MappedRange)> MapToHostDocumentUriAndRangeAsync(Uri generatedDocumentUri, Range generatedDocumentRange, CancellationToken cancellationToken)
     {
-        var razorDocumentUri = _documentFilePathProvider.GetRazorDocumentUri(generatedDocumentUri);
+        var razorDocumentUri = _documentFilePathService.GetRazorDocumentUri(generatedDocumentUri);
 
         // For Html we just map the Uri, the range will be the same
-        if (_documentFilePathProvider.IsVirtualHtmlFile(generatedDocumentUri))
+        if (_documentFilePathService.IsVirtualHtmlFile(generatedDocumentUri))
         {
             return (razorDocumentUri, generatedDocumentRange);
         }
 
         // We only map from C# files
-        if (!_documentFilePathProvider.IsVirtualCSharpFile(generatedDocumentUri))
+        if (!_documentFilePathService.IsVirtualCSharpFile(generatedDocumentUri))
         {
             return (generatedDocumentUri, generatedDocumentRange);
         }
@@ -810,14 +810,14 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             var generatedDocumentUri = entry.TextDocument.Uri;
 
             // Check if the edit is actually for a generated document, because if not we don't need to do anything
-            if (!_documentFilePathProvider.IsVirtualDocumentUri(generatedDocumentUri))
+            if (!_documentFilePathService.IsVirtualDocumentUri(generatedDocumentUri))
             {
                 // This location doesn't point to a background razor file. No need to remap.
                 remappedDocumentEdits.Add(entry);
                 continue;
             }
 
-            var razorDocumentUri = _documentFilePathProvider.GetRazorDocumentUri(generatedDocumentUri);
+            var razorDocumentUri = _documentFilePathService.GetRazorDocumentUri(generatedDocumentUri);
             var documentContext = _documentContextFactory.TryCreateForOpenDocument(razorDocumentUri, entry.TextDocument.GetProjectContext());
             if (documentContext is null)
             {
@@ -856,7 +856,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
             var edits = entry.Value;
 
             // Check if the edit is actually for a generated document, because if not we don't need to do anything
-            if (!_documentFilePathProvider.IsVirtualDocumentUri(uri))
+            if (!_documentFilePathService.IsVirtualDocumentUri(uri))
             {
                 remappedChanges[entry.Key] = entry.Value;
                 continue;
@@ -876,7 +876,7 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
                 continue;
             }
 
-            var razorDocumentUri = _documentFilePathProvider.GetRazorDocumentUri(uri);
+            var razorDocumentUri = _documentFilePathService.GetRazorDocumentUri(uri);
             remappedChanges[razorDocumentUri.AbsoluteUri] = remappedEdits;
         }
 
@@ -915,11 +915,11 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
     private IRazorGeneratedDocument? GetGeneratedDocumentFromGeneratedDocumentUri(Uri generatedDocumentUri, RazorCodeDocument codeDocument)
     {
-        if (_documentFilePathProvider.IsVirtualCSharpFile(generatedDocumentUri))
+        if (_documentFilePathService.IsVirtualCSharpFile(generatedDocumentUri))
         {
             return codeDocument.GetCSharpDocument();
         }
-        else if (_documentFilePathProvider.IsVirtualHtmlFile(generatedDocumentUri))
+        else if (_documentFilePathService.IsVirtualHtmlFile(generatedDocumentUri))
         {
             return codeDocument.GetHtmlDocument();
         }

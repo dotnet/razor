@@ -29,19 +29,19 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
     private readonly Func<Key, Entry> _createEmptyEntry;
     private readonly RazorDocumentServiceProviderFactory _factory;
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
-    private readonly DocumentFilePathProvider _documentFilePathProvider;
+    private readonly FilePathService _filePathService;
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
 
     [ImportingConstructor]
     public DefaultRazorDynamicFileInfoProvider(
         RazorDocumentServiceProviderFactory factory,
         LSPEditorFeatureDetector lspEditorFeatureDetector,
-        DocumentFilePathProvider documentFilePathProvider,
+        FilePathService filePathService,
         ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
     {
         _factory = factory ?? throw new ArgumentNullException(nameof(factory));
         _lspEditorFeatureDetector = lspEditorFeatureDetector ?? throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
-        _documentFilePathProvider = documentFilePathProvider ?? throw new ArgumentNullException(nameof(documentFilePathProvider));
+        _filePathService = filePathService ?? throw new ArgumentNullException(nameof(filePathService));
         _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor ?? throw new ArgumentNullException(nameof(projectSnapshotManagerAccessor));
 
         _entries = new ConcurrentDictionary<Key, Entry>();
@@ -73,7 +73,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
         documentContainer.SupportsDiagnostics = true;
 
         // TODO: This needs to use the project key somehow, rather than assuming all generated content is the same
-        var filePath = DocumentFilePathProvider.GetProjectSystemFilePath(documentUri);
+        var filePath = FilePathService.GetProjectSystemFilePath(documentUri);
 
         var foundAny = false;
         foreach (var associatedKvp in GetAllKeysForPath(filePath))
@@ -143,7 +143,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
             throw new ArgumentNullException(nameof(propertiesService));
         }
 
-        var filePath = DocumentFilePathProvider.GetProjectSystemFilePath(documentUri);
+        var filePath = FilePathService.GetProjectSystemFilePath(documentUri);
         foreach (var associatedKvp in GetAllKeysForPath(filePath))
         {
             var associatedKey = associatedKvp.Key;
@@ -157,7 +157,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
                 continue;
             }
 
-            var filename = _documentFilePathProvider.GetRazorCSharpFilePath(key, associatedKey.FilePath);
+            var filename = _filePathService.GetRazorCSharpFilePath(key, associatedKey.FilePath);
 
             // To promote the background document, we just need to add the passed in properties service to
             // the dynamic file info. The properties service contains the client name and allows the C#
@@ -344,7 +344,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
     private RazorDynamicFileInfo CreateEmptyInfo(Key key)
     {
         var projectKey = TryFindProjectKeyForProjectId(key.ProjectId).AssumeNotNull();
-        var filename = _documentFilePathProvider.GetRazorCSharpFilePath(projectKey, key.FilePath);
+        var filename = _filePathService.GetRazorCSharpFilePath(projectKey, key.FilePath);
         var textLoader = new EmptyTextLoader(filename);
         return new RazorDynamicFileInfo(filename, SourceCodeKind.Regular, textLoader, _factory.CreateEmpty());
     }
@@ -352,7 +352,7 @@ internal class DefaultRazorDynamicFileInfoProvider : RazorDynamicFileInfoProvide
     private RazorDynamicFileInfo CreateInfo(Key key, DynamicDocumentContainer document)
     {
         var projectKey = TryFindProjectKeyForProjectId(key.ProjectId).AssumeNotNull();
-        var filename = _documentFilePathProvider.GetRazorCSharpFilePath(projectKey, key.FilePath);
+        var filename = _filePathService.GetRazorCSharpFilePath(projectKey, key.FilePath);
         var textLoader = document.GetTextLoader(filename);
         return new RazorDynamicFileInfo(filename, SourceCodeKind.Regular, textLoader, _factory.Create(document));
     }

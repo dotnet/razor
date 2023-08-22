@@ -31,7 +31,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
 
     private static IContentType? s_csharpContentType;
     private readonly FileUriProvider _fileUriProvider;
-    private readonly DocumentFilePathProvider _documentFilePathProvider;
+    private readonly FilePathService _filePathService;
     private readonly ProjectSnapshotManagerAccessor _projectSnapshotManagerAccessor;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
     private readonly IOutputWindowLogger _logger;
@@ -42,14 +42,14 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         ITextBufferFactoryService textBufferFactory,
         ITextDocumentFactoryService textDocumentFactory,
         FileUriProvider fileUriProvider,
-        DocumentFilePathProvider documentFilePathProvider,
+        FilePathService filePathService,
         ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
         LanguageServerFeatureOptions languageServerFeatureOptions,
         IOutputWindowLogger logger)
         : base(contentTypeRegistry, textBufferFactory, textDocumentFactory, fileUriProvider)
     {
         _fileUriProvider = fileUriProvider;
-        _documentFilePathProvider = documentFilePathProvider;
+        _filePathService = filePathService;
         _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
         _languageServerFeatureOptions = languageServerFeatureOptions;
         _logger = logger;
@@ -191,7 +191,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
         var projects = _projectSnapshotManagerAccessor.Instance.GetProjects();
 
         var inAny = false;
-        var normalizedDocumentPath = DocumentFilePathProvider.GetProjectSystemFilePath(hostDocumentUri);
+        var normalizedDocumentPath = FilePathService.GetProjectSystemFilePath(hostDocumentUri);
         foreach (var projectSnapshot in projects)
         {
             if (projectSnapshot.GetDocument(normalizedDocumentPath) is not null)
@@ -213,7 +213,7 @@ internal class CSharpVirtualDocumentFactory : VirtualDocumentFactoryBase
 
     private CSharpVirtualDocument CreateVirtualDocument(ProjectKey projectKey, Uri hostDocumentUri)
     {
-        var virtualLanguageFilePath = _documentFilePathProvider.GetRazorCSharpFilePath(projectKey, hostDocumentUri.GetAbsoluteOrUNCPath());
+        var virtualLanguageFilePath = _filePathService.GetRazorCSharpFilePath(projectKey, hostDocumentUri.GetAbsoluteOrUNCPath());
         var virtualLanguageUri = new Uri(virtualLanguageFilePath);
 
         var languageBuffer = CreateVirtualDocumentTextBuffer(virtualLanguageFilePath, virtualLanguageUri);

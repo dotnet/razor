@@ -53,9 +53,8 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
     protected async Task CreateLanguageServerAsync(RazorCodeDocument codeDocument, string razorFilePath, IEnumerable<(string, string)> additionalRazorDocuments = null)
     {
         var projectKey = TestProjectKey.Create("");
-        var documentFilePathProvider = TestDocumentFilePathProvider.Instance;
         var csharpSourceText = codeDocument.GetCSharpSourceText();
-        var csharpDocumentUri = new Uri(documentFilePathProvider.GetRazorCSharpFilePath(projectKey, razorFilePath));
+        var csharpDocumentUri = new Uri(FilePathService.GetRazorCSharpFilePath(projectKey, razorFilePath));
 
         var csharpFiles = new List<(Uri, SourceText)>();
         csharpFiles.Add((csharpDocumentUri, csharpSourceText));
@@ -65,7 +64,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
             {
                 var additionalDocument = CreateCodeDocument(contents, filePath: filePath);
                 var additionalDocumentSourceText = additionalDocument.GetCSharpSourceText();
-                var additionalDocumentUri = new Uri(documentFilePathProvider.GetRazorCSharpFilePath(projectKey, "C:/path/to/" + filePath));
+                var additionalDocumentUri = new Uri(FilePathService.GetRazorCSharpFilePath(projectKey, "C:/path/to/" + filePath));
 
                 csharpFiles.Add((additionalDocumentUri, additionalDocumentSourceText));
             }
@@ -93,7 +92,7 @@ public abstract class SingleServerDelegatingEndpointTestBase : LanguageServerTes
             options.HtmlVirtualDocumentSuffix == DefaultLanguageServerFeatureOptions.DefaultHtmlVirtualDocumentSuffix,
             MockBehavior.Strict);
         LanguageServer = new TestLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
-        DocumentMappingService = new RazorDocumentMappingService(documentFilePathProvider, DocumentContextFactory, LoggerFactory);
+        DocumentMappingService = new RazorDocumentMappingService(FilePathService, DocumentContextFactory, LoggerFactory);
     }
 
     internal class TestLanguageServer : ClientNotifierServiceBase

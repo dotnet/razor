@@ -27,6 +27,7 @@ public class CSharpVirtualDocumentFactoryTest : TestBase
     private readonly IContentTypeRegistryService _contentTypeRegistryService;
     private readonly ITextBufferFactoryService _textBufferFactoryService;
     private readonly ITextDocumentFactoryService TextDocumentFactoryService;
+    private readonly FilePathService _filePathService;
 
     public CSharpVirtualDocumentFactoryTest(ITestOutputHelper testOutput)
         : base(testOutput)
@@ -55,6 +56,8 @@ public class CSharpVirtualDocumentFactoryTest : TestBase
 
         TextDocumentFactoryService = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict).Object;
         Mock.Get(TextDocumentFactoryService).Setup(s => s.CreateTextDocument(It.IsAny<ITextBuffer>(), It.IsAny<string>())).Returns((ITextDocument)null);
+
+        _filePathService = new FilePathService(TestLanguageServerFeatureOptions.Instance);
     }
 
     [Fact]
@@ -64,7 +67,7 @@ public class CSharpVirtualDocumentFactoryTest : TestBase
         var uri = new Uri("C:/path/to/file.razor");
         var uriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(It.IsAny<ITextBuffer>()) == uri, MockBehavior.Strict);
         var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict);
-        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, TestDocumentFilePathProvider.Instance, projectSnapshotManagerAccessor, TestLanguageServerFeatureOptions.Instance, new TestOutputWindowLogger());
+        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, _filePathService, projectSnapshotManagerAccessor, TestLanguageServerFeatureOptions.Instance, new TestOutputWindowLogger());
 
         // Act
         var result = factory.TryCreateMultipleFor(_nonRazorLSPBuffer, out var virtualDocuments);
@@ -87,7 +90,7 @@ public class CSharpVirtualDocumentFactoryTest : TestBase
         projectSnapshotManager.CreateAndAddDocument(project, @"C:\path\to\file.razor");
         var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == projectSnapshotManager, MockBehavior.Strict);
 
-        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, TestDocumentFilePathProvider.Instance, projectSnapshotManagerAccessor, TestLanguageServerFeatureOptions.Instance, new TestOutputWindowLogger());
+        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, _filePathService, projectSnapshotManagerAccessor, TestLanguageServerFeatureOptions.Instance, new TestOutputWindowLogger());
 
         // Act
         var result = factory.TryCreateMultipleFor(_razorLSPBuffer, out var virtualDocuments);
@@ -116,8 +119,8 @@ public class CSharpVirtualDocumentFactoryTest : TestBase
         var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == projectSnapshotManager, MockBehavior.Strict);
 
         var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true);
-        var documentFilePathProvider = new TestDocumentFilePathProvider(languageServerFeatureOptions);
-        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, documentFilePathProvider, projectSnapshotManagerAccessor, languageServerFeatureOptions, new TestOutputWindowLogger());
+        var filePathService = new FilePathService(languageServerFeatureOptions);
+        var factory = new CSharpVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, TextDocumentFactoryService, uriProvider, filePathService, projectSnapshotManagerAccessor, languageServerFeatureOptions, new TestOutputWindowLogger());
 
         // Act
         var result = factory.TryCreateMultipleFor(_razorLSPBuffer, out var virtualDocuments);

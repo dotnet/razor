@@ -17,17 +17,17 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 [Export(typeof(VisualStudioMacDocumentInfoFactory))]
 internal class DefaultVisualStudioMacDocumentInfoFactory : VisualStudioMacDocumentInfoFactory
 {
-    private readonly DocumentFilePathProvider _documentFilePathProvider;
+    private readonly FilePathService _filePathService;
 
     [ImportingConstructor]
-    public DefaultVisualStudioMacDocumentInfoFactory(DocumentFilePathProvider documentFilePathProvider)
+    public DefaultVisualStudioMacDocumentInfoFactory(FilePathService filePathService)
     {
-        _documentFilePathProvider = documentFilePathProvider;
+        _filePathService = filePathService;
     }
 
     public override DocumentInfo CreateEmpty(string razorFilePath, ProjectId projectId, ProjectKey projectKey)
     {
-        var filename = _documentFilePathProvider.GetRazorCSharpFilePath(projectKey, razorFilePath);
+        var filename = _filePathService.GetRazorCSharpFilePath(projectKey, razorFilePath);
         var textLoader = new EmptyTextLoader(filename);
         var docId = DocumentId.CreateNewId(projectId, debugName: filename);
         return DocumentInfo.Create(

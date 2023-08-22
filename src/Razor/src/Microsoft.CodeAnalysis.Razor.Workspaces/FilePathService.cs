@@ -11,13 +11,13 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 [Shared]
-[Export(typeof(DocumentFilePathProvider))]
-internal class DocumentFilePathProvider
+[Export(typeof(FilePathService))]
+internal sealed class FilePathService
 {
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
 
     [ImportingConstructor]
-    public DocumentFilePathProvider(LanguageServerFeatureOptions languageServerFeatureOptions)
+    public FilePathService(LanguageServerFeatureOptions languageServerFeatureOptions)
     {
         _languageServerFeatureOptions = languageServerFeatureOptions;
     }
