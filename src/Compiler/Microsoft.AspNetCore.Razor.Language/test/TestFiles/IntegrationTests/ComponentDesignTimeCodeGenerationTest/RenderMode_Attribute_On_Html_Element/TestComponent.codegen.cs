@@ -32,7 +32,7 @@ namespace Test
             __o = 
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                      Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+                      Microsoft.AspNetCore.Components.Web.RenderMode.Server
 
 #line default
 #line hidden

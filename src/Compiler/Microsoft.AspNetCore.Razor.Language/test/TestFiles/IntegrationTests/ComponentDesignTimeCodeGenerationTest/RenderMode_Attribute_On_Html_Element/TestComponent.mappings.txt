@@ -1,18 +1,18 @@
-﻿Source Location: (105:1,22 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+﻿Source Location: (101:1,22 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 |str|
 Generated Location: (943:25,22 [3] )
 |str|
 
-Source Location: (137:2,22 [57] x:\dir\subdir\Test\TestComponent.cshtml)
-|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
-Generated Location: (1125:34,22 [57] )
-|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
+Source Location: (133:2,22 [53] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.Web.RenderMode.Server|
+Generated Location: (1125:34,22 [53] )
+|Microsoft.AspNetCore.Components.Web.RenderMode.Server|
 
-Source Location: (211:5,1 [27] x:\dir\subdir\Test\TestComponent.cshtml)
+Source Location: (203:5,1 [27] x:\dir\subdir\Test\TestComponent.cshtml)
 |
     string str = "abc";
 |
-Generated Location: (1369:44,1 [27] )
+Generated Location: (1365:44,1 [27] )
 |
     string str = "abc";
 |

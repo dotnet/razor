@@ -22,7 +22,7 @@ namespace Test
         {
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                            __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                            __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)(Microsoft.AspNetCore.Components.Web.RenderMode.Server);
 
 #line default
 #line hidden
@@ -39,7 +39,7 @@ __o = typeof(global::Test.TestComponent);
 #nullable disable
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                            __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                            __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)(Microsoft.AspNetCore.Components.Web.RenderMode.Server);
 
 #line default
 #line hidden

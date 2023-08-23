@@ -39,7 +39,7 @@ where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
             , 2, 
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                              Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+                                                              Microsoft.AspNetCore.Components.Web.RenderMode.Server
 
 #line default
 #line hidden
@@ -67,7 +67,7 @@ namespace __Blazor.Test.TestComponent
         {
         __builder.OpenComponent<global::Test.TestComponent<TRenderMode>>(seq);
         __builder.AddComponentParameter(__seq1, "RenderModeParam", __arg1);
-        __builder.SetRenderMode(__arg0);
+        __builder.AddComponentRenderMode(__arg0);
         __builder.CloseComponent();
         }
     }

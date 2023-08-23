@@ -7,12 +7,12 @@
         UsingDirective - (136:5,1 [47] ) - global::Microsoft.AspNetCore.Components
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase -  - TRenderMode
             MethodDeclaration -  - protected override - void - BuildRenderTree
-                Component - (99:2,0 [123] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                Component - (99:2,0 [119] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
                     RenderMode - (127:2,28 [15] x:\dir\subdir\Test\TestComponent.cshtml)
-                    ComponentAttribute - (161:2,62 [57] x:\dir\subdir\Test\TestComponent.cshtml) - RenderModeParam - RenderModeParam - AttributeStructure.DoubleQuotes
-                        LazyIntermediateToken - (161:2,62 [57] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.DefaultRenderModes.Server
-            CSharpCode - (234:5,1 [67] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (234:5,1 [67] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public TRenderMode RenderModeParam { get; set;}\n
+                    ComponentAttribute - (161:2,62 [53] x:\dir\subdir\Test\TestComponent.cshtml) - RenderModeParam - RenderModeParam - AttributeStructure.DoubleQuotes
+                        LazyIntermediateToken - (161:2,62 [53] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.Web.RenderMode.Server
+            CSharpCode - (230:5,1 [67] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (230:5,1 [67] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public TRenderMode RenderModeParam { get; set;}\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateTestComponent_0

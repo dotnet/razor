@@ -417,8 +417,8 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
 
             if (hasRenderMode)
             {
-                // _builder.SetRenderMode(__renderMode_0);
-                WriteSetRenderMode(context, _scopeStack.BuilderVarName, _scopeStack.RenderModeVarName);
+                // _builder.AddComponentRenderMode(__renderMode_0);
+                WriteAddComponentRenderMode(context, _scopeStack.BuilderVarName, _scopeStack.RenderModeVarName);
                 _scopeStack.IncrementRenderMode();
             }
 

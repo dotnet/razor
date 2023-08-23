@@ -1,5 +1,5 @@
-﻿Source Location: (30:0,30 [71] x:\dir\subdir\Test\TestComponent.cshtml)
-|true ? Microsoft.AspNetCore.Components.DefaultRenderModes.Server : null|
-Generated Location: (815:18,106 [71] )
-|true ? Microsoft.AspNetCore.Components.DefaultRenderModes.Server : null|
+﻿Source Location: (30:0,30 [67] x:\dir\subdir\Test\TestComponent.cshtml)
+|true ? Microsoft.AspNetCore.Components.Web.RenderMode.Server : null|
+Generated Location: (815:18,106 [67] )
+|true ? Microsoft.AspNetCore.Components.Web.RenderMode.Server : null|
 

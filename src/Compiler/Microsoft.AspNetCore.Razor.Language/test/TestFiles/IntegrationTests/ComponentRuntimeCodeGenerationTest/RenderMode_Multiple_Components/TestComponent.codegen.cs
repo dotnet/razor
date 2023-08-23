@@ -16,23 +16,23 @@ namespace Test
             __builder.OpenComponent<global::Test.TestComponent>(0);
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                            global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                            global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = Microsoft.AspNetCore.Components.Web.RenderMode.Server;
 
 #line default
 #line hidden
 #nullable disable
-            __builder.SetRenderMode(__renderMode);
+            __builder.AddComponentRenderMode(__renderMode);
             __builder.CloseComponent();
             __builder.AddMarkupContent(1, "\r\n");
             __builder.OpenComponent<global::Test.TestComponent>(2);
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                            global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode1_1 = Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                            global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode1_1 = Microsoft.AspNetCore.Components.Web.RenderMode.Server;
 
 #line default
 #line hidden
 #nullable disable
-            __builder.SetRenderMode(__renderMode1_1);
+            __builder.AddComponentRenderMode(__renderMode1_1);
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

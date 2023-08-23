@@ -116,7 +116,7 @@ internal static class ComponentsApi
 
         public const string AddEventStopPropagationAttribute = nameof(AddEventStopPropagationAttribute);
 
-        public const string SetRenderMode = nameof(SetRenderMode);
+        public const string AddComponentRenderMode = nameof(AddComponentRenderMode);
 
         public const string RenderModeVariableName = "__renderMode";
     }

@@ -10001,7 +10001,7 @@ Time: @DateTime.Now
     public void RenderMode_Directive_FullyQualified()
     {
         var generated = CompileToCSharp("""
-                @rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
                 """, throwOnFailure: false);    
 
         // Assert
@@ -10009,18 +10009,15 @@ Time: @DateTime.Now
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
         // add the required attributes
-        generated.BaseCompilation = ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes((CSharpCompilation)generated.BaseCompilation);
         CompileToAssembly(generated, throwOnFailure: true);
     }
 
     [Fact]
     public void RenderMode_Attribute_With_SimpleIdentifier()
     {
-        var baseCompilation = ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
-
         var generated = CompileToCSharp($"""
-                <{ComponentName} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
-                """, throwOnFailure: true, baseCompilation: baseCompilation);
+                <{ComponentName} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" /> 
+                """, throwOnFailure: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10031,8 +10028,6 @@ Time: @DateTime.Now
     [Fact]
     public void RenderMode_Attribute_With_Expression()
     {
-        var baseCompilation = ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
-
         var generated = CompileToCSharp($$"""
                 <{{ComponentName}} @rendermode="@(new MyRenderMode() { Extra = "Hello" })" />
                 @code
@@ -10041,8 +10036,8 @@ Time: @DateTime.Now
                     {
                         public string Extra {get;set;}
                     }
-                }
-                """, throwOnFailure: true, baseCompilation: baseCompilation);
+                } 
+                """, throwOnFailure: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10053,18 +10048,16 @@ Time: @DateTime.Now
     [Fact]
     public void RenderMode_Attribute_With_Existing_Attributes()
     {
-        var baseCompilation = ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
-
         var generated = CompileToCSharp($$"""
-                <{{ComponentName}} P2="abc" @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" P1="def" />
+                <{{ComponentName}} P2="abc" @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" P1="def" />
 
                 @code
                 {
                     [Parameter]public string P1 {get; set;}
 
                     [Parameter]public string P2 {get; set;}
-                }
-                """, throwOnFailure: true, baseCompilation: baseCompilation);
+                } 
+                """, throwOnFailure: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10075,18 +10068,16 @@ Time: @DateTime.Now
     [Fact]
     public void RenderMode_Attribute_On_Html_Element()
     {
-        var baseCompilation = ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
-
         var generated = CompileToCSharp("""
-                <input @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
+                <input @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
                 <input @rendermode="@(str)" />
-                <input @rendermode="@(Microsoft.AspNetCore.Components.DefaultRenderModes.Server)" />
+                <input @rendermode="@(Microsoft.AspNetCore.Components.Web.RenderMode.Server)" />
 
                 @code
                 {
                     string str = "abc";
                 }
-                """, throwOnFailure: true, baseCompilation: baseCompilation);
+                """, throwOnFailure: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10097,12 +10088,10 @@ Time: @DateTime.Now
     [Fact]
     public void Duplicate_RenderMode()
     {
-        var baseCompilation = ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
-
         var generated = CompileToCSharp($$"""
-                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server"
-                                   @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
-                """, throwOnFailure: true, baseCompilation: baseCompilation);
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server"
+                                   @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                """, throwOnFailure: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10113,12 +10102,10 @@ Time: @DateTime.Now
     [Fact]
     public void RenderMode_Multiple_Components()
     {
-        var baseCompilation = ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
-
         var generated = CompileToCSharp($$"""
-                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
-                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
-                """, throwOnFailure: true, baseCompilation: baseCompilation);
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                """, throwOnFailure: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10129,16 +10116,14 @@ Time: @DateTime.Now
     [Fact]
     public void RenderMode_Child_Components()
     {
-        var baseCompilation = ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
-
         var generated = CompileToCSharp($$"""
-                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server">
-                    <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server">
-                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">
+                    <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">
+                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
                     </{{ComponentName}}>
-                 <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server">
-                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
-                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
+                 <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">
+                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
                     </{{ComponentName}}>
                 </{{ComponentName}}>
 
@@ -10147,7 +10132,7 @@ Time: @DateTime.Now
                     [Parameter]
                     public RenderFragment ChildContent { get; set; }
                 }
-                """, throwOnFailure: true, baseCompilation: baseCompilation);
+                """, throwOnFailure: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10158,11 +10143,9 @@ Time: @DateTime.Now
     [Fact]
     public void RenderMode_With_Diagnostics()
     {
-        var baseCompilation = ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
-
         var generated = CompileToCSharp($$"""
-                <{{ComponentName}} @rendermode="@Microsoft.AspNetCore.Components.DefaultRenderModes.Server)" />
-                """, throwOnFailure: false, baseCompilation: baseCompilation);
+                <{{ComponentName}} @rendermode="@Microsoft.AspNetCore.Components.Web.RenderMode.Server)" />
+                """, throwOnFailure: false);
 
         // Assert
         var diagnostic = Assert.Single(generated.Diagnostics);
@@ -10176,18 +10159,16 @@ Time: @DateTime.Now
     [Fact]
     public void RenderMode_With_TypeInference()
     {
-        var baseCompilation = ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
-
         var generated = CompileToCSharp($$"""
                 @typeparam TRenderMode where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
 
-                <{{ComponentName}} @rendermode="RenderModeParam" RenderModeParam="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
+                <{{ComponentName}} @rendermode="RenderModeParam" RenderModeParam="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
 
                 @code
                 {
                     [Parameter] public TRenderMode RenderModeParam { get; set;}
                 }
-                """, throwOnFailure: true, baseCompilation: baseCompilation);
+                """, throwOnFailure: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
@@ -10198,11 +10179,9 @@ Time: @DateTime.Now
     [Fact]
     public void RenderMode_With_Ternary()
     {
-        var baseCompilation = ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
-
         var generated = CompileToCSharp($$"""
-                <{{ComponentName}} @rendermode="@(true ? Microsoft.AspNetCore.Components.DefaultRenderModes.Server : null)" />
-                """, throwOnFailure: true, baseCompilation: baseCompilation);
+                <{{ComponentName}} @rendermode="@(true ? Microsoft.AspNetCore.Components.Web.RenderMode.Server : null)" />
+                """, throwOnFailure: true);
 
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);

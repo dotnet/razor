@@ -14,7 +14,7 @@ namespace Test
         protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
         {
             __builder.OpenElement(0, "input");
-            __builder.AddAttribute(1, "@rendermode", "Microsoft.AspNetCore.Components.DefaultRenderModes.Server");
+            __builder.AddAttribute(1, "@rendermode", "Microsoft.AspNetCore.Components.Web.RenderMode.Server");
             __builder.CloseElement();
             __builder.AddMarkupContent(2, "\r\n");
             __builder.OpenElement(3, "input");
@@ -33,7 +33,7 @@ namespace Test
             __builder.AddAttribute(7, "@rendermode", 
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                      Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+                      Microsoft.AspNetCore.Components.Web.RenderMode.Server
 
 #line default
 #line hidden

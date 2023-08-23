@@ -258,7 +258,7 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
 
         if (renderModeParameterName is not null)
         {
-            WriteSetRenderMode(context, ComponentsApi.RenderTreeBuilder.BuilderParameter, renderModeParameterName);
+            WriteAddComponentRenderMode(context, ComponentsApi.RenderTreeBuilder.BuilderParameter, renderModeParameterName);
         }
 
         context.CodeWriter.WriteInstanceMethodInvocation(ComponentsApi.RenderTreeBuilder.BuilderParameter, ComponentsApi.RenderTreeBuilder.CloseComponent);
@@ -437,11 +437,11 @@ internal abstract class ComponentNodeWriter : IntermediateNodeWriter, ITemplateT
         return expression == "default" || expression.StartsWith("default(", StringComparison.Ordinal);
     }
 
-    protected static void WriteSetRenderMode(CodeRenderingContext context, string builderName, string variableName)
+    protected static void WriteAddComponentRenderMode(CodeRenderingContext context, string builderName, string variableName)
     {
         context.CodeWriter.Write(builderName);
         context.CodeWriter.Write(".");
-        context.CodeWriter.Write(ComponentsApi.RenderTreeBuilder.SetRenderMode);
+        context.CodeWriter.Write(ComponentsApi.RenderTreeBuilder.AddComponentRenderMode);
         context.CodeWriter.Write("(");
         context.CodeWriter.Write(variableName);
         context.CodeWriter.Write(");");

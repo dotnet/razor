@@ -16,7 +16,7 @@ namespace Test
             __builder.OpenComponent<global::Test.TestComponent>(0);
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                            global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                            global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = Microsoft.AspNetCore.Components.Web.RenderMode.Server;
 
 #line default
 #line hidden
@@ -25,7 +25,7 @@ namespace Test
                 __builder2.OpenComponent<global::Test.TestComponent>(2);
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode2_0 = Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                                global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode2_0 = Microsoft.AspNetCore.Components.Web.RenderMode.Server;
 
 #line default
 #line hidden
@@ -34,22 +34,22 @@ namespace Test
                     __builder3.OpenComponent<global::Test.TestComponent>(4);
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                    global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode3_0 = Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                                    global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode3_0 = Microsoft.AspNetCore.Components.Web.RenderMode.Server;
 
 #line default
 #line hidden
 #nullable disable
-                    __builder3.SetRenderMode(__renderMode3_0);
+                    __builder3.AddComponentRenderMode(__renderMode3_0);
                     __builder3.CloseComponent();
                 }
                 ));
-                __builder2.SetRenderMode(__renderMode2_0);
+                __builder2.AddComponentRenderMode(__renderMode2_0);
                 __builder2.CloseComponent();
                 __builder2.AddMarkupContent(5, "\r\n ");
                 __builder2.OpenComponent<global::Test.TestComponent>(6);
 #nullable restore
 #line 5 "x:\dir\subdir\Test\TestComponent.cshtml"
-                             global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode2_1 = Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                             global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode2_1 = Microsoft.AspNetCore.Components.Web.RenderMode.Server;
 
 #line default
 #line hidden
@@ -58,31 +58,31 @@ namespace Test
                     __builder3.OpenComponent<global::Test.TestComponent>(8);
 #nullable restore
 #line 6 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                    global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode3_0 = Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                                    global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode3_0 = Microsoft.AspNetCore.Components.Web.RenderMode.Server;
 
 #line default
 #line hidden
 #nullable disable
-                    __builder3.SetRenderMode(__renderMode3_0);
+                    __builder3.AddComponentRenderMode(__renderMode3_0);
                     __builder3.CloseComponent();
                     __builder3.AddMarkupContent(9, "\r\n        ");
                     __builder3.OpenComponent<global::Test.TestComponent>(10);
 #nullable restore
 #line 7 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                    global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode3_1 = Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                                    global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode3_1 = Microsoft.AspNetCore.Components.Web.RenderMode.Server;
 
 #line default
 #line hidden
 #nullable disable
-                    __builder3.SetRenderMode(__renderMode3_1);
+                    __builder3.AddComponentRenderMode(__renderMode3_1);
                     __builder3.CloseComponent();
                 }
                 ));
-                __builder2.SetRenderMode(__renderMode2_1);
+                __builder2.AddComponentRenderMode(__renderMode2_1);
                 __builder2.CloseComponent();
             }
             ));
-            __builder.SetRenderMode(__renderMode);
+            __builder.AddComponentRenderMode(__renderMode);
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

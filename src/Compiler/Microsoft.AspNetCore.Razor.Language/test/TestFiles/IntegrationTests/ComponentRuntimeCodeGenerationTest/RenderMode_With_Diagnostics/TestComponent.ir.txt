@@ -7,4 +7,4 @@
         UsingDirective - (136:5,1 [47] ) - global::Microsoft.AspNetCore.Components
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
-                Component - (0:0,0 [91] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                Component - (0:0,0 [87] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent

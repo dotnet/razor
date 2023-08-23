@@ -22,7 +22,7 @@ namespace Test
         {
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                            __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                            __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)(Microsoft.AspNetCore.Components.Web.RenderMode.Server);
 
 #line default
 #line hidden
@@ -30,7 +30,7 @@ namespace Test
             __builder.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => {
 #nullable restore
 #line 2 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                                __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)(Microsoft.AspNetCore.Components.Web.RenderMode.Server);
 
 #line default
 #line hidden
@@ -38,7 +38,7 @@ namespace Test
                 __builder2.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder3) => {
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                    __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                                    __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)(Microsoft.AspNetCore.Components.Web.RenderMode.Server);
 
 #line default
 #line hidden
@@ -64,7 +64,7 @@ __o = typeof(global::Test.TestComponent);
 #nullable disable
 #nullable restore
 #line 5 "x:\dir\subdir\Test\TestComponent.cshtml"
-                             __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                             __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)(Microsoft.AspNetCore.Components.Web.RenderMode.Server);
 
 #line default
 #line hidden
@@ -72,7 +72,7 @@ __o = typeof(global::Test.TestComponent);
                 __builder2.AddAttribute(-1, "ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder3) => {
 #nullable restore
 #line 6 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                    __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                                    __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)(Microsoft.AspNetCore.Components.Web.RenderMode.Server);
 
 #line default
 #line hidden
@@ -89,7 +89,7 @@ __o = typeof(global::Test.TestComponent);
 #nullable disable
 #nullable restore
 #line 7 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                    __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                                    __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)(Microsoft.AspNetCore.Components.Web.RenderMode.Server);
 
 #line default
 #line hidden

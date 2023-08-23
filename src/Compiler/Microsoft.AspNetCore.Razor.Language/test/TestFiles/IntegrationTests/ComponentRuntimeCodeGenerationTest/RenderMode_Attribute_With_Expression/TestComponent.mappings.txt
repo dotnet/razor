@@ -10,7 +10,7 @@ Source Location: (83:2,1 [135] x:\dir\subdir\Test\TestComponent.cshtml)
         public string Extra {get;set;}
     }
 |
-Generated Location: (1119:29,1 [135] )
+Generated Location: (1128:29,1 [135] )
 |
     class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
     {

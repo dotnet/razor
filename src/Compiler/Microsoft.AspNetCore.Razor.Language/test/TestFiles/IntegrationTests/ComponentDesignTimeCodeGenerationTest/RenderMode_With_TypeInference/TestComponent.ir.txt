@@ -18,15 +18,14 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 HtmlContent - (97:1,0 [2] x:\dir\subdir\Test\TestComponent.cshtml)
                     LazyIntermediateToken - (97:1,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
-                Component - (99:2,0 [129] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
-                    RenderMode - (129:2,30 [15] x:\dir\subdir\Test\TestComponent.cshtml)
-                    ComponentAttribute - (164:2,65 [60] x:\dir\subdir\Test\TestComponent.cshtml) - RenderModeParam - RenderModeParam - AttributeStructure.DoubleQuotes
-                        CSharpExpression - (165:2,66 [59] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (166:2,67 [57] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.DefaultRenderModes.Server
-                HtmlContent - (228:2,129 [4] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (228:2,129 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
-            CSharpCode - (240:5,1 [67] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (240:5,1 [67] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public TRenderMode RenderModeParam { get; set;}\n
+                Component - (99:2,0 [119] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                    RenderMode - (127:2,28 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+                    ComponentAttribute - (161:2,62 [53] x:\dir\subdir\Test\TestComponent.cshtml) - RenderModeParam - RenderModeParam - AttributeStructure.DoubleQuotes
+                        LazyIntermediateToken - (161:2,62 [53] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.Web.RenderMode.Server
+                HtmlContent - (218:2,119 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (218:2,119 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+            CSharpCode - (230:5,1 [67] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (230:5,1 [67] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public TRenderMode RenderModeParam { get; set;}\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateTestComponent_0

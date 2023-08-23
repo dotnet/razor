@@ -16,12 +16,12 @@ namespace Test
             __builder.OpenComponent<global::Test.TestComponent>(0);
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                              global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = true ? Microsoft.AspNetCore.Components.DefaultRenderModes.Server : null;
+                              global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = true ? Microsoft.AspNetCore.Components.Web.RenderMode.Server : null;
 
 #line default
 #line hidden
 #nullable disable
-            __builder.SetRenderMode(__renderMode);
+            __builder.AddComponentRenderMode(__renderMode);
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

@@ -17,13 +17,13 @@ namespace Test
             __builder.AddComponentParameter(1, "P2", "abc");
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                     global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = Microsoft.AspNetCore.Components.DefaultRenderModes.Server;
+                                     global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode = Microsoft.AspNetCore.Components.Web.RenderMode.Server;
 
 #line default
 #line hidden
 #nullable disable
             __builder.AddComponentParameter(2, "P1", "def");
-            __builder.SetRenderMode(__renderMode);
+            __builder.AddComponentRenderMode(__renderMode);
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

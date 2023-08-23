@@ -7,8 +7,8 @@
         UsingDirective - (136:5,1 [47] ) - global::Microsoft.AspNetCore.Components
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
-                Component - (0:0,0 [181] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
-                    RenderMode - (28:0,28 [57] x:\dir\subdir\Test\TestComponent.cshtml)
+                Component - (0:0,0 [173] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                    RenderMode - (28:0,28 [53] x:\dir\subdir\Test\TestComponent.cshtml)
                     ComponentAttribute -  - @rendermode -  - AttributeStructure.DoubleQuotes
-                        HtmlContent - (120:1,32 [57] x:\dir\subdir\Test\TestComponent.cshtml)
-                            LazyIntermediateToken - (120:1,32 [57] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+                        HtmlContent - (116:1,32 [53] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (116:1,32 [53] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Microsoft.AspNetCore.Components.Web.RenderMode.Server

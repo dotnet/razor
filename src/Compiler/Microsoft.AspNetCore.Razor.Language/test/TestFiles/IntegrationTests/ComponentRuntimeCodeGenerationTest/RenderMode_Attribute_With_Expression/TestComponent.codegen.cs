@@ -21,7 +21,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            __builder.SetRenderMode(__renderMode);
+            __builder.AddComponentRenderMode(__renderMode);
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

@@ -16,7 +16,7 @@ namespace Test
         ((global::System.Action)(() => {
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-global::System.Object __typeHelper = nameof(Microsoft.AspNetCore.Components.DefaultRenderModes.Server);
+global::System.Object __typeHelper = nameof(Microsoft.AspNetCore.Components.Web.RenderMode.Server);
 
 #line default
 #line hidden
@@ -46,7 +46,7 @@ global::System.Object __typeHelper = nameof(Microsoft.AspNetCore.Components.Defa
         private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-            Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+            Microsoft.AspNetCore.Components.Web.RenderMode.Server
 
 #line default
 #line hidden

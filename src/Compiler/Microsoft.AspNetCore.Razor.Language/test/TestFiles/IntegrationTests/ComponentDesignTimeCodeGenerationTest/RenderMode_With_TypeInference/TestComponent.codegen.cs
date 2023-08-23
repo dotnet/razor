@@ -44,7 +44,7 @@ where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
             var __typeInference_CreateTestComponent_0 = global::__Blazor.Test.TestComponent.TypeInference.CreateTestComponent_0(__builder, -1, -1, 
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                              RenderModeParam
+                            RenderModeParam
 
 #line default
 #line hidden
@@ -52,7 +52,7 @@ where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
             , -1, 
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                                   Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+                                                              Microsoft.AspNetCore.Components.Web.RenderMode.Server
 
 #line default
 #line hidden
@@ -62,7 +62,7 @@ where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
             __typeInference_CreateTestComponent_0.
 #nullable restore
 #line 3 "x:\dir\subdir\Test\TestComponent.cshtml"
-                                                RenderModeParam
+                                             RenderModeParam
 
 #line default
 #line hidden
@@ -98,7 +98,7 @@ namespace __Blazor.Test.TestComponent
         {
         __builder.OpenComponent<global::Test.TestComponent<TRenderMode>>(seq);
         __builder.AddComponentParameter(__seq1, "RenderModeParam", __arg1);
-        __builder.SetRenderMode(__arg0);
+        __builder.AddComponentRenderMode(__arg0);
         __builder.CloseComponent();
         return default;
         }

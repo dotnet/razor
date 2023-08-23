@@ -1,6 +1,6 @@
-﻿Source Location: (12:0,12 [57] x:\dir\subdir\Test\TestComponent.cshtml)
-|Microsoft.AspNetCore.Components.DefaultRenderModes.Server|
-Generated Location: (1099:29,0 [57] )
+﻿Source Location: (12:0,12 [53] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.Web.RenderMode.Server|
+Generated Location: (1095:29,0 [53] )
 |        ;
-        public override global::Microsoft.AspN|
+        public override global::Microsoft.|
 

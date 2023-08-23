@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 using static Roslyn.Test.Utilities.TestHelpers;
 
@@ -12,14 +11,6 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTestBase
 {
-    public ComponentRenderModeDirectiveIntegrationTests()
-    {
-        // Include the required runtime source
-        BaseCompilation = AddRequiredAttributes(DefaultBaseCompilation);
-    }
-
-    internal override CSharpCompilation BaseCompilation { get; } 
-
     internal override string FileKind => FileKinds.Component;
 
     [Fact]
@@ -27,7 +18,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     {
         // Arrange & Act
         var component = CompileToComponent("""
-            @rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+            @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
             """);
 
         // Assert
@@ -47,7 +38,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
         Assert.NotNull(modeValue);
 
         var valueType = modeValue.GetType();
-        Assert.Equal("Microsoft.AspNetCore.Components.DefaultRenderModes", valueType.FullName);
+        Assert.Equal("Microsoft.AspNetCore.Components.Web.ServerRenderMode", valueType.FullName);
     }
 
     [Fact]
@@ -55,7 +46,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     {
         // Arrange & Act
         var component = CompileToComponent("""
-            @using static Microsoft.AspNetCore.Components.DefaultRenderModes
+            @using static Microsoft.AspNetCore.Components.Web.RenderMode
             @rendermode Server
             """);
 
@@ -76,7 +67,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
         Assert.NotNull(modeValue);
 
         var valueType = modeValue.GetType();
-        Assert.Equal("Microsoft.AspNetCore.Components.DefaultRenderModes", valueType.FullName);
+        Assert.Equal("Microsoft.AspNetCore.Components.Web.ServerRenderMode", valueType.FullName);
     }
 
     [Fact]
@@ -99,8 +90,8 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     {
         // Arrange & Act
         var compilationResult = CompileToCSharp("""
-            @rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
-            @rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+            @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
+            @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
             """);
 
         // Assert
@@ -130,7 +121,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     public void LanguageVersion()
     {
         var compilationResult = CompileToCSharp("""
-            @rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+            @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
             """, configuration: Configuration.WithVersion(RazorLanguageVersion.Version_7_0));
 
         Assert.Empty(compilationResult.Diagnostics);
@@ -185,36 +176,5 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
             Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "rendermode").WithArguments("Test.TestComponent.rendermode").WithLocation(5, 12)
             );
     }
-
-    internal static CSharpCompilation AddRequiredAttributes(CSharpCompilation compilation) =>
-        typeof(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder).GetMethod("SetRenderMode", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance) != null
-               ? compilation
-               : compilation.AddSyntaxTrees(Parse(RenderModeAttribute, path: "RuntimeAttributes.cs"));
-
-    private const string RenderModeAttribute = """
-         using System;
-         namespace Microsoft.AspNetCore.Components
-         {
-             public interface IComponentRenderMode
-             {
-             }
-
-             [AttributeUsage(AttributeTargets.Class)]
-             public abstract class RenderModeAttribute : Attribute
-             {
-                 public abstract IComponentRenderMode Mode { get; }
-             }
-
-             public class DefaultRenderModes : IComponentRenderMode
-             {
-                public static IComponentRenderMode Server = new DefaultRenderModes();
-             }
-         }
-         
-         public static class Extensions
-         {
-            public static void SetRenderMode(this Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder,  Microsoft.AspNetCore.Components.IComponentRenderMode mode) { }
-         }
-         """;
 }
 
