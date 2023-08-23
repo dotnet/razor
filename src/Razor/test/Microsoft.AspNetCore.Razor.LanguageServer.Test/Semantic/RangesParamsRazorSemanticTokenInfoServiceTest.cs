@@ -12,10 +12,10 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 // that to find the expected input/output test files as Embedded resources.
 [IntializeTestFile]
 [UseExportProvider]
-internal class RangeParamsRazorSemanticTokenInfoService : RazorSemanticTokenInfoServiceTest
+public class RangesParamsRazorSemanticTokenInfoServiceTest : RazorSemanticTokenInfoServiceTest
 {
-    public RangeParamsRazorSemanticTokenInfoService(ITestOutputHelper testOutput)
-        : base(testOutput, useRangesParams: false)
+    public RangesParamsRazorSemanticTokenInfoServiceTest(ITestOutputHelper testOutput)
+        : base(testOutput, useRangesParams: true)
     {
     }
 }
