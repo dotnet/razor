@@ -24,43 +24,21 @@ internal sealed class ComponentRenderModeLoweringPass : ComponentIntermediateNod
             if (reference is { Node: TagHelperDirectiveAttributeIntermediateNode node, Parent: IntermediateNode parentNode } && node.TagHelper.IsRenderModeTagHelper())
             {
                 Debug.Assert(node.Diagnostics.Count == 0);
-                if (parentNode is ComponentIntermediateNode)
-                {
-                    var expression = node.Children[0] switch
-                    {
-                        CSharpExpressionIntermediateNode cSharpNode => cSharpNode.Children[0],
-                        IntermediateNode token => token
-                    };
 
-                    reference.Replace(new RenderModeIntermediateNode() {  Source = node.Source, Children = { expression }});
-                }
-                else
+                if (parentNode is not ComponentIntermediateNode)
                 {
-                    // This is on a regular HTML element, not a component, so lower it to a regular HTML attribute
-                    var attributeNode = new HtmlAttributeIntermediateNode()
-                    {
-                        Source = node.Source,
-                        AttributeName = node.OriginalAttributeName,
-                        Children =
-                        {
-                            node.Children[0] switch
-                            {
-                                CSharpExpressionIntermediateNode cSharpNode => new CSharpExpressionAttributeValueIntermediateNode()
-                                {
-                                    Source = node.Source,
-                                    Children = { cSharpNode.Children[0] }
-                                },
-                                IntermediateNode token => new HtmlAttributeValueIntermediateNode()
-                                {
-                                    Source = node.Source,
-                                    Children = { token }
-                                }
-                            }
-                        }
-                    };
-                    attributeNode.Diagnostics.AddRange(node.Diagnostics);
-                    reference.Replace(attributeNode);
+                    // add a diagnostic,
+                    node.Diagnostics.Add(ComponentDiagnosticFactory.CreateAttribute_ValidOnlyOnComponent(node.Source, "rendermode"));
+                    continue;
                 }
+
+                var expression = node.Children[0] switch
+                {
+                    CSharpExpressionIntermediateNode cSharpNode => cSharpNode.Children[0],
+                    IntermediateNode token => token
+                };
+
+                reference.Replace(new RenderModeIntermediateNode() { Source = node.Source, Children = { expression } });
             }
         }
     }

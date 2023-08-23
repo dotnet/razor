@@ -10070,19 +10070,13 @@ Time: @DateTime.Now
     {
         var generated = CompileToCSharp("""
                 <input @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
-                <input @rendermode="@(str)" />
-                <input @rendermode="@(Microsoft.AspNetCore.Components.Web.RenderMode.Server)" />
-
-                @code
-                {
-                    string str = "abc";
-                }
-                """, throwOnFailure: true);
+                """, throwOnFailure: false);
 
         // Assert
-        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-        CompileToAssembly(generated, throwOnFailure: true);
+        //x:\dir\subdir\Test\TestComponent.cshtml(1,21): Error RZ10021: Attribute 'rendermode' is only valid when used on a component.
+        var diag = Assert.Single(generated.Diagnostics);
+        Assert.Equal("RZ10021", diag.Id);
+
     }
 
     [Fact]
@@ -10150,10 +10144,6 @@ Time: @DateTime.Now
         // Assert
         var diagnostic = Assert.Single(generated.Diagnostics);
         Assert.Equal("RZ9986", diagnostic.Id);
-
-        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-
     }
 
     [Fact]

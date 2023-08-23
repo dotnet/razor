@@ -1,9 +1,0 @@
-﻿Source Location: (203:5,1 [27] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    string str = "abc";
-|
-Generated Location: (1653:46,1 [27] )
-|
-    string str = "abc";
-|
-
