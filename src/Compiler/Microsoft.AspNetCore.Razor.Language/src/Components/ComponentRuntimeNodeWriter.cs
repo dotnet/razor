@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -419,13 +418,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             if (hasRenderMode)
             {
                 // _builder.SetRenderMode(__renderMode_0);
-                context.CodeWriter.Write(_scopeStack.BuilderVarName);
-                context.CodeWriter.Write(".");
-                context.CodeWriter.Write(ComponentsApi.RenderTreeBuilder.SetRenderMode);
-                context.CodeWriter.Write("(");
-                context.CodeWriter.Write($"{_scopeStack.RenderModeVarName}");
-                context.CodeWriter.Write(");");
-                context.CodeWriter.WriteLine();
+                WriteSetRenderMode(context, _scopeStack.BuilderVarName, _scopeStack.RenderModeVarName);
                 _scopeStack.IncrementRenderMode();
             }
 
@@ -556,6 +549,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 break;
             case TypeInferenceCapturedVariable capturedVariable:
                 context.CodeWriter.Write(capturedVariable.VariableName);
+                break;
+            case RenderModeIntermediateNode renderMode:
+                WriteCSharpCode(context, new CSharpCodeIntermediateNode() { Source = renderMode.Source, Children = { renderMode.ExpressionNode } });
                 break;
             default:
                 throw new InvalidOperationException($"Not implemented: type inference method parameter from source {parameter.Source}");
@@ -982,7 +978,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 new IntermediateToken
                 {
                     Kind = TokenKind.CSharp,
-                    Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {_scopeStack.RenderModeVarName} = " 
+                    Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {_scopeStack.RenderModeVarName} = "
                 },
                 node.ExpressionNode,
                 new IntermediateToken

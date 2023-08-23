@@ -626,6 +626,9 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
             case TypeInferenceCapturedVariable capturedVariable:
                 context.CodeWriter.Write(capturedVariable.VariableName);
                 break;
+            case RenderModeIntermediateNode renderMode:
+                WriteCSharpCode(context, new CSharpCodeIntermediateNode() { Source = renderMode.Source, Children = { renderMode.ExpressionNode } });
+                break;
             default:
                 throw new InvalidOperationException($"Not implemented: type inference method parameter from source {parameter.Source}");
         }

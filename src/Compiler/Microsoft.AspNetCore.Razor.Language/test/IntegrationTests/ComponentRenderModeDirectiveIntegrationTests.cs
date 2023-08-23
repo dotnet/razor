@@ -15,7 +15,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     public ComponentRenderModeDirectiveIntegrationTests()
     {
         // Include the required runtime source
-        BaseCompilation = (CSharpCompilation)AddRequiredAttributes(DefaultBaseCompilation);
+        BaseCompilation = AddRequiredAttributes(DefaultBaseCompilation);
     }
 
     internal override CSharpCompilation BaseCompilation { get; } 
@@ -186,30 +186,34 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
             );
     }
 
-    internal static Compilation AddRequiredAttributes(Compilation compilation) => compilation.AddSyntaxTrees(Parse(RenderModeAttribute, path: "RuntimeAttributes.cs"));
+    internal static CSharpCompilation AddRequiredAttributes(CSharpCompilation compilation) =>
+        typeof(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder).GetMethod("SetRenderMode", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance) != null
+               ? compilation
+               : compilation.AddSyntaxTrees(Parse(RenderModeAttribute, path: "RuntimeAttributes.cs"));
 
     private const string RenderModeAttribute = """
          using System;
-         namespace Microsoft.AspNetCore.Components;
-
-         public interface IComponentRenderMode
+         namespace Microsoft.AspNetCore.Components
          {
-         }
+             public interface IComponentRenderMode
+             {
+             }
 
-         [AttributeUsage(AttributeTargets.Class)]
-         public abstract class RenderModeAttribute : Attribute
-         {
-             public abstract IComponentRenderMode Mode { get; }
-         }
+             [AttributeUsage(AttributeTargets.Class)]
+             public abstract class RenderModeAttribute : Attribute
+             {
+                 public abstract IComponentRenderMode Mode { get; }
+             }
 
-         public class DefaultRenderModes : IComponentRenderMode
-         {
-            public static IComponentRenderMode Server = new DefaultRenderModes();
+             public class DefaultRenderModes : IComponentRenderMode
+             {
+                public static IComponentRenderMode Server = new DefaultRenderModes();
+             }
          }
          
          public static class Extensions
          {
-            public static void SetRenderMode(this Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder, IComponentRenderMode mode) { }
+            public static void SetRenderMode(this Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder,  Microsoft.AspNetCore.Components.IComponentRenderMode mode) { }
          }
          """;
 }
