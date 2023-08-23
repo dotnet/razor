@@ -1242,13 +1242,13 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
                 new IntermediateToken
                 {
                     Kind = TokenKind.CSharp,
-                    Content = $"{DesignTimeVariable} = (global::{ComponentsApi.IComponentRenderMode.FullTypeName})" 
+                    Content = $"{DesignTimeVariable} = (global::{ComponentsApi.IComponentRenderMode.FullTypeName})(" 
                 },
                 node.ExpressionNode,
                 new IntermediateToken
                 {
                     Kind = TokenKind.CSharp,
-                    Content = ";"
+                    Content = ");"
                 }
             }
         });

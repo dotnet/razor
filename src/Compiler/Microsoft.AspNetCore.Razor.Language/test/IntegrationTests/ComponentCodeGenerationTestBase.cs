@@ -10195,5 +10195,20 @@ Time: @DateTime.Now
         CompileToAssembly(generated, throwOnFailure: true);
     }
 
+    [Fact]
+    public void RenderMode_With_Ternary()
+    {
+        var baseCompilation = ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(BaseCompilation);
+
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="@(true ? Microsoft.AspNetCore.Components.DefaultRenderModes.Server : null)" />
+                """, throwOnFailure: true, baseCompilation: baseCompilation);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
     #endregion
 }
