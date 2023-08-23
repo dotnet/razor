@@ -18,15 +18,10 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-// Sets the FileName static variable.
-// Finds the test method name using reflection, and uses
-// that to find the expected input/output test files as Embedded resources.
-[IntializeTestFile]
-[UseExportProvider]
-public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
+public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
 {
-    public RazorSemanticTokenInfoServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput, useRangesParams: true)
+    public RazorSemanticTokenInfoServiceTest(ITestOutputHelper testOutput, bool useRangesParams)
+        : base(testOutput, useRangesParams)
     {
     }
 
@@ -635,7 +630,7 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
                 @* kdl
 
                 skd
-                    
+
                         sdfasdfasdf
                 slf*@
                 """;
@@ -854,9 +849,10 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         bool withCSharpBackground)
     {
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
+        var endpoint = UseRangesParams ? CustomMessageNames.RazorProvideSemanticTokensRangesEndpoint : CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint;
         languageServer
             .Setup(l => l.SendRequestAsync<SemanticTokensParams, ProvideSemanticTokensResponse?>(
-                CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint,
+                endpoint,
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(csharpTokens);
