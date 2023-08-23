@@ -210,7 +210,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
         var result = await document.GetGeneratedOutputAsync().ConfigureAwait(false);
 
         Diagnostic[]? csharpDiagnostics = null;
-        if (_languageServerFeatureOptions.SupportsDelegatedDiagnostics)
+        if (_languageServerFeatureOptions.DelegateToCSharpOnDiagnosticPublish)
         {
             var uriBuilder = new UriBuilder()
             {
