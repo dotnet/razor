@@ -8,15 +8,7 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 public sealed class RenderModeIntermediateNode : IntermediateNode
 {
-    public RenderModeIntermediateNode(IntermediateNode expressionNode)
-    {
-        ExpressionNode = expressionNode ?? throw new ArgumentNullException(nameof(expressionNode));
-        Source = ExpressionNode.Source;
-    }
-
-    public override IntermediateNodeCollection Children => IntermediateNodeCollection.ReadOnly;
-
-    public IntermediateNode ExpressionNode { get; }
+    public override IntermediateNodeCollection Children { get; } = new();
 
     public override void Accept(IntermediateNodeVisitor visitor)
     {
@@ -26,15 +18,5 @@ public sealed class RenderModeIntermediateNode : IntermediateNode
         }
 
         visitor.VisitRenderMode(this);
-    }
-
-    public override void FormatNode(IntermediateNodeFormatter formatter)
-    {
-        if (formatter == null)
-        {
-            throw new ArgumentNullException(nameof(formatter));
-        }
-
-        ExpressionNode.FormatNode(formatter);
     }
 }

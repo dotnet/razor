@@ -37,8 +37,7 @@ Microsoft.AspNetCore.Razor.Language.CommonMetadata
 Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeCollection.Enumerator.Enumerator() -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeReference.IntermediateNodeReference() -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode
-Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode.ExpressionNode.get -> Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNode!
-Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode.RenderModeIntermediateNode(Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNode! expressionNode) -> void
+Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode.RenderModeIntermediateNode() -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.TypeParameter.ConstraintsSource.get -> Microsoft.AspNetCore.Razor.Language.SourceSpan?
 Microsoft.AspNetCore.Razor.Language.Intermediate.TypeParameter.ConstraintsSource.init -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.TypeParameter.ParameterNameSource.get -> Microsoft.AspNetCore.Razor.Language.SourceSpan?
@@ -60,7 +59,6 @@ Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.PooledBuilder.Dis
 Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.PooledBuilder.PooledBuilder() -> void
 override Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode.Accept(Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeVisitor! visitor) -> void
 override Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode.Children.get -> Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeCollection!
-override Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode.FormatNode(Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeFormatter! formatter) -> void
 override sealed Microsoft.AspNetCore.Razor.Language.MetadataCollection.Equals(object! obj) -> bool
 override sealed Microsoft.AspNetCore.Razor.Language.MetadataCollection.GetHashCode() -> int
 static Microsoft.AspNetCore.Razor.Language.CommonMetadata.PropertyName(string! value) -> System.Collections.Generic.KeyValuePair<string!, string?>

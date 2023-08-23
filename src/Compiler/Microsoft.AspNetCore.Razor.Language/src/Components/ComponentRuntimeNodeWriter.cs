@@ -551,7 +551,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 context.CodeWriter.Write(capturedVariable.VariableName);
                 break;
             case RenderModeIntermediateNode renderMode:
-                WriteCSharpCode(context, new CSharpCodeIntermediateNode() { Source = renderMode.Source, Children = { renderMode.ExpressionNode } });
+                WriteCSharpCode(context, new CSharpCodeIntermediateNode() { Source = renderMode.Source, Children = { renderMode.Children[0] } });
                 break;
             default:
                 throw new InvalidOperationException($"Not implemented: type inference method parameter from source {parameter.Source}");
@@ -980,7 +980,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                     Kind = TokenKind.CSharp,
                     Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {_scopeStack.RenderModeVarName} = "
                 },
-                node.ExpressionNode,
+                node.Children[0],
                 new IntermediateToken
                 {
                     Kind = TokenKind.CSharp,

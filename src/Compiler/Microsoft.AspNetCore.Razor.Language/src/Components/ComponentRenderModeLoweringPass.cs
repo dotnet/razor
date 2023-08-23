@@ -32,7 +32,7 @@ internal sealed class ComponentRenderModeLoweringPass : ComponentIntermediateNod
                         IntermediateNode token => token
                     };
 
-                    reference.Replace(new RenderModeIntermediateNode(expression));
+                    reference.Replace(new RenderModeIntermediateNode() {  Source = node.Source, Children = { expression }});
                 }
                 else
                 {
