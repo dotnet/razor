@@ -43,6 +43,8 @@ internal class VisualStudioMacLanguageServerFeatureOptions : LanguageServerFeatu
 
     public override bool ShowAllCSharpCodeActions => false;
 
+    public override bool TrimRangesForSemanticTokens => false;
+
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => false;
 
     public override bool UpdateBuffersForClosedDocuments => false;

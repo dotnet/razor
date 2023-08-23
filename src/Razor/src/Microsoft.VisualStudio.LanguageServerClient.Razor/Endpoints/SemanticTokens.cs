@@ -30,6 +30,69 @@ internal partial class RazorCustomMessageTarget
             throw new ArgumentNullException(nameof(semanticTokensParams));
         }
 
+        if (semanticTokensParams.Range is null)
+        {
+            throw new ArgumentNullException(nameof(semanticTokensParams.Range));
+        }
+
+        var (synchronized, csharpDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+            _documentManager, (int)semanticTokensParams.RequiredHostDocumentVersion, semanticTokensParams.TextDocument, cancellationToken);
+
+        if (csharpDoc is null)
+        {
+            return null;
+        }
+
+        if (!synchronized)
+        {
+            // If we're unable to synchronize we won't produce useful results, but we have to indicate
+            // it's due to out of sync by providing the old version
+            return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: -1);
+        }
+
+        semanticTokensParams.TextDocument.Uri = csharpDoc.Uri;
+
+        var newParams = new SemanticTokensRangeParams
+        {
+            TextDocument = semanticTokensParams.TextDocument,
+            PartialResultToken = semanticTokensParams.PartialResultToken,
+            Range = semanticTokensParams.Range,
+        };
+
+        var textBuffer = csharpDoc.Snapshot.TextBuffer;
+        var languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
+        var lspMethodName = Methods.TextDocumentSemanticTokensRangeName;
+        using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, semanticTokensParams.CorrelationId);
+        var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
+            textBuffer,
+            lspMethodName,
+            languageServerName,
+            newParams,
+            cancellationToken).ConfigureAwait(false);
+
+        var result = csharpResults?.Response;
+        if (result is null)
+        {
+            // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
+            return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
+        }
+
+        var response = new ProvideSemanticTokensResponse(result.Data, semanticTokensParams.RequiredHostDocumentVersion);
+
+        return response;
+    }
+
+    // Called by the Razor Language Server to provide ranged semantic tokens from the platform.
+    [JsonRpcMethod(CustomMessageNames.RazorProvideSemanticTokensRangesEndpoint, UseSingleObjectParameterDeserialization = true)]
+    public async Task<ProvideSemanticTokensResponse?> ProvideSemanticTokensRangesAsync(
+        ProvideSemanticTokensRangesParams semanticTokensParams,
+        CancellationToken cancellationToken)
+    {
+        if (semanticTokensParams is null)
+        {
+            throw new ArgumentNullException(nameof(semanticTokensParams));
+        }
+
         if (semanticTokensParams.Ranges is null)
         {
             throw new ArgumentNullException(nameof(semanticTokensParams.Ranges));

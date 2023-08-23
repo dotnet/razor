@@ -13,9 +13,11 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerFeatureOptions
 {
     private const string ShowAllCSharpCodeActionsFeatureFlag = "Razor.LSP.ShowAllCSharpCodeActions";
+    private const string TrimRangesForSemanticTokensFeatureFlag = "Razor.LSP.TrimRangesForSemanticTokens";
 
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _showAllCSharpCodeActions;
+    private readonly Lazy<bool> _trimRangesForSemanticTokens;
 
     [ImportingConstructor]
     public VisualStudioWindowsLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
@@ -32,6 +34,13 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
             var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
             var showAllCSharpCodeActions = featureFlags.IsFeatureEnabled(ShowAllCSharpCodeActionsFeatureFlag, defaultValue: false);
             return showAllCSharpCodeActions;
+        });
+
+        _trimRangesForSemanticTokens = new Lazy<bool>(() =>
+        {
+            var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
+            var trimRangesForSemanticTokens = featureFlags.IsFeatureEnabled(TrimRangesForSemanticTokensFeatureFlag, defaultValue: false);
+            return trimRangesForSemanticTokens;
         });
     }
 
@@ -60,4 +69,6 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
     private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
 
     public override bool ShowAllCSharpCodeActions => _showAllCSharpCodeActions.Value;
+
+    public override bool TrimRangesForSemanticTokens => _trimRangesForSemanticTokens.Value;
 }

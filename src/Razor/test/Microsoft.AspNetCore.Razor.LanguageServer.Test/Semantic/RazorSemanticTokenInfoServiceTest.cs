@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
 {
     public RazorSemanticTokenInfoServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput)
+        : base(testOutput, useRangesParams: true)
     {
     }
 
@@ -883,6 +883,7 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
             languageServer.Object,
             documentMappingService,
             optionsMonitor,
+            TestLanguageServerFeatureOptions.Instance,
             LoggerFactory);
     }
 

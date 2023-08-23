@@ -23,6 +23,8 @@ internal abstract class LanguageServerFeatureOptions
 
     public abstract bool SupportsDelegatedDiagnostics { get; }
 
+    public abstract bool TrimRangesForSemanticTokens { get; }
+
     public abstract bool ShowAllCSharpCodeActions { get; }
 
     public abstract bool UpdateBuffersForClosedDocuments { get; }
