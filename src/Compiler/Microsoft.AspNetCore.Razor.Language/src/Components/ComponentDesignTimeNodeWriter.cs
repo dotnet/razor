@@ -1233,7 +1233,7 @@ internal class ComponentDesignTimeNodeWriter : ComponentNodeWriter
     public override void WriteRenderMode(CodeRenderingContext context, RenderModeIntermediateNode node)
     {
         // Looks like:
-        // __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)expression;
+        // __o = (global::Microsoft.AspNetCore.Components.IComponentRenderMode)(expression);
         WriteCSharpCode(context, new CSharpCodeIntermediateNode
         {
             Source = node.Source,
