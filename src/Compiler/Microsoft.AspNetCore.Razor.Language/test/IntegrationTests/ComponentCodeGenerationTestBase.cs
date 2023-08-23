@@ -7,7 +7,6 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
-using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10084,7 +10083,7 @@ Time: @DateTime.Now
     {
         var generated = CompileToCSharp($$"""
                 <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server"
-                                   @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                                   @rendermode="Value2" />
                 """, throwOnFailure: true);
 
         // Assert

@@ -21,7 +21,7 @@ namespace Test
 #line default
 #line hidden
 #nullable disable
-            __builder.AddComponentParameter(1, "@rendermode", "Microsoft.AspNetCore.Components.Web.RenderMode.Server");
+            __builder.AddComponentParameter(1, "@rendermode", "Value2");
             __builder.AddComponentRenderMode(__renderMode);
             __builder.CloseComponent();
         }
