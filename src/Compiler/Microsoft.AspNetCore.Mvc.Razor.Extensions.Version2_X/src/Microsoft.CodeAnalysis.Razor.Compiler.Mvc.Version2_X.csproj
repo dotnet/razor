@@ -11,6 +11,7 @@
     <!-- No need to track public APIs of this design-time build infrastructure. -->
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <IsPackable>false</IsPackable>
+    <RootNamespace>Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,12 +22,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.AspNetCore.Razor.Language\src\Microsoft.CodeAnalysis.Razor.Compiler.Language.csproj" />
     <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.Compiler.CSharp.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="*.resx">
-      <Namespace>Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X</Namespace>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

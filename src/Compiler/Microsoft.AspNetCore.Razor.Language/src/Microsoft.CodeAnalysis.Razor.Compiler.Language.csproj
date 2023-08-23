@@ -7,17 +7,12 @@
     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
     <IsPackable>false</IsPackable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>Microsoft.AspNetCore.Razor.Language</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="*.resx">
-      <Namespace>Microsoft.AspNetCore.Razor.Language</Namespace>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

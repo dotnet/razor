@@ -12,6 +12,7 @@
     <NoWarn>$(NoWarn);RS2008;RS1036</NoWarn>
     <Nullable>enable</Nullable>
     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+    <RootNamespace>Microsoft.NET.Sdk.Razor.SourceGenerators</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,12 +30,6 @@
 
   <ItemGroup>
     <None Update="RazorSourceGenerator.razorencconfig" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Diagnostics\*.resx">
-      <Namespace>Microsoft.NET.Sdk.Razor.SourceGenerators.Diagnostics</Namespace>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

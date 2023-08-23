@@ -7,6 +7,7 @@
     <!-- Need to build this project in source build -->
     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
     <IsPackable>false</IsPackable>
+    <RootNamespace>Microsoft.AspNetCore.Mvc.Razor.Extensions</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,12 +19,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.AspNetCore.Razor.Language\src\Microsoft.CodeAnalysis.Razor.Compiler.Language.csproj" />
     <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.Compiler.CSharp.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="*.resx">
-      <Namespace>Microsoft.AspNetCore.Mvc.Razor.Extensions</Namespace>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
