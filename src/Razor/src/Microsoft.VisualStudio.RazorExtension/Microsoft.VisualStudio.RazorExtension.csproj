@@ -231,8 +231,8 @@
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.LanguageServer.Protocol\Microsoft.AspNetCore.Razor.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Razor.Language\src\Microsoft.CodeAnalysis.Razor.Compiler.Language.csproj" />
     <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.Compiler.CSharp.csproj" />
-    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X\src\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.csproj" />
-    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X\src\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.csproj" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X\src\Microsoft.CodeAnalysis.Razor.Compiler.Mvc.Version1_X.csproj" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X\src\Microsoft.CodeAnalysis.Razor.Compiler.Mvc.Version2_X.csproj" />
     <ProjectReference Include="..\..\..\Compiler\Microsoft.AspNetCore.Mvc.Razor.Extensions\src\Microsoft.CodeAnalysis.Razor.Compiler.Mvc.csproj" />
 
     <ProjectReference Include="..\..\..\Compiler\Microsoft.NET.Sdk.Razor.SourceGenerators\Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators.csproj">
@@ -261,8 +261,8 @@
   <!-- Include our Razor package dependency dlls in our extension -->
   <ItemGroup>
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.Razor.Compiler.Mvc.dll" />
-    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll" />
-    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.Razor.Compiler.Mvc.Version1_X.dll" />
+    <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.Razor.Compiler.Mvc.Version2_X.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.Razor.Compiler.Language.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.Razor.Compiler.CSharp.dll" />
     <RazorNgendVSIXSourceItem Include="$(OutputPath)Microsoft.CommonLanguageServerProtocol.Framework.dll" />

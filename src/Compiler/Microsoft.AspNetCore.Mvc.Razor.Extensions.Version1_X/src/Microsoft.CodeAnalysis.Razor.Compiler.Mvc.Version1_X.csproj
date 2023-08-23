@@ -23,4 +23,10 @@
     <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor\src\Microsoft.CodeAnalysis.Razor.Compiler.CSharp.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="*.resx">
+      <Namespace>Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X</Namespace>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

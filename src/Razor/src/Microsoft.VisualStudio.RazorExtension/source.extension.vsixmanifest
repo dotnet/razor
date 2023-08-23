@@ -32,8 +32,8 @@
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="ServiceHubCore\Microsoft.VisualStudio.Razor.TagHelperProviderCore64.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="ServiceHubCore\Microsoft.VisualStudio.Razor.TagHelperProviderCore64S.servicehub.service.json" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.CodeAnalysis.Razor.Compiler.Mvc.dll" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll" />
-    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.CodeAnalysis.Razor.Compiler.Mvc.Version1_X.dll" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.CodeAnalysis.Razor.Compiler.Mvc.Version2_X.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="Microsoft.CodeAnalysis.Razor.Compiler.Language.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="MediatR.dll" />
     <Asset Type="Microsoft.VisualStudio.Assembly" Path="OmniSharp.Extensions.JsonRpc.dll" />

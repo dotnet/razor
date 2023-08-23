@@ -5,8 +5,8 @@
     <Import assembly="Microsoft.CodeAnalysis.Razor.Workspaces.dll" />
     <Import assembly="Microsoft.CodeAnalysis.Razor.Compiler.Language.dll" />
     <Import assembly="Microsoft.AspNetCore.Razor.Utilities.Shared.dll" />
-    <Import assembly="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.dll" />
-    <Import assembly="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.dll" />
+    <Import assembly="Microsoft.CodeAnalysis.Razor.Compiler.Mvc.Version1_X.dll" />
+    <Import assembly="Microsoft.CodeAnalysis.Razor.Compiler.Mvc.Version2_X.dll" />
     <Import assembly="Microsoft.CodeAnalysis.Razor.Compiler.Mvc.dll" />
     <Import assembly="Microsoft.CodeAnalysis.Razor.Compiler.CSharp.dll" />
     <Import assembly="Microsoft.VisualStudio.Mac.LanguageServices.Razor.dll" />
