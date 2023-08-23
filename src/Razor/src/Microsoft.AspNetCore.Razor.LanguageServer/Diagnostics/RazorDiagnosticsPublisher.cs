@@ -225,7 +225,7 @@ internal class RazorDiagnosticsPublisher : DocumentProcessedListener
             };
 
             var delegatedResponse = await _languageServer.SendRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?>(
-                CustomMessageNames.RazorPullDiagnosticEndpointName,
+                CustomMessageNames.RazorCSharpPullDiagnosticsEndpointName,
                 delegatedParams,
                 CancellationToken.None).ConfigureAwait(false);
 
