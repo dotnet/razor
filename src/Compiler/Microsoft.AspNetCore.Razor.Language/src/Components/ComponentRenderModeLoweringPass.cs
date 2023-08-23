@@ -27,7 +27,6 @@ internal sealed class ComponentRenderModeLoweringPass : ComponentIntermediateNod
 
                 if (parentNode is not ComponentIntermediateNode)
                 {
-                    // add a diagnostic,
                     node.Diagnostics.Add(ComponentDiagnosticFactory.CreateAttribute_ValidOnlyOnComponent(node.Source, "rendermode"));
                     continue;
                 }

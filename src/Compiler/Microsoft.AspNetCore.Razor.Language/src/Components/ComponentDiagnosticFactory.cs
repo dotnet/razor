@@ -551,10 +551,10 @@ internal static class ComponentDiagnosticFactory
     }
 
     public static readonly RazorDiagnosticDescriptor Attribute_ValidOnlyOnComponent =
-    new RazorDiagnosticDescriptor(
-    $"{DiagnosticPrefix}10021",
-    () => "Attribute '{0}' is only valid when used on a component.",
-    RazorDiagnosticSeverity.Error);
+        new RazorDiagnosticDescriptor(
+        $"{DiagnosticPrefix}10021",
+        () => "Attribute '{0}' is only valid when used on a component.",
+        RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateAttribute_ValidOnlyOnComponent(SourceSpan? source, string attribute)
     {
