@@ -27,6 +27,7 @@ namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 /// </list>
 /// </remarks>
 [IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "RoslynDev", MaxAttempts = 2)]
+[LogTestRunToConsole]
 public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
 {
     protected CancellationToken ControlledHangMitigatingCancellationToken => HangMitigatingCancellationToken;
