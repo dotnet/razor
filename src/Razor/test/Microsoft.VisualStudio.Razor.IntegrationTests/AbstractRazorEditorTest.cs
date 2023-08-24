@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -16,14 +17,12 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
-public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper) : AbstractEditorTest
+public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper) : AbstractIntegrationTest
 {
     private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
     private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
 
     private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
-
-    protected override string LanguageName => LanguageNames.Razor;
 
     public override async Task InitializeAsync()
     {
@@ -31,8 +30,7 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
 
         VisualStudioLogging.AddCustomLoggers();
 
-        await TestServices.SolutionExplorer.CreateSolutionAsync(RazorProjectConstants.BlazorSolutionName, ControlledHangMitigatingCancellationToken);
-        await TestServices.SolutionExplorer.AddProjectAsync(RazorProjectConstants.BlazorProjectName, WellKnownProjectTemplates.BlazorProject, groupId: WellKnownProjectTemplates.GroupIdentifiers.Server, templateId: null, LanguageName, ControlledHangMitigatingCancellationToken);
+        await CreateAndOpenBlazorProjectAsync(ControlledHangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ControlledHangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
@@ -65,6 +63,29 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
 
         // Close the file we opened, just in case, so the test can start with a clean slate
         await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, saveFile: false, ControlledHangMitigatingCancellationToken);
+    }
+
+    private async Task CreateAndOpenBlazorProjectAsync(CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        await TestServices.SolutionExplorer.CloseSolutionAsync(ControlledHangMitigatingCancellationToken);
+
+        var solutionPath = CreateTemporaryPath();
+
+        var resourceName = "Microsoft.VisualStudio.Razor.IntegrationTests.TestFiles.BlazorProject.zip";
+        using var zipStream = typeof(AbstractRazorEditorTest).Assembly.GetManifestResourceStream(resourceName);
+        using var zip = new ZipArchive(zipStream);
+        zip.ExtractToDirectory(solutionPath);
+
+        var slnFile = Directory.EnumerateFiles(solutionPath, "*.sln").First();
+
+        await TestServices.SolutionExplorer.OpenSolutionAsync(slnFile, cancellationToken);
+    }
+
+    private static string CreateTemporaryPath()
+    {
+        return Path.Combine(Path.GetTempPath(), "razor-test", Path.GetRandomFileName());
     }
 
     public override async Task DisposeAsync()
