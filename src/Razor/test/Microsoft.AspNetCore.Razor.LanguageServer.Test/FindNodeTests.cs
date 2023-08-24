@@ -1,13 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
-using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -78,7 +74,6 @@ public class FindNodeTests
     [InlineData(1, 5, SyntaxKind.CSharpExpressionLiteral, false)]
     [InlineData(1, 5, SyntaxKind.CSharpExpressionLiteral, true)]
     [InlineData(5, 20, SyntaxKind.MarkupTextLiteral, true)]
-    [InlineData(5, 20, SyntaxKind.MarkupBlock, false)]
     [InlineData(20, 21, SyntaxKind.CSharpTransition, false)]
     [InlineData(20, 21, SyntaxKind.CSharpTransition, true)]
     [InlineData(21, 43, SyntaxKind.CSharpStatementLiteral, false)]
@@ -88,7 +83,6 @@ public class FindNodeTests
     [InlineData(44, 50, SyntaxKind.CSharpExpressionLiteral, false)]
     [InlineData(44, 50, SyntaxKind.CSharpExpressionLiteral, true)]
     [InlineData(50, 93, SyntaxKind.MarkupTextLiteral, true)]
-    [InlineData(50, 93, SyntaxKind.MarkupBlock, false)]
     [InlineData(93, 104, SyntaxKind.MarkupStartTag, false)]
     [InlineData(93, 104, SyntaxKind.MarkupStartTag, true)]
     [InlineData(104, 120, SyntaxKind.MarkupTextLiteral, false)]
@@ -134,7 +128,6 @@ public class FindNodeTests
     [InlineData(315, 316, SyntaxKind.MarkupTextLiteral, true)]
     [InlineData(316, 321, SyntaxKind.MarkupTextLiteral, false)]
     [InlineData(316, 321, SyntaxKind.MarkupTextLiteral, true)]
-    [InlineData(315, 329, SyntaxKind.MarkupStartTag, false)]
     [InlineData(315, 329, SyntaxKind.MarkupAttributeBlock, true)]
     [InlineData(322, 323, SyntaxKind.MarkupTextLiteral, false)]
     [InlineData(322, 323, SyntaxKind.MarkupTextLiteral, true)]
@@ -251,7 +244,7 @@ public class FindNodeTests
     [InlineData(940, 944, SyntaxKind.CSharpExpressionLiteral, false)]
     [InlineData(940, 944, SyntaxKind.CSharpExpressionLiteral, true)]
     [InlineData(944, 1162, SyntaxKind.MarkupTextLiteral, true)]
-    [InlineData(944, 1162, SyntaxKind.MarkupTextLiteral, false)]
+    [InlineData(0, 1162, SyntaxKind.MarkupBlock, false)]
     internal void Test_On_FetchData(int start, int end, SyntaxKind kind, bool includeWhitespace)
         => Verify(FetchDataContents, start, end, kind, includeWhitespace, innermostForTie: true);
 
