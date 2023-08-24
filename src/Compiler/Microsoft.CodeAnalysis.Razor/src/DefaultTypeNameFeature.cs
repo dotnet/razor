@@ -42,12 +42,12 @@ internal class DefaultTypeNameFeature : TypeNameFeature
         {
             if (parsed is ArrayTypeSyntax array)
             {
-                return new[] { array.ElementType.ToString() };
+                return ParseCore(array.ElementType);
             }
 
             if (parsed is TupleTypeSyntax tuple)
             {
-                return tuple.Elements.Select(a => a.ToString()).ToList();
+                return tuple.Elements.SelectMany(a => ParseCore(a.Type)).ToList();
             }
 
             return null;
