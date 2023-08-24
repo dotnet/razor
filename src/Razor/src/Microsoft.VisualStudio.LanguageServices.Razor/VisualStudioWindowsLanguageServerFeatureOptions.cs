@@ -13,11 +13,12 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerFeatureOptions
 {
     private const string ShowAllCSharpCodeActionsFeatureFlag = "Razor.LSP.ShowAllCSharpCodeActions";
+    private const string IncludeProjectKeyInGeneratedFilePathFeatureFlag = "Razor.LSP.IncludeProjectKeyInGeneratedFilePath";
     private const string TrimRangesForSemanticTokensFeatureFlag = "Razor.LSP.TrimRangesForSemanticTokens";
 
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _showAllCSharpCodeActions;
-    private readonly Lazy<bool> _trimRangesForSemanticTokens;
+    private readonly Lazy<bool> _includeProjectKeyInGeneratedFilePath;
 
     [ImportingConstructor]
     public VisualStudioWindowsLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
@@ -36,12 +37,19 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
             return showAllCSharpCodeActions;
         });
 
+        _includeProjectKeyInGeneratedFilePath = new Lazy<bool>(() =>
+        {
+            var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
+            var includeProjectKeyInGeneratedFilePath = featureFlags.IsFeatureEnabled(IncludeProjectKeyInGeneratedFilePathFeatureFlag, defaultValue: true);
+            return includeProjectKeyInGeneratedFilePath;
+        });
+
         _trimRangesForSemanticTokens = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
             var trimRangesForSemanticTokens = featureFlags.IsFeatureEnabled(TrimRangesForSemanticTokensFeatureFlag, defaultValue: false);
             return trimRangesForSemanticTokens;
-        });
+        }
     }
 
     // We don't currently support file creation operations on VS Codespaces or VS Liveshare
@@ -60,7 +68,7 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
 
     public override bool SupportsDelegatedCodeActions => true;
 
-    public override bool SupportsDelegatedDiagnostics => false;
+    public override bool DelegateToCSharpOnDiagnosticPublish => false;
 
     public override bool ReturnCodeActionAndRenamePathsWithPrefixedSlash => false;
 
@@ -69,6 +77,8 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
     private bool IsCodespacesOrLiveshare => _lspEditorFeatureDetector.IsRemoteClient() || _lspEditorFeatureDetector.IsLiveShareHost();
 
     public override bool ShowAllCSharpCodeActions => _showAllCSharpCodeActions.Value;
+
+    public override bool IncludeProjectKeyInGeneratedFilePath => _includeProjectKeyInGeneratedFilePath.Value;
 
     public override bool TrimRangesForSemanticTokens => _trimRangesForSemanticTokens.Value;
 }
