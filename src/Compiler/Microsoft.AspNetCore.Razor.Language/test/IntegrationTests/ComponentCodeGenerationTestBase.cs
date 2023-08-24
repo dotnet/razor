@@ -10138,9 +10138,11 @@ Time: @DateTime.Now
     {
         var generated = CompileToCSharp($$"""
                 <{{ComponentName}} @rendermode="@Microsoft.AspNetCore.Components.Web.RenderMode.Server)" />
-                """, throwOnFailure: false);
+                """, throwOnFailure: true);
 
         // Assert
+
+        //x:\dir\subdir\Test\TestComponent.cshtml(1, 29): Error RZ9986: Component attributes do not support complex content(mixed C# and markup). Attribute: '@rendermode', text: 'Microsoft.AspNetCore.Components.Web.RenderMode.Server)'
         var diagnostic = Assert.Single(generated.Diagnostics);
         Assert.Equal("RZ9986", diagnostic.Id);
     }
