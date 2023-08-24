@@ -3,7 +3,7 @@
 
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.LanguageServer;
+namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 
 internal abstract class ProjectSnapshotManagerAccessor
 {
