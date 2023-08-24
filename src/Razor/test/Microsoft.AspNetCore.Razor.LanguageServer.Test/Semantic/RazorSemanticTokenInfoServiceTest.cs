@@ -6,9 +6,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
-using Microsoft.AspNetCore.Razor.LanguageServer.Formatting;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.Mef;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -858,7 +857,8 @@ public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
             .ReturnsAsync(csharpTokens);
 
         var documentContextFactory = new TestDocumentContextFactory(documentSnapshots);
-        var documentMappingService = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, documentContextFactory, LoggerFactory);
+        var featureOptions = BuildFeatureOptions();
+        var documentMappingService = new RazorDocumentMappingService(featureOptions, documentContextFactory, LoggerFactory);
 
         var configurationSyncService = new Mock<IConfigurationSyncService>(MockBehavior.Strict);
 
@@ -879,7 +879,7 @@ public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
             languageServer.Object,
             documentMappingService,
             optionsMonitor,
-            TestLanguageServerFeatureOptions.Instance,
+            featureOptions,
             LoggerFactory);
     }
 
@@ -896,6 +896,16 @@ public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         };
 
         return range;
+    }
+
+    private LanguageServerFeatureOptions BuildFeatureOptions()
+    {
+        return Mock.Of<LanguageServerFeatureOptions>(options =>
+            options.SupportsDelegatedDiagnostics == true &&
+            options.TrimRangesForSemanticTokens == UseRangesParams &&
+            options.CSharpVirtualDocumentSuffix == ".ide.g.cs" &&
+            options.HtmlVirtualDocumentSuffix == "__virtual.html",
+            MockBehavior.Strict);
     }
 
     private class TestInitializeManager : IInitializeManager<InitializeParams, InitializeResult>
