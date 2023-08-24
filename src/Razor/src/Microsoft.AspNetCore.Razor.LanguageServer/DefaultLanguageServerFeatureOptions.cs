@@ -34,5 +34,5 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
 
     public override bool ShowAllCSharpCodeActions => false;
 
-    public override bool TrimRangesForSemanticTokens => false;
+    public override bool TrimRangesForSemanticTokens => true;
 }
