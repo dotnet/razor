@@ -372,7 +372,7 @@ namespace Microsoft.AspNetCore.Components.Web
     }
     public static partial class RenderMode
     {
-        public static ServerRenderMode Server { get; }
+        public static ServerRenderMode Server { get; } = new();
     }
     public partial class ServerRenderMode : IComponentRenderMode
     {
