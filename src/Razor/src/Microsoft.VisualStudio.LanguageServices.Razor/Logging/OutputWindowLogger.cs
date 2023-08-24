@@ -86,6 +86,10 @@ internal class OutputWindowLogger : IOutputWindowLogger, IDisposable
 
         private async Task StartListeningAsync()
         {
+            // Ensure that we're never on the UI thread before we start listening, in case the async queue doesn't yield
+            // I suspect this is overkill :D
+            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+
             while (!_disposalTokenSource.IsCancellationRequested)
             {
                 await DequeueAsync(_disposalTokenSource.Token).ConfigureAwait(false);
@@ -159,6 +163,7 @@ internal class OutputWindowLogger : IOutputWindowLogger, IDisposable
 
         public void Dispose()
         {
+            _outputQueue.Complete();
             _disposalTokenSource.Cancel();
         }
     }
