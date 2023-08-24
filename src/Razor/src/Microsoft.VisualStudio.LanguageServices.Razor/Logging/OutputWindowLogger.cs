@@ -3,6 +3,7 @@
 
 using System;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
@@ -15,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor.Logging;
 
 [Shared]
 [Export(typeof(IOutputWindowLogger))]
-internal class OutputWindowLogger : IOutputWindowLogger
+internal class OutputWindowLogger : IOutputWindowLogger, IDisposable
 {
 #if DEBUG
     private const LogLevel MinimumLogLevel = LogLevel.Debug;
@@ -40,6 +41,11 @@ internal class OutputWindowLogger : IOutputWindowLogger
 
     public IDisposable BeginScope<TState>(TState state) => Scope.Instance;
 
+    public void Dispose()
+    {
+        _outputPane.Dispose();
+    }
+
     public bool IsEnabled(LogLevel logLevel)
     {
         return logLevel >= MinimumLogLevel;
@@ -57,43 +63,55 @@ internal class OutputWindowLogger : IOutputWindowLogger
         }
     }
 
-    private class OutputPane
+    private class OutputPane : IDisposable
     {
         private static readonly Guid s_outputPaneGuid = new("BBAFF416-4AF5-41F2-9F93-91F283E43C3B");
 
         private readonly JoinableTaskContext _threadingContext;
         private readonly IServiceProvider _serviceProvider;
+        private readonly AsyncQueue<string> _outputQueue;
+        private readonly CancellationTokenSource _disposalTokenSource;
         private IVsOutputWindowPane? _doNotAccessDirectlyOutputPane;
-        private AsyncQueue<string> _outputQueue = new();
 
         public OutputPane(JoinableTaskContext threadingContext)
         {
             _threadingContext = threadingContext;
             _serviceProvider = ServiceProvider.GlobalProvider;
+
+            _outputQueue = new AsyncQueue<string>();
+            _disposalTokenSource = new CancellationTokenSource();
+
+            _ = StartListeningAsync();
+        }
+
+        private async Task StartListeningAsync()
+        {
+            while (!_disposalTokenSource.IsCancellationRequested)
+            {
+                await DequeueAsync(_disposalTokenSource.Token).ConfigureAwait(false);
+            }
         }
 
         public void WriteLine(string value)
         {
             _outputQueue.Enqueue(value);
-
-            _ = DequeueAsync();
         }
 
-        private async Task DequeueAsync()
+        private async Task DequeueAsync(CancellationToken cancellationToken)
         {
-            var value = await _outputQueue.DequeueAsync().ConfigureAwait(false);
-            if (value is null)
+            var value = await _outputQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
+            if (value is null || cancellationToken.IsCancellationRequested)
             {
                 return;
             }
 
-            var pane = await GetPaneAsync().ConfigureAwait(false);
+            await _threadingContext.Factory.SwitchToMainThreadAsync(cancellationToken);
+
+            var pane = GetPane();
             if (pane is null)
             {
                 return;
             }
-
-            await _threadingContext.Factory.SwitchToMainThreadAsync();
 
             // https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.ivsoutputwindowpane.outputstringthreadsafe?view=visualstudiosdk-2022#remarks
             if (pane is IVsOutputWindowPaneNoPump noPumpPane)
@@ -106,23 +124,16 @@ internal class OutputWindowLogger : IOutputWindowLogger
             }
         }
 
-        private async Task<IVsOutputWindowPane> GetPaneAsync()
+        private IVsOutputWindowPane GetPane()
         {
+            _threadingContext.AssertUIThread();
+
             if (_doNotAccessDirectlyOutputPane is null)
             {
-                await _threadingContext.Factory.SwitchToMainThreadAsync();
-
-                if (_doNotAccessDirectlyOutputPane != null)
-                {
-                    // check whether other one already initialized output window.
-                    // the output API already handle double initialization, so this is just quick bail
-                    // rather than any functional issue
-                    return _doNotAccessDirectlyOutputPane;
-                }
 
                 var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
 
-                // this should bring outout window to the front
+                // this should bring output window to the front
                 _doNotAccessDirectlyOutputPane = CreateOutputPane(outputWindow);
             }
 
@@ -144,6 +155,11 @@ internal class OutputWindowLogger : IOutputWindowLogger
             }
 
             return null;
+        }
+
+        public void Dispose()
+        {
+            _disposalTokenSource.Cancel();
         }
     }
 
