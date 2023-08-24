@@ -12,6 +12,8 @@ internal class LogTestRunToConsoleAttribute : BeforeAfterTestAttribute
     public override void Before(MethodInfo methodUnderTest)
     {
         Console.WriteLine("Starting test: " + methodUnderTest.Name);
+        Console.Error.WriteLine("Err - Starting test: " + methodUnderTest.Name);
+        System.Diagnostics.Debug.WriteLine("Debug - Starting test: " + methodUnderTest.Name);
 
         base.Before(methodUnderTest);
     }
@@ -21,5 +23,7 @@ internal class LogTestRunToConsoleAttribute : BeforeAfterTestAttribute
         base.After(methodUnderTest);
 
         Console.WriteLine("Finished test: " + methodUnderTest.Name);
+        Console.Error.WriteLine("Err - Finished test: " + methodUnderTest.Name);
+        System.Diagnostics.Debug.WriteLine("Debug - Finished test: " + methodUnderTest.Name);
     }
 }
