@@ -67,7 +67,6 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
                 },
                 new IntermediateToken()
                 {
-                    Source = token.Source,
                     Kind = TokenKind.CSharp,
                     Content = ";"
                 }
