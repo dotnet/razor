@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -147,17 +148,21 @@ internal partial class RazorCustomMessageTarget
             return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
         }
 
-        var data = StitchSemanticTokenResponsesTogether(nonEmptyResults);
-
-        var response = new ProvideSemanticTokensResponse(data, semanticTokensParams.RequiredHostDocumentVersion);
-
-        return response;
+        var count = nonEmptyResults.Sum(r => r.Length);
+        var data = ArrayPool<int>.Shared.Rent(count);
+        try
+        {
+            StitchSemanticTokenResponsesTogether(nonEmptyResults, ref data);
+            return new ProvideSemanticTokensResponse(data, semanticTokensParams.RequiredHostDocumentVersion);
+        }
+        finally
+        {
+            ArrayPool<int>.Shared.Return(data);
+        }
     }
 
-    private int[] StitchSemanticTokenResponsesTogether(int[][] responseData)
+    private int[] StitchSemanticTokenResponsesTogether(int[][] responseData, ref int[] data)
     {
-        var count = responseData.Sum(r => r.Length);
-        var data = new int[count];
         var dataIndex = 0;
         var lastTokenLine = 0;
 

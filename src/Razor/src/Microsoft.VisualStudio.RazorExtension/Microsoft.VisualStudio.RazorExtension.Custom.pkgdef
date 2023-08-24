@@ -56,7 +56,7 @@
 "PreviewPaneChannels"="*"
 
 [$RootKey$\FeatureFlags\Razor\LSP\TrimRangesForSemanticTokens]
-"Description"="Trims down ranges when requesting semantic token information on razor files. Note: This is experimental, some actions may not apply correctly, or at all!"
-"Value"=dword:00000000
-"Title"="Trims down ranges when requesting semantic token information on Razor files (requires restart)"
+"Description"="Trim ranges when requesting semantic token information on razor files. Note: This is experimental, some actions may not apply correctly, or at all!"
+"Value"=dword:00000001
+"Title"="Trim ranges when requesting semantic token information on Razor files (requires restart)"
 "PreviewPaneChannels"="IntPreview,int.main"
