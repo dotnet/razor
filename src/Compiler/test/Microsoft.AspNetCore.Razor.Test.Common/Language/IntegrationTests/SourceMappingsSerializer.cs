@@ -13,7 +13,7 @@ public static class SourceMappingsSerializer
     internal static string Serialize(IRazorGeneratedDocument csharpDocument, RazorSourceDocument sourceDocument)
     {
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
-        var sourceContent = sourceDocument.ToString();
+        var sourceContent = sourceDocument.SourceText.ToString();
 
         for (var i = 0; i < csharpDocument.SourceMappings.Count; i++)
         {
