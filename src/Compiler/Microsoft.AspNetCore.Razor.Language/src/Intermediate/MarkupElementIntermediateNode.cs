@@ -20,7 +20,7 @@ public sealed class MarkupElementIntermediateNode : IntermediateNode
 
     public IEnumerable<IntermediateNode> Body => Children.Where(c =>
     {
-        return !(c is ComponentAttributeIntermediateNode or
+        return c is not (ComponentAttributeIntermediateNode or
             HtmlAttributeIntermediateNode or
             SplatIntermediateNode or
             SetKeyIntermediateNode or
