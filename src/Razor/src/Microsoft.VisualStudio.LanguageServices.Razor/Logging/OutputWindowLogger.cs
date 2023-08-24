@@ -81,17 +81,19 @@ internal class OutputWindowLogger : IOutputWindowLogger
 
         private async Task DequeueAsync()
         {
-            var value = await _outputQueue.DequeueAsync();
+            var value = await _outputQueue.DequeueAsync().ConfigureAwait(false);
             if (value is null)
             {
                 return;
             }
 
-            var pane = await GetPaneAsync();
+            var pane = await GetPaneAsync().ConfigureAwait(false);
             if (pane is null)
             {
                 return;
             }
+
+            await _threadingContext.Factory.SwitchToMainThreadAsync();
 
             // https://learn.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.ivsoutputwindowpane.outputstringthreadsafe?view=visualstudiosdk-2022#remarks
             if (pane is IVsOutputWindowPaneNoPump noPumpPane)
