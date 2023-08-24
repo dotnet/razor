@@ -19,6 +19,7 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _showAllCSharpCodeActions;
     private readonly Lazy<bool> _includeProjectKeyInGeneratedFilePath;
+    private readonly Lazy<bool> _trimRangesForSemanticTokens;
 
     [ImportingConstructor]
     public VisualStudioWindowsLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
@@ -49,7 +50,7 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
             var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
             var trimRangesForSemanticTokens = featureFlags.IsFeatureEnabled(TrimRangesForSemanticTokensFeatureFlag, defaultValue: false);
             return trimRangesForSemanticTokens;
-        }
+        });
     }
 
     // We don't currently support file creation operations on VS Codespaces or VS Liveshare

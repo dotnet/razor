@@ -96,8 +96,7 @@ internal partial class RazorCustomMessageTarget
             throw new ArgumentNullException(nameof(semanticTokensParams.Ranges));
         }
 
-        var (synchronized, csharpDoc) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
-            _documentManager, (int)semanticTokensParams.RequiredHostDocumentVersion, semanticTokensParams.TextDocument, cancellationToken);
+        var (synchronized, csharpDoc) = await TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>((int)semanticTokensParams.RequiredHostDocumentVersion, semanticTokensParams.TextDocument, cancellationToken);
 
         if (csharpDoc is null)
         {

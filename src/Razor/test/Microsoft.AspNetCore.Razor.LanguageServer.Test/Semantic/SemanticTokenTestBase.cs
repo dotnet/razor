@@ -208,7 +208,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
     protected Range[]? GetMappedCSharpRanges(RazorCodeDocument codeDocument, Range razorRange)
     {
         var documentMappingService = new RazorDocumentMappingService(
-            TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+            FilePathService, new TestDocumentContextFactory(), LoggerFactory);
         if (!RazorSemanticTokensInfoService.TryGetCSharpRanges(codeDocument, razorRange, out var csharpRanges))
         {
             // No C# in the range.

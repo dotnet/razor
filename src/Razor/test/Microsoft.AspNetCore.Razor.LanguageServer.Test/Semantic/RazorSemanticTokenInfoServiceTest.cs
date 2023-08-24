@@ -857,8 +857,7 @@ public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
             .ReturnsAsync(csharpTokens);
 
         var documentContextFactory = new TestDocumentContextFactory(documentSnapshots);
-        var featureOptions = BuildFeatureOptions();
-        var documentMappingService = new RazorDocumentMappingService(FilePathService, featureOptions, documentContextFactory, LoggerFactory);
+        var documentMappingService = new RazorDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
         var configurationSyncService = new Mock<IConfigurationSyncService>(MockBehavior.Strict);
 
@@ -874,6 +873,13 @@ public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
             optionsMonitorCache);
 
         await optionsMonitor.UpdateAsync(CancellationToken.None);
+
+        var featureOptions = Mock.Of<LanguageServerFeatureOptions>(options =>
+            options.DelegateToCSharpOnDiagnosticPublish == true &&
+            options.TrimRangesForSemanticTokens == UseRangesParams &&
+            options.CSharpVirtualDocumentSuffix == ".ide.g.cs" &&
+            options.HtmlVirtualDocumentSuffix == "__virtual.html",
+            MockBehavior.Strict);
 
         return new RazorSemanticTokensInfoService(
             languageServer.Object,
@@ -894,16 +900,6 @@ public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         };
 
         return range;
-    }
-
-    private LanguageServerFeatureOptions BuildFeatureOptions()
-    {
-        return Mock.Of<LanguageServerFeatureOptions>(options =>
-            options.SupportsDelegatedDiagnostics == true &&
-            options.TrimRangesForSemanticTokens == UseRangesParams &&
-            options.CSharpVirtualDocumentSuffix == ".ide.g.cs" &&
-            options.HtmlVirtualDocumentSuffix == "__virtual.html",
-            MockBehavior.Strict);
     }
 
     private class TestInitializeManager : IInitializeManager<InitializeParams, InitializeResult>
