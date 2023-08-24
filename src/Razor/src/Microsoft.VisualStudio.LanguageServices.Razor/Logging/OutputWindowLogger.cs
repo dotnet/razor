@@ -3,6 +3,7 @@
 
 using System;
 using System.Composition;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
 using Microsoft.VisualStudio.Editor.Razor.Logging;
@@ -63,6 +64,7 @@ internal class OutputWindowLogger : IOutputWindowLogger
         private readonly JoinableTaskContext _threadingContext;
         private readonly IServiceProvider _serviceProvider;
         private IVsOutputWindowPane? _doNotAccessDirectlyOutputPane;
+        private AsyncQueue<string> _outputQueue = new();
 
         public OutputPane(JoinableTaskContext threadingContext)
         {
@@ -72,12 +74,20 @@ internal class OutputWindowLogger : IOutputWindowLogger
 
         public void WriteLine(string value)
         {
-            WriteLineInternal(value);
+            _outputQueue.Enqueue(value);
+
+            _ = DequeueAsync();
         }
 
-        private void WriteLineInternal(string value)
+        private async Task DequeueAsync()
         {
-            var pane = GetPane();
+            var value = await _outputQueue.DequeueAsync();
+            if (value is null)
+            {
+                return;
+            }
+
+            var pane = await GetPaneAsync();
             if (pane is null)
             {
                 return;
@@ -94,27 +104,24 @@ internal class OutputWindowLogger : IOutputWindowLogger
             }
         }
 
-        private IVsOutputWindowPane GetPane()
+        private async Task<IVsOutputWindowPane> GetPaneAsync()
         {
             if (_doNotAccessDirectlyOutputPane is null)
             {
-                _threadingContext.Factory.Run(async () =>
+                await _threadingContext.Factory.SwitchToMainThreadAsync();
+
+                if (_doNotAccessDirectlyOutputPane != null)
                 {
-                    await _threadingContext.Factory.SwitchToMainThreadAsync();
+                    // check whether other one already initialized output window.
+                    // the output API already handle double initialization, so this is just quick bail
+                    // rather than any functional issue
+                    return _doNotAccessDirectlyOutputPane;
+                }
 
-                    if (_doNotAccessDirectlyOutputPane != null)
-                    {
-                        // check whether other one already initialized output window.
-                        // the output API already handle double initialization, so this is just quick bail
-                        // rather than any functional issue
-                        return;
-                    }
+                var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
 
-                    var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
-
-                    // this should bring outout window to the front
-                    _doNotAccessDirectlyOutputPane = CreateOutputPane(outputWindow);
-                });
+                // this should bring outout window to the front
+                _doNotAccessDirectlyOutputPane = CreateOutputPane(outputWindow);
             }
 
             return _doNotAccessDirectlyOutputPane!;
