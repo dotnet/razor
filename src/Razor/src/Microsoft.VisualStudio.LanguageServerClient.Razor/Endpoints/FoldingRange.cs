@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
@@ -26,6 +27,8 @@ internal partial class RazorCustomMessageTarget
         {
             throw new ArgumentNullException(nameof(foldingRangeParams));
         }
+
+        Debug.Assert(false, "Hi there!");
 
         // Normally we don't like to construct POCOs directly, because it removes potentially unknown data that has been
         // deserialized from the JSON request. To ensure we don't do that we modify the request object (see WithUri call below)
