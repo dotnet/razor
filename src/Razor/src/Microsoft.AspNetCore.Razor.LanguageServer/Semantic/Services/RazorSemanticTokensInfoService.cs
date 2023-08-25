@@ -170,7 +170,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                 {
                     if (colorBackground)
                     {
-                        tokenModifiers |= (int)RazorSemanticTokensLegend.RazorTokenModifiers.RazorCode;
+                        tokenModifiers |= (int)RazorSemanticTokensLegend.RazorTokenModifiers.razorCode;
                         AddAdditionalCSharpWhitespaceRanges(razorRanges, textClassification, razorSource, previousRazorSemanticRange, originalRange, _logger);
                     }
 
@@ -266,7 +266,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                 Start = new Position(originalRange.Start.Line, previousRazorSemanticRange.End.Character),
                 End = originalRange.Start
             };
-            razorRanges.Add(new SemanticRange(textClassification, whitespaceRange, (int)RazorSemanticTokensLegend.RazorTokenModifiers.RazorCode, fromRazor: false));
+            razorRanges.Add(new SemanticRange(textClassification, whitespaceRange, (int)RazorSemanticTokensLegend.RazorTokenModifiers.razorCode, fromRazor: false));
         }
         else if (originalRange.Start.Character > 0 &&
             previousRazorSemanticRange?.End.Line != originalRange.Start.Line &&
@@ -279,7 +279,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                 Start = new Position(originalRange.Start.Line, 0),
                 End = originalRange.Start
             };
-            razorRanges.Add(new SemanticRange(textClassification, whitespaceRange, (int)RazorSemanticTokensLegend.RazorTokenModifiers.RazorCode, fromRazor: false));
+            razorRanges.Add(new SemanticRange(textClassification, whitespaceRange, (int)RazorSemanticTokensLegend.RazorTokenModifiers.razorCode, fromRazor: false));
         }
     }
 
