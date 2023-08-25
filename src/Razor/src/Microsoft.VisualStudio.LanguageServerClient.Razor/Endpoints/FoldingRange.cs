@@ -28,8 +28,6 @@ internal partial class RazorCustomMessageTarget
             throw new ArgumentNullException(nameof(foldingRangeParams));
         }
 
-        Debug.Assert(false, "Hi there!");
-
         // Normally we don't like to construct POCOs directly, because it removes potentially unknown data that has been
         // deserialized from the JSON request. To ensure we don't do that we modify the request object (see WithUri call below)
         // but in this case, where we asynchronously fire off two requests, that introduces a problem as we can end up modifying
