@@ -222,6 +222,9 @@
   <data name="RefTagHelper_Documentation" xml:space="preserve">
     <value>Populates the specified field or property with a reference to the element or component.</value>
   </data>
+  <data name="RenderModeTagHelper_Documentation" xml:space="preserve">
+    <value>Specified the render mode for a component.</value>
+  </data>
   <data name="SplatTagHelper_Documentation" xml:space="preserve">
     <value>Merges a collection of attributes into the current element or component.</value>
   </data>

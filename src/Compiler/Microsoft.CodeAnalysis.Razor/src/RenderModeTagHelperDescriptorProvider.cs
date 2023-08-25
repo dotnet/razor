@@ -57,8 +57,7 @@ internal sealed class RenderModeTagHelperDescriptorProvider : ITagHelperDescript
 
         builder.CaseSensitive = true;
 
-        // PROTOTYPE: docs
-        //builder.SetDocumentation(DocumentationDescriptor.RenderModeTagHelper);
+        builder.SetDocumentation(DocumentationDescriptor.RenderModeTagHelper);
 
         builder.SetMetadata(
             SpecialKind(ComponentMetadata.RenderMode.TagHelperKind),
@@ -78,8 +77,7 @@ internal sealed class RenderModeTagHelperDescriptorProvider : ITagHelperDescript
 
         builder.BindAttribute(attribute =>
         {
-            // PROTOTYPE: docs
-            //attribute.SetDocumentation(DocumentationDescriptor.RenderModeTagHelper);
+            attribute.SetDocumentation(DocumentationDescriptor.RenderModeTagHelper);
             attribute.Name = "@rendermode";
 
             attribute.TypeName = ComponentsApi.IComponentRenderMode.FullTypeName;
