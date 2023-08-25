@@ -234,7 +234,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                     {
                         if (colorBackground)
                         {
-                            tokenModifiers |= (int)RazorSemanticTokensLegend.RazorTokenModifiers.RazorCode;
+                            tokenModifiers |= (int)RazorSemanticTokensLegend.RazorTokenModifiers.razorCode;
                             AddAdditionalCSharpWhitespaceRanges(razorRanges, textClassification, razorSource, previousRazorSemanticRange, originalRange, _logger);
                         }
 
