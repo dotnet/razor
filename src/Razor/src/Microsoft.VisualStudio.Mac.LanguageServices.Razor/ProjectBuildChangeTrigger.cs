@@ -9,14 +9,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.Editor.Razor;
-using MonoDevelop.Core;
 using MonoDevelop.Ide;
 using MonoDevelop.Projects;
 
 namespace Microsoft.VisualStudio.Mac.LanguageServices.Razor;
 
-[Export(typeof(ProjectSnapshotChangeTrigger))]
-internal class ProjectBuildChangeTrigger : ProjectSnapshotChangeTrigger
+[Export(typeof(IProjectSnapshotChangeTrigger))]
+internal class ProjectBuildChangeTrigger : IProjectSnapshotChangeTrigger
 {
     private readonly TextBufferProjectService _projectService;
     private readonly ProjectWorkspaceStateGenerator _workspaceStateGenerator;
@@ -82,13 +81,8 @@ internal class ProjectBuildChangeTrigger : ProjectSnapshotChangeTrigger
         _workspaceStateGenerator = workspaceStateGenerator;
     }
 
-    public override void Initialize(ProjectSnapshotManagerBase projectManager)
+    public void Initialize(ProjectSnapshotManagerBase projectManager)
     {
-        if (projectManager is null)
-        {
-            throw new ArgumentNullException(nameof(projectManager));
-        }
-
         _projectManager = projectManager;
 
         if (IdeApp.ProjectOperations is not null)

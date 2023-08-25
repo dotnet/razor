@@ -118,6 +118,25 @@ public class DefinitionEndpointDelegationTest : SingleServerDelegatingEndpointTe
         await VerifyCSharpGoToDefinitionAsync(input, "test.razor");
     }
 
+    [Fact]
+    public async Task Handle_SingleServer_AttributeValue_BindAfter()
+    {
+        var input = """
+            <input type="text" @bind="InputValue" @bind:after="() => Af$$ter()">
+
+            @code
+            {
+                public string InputValue { get; set; }
+
+                public void [|After|]()
+                {
+                }
+            }
+            """;
+
+        await VerifyCSharpGoToDefinitionAsync(input, "test.razor");
+    }
+
     [Theory]
     [InlineData("Ti$$tle")]
     [InlineData("$$@bind-Title")]
@@ -211,10 +230,10 @@ public class DefinitionEndpointDelegationTest : SingleServerDelegatingEndpointTe
         var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == new[] { Mock.Of<IProjectSnapshot>(MockBehavior.Strict) }.ToImmutableArray(), MockBehavior.Strict);
         var projectSnapshotManagerAccessor = new TestProjectSnapshotManagerAccessor(projectSnapshotManager);
         var projectSnapshotManagerDispatcher = new LSPProjectSnapshotManagerDispatcher(LoggerFactory);
-        var searchEngine = new DefaultRazorComponentSearchEngine(Dispatcher, projectSnapshotManagerAccessor, LoggerFactory);
+        var searchEngine = new DefaultRazorComponentSearchEngine(projectSnapshotManagerAccessor, LoggerFactory);
 
         var razorUri = new Uri(razorFilePath);
-        var documentContext = await DocumentContextFactory.TryCreateForOpenDocumentAsync(razorUri, DisposalToken);
+        var documentContext = DocumentContextFactory.TryCreateForOpenDocument(razorUri);
         var requestContext = CreateRazorRequestContext(documentContext);
 
         var endpoint = new DefinitionEndpoint(searchEngine, DocumentMappingService, LanguageServerFeatureOptions, LanguageServer, LoggerFactory);

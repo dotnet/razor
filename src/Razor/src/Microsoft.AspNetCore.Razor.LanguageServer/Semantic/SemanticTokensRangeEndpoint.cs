@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -60,7 +59,7 @@ internal sealed class SemanticTokensRangeEndpoint : IRazorRequestHandler<Semanti
         var semanticTokens = await semanticTokensInfoService.GetSemanticTokensAsync(request.TextDocument, request.Range, documentContext, _razorSemanticTokensLegend.AssumeNotNull(), correlationId, cancellationToken).ConfigureAwait(false);
         var amount = semanticTokens is null ? "no" : (semanticTokens.Data.Length / 5).ToString(Thread.CurrentThread.CurrentCulture);
 
-        requestContext.Logger.LogInformation("Returned {amount} semantic tokens for range {request.Range} in {request.TextDocument.Uri}.", amount, request.Range, request.TextDocument.Uri);
+        requestContext.Logger.LogInformation("Returned {amount} semantic tokens for range ({startLine},{startChar})-({endLine},{endChar}) in {request.TextDocument.Uri}.", amount, request.Range.Start.Line, request.Range.Start.Character, request.Range.End.Line, request.Range.End.Character, request.TextDocument.Uri);
 
         if (semanticTokens is not null)
         {

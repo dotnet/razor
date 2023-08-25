@@ -58,6 +58,22 @@ internal class DefaultLSPDocumentManager : TrackingLSPDocumentManager
         _documents = new ConcurrentDictionary<Uri, LSPDocument>();
     }
 
+    public override void RefreshVirtualDocuments()
+    {
+        var documents = _documents.Values.ToArray();
+
+        foreach (var document in documents)
+        {
+            var oldSnapshot = document.CurrentSnapshot;
+            if (_documentFactory.TryRefreshVirtualDocuments(document))
+            {
+                var newSnapshot = document.CurrentSnapshot;
+                NotifyDocumentManagerChangeListeners(old: oldSnapshot, @new: null, virtualOld: null, virtualNew: null, LSPDocumentChangeKind.Removed);
+                NotifyDocumentManagerChangeListeners(old: null, @new: newSnapshot, virtualOld: null, virtualNew: null, LSPDocumentChangeKind.Added);
+            }
+        }
+    }
+
     public override void TrackDocument(ITextBuffer buffer)
     {
         if (buffer is null)
@@ -169,6 +185,64 @@ internal class DefaultLSPDocumentManager : TrackingLSPDocumentManager
         }
 
         if (!lspDocument.TryGetVirtualDocument<TVirtualDocument>(out var newVirtualDocument))
+        {
+            throw new InvalidOperationException("This should never ever happen.");
+        }
+
+        var newVirtual = newVirtualDocument.CurrentSnapshot;
+        NotifyDocumentManagerChangeListeners(old, @new, oldVirtual, newVirtual, LSPDocumentChangeKind.VirtualDocumentChanged);
+    }
+
+    public override void UpdateVirtualDocument<TVirtualDocument>(
+        Uri hostDocumentUri,
+        Uri virtualDocumentUri,
+        IReadOnlyList<ITextChange> changes,
+        int hostDocumentVersion,
+        object? state)
+    {
+        if (hostDocumentUri is null)
+        {
+            throw new ArgumentNullException(nameof(hostDocumentUri));
+        }
+
+        if (changes is null)
+        {
+            throw new ArgumentNullException(nameof(changes));
+        }
+
+        Debug.Assert(_joinableTaskContext.IsOnMainThread);
+
+        if (!_documents.TryGetValue(hostDocumentUri, out var lspDocument))
+        {
+            // Don't know about document, noop.
+            return;
+        }
+
+        if (!lspDocument.TryGetVirtualDocument<TVirtualDocument>(virtualDocumentUri, out var virtualDocument))
+        {
+            // Unable to locate virtual document of typeof(TVirtualDocument)
+            // Ex. Microsoft.WebTools.Languages.LanguageServer.Delegation.ContainedLanguage.Css.CssVirtualDocument
+            return;
+        }
+
+        if (changes.Count == 0 &&
+            virtualDocument.HostDocumentVersion == hostDocumentVersion)
+        {
+            // The current virtual document already knows about this update.
+            // Ignore it so we don't prematurely invoke a change event.
+            return;
+        }
+
+        var old = lspDocument.CurrentSnapshot;
+        var oldVirtual = virtualDocument.CurrentSnapshot;
+        var @new = lspDocument.UpdateVirtualDocument<TVirtualDocument>(virtualDocument, changes, hostDocumentVersion, state);
+
+        if (old == @new)
+        {
+            return;
+        }
+
+        if (!lspDocument.TryGetVirtualDocument<TVirtualDocument>(virtualDocumentUri, out var newVirtualDocument))
         {
             throw new InvalidOperationException("This should never ever happen.");
         }

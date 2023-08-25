@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -12,15 +13,16 @@ using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
-public abstract class AbstractRazorEditorTest : AbstractEditorTest
+public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper) : AbstractIntegrationTest
 {
     private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
     private const string UseLegacyASPNETCoreEditorSetting = "TextEditor.HTML.Specific.UseLegacyASPNETCoreRazorEditor";
 
-    protected override string LanguageName => LanguageNames.Razor;
+    private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
 
     public override async Task InitializeAsync()
     {
@@ -28,8 +30,7 @@ public abstract class AbstractRazorEditorTest : AbstractEditorTest
 
         VisualStudioLogging.AddCustomLoggers();
 
-        await TestServices.SolutionExplorer.CreateSolutionAsync(RazorProjectConstants.BlazorSolutionName, ControlledHangMitigatingCancellationToken);
-        await TestServices.SolutionExplorer.AddProjectAsync(RazorProjectConstants.BlazorProjectName, WellKnownProjectTemplates.BlazorProject, groupId: WellKnownProjectTemplates.GroupIdentifiers.Server, templateId: null, LanguageName, ControlledHangMitigatingCancellationToken);
+        await CreateAndOpenBlazorProjectAsync(ControlledHangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ControlledHangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
@@ -53,16 +54,46 @@ public abstract class AbstractRazorEditorTest : AbstractEditorTest
         await TestServices.Editor.PlaceCaretAsync("</PageTitle>", charsOffset: 1, ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
 
+        // Making a code change gets us flowing new generated code versions around the system
+        // which seems to have a positive effect on Web Tools in particular. Given the relatively
+        // fast pace of running integration tests, it's worth taking a slight delay at the start for a more reliable run.
         TestServices.Input.Send("{ENTER}");
 
-        await Task.Delay(10000);
-
-        TestServices.Input.Send("{ENTER}");
-
-        await Task.Delay(10000);
+        await Task.Delay(2500);
 
         // Close the file we opened, just in case, so the test can start with a clean slate
         await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, saveFile: false, ControlledHangMitigatingCancellationToken);
+    }
+
+    private async Task CreateAndOpenBlazorProjectAsync(CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        await TestServices.SolutionExplorer.CloseSolutionAsync(ControlledHangMitigatingCancellationToken);
+
+        var solutionPath = CreateTemporaryPath();
+
+        var resourceName = "Microsoft.VisualStudio.Razor.IntegrationTests.TestFiles.BlazorProject.zip";
+        using var zipStream = typeof(AbstractRazorEditorTest).Assembly.GetManifestResourceStream(resourceName);
+        using var zip = new ZipArchive(zipStream);
+        zip.ExtractToDirectory(solutionPath);
+
+        var slnFile = Directory.EnumerateFiles(solutionPath, "*.sln").First();
+
+        await TestServices.SolutionExplorer.OpenSolutionAsync(slnFile, cancellationToken);
+    }
+
+    private static string CreateTemporaryPath()
+    {
+        return Path.Combine(Path.GetTempPath(), "razor-test", Path.GetRandomFileName());
+    }
+
+    public override async Task DisposeAsync()
+    {
+        var paneContent = await TestServices.Output.GetRazorOutputPaneContentAsync(CancellationToken.None);
+        _testOutputHelper.WriteLine($"Razor Output Pane Content:{Environment.NewLine}{paneContent}");
+
+        await base.DisposeAsync();
     }
 
     private static void EnsureLSPEditorEnabled()

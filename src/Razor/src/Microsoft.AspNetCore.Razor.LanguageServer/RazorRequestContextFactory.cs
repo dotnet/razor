@@ -5,7 +5,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -20,8 +19,10 @@ internal class RazorRequestContextFactory : IRequestContextFactory<RazorRequestC
         _lspServices = lspServices;
     }
 
-    public async Task<RazorRequestContext> CreateRequestContextAsync<TRequestParams>(IQueueItem<RazorRequestContext> queueItem, TRequestParams @params, CancellationToken cancellationToken)
+    public Task<RazorRequestContext> CreateRequestContextAsync<TRequestParams>(IQueueItem<RazorRequestContext> queueItem, TRequestParams @params, CancellationToken cancellationToken)
     {
+        var logger = _lspServices.GetRequiredService<LoggerAdapter>();
+
         VersionedDocumentContext? documentContext = null;
         var textDocumentHandler = queueItem.MethodHandler as ITextDocumentIdentifierHandler;
 
@@ -32,27 +33,37 @@ internal class RazorRequestContextFactory : IRequestContextFactory<RazorRequestC
             if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, TextDocumentIdentifier> tdiHandler)
             {
                 var textDocumentIdentifier = tdiHandler.GetTextDocumentIdentifier(@params);
-                documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
+                uri = textDocumentIdentifier.Uri;
+
+                logger.LogDebug("Trying to create DocumentContext for {methodName} for {uri}", queueItem.MethodName, uri);
+
+                documentContext = documentContextFactory.TryCreateForOpenDocument(textDocumentIdentifier);
             }
             else if (textDocumentHandler is ITextDocumentIdentifierHandler<TRequestParams, Uri> uriHandler)
             {
                 uri = uriHandler.GetTextDocumentIdentifier(@params);
-                documentContext = await documentContextFactory.TryCreateForOpenDocumentAsync(uri, cancellationToken).ConfigureAwait(false);
+
+                logger.LogDebug("Trying to create DocumentContext for {methodName} for {uri}", queueItem.MethodName, uri);
+
+                documentContext = documentContextFactory.TryCreateForOpenDocument(uri);
             }
             else
             {
                 throw new NotImplementedException();
             }
+
+            if (documentContext is null)
+            {
+                logger.LogWarning("Could not create a document context for {methodName} for {uri}. Endpoint may crash later if it calls GetRequiredDocumentContext.", queueItem.MethodName, uri);
+            }
         }
 
-        var loggerAdapter = _lspServices.GetRequiredService<LoggerAdapter>();
-
-        var requestContext = new RazorRequestContext(documentContext, loggerAdapter, _lspServices
+        var requestContext = new RazorRequestContext(documentContext, logger, _lspServices
 #if DEBUG
             , queueItem.MethodName, uri
 #endif
             );
 
-        return requestContext;
+        return Task.FromResult(requestContext);
     }
 }

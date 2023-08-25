@@ -3,8 +3,8 @@
 
 using System;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
@@ -15,52 +15,24 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class DefaultDocumentContextFactory : DocumentContextFactory
 {
-    private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly ISnapshotResolver _snapshotResolver;
     private readonly DocumentVersionCache _documentVersionCache;
     private readonly ILogger<DefaultDocumentContextFactory> _logger;
 
     public DefaultDocumentContextFactory(
-        ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         ISnapshotResolver snapshotResolver,
         DocumentVersionCache documentVersionCache,
         ILoggerFactory loggerFactory)
     {
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
         _snapshotResolver = snapshotResolver;
         _documentVersionCache = documentVersionCache;
         _logger = loggerFactory.CreateLogger<DefaultDocumentContextFactory>();
     }
 
-    protected override async Task<DocumentContext?> TryCreateCoreAsync(Uri documentUri, VSProjectContext? projectContext, bool versioned, CancellationToken cancellationToken)
+    protected override DocumentContext? TryCreateCore(Uri documentUri, VSProjectContext? projectContext, bool versioned)
     {
         var filePath = documentUri.GetAbsoluteOrUNCPath();
-
-        var documentAndVersion = await _projectSnapshotManagerDispatcher.RunOnDispatcherThreadAsync(() =>
-        {
-            // TODO: Use project context to resolve the document.
-            if (_snapshotResolver.TryResolveDocument(filePath,  out var documentSnapshot))
-            {
-                if (!versioned)
-                {
-                    return new DocumentSnapshotAndVersion(documentSnapshot, Version: null);
-                }
-
-                if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
-                {
-                    return new DocumentSnapshotAndVersion(documentSnapshot, version.Value);
-                }
-            }
-
-            // This is super rare, if we get here it could mean many things. Some of which:
-            //     1. Stale request:
-            //          - Got queued after a "document closed" / "document removed" type action
-            //          - Took too long to run and by the time the request needed the document context the
-            //            version cache has evicted the entry
-            //     2. Client is misbehaving and sending requests for a document that we've never seen before.
-            _logger.LogWarning("Tried to create context for document {documentUri} which was not found.", documentUri);
-            return null;
-        }, cancellationToken).ConfigureAwait(false);
+        var documentAndVersion = TryGetDocumentAndVersion(filePath, projectContext, versioned);
 
         if (documentAndVersion is null)
         {
@@ -75,8 +47,6 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
             return null;
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
-
         if (versioned)
         {
             // If we were asked for a versioned document, but have no version info, then we didn't find the document
@@ -89,6 +59,58 @@ internal class DefaultDocumentContextFactory : DocumentContextFactory
         }
 
         return new DocumentContext(documentUri, documentSnapshot, projectContext);
+    }
+
+    private DocumentSnapshotAndVersion? TryGetDocumentAndVersion(string filePath, VSProjectContext? projectContext, bool versioned)
+    {
+        if (TryResolveDocument(filePath, projectContext, out var documentSnapshot))
+        {
+            if (!versioned)
+            {
+                return new DocumentSnapshotAndVersion(documentSnapshot, Version: null);
+            }
+
+            if (_documentVersionCache.TryGetDocumentVersion(documentSnapshot, out var version))
+            {
+                return new DocumentSnapshotAndVersion(documentSnapshot, version.Value);
+            }
+
+            _logger.LogWarning("Tried to create context for document {filePath} and project {projectContext} and a document was found, but version didn't match.", filePath, projectContext?.Id);
+        }
+
+        // This is super rare, if we get here it could mean many things. Some of which:
+        //     1. Stale request:
+        //          - Got queued after a "document closed" / "document removed" type action
+        //          - Took too long to run and by the time the request needed the document context the
+        //            version cache has evicted the entry
+        //     2. Client is misbehaving and sending requests for a document that we've never seen before.
+        _logger.LogWarning("Tried to create context for document {filePath} and project {projectContext} which was not found.", filePath, projectContext?.Id);
+        return null;
+    }
+
+    private bool TryResolveDocument(string filePath, VSProjectContext? projectContext, [NotNullWhen(true)] out IDocumentSnapshot? documentSnapshot)
+    {
+        if (projectContext is null)
+        {
+            return _snapshotResolver.TryResolveDocumentInAnyProject(filePath, out documentSnapshot);
+        }
+
+        documentSnapshot = null;
+        if (!_snapshotResolver.TryResolveAllProjects(filePath, out var projectSnapshots))
+        {
+            return false;
+        }
+
+        foreach (var project in projectSnapshots)
+        {
+            if (project.Key.Equals(projectContext.ToProjectKey()))
+            {
+                documentSnapshot = project.GetDocument(filePath);
+                return documentSnapshot is not null;
+            }
+        }
+
+        return false;
     }
 
     private record DocumentSnapshotAndVersion(IDocumentSnapshot Snapshot, int? Version);
