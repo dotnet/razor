@@ -148,21 +148,18 @@ internal partial class RazorCustomMessageTarget
             return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
         }
 
-        var count = nonEmptyResults.Sum(r => r.Length);
-        var data = ArrayPool<int>.Shared.Rent(count);
-        try
-        {
-            StitchSemanticTokenResponsesTogether(nonEmptyResults, ref data);
-            return new ProvideSemanticTokensResponse(data, semanticTokensParams.RequiredHostDocumentVersion);
-        }
-        finally
-        {
-            ArrayPool<int>.Shared.Return(data);
-        }
+        var data = StitchSemanticTokenResponsesTogether(nonEmptyResults);
+
+        var response = new ProvideSemanticTokensResponse(data, semanticTokensParams.RequiredHostDocumentVersion);
+
+        return response;
     }
 
-    private int[] StitchSemanticTokenResponsesTogether(int[][] responseData, ref int[] data)
+    // Internal for testing
+    internal int[] StitchSemanticTokenResponsesTogether(int[][] responseData)
     {
+        var count = responseData.Sum(r => r.Length);
+        var data = new int[count];
         var dataIndex = 0;
         var lastTokenLine = 0;
 

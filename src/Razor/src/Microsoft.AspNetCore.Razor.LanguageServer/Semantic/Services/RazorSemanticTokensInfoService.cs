@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -346,11 +347,12 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
     internal static bool TryGetCSharpRanges(RazorCodeDocument codeDocument, Range razorRange, out Range[] ranges)
     {
-        var csharpRanges = new List<Range>();
+        using var _ = ListPool<Range>.GetPooledObject(out var csharpRanges);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var sourceText = codeDocument.GetSourceText();
         var textSpan = razorRange.AsTextSpan(sourceText);
         var csharpDoc = codeDocument.GetCSharpDocument();
+        csharpRanges.SetCapacityIfLarger(csharpDoc.SourceMappings.Count());
 
         // We want to find the min and max C# source mapping that corresponds with our Razor range.
         foreach (var mapping in csharpDoc.SourceMappings)
