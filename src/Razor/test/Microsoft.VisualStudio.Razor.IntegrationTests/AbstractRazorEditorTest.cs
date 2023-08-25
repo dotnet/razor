@@ -43,7 +43,6 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
 
         // Razor extension doesn't launch until a razor file is opened, so wait for it to equalize
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.LanguageServer, ControlledHangMitigatingCancellationToken);
-        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, ControlledHangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
 
         EnsureLSPEditorEnabled();
