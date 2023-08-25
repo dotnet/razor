@@ -8,17 +8,15 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 
 internal sealed class ComponentRenderModeDirective
 {
-    // PROTOTYPE: localization
-
     public static readonly DirectiveDescriptor Directive = DirectiveDescriptor.CreateDirective(
        "rendermode",
        DirectiveKind.SingleLine,
        builder =>
        {
            // PROTOTYPE: we only support the identifier version right now
-           builder.AddNamespaceToken("RenderMode", "The RenderMode to use");
+           builder.AddNamespaceToken(ComponentResources.RenderModeDirective_Token_Name, ComponentResources.RenderModeDirective_Token_Description);
            builder.Usage = DirectiveUsage.FileScopedSinglyOccurring;
-           builder.Description = "Set the render mode for this component.";
+           builder.Description = ComponentResources.RenderModeDirective_Documentation;
        });
 
     public static void Register(RazorProjectEngineBuilder builder)
