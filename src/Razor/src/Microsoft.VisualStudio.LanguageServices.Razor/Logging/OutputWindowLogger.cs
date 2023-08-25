@@ -91,7 +91,7 @@ internal class OutputWindowLogger : IOutputWindowLogger, IDisposable
 
         public void WriteLine(string value)
         {
-            _outputQueue.Enqueue(value);
+            _outputQueue.TryEnqueue(value);
         }
 
         private async Task DequeueAsync(CancellationToken cancellationToken)
