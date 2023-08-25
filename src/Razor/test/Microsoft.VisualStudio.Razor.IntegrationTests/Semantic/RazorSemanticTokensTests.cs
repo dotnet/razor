@@ -24,7 +24,7 @@ public class RazorSemanticTokensTests(ITestOutputHelper testOutputHelper) : Abst
 {
     private static readonly AsyncLocal<string?> s_fileName = new();
 
-    private static readonly string s_projectPath = TestProject.GetProjectDirectory(typeof(RazorSemanticTokensTests), useCurrentDirectory: true);
+    private static string? s_projectPath;
 
     // WARNING: If you leave this as "true" it will cause the semantic tokens tests to change their expected values.
     // Do NOT check in set to true.
@@ -204,6 +204,7 @@ public class RazorSemanticTokensTests(ITestOutputHelper testOutputHelper) : Abst
 
     private static string GetBaselineFileName(string testName)
     {
+        s_projectPath ??= TestProject.GetProjectDirectory(typeof(RazorSemanticTokensTests), useCurrentDirectory: true);
         var semanticBaselinePath = Path.Combine(s_projectPath, "Semantic", "TestFiles", nameof(RazorSemanticTokensTests), testName + ".txt");
         return semanticBaselinePath;
     }
