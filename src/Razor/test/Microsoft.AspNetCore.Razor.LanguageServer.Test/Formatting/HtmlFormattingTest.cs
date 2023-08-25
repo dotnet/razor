@@ -1614,6 +1614,56 @@ public class HtmlFormattingTest : FormattingTestBase
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor-tooling/issues/8606")]
+    public async Task FormatAttributesWithTransition()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id {get;set;}
+                    }
+
+                    <div>
+                        @if (true)
+                        {
+                            <div>
+                                <InputSelect CssClass="goo"
+                                     @bind-Value="_id"
+                                   @ref="elem"
+                                    CurrentValue="boo">
+                                        <option>goo</option>
+                                </InputSelect>
+                            </div>
+                        }
+                    </div>
+                    """,
+            expected: """
+                    @using Microsoft.AspNetCore.Components.Forms;
+
+                    @code {
+                        private string _id { get; set; }
+                    }
+
+                    <div>
+                        @if (true)
+                        {
+                            <div>
+                                <InputSelect CssClass="goo"
+                                             @bind-Value="_id"
+                                             @ref="elem"
+                                             CurrentValue="boo">
+                                    <option>goo</option>
+                                </InputSelect>
+                            </div>
+                        }
+                    </div>
+                    """,
+            fileKind: FileKinds.Component);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6211")]
     public async Task FormatCascadingValueWithCascadingTypeParameter()
     {
