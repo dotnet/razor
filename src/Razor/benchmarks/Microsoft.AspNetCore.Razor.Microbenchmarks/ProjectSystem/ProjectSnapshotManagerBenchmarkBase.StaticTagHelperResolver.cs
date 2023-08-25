@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -16,10 +15,10 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
 {
     private class StaticTagHelperResolver(ImmutableArray<TagHelperDescriptor> tagHelpers) : ITagHelperResolver
     {
-        public ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
+        public ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(
             Project workspaceProject,
             IProjectSnapshot projectSnapshot,
             CancellationToken cancellationToken)
-            => new(new TagHelperResolutionResult(tagHelpers));
+            => new(tagHelpers);
     }
 }

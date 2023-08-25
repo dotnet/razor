@@ -37,14 +37,14 @@ internal class OOPTagHelperResolver : ITagHelperResolver
         _resultCache = new TagHelperResultCache();
     }
 
-    public async ValueTask<TagHelperResolutionResult> GetTagHelpersAsync(
+    public async ValueTask<ImmutableArray<TagHelperDescriptor>> GetTagHelpersAsync(
         Project workspaceProject,
         IProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken)
     {
         if (projectSnapshot.Configuration is null)
         {
-            return TagHelperResolutionResult.Empty;
+            return ImmutableArray<TagHelperDescriptor>.Empty;
         }
 
         // Not every custom factory supports the OOP host. Our priority system should work like this:
@@ -58,35 +58,45 @@ internal class OOPTagHelperResolver : ITagHelperResolver
 
         try
         {
-            TagHelperResolutionResult? result = null;
+            ImmutableArray<TagHelperDescriptor> result = default;
+
             if (factory != null)
             {
                 result = await ResolveTagHelpersOutOfProcessAsync(factory, workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
             }
 
             // Was unable to get tag helpers OOP, fallback to default behavior.
-            result ??= await ResolveTagHelpersInProcessAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
+            if (result.IsDefault)
+            {
+                result = await ResolveTagHelpersInProcessAsync(workspaceProject, projectSnapshot, cancellationToken).ConfigureAwait(false);
+            }
 
             return result;
         }
-        catch (Exception exception) when (exception is not TaskCanceledException && exception is not OperationCanceledException)
+        catch (Exception ex) when (ex is not TaskCanceledException && ex is not OperationCanceledException)
         {
-            throw new InvalidOperationException($"An unexpected exception occurred when invoking '{typeof(CompilationTagHelperResolver).FullName}.{nameof(GetTagHelpersAsync)}' on the Razor language service.", exception);
+            throw new InvalidOperationException(
+                $"An unexpected exception occurred when invoking '{typeof(CompilationTagHelperResolver).FullName}.{nameof(GetTagHelpersAsync)}' on the Razor language service.",
+                ex);
         }
     }
 
-    protected virtual async ValueTask<TagHelperResolutionResult?> ResolveTagHelpersOutOfProcessAsync(IProjectEngineFactory factory, Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
+    protected virtual async ValueTask<ImmutableArray<TagHelperDescriptor>> ResolveTagHelpersOutOfProcessAsync(IProjectEngineFactory factory, Project workspaceProject, IProjectSnapshot projectSnapshot, CancellationToken cancellationToken)
     {
         // We're being overly defensive here because the OOP host can return null for the client/session/operation
         // when it's disconnected (user stops the process).
         //
         // This will change in the future to an easier to consume API but for VS RTM this is what we have.
-        var remoteClient = await RazorRemoteHostClient.TryGetClientAsync(_workspace.Services, RazorServiceDescriptors.TagHelperProviderServiceDescriptors, RazorRemoteServiceCallbackDispatcherRegistry.Empty, cancellationToken);
+        var remoteClient = await RazorRemoteHostClient.TryGetClientAsync(
+            _workspace.Services,
+            RazorServiceDescriptors.TagHelperProviderServiceDescriptors,
+            RazorRemoteServiceCallbackDispatcherRegistry.Empty,
+            cancellationToken);
 
         if (remoteClient is null)
         {
             // Could not resolve
-            return null;
+            return default;
         }
 
         if (!_resultCache.TryGetId(workspaceProject.Id, out var lastResultId))
@@ -95,20 +105,22 @@ internal class OOPTagHelperResolver : ITagHelperResolver
         }
 
         var projectHandle = new ProjectSnapshotHandle(workspaceProject.Id, projectSnapshot.Configuration, projectSnapshot.RootNamespace);
+        var factoryTypeName = factory.GetType().AssemblyQualifiedName;
+
         var result = await remoteClient.TryInvokeAsync<IRemoteTagHelperProviderService, TagHelperDeltaResult>(
             workspaceProject.Solution,
-            (service, solutionInfo, innerCancellationToken) => service.GetTagHelpersDeltaAsync(solutionInfo, projectHandle, factory?.GetType().AssemblyQualifiedName, lastResultId, innerCancellationToken),
-            cancellationToken
-        );
+            (service, solutionInfo, innerCancellationToken) =>
+                service.GetTagHelpersDeltaAsync(solutionInfo, projectHandle, factoryTypeName, lastResultId, innerCancellationToken),
+            cancellationToken);
 
         if (!result.HasValue)
         {
-            return null;
+            return default;
         }
 
         var tagHelpers = ProduceTagHelpersFromDelta(workspaceProject.Id, lastResultId, result.Value);
 
-        return new TagHelperResolutionResult(tagHelpers);
+        return tagHelpers;
     }
 
     // Protected virtual for testing
@@ -154,7 +166,7 @@ internal class OOPTagHelperResolver : ITagHelperResolver
         return tagHelpers;
     }
 
-    protected virtual ValueTask<TagHelperResolutionResult> ResolveTagHelpersInProcessAsync(
+    protected virtual ValueTask<ImmutableArray<TagHelperDescriptor>> ResolveTagHelpersInProcessAsync(
         Project workspaceProject,
         IProjectSnapshot projectSnapshot,
         CancellationToken cancellationToken)

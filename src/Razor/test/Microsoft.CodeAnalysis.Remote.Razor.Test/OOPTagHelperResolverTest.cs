@@ -1,13 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -57,7 +56,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
         AddDisposable(_workspace);
 
         var info = ProjectInfo.Create(ProjectId.CreateNewId("Test"), VersionStamp.Default, "Test", "Test", LanguageNames.CSharp, filePath: "Test.csproj");
-        _workspaceProject = _workspace.CurrentSolution.AddProject(info).GetProject(info.Id);
+        _workspaceProject = _workspace.CurrentSolution.AddProject(info).GetProject(info.Id).AssumeNotNull();
 
         _projectManager = new TestProjectSnapshotManager(_workspace);
         _engineFactory = new DefaultProjectSnapshotProjectEngineFactory(_fallbackFactory, _customFactories);
@@ -78,14 +77,14 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
                 Assert.Same(_customFactories[0].Value, f);
                 Assert.Same(projectSnapshot, p);
 
-                return new(TagHelperResolutionResult.Empty);
+                return new(ImmutableArray<TagHelperDescriptor>.Empty);
             },
         };
 
         var result = await resolver.GetTagHelpersAsync(_workspaceProject, projectSnapshot, DisposalToken);
 
         // Assert
-        Assert.Same(TagHelperResolutionResult.Empty, result);
+        Assert.Empty(result);
     }
 
     [Fact]
@@ -102,14 +101,14 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
             {
                 Assert.Same(projectSnapshot, p);
 
-                return new(TagHelperResolutionResult.Empty);
+                return new(ImmutableArray<TagHelperDescriptor>.Empty);
             },
         };
 
         var result = await resolver.GetTagHelpersAsync(_workspaceProject, projectSnapshot, DisposalToken);
 
         // Assert
-        Assert.Same(TagHelperResolutionResult.Empty, result);
+        Assert.Empty(result);
     }
 
     [Fact]
@@ -127,7 +126,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
             {
                 Assert.Same(projectSnapshot, p);
 
-                return new(TagHelperResolutionResult.Empty);
+                return new(ImmutableArray<TagHelperDescriptor>.Empty);
             },
             OnResolveOutOfProcess = (f, p) =>
             {

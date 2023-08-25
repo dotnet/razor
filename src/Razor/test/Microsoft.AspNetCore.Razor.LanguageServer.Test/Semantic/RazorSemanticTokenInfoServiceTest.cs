@@ -856,13 +856,13 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         languageServer
             .Setup(l => l.SendRequestAsync<SemanticTokensParams, ProvideSemanticTokensResponse?>(
-                RazorLanguageServerCustomMessageTargets.RazorProvideSemanticTokensRangeEndpoint,
+                CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint,
                 It.IsAny<SemanticTokensParams>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(csharpTokens);
 
         var documentContextFactory = new TestDocumentContextFactory(documentSnapshots);
-        var documentMappingService = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, documentContextFactory, LoggerFactory);
+        var documentMappingService = new RazorDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
 
         var configurationSyncService = new Mock<IConfigurationSyncService>(MockBehavior.Strict);
 
@@ -889,13 +889,11 @@ public class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
     private static Range GetRange(string text)
     {
         var lines = text.Split(Environment.NewLine);
-        var lastLineIndex = lines.Length - 1;
-        var lastLineCharacterIndex = lines[lastLineIndex].Length;
 
         var range = new Range
         {
             Start = new Position { Line = 0, Character = 0 },
-            End = new Position { Line = lastLineIndex, Character = lastLineCharacterIndex }
+            End = new Position { Line = lines.Length, Character = 0 }
         };
 
         return range;

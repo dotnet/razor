@@ -27,7 +27,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         : base(testOutput)
     {
         _mappingService = new RazorDocumentMappingService(
-            TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+            FilePathService, new TestDocumentContextFactory(), LoggerFactory);
     }
 
     [Fact(Skip = "Debug.Fail doesn't work in CI")]
