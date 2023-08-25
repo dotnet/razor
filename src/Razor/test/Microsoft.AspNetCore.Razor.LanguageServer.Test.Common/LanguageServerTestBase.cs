@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Options;
@@ -40,6 +41,7 @@ public abstract class LanguageServerTestBase : TestBase
     private protected ProjectSnapshotManagerDispatcher LegacyDispatcher { get; }
     private protected ProjectSnapshotManagerDispatcher Dispatcher { get; }
     private protected IRazorSpanMappingService SpanMappingService { get; }
+    private protected FilePathService FilePathService { get; }
 
     protected JsonSerializer Serializer { get; }
 
@@ -59,6 +61,8 @@ public abstract class LanguageServerTestBase : TestBase
         Serializer.Converters.RegisterRazorConverters();
         Serializer.AddVSInternalExtensionConverters();
         Serializer.AddVSExtensionConverters();
+
+        FilePathService = new FilePathService(TestLanguageServerFeatureOptions.Instance);
     }
 
     internal RazorRequestContext CreateRazorRequestContext(VersionedDocumentContext? documentContext, ILspServices? lspServices = null)
