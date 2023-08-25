@@ -48,7 +48,7 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
         _trimRangesForSemanticTokens = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
-            var trimRangesForSemanticTokens = featureFlags.IsFeatureEnabled(TrimRangesForSemanticTokensFeatureFlag, defaultValue: false);
+            var trimRangesForSemanticTokens = featureFlags.IsFeatureEnabled(TrimRangesForSemanticTokensFeatureFlag, defaultValue: true);
             return trimRangesForSemanticTokens;
         });
     }

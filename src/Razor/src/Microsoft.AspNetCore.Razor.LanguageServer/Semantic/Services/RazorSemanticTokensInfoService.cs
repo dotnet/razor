@@ -352,7 +352,6 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         var sourceText = codeDocument.GetSourceText();
         var textSpan = razorRange.AsTextSpan(sourceText);
         var csharpDoc = codeDocument.GetCSharpDocument();
-        csharpRanges.SetCapacityIfLarger(csharpDoc.SourceMappings.Count());
 
         // We want to find the min and max C# source mapping that corresponds with our Razor range.
         foreach (var mapping in csharpDoc.SourceMappings)

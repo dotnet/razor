@@ -65,9 +65,4 @@
     <EmbeddedResource Include="Semantic\TestFiles\**\*" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Semantic\TestFiles\RangesParamsRazorSemanticTokenInfoServiceTest\" />
-    <Folder Include="Semantic\TestFiles\RangeParamsRazorSemanticTokenInfoServiceTest\" />
-  </ItemGroup>
-
 </Project>
