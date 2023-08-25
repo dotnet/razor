@@ -15,7 +15,8 @@ public partial class OOPTagHelperResolverTest
     private class TestProjectSnapshotManager(Workspace workspace) : DefaultProjectSnapshotManager(
         Mock.Of<IErrorReporter>(MockBehavior.Strict),
         Enumerable.Empty<IProjectSnapshotChangeTrigger>(),
-        workspace)
+        workspace,
+        Mock.Of<ProjectSnapshotManagerDispatcher>(MockBehavior.Strict))
     {
     }
 }
