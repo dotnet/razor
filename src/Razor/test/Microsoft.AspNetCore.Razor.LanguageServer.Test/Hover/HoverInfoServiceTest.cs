@@ -710,6 +710,34 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         Assert.Equal("Test1TagHelper", text);
     }
 
+    [Fact]
+    public async Task Handle_Hover_SingleServer_AddTagHelper()
+    {
+        // Arrange
+        var input = """
+                @addTagHelper *, Test$$Assembly
+
+                <test1></test1>
+                """;
+
+        // Act
+        var result = await GetResultFromSingleServerEndpointAsync(input);
+
+        // Assert
+
+        // Roslyn returns us a range that is outside of our source mappings, so we expect the endpoint
+        // to return null, so as not to confuse the client
+        Assert.Null(result.Range);
+
+        var rawContainer = (ContainerElement)result.RawContent;
+        var embeddedContainerElement = (ContainerElement)rawContainer.Elements.Single();
+
+        var classifiedText = (ClassifiedTextElement)embeddedContainerElement.Elements.ElementAt(1);
+        var text = string.Join("", classifiedText.Runs.Select(r => r.Text));
+        // Hover info is for a string
+        Assert.StartsWith("Represents text as a sequence of UTF-16", text);
+    }
+
     private async Task<VSInternalHover> GetResultFromSingleServerEndpointAsync(string input)
     {
         TestFileMarkupParser.GetPosition(input, out var output, out var cursorPosition);
