@@ -99,18 +99,17 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
     {
         var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
         var csharpTokens = Array.Empty<int>();
+        var csharpDocumentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
+        var csharpSourceText = codeDocument.GetCSharpSourceText();
 
-        if (UseRangesParams)
+        await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
+            csharpSourceText, csharpDocumentUri, SemanticTokensServerCapabilities, SpanMappingService, DisposalToken);
+
+        var csharpRanges = GetMappedCSharpRanges(codeDocument, razorRange);
+        if (csharpRanges is not null)
         {
-            var csharpRanges = GetMappedCSharpRanges(codeDocument, razorRange);
-            if (csharpRanges is not null)
+            if (UseRangesParams)
             {
-                var csharpDocumentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
-                var csharpSourceText = codeDocument.GetCSharpSourceText();
-
-                await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
-                    csharpSourceText, csharpDocumentUri, SemanticTokensServerCapabilities, SpanMappingService, DisposalToken);
-
                 var responses = new SemanticTokens[csharpRanges.Length];
                 for (var i = 0; i < csharpRanges.Length; i++)
                 {
@@ -125,24 +124,15 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
                 var responseData = responses.Select(r => r.Data).ToArray();
                 csharpTokens = StitchSemanticTokenResponsesTogether(responseData);
             }
+            else
+            {
+                var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
+                    Methods.TextDocumentSemanticTokensRangeName,
+                    CreateVSSemanticTokensRangeParams(csharpRanges[0], csharpDocumentUri),
+                    DisposalToken);
 
-            return new ProvideSemanticTokensResponse(tokens: csharpTokens, hostDocumentSyncVersion);
-        }
-
-        var csharpRange = GetMappedCSharpRange(codeDocument, razorRange);
-        if (csharpRange is not null)
-        {
-            var csharpDocumentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
-            var csharpSourceText = codeDocument.GetCSharpSourceText();
-
-            await using var csharpServer = await CSharpTestLspServerHelpers.CreateCSharpLspServerAsync(
-                csharpSourceText, csharpDocumentUri, SemanticTokensServerCapabilities, SpanMappingService, DisposalToken);
-            var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
-                Methods.TextDocumentSemanticTokensRangeName,
-                CreateVSSemanticTokensRangeParams(csharpRange, csharpDocumentUri),
-                DisposalToken);
-
-            csharpTokens = result?.Data;
+                csharpTokens = result?.Data;
+            }
         }
 
         return new ProvideSemanticTokensResponse(tokens: csharpTokens, hostDocumentSyncVersion);
@@ -209,19 +199,18 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
     {
         var documentMappingService = new RazorDocumentMappingService(
             FilePathService, new TestDocumentContextFactory(), LoggerFactory);
-        if (!RazorSemanticTokensInfoService.TryGetCSharpRanges(codeDocument, razorRange, out var csharpRanges))
+
+        if (UseRangesParams)
         {
-            // No C# in the range.
-            return null;
+            if (!RazorSemanticTokensInfoService.TryGetCSharpRanges(codeDocument, razorRange, out var csharpRanges))
+            {
+                // No C# in the range.
+                return null;
+            }
+
+            return csharpRanges;
         }
 
-        return csharpRanges;
-    }
-
-    protected Range? GetMappedCSharpRange(RazorCodeDocument codeDocument, Range razorRange)
-    {
-        var documentMappingService = new RazorDocumentMappingService(
-            FilePathService, new TestDocumentContextFactory(), LoggerFactory);
         if (!documentMappingService.TryMapToGeneratedDocumentRange(codeDocument.GetCSharpDocument(), razorRange, out var csharpRange) &&
             !RazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, razorRange, out csharpRange))
         {
@@ -229,7 +218,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
             return null;
         }
 
-        return csharpRange;
+        return new Range[] { csharpRange };
     }
 
     internal static SemanticTokensRangeParams CreateVSSemanticTokensRangeParams(Range range, Uri uri)
