@@ -2,7 +2,6 @@
     NamespaceDeclaration -  - Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
         ClassDeclaration -  - public - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Inherits_DesignTime - foo.bar<baz<biz>>.boz - 
             DesignTimeDirective - 
-                DirectiveToken - (10:0,10 [21] Inherits.cshtml) - foo.bar<baz<biz>>.boz
             CSharpCode - 
                 IntermediateToken -  - CSharp - #pragma warning disable 0414
             CSharpCode - 

@@ -3,20 +3,18 @@
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
 {
     #line hidden
-    public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Inherits_DesignTime : foo.bar<baz<biz>>.boz
-    {
-        #pragma warning disable 219
-        private void __RazorDirectiveTokenHelpers__() {
-        ((global::System.Action)(() => {
+    public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Inherits_DesignTime : 
 #nullable restore
 #line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml"
-foo.bar<baz<biz>>.boz __typeHelper = default!;
+foo.bar<baz<biz>>.boz
 
 #line default
 #line hidden
 #nullable disable
-        }
-        ))();
+
+    {
+        #pragma warning disable 219
+        private void __RazorDirectiveTokenHelpers__() {
         }
         #pragma warning restore 219
         #pragma warning disable 0414
