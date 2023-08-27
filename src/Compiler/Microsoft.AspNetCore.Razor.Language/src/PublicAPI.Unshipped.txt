@@ -34,6 +34,8 @@ Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.WriteLine(string! 
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.WriteLine(System.ReadOnlyMemory<char> value) -> Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter!
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.LinePragma.LinePragma() -> void
 Microsoft.AspNetCore.Razor.Language.CommonMetadata
+Microsoft.AspNetCore.Razor.Language.Intermediate.ClassDeclarationIntermediateNode.BaseTypeSource.get -> Microsoft.AspNetCore.Razor.Language.SourceSpan?
+Microsoft.AspNetCore.Razor.Language.Intermediate.ClassDeclarationIntermediateNode.BaseTypeSource.set -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeCollection.Enumerator.Enumerator() -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeReference.IntermediateNodeReference() -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.TypeParameter.ConstraintsSource.get -> Microsoft.AspNetCore.Razor.Language.SourceSpan?

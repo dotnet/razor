@@ -152,6 +152,7 @@ internal class DefaultDocumentWriter : DocumentWriter
                 node.Modifiers,
                 node.ClassName,
                 node.BaseType,
+                node.BaseTypeSource,
                 node.Interfaces,
                 node.TypeParameters,
                 Context,

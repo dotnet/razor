@@ -406,6 +406,7 @@ internal static class CodeWriterExtensions
         IList<string> modifiers,
         string name,
         string baseType,
+        SourceSpan? baseTypeSource,
         IList<string> interfaces,
         IList<TypeParameter> typeParameters,
         CodeRenderingContext context,
@@ -466,7 +467,18 @@ internal static class CodeWriterExtensions
 
             if (hasBaseType)
             {
-                writer.Write(baseType);
+                if (baseTypeSource is { } source)
+                {
+                    using (writer.BuildLinePragma(source, context))
+                    {
+                        context.AddSourceMappingFor(source);
+                        writer.Write(baseType);
+                    }
+                }
+                else
+                {
+                    writer.Write(baseType);
+                }
 
                 if (hasInterfaces)
                 {

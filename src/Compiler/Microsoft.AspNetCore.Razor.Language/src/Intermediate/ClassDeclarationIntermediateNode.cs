@@ -19,6 +19,8 @@ public sealed class ClassDeclarationIntermediateNode : MemberDeclarationIntermed
 
     public string BaseType { get; set; }
 
+    public SourceSpan? BaseTypeSource { get; set; }
+
     public IList<string> Interfaces { get; set; } = new List<string>();
 
     public IList<TypeParameter> TypeParameters { get; set; } = new List<TypeParameter>();

@@ -25,6 +25,10 @@ public sealed class InheritsDirectivePass : IntermediateNodePassBase, IRazorDire
             if (token != null)
             {
                 @class.BaseType = token.Content;
+                @class.BaseTypeSource = token.Source;
+
+                // Remove the node as all output is driven by the class node
+                inherits.Remove();
                 break;
             }
         }

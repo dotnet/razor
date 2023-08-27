@@ -66,6 +66,7 @@ internal class ViewComponentTagHelperTargetExtension : IViewComponentTagHelperTa
             PublicModifiers,
             node.ClassName,
             TagHelperTypeName,
+            baseTypeSource: null,
             interfaces: null,
             typeParameters: null,
             context))
