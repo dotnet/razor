@@ -1,0 +1,20 @@
+﻿Source Location: (10:0,10 [21] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsAndImplements.cshtml)
+|foo.bar<baz<biz>>.boz|
+Generated Location: (374:8,0 [21] )
+|foo.bar<baz<biz>>.boz|
+
+Source Location: (45:1,12 [11] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsAndImplements.cshtml)
+|IDisposable|
+Generated Location: (732:20,0 [11] )
+|IDisposable|
+
+Source Location: (70:2,12 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsAndImplements.cshtml)
+|IList|
+Generated Location: (1004:30,0 [5] )
+|IList|
+
+Source Location: (80:4,1 [5] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsAndImplements.cshtml)
+|foo()|
+Generated Location: (1515:47,6 [5] )
+|foo()|
+

@@ -1,0 +1,30 @@
+﻿Source Location: (31:0,31 [2] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsAndImplements.cshtml)
+|
+|
+Generated Location: (31:0,31 [2] )
+|
+|
+
+Source Location: (56:1,23 [2] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsAndImplements.cshtml)
+|
+|
+Generated Location: (56:1,23 [2] )
+|
+|
+
+Source Location: (75:2,17 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsAndImplements.cshtml)
+|
+
+|
+Generated Location: (75:2,17 [4] )
+|
+
+|
+
+Source Location: (85:4,6 [2] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsAndImplements.cshtml)
+|
+|
+Generated Location: (85:4,6 [2] )
+|
+|
+

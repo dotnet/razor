@@ -1,0 +1,19 @@
+﻿Document - 
+    NamespaceDeclaration -  - Microsoft.AspNetCore.Razor.Language.IntegrationTests.TestFiles
+        ClassDeclaration -  - public - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InheritsAndImplements_DesignTime - foo.bar<baz<biz>>.boz - IDisposable, IList
+            DesignTimeDirective - 
+                DirectiveToken - (45:1,12 [11] InheritsAndImplements.cshtml) - IDisposable
+                DirectiveToken - (70:2,12 [5] InheritsAndImplements.cshtml) - IList
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - public async - System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (77:3,0 [2] InheritsAndImplements.cshtml)
+                    LazyIntermediateToken - (77:3,0 [2] InheritsAndImplements.cshtml) - Html - \n
+                CSharpExpression - (80:4,1 [5] InheritsAndImplements.cshtml)
+                    LazyIntermediateToken - (80:4,1 [5] InheritsAndImplements.cshtml) - CSharp - foo()
+                HtmlContent - (85:4,6 [2] InheritsAndImplements.cshtml)
+                    LazyIntermediateToken - (85:4,6 [2] InheritsAndImplements.cshtml) - Html - \n

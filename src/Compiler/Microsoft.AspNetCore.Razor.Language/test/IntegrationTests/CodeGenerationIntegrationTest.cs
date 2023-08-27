@@ -151,6 +151,12 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
+    public void InheritsAndImplements_Runtime()
+    {
+        RunTimeTest();
+    }
+
+    [Fact]
     public void Usings_Runtime()
     {
         RunTimeTest();
@@ -633,6 +639,12 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     [Fact]
     public void Inherits_DesignTime()
+    {
+        DesignTimeTest();
+    }
+
+    [Fact]
+    public void InheritsAndImplements_DesignTime()
     {
         DesignTimeTest();
     }
