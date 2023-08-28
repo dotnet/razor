@@ -2,21 +2,31 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-internal sealed class SemanticRange : IComparable<SemanticRange>
+internal struct SemanticRange : IComparable<SemanticRange>
 {
     public SemanticRange(int kind, Range range, int modifier, bool fromRazor)
+    : this(kind, new RazorRange() { EndCharacter = range.End.Character, EndLine = range.End.Line, StartCharacter = range.Start.Character, StartLine = range.Start.Line }, modifier, fromRazor)
+    {
+    }
+
+    public SemanticRange(int kind, int startLine, int startCharacter, int endLine, int endCharacter, int modifier, bool fromRazor)
+    : this(kind, new RazorRange() { EndCharacter = endCharacter, EndLine = endLine, StartCharacter = startCharacter, StartLine = startLine }, modifier, fromRazor)
+    {
+    }
+
+    public SemanticRange(int kind, RazorRange razorRange, int modifier, bool fromRazor)
     {
         Kind = kind;
         Modifier = modifier;
-        Range = range;
+        Range = razorRange;
         FromRazor = fromRazor;
     }
 
-    public Range Range { get; }
+
+    public RazorRange Range { get; }
 
     public int Kind { get; }
 
@@ -29,20 +39,27 @@ internal sealed class SemanticRange : IComparable<SemanticRange>
     /// </summary>
     public bool FromRazor { get; }
 
-    public int CompareTo(SemanticRange? other)
+    public int CompareTo(SemanticRange other)
     {
-        if (other is null)
-        {
-            return 1;
-        }
-
-        var startCompare = Range.Start.CompareTo(other.Range.Start);
+        var startCompare = Range.StartCharacter.CompareTo(other.Range.StartCharacter);
         if (startCompare != 0)
         {
             return startCompare;
         }
 
-        var endCompare = Range.End.CompareTo(other.Range.End);
+        startCompare = Range.StartLine.CompareTo(other.Range.StartLine);
+        if (startCompare != 0)
+        {
+            return startCompare;
+        }
+
+        var endCompare = Range.EndCharacter.CompareTo(other.Range.EndCharacter);
+        if (endCompare != 0)
+        {
+            return endCompare;
+        }
+
+        endCompare = Range.EndLine.CompareTo(other.Range.EndLine);
         if (endCompare != 0)
         {
             return endCompare;

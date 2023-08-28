@@ -580,7 +580,7 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
 
         void AddRange(SemanticRange semanticRange)
         {
-            if (semanticRange.Range.Start != semanticRange.Range.End)
+            if (semanticRange.Range.StartLine != semanticRange.Range.EndLine || semanticRange.Range.StartCharacter != semanticRange.Range.EndCharacter)
             {
                 _semanticRanges.Add(semanticRange);
             }
