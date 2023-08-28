@@ -103,9 +103,7 @@ public class RazorSemanticTokensRangeEndpointBenchmark : RazorLanguageServerBenc
                 : random.Next(0, codeDocument.Source.Lines.GetLineLength(endLine));
 
             PregeneratedRandomSemanticRanges.Add(
-                new SemanticRange(random.Next(),
-                    new Range { Start = new Position(startLine, startChar), End = new Position(endLine, endChar) },
-                    0, fromRazor: false));
+                new SemanticRange(random.Next(), startLine, startChar, endLine, endChar, 0, fromRazor: false));
         }
     }
 

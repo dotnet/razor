@@ -544,13 +544,8 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
                         continue;
                     }
 
-                    var endPosition = new Position(lineNumber, endChar);
-                    var lineRange = new Range
-                    {
-                        Start = startPosition,
-                        End = endPosition
-                    };
-                    var semantic = new SemanticRange(semanticKind, lineRange, tokenModifier, fromRazor: true);
+                    // line range
+                    var semantic = new SemanticRange(semanticKind, startPosition.Line, startPosition.Character, lineNumber, endChar, tokenModifier, fromRazor: true);
                     AddRange(semantic);
                 }
             }
@@ -566,7 +561,8 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
                     {
                         var tokenRange = token.GetRange(source);
 
-                        var semantic = new SemanticRange(semanticKind, tokenRange, tokenModifier, fromRazor: true);
+                        // token range
+                        var semantic = new SemanticRange(semanticKind, tokenRange.Start.Line, tokenRange.Start.Character, tokenRange.End.Line, tokenRange.End.Character, tokenModifier, fromRazor: true);
                         AddRange(semantic);
                     }
                 }
@@ -574,13 +570,13 @@ internal sealed class TagHelperSemanticRangeVisitor : SyntaxWalker
         }
         else
         {
-            var semanticRange = new SemanticRange(semanticKind, range, tokenModifier, fromRazor: true);
+            var semanticRange = new SemanticRange(semanticKind, range.Start.Line, range.Start.Character, range.End.Line, range.End.Character, tokenModifier, fromRazor: true);
             AddRange(semanticRange);
         }
 
         void AddRange(SemanticRange semanticRange)
         {
-            if (semanticRange.Range.StartLine != semanticRange.Range.EndLine || semanticRange.Range.StartCharacter != semanticRange.Range.EndCharacter)
+            if (semanticRange.StartLine != semanticRange.EndLine || semanticRange.StartCharacter != semanticRange.EndCharacter)
             {
                 _semanticRanges.Add(semanticRange);
             }

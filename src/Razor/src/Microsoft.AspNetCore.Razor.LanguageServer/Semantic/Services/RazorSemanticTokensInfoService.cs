@@ -160,10 +160,10 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             var tokenModifiers = csharpResponse[i + 4];
 
             var semanticRange = CSharpDataToSemanticRange(lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
-            tempRange.Start.Character = semanticRange.Range.StartCharacter;
-            tempRange.Start.Line = semanticRange.Range.StartLine;
-            tempRange.End.Character = semanticRange.Range.EndCharacter;
-            tempRange.End.Line = semanticRange.Range.EndLine;
+            tempRange.Start.Line = semanticRange.StartLine;
+            tempRange.Start.Character = semanticRange.StartCharacter;
+            tempRange.End.Line = semanticRange.EndLine;
+            tempRange.End.Character = semanticRange.EndCharacter;
             if (_documentMappingService.TryMapToHostDocumentRange(generatedDocument, tempRange, out var originalRange))
             {
                 if (razorRange is null || razorRange.OverlapsWith(originalRange))
@@ -171,16 +171,17 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                     if (colorBackground)
                     {
                         tokenModifiers |= (int)RazorSemanticTokensLegend.RazorTokenModifiers.razorCode;
-                        AddAdditionalCSharpWhitespaceRanges(razorRanges, textClassification, razorSource, previousRazorSemanticRange, new RazorRange()
-                        {
-                            EndCharacter = originalRange.End.Character,
-                            EndLine = originalRange.End.Line,
-                            StartCharacter = originalRange.Start.Character,
-                            StartLine = originalRange.Start.Line
-                        }, _logger);
+                        AddAdditionalCSharpWhitespaceRanges(
+                            razorRanges,
+                            textClassification,
+                            razorSource,
+                            previousRazorSemanticRange,
+                            originalRange.Start.Line,
+                            originalRange.Start.Character,
+                            _logger);
                     }
 
-                    razorRanges.Add(new SemanticRange(semanticRange.Kind, originalRange, tokenModifiers, fromRazor: false));
+                    razorRanges.Add(new SemanticRange(semanticRange.Kind, originalRange.Start.Line, originalRange.Start.Character, originalRange.End.Line, originalRange.End.Character, tokenModifiers, fromRazor: false));
                 }
 
                 previousRazorSemanticRange = originalRange;
@@ -192,36 +193,46 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         return razorRanges;
     }
 
-    private static void AddAdditionalCSharpWhitespaceRanges(List<SemanticRange> razorRanges, int textClassification, SourceText razorSource, Range? previousRazorSemanticRange, RazorRange originalRange, ILogger logger)
+    private static void AddAdditionalCSharpWhitespaceRanges(
+        List<SemanticRange> razorRanges,
+        int textClassification,
+        SourceText razorSource,
+        Range? previousRazorSemanticRange,
+        int startLine,
+        int startChar,
+        ILogger logger)
     {
-        var startChar = originalRange.StartCharacter;
-        var originalRangeStart = new Position(originalRange.StartLine, startChar);
+        var originalRangeStart = new Position(startLine, startChar);
         if (previousRazorSemanticRange is not null &&
-            previousRazorSemanticRange.End.Line == originalRange.StartLine &&
+            previousRazorSemanticRange.End.Line == startLine &&
             previousRazorSemanticRange.End.Character < startChar &&
             previousRazorSemanticRange.End.TryGetAbsoluteIndex(razorSource, logger, out var previousSpanEndIndex) &&
             ContainsOnlySpacesOrTabs(razorSource, previousSpanEndIndex + 1, startChar - previousRazorSemanticRange.End.Character - 1))
         {
             // we're on the same line as previous, lets extend ours to include whitespace between us and the proceeding range
-            var whitespaceRange = new Range
-            {
-                Start = new Position(originalRange.StartLine, previousRazorSemanticRange.End.Character),
-                End = originalRangeStart
-            };
-            razorRanges.Add(new SemanticRange(textClassification, whitespaceRange, (int)RazorSemanticTokensLegend.RazorTokenModifiers.razorCode, fromRazor: false));
+            razorRanges.Add(new SemanticRange(
+                textClassification,
+                startLine,
+                previousRazorSemanticRange.End.Character,
+                startLine,
+                startChar,
+                (int)RazorSemanticTokensLegend.RazorTokenModifiers.razorCode,
+                fromRazor: false));
         }
         else if (startChar > 0 &&
-            previousRazorSemanticRange?.End.Line != originalRange.StartLine &&
+            previousRazorSemanticRange?.End.Line != startLine &&
             originalRangeStart.TryGetAbsoluteIndex(razorSource, logger, out var originalRangeStartIndex) &&
             ContainsOnlySpacesOrTabs(razorSource, originalRangeStartIndex - startChar + 1, startChar - 1))
         {
             // We're on a new line, and the start of the line is only whitespace, so give that a background color too
-            var whitespaceRange = new Range
-            {
-                Start = new Position(originalRange.StartLine, 0),
-                End = originalRangeStart
-            };
-            razorRanges.Add(new SemanticRange(textClassification, whitespaceRange, (int)RazorSemanticTokensLegend.RazorTokenModifiers.razorCode, fromRazor: false));
+            razorRanges.Add(new SemanticRange(
+                textClassification,
+                startLine,
+                0,
+                startLine,
+                startChar,
+                (int)RazorSemanticTokensLegend.RazorTokenModifiers.razorCode,
+                fromRazor: false));
         }
     }
 
@@ -325,8 +336,8 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         int tokenModifiers,
         SemanticRange previousSemanticRange)
     {
-        var startLine = previousSemanticRange.Range.EndLine + lineDelta;
-        var previousEndChar = lineDelta == 0 ? previousSemanticRange.Range.StartCharacter : 0;
+        var startLine = previousSemanticRange.EndLine + lineDelta;
+        var previousEndChar = lineDelta == 0 ? previousSemanticRange.StartCharacter : 0;
         var startCharacter = previousEndChar + charDelta;
         var start = new Position(startLine, startCharacter);
 
@@ -334,12 +345,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         var endCharacter = startCharacter + length;
         var end = new Position(endLine, endCharacter);
 
-        var range = new Range()
-        {
-            Start = start,
-            End = end
-        };
-        var semanticRange = new SemanticRange(tokenType, range, tokenModifiers, fromRazor: false);
+        var semanticRange = new SemanticRange(tokenType, startLine, startCharacter, endLine, endCharacter, tokenModifiers, fromRazor: false);
 
         return semanticRange;
     }
@@ -358,6 +364,9 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     {
         var previousResult = EmptyRazorRange;
         var sourceText = razorCodeDocument.GetSourceText();
+        var hasPrevious = false;
+        var previousStartLine = 0;
+        var previousStartCharacter = 0;
 
         // We don't bother filtering out duplicate ranges (eg, where C# and Razor both have opinions), but instead take advantage of
         // our sort algorithm to be correct, so we can skip duplicates here. That means our final array may end up smaller than the
@@ -367,9 +376,10 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
         foreach (var result in semanticRanges)
         {
-            AppendData(result, previousResult, sourceText, data);
-
-            previousResult = result.Range;
+            AppendData(result, previousStartLine, previousStartCharacter, hasPrevious, sourceText, data);
+            previousStartLine = result.StartLine;
+            previousStartCharacter = result.StartCharacter;
+            hasPrevious = true;
         }
 
         return data.ToArray();
@@ -377,7 +387,9 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         // We purposely capture and manipulate the "data" array here to avoid allocation
         static void AppendData(
             SemanticRange currentRange,
-            RazorRange previousRange,
+            int previousStartLine,
+            int previousStartCharacter,
+            bool hasPrevious,
             SourceText sourceText,
             List<int> data)
         {
@@ -391,13 +403,13 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             */
 
             // deltaLine
-            var previousLineIndex = previousRange.StartLine;
-            var deltaLine = currentRange.Range.StartLine - previousLineIndex;
+            var previousLineIndex = previousStartLine;
+            var deltaLine = currentRange.StartLine - previousLineIndex;
 
             int deltaStart;
-            if (previousRange != EmptyRazorRange && previousRange.StartLine == currentRange.Range.StartLine)
+            if (hasPrevious && previousStartLine == currentRange.StartLine)
             {
-                deltaStart = currentRange.Range.StartCharacter - previousRange.StartCharacter;
+                deltaStart = currentRange.StartCharacter - previousStartCharacter;
 
                 // If there is no line delta, no char delta, and this isn't the first range
                 // then it means this range overlaps the previous, so we skip it.
@@ -408,14 +420,14 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             }
             else
             {
-                deltaStart = currentRange.Range.StartCharacter;
+                deltaStart = currentRange.StartCharacter;
             }
 
             data.Add(deltaLine);
             data.Add(deltaStart);
 
             // length
-            var length = GetTextLength(currentRange.Range, sourceText);
+            var length = GetTextLength(currentRange.StartLine, currentRange.StartCharacter, currentRange.EndLine, currentRange.EndCharacter, sourceText);
             Debug.Assert(length > 0);
             data.Add(length);
 
@@ -427,20 +439,20 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         }
     }
 
-    private static int GetTextLength(RazorRange range, SourceText sourceText)
+    private static int GetTextLength(int startLine, int startCharacter, int endLine, int endCharacter, SourceText sourceText)
     {
         if (sourceText is null)
         {
             throw new ArgumentNullException(nameof(sourceText));
         }
 
-        var start = sourceText.GetAbsolutePosition(range.StartLine, range.StartCharacter);
-        var end = sourceText.GetAbsolutePosition(range.EndLine, range.EndCharacter);
+        var start = sourceText.GetAbsolutePosition(startLine, startCharacter);
+        var end = sourceText.GetAbsolutePosition(endLine, endCharacter);
 
         var length = end - start;
         if (length < 0)
         {
-            throw new ArgumentOutOfRangeException($"{range} resolved to zero or negative length.");
+            throw new ArgumentOutOfRangeException($"range: ({startLine}{startCharacter}{endLine}{endCharacter}) resolved to zero or negative length.");
         }
 
         return length;
