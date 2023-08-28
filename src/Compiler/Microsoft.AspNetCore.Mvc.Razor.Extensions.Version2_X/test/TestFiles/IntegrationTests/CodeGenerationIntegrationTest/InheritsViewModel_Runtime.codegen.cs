@@ -14,7 +14,13 @@ namespace AspNetCore
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.AspNetCore.Mvc.ViewFeatures;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"SHA256", @"1ca5ae8e569aefa6575a68e8d8b2d375ed79deec6565fb893b72b89423f55abd", @"/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsViewModel.cshtml")]
-    public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InheritsViewModel : MyBasePageForViews<MyModel>
+    public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InheritsViewModel : 
+#line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsViewModel.cshtml"
+MyBasePageForViews<MyModel>
+
+#line default
+#line hidden
+
     {
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()

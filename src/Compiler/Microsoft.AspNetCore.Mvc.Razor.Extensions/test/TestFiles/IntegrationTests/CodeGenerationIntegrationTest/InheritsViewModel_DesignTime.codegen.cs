@@ -14,21 +14,19 @@ namespace AspNetCore
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsViewModel.cshtml")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
-    public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InheritsViewModel : MyBasePageForViews<MyModel>
-    #nullable disable
-    {
-        #pragma warning disable 219
-        private void __RazorDirectiveTokenHelpers__() {
-        ((global::System.Action)(() => {
+    public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InheritsViewModel : 
 #nullable restore
 #line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsViewModel.cshtml"
-MyBasePageForViews<TModel> __typeHelper = default!;
+MyBasePageForViews<MyModel>
 
 #line default
 #line hidden
 #nullable disable
-        }
-        ))();
+
+    #nullable disable
+    {
+        #pragma warning disable 219
+        private void __RazorDirectiveTokenHelpers__() {
         ((global::System.Action)(() => {
 #nullable restore
 #line 2 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsViewModel.cshtml"

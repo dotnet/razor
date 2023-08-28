@@ -11,18 +11,16 @@ namespace AspNetCore
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.AspNetCore.Mvc.ViewFeatures;
-    public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InheritsViewModel : MyBasePageForViews<MyModel>
-    {
-        #pragma warning disable 219
-        private void __RazorDirectiveTokenHelpers__() {
-        ((global::System.Action)(() => {
+    public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InheritsViewModel : 
 #line 1 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsViewModel.cshtml"
-MyBasePageForViews<TModel> __typeHelper = default;
+MyBasePageForViews<MyModel>
 
 #line default
 #line hidden
-        }
-        ))();
+
+    {
+        #pragma warning disable 219
+        private void __RazorDirectiveTokenHelpers__() {
         ((global::System.Action)(() => {
 #line 2 "TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InheritsViewModel.cshtml"
 MyModel __typeHelper = default;

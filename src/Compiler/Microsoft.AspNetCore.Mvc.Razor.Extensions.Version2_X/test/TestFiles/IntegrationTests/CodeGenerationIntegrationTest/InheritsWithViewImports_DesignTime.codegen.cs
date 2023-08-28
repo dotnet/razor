@@ -11,7 +11,13 @@ namespace AspNetCore
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.AspNetCore.Mvc.ViewFeatures;
-    public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InheritsWithViewImports : MyPageModel<MyModel>
+    public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_InheritsWithViewImports : 
+#line 1 "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\_ViewImports.cshtml"
+MyPageModel<MyModel>
+
+#line default
+#line hidden
+
     {
         #pragma warning disable 219
         private void __RazorDirectiveTokenHelpers__() {

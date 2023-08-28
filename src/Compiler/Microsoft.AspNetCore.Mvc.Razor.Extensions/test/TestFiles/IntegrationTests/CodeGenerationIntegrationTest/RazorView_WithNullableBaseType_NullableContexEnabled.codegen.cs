@@ -23,7 +23,15 @@ using TestNamespace;
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/TestFiles/IntegrationTests/CodeGenerationIntegrationTest/test.cshtml")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
     #nullable restore
-    public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_test : MyBasePage<TestModel?>
+    public class TestFiles_IntegrationTests_CodeGenerationIntegrationTest_test : 
+#nullable restore
+#line 3 "TestFiles\IntegrationTests\CodeGenerationIntegrationTest\test.cshtml"
+MyBasePage<TestModel?>
+
+#line default
+#line hidden
+#nullable disable
+
     #nullable disable
     {
         #pragma warning disable 1998
