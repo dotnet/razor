@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 
-internal sealed class ProjectRazorJsonResolver : IFormatterResolver
+internal sealed class RazorProjectInfoResolver : IFormatterResolver
 {
-    public static readonly ProjectRazorJsonResolver Instance = new();
+    public static readonly RazorProjectInfoResolver Instance = new();
 
-    private ProjectRazorJsonResolver()
+    private RazorProjectInfoResolver()
     {
     }
 
@@ -27,9 +27,9 @@ internal sealed class ProjectRazorJsonResolver : IFormatterResolver
 
         static Cache()
         {
-            if (typeof(T) == typeof(ProjectRazorJson))
+            if (typeof(T) == typeof(RazorProjectInfo))
             {
-                Formatter = (IMessagePackFormatter<T>)ProjectRazorJsonFormatter.Instance;
+                Formatter = (IMessagePackFormatter<T>)RazorProjectInfoFormatter.Instance;
             }
         }
     }

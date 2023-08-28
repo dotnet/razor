@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Razor.Serialization;
 
 namespace Microsoft.AspNetCore.Razor.ProjectSystem;
 
-internal sealed class ProjectRazorJson
+internal sealed class RazorProjectInfo
 {
     public string SerializedFilePath { get; }
     public string FilePath { get; }
@@ -16,7 +16,7 @@ internal sealed class ProjectRazorJson
     public ProjectWorkspaceState? ProjectWorkspaceState { get; }
     public ImmutableArray<DocumentSnapshotHandle> Documents { get; }
 
-    public ProjectRazorJson(
+    public RazorProjectInfo(
         string serializedFilePath,
         string filePath,
         RazorConfiguration? configuration,

@@ -230,10 +230,10 @@ internal static class ObjectWriters
         }
     }
 
-    public static void Write(JsonDataWriter writer, ProjectRazorJson value)
+    public static void Write(JsonDataWriter writer, RazorProjectInfo value)
         => writer.WriteObject(value, WriteProperties);
 
-    public static void WriteProperties(JsonDataWriter writer, ProjectRazorJson value)
+    public static void WriteProperties(JsonDataWriter writer, RazorProjectInfo value)
     {
         writer.Write(WellKnownPropertyNames.Version, SerializationFormat.Version);
         writer.Write(nameof(value.SerializedFilePath), value.SerializedFilePath);

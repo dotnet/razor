@@ -141,7 +141,7 @@
   <data name="Unsupported_argument_type" xml:space="preserve">
     <value>Unsupported argument type: '{0}'.</value>
   </data>
-  <data name="Unsupported_project_razor_json_version_encountered" xml:space="preserve">
-    <value>Unsupported project.razor.json version encounted.</value>
+  <data name="Unsupported_razor_project_info_version_encountered" xml:space="preserve">
+    <value>Unsupported razor project info version encounted.</value>
   </data>
 </root>

@@ -5,6 +5,6 @@ using System;
 
 namespace Microsoft.AspNetCore.Razor.Serialization;
 
-internal class ProjectRazorJsonSerializationException(string? message) : Exception(message)
+internal class RazorProjectInfoSerializationException(string? message) : Exception(message)
 {
 }

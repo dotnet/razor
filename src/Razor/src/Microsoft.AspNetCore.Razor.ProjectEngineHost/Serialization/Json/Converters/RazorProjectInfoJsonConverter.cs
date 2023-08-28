@@ -18,17 +18,17 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.Json.Converters;
 
-internal class ProjectRazorJsonJsonConverter : ObjectJsonConverter<ProjectRazorJson>
+internal class RazorProjectInfoJsonConverter : ObjectJsonConverter<RazorProjectInfo>
 {
-    public static readonly ProjectRazorJsonJsonConverter Instance = new();
+    public static readonly RazorProjectInfoJsonConverter Instance = new();
 
-    private ProjectRazorJsonJsonConverter()
+    private RazorProjectInfoJsonConverter()
     {
     }
 
-    protected override ProjectRazorJson ReadFromProperties(JsonDataReader reader)
-        => ObjectReaders.ReadProjectRazorJsonFromProperties(reader);
+    protected override RazorProjectInfo ReadFromProperties(JsonDataReader reader)
+        => ObjectReaders.ReadRazorProjectInfoFromProperties(reader);
 
-    protected override void WriteProperties(JsonDataWriter writer, ProjectRazorJson value)
+    protected override void WriteProperties(JsonDataWriter writer, RazorProjectInfo value)
         => ObjectWriters.WriteProperties(writer, value);
 }

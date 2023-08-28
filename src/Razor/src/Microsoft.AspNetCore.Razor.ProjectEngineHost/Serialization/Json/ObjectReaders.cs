@@ -331,21 +331,21 @@ internal static partial class ObjectReaders
         }
     }
 
-    public static ProjectRazorJson ReadProjectRazorJsonFromProperties(JsonDataReader reader)
+    public static RazorProjectInfo ReadRazorProjectInfoFromProperties(JsonDataReader reader)
     {
         if (!reader.TryReadInt32(WellKnownPropertyNames.Version, out var version) || version != SerializationFormat.Version)
         {
-            throw new ProjectRazorJsonSerializationException(SR.Unsupported_project_razor_json_version_encountered);
+            throw new RazorProjectInfoSerializationException(SR.Unsupported_razor_project_info_version_encountered);
         }
 
-        var serializedFilePath = reader.ReadNonNullString(nameof(ProjectRazorJson.SerializedFilePath));
-        var filePath = reader.ReadNonNullString(nameof(ProjectRazorJson.FilePath));
-        var configuration = reader.ReadObject(nameof(ProjectRazorJson.Configuration), ReadConfigurationFromProperties);
-        var projectWorkspaceState = reader.ReadObject(nameof(ProjectRazorJson.ProjectWorkspaceState), ReadProjectWorkspaceStateFromProperties);
-        var rootNamespace = reader.ReadString(nameof(ProjectRazorJson.RootNamespace));
-        var documents = reader.ReadImmutableArray(nameof(ProjectRazorJson.Documents), static r => r.ReadNonNullObject(ReadDocumentSnapshotHandleFromProperties));
+        var serializedFilePath = reader.ReadNonNullString(nameof(RazorProjectInfo.SerializedFilePath));
+        var filePath = reader.ReadNonNullString(nameof(RazorProjectInfo.FilePath));
+        var configuration = reader.ReadObject(nameof(RazorProjectInfo.Configuration), ReadConfigurationFromProperties);
+        var projectWorkspaceState = reader.ReadObject(nameof(RazorProjectInfo.ProjectWorkspaceState), ReadProjectWorkspaceStateFromProperties);
+        var rootNamespace = reader.ReadString(nameof(RazorProjectInfo.RootNamespace));
+        var documents = reader.ReadImmutableArray(nameof(RazorProjectInfo.Documents), static r => r.ReadNonNullObject(ReadDocumentSnapshotHandleFromProperties));
 
-        return new ProjectRazorJson(serializedFilePath, filePath, configuration, rootNamespace, projectWorkspaceState, documents);
+        return new RazorProjectInfo(serializedFilePath, filePath, configuration, rootNamespace, projectWorkspaceState, documents);
     }
 
     public static Checksum ReadChecksum(JsonDataReader reader)

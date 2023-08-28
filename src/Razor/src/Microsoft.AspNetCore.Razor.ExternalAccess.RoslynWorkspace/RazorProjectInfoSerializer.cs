@@ -20,14 +20,14 @@ using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
 
-internal static class RazorProjectJsonSerializer
+internal static class RazorProjectInfoSerializer
 {
     private static readonly JsonSerializer s_serializer;
     private static readonly EmptyProjectEngineFactory s_fallbackProjectEngineFactory;
     private static readonly StringComparison s_stringComparison;
     private static readonly (IProjectEngineFactory Value, ICustomProjectEngineFactoryMetadata)[] s_projectEngineFactories;
 
-    static RazorProjectJsonSerializer()
+    static RazorProjectInfoSerializer()
     {
         s_serializer = new JsonSerializer()
         {
@@ -99,7 +99,7 @@ internal static class RazorProjectJsonSerializer
 
         var jsonFilePath = Path.Combine(intermediateOutputPath, projectRazorJsonFileName);
 
-        var projectRazorJson = new ProjectRazorJson(
+        var projectInfo = new RazorProjectInfo(
             serializedFilePath: jsonFilePath,
             filePath: project.FilePath!,
             configuration: configuration,
@@ -107,7 +107,7 @@ internal static class RazorProjectJsonSerializer
             projectWorkspaceState: projectWorkspaceState,
             documents: documents);
 
-        WriteJsonFile(jsonFilePath, projectRazorJson);
+        WriteJsonFile(jsonFilePath, projectInfo);
     }
 
     private static RazorConfiguration ComputeRazorConfigurationOptions(AnalyzerConfigOptionsProvider options, out string defaultNamespace)
@@ -135,7 +135,7 @@ internal static class RazorProjectJsonSerializer
         return razorConfiguration;
     }
 
-    private static void WriteJsonFile(string publishFilePath, ProjectRazorJson projectRazorJson)
+    private static void WriteJsonFile(string publishFilePath, RazorProjectInfo projectInfo)
     {
         // We need to avoid having an incomplete file at any point, but our
         // project configuration is large enough that it will be written as multiple operations.
@@ -152,7 +152,7 @@ internal static class RazorProjectJsonSerializer
         // by the time we move the temp file into its place
         using (var writer = tempFileInfo.CreateText())
         {
-            s_serializer.Serialize(writer, projectRazorJson);
+            s_serializer.Serialize(writer, projectInfo);
         }
 
         var fileInfo = new FileInfo(publishFilePath);

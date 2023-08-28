@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 /// </summary>
 [Shared]
 [Export(typeof(IProjectSnapshotChangeTrigger))]
-internal class ProjectRazorJsonPublisher : IProjectSnapshotChangeTrigger
+internal class RazorProjectInfoPublisher : IProjectSnapshotChangeTrigger
 {
     internal readonly Dictionary<string, Task> DeferredPublishTasks;
 
@@ -54,7 +54,7 @@ internal class ProjectRazorJsonPublisher : IProjectSnapshotChangeTrigger
     }
 
     [ImportingConstructor]
-    public ProjectRazorJsonPublisher(
+    public RazorProjectInfoPublisher(
         LSPEditorFeatureDetector lSPEditorFeatureDetector,
         ProjectConfigurationFilePathStore projectConfigurationFilePathStore,
         RazorLogger logger)
@@ -86,7 +86,7 @@ internal class ProjectRazorJsonPublisher : IProjectSnapshotChangeTrigger
 #if DEBUG
         _serializer.Formatting = Formatting.Indented;
 #endif
-        _serializer.Converters.Add(ProjectRazorJsonJsonConverter.Instance);
+        _serializer.Converters.Add(RazorProjectInfoJsonConverter.Instance);
     }
 
     // Internal settable for testing
@@ -284,8 +284,8 @@ internal class ProjectRazorJsonPublisher : IProjectSnapshotChangeTrigger
         // by the time we move the tempfile into its place
         using (var writer = tempFileInfo.CreateText())
         {
-            var projectRazorJson = projectSnapshot.ToProjectRazorJson(publishFilePath);
-            _serializer.Serialize(writer, projectRazorJson);
+            var projectInfo = projectSnapshot.ToRazorProjectInfo(publishFilePath);
+            _serializer.Serialize(writer, projectInfo);
         }
 
         var fileInfo = new FileInfo(publishFilePath);

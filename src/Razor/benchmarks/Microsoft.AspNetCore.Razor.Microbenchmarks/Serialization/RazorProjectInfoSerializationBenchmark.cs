@@ -9,16 +9,16 @@ using Microsoft.AspNetCore.Razor.Serialization.Json;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization;
 
-public class ProjectRazorJsonSerializationBenchmark
+public class RazorProjectInfoSerializationBenchmark
 {
     [ParamsAllValues]
     public ResourceSet ResourceSet { get; set; }
 
-    private ProjectRazorJson ProjectRazorJson
+    private RazorProjectInfo ProjectInfo
         => ResourceSet switch
         {
-            ResourceSet.Telerik => CommonResources.TelerikProjectRazorJson,
-            _ => CommonResources.LegacyProjectRazorJson
+            ResourceSet.Telerik => CommonResources.TelerikProjectInfo,
+            _ => CommonResources.LegacyProjectInfo
         };
 
     private byte[] ProjectRazorJsonBytes
@@ -28,58 +28,58 @@ public class ProjectRazorJsonSerializationBenchmark
             _ => CommonResources.LegacyProjectRazorJsonBytes
         };
 
-    private static ProjectRazorJson DeserializeProjectRazorJson(TextReader reader)
+    private static RazorProjectInfo DeserializeProjectInfo(TextReader reader)
     {
         return JsonDataConvert.DeserializeData(reader,
-            static r => r.ReadNonNullObject(ObjectReaders.ReadProjectRazorJsonFromProperties));
+            static r => r.ReadNonNullObject(ObjectReaders.ReadRazorProjectInfoFromProperties));
     }
 
-    private static void SerializeProjectRazorJson(TextWriter writer, ProjectRazorJson projectRazorJson)
+    private static void SerializeProjectInfo(TextWriter writer, RazorProjectInfo projectInfo)
     {
-        JsonDataConvert.SerializeObject(writer, projectRazorJson, ObjectWriters.WriteProperties);
+        JsonDataConvert.SerializeObject(writer, projectInfo, ObjectWriters.WriteProperties);
     }
 
-    [Benchmark(Description = "Serialize ProjectRazorJson")]
+    [Benchmark(Description = "Serialize RazorProjectInfo")]
     public void Serialize()
     {
         using var stream = new MemoryStream();
         using var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 4096);
 
-        SerializeProjectRazorJson(writer, ProjectRazorJson);
+        SerializeProjectInfo(writer, ProjectInfo);
     }
 
-    [Benchmark(Description = "Deserialize ProjectRazorJson")]
+    [Benchmark(Description = "Deserialize RazorProjectInfo")]
     public void Deserialize()
     {
         using var stream = new MemoryStream(ProjectRazorJsonBytes);
         using var reader = new StreamReader(stream);
 
-        var projectRazorJson = DeserializeProjectRazorJson(reader);
+        var projectInfo = DeserializeProjectInfo(reader);
 
-        if (projectRazorJson.ProjectWorkspaceState is null ||
-            projectRazorJson.ProjectWorkspaceState.TagHelpers.Length != ProjectRazorJson.ProjectWorkspaceState?.TagHelpers.Length)
+        if (projectInfo.ProjectWorkspaceState is null ||
+            projectInfo.ProjectWorkspaceState.TagHelpers.Length != ProjectInfo.ProjectWorkspaceState?.TagHelpers.Length)
         {
             throw new InvalidDataException();
         }
     }
 
-    [Benchmark(Description = "RoundTrip ProjectRazorJson")]
+    [Benchmark(Description = "RoundTrip RazorProjectInfo")]
     public void RoundTrip()
     {
         using var stream = new MemoryStream();
         using (var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 4096, leaveOpen: true))
         {
-            SerializeProjectRazorJson(writer, ProjectRazorJson);
+            SerializeProjectInfo(writer, ProjectInfo);
         }
 
         stream.Seek(0, SeekOrigin.Begin);
 
         using var reader = new StreamReader(stream);
 
-        var projectRazorJson = DeserializeProjectRazorJson(reader);
+        var projectInfo = DeserializeProjectInfo(reader);
 
-        if (projectRazorJson.ProjectWorkspaceState is null ||
-            projectRazorJson.ProjectWorkspaceState.TagHelpers.Length != ProjectRazorJson.ProjectWorkspaceState?.TagHelpers.Length)
+        if (projectInfo.ProjectWorkspaceState is null ||
+            projectInfo.ProjectWorkspaceState.TagHelpers.Length != ProjectInfo.ProjectWorkspaceState?.TagHelpers.Length)
         {
             throw new InvalidDataException();
         }

@@ -6,26 +6,26 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
-internal sealed class ProjectRazorJsonFormatter : MessagePackFormatter<ProjectRazorJson>
+internal sealed class RazorProjectInfoFormatter : MessagePackFormatter<RazorProjectInfo>
 {
-    public static readonly MessagePackFormatter<ProjectRazorJson> Instance = new ProjectRazorJsonFormatter();
+    public static readonly MessagePackFormatter<RazorProjectInfo> Instance = new RazorProjectInfoFormatter();
 
-    private ProjectRazorJsonFormatter()
+    private RazorProjectInfoFormatter()
     {
     }
 
-    public override ProjectRazorJson Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    public override RazorProjectInfo Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
         if (reader.NextMessagePackType != MessagePackType.Integer)
         {
-            throw new ProjectRazorJsonSerializationException(SR.Unsupported_project_razor_json_version_encountered);
+            throw new RazorProjectInfoSerializationException(SR.Unsupported_razor_project_info_version_encountered);
         }
 
         var version = reader.ReadInt32();
 
         if (version != SerializationFormat.Version)
         {
-            throw new ProjectRazorJsonSerializationException(SR.Unsupported_project_razor_json_version_encountered);
+            throw new RazorProjectInfoSerializationException(SR.Unsupported_razor_project_info_version_encountered);
         }
 
         var serializedFilePath = DeserializeString(ref reader, options);
@@ -35,10 +35,10 @@ internal sealed class ProjectRazorJsonFormatter : MessagePackFormatter<ProjectRa
         var rootNamespace = AllowNull.DeserializeString(ref reader, options);
         var documents = DocumentSnapshotHandleFormatter.Instance.DeserializeImmutableArray(ref reader, options);
 
-        return new ProjectRazorJson(serializedFilePath, filePath, configuration, rootNamespace, projectWorkspaceState, documents);
+        return new RazorProjectInfo(serializedFilePath, filePath, configuration, rootNamespace, projectWorkspaceState, documents);
     }
 
-    public override void Serialize(ref MessagePackWriter writer, ProjectRazorJson value, MessagePackSerializerOptions options)
+    public override void Serialize(ref MessagePackWriter writer, RazorProjectInfo value, MessagePackSerializerOptions options)
     {
         writer.Write(SerializationFormat.Version);
         writer.Write(value.SerializedFilePath);

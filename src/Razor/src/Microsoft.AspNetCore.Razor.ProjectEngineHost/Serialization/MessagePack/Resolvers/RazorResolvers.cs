@@ -10,7 +10,7 @@ internal static class RazorResolvers
 {
     public static readonly IFormatterResolver All = CompositeResolver.Create(
         ChecksumResolver.Instance,
-        ProjectRazorJsonResolver.Instance,
+        RazorProjectInfoResolver.Instance,
         ProjectSnapshotHandleResolver.Instance,
         TagHelperDeltaResultResolver.Instance,
         StandardResolver.Instance);

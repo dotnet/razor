@@ -15,13 +15,13 @@ internal static class CommonResources
     public static readonly ImmutableArray<TagHelperDescriptor> LegacyTagHelpers = LoadTagHelpers(LegacyTagHelperBytes);
 
     public static readonly byte[] LegacyProjectRazorJsonBytes = Resources.GetResourceBytes("project.razor.json");
-    public static readonly ProjectRazorJson LegacyProjectRazorJson = LoadProjectRazorJson(LegacyProjectRazorJsonBytes);
+    public static readonly RazorProjectInfo LegacyProjectInfo = LoadProjectInfo(LegacyProjectRazorJsonBytes);
 
     public static readonly byte[] TelerikTagHelperBytes = Resources.GetResourceBytes("Kendo.Mvc.Examples.taghelpers.json", folder: "Telerik");
     public static readonly ImmutableArray<TagHelperDescriptor> TelerikTagHelpers = LoadTagHelpers(TelerikTagHelperBytes);
 
     public static readonly byte[] TelerikProjectRazorJsonBytes = Resources.GetResourceBytes("Kendo.Mvc.Examples.project.razor.json", folder: "Telerik");
-    public static readonly ProjectRazorJson TelerikProjectRazorJson = LoadProjectRazorJson(TelerikProjectRazorJsonBytes);
+    public static readonly RazorProjectInfo TelerikProjectInfo = LoadProjectInfo(TelerikProjectRazorJsonBytes);
 
     private static ImmutableArray<TagHelperDescriptor> LoadTagHelpers(byte[] bytes)
     {
@@ -33,12 +33,12 @@ internal static class CommonResources
                 static r => ObjectReaders.ReadTagHelper(r, useCache: false))).NullToEmpty();
     }
 
-    private static ProjectRazorJson LoadProjectRazorJson(byte[] bytes)
+    private static RazorProjectInfo LoadProjectInfo(byte[] bytes)
     {
         using var stream = new MemoryStream(bytes);
         using var reader = new StreamReader(stream);
 
         return JsonDataConvert.DeserializeData(reader,
-            static r => r.ReadNonNullObject(ObjectReaders.ReadProjectRazorJsonFromProperties));
+            static r => r.ReadNonNullObject(ObjectReaders.ReadRazorProjectInfoFromProperties));
     }
 }
