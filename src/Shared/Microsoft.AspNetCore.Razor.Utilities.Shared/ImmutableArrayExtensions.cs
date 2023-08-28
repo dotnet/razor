@@ -86,7 +86,7 @@ internal static class ImmutableArrayExtensions
         }
     }
 
-    public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IReadOnlyCollection<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
+    public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IReadOnlyCollection<TSource>? source, Func<TSource, ImmutableArray<TResult>> selector)
     {
         if (source is null || source.Count == 0)
         {
