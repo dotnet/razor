@@ -167,7 +167,7 @@ internal partial class RazorCustomMessageTarget
     }
 
     // Internal for testing
-    internal int[] StitchSemanticTokenResponsesTogether(int[][] responseData)
+    internal static int[] StitchSemanticTokenResponsesTogether(int[][] responseData)
     {
         var count = responseData.Sum(r => r.Length);
         var data = new int[count];
