@@ -350,19 +350,10 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         return semanticRange;
     }
 
-    private static RazorRange EmptyRazorRange = new RazorRange()
-    {
-        EndCharacter = 0,
-        EndLine = 0,
-        StartCharacter = 0,
-        StartLine = 0
-    };
-
     private static int[] ConvertSemanticRangesToSemanticTokensData(
         List<SemanticRange> semanticRanges,
         RazorCodeDocument razorCodeDocument)
     {
-        var previousResult = EmptyRazorRange;
         var sourceText = razorCodeDocument.GetSourceText();
         var hasPrevious = false;
         var previousStartLine = 0;
