@@ -463,6 +463,32 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
+    public void TryMapFromProjectedDocumentRange_Inferred_OutsideDoc_ReturnsFalse()
+    {
+        // Arrange
+        var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
+        var codeDoc = CreateCodeDocumentWithCSharpProjection(
+            "@{ var abc = @<unclosed></unclosed>",
+            " var abc =  (__builder) => { }",
+            new[] { new SourceMapping(new SourceSpan(2, 11), new SourceSpan(0, 11)), });
+        var projectedRange = new Range()
+        {
+            Start = new Position(2, 12),
+            End = new Position(2, 29),
+        };
+
+        // Act
+        var result = service.TryMapToHostDocumentRange(
+            codeDoc.GetCSharpDocument(),
+            projectedRange,
+            MappingBehavior.Inferred,
+            out var originalRange);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
     public void TryMapToProjectedDocumentPosition_NotMatchingAnyMapping()
     {
         // Arrange
