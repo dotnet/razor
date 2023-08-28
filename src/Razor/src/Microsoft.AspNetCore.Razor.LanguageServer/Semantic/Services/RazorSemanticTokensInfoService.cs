@@ -147,6 +147,11 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
         var previousSemanticRange = new SemanticRange(0, 0, 0, 0, 0, modifier: 0, fromRazor: false);
         Range? previousRazorSemanticRange = null;
+        var tempRange = new Range()
+        {
+            End = new Position(0, 0),
+            Start = new Position(0, 0)
+        };
         for (var i = 0; i < csharpResponse.Length; i += TokenSize)
         {
             var lineDelta = csharpResponse[i];
@@ -156,11 +161,11 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             var tokenModifiers = csharpResponse[i + 4];
 
             var semanticRange = CSharpDataToSemanticRange(lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
-            if (_documentMappingService.TryMapToHostDocumentRange(generatedDocument, new Range()
-            {
-                End = new Position(semanticRange.Range.EndLine, semanticRange.Range.EndCharacter),
-                Start = new Position(semanticRange.Range.StartLine, semanticRange.Range.StartCharacter)
-            }, out var originalRange))
+            tempRange.Start.Character = semanticRange.Range.StartCharacter;
+            tempRange.Start.Line = semanticRange.Range.StartLine;
+            tempRange.End.Character = semanticRange.Range.EndCharacter;
+            tempRange.End.Line = semanticRange.Range.EndLine;
+            if (_documentMappingService.TryMapToHostDocumentRange(generatedDocument, tempRange, out var originalRange))
             {
                 if (razorRange is null || razorRange.OverlapsWith(originalRange))
                 {
@@ -411,12 +416,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             data.Add(deltaStart);
 
             // length
-            var textSpan = new Range()
-            {
-                End = new Position(currentRange.Range.EndLine, currentRange.Range.EndCharacter),
-                Start = new Position(currentRange.Range.StartLine, currentRange.Range.StartCharacter),
-            }.AsTextSpan(sourceText);
-            var length = textSpan.Length;
+            var length = GetTextLength(currentRange.Range, sourceText);
             Debug.Assert(length > 0);
             data.Add(length);
 
@@ -426,5 +426,24 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             // tokenModifiers
             data.Add(currentRange.Modifier);
         }
+    }
+
+    private static int GetTextLength(RazorRange range, SourceText sourceText)
+    {
+        if (sourceText is null)
+        {
+            throw new ArgumentNullException(nameof(sourceText));
+        }
+
+        var start = sourceText.GetAbsolutePosition(range.StartLine, range.StartCharacter);
+        var end = sourceText.GetAbsolutePosition(range.EndLine, range.EndCharacter);
+
+        var length = end - start;
+        if (length < 0)
+        {
+            throw new ArgumentOutOfRangeException($"{range} resolved to zero or negative length.");
+        }
+
+        return length;
     }
 }

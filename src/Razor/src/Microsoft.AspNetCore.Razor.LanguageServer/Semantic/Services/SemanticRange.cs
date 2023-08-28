@@ -41,25 +41,25 @@ internal struct SemanticRange : IComparable<SemanticRange>
 
     public int CompareTo(SemanticRange other)
     {
-        var startCompare = Range.StartCharacter.CompareTo(other.Range.StartCharacter);
+        var startCompare = Range.StartLine.CompareTo(other.Range.StartLine);
         if (startCompare != 0)
         {
             return startCompare;
         }
 
-        startCompare = Range.StartLine.CompareTo(other.Range.StartLine);
+        startCompare = Range.StartCharacter.CompareTo(other.Range.StartCharacter);
         if (startCompare != 0)
         {
             return startCompare;
         }
 
-        var endCompare = Range.EndCharacter.CompareTo(other.Range.EndCharacter);
+        var endCompare = Range.EndLine.CompareTo(other.Range.EndLine);
         if (endCompare != 0)
         {
             return endCompare;
         }
 
-        endCompare = Range.EndLine.CompareTo(other.Range.EndLine);
+        endCompare = Range.EndCharacter.CompareTo(other.Range.EndCharacter);
         if (endCompare != 0)
         {
             return endCompare;

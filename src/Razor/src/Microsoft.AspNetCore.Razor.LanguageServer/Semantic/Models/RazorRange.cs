@@ -3,13 +3,4 @@
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-internal record RazorRange
-{
-    public int StartLine { get; init; }
-
-    public int StartCharacter { get; init; }
-
-    public int EndLine { get; init; }
-
-    public int EndCharacter { get; init; }
-}
+internal record struct RazorRange(int StartLine, int StartCharacter, int EndLine, int EndCharacter);

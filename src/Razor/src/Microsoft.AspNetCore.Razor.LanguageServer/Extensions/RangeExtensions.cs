@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
@@ -129,8 +128,8 @@ internal static class RangeExtensions
             throw new ArgumentNullException(nameof(sourceText));
         }
 
-        var start = GetAbsolutePosition(range.Start, sourceText);
-        var end = GetAbsolutePosition(range.End, sourceText);
+        var start = sourceText.GetAbsolutePosition(range.Start.Line, range.Start.Character);
+        var end = sourceText.GetAbsolutePosition(range.End.Line, range.End.Character);
 
         var length = end - start;
         if (length < 0)
@@ -139,26 +138,6 @@ internal static class RangeExtensions
         }
 
         return new TextSpan(start, length);
-
-        static int GetAbsolutePosition(Position position, SourceText sourceText, [CallerArgumentExpression(nameof(position))] string? argName = null)
-        {
-            var line = position.Line;
-            var character = position.Character;
-            var lineCount = sourceText.Lines.Count;
-            if (line > lineCount ||
-                (line == lineCount && character > 0))
-            {
-                throw new ArgumentOutOfRangeException($"{argName} ({line},{character}) matches or exceeds SourceText boundary {lineCount}.");
-            }
-
-            // LSP spec allowed a Range to end one line past the end, and character 0. SourceText does not, so we adjust to the final char position
-            if (line == lineCount)
-            {
-                return sourceText.Length;
-            }
-
-            return sourceText.Lines[line].Start + character;
-        }
     }
 
     public static Language.Syntax.TextSpan AsRazorTextSpan(this Range range, SourceText sourceText)
