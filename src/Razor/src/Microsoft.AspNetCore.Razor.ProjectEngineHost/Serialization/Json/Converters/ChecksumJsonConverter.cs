@@ -3,7 +3,7 @@
 
 using Microsoft.AspNetCore.Razor.Utilities;
 
-namespace Microsoft.AspNetCore.Razor.Serialization.Converters;
+namespace Microsoft.AspNetCore.Razor.Serialization.Json.Converters;
 
 internal class ChecksumJsonConverter : ObjectJsonConverter<Checksum>
 {

@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
-using Microsoft.AspNetCore.Razor.Serialization;
+using Microsoft.AspNetCore.Razor.Serialization.Json;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
 

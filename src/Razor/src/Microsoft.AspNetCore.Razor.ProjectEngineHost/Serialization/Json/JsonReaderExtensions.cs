@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNetCore.Razor.Serialization;
+namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
 internal static class JsonReaderExtensions
 {

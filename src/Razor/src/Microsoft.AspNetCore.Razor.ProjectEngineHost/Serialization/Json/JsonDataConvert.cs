@@ -6,7 +6,7 @@ using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNetCore.Razor.Serialization;
+namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
 internal static class JsonDataConvert
 {

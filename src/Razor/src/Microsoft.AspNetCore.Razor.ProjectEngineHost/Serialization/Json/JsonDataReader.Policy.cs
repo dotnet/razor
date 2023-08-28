@@ -3,11 +3,11 @@
 
 using Microsoft.Extensions.ObjectPool;
 
-namespace Microsoft.AspNetCore.Razor.Serialization;
+namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
-internal partial class JsonDataWriter
+internal partial class JsonDataReader
 {
-    private sealed class Policy : IPooledObjectPolicy<JsonDataWriter>
+    private sealed class Policy : IPooledObjectPolicy<JsonDataReader>
     {
         public static readonly Policy Instance = new();
 
@@ -15,11 +15,11 @@ internal partial class JsonDataWriter
         {
         }
 
-        public JsonDataWriter Create() => new();
+        public JsonDataReader Create() => new();
 
-        public bool Return(JsonDataWriter dataWriter)
+        public bool Return(JsonDataReader dataWriter)
         {
-            dataWriter._writer = null;
+            dataWriter._reader = null;
             return true;
         }
     }

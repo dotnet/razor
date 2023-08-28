@@ -1,9 +1,22 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+
+/* Unmerged change from project 'Microsoft.AspNetCore.Razor.ProjectEngineHost (net8.0)'
+Before:
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+After:
+using Microsoft;
+using Microsoft.AspNetCore.Razor;
+
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT license. See License.txt in the project root for license information.
+
+using Microsoft.AspNetCore.Razor.ProjectSystem;
+*/
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 
-namespace Microsoft.AspNetCore.Razor.Serialization.Converters;
+namespace Microsoft.AspNetCore.Razor.Serialization.Json.Converters;
 
 internal class ProjectRazorJsonJsonConverter : ObjectJsonConverter<ProjectRazorJson>
 {

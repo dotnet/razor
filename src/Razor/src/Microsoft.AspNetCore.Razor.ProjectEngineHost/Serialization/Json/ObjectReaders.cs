@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using static Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor;
 using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
-namespace Microsoft.AspNetCore.Razor.Serialization;
+namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
 internal static partial class ObjectReaders
 {

@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
-namespace Microsoft.AspNetCore.Razor.Serialization;
+namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
 internal static class ObjectWriters
 {

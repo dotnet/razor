@@ -7,7 +7,7 @@ using System.IO;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Serialization;
+using Microsoft.AspNetCore.Razor.Serialization.Json;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization;
 

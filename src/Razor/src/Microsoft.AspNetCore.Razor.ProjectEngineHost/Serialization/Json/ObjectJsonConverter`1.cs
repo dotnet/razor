@@ -4,7 +4,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNetCore.Razor.Serialization;
+namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
 internal abstract class ObjectJsonConverter<T> : JsonConverter<T>
     where T : class

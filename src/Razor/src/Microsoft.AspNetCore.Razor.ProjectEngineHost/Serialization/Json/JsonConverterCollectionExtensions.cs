@@ -4,9 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.AspNetCore.Razor.Serialization.Json.Converters;
 using Newtonsoft.Json;
 
-namespace Microsoft.AspNetCore.Razor.Serialization.Converters;
+namespace Microsoft.AspNetCore.Razor.Serialization.Json;
 
 internal static class JsonConverterCollectionExtensions
 {
