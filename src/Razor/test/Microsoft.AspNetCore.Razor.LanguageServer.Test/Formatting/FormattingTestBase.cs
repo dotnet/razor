@@ -59,7 +59,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         set { s_fileName.Value = value; }
     }
 
-    protected internal async Task RunFormattingTestAsync(
+    private protected async Task RunFormattingTestAsync(
         string input,
         string expected,
         int tabSize = 4,
@@ -107,7 +107,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         }
     }
 
-    protected async Task RunOnTypeFormattingTestAsync(
+    private protected async Task RunOnTypeFormattingTestAsync(
         string input,
         string expected,
         char triggerCharacter,
