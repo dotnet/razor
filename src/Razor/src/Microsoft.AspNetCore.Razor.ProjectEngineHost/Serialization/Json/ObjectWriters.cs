@@ -235,7 +235,7 @@ internal static class ObjectWriters
 
     public static void WriteProperties(JsonDataWriter writer, ProjectRazorJson value)
     {
-        writer.Write(WellKnownPropertyNames.Version, ProjectRazorJson.Version);
+        writer.Write(WellKnownPropertyNames.Version, SerializationFormat.Version);
         writer.Write(nameof(value.SerializedFilePath), value.SerializedFilePath);
         writer.Write(nameof(value.FilePath), value.FilePath);
         writer.WriteObject(nameof(value.Configuration), value.Configuration, WriteProperties);

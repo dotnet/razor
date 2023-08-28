@@ -23,7 +23,7 @@ internal sealed class ProjectRazorJsonFormatter : MessagePackFormatter<ProjectRa
 
         var version = reader.ReadInt32();
 
-        if (version != ProjectRazorJson.Version)
+        if (version != SerializationFormat.Version)
         {
             throw new ProjectRazorJsonSerializationException(SR.Unsupported_project_razor_json_version_encountered);
         }
@@ -40,7 +40,7 @@ internal sealed class ProjectRazorJsonFormatter : MessagePackFormatter<ProjectRa
 
     public override void Serialize(ref MessagePackWriter writer, ProjectRazorJson value, MessagePackSerializerOptions options)
     {
-        writer.Write(ProjectRazorJson.Version);
+        writer.Write(SerializationFormat.Version);
         writer.Write(value.SerializedFilePath);
         writer.Write(value.FilePath);
         RazorConfigurationFormatter.Instance.AllowNull.Serialize(ref writer, value.Configuration, options);

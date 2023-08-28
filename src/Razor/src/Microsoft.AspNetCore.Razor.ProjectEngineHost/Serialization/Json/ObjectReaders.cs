@@ -333,7 +333,7 @@ internal static partial class ObjectReaders
 
     public static ProjectRazorJson ReadProjectRazorJsonFromProperties(JsonDataReader reader)
     {
-        if (!reader.TryReadInt32(WellKnownPropertyNames.Version, out var version) || version != ProjectRazorJson.Version)
+        if (!reader.TryReadInt32(WellKnownPropertyNames.Version, out var version) || version != SerializationFormat.Version)
         {
             throw new ProjectRazorJsonSerializationException(SR.Unsupported_project_razor_json_version_encountered);
         }
@@ -353,10 +353,10 @@ internal static partial class ObjectReaders
 
     public static Checksum ReadChecksumFromProperties(JsonDataReader reader)
     {
-        var data1 = reader.ReadInt64();
-        var data2 = reader.ReadInt64();
-        var data3 = reader.ReadInt64();
-        var data4 = reader.ReadInt64();
+        var data1 = reader.ReadInt64(nameof(Checksum.HashData.Data1));
+        var data2 = reader.ReadInt64(nameof(Checksum.HashData.Data2));
+        var data3 = reader.ReadInt64(nameof(Checksum.HashData.Data3));
+        var data4 = reader.ReadInt64(nameof(Checksum.HashData.Data4));
 
         var hashData = new Checksum.HashData(data1, data2, data3, data4);
 
