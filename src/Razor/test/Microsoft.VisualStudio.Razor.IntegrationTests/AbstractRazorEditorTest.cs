@@ -29,10 +29,15 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
 
         VisualStudioLogging.AddCustomLoggers();
 
-        await CreateAndOpenBlazorProjectAsync(ControlledHangMitigatingCancellationToken);
+        var projectFilePath = await CreateAndOpenBlazorProjectAsync(ControlledHangMitigatingCancellationToken);
 
         await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ControlledHangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
+
+        await TestServices.RazorProjectSystem.WaitForProjectFileAsync(projectFilePath, ControlledHangMitigatingCancellationToken);
+
+        var razorFilePath = await TestServices.SolutionExplorer.GetAbsolutePathForProjectRelativeFilePathAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, ControlledHangMitigatingCancellationToken);
+        await TestServices.RazorProjectSystem.WaitForRazorFileInProjectAsync(projectFilePath, razorFilePath, ControlledHangMitigatingCancellationToken);
 
         // We open the Index.razor file, and wait for 3 RazorComponentElement's to be classified, as that
         // way we know the LSP server is up, running, and has processed both local and library-sourced Components
@@ -60,7 +65,7 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
         await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, saveFile: false, ControlledHangMitigatingCancellationToken);
     }
 
-    private async Task CreateAndOpenBlazorProjectAsync(CancellationToken cancellationToken)
+    private async Task<string> CreateAndOpenBlazorProjectAsync(CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -74,8 +79,11 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
         zip.ExtractToDirectory(solutionPath);
 
         var slnFile = Directory.EnumerateFiles(solutionPath, "*.sln").First();
+        var projectFile = Directory.EnumerateFiles(solutionPath, "*.csproj", SearchOption.AllDirectories).First();
 
         await TestServices.SolutionExplorer.OpenSolutionAsync(slnFile, cancellationToken);
+
+        return projectFile;
     }
 
     private static string CreateTemporaryPath()
