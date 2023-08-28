@@ -602,7 +602,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
 
         var languageServerMock = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
         languageServerMock
-            .Setup(c => c.SendRequestAsync<IDelegatedParams, VSInternalHover>(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, It.IsAny<DelegatedPositionParams>(), It.IsAny<CancellationToken>()))
+            .Setup(c => c.SendRequestAsync<IDelegatedParams, VSInternalHover>(CustomMessageNames.RazorHoverEndpointName, It.IsAny<DelegatedPositionParams>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(delegatedHover);
 
         var documentMappingServiceMock = new Mock<IRazorDocumentMappingService>(MockBehavior.Strict);
@@ -710,6 +710,34 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         Assert.Equal("Test1TagHelper", text);
     }
 
+    [Fact]
+    public async Task Handle_Hover_SingleServer_AddTagHelper()
+    {
+        // Arrange
+        var input = """
+                @addTagHelper *, Test$$Assembly
+
+                <test1></test1>
+                """;
+
+        // Act
+        var result = await GetResultFromSingleServerEndpointAsync(input);
+
+        // Assert
+
+        // Roslyn returns us a range that is outside of our source mappings, so we expect the endpoint
+        // to return null, so as not to confuse the client
+        Assert.Null(result.Range);
+
+        var rawContainer = (ContainerElement)result.RawContent;
+        var embeddedContainerElement = (ContainerElement)rawContainer.Elements.Single();
+
+        var classifiedText = (ClassifiedTextElement)embeddedContainerElement.Elements.ElementAt(1);
+        var text = string.Join("", classifiedText.Runs.Select(r => r.Text));
+        // Hover info is for a string
+        Assert.StartsWith("Represents text as a sequence of UTF-16", text);
+    }
+
     private async Task<VSInternalHover> GetResultFromSingleServerEndpointAsync(string input)
     {
         TestFileMarkupParser.GetPosition(input, out var output, out var cursorPosition);
@@ -734,7 +762,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
             options.HtmlVirtualDocumentSuffix == ".g.html"
             , MockBehavior.Strict);
         var languageServer = new HoverLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
-        var documentMappingService = new RazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
+        var documentMappingService = new RazorDocumentMappingService(FilePathService, documentContextFactory, LoggerFactory);
         var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == new[] { Mock.Of<IProjectSnapshot>(MockBehavior.Strict) }.ToImmutableArray(), MockBehavior.Strict);
         var hoverInfoService = GetHoverInfoService();
 
@@ -859,7 +887,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
 
         public override async Task<TResponse> SendRequestAsync<TParams, TResponse>(string method, TParams @params, CancellationToken cancellationToken)
         {
-            Assert.Equal(RazorLanguageServerCustomMessageTargets.RazorHoverEndpointName, method);
+            Assert.Equal(CustomMessageNames.RazorHoverEndpointName, method);
             var hoverParams = Assert.IsType<DelegatedPositionParams>(@params);
 
             var hoverRequest = new TextDocumentPositionParams()

@@ -17,7 +17,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer;
 
 internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
 {
-    private readonly Dictionary<string, PublishData> _publishedCSharpData;
+    private readonly Dictionary<DocumentKey, PublishData> _publishedCSharpData;
     private readonly Dictionary<string, PublishData> _publishedHtmlData;
     private readonly ClientNotifierServiceBase _server;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
@@ -55,7 +55,12 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
         _server = server;
         _languageServerFeatureOptions = languageServerFeatureOptions;
         _logger = loggerFactory.CreateLogger<DefaultGeneratedDocumentPublisher>();
-        _publishedCSharpData = new Dictionary<string, PublishData>(FilePathComparer.Instance);
+        _publishedCSharpData = new Dictionary<DocumentKey, PublishData>();
+
+        // We don't generate individual Html documents per-project, so in order to ensure diffs are calculated correctly
+        // we don't use the project key for the key for this dictionary. This matches when we send edits to the client,
+        // as they are only tracking a single Html file for each Razor file path, thus edits need to be correct or we'll
+        // get out of sync.
         _publishedHtmlData = new Dictionary<string, PublishData>(FilePathComparer.Instance);
     }
 
@@ -70,7 +75,7 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
         _projectSnapshotManager.Changed += ProjectSnapshotManager_Changed;
     }
 
-    public override void PublishCSharp(string filePath, SourceText sourceText, int hostDocumentVersion)
+    public override void PublishCSharp(ProjectKey projectKey, string filePath, SourceText sourceText, int hostDocumentVersion)
     {
         if (filePath is null)
         {
@@ -84,8 +89,19 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
 
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-        if (!_publishedCSharpData.TryGetValue(filePath, out var previouslyPublishedData))
+        // If our generated documents don't have unique file paths, then using project key information is problematic for the client.
+        // For example, when a document moves from the Misc Project to a real project, we will update it here, and each version would
+        // have a different project key. On the receiving end however, there is only one file path, therefore one version of the contents,
+        // so we must ensure we only have a single document to compute diffs from, or things get out of sync.
+        if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
         {
+            projectKey = default;
+        }
+
+        var key = new DocumentKey(projectKey, filePath);
+        if (!_publishedCSharpData.TryGetValue(key, out var previouslyPublishedData))
+        {
+            _logger.LogDebug("New publish data created for {project} and {filePath}", projectKey, filePath);
             previouslyPublishedData = PublishData.Default;
         }
 
@@ -102,8 +118,9 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
             var currentDocumentLength = sourceText.Length;
             var documentLengthDelta = sourceText.Length - previousDocumentLength;
             _logger.LogTrace(
-                "Updating C# buffer of {0} to correspond with host document version {1}. {2} -> {3} = Change delta of {4} via {5} text changes.",
+                "Updating C# buffer of {0} for project {1} to correspond with host document version {2}. {3} -> {4} = Change delta of {5} via {6} text changes.",
                 filePath,
+                projectKey,
                 hostDocumentVersion,
                 previousDocumentLength,
                 currentDocumentLength,
@@ -111,19 +128,20 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
                 textChanges.Count);
         }
 
-        _publishedCSharpData[filePath] = new PublishData(sourceText, hostDocumentVersion);
+        _publishedCSharpData[key] = new PublishData(sourceText, hostDocumentVersion);
 
         var request = new UpdateBufferRequest()
         {
             HostDocumentFilePath = filePath,
+            ProjectKeyId = projectKey.Id,
             Changes = textChanges,
             HostDocumentVersion = hostDocumentVersion,
         };
 
-        _ = _server.SendNotificationAsync(RazorLanguageServerCustomMessageTargets.RazorUpdateCSharpBufferEndpoint, request, CancellationToken.None);
+        _ = _server.SendNotificationAsync(CustomMessageNames.RazorUpdateCSharpBufferEndpoint, request, CancellationToken.None);
     }
 
-    public override void PublishHtml(string filePath, SourceText sourceText, int hostDocumentVersion)
+    public override void PublishHtml(ProjectKey projectKey, string filePath, SourceText sourceText, int hostDocumentVersion)
     {
         if (filePath is null)
         {
@@ -169,11 +187,12 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
         var request = new UpdateBufferRequest()
         {
             HostDocumentFilePath = filePath,
+            ProjectKeyId = projectKey.Id,
             Changes = textChanges,
             HostDocumentVersion = hostDocumentVersion,
         };
 
-        _ = _server.SendNotificationAsync(RazorLanguageServerCustomMessageTargets.RazorUpdateHtmlBufferEndpoint, request, CancellationToken.None);
+        _ = _server.SendNotificationAsync(CustomMessageNames.RazorUpdateHtmlBufferEndpoint, request, CancellationToken.None);
     }
 
     private void ProjectSnapshotManager_Changed(object? sender, ProjectChangeEventArgs args)
@@ -202,9 +221,16 @@ internal class DefaultGeneratedDocumentPublisher : GeneratedDocumentPublisher
                         return;
                     }
 
-                    if (_publishedCSharpData.ContainsKey(args.DocumentFilePath))
+                    var projectKey = args.ProjectKey;
+                    if (!_languageServerFeatureOptions.IncludeProjectKeyInGeneratedFilePath)
                     {
-                        var removed = _publishedCSharpData.Remove(args.DocumentFilePath);
+                        projectKey = default;
+                    }
+
+                    var key = new DocumentKey(projectKey, args.DocumentFilePath);
+                    if (_publishedCSharpData.ContainsKey(key))
+                    {
+                        var removed = _publishedCSharpData.Remove(key);
                         if (!removed)
                         {
                             _logger.LogError("Published data should be protected by the project snapshot manager's thread and should never fail to remove.");

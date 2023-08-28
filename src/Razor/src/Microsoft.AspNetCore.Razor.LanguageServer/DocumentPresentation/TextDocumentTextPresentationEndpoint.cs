@@ -15,14 +15,12 @@ internal class TextDocumentTextPresentationEndpoint : AbstractTextDocumentPresen
     public TextDocumentTextPresentationEndpoint(
         IRazorDocumentMappingService razorDocumentMappingService,
         ClientNotifierServiceBase languageServer,
-        LanguageServerFeatureOptions languageServerFeatureOptions)
-        : base(razorDocumentMappingService,
-             languageServer,
-             languageServerFeatureOptions)
+        FilePathService filePathService)
+        : base(razorDocumentMappingService, languageServer, filePathService)
     {
     }
 
-    public override string EndpointName => RazorLanguageServerCustomMessageTargets.RazorTextPresentationEndpoint;
+    public override string EndpointName => CustomMessageNames.RazorTextPresentationEndpoint;
 
     public override void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {

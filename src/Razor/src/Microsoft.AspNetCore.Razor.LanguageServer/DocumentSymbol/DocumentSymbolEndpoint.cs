@@ -2,13 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.EndpointContracts;
-using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -65,7 +63,7 @@ internal class DocumentSymbolEndpoint : IRazorRequestHandler<DocumentSymbolParam
         var delegatedParams = new DelegatedDocumentSymbolParams(documentContext.Identifier);
 
         var symbolInformations = await _languageServer.SendRequestAsync<DelegatedDocumentSymbolParams, SymbolInformation[]?>(
-            RazorLanguageServerCustomMessageTargets.RazorDocumentSymbolEndpoint,
+            CustomMessageNames.RazorDocumentSymbolEndpoint,
             delegatedParams,
             cancellationToken).ConfigureAwait(false);
 

@@ -6,10 +6,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Telemetry;
+
+#if DEBUG
+using System.Linq;
+#endif
 
 namespace Microsoft.AspNetCore.Razor.Telemetry;
 
@@ -45,7 +48,14 @@ internal class TelemetryReporter : ITelemetryReporter
         var telemetryEvent = new TelemetryEvent(GetTelemetryName(name), ToTelemetrySeverity(severity));
         foreach (var (propertyName, propertyValue) in values)
         {
-            telemetryEvent.Properties.Add(GetPropertyName(propertyName), new TelemetryComplexProperty(propertyValue));
+            if (IsNumeric(propertyValue))
+            {
+                telemetryEvent.Properties.Add(GetPropertyName(propertyName), propertyValue);
+            }
+            else
+            {
+                telemetryEvent.Properties.Add(GetPropertyName(propertyName), new TelemetryComplexProperty(propertyValue));
+            }
         }
 
         Report(telemetryEvent);
@@ -243,6 +253,26 @@ internal class TelemetryReporter : ITelemetryReporter
             new("eventscope.correlationid", correlationId),
         }));
     }
+
+    private static bool IsNumeric(object? o)
+        => o is not null &&
+        !o.GetType().IsEnum &&
+        Type.GetTypeCode(o.GetType()) switch
+        {
+            TypeCode.Char or
+            TypeCode.SByte or
+            TypeCode.Byte or
+            TypeCode.Int16 or
+            TypeCode.Int32 or
+            TypeCode.Int64 or
+            TypeCode.Double or
+            TypeCode.Single or
+            TypeCode.UInt16 or
+            TypeCode.UInt32 or
+            TypeCode.UInt64
+            => true,
+            _ => false
+        };
 
     private class NullTelemetryScope : IDisposable
     {

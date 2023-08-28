@@ -210,9 +210,9 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
 
         // Assert
         Assert.Equal(3, _workQueueTestAccessor.Work.Count);
-        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberOne).Id);
-        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberTwo).Id);
-        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberThree).Id);
+        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberOne).Value.Id);
+        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberTwo).Value.Id);
+        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberThree).Value.Id);
 
         _workQueueTestAccessor.BlockBackgroundWorkStart.Set();
         _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
@@ -260,9 +260,9 @@ public class WorkspaceProjectStateChangeDetectorTest : WorkspaceTestBase
 
         // Assert
         Assert.Equal(3, _workQueueTestAccessor.Work.Count);
-        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberOne).Id);
-        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberTwo).Id);
-        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberThree).Id);
+        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberOne).Value.Id);
+        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberTwo).Value.Id);
+        Assert.Contains(_workQueueTestAccessor.Work, u => u.Key == ProjectKey.From(_projectNumberThree).Value.Id);
 
         _workQueueTestAccessor.BlockBackgroundWorkStart.Set();
         _workQueueTestAccessor.NotifyBackgroundWorkCompleted.Wait();
@@ -783,7 +783,7 @@ namespace Microsoft.AspNetCore.Components
     private class TestProjectSnapshotManager : DefaultProjectSnapshotManager
     {
         public TestProjectSnapshotManager(
-            IEnumerable<ProjectSnapshotChangeTrigger> triggers,
+            IEnumerable<IProjectSnapshotChangeTrigger> triggers,
             Workspace workspace)
             : base(Mock.Of<IErrorReporter>(MockBehavior.Strict), triggers, workspace)
         {

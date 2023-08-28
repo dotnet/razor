@@ -20,6 +20,8 @@ public abstract class LSPDocumentSnapshot
 
     public bool TryGetVirtualDocument<TVirtualDocument>([NotNullWhen(returnValue: true)] out TVirtualDocument? virtualDocument) where TVirtualDocument : VirtualDocumentSnapshot
     {
+        virtualDocument = null;
+
         for (var i = 0; i < VirtualDocuments.Count; i++)
         {
             if (VirtualDocuments[i] is TVirtualDocument actualVirtualDocument)
@@ -29,7 +31,23 @@ public abstract class LSPDocumentSnapshot
             }
         }
 
-        virtualDocument = null;
         return false;
+    }
+
+    public bool TryGetAllVirtualDocuments<TVirtualDocument>([NotNullWhen(returnValue: true)] out TVirtualDocument[]? virtualDocuments) where TVirtualDocument : VirtualDocumentSnapshot
+    {
+        List<TVirtualDocument>? actualVirtualDocuments = null;
+
+        for (var i = 0; i < VirtualDocuments.Count; i++)
+        {
+            if (VirtualDocuments[i] is TVirtualDocument actualVirtualDocument)
+            {
+                actualVirtualDocuments ??= new List<TVirtualDocument>();
+                actualVirtualDocuments.Add(actualVirtualDocument);
+            }
+        }
+
+        virtualDocuments = actualVirtualDocuments?.ToArray();
+        return virtualDocuments is not null;
     }
 }

@@ -4,9 +4,11 @@
 #nullable disable
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -26,6 +28,7 @@ public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
     private readonly LSPEditorFeatureDetector _editorFeatureDetector;
     private readonly TestProjectSnapshotManager _projectSnapshotManager;
     private readonly ProjectSnapshot _project;
+    private readonly ProjectId _projectId;
     private readonly DocumentSnapshot _document1;
     private readonly DocumentSnapshot _document2;
     private readonly DynamicDocumentContainer _lspDocumentContainer;
@@ -49,7 +52,11 @@ public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
         _document1 = (DocumentSnapshot)_project.GetDocument(hostDocument1.FilePath);
         _document2 = (DocumentSnapshot)_project.GetDocument(hostDocument2.FilePath);
 
-        _provider = new DefaultRazorDynamicFileInfoProvider(_documentServiceFactory, _editorFeatureDetector, TestLanguageServerFeatureOptions.Instance);
+        var languageServerFeatureOptions = new TestLanguageServerFeatureOptions(includeProjectKeyInGeneratedFilePath: true);
+        var filePathService = new FilePathService(languageServerFeatureOptions);
+        var projectSnapshotManagerAccessor = Mock.Of<ProjectSnapshotManagerAccessor>(a => a.Instance == _projectSnapshotManager, MockBehavior.Strict);
+
+        _provider = new DefaultRazorDynamicFileInfoProvider(_documentServiceFactory, _editorFeatureDetector, filePathService, projectSnapshotManagerAccessor);
         _testAccessor = _provider.GetTestAccessor();
         _provider.Initialize(_projectSnapshotManager);
 
@@ -57,6 +64,15 @@ public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
         lspDocumentContainer.SetupSet(c => c.SupportsDiagnostics = true).Verifiable();
         lspDocumentContainer.Setup(container => container.GetTextLoader(It.IsAny<string>())).Returns(new EmptyTextLoader(string.Empty));
         _lspDocumentContainer = lspDocumentContainer.Object;
+
+        _projectId = ProjectId.CreateNewId();
+        Workspace.TryApplyChanges(Workspace.CurrentSolution.AddProject(ProjectInfo.Create(
+           _projectId,
+           new VersionStamp(),
+           "Project",
+           "Assembly",
+           LanguageNames.CSharp,
+           filePath: _project.FilePath).WithCompilationOutputInfo(new CompilationOutputInfo().WithAssemblyPath(Path.Combine(_project.IntermediateOutputPath, "project.dll")))));
     }
 
     [Fact]
@@ -72,10 +88,19 @@ public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
     }
 
     [Fact]
+    public async Task GetDynamicFileInfoAsync_IncludesProjectToken()
+    {
+        // Arrange
+        var info = await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document1.FilePath, DisposalToken);
+
+        Assert.Equal(@"C:\document1.razor.fJcYlbdqjCXiWYY1.ide.g.cs", info.FilePath);
+    }
+
+    [Fact]
     public async Task UpdateLSPFileInfo_Updates()
     {
         // Arrange
-        await _testAccessor.GetDynamicFileInfoAsync(_project.FilePath, _document1.FilePath, DisposalToken);
+        await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document1.FilePath, DisposalToken);
         var called = false;
         _provider.Updated += (sender, args) => called = true;
 
@@ -90,7 +115,7 @@ public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
     public async Task UpdateLSPFileInfo_ProjectRemoved_Noops()
     {
         // Arrange
-        await _testAccessor.GetDynamicFileInfoAsync(_project.FilePath, _document1.FilePath, DisposalToken);
+        await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document1.FilePath, DisposalToken);
         var called = false;
         _provider.Updated += (sender, args) => called = true;
         _projectSnapshotManager.ProjectRemoved(_project.Key);
@@ -106,8 +131,8 @@ public class DefaultRazorDynamicFileInfoProviderTest : WorkspaceTestBase
     public async Task UpdateLSPFileInfo_SolutionClosing_ClearsAllDocuments()
     {
         // Arrange
-        await _testAccessor.GetDynamicFileInfoAsync(_project.FilePath, _document1.FilePath, DisposalToken);
-        await _testAccessor.GetDynamicFileInfoAsync(_project.FilePath, _document2.FilePath, DisposalToken);
+        await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document1.FilePath, DisposalToken);
+        await _testAccessor.GetDynamicFileInfoAsync(_projectId, _document2.FilePath, DisposalToken);
         _provider.Updated += (sender, documentFilePath) => throw new InvalidOperationException("Should not have been called!");
 
         _projectSnapshotManager.SolutionClosed();
