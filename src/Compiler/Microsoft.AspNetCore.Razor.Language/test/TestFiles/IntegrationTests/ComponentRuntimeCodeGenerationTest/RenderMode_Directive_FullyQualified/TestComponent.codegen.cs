@@ -19,16 +19,16 @@ namespace Test
     }
     file sealed class PrivateComponentRenderModeAttribute : global::Microsoft.AspNetCore.Components.RenderModeAttribute
     {
-        private static IComponentRenderMode ModeImpl => 
+        private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-            Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+            Microsoft.AspNetCore.Components.Web.RenderMode.Server
 
 #line default
 #line hidden
 #nullable disable
         ;
-        public override IComponentRenderMode Mode => ModeImpl;
+        public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;
     }
 }
 #pragma warning restore 1591

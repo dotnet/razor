@@ -22,6 +22,10 @@ public abstract class ComponentCodeGenerationTestBase : RazorBaselineIntegration
 
     internal override RazorConfiguration Configuration => _configuration ?? base.Configuration;
 
+    internal string ComponentName = "TestComponent";
+
+    internal override string DefaultFileName => ComponentName + ".cshtml";
+
     protected ComponentCodeGenerationTestBase()
         : base(generateBaselines: null)
     {
@@ -9996,7 +10000,7 @@ Time: @DateTime.Now
     public void RenderMode_Directive_FullyQualified()
     {
         var generated = CompileToCSharp("""
-                @rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
                 """, throwOnFailure: false);    
 
         // Assert
@@ -10004,7 +10008,175 @@ Time: @DateTime.Now
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
 
         // add the required attributes
-        generated.BaseCompilation = ComponentRenderModeDirectiveIntegrationTests.AddRequiredAttributes(generated.BaseCompilation);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Attribute_With_SimpleIdentifier()
+    {
+        var generated = CompileToCSharp($"""
+                <{ComponentName} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" /> 
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Attribute_With_Expression()
+    {
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="@(new MyRenderMode() { Extra = "Hello" })" />
+                @code
+                {
+                    class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
+                    {
+                        public string Extra {get;set;}
+                    }
+                } 
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Attribute_With_Existing_Attributes()
+    {
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} P2="abc" @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" P1="def" />
+
+                @code
+                {
+                    [Parameter]public string P1 {get; set;}
+
+                    [Parameter]public string P2 {get; set;}
+                } 
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Attribute_On_Html_Element()
+    {
+        var generated = CompileToCSharp("""
+                <input @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                """, throwOnFailure: false);
+
+        // Assert
+        //x:\dir\subdir\Test\TestComponent.cshtml(1,21): Error RZ10021: Attribute 'rendermode' is only valid when used on a component.
+        var diag = Assert.Single(generated.Diagnostics);
+        Assert.Equal("RZ10021", diag.Id);
+
+    }
+
+    [Fact]
+    public void Duplicate_RenderMode()
+    {
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server"
+                                   @rendermode="Value2" />
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Multiple_Components()
+    {
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Child_Components()
+    {
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">
+                    <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">
+                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                    </{{ComponentName}}>
+                 <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server">
+                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                        <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                    </{{ComponentName}}>
+                </{{ComponentName}}>
+
+                @code
+                {
+                    [Parameter]
+                    public RenderFragment ChildContent { get; set; }
+                }
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_With_Diagnostics()
+    {
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="@Microsoft.AspNetCore.Components.Web.RenderMode.Server)" />
+                """, throwOnFailure: true);
+
+        // Assert
+
+        //x:\dir\subdir\Test\TestComponent.cshtml(1, 29): Error RZ9986: Component attributes do not support complex content(mixed C# and markup). Attribute: '@rendermode', text: 'Microsoft.AspNetCore.Components.Web.RenderMode.Server)'
+        var diagnostic = Assert.Single(generated.Diagnostics);
+        Assert.Equal("RZ9986", diagnostic.Id);
+    }
+
+    [Fact]
+    public void RenderMode_With_TypeInference()
+    {
+        var generated = CompileToCSharp($$"""
+                @typeparam TRenderMode where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
+
+                <{{ComponentName}} @rendermode="RenderModeParam" RenderModeParam="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+
+                @code
+                {
+                    [Parameter] public TRenderMode RenderModeParam { get; set;}
+                }
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_With_Ternary()
+    {
+        var generated = CompileToCSharp($$"""
+                <{{ComponentName}} @rendermode="@(true ? Microsoft.AspNetCore.Components.Web.RenderMode.Server : null)" />
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, throwOnFailure: true);
     }
 

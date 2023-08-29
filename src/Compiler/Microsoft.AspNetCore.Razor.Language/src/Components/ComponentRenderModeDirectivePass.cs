@@ -10,6 +10,8 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 
 internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBase, IRazorDirectiveClassifierPass
 {
+    private const string GeneratedRenderModeAttributeName = "PrivateComponentRenderModeAttribute";
+
     protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode)
     {
         var @namespace = documentNode.FindPrimaryNamespace();
@@ -35,11 +37,10 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
         }
 
         // generate the inner attribute class
-        // PROTOTYPE: extract out to consts
         var classDecl = new ClassDeclarationIntermediateNode()
         {
-            ClassName = "PrivateComponentRenderModeAttribute",
-            BaseType = "global::Microsoft.AspNetCore.Components.RenderModeAttribute",
+            ClassName = GeneratedRenderModeAttributeName,
+            BaseType = $"global::{ComponentsApi.RenderModeAttribute.FullTypeName}",
         };
         classDecl.Modifiers.Add("file");
         classDecl.Modifiers.Add("sealed");
@@ -50,7 +51,7 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
                 new IntermediateToken()
                 {
                     Kind = TokenKind.CSharp,
-                    Content = "private static IComponentRenderMode ModeImpl => "
+                    Content = $"private static global::{ComponentsApi.IComponentRenderMode.FullTypeName} ModeImpl => "
                 },
                 new CSharpCodeIntermediateNode()
                 {
@@ -66,7 +67,6 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
                 },
                 new IntermediateToken()
                 {
-                    Source = token.Source,
                     Kind = TokenKind.CSharp,
                     Content = ";"
                 }
@@ -79,7 +79,7 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
                 new IntermediateToken()
                 {
                     Kind = TokenKind.CSharp,
-                    Content = "public override IComponentRenderMode Mode => ModeImpl;"
+                    Content = $"public override global::{ComponentsApi.IComponentRenderMode.FullTypeName} Mode => ModeImpl;"
                 }
             }
         });
@@ -89,7 +89,7 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
         attributeNode.Children.Add(new IntermediateToken()
         {
             Kind = TokenKind.CSharp,
-            Content = $"[global::{@namespace.Content}.PrivateComponentRenderModeAttribute]",
+            Content = $"[global::{@namespace.Content}.{GeneratedRenderModeAttributeName}]",
         });
 
         // Insert the new attribute on top of the class, and the definition underneath it

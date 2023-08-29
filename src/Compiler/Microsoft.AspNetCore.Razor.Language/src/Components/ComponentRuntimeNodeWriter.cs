@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -380,6 +379,8 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             // We can skip type arguments during runtime codegen, they are handled in the
             // type/parameter declarations.
 
+            bool hasRenderMode = false;
+
             // Preserve order of attributes and splats
             foreach (var child in node.Children)
             {
@@ -390,6 +391,12 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 else if (child is SplatIntermediateNode splat)
                 {
                     context.RenderNode(splat);
+                }
+                else if (child is RenderModeIntermediateNode renderMode)
+                {
+                    Debug.Assert(!hasRenderMode);
+                    context.RenderNode(renderMode);
+                    hasRenderMode = true;
                 }
             }
 
@@ -406,6 +413,13 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
             foreach (var capture in node.Captures)
             {
                 context.RenderNode(capture);
+            }
+
+            if (hasRenderMode)
+            {
+                // _builder.AddComponentRenderMode(__renderMode_0);
+                WriteAddComponentRenderMode(context, _scopeStack.BuilderVarName, _scopeStack.RenderModeVarName);
+                _scopeStack.IncrementRenderMode();
             }
 
             // _builder.CloseComponent();
@@ -535,6 +549,9 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                 break;
             case TypeInferenceCapturedVariable capturedVariable:
                 context.CodeWriter.Write(capturedVariable.VariableName);
+                break;
+            case RenderModeIntermediateNode renderMode:
+                WriteCSharpCode(context, new CSharpCodeIntermediateNode() { Source = renderMode.Source, Children = { renderMode.Children[0] } });
                 break;
             default:
                 throw new InvalidOperationException($"Not implemented: type inference method parameter from source {parameter.Source}");
@@ -947,6 +964,30 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
                     }
             });
         }
+    }
+
+    public override void WriteRenderMode(CodeRenderingContext context, RenderModeIntermediateNode node)
+    {
+        // Looks like:
+        // global::Microsoft.AspNetCore.Components.IComponentRenderMode __renderMode0 = expression;
+        WriteCSharpCode(context, new CSharpCodeIntermediateNode
+        {
+            Source = node.Source,
+            Children =
+            {
+                new IntermediateToken
+                {
+                    Kind = TokenKind.CSharp,
+                    Content = $"global::{ComponentsApi.IComponentRenderMode.FullTypeName} {_scopeStack.RenderModeVarName} = "
+                },
+                node.Children[0],
+                new IntermediateToken
+                {
+                    Kind = TokenKind.CSharp,
+                    Content = ";"
+                }
+            }
+        });
     }
 
     private void WriteAttribute(CodeRenderingContext context, string key, IList<IntermediateToken> value)

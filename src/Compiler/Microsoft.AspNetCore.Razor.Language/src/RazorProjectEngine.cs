@@ -260,6 +260,7 @@ public abstract class RazorProjectEngine
         builder.Features.Add(new ComponentReferenceCaptureLoweringPass());
         builder.Features.Add(new ComponentSplatLoweringPass());
         builder.Features.Add(new ComponentBindLoweringPass(razorLanguageVersion.CompareTo(RazorLanguageVersion.Version_7_0) >= 0));
+        builder.Features.Add(new ComponentRenderModeLoweringPass());
         builder.Features.Add(new ComponentCssScopePass());
         builder.Features.Add(new ComponentTemplateDiagnosticPass());
         builder.Features.Add(new ComponentGenericTypePass());

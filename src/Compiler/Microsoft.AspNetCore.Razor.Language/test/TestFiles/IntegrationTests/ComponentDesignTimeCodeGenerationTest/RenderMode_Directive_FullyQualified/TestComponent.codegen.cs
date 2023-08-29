@@ -16,7 +16,7 @@ namespace Test
         ((global::System.Action)(() => {
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-global::System.Object __typeHelper = nameof(Microsoft.AspNetCore.Components.DefaultRenderModes.Server);
+global::System.Object __typeHelper = nameof(Microsoft.AspNetCore.Components.Web.RenderMode.Server);
 
 #line default
 #line hidden
@@ -43,16 +43,16 @@ global::System.Object __typeHelper = nameof(Microsoft.AspNetCore.Components.Defa
         #pragma warning disable 0414
         private static object __o = null;
         #pragma warning restore 0414
-        private static IComponentRenderMode ModeImpl => 
+        private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-            Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+            Microsoft.AspNetCore.Components.Web.RenderMode.Server
 
 #line default
 #line hidden
 #nullable disable
         ;
-        public override IComponentRenderMode Mode => ModeImpl;
+        public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;
     }
 }
 #pragma warning restore 1591
