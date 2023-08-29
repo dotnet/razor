@@ -145,12 +145,9 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         var razorSource = codeDocument.GetSourceText();
 
         var previousSemanticRange = new SemanticRange(0, 0, 0, 0, 0, modifier: 0, fromRazor: false);
+        var hasPreviousSemanticRange = false;
         Range? previousRazorSemanticRange = null;
-        var tempRange = new Range()
-        {
-            End = new Position(0, 0),
-            Start = new Position(0, 0)
-        };
+        Range? tempRange = null;
         for (var i = 0; i < csharpResponse.Length; i += TokenSize)
         {
             var lineDelta = csharpResponse[i];
@@ -159,8 +156,16 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             var tokenType = csharpResponse[i + 3];
             var tokenModifiers = csharpResponse[i + 4];
 
+            if (!hasPreviousSemanticRange)
+            {
+                tempRange = new Range()
+                {
+                    End = new Position(0, 0),
+                    Start = new Position(0, 0)
+                };
+            }
             var semanticRange = CSharpDataToSemanticRange(lineDelta, charDelta, length, tokenType, tokenModifiers, previousSemanticRange);
-            tempRange.Start.Line = semanticRange.StartLine;
+            tempRange!.Start.Line = semanticRange.StartLine;
             tempRange.Start.Character = semanticRange.StartCharacter;
             tempRange.End.Line = semanticRange.EndLine;
             tempRange.End.Character = semanticRange.EndCharacter;
@@ -187,6 +192,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                 previousRazorSemanticRange = originalRange;
             }
 
+            hasPreviousSemanticRange = true;
             previousSemanticRange = semanticRange;
         }
 
@@ -339,11 +345,8 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         var startLine = previousSemanticRange.EndLine + lineDelta;
         var previousEndChar = lineDelta == 0 ? previousSemanticRange.StartCharacter : 0;
         var startCharacter = previousEndChar + charDelta;
-        var start = new Position(startLine, startCharacter);
-
         var endLine = startLine;
         var endCharacter = startCharacter + length;
-        var end = new Position(endLine, endCharacter);
 
         var semanticRange = new SemanticRange(tokenType, startLine, startCharacter, endLine, endCharacter, tokenModifiers, fromRazor: false);
 
