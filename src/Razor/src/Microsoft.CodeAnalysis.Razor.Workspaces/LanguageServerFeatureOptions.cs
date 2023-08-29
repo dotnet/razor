@@ -21,7 +21,7 @@ internal abstract class LanguageServerFeatureOptions
 
     public abstract bool DelegateToCSharpOnDiagnosticPublish { get; }
 
-    public abstract bool TrimRangesForSemanticTokens { get; }
+    public abstract bool UsePreciseSemanticTokenRanges { get; }
 
     public abstract bool ShowAllCSharpCodeActions { get; }
 

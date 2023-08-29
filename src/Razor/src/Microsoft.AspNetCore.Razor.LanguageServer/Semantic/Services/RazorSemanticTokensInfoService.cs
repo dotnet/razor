@@ -125,7 +125,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         var generatedDocument = codeDocument.GetCSharpDocument();
         int[]? csharpResponse = default;
 
-        if (_languageServerFeatureOptions.TrimRangesForSemanticTokens)
+        if (_languageServerFeatureOptions.UsePreciseSemanticTokenRanges)
         {
             if (!TryGetCSharpRanges(codeDocument, razorRange, out var csharpRanges))
             {

@@ -87,9 +87,9 @@ internal partial class RazorCustomMessageTarget
     {
         var failed = false;
         ProvideSemanticTokensResponse? response = null;
-        var trimRanges = semanticTokensParams is ProvideSemanticTokensRangesParams;
+        var usePreciseSemanticTokenRanges = semanticTokensParams is ProvideSemanticTokensRangesParams;
 
-        if (!trimRanges)
+        if (!usePreciseSemanticTokenRanges)
         {
             var rangeParams = semanticTokensParams as ProvideSemanticTokensRangeParams ?? throw new ArgumentNullException(nameof(ProvideSemanticTokensRangeParams));
             if (rangeParams.Range is null)

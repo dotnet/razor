@@ -37,7 +37,7 @@ internal class TestLanguageServerFeatureOptions : LanguageServerFeatureOptions
 
     public override bool ShowAllCSharpCodeActions => false;
 
-    public override bool TrimRangesForSemanticTokens => true;
+    public override bool UsePreciseSemanticTokenRanges => true;
 
     public override bool UpdateBuffersForClosedDocuments => false;
 

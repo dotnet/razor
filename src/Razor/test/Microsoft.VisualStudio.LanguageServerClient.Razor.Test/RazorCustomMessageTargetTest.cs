@@ -367,7 +367,7 @@ public class RazorCustomMessageTargetTest : TestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task ProvideSemanticTokensAsync_CannotLookupDocument_ReturnsNullAsync(bool useRangesParams)
+    public async Task ProvideSemanticTokensAsync_CannotLookupDocument_ReturnsNullAsync(bool usePreciseSemanticTokenRanges)
     {
         // Arrange
         LSPDocumentSnapshot document;
@@ -391,11 +391,11 @@ public class RazorCustomMessageTargetTest : TestBase
             Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict),
             outputWindowLogger);
 
-        var request = CreateTestSemanticTokensParams(It.IsAny<Uri>(), useRangesParams);
+        var request = CreateTestSemanticTokensParams(It.IsAny<Uri>(), usePreciseSemanticTokenRanges);
         ProvideSemanticTokensResponse response = default;
 
         // Act
-        if (useRangesParams)
+        if (usePreciseSemanticTokenRanges)
         {
             response = await target.ProvideSemanticTokensRangesAsync(request as ProvideSemanticTokensRangesParams, DisposalToken);
         }
@@ -411,7 +411,7 @@ public class RazorCustomMessageTargetTest : TestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task ProvideSemanticTokensAsync_CannotLookupVirtualDocument_ReturnsNullAsyn(bool useRangesParams)
+    public async Task ProvideSemanticTokensAsync_CannotLookupVirtualDocument_ReturnsNullAsyn(bool usePreciseSemanticTokenRanges)
     {
         // Arrange
         var testDocUri = new Uri("C:/path/to/file.razor");
@@ -437,11 +437,11 @@ public class RazorCustomMessageTargetTest : TestBase
             Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict),
             outputWindowLogger);
 
-        var request = CreateTestSemanticTokensParams(testDocUri, useRangesParams);
+        var request = CreateTestSemanticTokensParams(testDocUri, usePreciseSemanticTokenRanges);
         ProvideSemanticTokensResponse response = default;
 
         // Act
-        if (useRangesParams)
+        if (usePreciseSemanticTokenRanges)
         {
             response = await target.ProvideSemanticTokensRangesAsync(request as ProvideSemanticTokensRangesParams, DisposalToken);
         }
@@ -457,7 +457,7 @@ public class RazorCustomMessageTargetTest : TestBase
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public async Task ProvideSemanticTokensAsync_ReturnsSemanticTokensAsync(bool useRangesParams)
+    public async Task ProvideSemanticTokensAsync_ReturnsSemanticTokensAsync(bool usePreciseSemanticTokenRanges)
     {
         // Arrange
         var testDocUri = new Uri("C:/path/to%20-%20project/file.razor");
@@ -502,12 +502,12 @@ public class RazorCustomMessageTargetTest : TestBase
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
             TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict), outputWindowLogger);
 
-        var request = CreateTestSemanticTokensParams(new Uri("C:/path/to%20-%20project/file.razor"), useRangesParams);
+        var request = CreateTestSemanticTokensParams(new Uri("C:/path/to%20-%20project/file.razor"), usePreciseSemanticTokenRanges);
         var expected = new ProvideSemanticTokensResponse(expectedCSharpResults.Data, documentVersion);
         ProvideSemanticTokensResponse response = default;
 
         // Act
-        if (useRangesParams)
+        if (usePreciseSemanticTokenRanges)
         {
             response = await target.ProvideSemanticTokensRangesAsync(request as ProvideSemanticTokensRangesParams, DisposalToken);
         }
@@ -552,9 +552,9 @@ public class RazorCustomMessageTargetTest : TestBase
         return csharpDoc;
     }
 
-    private static ProvideSemanticTokensParams CreateTestSemanticTokensParams(Uri testDocUri, bool useRangesParams)
+    private static ProvideSemanticTokensParams CreateTestSemanticTokensParams(Uri testDocUri, bool usePreciseSemanticTokenRanges)
     {
-        if (useRangesParams)
+        if (usePreciseSemanticTokenRanges)
         {
             return new ProvideSemanticTokensRangesParams(
                 textDocument: new TextDocumentIdentifier()

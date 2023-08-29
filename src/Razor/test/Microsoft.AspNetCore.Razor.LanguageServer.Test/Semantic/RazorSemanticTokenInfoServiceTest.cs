@@ -19,8 +19,8 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
 {
-    public RazorSemanticTokenInfoServiceTest(ITestOutputHelper testOutput, bool useRangesParams)
-        : base(testOutput, useRangesParams)
+    public RazorSemanticTokenInfoServiceTest(ITestOutputHelper testOutput, bool usePreciseSemanticTokenRanges)
+        : base(testOutput, usePreciseSemanticTokenRanges)
     {
     }
 
@@ -848,7 +848,7 @@ public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         bool withCSharpBackground)
     {
         var languageServer = new Mock<ClientNotifierServiceBase>(MockBehavior.Strict);
-        var endpoint = UseRangesParams ? CustomMessageNames.RazorProvideSemanticTokensRangesEndpoint : CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint;
+        var endpoint = UsePreciseSemanticTokenRanges ? CustomMessageNames.RazorProvideSemanticTokensRangesEndpoint : CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint;
         languageServer
             .Setup(l => l.SendRequestAsync<SemanticTokensParams, ProvideSemanticTokensResponse?>(
                 endpoint,
@@ -876,7 +876,7 @@ public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
 
         var featureOptions = Mock.Of<LanguageServerFeatureOptions>(options =>
             options.DelegateToCSharpOnDiagnosticPublish == true &&
-            options.TrimRangesForSemanticTokens == UseRangesParams &&
+            options.UsePreciseSemanticTokenRanges == UsePreciseSemanticTokenRanges &&
             options.CSharpVirtualDocumentSuffix == ".ide.g.cs" &&
             options.HtmlVirtualDocumentSuffix == "__virtual.html",
             MockBehavior.Strict);

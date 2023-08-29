@@ -51,12 +51,12 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
 
     protected int BaselineTestCount { get; set; }
     protected int BaselineEditTestCount { get; set; }
-    protected bool UseRangesParams { get; set; }
+    protected bool UsePreciseSemanticTokenRanges { get; set; }
 
-    protected SemanticTokenTestBase(ITestOutputHelper testOutput, bool useRangesParams)
+    protected SemanticTokenTestBase(ITestOutputHelper testOutput, bool usePreciseSemanticTokenRanges)
         : base(testOutput)
     {
-        UseRangesParams = useRangesParams;
+        UsePreciseSemanticTokenRanges = usePreciseSemanticTokenRanges;
     }
 
     protected void AssertSemanticTokensMatchesBaseline(SourceText sourceText, int[]? actualSemanticTokens)
@@ -108,7 +108,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         var csharpRanges = GetMappedCSharpRanges(codeDocument, razorRange);
         if (csharpRanges is not null)
         {
-            if (UseRangesParams)
+            if (UsePreciseSemanticTokenRanges)
             {
                 var responses = new SemanticTokens[csharpRanges.Length];
                 for (var i = 0; i < csharpRanges.Length; i++)
@@ -200,7 +200,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         var documentMappingService = new RazorDocumentMappingService(
             FilePathService, new TestDocumentContextFactory(), LoggerFactory);
 
-        if (UseRangesParams)
+        if (UsePreciseSemanticTokenRanges)
         {
             if (!RazorSemanticTokensInfoService.TryGetCSharpRanges(codeDocument, razorRange, out var csharpRanges))
             {

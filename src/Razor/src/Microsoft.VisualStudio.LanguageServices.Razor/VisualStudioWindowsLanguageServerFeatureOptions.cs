@@ -14,12 +14,12 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
 {
     private const string ShowAllCSharpCodeActionsFeatureFlag = "Razor.LSP.ShowAllCSharpCodeActions";
     private const string IncludeProjectKeyInGeneratedFilePathFeatureFlag = "Razor.LSP.IncludeProjectKeyInGeneratedFilePath";
-    private const string TrimRangesForSemanticTokensFeatureFlag = "Razor.LSP.TrimRangesForSemanticTokens";
+    private const string UsePreciseSemanticTokenRangesFeatureFlagFeatureFlag = "Razor.LSP.UsePreciseSemanticTokenRanges";
 
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _showAllCSharpCodeActions;
     private readonly Lazy<bool> _includeProjectKeyInGeneratedFilePath;
-    private readonly Lazy<bool> _trimRangesForSemanticTokens;
+    private readonly Lazy<bool> _usePreciseSemanticTokenRangesFeatureFlag;
 
     [ImportingConstructor]
     public VisualStudioWindowsLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)
@@ -45,11 +45,11 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
             return includeProjectKeyInGeneratedFilePath;
         });
 
-        _trimRangesForSemanticTokens = new Lazy<bool>(() =>
+        _usePreciseSemanticTokenRanges = new Lazy<bool>(() =>
         {
             var featureFlags = (IVsFeatureFlags)AsyncPackage.GetGlobalService(typeof(SVsFeatureFlags));
-            var trimRangesForSemanticTokens = featureFlags.IsFeatureEnabled(TrimRangesForSemanticTokensFeatureFlag, defaultValue: true);
-            return trimRangesForSemanticTokens;
+            var usePreciseSemanticTokenRanges = featureFlags.IsFeatureEnabled(UsePreciseSemanticTokenRangesFeatureFlag, defaultValue: true);
+            return usePreciseSemanticTokenRanges;
         });
     }
 
@@ -81,5 +81,5 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
 
     public override bool IncludeProjectKeyInGeneratedFilePath => _includeProjectKeyInGeneratedFilePath.Value;
 
-    public override bool TrimRangesForSemanticTokens => _trimRangesForSemanticTokens.Value;
+    public override bool UsePreciseSemanticTokenRanges => _usePreciseSemanticTokenRanges.Value;
 }
