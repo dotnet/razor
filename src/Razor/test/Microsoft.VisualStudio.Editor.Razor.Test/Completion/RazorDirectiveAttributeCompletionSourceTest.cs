@@ -50,7 +50,7 @@ public class RazorDirectiveAttributeCompletionSourceTest : ProjectSnapshotManage
         var source = new RazorDirectiveAttributeCompletionSource(
             Dispatcher,
             Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict),
-            Mock.Of<RazorCompletionFactsService>(MockBehavior.Strict),
+            Mock.Of<IRazorCompletionFactsService>(MockBehavior.Strict),
             Mock.Of<ICompletionBroker>(MockBehavior.Strict),
             descriptionFactory,
             JoinableTaskFactory);
@@ -240,7 +240,7 @@ public class RazorDirectiveAttributeCompletionSourceTest : ProjectSnapshotManage
         var source = new RazorDirectiveAttributeCompletionSource(
             Dispatcher,
             Mock.Of<VisualStudioRazorParser>(MockBehavior.Strict),
-            Mock.Of<RazorCompletionFactsService>(MockBehavior.Strict),
+            Mock.Of<IRazorCompletionFactsService>(MockBehavior.Strict),
             Mock.Of<ICompletionBroker>(MockBehavior.Strict),
             Mock.Of<VisualStudioDescriptionFactory>(MockBehavior.Strict),
             JoinableTaskFactory);

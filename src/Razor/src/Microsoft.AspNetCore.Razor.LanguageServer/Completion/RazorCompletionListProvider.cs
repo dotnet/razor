@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
 internal class RazorCompletionListProvider
 {
-    private readonly RazorCompletionFactsService _completionFactsService;
+    private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly CompletionListCache _completionListCache;
     private readonly ILogger<RazorCompletionListProvider> _logger;
     private static readonly Command s_retriggerCompletionCommand = new()
@@ -31,7 +31,7 @@ internal class RazorCompletionListProvider
     };
 
     public RazorCompletionListProvider(
-        RazorCompletionFactsService completionFactsService,
+        IRazorCompletionFactsService completionFactsService,
         CompletionListCache completionListCache,
         ILoggerFactory loggerFactory)
     {

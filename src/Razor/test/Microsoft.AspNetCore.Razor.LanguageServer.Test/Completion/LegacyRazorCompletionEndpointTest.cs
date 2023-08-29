@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
 public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
 {
-    private readonly RazorCompletionFactsService _completionFactsService;
+    private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly CompletionListCache _completionListCache;
     private readonly VSInternalClientCapabilities _clientCapabilities;
 
@@ -44,7 +44,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
             new TagHelperCompletionProvider(tagHelperCompletionService, new DefaultHtmlFactsService(), tagHelperFactsService, TestRazorLSPOptionsMonitor.Create())
         };
 
-        _completionFactsService = new DefaultRazorCompletionFactsService(completionProviders);
+        _completionFactsService = new RazorCompletionFactsService(completionProviders);
         _completionListCache = new CompletionListCache();
         _clientCapabilities = new VSInternalClientCapabilities()
         {

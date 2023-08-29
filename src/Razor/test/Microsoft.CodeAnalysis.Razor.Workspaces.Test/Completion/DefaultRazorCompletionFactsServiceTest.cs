@@ -26,7 +26,7 @@ public class DefaultRazorCompletionFactsServiceTest(ITestOutputHelper testOutput
         var provider1 = Mock.Of<IRazorCompletionItemProvider>(p => p.GetCompletionItems(context) == ImmutableArray.Create(completionItem1), MockBehavior.Strict);
         var completionItem2 = new RazorCompletionItem("displayText2", "insertText2", RazorCompletionItemKind.Directive);
         var provider2 = Mock.Of<IRazorCompletionItemProvider>(p => p.GetCompletionItems(context) == ImmutableArray.Create(completionItem2), MockBehavior.Strict);
-        var completionFactsService = new DefaultRazorCompletionFactsService(new[] { provider1, provider2 });
+        var completionFactsService = new RazorCompletionFactsService(new[] { provider1, provider2 });
 
         // Act
         var completionItems = completionFactsService.GetCompletionItems(context);

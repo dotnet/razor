@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 // for this legacy version.
 internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
 {
-    private readonly RazorCompletionFactsService _completionFactsService;
+    private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly CompletionListCache _completionListCache;
     private static readonly Command s_retriggerCompletionCommand = new()
     {
@@ -35,7 +35,7 @@ internal class LegacyRazorCompletionEndpoint : IVSCompletionEndpoint
 
     public bool MutatesSolutionState => false;
 
-    public LegacyRazorCompletionEndpoint(RazorCompletionFactsService completionFactsService, CompletionListCache completionListCache)
+    public LegacyRazorCompletionEndpoint(IRazorCompletionFactsService completionFactsService, CompletionListCache completionListCache)
     {
         _completionFactsService = completionFactsService ?? throw new ArgumentNullException(nameof(completionFactsService));
         _completionListCache = completionListCache ?? throw new ArgumentNullException(nameof(completionListCache));

@@ -38,7 +38,7 @@ internal class RazorDirectiveAttributeCompletionSource : IAsyncCompletionSource
     }.ToImmutableArray();
 
     private readonly VisualStudioRazorParser _parser;
-    private readonly RazorCompletionFactsService _completionFactsService;
+    private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly ICompletionBroker _completionBroker;
     private readonly VisualStudioDescriptionFactory _descriptionFactory;
     private readonly JoinableTaskFactory _joinableTaskFactory;
@@ -47,36 +47,16 @@ internal class RazorDirectiveAttributeCompletionSource : IAsyncCompletionSource
     public RazorDirectiveAttributeCompletionSource(
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         VisualStudioRazorParser parser,
-        RazorCompletionFactsService completionFactsService,
+        IRazorCompletionFactsService completionFactsService,
         ICompletionBroker completionBroker,
         VisualStudioDescriptionFactory descriptionFactory,
         JoinableTaskFactory joinableTaskFactory)
     {
-        if (projectSnapshotManagerDispatcher is null)
-        {
-            throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
-        }
-
-        if (parser is null)
-        {
-            throw new ArgumentNullException(nameof(parser));
-        }
-
-        if (completionFactsService is null)
-        {
-            throw new ArgumentNullException(nameof(completionFactsService));
-        }
-
-        if (descriptionFactory is null)
-        {
-            throw new ArgumentNullException(nameof(descriptionFactory));
-        }
-
-        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
-        _parser = parser;
-        _completionFactsService = completionFactsService;
+        _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
+        _parser = parser ?? throw new ArgumentNullException(nameof(parser));
+        _completionFactsService = completionFactsService ?? throw new ArgumentNullException(nameof(completionFactsService));
         _completionBroker = completionBroker;
-        _descriptionFactory = descriptionFactory;
+        _descriptionFactory = descriptionFactory ?? throw new ArgumentNullException(nameof(descriptionFactory));
         _joinableTaskFactory = joinableTaskFactory;
     }
 
