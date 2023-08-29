@@ -356,8 +356,8 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     {
         var sourceText = razorCodeDocument.GetSourceText();
         var hasPrevious = false;
-        var previousStartLine = 0;
-        var previousStartCharacter = 0;
+        var previousLineIndex = 0;
+        var previousCharacterIndex = 0;
 
         // We don't bother filtering out duplicate ranges (eg, where C# and Razor both have opinions), but instead take advantage of
         // our sort algorithm to be correct, so we can skip duplicates here. That means our final array may end up smaller than the
@@ -367,10 +367,10 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
         foreach (var result in semanticRanges)
         {
-            AppendData(result, previousStartLine, previousStartCharacter, hasPrevious, sourceText, data);
-            previousStartLine = result.StartLine;
-            previousStartCharacter = result.StartCharacter;
+            AppendData(result, hasPrevious, previousLineIndex, previousCharacterIndex, sourceText, data);
             hasPrevious = true;
+            previousLineIndex = result.StartLine;
+            previousCharacterIndex = result.StartCharacter;
         }
 
         return data.ToArray();
@@ -378,9 +378,9 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         // We purposely capture and manipulate the "data" array here to avoid allocation
         static void AppendData(
             SemanticRange currentRange,
-            int previousStartLine,
-            int previousStartCharacter,
             bool hasPrevious,
+            int previousLineIndex,
+            int previousCharacterIndex,
             SourceText sourceText,
             List<int> data)
         {
@@ -394,13 +394,12 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             */
 
             // deltaLine
-            var previousLineIndex = previousStartLine;
             var deltaLine = currentRange.StartLine - previousLineIndex;
 
             int deltaStart;
-            if (hasPrevious && previousStartLine == currentRange.StartLine)
+            if (hasPrevious && previousLineIndex == currentRange.StartLine)
             {
-                deltaStart = currentRange.StartCharacter - previousStartCharacter;
+                deltaStart = currentRange.StartCharacter - previousCharacterIndex;
 
                 // If there is no line delta, no char delta, and this isn't the first range
                 // then it means this range overlaps the previous, so we skip it.
