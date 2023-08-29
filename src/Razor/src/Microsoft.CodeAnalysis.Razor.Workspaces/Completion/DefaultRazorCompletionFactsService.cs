@@ -12,10 +12,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 [Export(typeof(RazorCompletionFactsService))]
 internal class DefaultRazorCompletionFactsService : RazorCompletionFactsService
 {
-    private readonly IReadOnlyList<RazorCompletionItemProvider> _completionItemProviders;
+    private readonly IReadOnlyList<IRazorCompletionItemProvider> _completionItemProviders;
 
     [ImportingConstructor]
-    public DefaultRazorCompletionFactsService([ImportMany] IEnumerable<RazorCompletionItemProvider> completionItemProviders)
+    public DefaultRazorCompletionFactsService([ImportMany] IEnumerable<IRazorCompletionItemProvider> completionItemProviders)
     {
         if (completionItemProviders is null)
         {

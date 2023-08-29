@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-internal abstract class RazorCompletionItemProvider
+internal interface IRazorCompletionItemProvider
 {
-    public abstract ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context);
+    ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context);
 }

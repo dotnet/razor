@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.Editor.Razor;
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 [Shared]
-[Export(typeof(RazorCompletionItemProvider))]
+[Export(typeof(IRazorCompletionItemProvider))]
 internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
 {
     private readonly TagHelperFactsService _tagHelperFactsService;

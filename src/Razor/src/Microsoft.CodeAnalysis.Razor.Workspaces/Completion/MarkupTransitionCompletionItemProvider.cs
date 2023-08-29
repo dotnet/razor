@@ -12,7 +12,7 @@ using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
-internal class MarkupTransitionCompletionItemProvider : RazorCompletionItemProvider
+internal class MarkupTransitionCompletionItemProvider : IRazorCompletionItemProvider
 {
     private static readonly IReadOnlyList<RazorCommitCharacter> s_elementCommitCharacters = RazorCommitCharacter.FromArray(new[] { ">" });
 
@@ -44,7 +44,7 @@ internal class MarkupTransitionCompletionItemProvider : RazorCompletionItemProvi
         _htmlFactsService = htmlFactsService ?? throw new ArgumentNullException(nameof(htmlFactsService));
     }
 
-    public override ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
+    public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         if (context is null)
         {

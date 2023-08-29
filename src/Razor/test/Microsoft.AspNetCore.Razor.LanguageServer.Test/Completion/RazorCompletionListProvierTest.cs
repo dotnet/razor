@@ -59,7 +59,7 @@ public class RazorCompletionListProvierTest : LanguageServerTestBase
         _defaultCompletionContext = new VSInternalCompletionContext();
     }
 
-    private static IEnumerable<RazorCompletionItemProvider> GetCompletionProviders(IOptionsMonitor<RazorLSPOptions> optionsMonitor = null)
+    private static IEnumerable<IRazorCompletionItemProvider> GetCompletionProviders(IOptionsMonitor<RazorLSPOptions> optionsMonitor = null)
     {
         // Working around strong naming restriction.
         var tagHelperFactsService = new DefaultTagHelperFactsService();
@@ -67,7 +67,7 @@ public class RazorCompletionListProvierTest : LanguageServerTestBase
 
         optionsMonitor ??= TestRazorLSPOptionsMonitor.Create();
 
-        var completionProviders = new RazorCompletionItemProvider[]
+        var completionProviders = new IRazorCompletionItemProvider[]
         {
             new DirectiveCompletionItemProvider(),
             new DirectiveAttributeCompletionItemProvider(tagHelperFactsService),

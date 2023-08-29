@@ -36,7 +36,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         var tagHelperFactsService = new DefaultTagHelperFactsService();
         var tagHelperCompletionService = new LanguageServerTagHelperCompletionService(tagHelperFactsService);
 
-        var completionProviders = new RazorCompletionItemProvider[]
+        var completionProviders = new IRazorCompletionItemProvider[]
         {
             new DirectiveCompletionItemProvider(),
             new DirectiveAttributeCompletionItemProvider(tagHelperFactsService),

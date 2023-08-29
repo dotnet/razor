@@ -17,7 +17,7 @@ using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
-internal class TagHelperCompletionProvider : RazorCompletionItemProvider
+internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
 {
     // Internal for testing
     internal static readonly IReadOnlyList<RazorCommitCharacter> MinimizedAttributeCommitCharacters = RazorCommitCharacter.FromArray(new[] { "=", " " });
@@ -43,7 +43,7 @@ internal class TagHelperCompletionProvider : RazorCompletionItemProvider
         _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
     }
 
-    public override ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
+    public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         if (context is null)
         {

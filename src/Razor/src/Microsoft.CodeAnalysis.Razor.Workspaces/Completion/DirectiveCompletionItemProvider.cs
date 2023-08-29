@@ -16,8 +16,8 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 [Shared]
-[Export(typeof(RazorCompletionItemProvider))]
-internal class DirectiveCompletionItemProvider : RazorCompletionItemProvider
+[Export(typeof(IRazorCompletionItemProvider))]
+internal class DirectiveCompletionItemProvider : IRazorCompletionItemProvider
 {
     internal static readonly IReadOnlyList<RazorCommitCharacter> SingleLineDirectiveCommitCharacters = RazorCommitCharacter.FromArray(new[] { " " });
     internal static readonly IReadOnlyList<RazorCommitCharacter> BlockDirectiveCommitCharacters = RazorCommitCharacter.FromArray(new[] { " ", "{" });
@@ -48,7 +48,7 @@ internal class DirectiveCompletionItemProvider : RazorCompletionItemProvider
         ["typeparam"] = ("typeparam ${1:T}$0", "typeparam T")
     };
 
-    public override ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
+    public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         if (context is null)
         {
