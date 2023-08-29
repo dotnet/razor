@@ -140,16 +140,21 @@ internal partial class RazorCustomMessageTarget
                     Range = range,
                 };
 
-                var task = _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
-                    snapshot.TextBuffer,
-                    lspMethodName,
-                    languageServerName,
-                    newParams,
-                    cancellationToken);
+                var task = Task.Run(async () =>
+                {
+                    using (var disposable = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, semanticTokensParams.CorrelationId))
+                    {
+                        return await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
+                            snapshot.TextBuffer,
+                            lspMethodName,
+                            languageServerName,
+                            newParams,
+                            cancellationToken);
+                    }
+                });
                 requestTasks!.Add(task);
             }
 
-            using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, semanticTokensParams.CorrelationId);
             var results = await Task.WhenAll(requestTasks!).ConfigureAwait(false);
             var nonEmptyResults = results.Select(r => r?.Response?.Data).WithoutNull().ToArray();
             if (nonEmptyResults.Length != rangesParams!.Ranges.Length)
