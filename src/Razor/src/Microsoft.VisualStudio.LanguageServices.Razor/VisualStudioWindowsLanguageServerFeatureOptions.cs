@@ -14,12 +14,12 @@ internal class VisualStudioWindowsLanguageServerFeatureOptions : LanguageServerF
 {
     private const string ShowAllCSharpCodeActionsFeatureFlag = "Razor.LSP.ShowAllCSharpCodeActions";
     private const string IncludeProjectKeyInGeneratedFilePathFeatureFlag = "Razor.LSP.IncludeProjectKeyInGeneratedFilePath";
-    private const string UsePreciseSemanticTokenRangesFeatureFlagFeatureFlag = "Razor.LSP.UsePreciseSemanticTokenRanges";
+    private const string UsePreciseSemanticTokenRangesFeatureFlag = "Razor.LSP.UsePreciseSemanticTokenRanges";
 
     private readonly LSPEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly Lazy<bool> _showAllCSharpCodeActions;
     private readonly Lazy<bool> _includeProjectKeyInGeneratedFilePath;
-    private readonly Lazy<bool> _usePreciseSemanticTokenRangesFeatureFlag;
+    private readonly Lazy<bool> _usePreciseSemanticTokenRanges;
 
     [ImportingConstructor]
     public VisualStudioWindowsLanguageServerFeatureOptions(LSPEditorFeatureDetector lspEditorFeatureDetector)

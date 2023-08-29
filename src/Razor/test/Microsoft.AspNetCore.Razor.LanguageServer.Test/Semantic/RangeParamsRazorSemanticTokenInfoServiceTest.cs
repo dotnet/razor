@@ -15,7 +15,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 public class RangeParamsRazorSemanticTokenInfoServiceTest : RazorSemanticTokenInfoServiceTest
 {
     public RangeParamsRazorSemanticTokenInfoServiceTest(ITestOutputHelper testOutput)
-        : base(testOutput, useRangesParams: false)
+        : base(testOutput, usePreciseSemanticTokenRanges: false)
     {
     }
 }
