@@ -566,10 +566,10 @@ internal static class ComponentDiagnosticFactory
     }
 
     public static readonly RazorDiagnosticDescriptor RenderModeAttribute_ComponentDeclaredRenderMode =
-    new RazorDiagnosticDescriptor(
-    $"{DiagnosticPrefix}10022",
-    () => "Cannot override render mode for component '{0}'.",
-    RazorDiagnosticSeverity.Error);
+        new RazorDiagnosticDescriptor(
+        $"{DiagnosticPrefix}10022",
+        () => "Cannot override render mode for component '{0}' as it explicitly declares one.",
+        RazorDiagnosticSeverity.Error);
 
     public static RazorDiagnostic CreateRenderModeAttribute_ComponentDeclaredRenderMode(SourceSpan? source, string component)
     {
