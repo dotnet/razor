@@ -3,8 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -12,20 +13,20 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 [Export(typeof(RazorCompletionFactsService))]
 internal class DefaultRazorCompletionFactsService : RazorCompletionFactsService
 {
-    private readonly IReadOnlyList<IRazorCompletionItemProvider> _completionItemProviders;
+    private readonly ImmutableArray<IRazorCompletionItemProvider> _providers;
 
     [ImportingConstructor]
-    public DefaultRazorCompletionFactsService([ImportMany] IEnumerable<IRazorCompletionItemProvider> completionItemProviders)
+    public DefaultRazorCompletionFactsService([ImportMany] IEnumerable<IRazorCompletionItemProvider> providers)
     {
-        if (completionItemProviders is null)
+        if (providers is null)
         {
-            throw new ArgumentNullException(nameof(completionItemProviders));
+            throw new ArgumentNullException(nameof(providers));
         }
 
-        _completionItemProviders = completionItemProviders.ToArray();
+        _providers = providers.ToImmutableArray();
     }
 
-    public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
+    public override ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         if (context is null)
         {
@@ -37,14 +38,14 @@ internal class DefaultRazorCompletionFactsService : RazorCompletionFactsService
             throw new ArgumentNullException(nameof(context.TagHelperDocumentContext));
         }
 
-        var completions = new List<RazorCompletionItem>();
-        for (var i = 0; i < _completionItemProviders.Count; i++)
+        using var completions = new PooledArrayBuilder<RazorCompletionItem>();
+
+        foreach (var provider in _providers)
         {
-            var completionItemProvider = _completionItemProviders[i];
-            var items = completionItemProvider.GetCompletionItems(context);
+            var items = provider.GetCompletionItems(context);
             completions.AddRange(items);
         }
 
-        return completions;
+        return completions.DrainToImmutable();
     }
 }

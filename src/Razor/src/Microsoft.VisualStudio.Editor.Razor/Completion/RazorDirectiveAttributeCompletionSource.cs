@@ -4,11 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
@@ -99,7 +99,7 @@ internal class RazorDirectiveAttributeCompletionSource : IAsyncCompletionSource
             var razorCompletionContext = new RazorCompletionContext(absoluteIndex, owner, syntaxTree, tagHelperDocumentContext);
             var razorCompletionItems = _completionFactsService.GetCompletionItems(razorCompletionContext);
 
-            if (razorCompletionItems.Count == 0)
+            if (razorCompletionItems.Length == 0)
             {
                 return CompletionContext.Empty;
             }
@@ -121,8 +121,9 @@ internal class RazorDirectiveAttributeCompletionSource : IAsyncCompletionSource
                 activeSession.Dismiss();
             }
 
-            var completionItems = new List<CompletionItem>();
+            using var _ = ArrayBuilderPool<CompletionItem>.GetPooledObject(out var completionItems);
             var completionItemKinds = new HashSet<RazorCompletionItemKind>();
+
             foreach (var razorCompletionItem in razorCompletionItems)
             {
                 if (razorCompletionItem.Kind != RazorCompletionItemKind.DirectiveAttribute &&
@@ -150,9 +151,10 @@ internal class RazorDirectiveAttributeCompletionSource : IAsyncCompletionSource
             }
 
             session.Properties.SetCompletionItemKinds(completionItemKinds);
-            var orderedCompletionItems = completionItems.OrderBy(item => item.DisplayText);
-            var context = new CompletionContext(orderedCompletionItems.ToImmutableArray());
-            return context;
+
+            completionItems.Sort(CompletionItemDisplayTextComparer.Instance);
+
+            return new CompletionContext(completionItems.ToImmutable());
         }
         catch (OperationCanceledException)
         {
