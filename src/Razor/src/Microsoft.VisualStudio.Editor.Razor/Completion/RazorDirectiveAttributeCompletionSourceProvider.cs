@@ -25,7 +25,7 @@ internal class RazorDirectiveAttributeCompletionSourceProvider : IAsyncCompletio
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly ICompletionBroker _completionBroker;
-    private readonly VisualStudioDescriptionFactory _descriptionFactory;
+    private readonly IVisualStudioDescriptionFactory _descriptionFactory;
     private readonly JoinableTaskContext _joinableTaskContext;
 
     [ImportingConstructor]
@@ -33,7 +33,7 @@ internal class RazorDirectiveAttributeCompletionSourceProvider : IAsyncCompletio
         ProjectSnapshotManagerDispatcher projectSnapshotManagerDispatcher,
         IRazorCompletionFactsService completionFactsService,
         ICompletionBroker completionBroker,
-        VisualStudioDescriptionFactory descriptionFactory,
+        IVisualStudioDescriptionFactory descriptionFactory,
         JoinableTaskContext joinableTaskContext)
     {
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher ?? throw new ArgumentNullException(nameof(projectSnapshotManagerDispatcher));
