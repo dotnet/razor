@@ -3,11 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.Extensions.Options;
@@ -15,7 +17,7 @@ using Microsoft.VisualStudio.Editor.Razor;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Completion;
 
-internal class TagHelperCompletionProvider : RazorCompletionItemProvider
+internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
 {
     // Internal for testing
     internal static readonly IReadOnlyList<RazorCommitCharacter> MinimizedAttributeCommitCharacters = RazorCommitCharacter.FromArray(new[] { "=", " " });
@@ -41,7 +43,7 @@ internal class TagHelperCompletionProvider : RazorCompletionItemProvider
         _optionsMonitor = optionsMonitor ?? throw new ArgumentNullException(nameof(optionsMonitor));
     }
 
-    public override IReadOnlyList<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
+    public ImmutableArray<RazorCompletionItem> GetCompletionItems(RazorCompletionContext context)
     {
         if (context is null)
         {
@@ -52,7 +54,7 @@ internal class TagHelperCompletionProvider : RazorCompletionItemProvider
         if (owner is null)
         {
             Debug.Fail("Owner should never be null.");
-            return Array.Empty<RazorCompletionItem>();
+            return ImmutableArray<RazorCompletionItem>.Empty;
         }
 
         var parent = owner.Parent;
@@ -102,13 +104,13 @@ internal class TagHelperCompletionProvider : RazorCompletionItemProvider
                 //
                 // Will be interpreted as having an `@code` attribute name due to multi-line attributes being a thing. Ultimately this is mostly a
                 // heuristic that we have to apply in order to workaround limitations of the Razor compiler.
-                return Array.Empty<RazorCompletionItem>();
+                return ImmutableArray<RazorCompletionItem>.Empty;
             }
 
             var stringifiedAttributes = _tagHelperFactsService.StringifyAttributes(attributes);
-            var attributeCompletions = GetAttributeCompletions(parent, containingTagNameToken.Content, selectedAttributeName, stringifiedAttributes, context.TagHelperDocumentContext, context.Options);
-            return attributeCompletions;
 
+            return GetAttributeCompletions(parent, containingTagNameToken.Content, selectedAttributeName, stringifiedAttributes, context.TagHelperDocumentContext, context.Options);
+            
             static bool InOrAtEndOfAttribute(SyntaxNode attributeSyntax, int absoluteIndex)
             {
                 // When we are in the middle of writing an attribute it is treated as a minimilized one, e.g.:
@@ -123,10 +125,10 @@ internal class TagHelperCompletionProvider : RazorCompletionItemProvider
         }
 
         // Invalid location for TagHelper completions.
-        return Array.Empty<RazorCompletionItem>();
+        return ImmutableArray<RazorCompletionItem>.Empty;
     }
 
-    private IReadOnlyList<RazorCompletionItem> GetAttributeCompletions(
+    private ImmutableArray<RazorCompletionItem> GetAttributeCompletions(
         SyntaxNode containingAttribute,
         string containingTagName,
         string? selectedAttributeName,
@@ -148,8 +150,9 @@ internal class TagHelperCompletionProvider : RazorCompletionItemProvider
             ancestorIsTagHelper,
             HtmlFactsService.IsHtmlTagName);
 
-        var completionItems = new List<RazorCompletionItem>();
+        using var completionItems = new PooledArrayBuilder<RazorCompletionItem>();
         var completionResult = _tagHelperCompletionService.GetAttributeCompletions(attributeCompletionContext);
+
         foreach (var completion in completionResult.Completions)
         {
             var filterText = completion.Key;
@@ -202,13 +205,14 @@ internal class TagHelperCompletionProvider : RazorCompletionItemProvider
 
                 return descriptionInfo;
             });
+
             var attributeDescriptionInfo = new AggregateBoundAttributeDescription(attributeDescriptions.ToList());
             razorCompletionItem.SetAttributeCompletionDescription(attributeDescriptionInfo);
 
             completionItems.Add(razorCompletionItem);
         }
 
-        return completionItems;
+        return completionItems.DrainToImmutable();
     }
 
     private bool TryResolveInsertText(string baseInsertText, AttributeContext context, [NotNullWhen(true)] out string? snippetText)
@@ -231,7 +235,7 @@ internal class TagHelperCompletionProvider : RazorCompletionItemProvider
         return false;
     }
 
-    private IReadOnlyList<RazorCompletionItem> GetElementCompletions(
+    private ImmutableArray<RazorCompletionItem> GetElementCompletions(
         SyntaxNode containingElement,
         string containingTagName,
         IEnumerable<KeyValuePair<string, string>> attributes,
@@ -248,7 +252,7 @@ internal class TagHelperCompletionProvider : RazorCompletionItemProvider
             ancestorIsTagHelper,
             HtmlFactsService.IsHtmlTagName);
 
-        var completionItems = new List<RazorCompletionItem>();
+        using var completionItems = new PooledArrayBuilder<RazorCompletionItem>();
         var completionResult = _tagHelperCompletionService.GetElementCompletions(elementCompletionContext);
         foreach (var completion in completionResult.Completions)
         {
@@ -265,7 +269,7 @@ internal class TagHelperCompletionProvider : RazorCompletionItemProvider
             completionItems.Add(razorCompletionItem);
         }
 
-        return completionItems;
+        return completionItems.DrainToImmutable();
     }
 
     private const string BooleanTypeString = "System.Boolean";
