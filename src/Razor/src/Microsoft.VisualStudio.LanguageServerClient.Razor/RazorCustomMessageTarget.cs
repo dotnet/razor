@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Editor.Razor;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
@@ -47,7 +48,8 @@ internal partial class RazorCustomMessageTarget
         CSharpVirtualDocumentAddListener csharpVirtualDocumentAddListener,
         ITelemetryReporter telemetryReporter,
         LanguageServerFeatureOptions languageServerFeatureOptions,
-        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor)
+        ProjectSnapshotManagerAccessor projectSnapshotManagerAccessor,
+        [Import(AllowDefault = true)] IOutputWindowLogger? outputWindowLogger)
     {
         if (documentManager is null)
         {
@@ -116,10 +118,13 @@ internal partial class RazorCustomMessageTarget
         _telemetryReporter = telemetryReporter;
         _languageServerFeatureOptions = languageServerFeatureOptions;
         _projectSnapshotManagerAccessor = projectSnapshotManagerAccessor;
+
+        _logger = outputWindowLogger;
     }
 
     internal void SetLogger(ILogger logger)
     {
+        // We expect the logger passed in here to be better than the output window logger we got from DI, so overwrite
         _logger = logger;
     }
 

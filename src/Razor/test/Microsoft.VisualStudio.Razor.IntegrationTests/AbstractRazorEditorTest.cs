@@ -16,6 +16,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests;
 
+[LogIntegrationTest]
 public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper) : AbstractIntegrationTest
 {
     private const string LegacyRazorEditorFeatureFlag = "Razor.LSP.LegacyEditor";
@@ -26,6 +27,8 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
     public override async Task InitializeAsync()
     {
         await base.InitializeAsync();
+
+        await TestServices.Output.LogInformationAsync("Razor integration test initialize.", ControlledHangMitigatingCancellationToken);
 
         VisualStudioLogging.AddCustomLoggers();
 
@@ -63,6 +66,8 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
 
         // Close the file we opened, just in case, so the test can start with a clean slate
         await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, saveFile: false, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Output.LogInformationAsync("Razor integration test initialize finished.", ControlledHangMitigatingCancellationToken);
     }
 
     private async Task<string> CreateAndOpenBlazorProjectAsync(CancellationToken cancellationToken)
@@ -93,6 +98,8 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
 
     public override async Task DisposeAsync()
     {
+        await TestServices.Output.LogInformationAsync("Razor integration test dispose.", ControlledHangMitigatingCancellationToken);
+
         var paneContent = await TestServices.Output.GetRazorOutputPaneContentAsync(CancellationToken.None);
         _testOutputHelper.WriteLine($"Razor Output Pane Content:{Environment.NewLine}{paneContent}");
 

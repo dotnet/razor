@@ -87,16 +87,6 @@ internal partial class RazorCustomMessageTarget
                         request.Changes.Select(change => change.ToVisualStudioTextChange()).ToArray(),
                         request.HostDocumentVersion.Value,
                         state: request.PreviousWasEmpty);
-
-                    _documentManager.TryGetDocument(hostDocumentUri, out var snapshot);
-                    snapshot.TryGetAllVirtualDocuments<CSharpVirtualDocumentSnapshot>(out var virtualDocuments1);
-                    foreach (var vd in virtualDocuments1)
-                    {
-                        if (vd.Uri == virtualDocument.Uri)
-                        {
-                            _logger?.LogDebug(vd.Snapshot.GetText());
-                        }
-                    }
                     return;
                 }
             }

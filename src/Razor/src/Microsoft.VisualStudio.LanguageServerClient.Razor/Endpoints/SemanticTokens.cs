@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
 
@@ -61,37 +60,22 @@ internal partial class RazorCustomMessageTarget
         cancellationToken.ThrowIfCancellationRequested();
 
         using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, semanticTokensParams.CorrelationId);
+        var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
+            textBuffer,
+            lspMethodName,
+            languageServerName,
+            newParams,
+            cancellationToken).ConfigureAwait(false);
 
-        try
+        var result = csharpResults?.Response;
+        if (result is null)
         {
-            var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
-                textBuffer,
-                lspMethodName,
-                languageServerName,
-                newParams,
-                cancellationToken).ConfigureAwait(false);
-
-            var result = csharpResults?.Response;
-            if (result is null)
-            {
-                // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
-                return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
-            }
-
-            var response = new ProvideSemanticTokensResponse(result.Data, semanticTokensParams.RequiredHostDocumentVersion);
-
-            return response;
+            // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
+            return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
         }
-        catch (Exception ex)
-        {
-            if (ex.Message.Contains("text.Length="))
-            {
-                _logger?.LogWarning("Got a bad response from C#. Out of sync? for {textDocument}", semanticTokensParams.TextDocument);
-                _logger?.LogWarning("We thought we were synced on v{version} with doc from {project} with {path}", semanticTokensParams.RequiredHostDocumentVersion, csharpDoc.ProjectKey, csharpDoc.Uri);
-                _logger?.LogWarning(csharpDoc.Snapshot.GetText());
-            }
 
-            throw;
-        }
+        var response = new ProvideSemanticTokensResponse(result.Data, semanticTokensParams.RequiredHostDocumentVersion);
+
+        return response;
     }
 }

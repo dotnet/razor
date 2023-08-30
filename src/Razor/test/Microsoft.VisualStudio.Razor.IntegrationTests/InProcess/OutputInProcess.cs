@@ -4,6 +4,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.Razor.IntegrationTests.Extensions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -15,6 +17,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing;
 internal partial class OutputInProcess
 {
     private const string RazorPaneName = "Razor Logger Output";
+
+    public async Task LogInformationAsync(string message, CancellationToken cancellationToken)
+    {
+        var logger = await TestServices.Shell.GetComponentModelServiceAsync<IOutputWindowLogger>(cancellationToken);
+        logger.LogInformation(message);
+    }
 
     public async Task<bool> HasErrorsAsync(CancellationToken cancellationToken)
     {
