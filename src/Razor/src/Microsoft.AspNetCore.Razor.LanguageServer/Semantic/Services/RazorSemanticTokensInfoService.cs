@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -123,22 +124,14 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         string? previousResultId = null)
     {
         var generatedDocument = codeDocument.GetCSharpDocument();
-        int[]? csharpResponse = default;
-
+        Range[]? csharpRanges = null;
         if (_languageServerFeatureOptions.UsePreciseSemanticTokenRanges)
         {
-            if (!TryGetCSharpRanges(codeDocument, razorRange, out var csharpRanges))
+            if (!TryGetCSharpRanges(codeDocument, razorRange, out csharpRanges))
             {
                 // There's no C# in the range.
                 return new List<SemanticRange>();
             }
-
-            var parameter = new ProvideSemanticTokensRangesParams(textDocumentIdentifier, documentVersion, csharpRanges, correlationId);
-            var response = await _languageServer.SendRequestAsync<ProvideSemanticTokensRangesParams, ProvideSemanticTokensResponse>(
-                CustomMessageNames.RazorProvideSemanticTokensRangesEndpoint,
-                parameter,
-                cancellationToken).ConfigureAwait(false);
-            csharpResponse = GetMatchingCSharpResponse(documentVersion, response);
         }
         else
         {
@@ -151,13 +144,10 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                 return new List<SemanticRange>();
             }
 
-            var parameter = new ProvideSemanticTokensRangeParams(textDocumentIdentifier, documentVersion, csharpRange, correlationId);
-            var response = await _languageServer.SendRequestAsync<ProvideSemanticTokensRangeParams, ProvideSemanticTokensResponse>(
-                CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint,
-                parameter,
-                cancellationToken).ConfigureAwait(false);
-            csharpResponse = GetMatchingCSharpResponse(documentVersion, response);
+            csharpRanges = new Range[] { csharpRange };
         }
+
+        var csharpResponse = await GetMatchingCSharpResponseAsync(textDocumentIdentifier, documentVersion, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false);
 
         // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
         // Unrecoverable, return default to indicate no change. We've already queued up a refresh request in
@@ -299,8 +289,22 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         return false;
     }
 
-    private int[]? GetMatchingCSharpResponse(long documentVersion, ProvideSemanticTokensResponse csharpResponse)
+    private async Task<int[]?> GetMatchingCSharpResponseAsync(
+        TextDocumentIdentifier textDocumentIdentifier,
+        long documentVersion,
+        Range[] csharpRanges,
+        Guid correlationId,
+        CancellationToken cancellationToken)
     {
+        var parameter = new ProvideSemanticTokensRangesParams(textDocumentIdentifier, documentVersion, csharpRanges, correlationId);
+
+        var csharpResponse = await _languageServer.SendRequestAsync<ProvideSemanticTokensRangesParams, ProvideSemanticTokensResponse>(
+            CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint,
+            parameter,
+            cancellationToken).ConfigureAwait(false);
+
+        var stitchedTokens = StitchSemanticTokenResponsesTogether(csharpResponse.Tokens);
+
         if (csharpResponse is null)
         {
             // C# isn't ready yet, don't make Razor wait for it. Once C# is ready they'll send a refresh notification.
@@ -314,18 +318,80 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             return null;
         }
 
-        var response = csharpResponse.Tokens ?? Array.Empty<int>();
-        return response;
+        return stitchedTokens ?? Array.Empty<int>();
+    }
+
+    // Internal for testing
+    internal static int[]? StitchSemanticTokenResponsesTogether(int[][]? responseData)
+    {
+        if (responseData == null)
+        {
+            return null;
+        }
+
+        var count = responseData.Sum(r => r.Length);
+        var data = new int[count];
+        var dataIndex = 0;
+        var lastTokenLine = 0;
+
+        for (var i = 0; i < responseData.Length; i++)
+        {
+            var curData = responseData[i];
+
+            if (curData.Length == 0)
+            {
+                continue;
+            }
+
+            Array.Copy(curData, 0, data, dataIndex, curData.Length);
+            if (i != 0)
+            {
+                // The first two items in result.Data will potentially need it's line/col offset modified
+                var lineDelta = data[dataIndex] - lastTokenLine;
+
+                // Update the first line copied over from curData
+                data[dataIndex] = lineDelta;
+
+                // Update the first column copied over from curData if on the same line as the previous token
+                if (lineDelta == 0)
+                {
+                    var lastTokenCol = 0;
+
+                    // Walk back accumulating column deltas until we find a start column (indicated by it's line offset being non-zero)
+                    for (var j = dataIndex - RazorSemanticTokensInfoService.TokenSize; j >= 0; j -= RazorSemanticTokensInfoService.TokenSize)
+                    {
+                        lastTokenCol += data[dataIndex + 1];
+                        if (data[dataIndex] != 0)
+                        {
+                            break;
+                        }
+                    }
+
+                    data[dataIndex + 1] -= lastTokenCol;
+                }
+            }
+
+            lastTokenLine = 0;
+            for (var j = 0; j < curData.Length; j += RazorSemanticTokensInfoService.TokenSize)
+            {
+                lastTokenLine += curData[j];
+            }
+
+            dataIndex += curData.Length;
+        }
+
+        return data;
     }
 
     // Internal for testing only
-    internal static bool TryGetCSharpRanges(RazorCodeDocument codeDocument, Range razorRange, out Range[] ranges)
+    internal static bool TryGetCSharpRanges(RazorCodeDocument codeDocument, Range razorRange, [NotNullWhen(true)] out Range[]? ranges)
     {
         using var _ = ListPool<Range>.GetPooledObject(out var csharpRanges);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var sourceText = codeDocument.GetSourceText();
         var textSpan = razorRange.AsTextSpan(sourceText);
         var csharpDoc = codeDocument.GetCSharpDocument();
+        var foundRanges = false;
 
         // We want to find the min and max C# source mapping that corresponds with our Razor range.
         foreach (var mapping in csharpDoc.SourceMappings)
@@ -334,14 +400,14 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
             if (textSpan.OverlapsWith(mappedTextSpan))
             {
+                foundRanges = true;
                 var mappedRange = mapping.GeneratedSpan.AsRange(csharpSourceText);
                 csharpRanges.Add(mappedRange);
             }
         }
 
-        ranges = csharpRanges.ToArray();
-
-        return ranges.Length > 0;
+        ranges = foundRanges ? csharpRanges.ToArray() : null;
+        return ranges != null;
     }
 
     private static SemanticRange CSharpDataToSemanticRange(

@@ -7,14 +7,22 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
 
-internal class ProvideSemanticTokensRangesParams : ProvideSemanticTokensParams
+internal class ProvideSemanticTokensRangesParams : SemanticTokensParams
 {
+    [DataMember(Name = "requiredHostDocumentVersion", IsRequired = true)]
+    public long RequiredHostDocumentVersion { get; }
+
     [DataMember(Name = "ranges", IsRequired = true)]
     public Range[] Ranges { get; }
 
+    [DataMember(Name = "correlationId", IsRequired = true)]
+    public Guid CorrelationId { get; }
+
     public ProvideSemanticTokensRangesParams(TextDocumentIdentifier textDocument, long requiredHostDocumentVersion, Range[] ranges, Guid correlationId)
-        : base(textDocument, requiredHostDocumentVersion, correlationId)
     {
+        TextDocument = textDocument;
+        RequiredHostDocumentVersion = requiredHostDocumentVersion;
         Ranges = ranges;
+        CorrelationId = correlationId;
     }
 }

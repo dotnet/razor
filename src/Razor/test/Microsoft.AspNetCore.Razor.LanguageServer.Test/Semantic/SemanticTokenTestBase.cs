@@ -98,7 +98,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         string documentText, Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
     {
         var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
-        var csharpTokens = Array.Empty<int>();
+        int[][]? csharpTokens = null;
         var csharpDocumentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
         var csharpSourceText = codeDocument.GetCSharpSourceText();
 
@@ -108,9 +108,10 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         var csharpRanges = GetMappedCSharpRanges(codeDocument, razorRange);
         if (csharpRanges is not null)
         {
+            SemanticTokens[]? responses = null;
             if (UsePreciseSemanticTokenRanges)
             {
-                var responses = new SemanticTokens[csharpRanges.Length];
+                responses = new SemanticTokens[csharpRanges.Length];
                 for (var i = 0; i < csharpRanges.Length; i++)
                 {
                     var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
@@ -120,79 +121,21 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
 
                     responses[i] = result;
                 }
-
-                var responseData = responses.Select(r => r.Data).ToArray();
-                csharpTokens = StitchSemanticTokenResponsesTogether(responseData);
             }
             else
             {
+                responses = new SemanticTokens[1];
                 var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
                     Methods.TextDocumentSemanticTokensRangeName,
                     CreateVSSemanticTokensRangeParams(csharpRanges[0], csharpDocumentUri),
                     DisposalToken);
-
-                csharpTokens = result?.Data;
+                responses[0] = result;
             }
+
+            csharpTokens = responses.Select(r => r.Data).ToArray();
         }
 
         return new ProvideSemanticTokensResponse(tokens: csharpTokens, hostDocumentSyncVersion);
-    }
-
-    // Duplicated from SemanticTokens.cs
-    private int[] StitchSemanticTokenResponsesTogether(int[][] responseData)
-    {
-        var count = responseData.Sum(r => r.Length);
-        var data = new int[count];
-        var dataIndex = 0;
-        var lastTokenLine = 0;
-
-        for (var i = 0; i < responseData.Length; i++)
-        {
-            var curData = responseData[i];
-
-            if (curData.Length == 0)
-            {
-                continue;
-            }
-
-            Array.Copy(curData, 0, data, dataIndex, curData.Length);
-            if (i != 0)
-            {
-                // The first two items in result.Data will potentially need it's line/col offset modified
-                var lineDelta = data[dataIndex] - lastTokenLine;
-
-                // Update the first line copied over from curData
-                data[dataIndex] = lineDelta;
-
-                // Update the first column copied over from curData if on the same line as the previous token
-                if (lineDelta == 0)
-                {
-                    var lastTokenCol = 0;
-
-                    // Walk back accumulating column deltas until we find a start column (indicated by it's line offset being non-zero)
-                    for (var j = dataIndex - RazorSemanticTokensInfoService.TokenSize; j >= 0; j -= RazorSemanticTokensInfoService.TokenSize)
-                    {
-                        lastTokenCol += data[dataIndex + 1];
-                        if (data[dataIndex] != 0)
-                        {
-                            break;
-                        }
-                    }
-
-                    data[dataIndex + 1] -= lastTokenCol;
-                }
-            }
-
-            lastTokenLine = 0;
-            for (var j = 0; j < curData.Length; j += RazorSemanticTokensInfoService.TokenSize)
-            {
-                lastTokenLine += curData[j];
-            }
-
-            dataIndex += curData.Length;
-        }
-
-        return data;
     }
 
     protected Range[]? GetMappedCSharpRanges(RazorCodeDocument codeDocument, Range razorRange)
