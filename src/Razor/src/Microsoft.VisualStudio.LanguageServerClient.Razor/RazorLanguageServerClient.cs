@@ -194,7 +194,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
 
         var customMessageLogger = _loggerProvider.CreateLogger("CustomMessage");
-        var customMessageLoggers = _outputWindowLogger == null ? new ILogger[] { logHubLogger } : new ILogger[] { logHubLogger, _outputWindowLogger };
+        var customMessageLoggers = _outputWindowLogger == null ? new ILogger[] { customMessageLogger } : new ILogger[] { customMessageLogger, _outputWindowLogger };
         var logAdapter = new LoggerAdapter(customMessageLoggers, telemetryReporter: null, traceSource);
         _customMessageTarget.SetLogger(logAdapter);
 
