@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -364,7 +365,7 @@ public class RazorLanguageEndpointTest : LanguageServerTestBase
 
     private static RazorCodeDocument CreateCodeDocumentWithCSharpProjection(string razorSource, string projectedCSharpSource, IEnumerable<SourceMapping> sourceMappings)
     {
-        var codeDocument = CreateCodeDocument(razorSource, Array.Empty<TagHelperDescriptor>());
+        var codeDocument = CreateCodeDocument(razorSource, ImmutableArray<TagHelperDescriptor>.Empty);
         var csharpDocument = RazorCSharpDocument.Create(
             codeDocument,
             projectedCSharpSource,
