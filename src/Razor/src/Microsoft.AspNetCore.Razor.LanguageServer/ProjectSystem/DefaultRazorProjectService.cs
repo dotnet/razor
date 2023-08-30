@@ -253,7 +253,7 @@ internal class DefaultRazorProjectService : RazorProjectService
         // ProjectAdded will no-op if the project already exists
         _projectSnapshotManagerAccessor.Instance.ProjectAdded(hostProject);
 
-        _logger.LogInformation("Added project '{filePath}' to project system.", filePath);
+        _logger.LogInformation("Added project '{filePath}' with key {key} to project system.", filePath, hostProject.Key);
 
         TryMigrateMiscellaneousDocumentsToProject();
 
@@ -277,7 +277,7 @@ internal class DefaultRazorProjectService : RazorProjectService
                 continue;
             }
 
-            _logger.LogInformation("Removing project '{filePath}' from project system.", filePath);
+            _logger.LogInformation("Removing project '{filePath}' with {key} from project system.", filePath, projectKey);
             _projectSnapshotManagerAccessor.Instance.ProjectRemoved(project.Key);
 
             TryMigrateDocumentsFromRemovedProject(project);
@@ -302,12 +302,14 @@ internal class DefaultRazorProjectService : RazorProjectService
             return;
         }
 
+        _logger.LogDebug("Updating project {key} from {stack}", project.Key, new StackTrace());
+
         UpdateProjectDocuments(documents, project.Key);
 
         if (!projectWorkspaceState.Equals(ProjectWorkspaceState.Default))
         {
-            _logger.LogInformation("Updating project '{filePath}' TagHelpers ({projectWorkspaceState.TagHelpers.Count}) and C# Language Version ({projectWorkspaceState.CSharpLanguageVersion}).",
-                project.FilePath, projectWorkspaceState.TagHelpers.Length, projectWorkspaceState.CSharpLanguageVersion);
+            _logger.LogInformation("Updating project '{key}' TagHelpers ({projectWorkspaceState.TagHelpers.Count}) and C# Language Version ({projectWorkspaceState.CSharpLanguageVersion}).",
+                project.Key, projectWorkspaceState.TagHelpers.Length, projectWorkspaceState.CSharpLanguageVersion);
         }
 
         _projectSnapshotManagerAccessor.Instance.ProjectWorkspaceStateChanged(project.Key, projectWorkspaceState);
@@ -317,25 +319,25 @@ internal class DefaultRazorProjectService : RazorProjectService
         if (currentConfiguration.ConfigurationName == configuration?.ConfigurationName &&
             currentHostProject.RootNamespace == rootNamespace)
         {
-            _logger.LogTrace("Updating project '{filePath}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}'.",
-                project.FilePath, configuration.ConfigurationName, rootNamespace);
+            _logger.LogTrace("Updating project '{key}'. The project is already using configuration '{configuration.ConfigurationName}' and root namespace '{rootNamespace}'.",
+                project.Key, configuration.ConfigurationName, rootNamespace);
             return;
         }
 
         if (configuration is null)
         {
             configuration = FallbackRazorConfiguration.Latest;
-            _logger.LogInformation("Updating project '{filePath}' to use the latest configuration ('{configuration.ConfigurationName}')'.", project.FilePath, configuration.ConfigurationName);
+            _logger.LogInformation("Updating project '{key}' to use the latest configuration ('{configuration.ConfigurationName}')'.", project.Key, configuration.ConfigurationName);
         }
         else if (currentConfiguration.ConfigurationName != configuration.ConfigurationName)
         {
-            _logger.LogInformation("Updating project '{filePath}' to Razor configuration '{configuration.ConfigurationName}' with language version '{configuration.LanguageVersion}'.",
-                project.FilePath, configuration.ConfigurationName, configuration.LanguageVersion);
+            _logger.LogInformation("Updating project '{key}' to Razor configuration '{configuration.ConfigurationName}' with language version '{configuration.LanguageVersion}'.",
+                project.Key, configuration.ConfigurationName, configuration.LanguageVersion);
         }
 
         if (currentHostProject.RootNamespace != rootNamespace)
         {
-            _logger.LogInformation("Updating project '{filePath}''s root namespace to '{rootNamespace}'.", project.FilePath, rootNamespace);
+            _logger.LogInformation("Updating project '{key}''s root namespace to '{rootNamespace}'.", project.Key, rootNamespace);
         }
 
         var hostProject = new HostProject(project.FilePath, project.IntermediateOutputPath, configuration, rootNamespace);
@@ -351,6 +353,8 @@ internal class DefaultRazorProjectService : RazorProjectService
         var projectDirectory = FilePathNormalizer.GetDirectory(project.FilePath);
         var documentMap = documents.ToDictionary(document => EnsureFullPath(document.FilePath, projectDirectory), FilePathComparer.Instance);
         var miscellaneousProject = (ProjectSnapshot)_snapshotResolver.GetMiscellaneousProject();
+
+        _logger.LogDebug("UpdateProjectDocuments documentMap: {documentMap}", string.Join(", ", documentMap.Select(kvp => kvp.Key + " == " + kvp.Value.FilePath)));
 
         // "Remove" any unnecessary documents by putting them into the misc project
         foreach (var documentFilePath in project.DocumentFilePaths)
@@ -425,7 +429,7 @@ internal class DefaultRazorProjectService : RazorProjectService
                 var remoteTextLoader = _remoteTextLoaderFactory.Create(documentFilePath);
                 var newHostDocument = new HostDocument(documentFilePath, documentHandle.TargetPath, documentHandle.FileKind);
 
-                _logger.LogInformation("Adding new document '{documentFilePath}' to project '{projectFilePath}'.", documentFilePath, currentHostProject.FilePath);
+                _logger.LogInformation("Adding new document '{documentFilePath}' to project '{key}'.", documentFilePath, currentHostProject.Key);
                 _projectSnapshotManagerAccessor.Instance.DocumentAdded(currentHostProject.Key, newHostDocument, remoteTextLoader);
             }
         }
@@ -441,13 +445,22 @@ internal class DefaultRazorProjectService : RazorProjectService
             return;
         }
 
+#if DEBUG
+        if (toProject.FilePath.IndexOf("__MISC_RAZOR_PROJECT__", StringComparison.Ordinal) > -1)
+        {
+            _logger.LogWarning("Moving {file} from real project to misc project. This is surprising, depending on when it happens.", documentFilePath);
+            _logger.LogWarning("Real project: {filePath}, {key}", fromProject.FilePath, fromProject.Key);
+            _logger.LogWarning("Real project documents: {documents}", string.Join(", ", fromProject.DocumentFilePaths));
+        }
+#endif
+
         var currentHostDocument = documentSnapshot.State.HostDocument;
 
         var textLoader = new DocumentSnapshotTextLoader(documentSnapshot);
         var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
 
-        _logger.LogInformation("Moving '{documentFilePath}' from the '{fromProject.FilePath}' project to '{toProject.FilePath}' project.",
-            documentFilePath, fromProject.FilePath, toProject.FilePath);
+        _logger.LogInformation("Moving '{documentFilePath}' from the '{fromProject.Key}' project to '{toProject.Key}' project.",
+            documentFilePath, fromProject.Key, toProject.Key);
         _projectSnapshotManagerAccessor.Instance.DocumentRemoved(fromProject.Key, currentHostDocument);
         _projectSnapshotManagerAccessor.Instance.DocumentAdded(toProject.Key, newHostDocument, textLoader);
     }
@@ -485,8 +498,8 @@ internal class DefaultRazorProjectService : RazorProjectService
             var defaultToProject = (ProjectSnapshot)toProject;
             var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath, documentSnapshot.FileKind);
 
-            _logger.LogInformation("Migrating '{documentFilePath}' from the '{project.FilePath}' project to '{toProject.FilePath}' project.",
-                documentFilePath, project.FilePath, toProject.FilePath);
+            _logger.LogInformation("Migrating '{documentFilePath}' from the '{project.Key}' project to '{toProject.KEy}' project.",
+                documentFilePath, project.Key, toProject.Key);
             _projectSnapshotManagerAccessor.Instance.DocumentAdded(defaultToProject.Key, newHostDocument, textLoader);
         }
     }
@@ -521,7 +534,7 @@ internal class DefaultRazorProjectService : RazorProjectService
             var defaultProject = (ProjectSnapshot)projectSnapshot;
             var newHostDocument = new HostDocument(documentSnapshot.FilePath, documentSnapshot.TargetPath);
             _logger.LogInformation("Migrating '{documentFilePath}' from the '{miscellaneousProject.Key}' project to '{projectSnapshot.Key}' project.",
-                documentFilePath, miscellaneousProject.FilePath, projectSnapshot.Key);
+                documentFilePath, miscellaneousProject.Key, projectSnapshot.Key);
             _projectSnapshotManagerAccessor.Instance.DocumentAdded(defaultProject.Key, newHostDocument, textLoader);
         }
     }
