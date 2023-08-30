@@ -17,4 +17,44 @@ internal class ProvideSemanticTokensResponse
     public int[][]? Tokens { get; }
 
     public long? HostDocumentSyncVersion { get; }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not ProvideSemanticTokensResponse other ||
+            HostDocumentSyncVersion != other.HostDocumentSyncVersion)
+        {
+            return false;
+        }
+
+        if (Tokens is not null && other.Tokens is not null)
+        {
+            if (Tokens?.Length != other.Tokens?.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < Tokens!.Length; i++)
+            {
+                if (Tokens[i].Length != other.Tokens![i].Length)
+                {
+                    return false;
+                }
+
+                for (var j = 0; j < Tokens[i].Length; j++)
+                {
+                    if (Tokens[i][j] != other.Tokens[i][j])
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return Tokens is null && other.Tokens is null;
+    }
+
+    public override int GetHashCode()
+    {
+        throw new System.NotImplementedException();
+    }
 }

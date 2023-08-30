@@ -79,7 +79,7 @@ public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
                 """;
 
         var razorRange = GetRange(documentText);
-        var csharpTokens = new ProvideSemanticTokensResponse(tokens: new int[][] {}, hostDocumentSyncVersion: null);
+        var csharpTokens = new ProvideSemanticTokensResponse(tokens: Array.Empty<int[]>(), hostDocumentSyncVersion: null);
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csharpTokens: csharpTokens, documentVersion: 1);
     }
 
@@ -784,6 +784,53 @@ public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         var razorRange = GetRange(documentText);
         var csharpTokens = await GetCSharpSemanticTokensResponseAsync(documentText, razorRange, isRazorFile: true);
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens, withCSharpBackground: true);
+    }
+
+    [Fact]
+    public void StitchSemanticTokenResponsesTogether_OnNullInput_ReturnsEmptyResponseData()
+    {
+        // Arrange
+        int[][]? responseData = null;
+
+        // Act
+        var result = RazorSemanticTokensInfoService.StitchSemanticTokenResponsesTogether(responseData);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void StitchSemanticTokenResponsesTogether_OnEmptyInput_ReturnsEmptyResponseData()
+    {
+        // Arrange
+        var responseData = Array.Empty<int[]>();
+
+        // Act
+        var result = RazorSemanticTokensInfoService.StitchSemanticTokenResponsesTogether(responseData);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void StitchSemanticTokenResponsesTogether_ReturnsCombinedResponseData()
+    {
+        // Arrange
+        var responseData = new int[][] {
+            new int[] { 0, 0, 2, 1, 1 },
+            new int[] { 1, 0, 2, 1, 0 },
+            new int[] { 2, 0, 4, 2, 3 }
+        };
+
+        var expectedResponseData = new int[] { 0, 0, 2, 1, 1, 1, 0, 2, 1, 0, 1, 0, 4, 2, 3 };
+
+        // Act
+        var result = RazorSemanticTokensInfoService.StitchSemanticTokenResponsesTogether(responseData);
+
+        // Assert
+        Assert.Equal(expectedResponseData, result);
     }
 
     private async Task AssertSemanticTokensAsync(

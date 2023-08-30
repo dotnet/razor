@@ -55,20 +55,20 @@ internal partial class RazorCustomMessageTarget
 
         semanticTokensParams.TextDocument.Uri = csharpDoc.Uri;
         var textBuffer = csharpDoc.Snapshot.TextBuffer;
-        var languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
-        var lspMethodName = Methods.TextDocumentSemanticTokensRangeName;
 
-        foreach (var range in semanticTokensParams!.Ranges)
+        foreach (var range in semanticTokensParams.Ranges)
         {
-            var newParams = new SemanticTokensRangeParams
-            {
-                TextDocument = semanticTokensParams.TextDocument,
-                PartialResultToken = semanticTokensParams.PartialResultToken,
-                Range = range,
-            };
-
             var task = Task.Run(async () =>
             {
+                var newParams = new SemanticTokensRangeParams
+                {
+                    TextDocument = semanticTokensParams.TextDocument,
+                    PartialResultToken = semanticTokensParams.PartialResultToken,
+                    Range = range,
+                };
+
+                var languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
+                var lspMethodName = Methods.TextDocumentSemanticTokensRangeName;
                 using (var disposable = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, semanticTokensParams.CorrelationId))
                 {
                     return await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(

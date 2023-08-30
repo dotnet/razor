@@ -316,7 +316,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             return null;
         }
 
-        return StitchSemanticTokenResponsesTogether(csharpResponse.Tokens);;
+        return StitchSemanticTokenResponsesTogether(csharpResponse.Tokens);
     }
 
     // Internal for testing
@@ -389,7 +389,6 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         var sourceText = codeDocument.GetSourceText();
         var textSpan = razorRange.AsTextSpan(sourceText);
         var csharpDoc = codeDocument.GetCSharpDocument();
-        var foundRanges = false;
 
         // We want to find the min and max C# source mapping that corresponds with our Razor range.
         foreach (var mapping in csharpDoc.SourceMappings)
@@ -398,7 +397,6 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
             if (textSpan.OverlapsWith(mappedTextSpan))
             {
-                foundRanges = true;
                 var mappedRange = mapping.GeneratedSpan.AsRange(csharpSourceText);
                 csharpRanges.Add(mappedRange);
             }
