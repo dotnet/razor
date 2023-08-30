@@ -34,7 +34,7 @@ public class ComponentRenderModeAttributeIntegrationTests : RazorIntegrationTest
     {
         var generated = CompileToCSharp("""
                 <input @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
-                """, throwOnFailure: false);
+                """, throwOnFailure: true);
 
         // Assert
         //x:\dir\subdir\Test\TestComponent.cshtml(1,21): Error RZ10021: Attribute 'rendermode' is only valid when used on a component.
@@ -46,11 +46,14 @@ public class ComponentRenderModeAttributeIntegrationTests : RazorIntegrationTest
     public void RenderMode_Attribute_On_Component_With_Directive()
     {
         var generated = CompileToCSharp($$"""
-                @rendermode Microsoft.AspNetCore.Components.DefaultRenderModes.Server
+                @rendermode Microsoft.AspNetCore.Components.Web.RenderMode.Server
 
-                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.DefaultRenderModes.Server" />
-                """, throwOnFailure: false);
+                <{{ComponentName}} @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
+                """, throwOnFailure: true);
 
+        // Assert
+
+        // x:\dir\subdir\Test\TestComponent.cshtml(3,29): Error RZ10022: Cannot override render mode for component 'Test.TestComponent' as it explicitly declares one.
         var diagnostic = Assert.Single(generated.Diagnostics);
         Assert.Equal("RZ10022", diagnostic.Id);
     }

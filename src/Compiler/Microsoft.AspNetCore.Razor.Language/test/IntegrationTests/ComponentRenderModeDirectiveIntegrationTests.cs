@@ -176,4 +176,64 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
             Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "rendermode").WithArguments("Test.TestComponent.rendermode").WithLocation(5, 12)
             );
     }
+
+
+    [Fact]
+    public void RenderMode_Referencing_Instance_Code()
+    {
+        var compilationResult = CompileToCSharp($$"""
+                @rendermode myRenderMode
+                @code
+                {
+                    Microsoft.AspNetCore.Components.IComponentRenderMode myRenderMode = new Microsoft.AspNetCore.Components.Web.ServerRenderMode();
+                }
+                """, throwOnFailure: true);
+
+        Assert.Empty(compilationResult.Diagnostics);
+
+        var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: false);
+        assemblyResult.Diagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,13): error CS0103: The name 'myRenderMode' does not exist in the current context
+            //             myRenderMode
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "myRenderMode").WithArguments("myRenderMode").WithLocation(1, 13)
+            );
+    }
+
+    [Fact]
+    public void RenderMode_Referencing_Static_Code()
+    {
+        var compilationResult = CompileToCSharp($$"""
+                @rendermode myRenderMode
+                @code
+                {
+                    static Microsoft.AspNetCore.Components.IComponentRenderMode myRenderMode = new Microsoft.AspNetCore.Components.Web.ServerRenderMode();
+                }
+                """, throwOnFailure: true);
+
+        Assert.Empty(compilationResult.Diagnostics);
+
+        var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: false);
+        assemblyResult.Diagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,13): error CS0103: The name 'myRenderMode' does not exist in the current context
+            //             myRenderMode
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "myRenderMode").WithArguments("myRenderMode").WithLocation(1, 13)
+            );
+    }
+
+    [Fact]
+    public void RenderMode_Referencing_Internal_Static_Code()
+    {
+        var compilationResult = CompileToCSharp($$"""
+                @rendermode TestComponent.myRenderMode
+                @code
+                {
+                    internal static Microsoft.AspNetCore.Components.IComponentRenderMode myRenderMode = new Microsoft.AspNetCore.Components.Web.ServerRenderMode();
+                }
+                """, throwOnFailure: true);
+
+        Assert.Empty(compilationResult.Diagnostics);
+
+        var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: false);
+        assemblyResult.Diagnostics.Verify();
+    }
 }
