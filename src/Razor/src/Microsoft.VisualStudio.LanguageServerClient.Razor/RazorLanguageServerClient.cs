@@ -194,7 +194,7 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
 
         var customMessageLogger = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync("Razor.CustomMessageTarget", token).ConfigureAwait(false);
-        var logger = _loggerProvider.CreateLogger("CustomMessage");
+        var logger = customMessageLogger.CreateLogger("CustomMessage");
         _customMessageTarget.AddLogger(logger);
 
         _server = RazorLanguageServerWrapper.Create(
