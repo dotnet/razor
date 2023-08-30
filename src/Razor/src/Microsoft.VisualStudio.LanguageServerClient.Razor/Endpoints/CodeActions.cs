@@ -37,7 +37,7 @@ internal partial class RazorCustomMessageTarget
             (synchronized, virtualDocumentSnapshot) = await TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
                 codeActionParams.HostDocumentVersion,
                 codeActionParams.CodeActionParams.TextDocument,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
             languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
         }
         else if (codeActionParams.LanguageKind == RazorLanguageKind.CSharp)
@@ -45,7 +45,7 @@ internal partial class RazorCustomMessageTarget
             (synchronized, virtualDocumentSnapshot) = await TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
                 codeActionParams.HostDocumentVersion,
                 codeActionParams.CodeActionParams.TextDocument,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
             languageServerName = RazorLSPConstants.HtmlLanguageServerName;
         }
         else
@@ -73,8 +73,13 @@ internal partial class RazorCustomMessageTarget
             cancellationToken).ConfigureAwait(false);
 
         var codeActions = new List<VSInternalCodeAction>();
-        await foreach (var response in requests)
+        await foreach (var response in requests.WithCancellation(cancellationToken).ConfigureAwait(false))
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                break;
+            }
+
             if (response.Response != null)
             {
                 codeActions.AddRange(response.Response);
