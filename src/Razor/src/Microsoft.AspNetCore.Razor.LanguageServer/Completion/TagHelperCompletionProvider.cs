@@ -132,7 +132,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
         SyntaxNode containingAttribute,
         string containingTagName,
         string? selectedAttributeName,
-        IEnumerable<KeyValuePair<string, string>> attributes,
+        ImmutableArray<KeyValuePair<string, string>> attributes,
         TagHelperDocumentContext tagHelperDocumentContext,
         RazorCompletionOptions options)
     {
@@ -231,7 +231,7 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
     private ImmutableArray<RazorCompletionItem> GetElementCompletions(
         SyntaxNode containingElement,
         string containingTagName,
-        IEnumerable<KeyValuePair<string, string>> attributes,
+        ImmutableArray<KeyValuePair<string, string>> attributes,
         RazorCompletionContext context)
     {
         var ancestors = containingElement.Ancestors();

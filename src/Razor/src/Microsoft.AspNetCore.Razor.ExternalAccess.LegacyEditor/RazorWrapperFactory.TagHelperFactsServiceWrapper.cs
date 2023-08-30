@@ -17,7 +17,7 @@ internal static partial class RazorWrapperFactory
             string? parentTag,
             bool parentIsTagHelper)
         {
-            var binding = Object.GetTagHelperBinding(Unwrap(documentContext), tagName, attributes, parentTag, parentIsTagHelper);
+            var binding = Object.GetTagHelperBinding(Unwrap(documentContext), tagName, attributes.ToImmutableArray(), parentTag, parentIsTagHelper);
 
             return binding is not null
                 ? WrapTagHelperBinding(binding)

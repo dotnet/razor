@@ -86,7 +86,7 @@ internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttr
         TagHelperDocumentContext tagHelperDocumentContext)
     {
         var descriptorsForTag = _tagHelperFactsService.GetTagHelpersGivenTag(tagHelperDocumentContext, containingTagName, parentTag: null);
-        if (descriptorsForTag.Count == 0)
+        if (descriptorsForTag.Length == 0)
         {
             // If the current tag has no possible descriptors then we can't have any additional attributes.
             return ImmutableArray<RazorCompletionItem>.Empty;
@@ -94,6 +94,7 @@ internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttr
 
         // Attribute parameters are case sensitive when matching
         var attributeCompletions = new Dictionary<string, HashSet<BoundAttributeDescriptionInfo>>(StringComparer.Ordinal);
+
         foreach (var descriptor in descriptorsForTag)
         {
             for (var i = 0; i < descriptor.BoundAttributes.Count; i++)

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -9,15 +10,15 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal interface ITagHelperFactsService
 {
-    TagHelperBinding? GetTagHelperBinding(TagHelperDocumentContext documentContext, string? tagName, IEnumerable<KeyValuePair<string, string>> attributes, string? parentTag, bool parentIsTagHelper);
+    TagHelperBinding? GetTagHelperBinding(TagHelperDocumentContext documentContext, string? tagName, ImmutableArray<KeyValuePair<string, string>> attributes, string? parentTag, bool parentIsTagHelper);
 
-    IEnumerable<BoundAttributeDescriptor> GetBoundTagHelperAttributes(TagHelperDocumentContext documentContext, string attributeName, TagHelperBinding binding);
+    ImmutableArray<BoundAttributeDescriptor> GetBoundTagHelperAttributes(TagHelperDocumentContext documentContext, string attributeName, TagHelperBinding binding);
 
-    IReadOnlyList<TagHelperDescriptor> GetTagHelpersGivenTag(TagHelperDocumentContext documentContext, string tagName, string? parentTag);
+    ImmutableArray<TagHelperDescriptor> GetTagHelpersGivenTag(TagHelperDocumentContext documentContext, string tagName, string? parentTag);
 
-    IReadOnlyList<TagHelperDescriptor> GetTagHelpersGivenParent(TagHelperDocumentContext documentContext, string? parentTag);
+    ImmutableArray<TagHelperDescriptor> GetTagHelpersGivenParent(TagHelperDocumentContext documentContext, string? parentTag);
 
-    List<KeyValuePair<string, string>> StringifyAttributes(SyntaxList<RazorSyntaxNode> attributes);
+    ImmutableArray<KeyValuePair<string, string>> StringifyAttributes(SyntaxList<RazorSyntaxNode> attributes);
 
     (string? ancestorTagName, bool ancestorIsTagHelper) GetNearestAncestorTagInfo(IEnumerable<SyntaxNode> ancestors);
 }

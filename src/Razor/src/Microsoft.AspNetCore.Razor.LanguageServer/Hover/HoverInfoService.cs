@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -187,9 +188,9 @@ internal sealed class HoverInfoService : IHoverInfoService
         return null;
     }
 
-    private VSInternalHover? AttributeInfoToHover(IEnumerable<BoundAttributeDescriptor> descriptors, Range range, string attributeName, VSInternalClientCapabilities clientCapabilities)
+    private VSInternalHover? AttributeInfoToHover(ImmutableArray<BoundAttributeDescriptor> boundAttributes, Range range, string attributeName, VSInternalClientCapabilities clientCapabilities)
     {
-        var descriptionInfos = descriptors.SelectAsArray(boundAttribute =>
+        var descriptionInfos = boundAttributes.SelectAsArray(boundAttribute =>
         {
             var isIndexer = TagHelperMatchingConventions.SatisfiesBoundAttributeIndexer(attributeName.AsSpan(), boundAttribute);
             return BoundAttributeDescriptionInfo.From(boundAttribute, isIndexer);
