@@ -8,7 +8,7 @@ namespace Microsoft.AspNetCore.Razor.ExternalAccess.LegacyEditor;
 
 internal static partial class RazorWrapperFactory
 {
-    private class TagHelperFactsServiceWrapper(TagHelperFactsService obj) : Wrapper<TagHelperFactsService>(obj), IRazorTagHelperFactsService
+    private class TagHelperFactsServiceWrapper(ITagHelperFactsService obj) : Wrapper<ITagHelperFactsService>(obj), IRazorTagHelperFactsService
     {
         public IRazorTagHelperBinding? GetTagHelperBinding(
             IRazorTagHelperDocumentContext documentContext,

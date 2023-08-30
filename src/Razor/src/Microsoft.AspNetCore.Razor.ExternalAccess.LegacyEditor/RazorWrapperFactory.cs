@@ -167,7 +167,7 @@ internal static partial class RazorWrapperFactory
         => Wrap<TagHelperCompletionService, TagHelperCompletionServiceWrapper, IRazorTagHelperCompletionService>(obj, static obj => new TagHelperCompletionServiceWrapper(obj));
 
     internal static IRazorTagHelperFactsService WrapTagHelperFactsService(object obj)
-        => Wrap<TagHelperFactsService, TagHelperFactsServiceWrapper, IRazorTagHelperFactsService>(obj, static obj => new TagHelperFactsServiceWrapper(obj));
+        => Wrap<ITagHelperFactsService, TagHelperFactsServiceWrapper, IRazorTagHelperFactsService>(obj, static obj => new TagHelperFactsServiceWrapper(obj));
 
     internal static IRazorTagMatchingRuleDescriptor WrapTagMatchingRuleDescriptor(object obj)
         => Wrap<TagMatchingRuleDescriptor, TagMatchingRuleDescriptorWrapper, IRazorTagMatchingRuleDescriptor>(obj, static obj => new TagMatchingRuleDescriptorWrapper(obj));

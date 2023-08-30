@@ -20,14 +20,14 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Hover;
 
 internal sealed class HoverInfoService : IHoverInfoService
 {
-    private readonly TagHelperFactsService _tagHelperFactsService;
+    private readonly ITagHelperFactsService _tagHelperFactsService;
     private readonly LSPTagHelperTooltipFactory _lspTagHelperTooltipFactory;
     private readonly VSLSPTagHelperTooltipFactory _vsLspTagHelperTooltipFactory;
     private readonly HtmlFactsService _htmlFactsService;
 
     [ImportingConstructor]
     public HoverInfoService(
-        TagHelperFactsService tagHelperFactsService,
+        ITagHelperFactsService tagHelperFactsService,
         LSPTagHelperTooltipFactory lspTagHelperTooltipFactory,
         VSLSPTagHelperTooltipFactory vsLspTagHelperTooltipFactory,
         HtmlFactsService htmlFactsService)

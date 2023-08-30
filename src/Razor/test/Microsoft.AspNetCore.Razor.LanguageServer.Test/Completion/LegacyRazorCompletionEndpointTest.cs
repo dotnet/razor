@@ -31,7 +31,7 @@ public class LegacyRazorCompletionEndpointTest : LanguageServerTestBase
         : base(testOutput)
     {
         // Working around strong naming restriction.
-        var tagHelperFactsService = new DefaultTagHelperFactsService();
+        var tagHelperFactsService = new TagHelperFactsService();
         var tagHelperCompletionService = new LanguageServerTagHelperCompletionService(tagHelperFactsService);
 
         var completionProviders = new IRazorCompletionItemProvider[]

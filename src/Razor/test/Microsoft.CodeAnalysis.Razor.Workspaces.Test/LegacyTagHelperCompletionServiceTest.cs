@@ -1352,7 +1352,7 @@ public class LegacyTagHelperCompletionServiceTest : TestBase
 
     private static LegacyTagHelperCompletionService CreateTagHelperCompletionFactsService()
     {
-        var tagHelperFactsService = new DefaultTagHelperFactsService();
+        var tagHelperFactsService = new TagHelperFactsService();
         var completionFactService = new LegacyTagHelperCompletionService(tagHelperFactsService);
 
         return completionFactService;

@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 [Export(typeof(IRazorCompletionItemProvider))]
 internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttributeCompletionItemProviderBase
 {
-    private readonly TagHelperFactsService _tagHelperFactsService;
+    private readonly ITagHelperFactsService _tagHelperFactsService;
 
     [ImportingConstructor]
-    public DirectiveAttributeParameterCompletionItemProvider(TagHelperFactsService tagHelperFactsService)
+    public DirectiveAttributeParameterCompletionItemProvider(ITagHelperFactsService tagHelperFactsService)
     {
         if (tagHelperFactsService is null)
         {

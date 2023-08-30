@@ -18,11 +18,11 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 [Export(typeof(TagHelperCompletionService))]
 internal class LegacyTagHelperCompletionService : TagHelperCompletionService
 {
-    private readonly TagHelperFactsService _tagHelperFactsService;
+    private readonly ITagHelperFactsService _tagHelperFactsService;
     private static readonly HashSet<TagHelperDescriptor> s_emptyHashSet = new();
 
     [ImportingConstructor]
-    public LegacyTagHelperCompletionService(TagHelperFactsService tagHelperFactsService)
+    public LegacyTagHelperCompletionService(ITagHelperFactsService tagHelperFactsService)
     {
         if (tagHelperFactsService is null)
         {

@@ -1407,7 +1407,7 @@ public class LanguageServerTagHelperCompletionServiceTest : TestBase
 
     private static LanguageServerTagHelperCompletionService CreateTagHelperCompletionFactsService()
     {
-        var tagHelperFactsService = new DefaultTagHelperFactsService();
+        var tagHelperFactsService = new TagHelperFactsService();
         var completionFactService = new LanguageServerTagHelperCompletionService(tagHelperFactsService);
 
         return completionFactService;

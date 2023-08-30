@@ -28,13 +28,13 @@ internal class TagHelperCompletionProvider : IRazorCompletionItemProvider
     private static readonly IReadOnlyList<RazorCommitCharacter> s_noCommitCharacters = Array.Empty<RazorCommitCharacter>();
     private readonly HtmlFactsService _htmlFactsService;
     private readonly TagHelperCompletionService _tagHelperCompletionService;
-    private readonly TagHelperFactsService _tagHelperFactsService;
+    private readonly ITagHelperFactsService _tagHelperFactsService;
     private readonly IOptionsMonitor<RazorLSPOptions> _optionsMonitor;
 
     public TagHelperCompletionProvider(
         TagHelperCompletionService tagHelperCompletionService,
         HtmlFactsService htmlFactsService,
-        TagHelperFactsService tagHelperFactsService,
+        ITagHelperFactsService tagHelperFactsService,
         IOptionsMonitor<RazorLSPOptions> optionsMonitor)
     {
         _tagHelperCompletionService = tagHelperCompletionService ?? throw new ArgumentException(nameof(tagHelperCompletionService));

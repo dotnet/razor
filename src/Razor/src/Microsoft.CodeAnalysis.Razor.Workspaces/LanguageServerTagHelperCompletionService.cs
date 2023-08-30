@@ -14,11 +14,11 @@ namespace Microsoft.VisualStudio.Editor.Razor;
 
 internal class LanguageServerTagHelperCompletionService : TagHelperCompletionService
 {
-    private readonly TagHelperFactsService _tagHelperFactsService;
+    private readonly ITagHelperFactsService _tagHelperFactsService;
     private static readonly HashSet<TagHelperDescriptor> s_emptyHashSet = new();
 
     [ImportingConstructor]
-    public LanguageServerTagHelperCompletionService(TagHelperFactsService tagHelperFactsService)
+    public LanguageServerTagHelperCompletionService(ITagHelperFactsService tagHelperFactsService)
     {
         if (tagHelperFactsService is null)
         {
