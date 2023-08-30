@@ -8,7 +8,9 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Test.Common.Logging;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Editor.Razor.Logging;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -27,6 +29,9 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
     public override async Task InitializeAsync()
     {
         await base.InitializeAsync();
+
+        var outputWindowLogger = await TestServices.Shell.GetComponentModelServiceAsync<IOutputWindowLogger>(ControlledHangMitigatingCancellationToken);
+        outputWindowLogger.SetTestLogger(new TestOutputLogger(_testOutputHelper));
 
         await TestServices.Output.LogInformationAsync("Razor integration test initialize.", ControlledHangMitigatingCancellationToken);
 
@@ -99,9 +104,6 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
     public override async Task DisposeAsync()
     {
         await TestServices.Output.LogInformationAsync("Razor integration test dispose.", ControlledHangMitigatingCancellationToken);
-
-        var paneContent = await TestServices.Output.GetRazorOutputPaneContentAsync(CancellationToken.None);
-        _testOutputHelper.WriteLine($"Razor Output Pane Content:{Environment.NewLine}{paneContent}");
 
         await base.DisposeAsync();
     }

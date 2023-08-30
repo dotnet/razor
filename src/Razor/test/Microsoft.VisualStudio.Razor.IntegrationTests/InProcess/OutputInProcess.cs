@@ -21,7 +21,8 @@ internal partial class OutputInProcess
     public async Task LogInformationAsync(string message, CancellationToken cancellationToken)
     {
         var logger = await TestServices.Shell.GetComponentModelServiceAsync<IOutputWindowLogger>(cancellationToken);
-        logger.LogInformation(message);
+        // Lets make the test logs stand out from the real ones a little
+        logger.LogInformation($"------ {message} -------");
     }
 
     public async Task<bool> HasErrorsAsync(CancellationToken cancellationToken)
