@@ -3,9 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-#if DEBUG
 using System.Diagnostics;
-#endif
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
@@ -25,6 +23,13 @@ internal class CSharpVirtualDocument(ProjectKey projectKey, Uri uri, ITextBuffer
 
     public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object? state)
     {
+        if (state is bool previousWasEmpty &&
+            previousWasEmpty &&
+            CurrentSnapshot.Snapshot.Length > 0)
+        {
+            Debug.Fail("The language server is sending us changes for what it thought was an empty file, but our copy is not empty. Generated C# file will probably have duplicated file contents after this update.");
+        }
+
         var result = base.Update(changes, hostDocumentVersion, state);
 
 #if DEBUG

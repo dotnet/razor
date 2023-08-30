@@ -192,6 +192,9 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         var loggers = _outputWindowLogger == null ? new ILogger[] { logHubLogger } : new ILogger[] { logHubLogger, _outputWindowLogger };
         var razorLogger = new LoggerAdapter(loggers, _telemetryReporter, traceSource);
         var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
+
+        _customMessageTarget.SetLogger(razorLogger);
+
         _server = RazorLanguageServerWrapper.Create(
             serverStream,
             serverStream,
