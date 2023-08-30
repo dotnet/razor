@@ -193,9 +193,10 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         var razorLogger = new LoggerAdapter(loggers, _telemetryReporter, traceSource);
         var lspOptions = RazorLSPOptions.From(_clientSettingsManager.GetClientSettings());
 
-        var customMessageLogger = (LogHubLoggerProvider)await _logHubLoggerProviderFactory.GetOrCreateAsync("Razor.CustomMessageTarget", token).ConfigureAwait(false);
-        var logger = customMessageLogger.CreateLogger("CustomMessage");
-        _customMessageTarget.AddLogger(logger);
+        var customMessageLogger = _loggerProvider.CreateLogger("CustomMessage");
+        var customMessageLoggers = _outputWindowLogger == null ? new ILogger[] { logHubLogger } : new ILogger[] { logHubLogger, _outputWindowLogger };
+        var logAdapter = new LoggerAdapter(customMessageLoggers, telemetryReporter: null, traceSource);
+        _customMessageTarget.SetLogger(logAdapter);
 
         _server = RazorLanguageServerWrapper.Create(
             serverStream,
@@ -215,9 +216,9 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
         return connection;
     }
 
-    internal static IEnumerable<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>> GetReleventContainedLanguageClientsAndMetadata(ILanguageServiceBroker2 languageServiceBroker)
+    internal static IEnumerable<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>> GetRelevantContainedLanguageClientsAndMetadata(ILanguageServiceBroker2 languageServiceBroker)
     {
-        var releventClientAndMetadata = new List<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>>();
+        var relevantClientAndMetadata = new List<Lazy<ILanguageClient, LanguageServer.Client.IContentTypeMetadata>>();
 
 #pragma warning disable CS0618 // Type or member is obsolete
         foreach (var languageClientAndMetadata in languageServiceBroker.LanguageClients)
@@ -237,11 +238,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             if (IsCSharpApplicable(metadata) ||
                 metadata.ContentTypes.Contains(RazorLSPConstants.HtmlLSPDelegationContentTypeName))
             {
-                releventClientAndMetadata.Add(languageClientAndMetadata);
+                relevantClientAndMetadata.Add(languageClientAndMetadata);
             }
         }
 
-        return releventClientAndMetadata;
+        return relevantClientAndMetadata;
 
         static bool IsCSharpApplicable(ILanguageClientMetadata metadata)
         {
@@ -252,11 +253,11 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
 
     private async Task EnsureContainedLanguageServersInitializedAsync()
     {
-        var releventClientsAndMetadata = GetReleventContainedLanguageClientsAndMetadata(_languageServiceBroker);
+        var relevantClientsAndMetadata = GetRelevantContainedLanguageClientsAndMetadata(_languageServiceBroker);
 
         var clientLoadTasks = new List<Task>();
 
-        foreach (var languageClientAndMetadata in releventClientsAndMetadata)
+        foreach (var languageClientAndMetadata in relevantClientsAndMetadata)
         {
             if (languageClientAndMetadata.Metadata is not ILanguageClientMetadata metadata)
             {
@@ -308,6 +309,8 @@ internal class RazorLanguageServerClient : ILanguageClient, ILanguageClientCusto
             // Server was already cleaned up
             return;
         }
+
+        _customMessageTarget.SetLogger(logger: null);
 
         if (_server is not null)
         {

@@ -6,7 +6,6 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -123,16 +122,10 @@ internal partial class RazorCustomMessageTarget
         _logger = outputWindowLogger;
     }
 
-    internal void AddLogger(ILogger logger)
+    internal void SetLogger(ILogger? logger)
     {
-        if (_logger is null)
-        {
-            _logger = logger;
-        }
-        else
-        {
-            _logger = new LoggerAdapter(new[] { _logger, logger }, telemetryReporter: null);
-        }
+        // We assume the logger passed in here is better than what ever we might have had
+        _logger = logger;
     }
 
     private async Task<DelegationRequestDetails?> GetProjectedRequestDetailsAsync(IDelegatedParams request, CancellationToken cancellationToken)
