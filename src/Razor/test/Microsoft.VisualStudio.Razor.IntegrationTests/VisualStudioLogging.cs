@@ -192,7 +192,8 @@ internal static class VisualStudioLogging
                 var name = Path.GetFileName(file);
 
                 // Only capture LogHub
-                if (name.Contains(expectedFilePart) && Path.GetExtension(file) == ".zip")
+                if ((name.IndexOf(expectedFilePart, StringComparison.OrdinalIgnoreCase) > -1 || name.IndexOf("Razor", StringComparison.OrdinalIgnoreCase) > -1)
+                    && Path.GetExtension(file) == ".zip")
                 {
                     await Task.Run(() =>
                     {

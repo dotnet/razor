@@ -6,6 +6,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.Telemetry;
@@ -122,10 +123,16 @@ internal partial class RazorCustomMessageTarget
         _logger = outputWindowLogger;
     }
 
-    internal void SetLogger(ILogger logger)
+    internal void AddLogger(ILogger logger)
     {
-        // We expect the logger passed in here to be better than the output window logger we got from DI, so overwrite
-        _logger = logger;
+        if (_logger is null)
+        {
+            _logger = logger;
+        }
+        else
+        {
+            _logger = new LoggerAdapter(new[] { _logger, logger }, telemetryReporter: null);
+        }
     }
 
     private async Task<DelegationRequestDetails?> GetProjectedRequestDetailsAsync(IDelegatedParams request, CancellationToken cancellationToken)
@@ -183,7 +190,7 @@ internal partial class RazorCustomMessageTarget
             return await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(requiredHostDocumentVersion, hostDocument.Uri, cancellationToken).ConfigureAwait(false);
         }
 
-        _logger?.LogDebug("Trying to synchronize to version {version} of {doc} for {project}", requiredHostDocumentVersion, hostDocument.Uri, hostDocument.GetProjectContext()?.Id ?? "(not project context)");
+        _logger?.LogDebug("Trying to synchronize to version {version} of {doc} for {project}", requiredHostDocumentVersion, hostDocument.Uri, hostDocument.GetProjectContext()?.Id ?? "(no project context)");
 
         var virtualDocument = FindVirtualDocument<TVirtualDocumentSnapshot>(hostDocument.Uri, hostDocument.GetProjectContext());
 
