@@ -78,7 +78,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.Null(response.Diagnostics);
@@ -111,7 +111,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.Equal(expectedRange, response.Diagnostics![0].Range);
@@ -147,7 +147,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.Equal(expectedRange, response.Diagnostics![0].Range);
@@ -183,7 +183,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.Equal(expectedRange, response.Diagnostics![0].Range);
@@ -224,7 +224,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.Equal(expectedRange, response.Diagnostics![0].Range);
@@ -263,7 +263,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -301,7 +301,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -340,7 +340,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -379,7 +379,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -418,7 +418,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -456,7 +456,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.Null(response.Diagnostics![0].Range);
@@ -495,7 +495,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.Equal(expectedRange, response.Diagnostics![0].Range);
@@ -532,7 +532,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -570,7 +570,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.Equal(RangeExtensions.UndefinedRange, response.Diagnostics![0].Range);
@@ -604,7 +604,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.Equal(RangeExtensions.UndefinedRange, response.Diagnostics![0].Range);
@@ -638,7 +638,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -678,7 +678,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.Equal(expectedRange, response.Diagnostics![0].Range);
@@ -703,7 +703,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.Equal(request.Diagnostics[0].Range, response.Diagnostics![0].Range);
@@ -728,7 +728,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.Equal(request.Diagnostics[0].Range, response.Diagnostics![0].Range);
@@ -761,7 +761,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -790,7 +790,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -819,7 +819,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -852,7 +852,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -892,7 +892,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -940,7 +940,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -995,7 +995,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -1029,7 +1029,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -1064,7 +1064,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -1096,7 +1096,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -1142,7 +1142,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
@@ -1174,7 +1174,7 @@ public class RazorTranslateDiagnosticsEndpointTest : LanguageServerTestBase
         var requestContext = CreateRazorRequestContext(documentContext);
 
         // Act
-        var response = await Task.Run(() => diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default));
+        var response = await diagnosticsEndpoint.HandleRequestAsync(request, requestContext, default);
 
         // Assert
         Assert.NotNull(response.Diagnostics);
