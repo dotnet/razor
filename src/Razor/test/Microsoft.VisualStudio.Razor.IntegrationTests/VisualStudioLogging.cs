@@ -197,6 +197,7 @@ internal static class VisualStudioLogging
                     await Task.Run(() =>
                     {
                         WaitForFileExists(file);
+                        WaitForFileFinishedWriting(file);
                         if (File.Exists(file))
                         {
                             File.Copy(file, destination);
@@ -219,5 +220,45 @@ internal static class VisualStudioLogging
             // Wait a bit
             Thread.Sleep(100);
         }
+    }
+
+    private static void WaitForFileFinishedWriting(string file)
+    {
+        const int MaxRetries = 50;
+        var retries = 0;
+        while (IsFileLocked(file) && retries < MaxRetries)
+        {
+            retries++;
+            // Free your thread
+            Thread.Yield();
+            // Wait a bit
+            Thread.Sleep(100);
+        }
+    }
+
+    private static bool IsFileLocked(string file)
+    {
+        FileStream? stream = null;
+
+        try
+        {
+            stream = File.Open(file, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        }
+        catch (IOException)
+        {
+            //the file is unavailable because it is:
+            //still being written to
+            //or being processed by another thread
+            //or does not exist (has already been processed)
+            return true;
+        }
+        finally
+        {
+            if (stream != null)
+                stream.Close();
+        }
+
+        //file is not locked
+        return false;
     }
 }
