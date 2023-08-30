@@ -189,12 +189,12 @@ internal sealed class HoverInfoService : IHoverInfoService
 
     private VSInternalHover? AttributeInfoToHover(IEnumerable<BoundAttributeDescriptor> descriptors, Range range, string attributeName, VSInternalClientCapabilities clientCapabilities)
     {
-        var descriptionInfos = descriptors.Select(boundAttribute =>
+        var descriptionInfos = descriptors.SelectAsArray(boundAttribute =>
         {
-            var indexer = TagHelperMatchingConventions.SatisfiesBoundAttributeIndexer(attributeName.AsSpan(), boundAttribute);
-            var descriptionInfo = BoundAttributeDescriptionInfo.From(boundAttribute, indexer);
-            return descriptionInfo;
-        }).ToList().AsReadOnly();
+            var isIndexer = TagHelperMatchingConventions.SatisfiesBoundAttributeIndexer(attributeName.AsSpan(), boundAttribute);
+            return BoundAttributeDescriptionInfo.From(boundAttribute, isIndexer);
+        });
+
         var attrDescriptionInfo = new AggregateBoundAttributeDescription(descriptionInfos);
 
         var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;
@@ -236,9 +236,7 @@ internal sealed class HoverInfoService : IHoverInfoService
 
     private VSInternalHover? ElementInfoToHover(IEnumerable<TagHelperDescriptor> descriptors, Range range, VSInternalClientCapabilities clientCapabilities)
     {
-        var descriptionInfos = descriptors.Select(descriptor => BoundElementDescriptionInfo.From(descriptor))
-            .ToList()
-            .AsReadOnly();
+        var descriptionInfos = descriptors.SelectAsArray(BoundElementDescriptionInfo.From);
         var elementDescriptionInfo = new AggregateBoundElementDescription(descriptionInfos);
 
         var isVSClient = clientCapabilities.SupportsVisualStudioExtensions;

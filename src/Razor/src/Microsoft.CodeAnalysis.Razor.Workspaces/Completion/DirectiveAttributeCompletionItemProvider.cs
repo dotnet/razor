@@ -168,7 +168,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
                 insertText,
                 RazorCompletionItemKind.DirectiveAttribute,
                 commitCharacters: razorCommitCharacters);
-            var completionDescription = new AggregateBoundAttributeDescription(attributeDescriptionInfos.ToArray());
+            var completionDescription = new AggregateBoundAttributeDescription(attributeDescriptionInfos.ToImmutableArray());
             razorCompletionItem.SetAttributeCompletionDescription(completionDescription);
 
             completionItems.Add(razorCompletionItem);
@@ -202,7 +202,7 @@ internal class DirectiveAttributeCompletionItemProvider : DirectiveAttributeComp
 
             var indexerCompletion = attributeName.EndsWith("...", StringComparison.Ordinal);
             var tagHelperTypeName = tagHelperDescriptor.GetTypeName();
-            var descriptionInfo = BoundAttributeDescriptionInfo.From(boundAttributeDescriptor, indexer: indexerCompletion, tagHelperTypeName);
+            var descriptionInfo = BoundAttributeDescriptionInfo.From(boundAttributeDescriptor, isIndexer: indexerCompletion, tagHelperTypeName);
             attributeDescriptionInfos.Add(descriptionInfo);
 
             if (indexerCompletion)

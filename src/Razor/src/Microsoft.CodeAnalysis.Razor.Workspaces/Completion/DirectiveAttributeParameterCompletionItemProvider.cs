@@ -146,7 +146,7 @@ internal class DirectiveAttributeParameterCompletionItemProvider : DirectiveAttr
                 completion.Key,
                 completion.Key,
                 RazorCompletionItemKind.DirectiveAttributeParameter);
-            var completionDescription = new AggregateBoundAttributeDescription(completion.Value.ToArray());
+            var completionDescription = new AggregateBoundAttributeDescription(completion.Value.ToImmutableArray());
             razorCompletionItem.SetAttributeCompletionDescription(completionDescription);
 
             completionItems.Add(razorCompletionItem);
