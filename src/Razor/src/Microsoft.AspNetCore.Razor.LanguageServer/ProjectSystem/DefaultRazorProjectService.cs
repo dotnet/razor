@@ -260,30 +260,6 @@ internal class DefaultRazorProjectService : RazorProjectService
         return hostProject.Key;
     }
 
-    public override void RemoveProject(string filePath)
-    {
-        _projectSnapshotManagerDispatcher.AssertDispatcherThread();
-
-        var normalizedPath = FilePathNormalizer.Normalize(filePath);
-
-        var projectKeys = _projectSnapshotManagerAccessor.Instance.GetAllProjectKeys(normalizedPath);
-        foreach (var projectKey in projectKeys)
-        {
-            var project = (ProjectSnapshot)_projectSnapshotManagerAccessor.Instance.GetLoadedProject(projectKey);
-
-            if (project is null)
-            {
-                // Never tracked the project to begin with, noop.
-                continue;
-            }
-
-            _logger.LogInformation("Removing project '{filePath}' with {key} from project system.", filePath, projectKey);
-            _projectSnapshotManagerAccessor.Instance.ProjectRemoved(project.Key);
-
-            TryMigrateDocumentsFromRemovedProject(project);
-        }
-    }
-
     public override void UpdateProject(
         ProjectKey projectKey,
         RazorConfiguration? configuration,
