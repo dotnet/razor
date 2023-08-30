@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -58,7 +59,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         set { s_fileName.Value = value; }
     }
 
-    protected internal async Task RunFormattingTestAsync(
+    private protected async Task RunFormattingTestAsync(
         string input,
         string expected,
         int tabSize = 4,
@@ -106,7 +107,7 @@ public class FormattingTestBase : RazorIntegrationTestBase
         }
     }
 
-    protected async Task RunOnTypeFormattingTestAsync(
+    private protected async Task RunOnTypeFormattingTestAsync(
         string input,
         string expected,
         char triggerCharacter,
@@ -126,8 +127,9 @@ public class FormattingTestBase : RazorIntegrationTestBase
         var uri = new Uri(path);
         var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
 
+        var filePathService = new FilePathService(TestLanguageServerFeatureOptions.Instance);
         var mappingService = new RazorDocumentMappingService(
-            TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+            filePathService, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
 
         var formattingService = await TestRazorFormattingService.CreateWithFullSupportAsync(codeDocument, documentSnapshot, LoggerFactory, razorLSPOptions);
@@ -184,7 +186,8 @@ public class FormattingTestBase : RazorIntegrationTestBase
         var uri = new Uri(path);
         var (codeDocument, documentSnapshot) = CreateCodeDocumentAndSnapshot(razorSourceText, uri.AbsolutePath, fileKind: fileKind);
 
-        var mappingService = new RazorDocumentMappingService(TestLanguageServerFeatureOptions.Instance, new TestDocumentContextFactory(), LoggerFactory);
+        var filePathService = new FilePathService(TestLanguageServerFeatureOptions.Instance);
+        var mappingService = new RazorDocumentMappingService(filePathService, new TestDocumentContextFactory(), LoggerFactory);
         var languageKind = mappingService.GetLanguageKind(codeDocument, positionAfterTrigger, rightAssociative: false);
         if (languageKind == RazorLanguageKind.Html)
         {

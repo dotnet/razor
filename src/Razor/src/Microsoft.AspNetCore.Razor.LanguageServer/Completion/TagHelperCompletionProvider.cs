@@ -56,6 +56,16 @@ internal class TagHelperCompletionProvider : RazorCompletionItemProvider
         }
 
         var parent = owner.Parent;
+
+        // When overtyping a self closing tag completion happens on "<c$$ />" and the owner is a "misc attribute content"
+        // so we have to navigate back up to the start tag to provide completion. Need to be careful though as we don't
+        // want element completions for <c $$ /> even though the parent node is the same
+        if (parent is MarkupMiscAttributeContentSyntax { Parent: MarkupStartTagSyntax startTag } &&
+            context.AbsoluteIndex == startTag.Name.Span.End)
+        {
+            parent = startTag;
+        }
+
         if (_htmlFactsService.TryGetElementInfo(parent, out var containingTagNameToken, out var attributes) &&
             containingTagNameToken.Span.IntersectsWith(context.AbsoluteIndex))
         {
