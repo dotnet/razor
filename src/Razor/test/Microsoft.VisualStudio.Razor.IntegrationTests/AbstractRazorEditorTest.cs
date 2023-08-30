@@ -104,6 +104,8 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutputHelper
     public override async Task DisposeAsync()
     {
         await TestServices.Output.LogInformationAsync("Razor integration test dispose.", ControlledHangMitigatingCancellationToken);
+        var outputWindowLogger = await TestServices.Shell.GetComponentModelServiceAsync<IOutputWindowLogger>(ControlledHangMitigatingCancellationToken);
+        outputWindowLogger.SetTestLogger(null);
 
         await base.DisposeAsync();
     }

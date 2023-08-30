@@ -7,5 +7,5 @@ namespace Microsoft.VisualStudio.Editor.Razor.Logging;
 
 internal interface IOutputWindowLogger : ILogger
 {
-    void SetTestLogger(ILogger testOutputLogger);
+    void SetTestLogger(ILogger? testOutputLogger);
 }

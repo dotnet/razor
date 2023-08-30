@@ -36,7 +36,7 @@ internal class OutputWindowLogger : IOutputWindowLogger, IDisposable
 
     public IDisposable BeginScope<TState>(TState state) => Scope.Instance;
 
-    public void SetTestLogger(ILogger testLogger)
+    public void SetTestLogger(ILogger? testLogger)
     {
         _testLogger = testLogger;
     }
