@@ -358,8 +358,8 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                     // Walk back accumulating column deltas until we find a start column (indicated by it's line offset being non-zero)
                     for (var j = dataIndex - RazorSemanticTokensInfoService.TokenSize; j >= 0; j -= RazorSemanticTokensInfoService.TokenSize)
                     {
-                        lastTokenCol += data[dataIndex + 1];
-                        if (data[dataIndex] != 0)
+                        lastTokenCol += data[j + 1];
+                        if (data[j] != 0)
                         {
                             break;
                         }

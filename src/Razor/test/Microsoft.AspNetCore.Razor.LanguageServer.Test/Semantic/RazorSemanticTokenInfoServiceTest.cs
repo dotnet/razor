@@ -819,12 +819,34 @@ public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
     {
         // Arrange
         var responseData = new int[][] {
-            new int[] { 0, 0, 2, 1, 1 },
-            new int[] { 1, 0, 2, 1, 0 },
-            new int[] { 2, 0, 4, 2, 3 }
-        };
+             new int[] { 0, 0, 0, 0, 0,
+                         1, 0, 0, 0, 0,
+                         1, 0, 0, 0, 0,
+                         0, 5, 0, 0, 0,
+                         0, 3, 0, 0, 0,
+                         2, 2, 0, 0, 0,
+                         0, 3, 0, 0, 0 },
+             new int[] { 10, 0, 0, 0, 0,
+                         1, 0, 0, 0, 0,
+                         1, 0, 0, 0, 0,
+                         0, 5, 0, 0, 0,
+                         0, 3, 0, 0, 0,
+                         2, 2, 0, 0, 0,
+                         0, 3, 0, 0, 0 },
+             new int[] { 14, 7, 0, 0, 0,
+                         1, 0, 0, 0, 0,
+                         1, 0, 0, 0, 0,
+                         0, 5, 0, 0, 0,
+                         0, 3, 0, 0, 0,
+                         2, 2, 0, 0, 0,
+                         0, 3, 0, 0, 0 },
+         };
 
-        var expectedResponseData = new int[] { 0, 0, 2, 1, 1, 1, 0, 2, 1, 0, 1, 0, 4, 2, 3 };
+        var expectedResponseData = new int[] {
+            0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 3, 0, 0, 0, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0,
+            6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 3, 0, 0, 0, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0,
+            0, 2, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 3, 0, 0, 0, 2, 2, 0, 0, 0, 0, 3, 0, 0, 0
+        };
 
         // Act
         var result = RazorSemanticTokensInfoService.StitchSemanticTokenResponsesTogether(responseData);
