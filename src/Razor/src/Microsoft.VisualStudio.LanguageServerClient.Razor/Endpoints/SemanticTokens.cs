@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.LanguageServer.Common;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using StreamJsonRpc;
@@ -49,8 +50,8 @@ internal partial class RazorCustomMessageTarget
         }
 
         // Ensure the C# ranges are sorted
-        Array.Sort(semanticTokensParams!.Ranges, static (r1, r2) => r1.CompareTo(r2));
-        var requestTasks = new List<Task<ReinvocationResponse<VSSemanticTokensResponse>?>>(semanticTokensParams!.Ranges.Length);
+        Array.Sort(semanticTokensParams.Ranges, static (r1, r2) => r1.CompareTo(r2));
+        using var _ = ListPool<Task<ReinvocationResponse<VSSemanticTokensResponse>?>>.GetPooledObject(out var requestTasks);
 
         semanticTokensParams.TextDocument.Uri = csharpDoc.Uri;
         var textBuffer = csharpDoc.Snapshot.TextBuffer;
@@ -79,10 +80,10 @@ internal partial class RazorCustomMessageTarget
                 }
             });
 
-            requestTasks!.Add(task);
+            requestTasks.Add(task);
         }
 
-        var results = await Task.WhenAll(requestTasks!).ConfigureAwait(false);
+        var results = await Task.WhenAll(requestTasks).ConfigureAwait(false);
         var nonEmptyResults = results.Select(r => r?.Response?.Data).WithoutNull().ToArray();
         if (nonEmptyResults.Length != semanticTokensParams!.Ranges.Length)
         {

@@ -303,8 +303,6 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             parameter,
             cancellationToken).ConfigureAwait(false);
 
-        var stitchedTokens = StitchSemanticTokenResponsesTogether(csharpResponse.Tokens);
-
         if (csharpResponse is null)
         {
             // C# isn't ready yet, don't make Razor wait for it. Once C# is ready they'll send a refresh notification.
@@ -318,15 +316,15 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             return null;
         }
 
-        return stitchedTokens ?? Array.Empty<int>();
+        return StitchSemanticTokenResponsesTogether(csharpResponse.Tokens);;
     }
 
     // Internal for testing
     internal static int[]? StitchSemanticTokenResponsesTogether(int[][]? responseData)
     {
-        if (responseData == null)
+        if (responseData is null || responseData.Length == 0)
         {
-            return null;
+            return Array.Empty<int>();
         }
 
         var count = responseData.Sum(r => r.Length);
@@ -406,7 +404,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             }
         }
 
-        ranges = foundRanges ? csharpRanges.ToArray() : null;
+        ranges = csharpRanges.Count > 0 ? csharpRanges.ToArray() : null;
         return ranges != null;
     }
 

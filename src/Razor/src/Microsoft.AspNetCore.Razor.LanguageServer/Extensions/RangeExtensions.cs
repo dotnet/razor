@@ -179,18 +179,13 @@ internal static class RangeExtensions
 
     public static int CompareTo(this Range range1, Range range2)
     {
-        var startCompare = range1.Start.CompareTo(range2.Start);
-        if (startCompare != 0)
+        var result = range1.Start.CompareTo(range2.Start);
+
+        if (result == 0)
         {
-            return startCompare;
+            result = range1.End.CompareTo(range2.End);
         }
 
-        var endCompare = range1.End.CompareTo(range2.End);
-        if (endCompare != 0)
-        {
-            return endCompare;
-        }
-
-        return 0;
+        return result;
     }
 }

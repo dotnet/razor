@@ -108,28 +108,20 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         var csharpRanges = GetMappedCSharpRanges(codeDocument, razorRange);
         if (csharpRanges is not null)
         {
-            SemanticTokens[]? responses = null;
-            if (UsePreciseSemanticTokenRanges)
+            if (!UsePreciseSemanticTokenRanges)
             {
-                responses = new SemanticTokens[csharpRanges.Length];
-                for (var i = 0; i < csharpRanges.Length; i++)
-                {
-                    var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
-                        Methods.TextDocumentSemanticTokensRangeName,
-                        CreateVSSemanticTokensRangeParams(csharpRanges[i], csharpDocumentUri),
-                        DisposalToken);
-
-                    responses[i] = result;
-                }
+                Assert.Single(csharpRanges);
             }
-            else
+
+            var responses = new SemanticTokens[csharpRanges.Length];
+            for (var i = 0; i < csharpRanges.Length; i++)
             {
-                responses = new SemanticTokens[1];
                 var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
                     Methods.TextDocumentSemanticTokensRangeName,
-                    CreateVSSemanticTokensRangeParams(csharpRanges[0], csharpDocumentUri),
+                    CreateVSSemanticTokensRangeParams(csharpRanges[i], csharpDocumentUri),
                     DisposalToken);
-                responses[0] = result;
+
+                responses[i] = result;
             }
 
             csharpTokens = responses.Select(r => r.Data).ToArray();

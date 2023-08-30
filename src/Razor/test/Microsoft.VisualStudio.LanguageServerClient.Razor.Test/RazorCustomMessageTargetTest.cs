@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions;
 using Microsoft.AspNetCore.Razor.LanguageServer.CodeActions.Models;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.LanguageServer.Protocol;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 using Microsoft.AspNetCore.Razor.LanguageServer.Semantic.Models;
@@ -448,7 +449,7 @@ public class RazorCustomMessageTargetTest : TestBase
     }
 
     [Fact]
-    public async Task ProvideSemanticTokensAsync_ReturnsSemanticTokensAsync()
+    public async Task ProvideSemanticTokensAsync_ContainsRange_ReturnsSemanticTokens()
     {
         // Arrange
         var testDocUri = new Uri("C:/path/to%20-%20project/file.razor");
@@ -465,9 +466,7 @@ public class RazorCustomMessageTargetTest : TestBase
             .Setup(manager => manager.TryGetDocument(testDocUri, out testDocument))
             .Returns(true);
 
-        var expectedCSharpResults = new List<VSSemanticTokensResponse>();
-        var tokenResponse = new VSSemanticTokensResponse();
-        expectedCSharpResults.Add(tokenResponse);
+        var expectedCSharpResults = new VSSemanticTokensResponse() { Data = new int[] { It.IsAny<int>() } };
         var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
         requestInvoker
             .Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
@@ -476,7 +475,69 @@ public class RazorCustomMessageTargetTest : TestBase
                 RazorLSPConstants.RazorCSharpLanguageServerName,
                 It.IsAny<SemanticTokensRangeParams>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ReinvocationResponse<VSSemanticTokensResponse>("languageClient", tokenResponse));
+            .ReturnsAsync(new ReinvocationResponse<VSSemanticTokensResponse>("languageClient", expectedCSharpResults));
+
+        var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
+        documentSynchronizer
+            .Setup(r => r.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+                0,
+                It.IsAny<Uri>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DefaultLSPDocumentSynchronizer.SynchronizedResult<CSharpVirtualDocumentSnapshot>(true, csharpVirtualDocument));
+        var outputWindowLogger = new TestOutputWindowLogger();
+        var telemetryReporter = new Mock<ITelemetryReporter>(MockBehavior.Strict);
+        telemetryReporter.Setup(r => r.BeginBlock(It.IsAny<string>(), It.IsAny<Severity>(), It.IsAny<ImmutableDictionary<string, object>>())).Returns(NullScope.Instance);
+        telemetryReporter.Setup(r => r.TrackLspRequest(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>())).Returns(NullScope.Instance);
+        var csharpVirtualDocumentAddListener = new CSharpVirtualDocumentAddListener(outputWindowLogger);
+
+        var target = new RazorCustomMessageTarget(
+            documentManager.Object, JoinableTaskContext, requestInvoker.Object,
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict), outputWindowLogger);
+        var request = new ProvideSemanticTokensRangesParams(
+            textDocument: new TextDocumentIdentifier()
+            {
+                Uri = new Uri("C:/path/to%20-%20project/file.razor")
+            },
+            requiredHostDocumentVersion: 0,
+            ranges: new[] { new Range() { Start = It.IsAny<Position>(), End = It.IsAny<Position>() } },
+            correlationId: Guid.Empty);
+
+        // Act
+        var result = await target.ProvideSemanticTokensRangesAsync(request, DisposalToken);
+
+        // Assert
+        Assert.Equal(documentVersion, result.HostDocumentSyncVersion);
+        Assert.Equal(new int[][] { expectedCSharpResults.Data }, result.Tokens);
+    }
+
+    [Fact]
+    public async Task ProvideSemanticTokensAsync_EmptyRange_ReturnsNoSemanticTokens()
+    {
+        // Arrange
+        var testDocUri = new Uri("C:/path/to%20-%20project/file.razor");
+        var testVirtualDocUri = new Uri("C:/path/to - project/file2.razor.g");
+        var testCSharpDocUri = new Uri("C:/path/to - project/file.razor.g.cs");
+
+        var documentVersion = 0;
+        var testVirtualDocument = new TestVirtualDocumentSnapshot(testVirtualDocUri, 0);
+        var csharpVirtualDocument = new CSharpVirtualDocumentSnapshot(projectKey: default, testCSharpDocUri, _textBuffer.CurrentSnapshot, 0);
+        LSPDocumentSnapshot testDocument = new TestLSPDocumentSnapshot(testDocUri, documentVersion, testVirtualDocument, csharpVirtualDocument);
+
+        var documentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
+        documentManager
+            .Setup(manager => manager.TryGetDocument(testDocUri, out testDocument))
+            .Returns(true);
+
+        var expectedCSharpResults = new VSSemanticTokensResponse();
+        var requestInvoker = new Mock<LSPRequestInvoker>(MockBehavior.Strict);
+        requestInvoker
+            .Setup(invoker => invoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
+                _textBuffer,
+                Methods.TextDocumentSemanticTokensRangeName,
+                RazorLSPConstants.RazorCSharpLanguageServerName,
+                It.IsAny<SemanticTokensRangeParams>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ReinvocationResponse<VSSemanticTokensResponse>("languageClient", expectedCSharpResults));
 
         var documentSynchronizer = new Mock<LSPDocumentSynchronizer>(MockBehavior.Strict);
         documentSynchronizer
@@ -502,7 +563,7 @@ public class RazorCustomMessageTargetTest : TestBase
             requiredHostDocumentVersion: 0,
             ranges: new[] { new Range() },
             correlationId: Guid.Empty);
-        var expectedResults = new ProvideSemanticTokensResponse(expectedCSharpResults.Select(r => r.Data).ToArray(), documentVersion);
+        var expectedResults = new ProvideSemanticTokensResponse(null, documentVersion);
 
         // Act
         var result = await target.ProvideSemanticTokensRangesAsync(request, DisposalToken);
