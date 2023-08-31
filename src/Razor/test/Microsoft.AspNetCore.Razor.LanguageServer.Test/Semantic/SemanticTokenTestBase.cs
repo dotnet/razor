@@ -94,7 +94,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         return semanticFile.ReadAllText();
     }
 
-    private protected async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(
+    private protected async Task<(ProvideSemanticTokensResponse, Dictionary<Range, int[]>?)> GetCSharpSemanticTokensResponseAsync(
         string documentText, Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
     {
         var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
@@ -106,31 +106,35 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
             csharpSourceText, csharpDocumentUri, SemanticTokensServerCapabilities, SpanMappingService, DisposalToken);
 
         var csharpRanges = GetMappedCSharpRanges(codeDocument, razorRange);
-        if (!UsePreciseSemanticTokenRanges)
-        {
-            Assert.Single(csharpRanges);
-        }
 
+        var perRangeTokens = new Dictionary<Range, int[]>();
         var responses = new SemanticTokens[csharpRanges.Length];
         for (var i = 0; i < csharpRanges.Length; i++)
         {
+            var range = csharpRanges[i];
             var result = await csharpServer.ExecuteRequestAsync<SemanticTokensRangeParams, SemanticTokens>(
                 Methods.TextDocumentSemanticTokensRangeName,
-                CreateVSSemanticTokensRangeParams(csharpRanges[i], csharpDocumentUri),
+                CreateVSSemanticTokensRangeParams(range, csharpDocumentUri),
                 DisposalToken);
 
             responses[i] = result;
+            if (result?.Data is not null)
+            {
+                if (!perRangeTokens.ContainsKey(range))
+                {
+                    perRangeTokens[range] = result.Data;
+                }
+            }
         }
 
-        csharpTokens = responses.Select(r => r.Data).ToArray();
-        return new ProvideSemanticTokensResponse(tokens: csharpTokens, hostDocumentSyncVersion);
+        csharpTokens = responses.Select(r => r.Data).WithoutNull().ToArray();
+        return (new ProvideSemanticTokensResponse(tokens: csharpTokens, hostDocumentSyncVersion), perRangeTokens);
     }
 
     protected Range[] GetMappedCSharpRanges(RazorCodeDocument codeDocument, Range razorRange)
     {
         var documentMappingService = new RazorDocumentMappingService(
             FilePathService, new TestDocumentContextFactory(), LoggerFactory);
-
         if (UsePreciseSemanticTokenRanges)
         {
             if (!RazorSemanticTokensInfoService.TryGetCSharpRanges(codeDocument, razorRange, out var csharpRanges))
