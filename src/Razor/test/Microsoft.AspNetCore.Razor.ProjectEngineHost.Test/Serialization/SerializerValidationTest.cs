@@ -132,12 +132,13 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : TestBase(t
     }
 
     [Theory]
-    [InlineData("Kendo.Mvc.Examples.taghelpers.json")]
-    [InlineData("taghelpers.json")]
-    public void VerifyJson_TagHelpers(string resourceName)
+    [InlineData("Kendo.Mvc.Examples.taghelpers.json", "Benchmarking")]
+    [InlineData("taghelpers.json", "Benchmarking")]
+    [InlineData("BlazorServerApp.TagHelpers.json")]
+    public void VerifyJson_TagHelpers(string resourceName, string? folderName = null)
     {
         // Arrange
-        var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, "Benchmarking");
+        var resourceBytes = RazorTestResources.GetResourceBytes(resourceName, folderName);
 
         // Read tag helpers from JSON
         var originalTagHelpers = ReadTagHelpersFromJsonBytes(resourceBytes);

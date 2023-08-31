@@ -114,13 +114,20 @@ internal static partial class ObjectReaders
 
     public static TagHelperDescriptor ReadTagHelperFromProperties(JsonDataReader reader, bool useCache)
     {
-        // Try reading the optional hashcode
-        var hashWasRead = reader.TryReadInt32(WellKnownPropertyNames.HashCode, out var hash);
-        if (useCache && hashWasRead &&
-            TagHelperDescriptorCache.TryGetDescriptor(hash, out var descriptor))
+        TagHelperDescriptor? descriptor;
+        var checksumWasRead = false;
+
+        // Try reading the optional checksum
+        if (reader.TryReadPropertyName(WellKnownPropertyNames.Checksum))
         {
-            reader.ReadToEndOfCurrentObject();
-            return descriptor;
+            var checksum = ReadChecksum(reader);
+            checksumWasRead = true;
+
+            if (useCache && TagHelperDescriptorCache.TryGetDescriptor(checksum, out descriptor))
+            {
+                reader.ReadToEndOfCurrentObject();
+                return descriptor;
+            }
         }
 
         var kind = reader.ReadNonNullString(nameof(TagHelperDescriptor.Kind));
@@ -146,9 +153,9 @@ internal static partial class ObjectReaders
             tagMatchingRules, boundAttributes, allowedChildTags,
             metadata, diagnostics);
 
-        if (useCache && hashWasRead)
+        if (useCache && checksumWasRead)
         {
-            TagHelperDescriptorCache.Set(hash, descriptor);
+            TagHelperDescriptorCache.Set(descriptor.GetChecksum(), descriptor);
         }
 
         return descriptor;

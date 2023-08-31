@@ -9,8 +9,9 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
+using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
-namespace Microsoft.CodeAnalysis.Razor.Workspaces.Test;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test;
 
 public class TagHelperDescriptorCacheTest(ITestOutputHelper testOutput) : TestBase(testOutput)
 {
@@ -41,10 +42,10 @@ public class TagHelperDescriptorCacheTest(ITestOutputHelper testOutput) : TestBa
         var stringTagHelper = stringTagHelperBuilder.Build();
 
         // Act
-        TagHelperDescriptorCache.Set(TagHelperDescriptorCache.GetTagHelperDescriptorCacheId(intTagHelper), intTagHelper);
+        TagHelperDescriptorCache.Set(intTagHelper.GetChecksum(), intTagHelper);
 
         // Assert
-        Assert.False(TagHelperDescriptorCache.TryGetDescriptor(TagHelperDescriptorCache.GetTagHelperDescriptorCacheId(stringTagHelper), out var descriptor));
+        Assert.False(TagHelperDescriptorCache.TryGetDescriptor(stringTagHelper.GetChecksum(), out var descriptor));
     }
 
     [Fact]
@@ -63,7 +64,7 @@ public class TagHelperDescriptorCacheTest(ITestOutputHelper testOutput) : TestBa
         }
 
         // Act
-        var hashes = new HashSet<int>(tagHelpers.Select(TagHelperDescriptorCache.GetTagHelperDescriptorCacheId));
+        var hashes = new HashSet<Checksum>(tagHelpers.Select(t => t.GetChecksum()));
 
         // Assert
         // Only 1 batch of taghelpers should remain after we filter by cache id
@@ -77,7 +78,7 @@ public class TagHelperDescriptorCacheTest(ITestOutputHelper testOutput) : TestBa
         var tagHelpers = RazorTestResources.BlazorServerAppTagHelpers;
 
         // Act
-        var hashes = new HashSet<int>(tagHelpers.Select(TagHelperDescriptorCache.GetTagHelperDescriptorCacheId));
+        var hashes = new HashSet<Checksum>(tagHelpers.Select(t => t.GetChecksum()));
 
         // Assert
         Assert.Equal(hashes.Count, tagHelpers.Length);
