@@ -25,6 +25,18 @@ internal static class JsonDataConvert
         }
     }
 
+    public static string SerializeData(Action<JsonDataWriter> writeData)
+    {
+        var builder = new StringBuilder();
+
+        using (var writer = new StringWriter(builder))
+        {
+            SerializeData(writer, writeData);
+        }
+
+        return builder.ToString();
+    }
+
     public static void SerializeObject<T>(TextWriter writer, T? value, WriteProperties<T> writeProperties)
     {
         SerializeData(writer, dataWriter => dataWriter.WriteObject(value, writeProperties));
@@ -57,6 +69,13 @@ internal static class JsonDataConvert
         {
             JsonDataReader.Return(dataReader);
         }
+    }
+
+    public static T DeserializeData<T>(string json, Func<JsonDataReader, T> readData)
+    {
+        using var reader = new StringReader(json);
+
+        return DeserializeData(reader, readData);
     }
 
     public static T? DeserializeObject<T>(TextReader reader, ReadProperties<T> readProperties)

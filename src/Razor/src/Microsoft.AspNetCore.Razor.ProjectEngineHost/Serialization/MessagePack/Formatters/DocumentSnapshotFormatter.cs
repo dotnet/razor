@@ -17,9 +17,9 @@ internal sealed class DocumentSnapshotHandleFormatter : MessagePackFormatter<Doc
     {
         reader.ReadArrayHeaderAndVerify(3);
 
-        var filePath = DeserializeString(ref reader, options);
-        var targetPath = DeserializeString(ref reader, options);
-        var fileKind = DeserializeString(ref reader, options);
+        var filePath = reader.DeserializeString(options);
+        var targetPath = reader.DeserializeString(options);
+        var fileKind = reader.DeserializeString(options);
 
         return new DocumentSnapshotHandle(filePath, targetPath, fileKind);
     }

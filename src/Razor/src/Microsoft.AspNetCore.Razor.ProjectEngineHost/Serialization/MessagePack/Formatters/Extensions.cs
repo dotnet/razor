@@ -2,11 +2,20 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using MessagePack;
+using MessagePack.Formatters;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
 internal static class Extensions
 {
+    private static readonly StringInterningFormatter s_stringFormatter = new();
+
+    public static string DeserializeString(this ref MessagePackReader reader, MessagePackSerializerOptions options)
+        => s_stringFormatter.Deserialize(ref reader, options).AssumeNotNull();
+
+    public static string? DeserializeStringOrNull(this ref MessagePackReader reader, MessagePackSerializerOptions options)
+        => s_stringFormatter.Deserialize(ref reader, options);
+
     public static void ReadArrayHeaderAndVerify(this ref MessagePackReader reader, int expectedCount)
     {
         if (reader.NextMessagePackType != MessagePackType.Array)
@@ -22,7 +31,7 @@ internal static class Extensions
         }
     }
 
-    public static void SerializeObject<T>(this ref MessagePackWriter writer, T? value, MessagePackSerializerOptions options)
+    public static void Serialize<T>(this ref MessagePackWriter writer, T? value, MessagePackSerializerOptions options)
         where T : class
     {
         if (value is null)
@@ -34,12 +43,12 @@ internal static class Extensions
         options.Resolver.GetFormatterWithVerify<T>().Serialize(ref writer, value, options);
     }
 
-    public static T DeserializeObject<T>(this ref MessagePackReader reader, MessagePackSerializerOptions options)
+    public static T Deserialize<T>(this ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
         return options.Resolver.GetFormatterWithVerify<T>().Deserialize(ref reader, options);
     }
 
-    public static T? DeserializeObjectOrNull<T>(this ref MessagePackReader reader, MessagePackSerializerOptions options)
+    public static T? DeserializeOrNull<T>(this ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
         if (reader.TryReadNil())
         {

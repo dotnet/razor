@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.VisualStudio.LanguageServices.Razor.Serialization;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test.Serialization;
 
 public class ProjectSnapshotHandleSerializationTest : TestBase
 {

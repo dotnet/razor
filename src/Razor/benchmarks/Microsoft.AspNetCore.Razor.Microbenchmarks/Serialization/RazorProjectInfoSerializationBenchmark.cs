@@ -3,7 +3,6 @@
 
 using System;
 using System.Buffers;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
@@ -24,8 +23,8 @@ public class RazorProjectInfoSerializationBenchmark
 
     private static readonly MessagePackSerializerOptions s_options = MessagePackSerializerOptions.Standard
         .WithResolver(CompositeResolver.Create(
-            RazorResolvers.RazorProjectInfoFormatters,
-            ImmutableArray.Create(StandardResolver.Instance)));
+            RazorProjectInfoResolver.Instance,
+            StandardResolver.Instance));
 
     [ParamsAllValues]
     public ResourceSet ResourceSet { get; set; }
@@ -47,7 +46,7 @@ public class RazorProjectInfoSerializationBenchmark
     private static RazorProjectInfo DeserializeProjectInfo_Json(TextReader reader)
     {
         return JsonDataConvert.DeserializeData(reader,
-            static r => r.ReadNonNullObject(ObjectReaders.ReadRazorProjectInfoFromProperties));
+            static r => r.ReadNonNullObject(ObjectReaders.ReadProjectInfoFromProperties));
     }
 
     private static void SerializeProjectInfo_Json(TextWriter writer, RazorProjectInfo projectInfo)
@@ -110,17 +109,12 @@ public class RazorProjectInfoSerializationBenchmark
 
     private static RazorProjectInfo DeserializeProjectInfo_MessagePack(ReadOnlyMemory<byte> bytes)
     {
-        var reader = new MessagePackReader(bytes);
-        return MessagePackSerializer.Deserialize<RazorProjectInfo>(ref reader, s_options);
+        return MessagePackSerializer.Deserialize<RazorProjectInfo>(bytes, s_options);
     }
 
     private ReadOnlyMemory<byte> SerializeProjectInfo_MessagePack(RazorProjectInfo projectInfo)
     {
-        var writer = new MessagePackWriter(_buffer);
-
-        MessagePackSerializer.Serialize(ref writer, projectInfo, s_options);
-
-        writer.Flush();
+        MessagePackSerializer.Serialize(_buffer, projectInfo, s_options);
 
         return _buffer.WrittenMemory;
     }

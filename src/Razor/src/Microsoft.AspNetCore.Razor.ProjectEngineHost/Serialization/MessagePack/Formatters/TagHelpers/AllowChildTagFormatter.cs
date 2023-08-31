@@ -22,7 +22,7 @@ internal sealed class AllowedChildTagFormatter : MessagePackFormatter<AllowedChi
 
         var name = reader.ReadString(cache);
         var displayName = reader.ReadString(cache);
-        var diagnostics = reader.DeserializeObject<RazorDiagnostic[]>(options);
+        var diagnostics = reader.Deserialize<RazorDiagnostic[]>(options);
 
         return new DefaultAllowedChildTagDescriptor(name, displayName, diagnostics);
     }
@@ -35,6 +35,6 @@ internal sealed class AllowedChildTagFormatter : MessagePackFormatter<AllowedChi
 
         writer.Write(value.Name, cache);
         writer.Write(value.DisplayName, cache);
-        writer.SerializeObject(value.DisplayName, options);
+        writer.Serialize(value.Diagnostics, options);
     }
 }

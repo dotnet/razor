@@ -24,7 +24,9 @@ public class TagHelperSerializationBenchmark
     private ReadOnlyMemory<byte> _tagHelperMessagePackBytes;
 
     private static readonly MessagePackSerializerOptions s_options = MessagePackSerializerOptions.Standard
-        .WithResolver(CompositeResolver.Create(RazorResolvers.TagHelperFormatters, ImmutableArray.Create(StandardResolver.Instance)));
+        .WithResolver(CompositeResolver.Create(
+            TagHelperDeltaResultResolver.Instance,
+            StandardResolver.Instance));
 
     [ParamsAllValues]
     public ResourceSet ResourceSet { get; set; }
@@ -109,20 +111,16 @@ public class TagHelperSerializationBenchmark
 
     private static ImmutableArray<TagHelperDescriptor> DeserializeTagHelpers_MessagePack(ReadOnlyMemory<byte> bytes)
     {
-        var reader = new MessagePackReader(bytes);
         using var cachingOptions = new CachingOptions(s_options);
 
-        return MessagePackSerializer.Deserialize<ImmutableArray<TagHelperDescriptor>>(ref reader, cachingOptions);
+        return MessagePackSerializer.Deserialize<ImmutableArray<TagHelperDescriptor>>(bytes, cachingOptions);
     }
 
     private ReadOnlyMemory<byte> SerializeTagHelpers_MessagePack(ImmutableArray<TagHelperDescriptor> tagHelpers)
     {
-        var writer = new MessagePackWriter(_buffer);
         using var cachingOptions = new CachingOptions(s_options);
 
-        MessagePackSerializer.Serialize(ref writer, tagHelpers, cachingOptions);
-
-        writer.Flush();
+        MessagePackSerializer.Serialize(_buffer, tagHelpers, cachingOptions);
 
         return _buffer.WrittenMemory;
     }

@@ -27,12 +27,12 @@ internal sealed class RazorProjectInfoFormatter : MessagePackFormatter<RazorProj
             throw new RazorProjectInfoSerializationException(SR.Unsupported_razor_project_info_version_encountered);
         }
 
-        var serializedFilePath = DeserializeString(ref reader, options);
-        var filePath = DeserializeString(ref reader, options);
-        var configuration = reader.DeserializeObjectOrNull<RazorConfiguration>(options);
-        var projectWorkspaceState = reader.DeserializeObjectOrNull<ProjectWorkspaceState>(options);
-        var rootNamespace = DeserializeStringOrNull(ref reader, options);
-        var documents = reader.DeserializeObject<ImmutableArray<DocumentSnapshotHandle>>(options);
+        var serializedFilePath = reader.DeserializeString(options);
+        var filePath = reader.DeserializeString(options);
+        var configuration = reader.DeserializeOrNull<RazorConfiguration>(options);
+        var projectWorkspaceState = reader.DeserializeOrNull<ProjectWorkspaceState>(options);
+        var rootNamespace = reader.DeserializeStringOrNull(options);
+        var documents = reader.Deserialize<ImmutableArray<DocumentSnapshotHandle>>(options);
 
         return new RazorProjectInfo(serializedFilePath, filePath, configuration, rootNamespace, projectWorkspaceState, documents);
     }
@@ -44,8 +44,8 @@ internal sealed class RazorProjectInfoFormatter : MessagePackFormatter<RazorProj
         writer.Write(SerializationFormat.Version);
         writer.Write(value.SerializedFilePath);
         writer.Write(value.FilePath);
-        writer.SerializeObject(value.Configuration, options);
-        writer.SerializeObject(value.ProjectWorkspaceState, options);
+        writer.Serialize(value.Configuration, options);
+        writer.Serialize(value.ProjectWorkspaceState, options);
         writer.Write(value.RootNamespace);
         writer.SerializeObject(value.Documents, options);
     }

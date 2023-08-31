@@ -25,16 +25,16 @@ internal sealed class TagHelperFormatter : MessagePackFormatter<TagHelperDescrip
         var assemblyName = reader.ReadString(cache).AssumeNotNull();
 
         var displayName = reader.ReadString(cache);
-        var documentationObject = reader.DeserializeObject<DocumentationObject>(options);
+        var documentationObject = reader.Deserialize<DocumentationObject>(options);
         var tagOutputHint = reader.ReadString(cache);
         var caseSensitive = reader.ReadBoolean();
 
-        var tagMatchingRules = reader.DeserializeObject<TagMatchingRuleDescriptor[]>(options);
-        var boundAttributes = reader.DeserializeObject<BoundAttributeDescriptor[]>(options);
-        var allowedChildTags = reader.DeserializeObject<AllowedChildTagDescriptor[]>(options);
+        var tagMatchingRules = reader.Deserialize<TagMatchingRuleDescriptor[]>(options);
+        var boundAttributes = reader.Deserialize<BoundAttributeDescriptor[]>(options);
+        var allowedChildTags = reader.Deserialize<AllowedChildTagDescriptor[]>(options);
 
-        var metadata = reader.DeserializeObject<MetadataCollection>(options);
-        var diagnostics = reader.DeserializeObject<RazorDiagnostic[]>(options);
+        var metadata = reader.Deserialize<MetadataCollection>(options);
+        var diagnostics = reader.Deserialize<RazorDiagnostic[]>(options);
 
         return new DefaultTagHelperDescriptor(
             kind, name, assemblyName,
@@ -59,11 +59,11 @@ internal sealed class TagHelperFormatter : MessagePackFormatter<TagHelperDescrip
         writer.Write(value.TagOutputHint, cache);
         writer.Write(value.CaseSensitive);
 
-        writer.SerializeObject((TagMatchingRuleDescriptor[])value.TagMatchingRules, options);
-        writer.SerializeObject((BoundAttributeDescriptor[])value.BoundAttributes, options);
-        writer.SerializeObject((AllowedChildTagDescriptor[])value.AllowedChildTags, options);
+        writer.Serialize((TagMatchingRuleDescriptor[])value.TagMatchingRules, options);
+        writer.Serialize((BoundAttributeDescriptor[])value.BoundAttributes, options);
+        writer.Serialize((AllowedChildTagDescriptor[])value.AllowedChildTags, options);
 
-        writer.SerializeObject((MetadataCollection)value.Metadata, options);
-        writer.SerializeObject((RazorDiagnostic[])value.Diagnostics, options);
+        writer.Serialize((MetadataCollection)value.Metadata, options);
+        writer.Serialize((RazorDiagnostic[])value.Diagnostics, options);
     }
 }

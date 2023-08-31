@@ -16,7 +16,7 @@ using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
 
-namespace Microsoft.CodeAnalysis.Remote.Razor.Test;
+namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test.Serialization;
 
 public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput) : TestBase(testOutput)
 {

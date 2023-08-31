@@ -331,7 +331,7 @@ internal static partial class ObjectReaders
         }
     }
 
-    public static RazorProjectInfo ReadRazorProjectInfoFromProperties(JsonDataReader reader)
+    public static RazorProjectInfo ReadProjectInfoFromProperties(JsonDataReader reader)
     {
         if (!reader.TryReadInt32(WellKnownPropertyNames.Version, out var version) || version != SerializationFormat.Version)
         {

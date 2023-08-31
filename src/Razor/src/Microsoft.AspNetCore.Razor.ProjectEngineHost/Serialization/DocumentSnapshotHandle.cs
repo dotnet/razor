@@ -5,7 +5,7 @@ using System;
 
 namespace Microsoft.AspNetCore.Razor.Serialization;
 
-internal sealed class DocumentSnapshotHandle
+internal record DocumentSnapshotHandle
 {
     public string FilePath { get; }
     public string TargetPath { get; }

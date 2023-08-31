@@ -28,8 +28,8 @@ internal sealed class RequiredAttributeFormatter : MessagePackFormatter<Required
         var valueComparison = (ValueComparisonMode)reader.ReadInt32();
         var displayName = reader.ReadString(cache);
 
-        var metadata = reader.DeserializeObject<MetadataCollection>(options);
-        var diagnostics = reader.DeserializeObject<RazorDiagnostic[]>(options);
+        var metadata = reader.Deserialize<MetadataCollection>(options);
+        var diagnostics = reader.Deserialize<RazorDiagnostic[]>(options);
 
         return new DefaultRequiredAttributeDescriptor(
             name, nameComparison,
@@ -51,7 +51,7 @@ internal sealed class RequiredAttributeFormatter : MessagePackFormatter<Required
         writer.Write((int)value.ValueComparison);
         writer.Write(value.DisplayName, cache);
 
-        writer.SerializeObject((MetadataCollection)value.Metadata, options);
-        writer.SerializeObject((RazorDiagnostic[])value.Diagnostics, options);
+        writer.Serialize((MetadataCollection)value.Metadata, options);
+        writer.Serialize((RazorDiagnostic[])value.Diagnostics, options);
     }
 }

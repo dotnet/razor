@@ -20,11 +20,11 @@ internal sealed class RazorDiagnosticFormatter : MessagePackFormatter<RazorDiagn
     {
         reader.ReadArrayHeaderAndVerify(8);
 
-        var id = DeserializeString(ref reader, options);
+        var id = reader.DeserializeString(options);
         var severity = (RazorDiagnosticSeverity)reader.ReadInt32();
-        var message = DeserializeString(ref reader, options);
+        var message = reader.DeserializeString(options);
 
-        var filePath = DeserializeStringOrNull(ref reader, options);
+        var filePath = reader.DeserializeStringOrNull(options);
         var absoluteIndex = reader.ReadInt32();
         var lineIndex = reader.ReadInt32();
         var characterIndex = reader.ReadInt32();

@@ -20,9 +20,9 @@ internal sealed class ProjectSnapshotHandleFormatter : MessagePackFormatter<Proj
     {
         reader.ReadArrayHeaderAndVerify(3);
 
-        var projectIdString = DeserializeString(ref reader, options);
-        var configuration = reader.DeserializeObject<RazorConfiguration>(options);
-        var rootNamespace = DeserializeStringOrNull(ref reader, options);
+        var projectIdString = reader.DeserializeString(options);
+        var configuration = reader.Deserialize<RazorConfiguration>(options);
+        var rootNamespace = reader.DeserializeStringOrNull(options);
 
         var projectId = ProjectId.CreateFromSerialized(Guid.Parse(projectIdString));
 
@@ -34,7 +34,7 @@ internal sealed class ProjectSnapshotHandleFormatter : MessagePackFormatter<Proj
         writer.WriteArrayHeader(3);
 
         writer.Write(value.ProjectId.Id.ToString());
-        writer.SerializeObject(value.Configuration, options);
+        writer.Serialize(value.Configuration, options);
         writer.Write(value.RootNamespace);
     }
 }

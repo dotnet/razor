@@ -25,11 +25,11 @@ internal sealed class BoundAttributeParameterFormatter : MessagePackFormatter<Bo
         var typeName = reader.ReadString(cache);
         var isEnum = reader.ReadBoolean();
         var displayName = reader.ReadString(cache);
-        var documentationObject = reader.DeserializeObject<DocumentationObject>(options);
+        var documentationObject = reader.Deserialize<DocumentationObject>(options);
         var caseSensitive = reader.ReadBoolean();
 
-        var metadata = reader.DeserializeObject<MetadataCollection>(options);
-        var diagnostics = reader.DeserializeObject<RazorDiagnostic[]>(options);
+        var metadata = reader.Deserialize<MetadataCollection>(options);
+        var diagnostics = reader.Deserialize<RazorDiagnostic[]>(options);
 
         return new DefaultBoundAttributeParameterDescriptor(
             kind, name, typeName,
@@ -51,7 +51,7 @@ internal sealed class BoundAttributeParameterFormatter : MessagePackFormatter<Bo
         writer.SerializeObject(value.DocumentationObject, options);
         writer.Write(value.CaseSensitive);
 
-        writer.SerializeObject((MetadataCollection)value.Metadata, options);
-        writer.SerializeObject((RazorDiagnostic[])value.Diagnostics, options);
+        writer.Serialize((MetadataCollection)value.Metadata, options);
+        writer.Serialize((RazorDiagnostic[])value.Diagnostics, options);
     }
 }

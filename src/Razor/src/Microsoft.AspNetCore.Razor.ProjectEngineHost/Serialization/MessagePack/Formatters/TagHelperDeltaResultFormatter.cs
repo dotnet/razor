@@ -24,8 +24,8 @@ internal sealed class TagHelperDeltaResultFormatter : MessagePackFormatter<TagHe
 
         var delta = reader.ReadBoolean();
         var resultId = reader.ReadInt32();
-        var added = reader.DeserializeObject<ImmutableArray<TagHelperDescriptor>>(cachingOptions);
-        var removed = reader.DeserializeObject<ImmutableArray<TagHelperDescriptor>>(cachingOptions);
+        var added = reader.Deserialize<ImmutableArray<TagHelperDescriptor>>(cachingOptions);
+        var removed = reader.Deserialize<ImmutableArray<TagHelperDescriptor>>(cachingOptions);
 
         return new(delta, resultId, added, removed);
     }

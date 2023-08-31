@@ -24,7 +24,7 @@ internal sealed class ProjectWorkspaceStateFormatter : MessagePackFormatter<Proj
 
         using var cachingOptions = new CachingOptions(options);
 
-        var tagHelpers = reader.DeserializeObject<ImmutableArray<TagHelperDescriptor>>(cachingOptions);
+        var tagHelpers = reader.Deserialize<ImmutableArray<TagHelperDescriptor>>(cachingOptions);
         var csharpLanguageVersion = (LanguageVersion)reader.ReadInt32();
 
         return new ProjectWorkspaceState(tagHelpers, csharpLanguageVersion);

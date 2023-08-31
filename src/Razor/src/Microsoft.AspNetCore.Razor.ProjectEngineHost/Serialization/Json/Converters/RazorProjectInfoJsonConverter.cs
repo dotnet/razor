@@ -14,7 +14,7 @@ internal class RazorProjectInfoJsonConverter : ObjectJsonConverter<RazorProjectI
     }
 
     protected override RazorProjectInfo ReadFromProperties(JsonDataReader reader)
-        => ObjectReaders.ReadRazorProjectInfoFromProperties(reader);
+        => ObjectReaders.ReadProjectInfoFromProperties(reader);
 
     protected override void WriteProperties(JsonDataWriter writer, RazorProjectInfo value)
         => ObjectWriters.WriteProperties(writer, value);

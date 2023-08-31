@@ -19,8 +19,8 @@ internal sealed class RazorConfigurationFormatter : MessagePackFormatter<RazorCo
     {
         var count = reader.ReadArrayHeader();
 
-        var configurationName = DeserializeString(ref reader, options);
-        var languageVersionText = DeserializeString(ref reader, options);
+        var configurationName = reader.DeserializeString(options);
+        var languageVersionText = reader.DeserializeString(options);
 
         count -= 2;
 
@@ -28,7 +28,7 @@ internal sealed class RazorConfigurationFormatter : MessagePackFormatter<RazorCo
 
         for (var i = 0; i < count; i++)
         {
-            var extensionName = DeserializeString(ref reader, options);
+            var extensionName = reader.DeserializeString(options);
             builder.Add(new SerializedRazorExtension(extensionName));
         }
 

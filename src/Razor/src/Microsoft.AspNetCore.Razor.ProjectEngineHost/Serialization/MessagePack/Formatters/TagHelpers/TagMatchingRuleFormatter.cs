@@ -24,8 +24,8 @@ internal sealed class TagMatchingRuleFormatter : MessagePackFormatter<TagMatchin
         var parentTag = reader.ReadString(cache);
         var tagStructure = (TagStructure)reader.ReadInt32();
         var caseSensitive = reader.ReadBoolean();
-        var attributes = reader.DeserializeObject<RequiredAttributeDescriptor[]>(options);
-        var diagnostics = reader.DeserializeObject<RazorDiagnostic[]>(options);
+        var attributes = reader.Deserialize<RequiredAttributeDescriptor[]>(options);
+        var diagnostics = reader.Deserialize<RazorDiagnostic[]>(options);
 
         return new DefaultTagMatchingRuleDescriptor(
             tagName, parentTag,
@@ -43,7 +43,7 @@ internal sealed class TagMatchingRuleFormatter : MessagePackFormatter<TagMatchin
         writer.Write(value.ParentTag, cache);
         writer.Write((int)value.TagStructure);
         writer.Write(value.CaseSensitive);
-        writer.SerializeObject((RequiredAttributeDescriptor[])value.Attributes, options);
-        writer.SerializeObject((RazorDiagnostic[])value.Diagnostics, options);
+        writer.Serialize((RequiredAttributeDescriptor[])value.Attributes, options);
+        writer.Serialize((RazorDiagnostic[])value.Diagnostics, options);
     }
 }

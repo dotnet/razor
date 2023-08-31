@@ -28,13 +28,13 @@ internal sealed class BoundAttributeFormatter : MessagePackFormatter<BoundAttrib
         var indexerNamePrefix = reader.ReadString(cache);
         var indexerTypeName = reader.ReadString(cache);
         var displayName = reader.ReadString(cache);
-        var documentationObject = reader.DeserializeObject<DocumentationObject>(options);
+        var documentationObject = reader.Deserialize<DocumentationObject>(options);
         var caseSensitive = reader.ReadBoolean();
         var isEditorRequired = reader.ReadBoolean();
-        var parameters = reader.DeserializeObject<BoundAttributeParameterDescriptor[]>(options);
+        var parameters = reader.Deserialize<BoundAttributeParameterDescriptor[]>(options);
 
-        var metadata = reader.DeserializeObject<MetadataCollection>(options);
-        var diagnostics = reader.DeserializeObject<RazorDiagnostic[]>(options);
+        var metadata = reader.Deserialize<MetadataCollection>(options);
+        var diagnostics = reader.Deserialize<RazorDiagnostic[]>(options);
 
         return new DefaultBoundAttributeDescriptor(
             kind, name, typeName, isEnum,
@@ -60,9 +60,9 @@ internal sealed class BoundAttributeFormatter : MessagePackFormatter<BoundAttrib
         writer.SerializeObject(value.DocumentationObject, options);
         writer.Write(value.CaseSensitive);
         writer.Write(value.IsEditorRequired);
-        writer.SerializeObject(value.BoundAttributeParameters, options);
+        writer.Serialize(value.BoundAttributeParameters, options);
 
-        writer.SerializeObject((MetadataCollection)value.Metadata, options);
-        writer.SerializeObject((RazorDiagnostic[])value.Diagnostics, options);
+        writer.Serialize((MetadataCollection)value.Metadata, options);
+        writer.Serialize((RazorDiagnostic[])value.Diagnostics, options);
     }
 }
