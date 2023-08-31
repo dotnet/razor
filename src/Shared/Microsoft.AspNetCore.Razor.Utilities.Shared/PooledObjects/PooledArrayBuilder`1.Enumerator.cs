@@ -15,7 +15,7 @@ internal ref partial struct PooledArrayBuilder<T>
         private int _index;
         private T? _current;
 
-        public Enumerator(ImmutableArray<T>.Builder? builder)
+        public Enumerator(ImmutableArray<T>.Builder builder)
         {
             _builder = builder;
             _index = 0;
