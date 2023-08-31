@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System;
 using MessagePack;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -18,24 +17,13 @@ internal sealed class RazorConfigurationFormatter : MessagePackFormatter<RazorCo
 
     public override RazorConfiguration Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
+        var count = reader.ReadArrayHeader();
+
         var configurationName = DeserializeString(ref reader, options);
         var languageVersionText = DeserializeString(ref reader, options);
 
-        var count = reader.ReadArrayHeader();
+        count -= 2;
 
-        var extensions = count > 0
-            ? ReadExtensions(ref reader, count, options)
-            : Array.Empty<RazorExtension>();
-
-        var languageVersion = RazorLanguageVersion.TryParse(languageVersionText, out var version)
-            ? version
-            : RazorLanguageVersion.Version_2_1;
-
-        return RazorConfiguration.Create(languageVersion, configurationName, extensions);
-    }
-
-    private RazorExtension[] ReadExtensions(ref MessagePackReader reader, int count, MessagePackSerializerOptions options)
-    {
         using var builder = new PooledArrayBuilder<RazorExtension>();
 
         for (var i = 0; i < count; i++)
@@ -44,11 +32,23 @@ internal sealed class RazorConfigurationFormatter : MessagePackFormatter<RazorCo
             builder.Add(new SerializedRazorExtension(extensionName));
         }
 
-        return builder.ToArray();
+        var extensions = builder.ToArray();
+
+        var languageVersion = RazorLanguageVersion.TryParse(languageVersionText, out var version)
+            ? version
+            : RazorLanguageVersion.Version_2_1;
+
+        return RazorConfiguration.Create(languageVersion, configurationName, extensions);
     }
 
     public override void Serialize(ref MessagePackWriter writer, RazorConfiguration value, MessagePackSerializerOptions options)
     {
+        // Write two values + one value per extension.
+        var extensions = value.Extensions;
+        var count = extensions.Count + 2;
+
+        writer.WriteArrayHeader(count);
+
         writer.Write(value.ConfigurationName);
 
         if (value.LanguageVersion == RazorLanguageVersion.Experimental)
@@ -60,10 +60,7 @@ internal sealed class RazorConfigurationFormatter : MessagePackFormatter<RazorCo
             writer.Write(value.LanguageVersion.ToString());
         }
 
-        var extensions = value.Extensions;
-        var count = extensions.Count;
-
-        writer.WriteArrayHeader(count);
+        count -= 2;
 
         for (var i = 0; i < count; i++)
         {

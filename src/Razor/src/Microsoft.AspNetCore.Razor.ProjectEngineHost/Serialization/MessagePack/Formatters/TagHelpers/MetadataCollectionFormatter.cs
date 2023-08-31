@@ -10,16 +10,18 @@ using System.Collections.Generic;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal sealed class MetadataCollectionFormatter : TagHelperObjectFormatter<MetadataCollection>
+internal sealed class MetadataCollectionFormatter : MessagePackFormatter<MetadataCollection>
 {
-    public static readonly TagHelperObjectFormatter<MetadataCollection> Instance = new MetadataCollectionFormatter();
+    public static readonly MessagePackFormatter<MetadataCollection> Instance = new MetadataCollectionFormatter();
 
     private MetadataCollectionFormatter()
     {
     }
 
-    public override MetadataCollection Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options, TagHelperSerializationCache? cache)
+    public override MetadataCollection Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
+        var cache = options as CachingOptions;
+
         if (cache is not null && reader.NextMessagePackType == MessagePackType.Integer)
         {
             var referenceId = reader.ReadInt32();
@@ -33,8 +35,8 @@ internal sealed class MetadataCollectionFormatter : TagHelperObjectFormatter<Met
 
         for (var i = 0; i < count; i++)
         {
-            var key = reader.ReadString(cache).AssumeNotNull();
-            var value = reader.ReadString(cache);
+            var key = reader.ReadString(options).AssumeNotNull();
+            var value = reader.ReadString(options);
 
             builder.Add(key, value);
         }
@@ -46,8 +48,10 @@ internal sealed class MetadataCollectionFormatter : TagHelperObjectFormatter<Met
         return result;
     }
 
-    public override void Serialize(ref MessagePackWriter writer, MetadataCollection value, MessagePackSerializerOptions options, TagHelperSerializationCache? cache)
+    public override void Serialize(ref MessagePackWriter writer, MetadataCollection value, MessagePackSerializerOptions options)
     {
+        var cache = options as CachingOptions;
+
         if (cache is not null)
         {
             if (cache.Metadata.TryGetReferenceId(value, out var referenceId))

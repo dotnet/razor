@@ -16,6 +16,8 @@ internal sealed class ChecksumFormatter : MessagePackFormatter<Checksum>
 
     public override Checksum Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
+        reader.ReadArrayHeaderAndVerify(4);
+
         var data1 = reader.ReadInt64();
         var data2 = reader.ReadInt64();
         var data3 = reader.ReadInt64();
@@ -28,6 +30,8 @@ internal sealed class ChecksumFormatter : MessagePackFormatter<Checksum>
 
     public override void Serialize(ref MessagePackWriter writer, Checksum value, MessagePackSerializerOptions options)
     {
+        writer.WriteArrayHeader(4);
+
         var hashData = value.Data;
 
         writer.Write(hashData.Data1);

@@ -8,7 +8,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal sealed partial class TagHelperSerializationCache
+internal partial class CachingOptions
 {
     public struct ReferenceMap<T> : IDisposable
         where T : notnull

@@ -15,6 +15,8 @@ internal sealed class DocumentSnapshotHandleFormatter : MessagePackFormatter<Doc
 
     public override DocumentSnapshotHandle Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
+        reader.ReadArrayHeaderAndVerify(3);
+
         var filePath = DeserializeString(ref reader, options);
         var targetPath = DeserializeString(ref reader, options);
         var fileKind = DeserializeString(ref reader, options);
@@ -24,6 +26,8 @@ internal sealed class DocumentSnapshotHandleFormatter : MessagePackFormatter<Doc
 
     public override void Serialize(ref MessagePackWriter writer, DocumentSnapshotHandle value, MessagePackSerializerOptions options)
     {
+        writer.WriteArrayHeader(3);
+
         writer.Write(value.FilePath);
         writer.Write(value.TargetPath);
         writer.Write(value.FileKind);

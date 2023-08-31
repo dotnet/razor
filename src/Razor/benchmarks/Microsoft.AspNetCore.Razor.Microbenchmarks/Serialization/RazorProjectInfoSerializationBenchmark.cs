@@ -1,21 +1,31 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Buffers;
 using System;
+using System.Buffers;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using MessagePack;
+using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization.Json;
-using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
+using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization;
 
 public class RazorProjectInfoSerializationBenchmark
 {
+    [AllowNull]
+    private ArrayBufferWriter<byte> _buffer;
     private ReadOnlyMemory<byte> _projectInfoMessagePackBytes;
+
+    private static readonly MessagePackSerializerOptions s_options = MessagePackSerializerOptions.Standard
+        .WithResolver(CompositeResolver.Create(
+            RazorResolvers.RazorProjectInfoFormatters,
+            ImmutableArray.Create(StandardResolver.Instance)));
 
     [ParamsAllValues]
     public ResourceSet ResourceSet { get; set; }
@@ -94,31 +104,33 @@ public class RazorProjectInfoSerializationBenchmark
     [GlobalSetup(Targets = new[] { nameof(Serialize_MessagePack), nameof(Deserialize_MessagePack), nameof(RoundTrip_MessagePack) })]
     public void GlobalSetup_MessagePack()
     {
+        _buffer = new ArrayBufferWriter<byte>(initialCapacity: 1024 * 1024);
         _projectInfoMessagePackBytes = SerializeProjectInfo_MessagePack(ProjectInfo);
     }
 
     private static RazorProjectInfo DeserializeProjectInfo_MessagePack(ReadOnlyMemory<byte> bytes)
     {
         var reader = new MessagePackReader(bytes);
-
-        return RazorProjectInfoFormatter.Instance.Deserialize(ref reader, MessagePackSerializerOptions.Standard);
+        return MessagePackSerializer.Deserialize<RazorProjectInfo>(ref reader, s_options);
     }
 
-    private static ReadOnlyMemory<byte> SerializeProjectInfo_MessagePack(RazorProjectInfo projectInfo)
+    private ReadOnlyMemory<byte> SerializeProjectInfo_MessagePack(RazorProjectInfo projectInfo)
     {
-        var buffer = new ArrayBufferWriter<byte>();
-        var writer = new MessagePackWriter(buffer);
+        var writer = new MessagePackWriter(_buffer);
 
-        RazorProjectInfoFormatter.Instance.Serialize(ref writer, projectInfo, MessagePackSerializerOptions.Standard);
+        MessagePackSerializer.Serialize(ref writer, projectInfo, s_options);
+
         writer.Flush();
 
-        return buffer.WrittenMemory;
+        return _buffer.WrittenMemory;
     }
 
     [Benchmark(Description = "Serialize ProjectRazorJson (MessagePack)")]
     public void Serialize_MessagePack()
     {
         SerializeProjectInfo_MessagePack(ProjectInfo);
+        _buffer.Clear();
+
     }
 
     [Benchmark(Description = "Deserialize ProjectRazorJson (MessagePack)")]
@@ -138,6 +150,7 @@ public class RazorProjectInfoSerializationBenchmark
     {
         var bytes = SerializeProjectInfo_MessagePack(ProjectInfo);
         var projectInfo = DeserializeProjectInfo_MessagePack(bytes);
+        _buffer.Clear();
 
         if (projectInfo.ProjectWorkspaceState is null ||
             projectInfo.ProjectWorkspaceState.TagHelpers.Length != ProjectInfo.ProjectWorkspaceState?.TagHelpers.Length)

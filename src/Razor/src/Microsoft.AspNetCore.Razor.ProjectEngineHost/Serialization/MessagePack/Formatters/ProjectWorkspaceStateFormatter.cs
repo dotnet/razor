@@ -1,8 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using MessagePack;
-using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,9 +20,11 @@ internal sealed class ProjectWorkspaceStateFormatter : MessagePackFormatter<Proj
 
     public override ProjectWorkspaceState Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
-        using var _ = TagHelperSerializationCache.Pool.GetPooledObject(out var cache);
+        reader.ReadArrayHeaderAndVerify(2);
 
-        var tagHelpers = TagHelperFormatter.Instance.DeserializeImmutableArray(ref reader, options, cache);
+        using var cachingOptions = new CachingOptions(options);
+
+        var tagHelpers = reader.DeserializeObject<ImmutableArray<TagHelperDescriptor>>(cachingOptions);
         var csharpLanguageVersion = (LanguageVersion)reader.ReadInt32();
 
         return new ProjectWorkspaceState(tagHelpers, csharpLanguageVersion);
@@ -29,9 +32,11 @@ internal sealed class ProjectWorkspaceStateFormatter : MessagePackFormatter<Proj
 
     public override void Serialize(ref MessagePackWriter writer, ProjectWorkspaceState value, MessagePackSerializerOptions options)
     {
-        using var _ = TagHelperSerializationCache.Pool.GetPooledObject(out var cache);
+        writer.WriteArrayHeader(2);
 
-        TagHelperFormatter.Instance.SerializeArray(ref writer, value.TagHelpers, options, cache);
+        using var cachingOptions = new CachingOptions(options);
+
+        writer.SerializeObject(value.TagHelpers, cachingOptions);
         writer.Write((int)value.CSharpLanguageVersion);
     }
 }

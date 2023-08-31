@@ -18,11 +18,13 @@ internal sealed class RazorDiagnosticFormatter : MessagePackFormatter<RazorDiagn
 
     public override RazorDiagnostic Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
+        reader.ReadArrayHeaderAndVerify(8);
+
         var id = DeserializeString(ref reader, options);
         var severity = (RazorDiagnosticSeverity)reader.ReadInt32();
         var message = DeserializeString(ref reader, options);
 
-        var filePath = AllowNull.DeserializeString(ref reader, options);
+        var filePath = DeserializeStringOrNull(ref reader, options);
         var absoluteIndex = reader.ReadInt32();
         var lineIndex = reader.ReadInt32();
         var characterIndex = reader.ReadInt32();
@@ -41,6 +43,8 @@ internal sealed class RazorDiagnosticFormatter : MessagePackFormatter<RazorDiagn
 
     public override void Serialize(ref MessagePackWriter writer, RazorDiagnostic value, MessagePackSerializerOptions options)
     {
+        writer.WriteArrayHeader(8);
+
         writer.Write(value.Id);
         writer.Write((int)value.Severity);
         writer.Write(value.GetMessage(CultureInfo.CurrentCulture));

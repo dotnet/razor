@@ -10,20 +10,24 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal sealed class DocumentationObjectFormatter : TagHelperObjectFormatter<DocumentationObject>
+internal sealed class DocumentationObjectFormatter : MessagePackFormatter<DocumentationObject>
 {
-    public static readonly TagHelperObjectFormatter<DocumentationObject> Instance = new DocumentationObjectFormatter();
+    public static readonly MessagePackFormatter<DocumentationObject> Instance = new DocumentationObjectFormatter();
 
     private DocumentationObjectFormatter()
     {
     }
 
-    public override DocumentationObject Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options, TagHelperSerializationCache? cache)
+    public override DocumentationObject Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
         if (reader.TryReadNil())
         {
             return default;
         }
+
+        var cache = options as CachingOptions;
+
+        var count = reader.ReadArrayHeader();
 
         var documentationKind = (DocumentationKind)reader.ReadInt32();
 
@@ -32,14 +36,21 @@ internal sealed class DocumentationObjectFormatter : TagHelperObjectFormatter<Do
             case DocumentationKind.Descriptor:
                 var id = (DocumentationId)reader.ReadInt32();
 
-                var count = reader.ReadArrayHeader();
+                count -= 2;
+
+                // Note: Each argument is stored as two values.
                 var args = count > 0
-                    ? ReadArgs(ref reader, count, cache)
+                    ? ReadArgs(ref reader, count / 2, cache)
                     : Array.Empty<object>();
 
                 return DocumentationDescriptor.From(id, args);
 
             case DocumentationKind.String:
+                if (count != 2)
+                {
+                    throw new MessagePackSerializationException($"Expected array of 2 elements for string documentation, but it was {count}.");
+                }
+
                 return reader.ReadString(cache).AssumeNotNull();
 
             default:
@@ -47,7 +58,7 @@ internal sealed class DocumentationObjectFormatter : TagHelperObjectFormatter<Do
         }
     }
 
-    private object?[] ReadArgs(ref MessagePackReader reader, int count, TagHelperSerializationCache? cache)
+    private static object?[] ReadArgs(ref MessagePackReader reader, int count, CachingOptions? cache)
     {
         using var builder = new PooledArrayBuilder<object?>(capacity: count);
 
@@ -60,7 +71,7 @@ internal sealed class DocumentationObjectFormatter : TagHelperObjectFormatter<Do
         return builder.ToArray();
     }
 
-    private object? ReadArg(ref MessagePackReader reader, TagHelperSerializationCache? cache)
+    private static object? ReadArg(ref MessagePackReader reader, CachingOptions? cache)
     {
         if (reader.TryReadNil())
         {
@@ -79,17 +90,20 @@ internal sealed class DocumentationObjectFormatter : TagHelperObjectFormatter<Do
         };
     }
 
-    public override void Serialize(ref MessagePackWriter writer, DocumentationObject value, MessagePackSerializerOptions options, TagHelperSerializationCache? cache)
+    public override void Serialize(ref MessagePackWriter writer, DocumentationObject value, MessagePackSerializerOptions options)
     {
+        var cache = options as CachingOptions;
+
         switch (value.Object)
         {
             case DocumentationDescriptor descriptor:
+                var args = descriptor.Args;
+                var count = 2 + (args.Length * 2);
+
+                writer.WriteArrayHeader(count);
+
                 writer.Write((int)DocumentationKind.Descriptor);
                 writer.Write((int)descriptor.Id);
-
-                var args = descriptor.Args;
-                var count = args.Length;
-                writer.WriteArrayHeader(count);
 
                 foreach (var arg in args)
                 {
@@ -99,6 +113,7 @@ internal sealed class DocumentationObjectFormatter : TagHelperObjectFormatter<Do
                 break;
 
             case string text:
+                writer.WriteArrayHeader(2);
                 writer.Write((int)DocumentationKind.String);
                 writer.Write(text, cache);
                 break;
@@ -112,7 +127,7 @@ internal sealed class DocumentationObjectFormatter : TagHelperObjectFormatter<Do
                 break;
         }
 
-        static void WriteArg(ref MessagePackWriter writer, object? value, TagHelperSerializationCache? cache)
+        static void WriteArg(ref MessagePackWriter writer, object? value, CachingOptions? cache)
         {
             switch (value)
             {
@@ -132,6 +147,7 @@ internal sealed class DocumentationObjectFormatter : TagHelperObjectFormatter<Do
                     break;
 
                 case null:
+                    writer.Write((int)ArgKind.String);
                     writer.WriteNil();
                     break;
 

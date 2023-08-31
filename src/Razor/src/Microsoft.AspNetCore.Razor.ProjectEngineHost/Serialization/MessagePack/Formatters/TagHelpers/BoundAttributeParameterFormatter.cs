@@ -6,26 +6,30 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal sealed class BoundAttributeParameterFormatter : TagHelperObjectFormatter<BoundAttributeParameterDescriptor>
+internal sealed class BoundAttributeParameterFormatter : MessagePackFormatter<BoundAttributeParameterDescriptor>
 {
-    public static readonly TagHelperObjectFormatter<BoundAttributeParameterDescriptor> Instance = new BoundAttributeParameterFormatter();
+    public static readonly MessagePackFormatter<BoundAttributeParameterDescriptor> Instance = new BoundAttributeParameterFormatter();
 
     private BoundAttributeParameterFormatter()
     {
     }
 
-    public override BoundAttributeParameterDescriptor Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options, TagHelperSerializationCache? cache)
+    public override BoundAttributeParameterDescriptor Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
+        var cache = options as CachingOptions;
+
+        reader.ReadArrayHeaderAndVerify(9);
+
         var kind = reader.ReadString(cache).AssumeNotNull();
         var name = reader.ReadString(cache);
         var typeName = reader.ReadString(cache);
         var isEnum = reader.ReadBoolean();
         var displayName = reader.ReadString(cache);
-        var documentationObject = DocumentationObjectFormatter.Instance.Deserialize(ref reader, options, cache);
+        var documentationObject = reader.DeserializeObject<DocumentationObject>(options);
         var caseSensitive = reader.ReadBoolean();
 
-        var metadata = MetadataCollectionFormatter.Instance.Deserialize(ref reader, options, cache);
-        var diagnostics = RazorDiagnosticFormatter.Instance.DeserializeArray(ref reader, options);
+        var metadata = reader.DeserializeObject<MetadataCollection>(options);
+        var diagnostics = reader.DeserializeObject<RazorDiagnostic[]>(options);
 
         return new DefaultBoundAttributeParameterDescriptor(
             kind, name, typeName,
@@ -33,17 +37,21 @@ internal sealed class BoundAttributeParameterFormatter : TagHelperObjectFormatte
             metadata, diagnostics);
     }
 
-    public override void Serialize(ref MessagePackWriter writer, BoundAttributeParameterDescriptor value, MessagePackSerializerOptions options, TagHelperSerializationCache? cache)
+    public override void Serialize(ref MessagePackWriter writer, BoundAttributeParameterDescriptor value, MessagePackSerializerOptions options)
     {
+        var cache = options as CachingOptions;
+
+        writer.WriteArrayHeader(9);
+
         writer.Write(value.Kind, cache);
         writer.Write(value.Name, cache);
         writer.Write(value.TypeName, cache);
         writer.Write(value.IsEnum);
         writer.Write(value.DisplayName, cache);
-        DocumentationObjectFormatter.Instance.Serialize(ref writer, value.DocumentationObject, options, cache);
+        writer.SerializeObject(value.DocumentationObject, options);
         writer.Write(value.CaseSensitive);
 
-        MetadataCollectionFormatter.Instance.Serialize(ref writer, (MetadataCollection)value.Metadata, options, cache);
-        RazorDiagnosticFormatter.Instance.SerializeArray(ref writer, value.Diagnostics, options);
+        writer.SerializeObject((MetadataCollection)value.Metadata, options);
+        writer.SerializeObject((RazorDiagnostic[])value.Diagnostics, options);
     }
 }

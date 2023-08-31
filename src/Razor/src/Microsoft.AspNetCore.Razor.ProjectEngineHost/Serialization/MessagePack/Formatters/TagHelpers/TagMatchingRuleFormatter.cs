@@ -6,22 +6,26 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal sealed class TagMatchingRuleFormatter : TagHelperObjectFormatter<TagMatchingRuleDescriptor>
+internal sealed class TagMatchingRuleFormatter : MessagePackFormatter<TagMatchingRuleDescriptor>
 {
-    public static readonly TagHelperObjectFormatter<TagMatchingRuleDescriptor> Instance = new TagMatchingRuleFormatter();
+    public static readonly MessagePackFormatter<TagMatchingRuleDescriptor> Instance = new TagMatchingRuleFormatter();
 
     private TagMatchingRuleFormatter()
     {
     }
 
-    public override TagMatchingRuleDescriptor Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options, TagHelperSerializationCache? cache)
+    public override TagMatchingRuleDescriptor Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
+        var cache = options as CachingOptions;
+
+        reader.ReadArrayHeaderAndVerify(6);
+
         var tagName = reader.ReadString(cache).AssumeNotNull();
         var parentTag = reader.ReadString(cache);
         var tagStructure = (TagStructure)reader.ReadInt32();
         var caseSensitive = reader.ReadBoolean();
-        var attributes = RequiredAttributeFormatter.Instance.DeserializeArray(ref reader, options, cache);
-        var diagnostics = RazorDiagnosticFormatter.Instance.DeserializeArray(ref reader, options);
+        var attributes = reader.DeserializeObject<RequiredAttributeDescriptor[]>(options);
+        var diagnostics = reader.DeserializeObject<RazorDiagnostic[]>(options);
 
         return new DefaultTagMatchingRuleDescriptor(
             tagName, parentTag,
@@ -29,13 +33,17 @@ internal sealed class TagMatchingRuleFormatter : TagHelperObjectFormatter<TagMat
             attributes, diagnostics);
     }
 
-    public override void Serialize(ref MessagePackWriter writer, TagMatchingRuleDescriptor value, MessagePackSerializerOptions options, TagHelperSerializationCache? cache)
+    public override void Serialize(ref MessagePackWriter writer, TagMatchingRuleDescriptor value, MessagePackSerializerOptions options)
     {
+        var cache = options as CachingOptions;
+
+        writer.WriteArrayHeader(6);
+
         writer.Write(value.TagName, cache);
         writer.Write(value.ParentTag, cache);
         writer.Write((int)value.TagStructure);
         writer.Write(value.CaseSensitive);
-        RequiredAttributeFormatter.Instance.SerializeArray(ref writer, value.Attributes, options, cache);
-        RazorDiagnosticFormatter.Instance.SerializeArray(ref writer, value.Diagnostics, options);
+        writer.SerializeObject((RequiredAttributeDescriptor[])value.Attributes, options);
+        writer.SerializeObject((RazorDiagnostic[])value.Diagnostics, options);
     }
 }

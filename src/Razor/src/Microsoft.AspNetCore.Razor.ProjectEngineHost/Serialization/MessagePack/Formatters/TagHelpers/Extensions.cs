@@ -7,7 +7,12 @@ namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHel
 
 internal static class Extensions
 {
-    public static string? ReadString(this ref MessagePackReader reader, TagHelperSerializationCache? cache)
+    public static string? ReadString(this ref MessagePackReader reader, MessagePackSerializerOptions options)
+    {
+        return reader.ReadString(options as CachingOptions);
+    }
+
+    public static string? ReadString(this ref MessagePackReader reader, CachingOptions? cache)
     {
         if (cache is null)
         {
@@ -30,7 +35,12 @@ internal static class Extensions
         return result;
     }
 
-    public static void Write(this ref MessagePackWriter writer, string? value, TagHelperSerializationCache? cache)
+    public static void Write(this ref MessagePackWriter writer, string? value, MessagePackSerializerOptions options)
+    {
+        writer.Write(value, options as CachingOptions);
+    }
+
+    public static void Write(this ref MessagePackWriter writer, string? value, CachingOptions? cache)
     {
         if (cache is null)
         {

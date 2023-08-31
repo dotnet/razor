@@ -3,6 +3,7 @@
 
 using System;
 using MessagePack;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
@@ -17,10 +18,11 @@ internal sealed class ProjectSnapshotHandleFormatter : MessagePackFormatter<Proj
 
     public override ProjectSnapshotHandle Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
-        var projectIdString = DeserializeString(ref reader, options);
-        var configuration = RazorConfigurationFormatter.Instance.AllowNull.Deserialize(ref reader, options);
+        reader.ReadArrayHeaderAndVerify(3);
 
-        var rootNamespace = AllowNull.DeserializeString(ref reader, options);
+        var projectIdString = DeserializeString(ref reader, options);
+        var configuration = reader.DeserializeObject<RazorConfiguration>(options);
+        var rootNamespace = DeserializeStringOrNull(ref reader, options);
 
         var projectId = ProjectId.CreateFromSerialized(Guid.Parse(projectIdString));
 
@@ -29,17 +31,10 @@ internal sealed class ProjectSnapshotHandleFormatter : MessagePackFormatter<Proj
 
     public override void Serialize(ref MessagePackWriter writer, ProjectSnapshotHandle value, MessagePackSerializerOptions options)
     {
+        writer.WriteArrayHeader(3);
+
         writer.Write(value.ProjectId.Id.ToString());
-
-        if (value.Configuration is { } configuration)
-        {
-            RazorConfigurationFormatter.Instance.Serialize(ref writer, configuration, options);
-        }
-        else
-        {
-            writer.WriteNil();
-        }
-
+        writer.SerializeObject(value.Configuration, options);
         writer.Write(value.RootNamespace);
     }
 }

@@ -6,16 +6,20 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal sealed class BoundAttributeFormatter : TagHelperObjectFormatter<BoundAttributeDescriptor>
+internal sealed class BoundAttributeFormatter : MessagePackFormatter<BoundAttributeDescriptor>
 {
-    public static readonly TagHelperObjectFormatter<BoundAttributeDescriptor> Instance = new BoundAttributeFormatter();
+    public static readonly MessagePackFormatter<BoundAttributeDescriptor> Instance = new BoundAttributeFormatter();
 
     private BoundAttributeFormatter()
     {
     }
 
-    public override BoundAttributeDescriptor Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options, TagHelperSerializationCache? cache)
+    public override BoundAttributeDescriptor Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
     {
+        var cache = options as CachingOptions;
+
+        reader.ReadArrayHeaderAndVerify(14);
+
         var kind = reader.ReadString(cache).AssumeNotNull();
         var name = reader.ReadString(cache);
         var typeName = reader.ReadString(cache);
@@ -24,13 +28,13 @@ internal sealed class BoundAttributeFormatter : TagHelperObjectFormatter<BoundAt
         var indexerNamePrefix = reader.ReadString(cache);
         var indexerTypeName = reader.ReadString(cache);
         var displayName = reader.ReadString(cache);
-        var documentationObject = DocumentationObjectFormatter.Instance.Deserialize(ref reader, options, cache);
+        var documentationObject = reader.DeserializeObject<DocumentationObject>(options);
         var caseSensitive = reader.ReadBoolean();
         var isEditorRequired = reader.ReadBoolean();
-        var parameters = BoundAttributeParameterFormatter.Instance.DeserializeArray(ref reader, options, cache);
+        var parameters = reader.DeserializeObject<BoundAttributeParameterDescriptor[]>(options);
 
-        var metadata = MetadataCollectionFormatter.Instance.Deserialize(ref reader, options, cache);
-        var diagnostics = RazorDiagnosticFormatter.Instance.DeserializeArray(ref reader, options);
+        var metadata = reader.DeserializeObject<MetadataCollection>(options);
+        var diagnostics = reader.DeserializeObject<RazorDiagnostic[]>(options);
 
         return new DefaultBoundAttributeDescriptor(
             kind, name, typeName, isEnum,
@@ -39,8 +43,12 @@ internal sealed class BoundAttributeFormatter : TagHelperObjectFormatter<BoundAt
             parameters, metadata, diagnostics);
     }
 
-    public override void Serialize(ref MessagePackWriter writer, BoundAttributeDescriptor value, MessagePackSerializerOptions options, TagHelperSerializationCache? cache)
+    public override void Serialize(ref MessagePackWriter writer, BoundAttributeDescriptor value, MessagePackSerializerOptions options)
     {
+        var cache = options as CachingOptions;
+
+        writer.WriteArrayHeader(14);
+
         writer.Write(value.Kind, cache);
         writer.Write(value.Name, cache);
         writer.Write(value.TypeName, cache);
@@ -49,12 +57,12 @@ internal sealed class BoundAttributeFormatter : TagHelperObjectFormatter<BoundAt
         writer.Write(value.IndexerNamePrefix, cache);
         writer.Write(value.IndexerTypeName, cache);
         writer.Write(value.DisplayName, cache);
-        DocumentationObjectFormatter.Instance.Serialize(ref writer, value.DocumentationObject, options, cache);
+        writer.SerializeObject(value.DocumentationObject, options);
         writer.Write(value.CaseSensitive);
         writer.Write(value.IsEditorRequired);
-        BoundAttributeParameterFormatter.Instance.SerializeArray(ref writer, value.BoundAttributeParameters, options, cache);
+        writer.SerializeObject(value.BoundAttributeParameters, options);
 
-        MetadataCollectionFormatter.Instance.Serialize(ref writer, (MetadataCollection)value.Metadata, options, cache);
-        RazorDiagnosticFormatter.Instance.SerializeArray(ref writer, value.Diagnostics, options);
+        writer.SerializeObject((MetadataCollection)value.Metadata, options);
+        writer.SerializeObject((RazorDiagnostic[])value.Diagnostics, options);
     }
 }
