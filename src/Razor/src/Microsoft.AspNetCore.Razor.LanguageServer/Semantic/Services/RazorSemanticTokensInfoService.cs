@@ -75,16 +75,17 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             _logger.LogError(ex, "Error thrown while retrieving CSharp semantic range.");
         }
 
-        var combinedSemanticRanges = CombineSemanticRanges(razorSemanticRanges, csharpSemanticRanges);
-
+        // If we have an incomplete view of the situation we should return null so we avoid flashing.
         // We return null when we have an incomplete view of the document.
         // Likely CSharp ahead of us in terms of document versions.
         // We return null (which to the LSP is a no-op) to prevent flashing of CSharp elements.
-        if (combinedSemanticRanges is null)
+        if (csharpSemanticRanges is null)
         {
             _logger.LogWarning("Incomplete view of document. C# may be ahead of us in document versions.");
             return null;
         }
+
+        var combinedSemanticRanges = CombineSemanticRanges(razorSemanticRanges, csharpSemanticRanges);
 
         var data = ConvertSemanticRangesToSemanticTokensData(combinedSemanticRanges, codeDocument);
         var tokens = new SemanticTokens { Data = data };
@@ -92,12 +93,16 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         return tokens;
     }
 
-    private static List<SemanticRange>? CombineSemanticRanges(List<SemanticRange>? ranges1, List<SemanticRange>? ranges2)
+    private static List<SemanticRange> CombineSemanticRanges(List<SemanticRange> ranges1, List<SemanticRange> ranges2)
     {
-        if (ranges1 is null || ranges2 is null)
+        if (ranges1.Count == 0)
         {
-            // If we have an incomplete view of the situation we should return null so we avoid flashing.
-            return null;
+            return ranges2;
+        }
+
+        if (ranges2.Count == 0)
+        {
+            return ranges1;
         }
 
         var newList = new List<SemanticRange>(ranges1.Count + ranges2.Count);
@@ -320,7 +325,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     }
 
     // Internal for testing
-    internal static int[]? StitchSemanticTokenResponsesTogether(int[][]? responseData)
+    internal static int[] StitchSemanticTokenResponsesTogether(int[][]? responseData)
     {
         if (responseData is null || responseData.Length == 0)
         {
@@ -346,6 +351,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             {
                 // The first two items in result.Data will potentially need it's line/col offset modified
                 var lineDelta = data[dataIndex] - lastTokenLine;
+                Debug.Assert(lineDelta >= 0);
 
                 // Update the first line copied over from curData
                 data[dataIndex] = lineDelta;
@@ -365,6 +371,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                         }
                     }
 
+                    Debug.Assert(lastTokenCol >= 0);
                     data[dataIndex + 1] -= lastTokenCol;
                 }
             }

@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -85,7 +84,7 @@ internal partial class RazorCustomMessageTarget
 
         var results = await Task.WhenAll(requestTasks).ConfigureAwait(false);
         var nonEmptyResults = results.Select(r => r?.Response?.Data).WithoutNull().ToArray();
-        if (nonEmptyResults.Length != semanticTokensParams!.Ranges.Length)
+        if (nonEmptyResults.Length != semanticTokensParams.Ranges.Length)
         {
             // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
             return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);

@@ -569,7 +569,8 @@ public class RazorCustomMessageTargetTest : TestBase
         var result = await target.ProvideSemanticTokensRangesAsync(request, DisposalToken);
 
         // Assert
-        Assert.Equal(expectedResults, result);
+        Assert.Equal(documentVersion, result.HostDocumentSyncVersion);
+        Assert.Equal(null, result.Tokens);
     }
 
     private LSPDocumentSynchronizer GetDocumentSynchronizer(CSharpVirtualDocumentSnapshot csharpDoc = null, HtmlVirtualDocumentSnapshot htmlDoc = null)
