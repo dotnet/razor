@@ -4,6 +4,7 @@
 using System;
 using System.Composition;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
@@ -167,7 +168,8 @@ internal partial class RazorCustomMessageTarget
        int requiredHostDocumentVersion,
        TextDocumentIdentifier hostDocument,
        CancellationToken cancellationToken,
-       bool rejectOnNewerParallelRequest = true)
+       bool rejectOnNewerParallelRequest = true,
+       [CallerMemberName]string? caller = null)
        where TVirtualDocumentSnapshot : VirtualDocumentSnapshot
     {
         // For Html documents we don't do anything fancy, just call the standard service
@@ -177,6 +179,8 @@ internal partial class RazorCustomMessageTarget
         {
             return await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<TVirtualDocumentSnapshot>(requiredHostDocumentVersion, hostDocument.Uri, cancellationToken).ConfigureAwait(false);
         }
+
+        _logger?.LogDebug("Trying to synchronize for {caller} to version {version} of {doc} for {project}", caller, requiredHostDocumentVersion, hostDocument.Uri, hostDocument.GetProjectContext()?.Id ?? "(no project context)");
 
         var virtualDocument = FindVirtualDocument<TVirtualDocumentSnapshot>(hostDocument.Uri, hostDocument.GetProjectContext());
 
