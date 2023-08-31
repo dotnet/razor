@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.Extensions.Internal;
+using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
 #if DEBUG
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ internal sealed record TagHelperDeltaResult(
     bool Delta,
     int ResultId,
     ImmutableArray<TagHelperDescriptor> Added,
-    ImmutableArray<TagHelperDescriptor> Removed)
+    ImmutableArray<Checksum> Removed)
 {
     public ImmutableArray<TagHelperDescriptor> Apply(ImmutableArray<TagHelperDescriptor> baseTagHelpers)
     {
@@ -62,7 +63,7 @@ internal sealed record TagHelperDeltaResult(
         return Delta == other.Delta &&
                ResultId == other.ResultId &&
                Added.SequenceEqual(other.Added, TagHelperChecksumComparer.Instance) &&
-               Removed.SequenceEqual(other.Removed, TagHelperChecksumComparer.Instance);
+               Removed.SequenceEqual(other.Removed);
     }
 
     public override int GetHashCode()
@@ -72,7 +73,7 @@ internal sealed record TagHelperDeltaResult(
         hash.Add(Delta);
         hash.Add(ResultId);
         hash.Add(Added, TagHelperChecksumComparer.Instance);
-        hash.Add(Removed, TagHelperChecksumComparer.Instance);
+        hash.Add(Removed);
 
         return hash.CombinedHash;
     }

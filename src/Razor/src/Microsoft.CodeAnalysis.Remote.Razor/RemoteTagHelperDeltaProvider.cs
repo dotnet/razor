@@ -61,8 +61,7 @@ internal class RemoteTagHelperDeltaProvider
                 resultId = lastResultId;
             }
 
-            var result = new TagHelperDeltaResult(cacheHit, resultId, added, removed);
-            return result;
+            return new TagHelperDeltaResult(cacheHit, resultId, added, removed.SelectAsArray(t => t.GetChecksum()));
         }
     }
 }

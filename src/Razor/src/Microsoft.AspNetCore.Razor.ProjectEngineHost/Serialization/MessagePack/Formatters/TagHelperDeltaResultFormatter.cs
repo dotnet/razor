@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using MessagePack;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
+using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
@@ -25,7 +26,7 @@ internal sealed class TagHelperDeltaResultFormatter : MessagePackFormatter<TagHe
         var delta = reader.ReadBoolean();
         var resultId = reader.ReadInt32();
         var added = reader.Deserialize<ImmutableArray<TagHelperDescriptor>>(cachingOptions);
-        var removed = reader.Deserialize<ImmutableArray<TagHelperDescriptor>>(cachingOptions);
+        var removed = reader.Deserialize<ImmutableArray<Checksum>>(cachingOptions);
 
         return new(delta, resultId, added, removed);
     }

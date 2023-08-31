@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Serialization.Json.Converters;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
@@ -25,12 +26,13 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
     {
         // Arrange
         var tagHelpers = RazorTestResources.BlazorServerAppTagHelpers;
+        var checksums = tagHelpers.SelectAsArray(t => t.GetChecksum());
 
         var expectedResult = new TagHelperDeltaResult(
             Delta: true,
             ResultId: 1,
             Added: tagHelpers,
-            Removed: tagHelpers);
+            Removed: checksums);
 
         var serializer = new JsonSerializer { Converters = { TagHelperDeltaResultJsonConverter.Instance } };
 
@@ -99,7 +101,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
             Delta: true,
             ResultId: 1,
             Added: ImmutableArray.Create(descriptor),
-            Removed: ImmutableArray.Create(descriptor));
+            Removed: ImmutableArray.Create(descriptor.GetChecksum()));
 
         // Act
         var json = JsonConvert.SerializeObject(expectedResult, TagHelperDeltaResultJsonConverter.Instance);
@@ -149,7 +151,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
             Delta: true,
             ResultId: 1,
             Added: ImmutableArray.Create(descriptor),
-            Removed: ImmutableArray.Create(descriptor));
+            Removed: ImmutableArray.Create(descriptor.GetChecksum()));
 
         // Act
         var json = JsonConvert.SerializeObject(expectedResult, TagHelperDeltaResultJsonConverter.Instance);
@@ -197,7 +199,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
             Delta: true,
             ResultId: 1,
             Added: ImmutableArray.Create(descriptor),
-            Removed: ImmutableArray.Create(descriptor));
+            Removed: ImmutableArray.Create(descriptor.GetChecksum()));
 
         // Act
         var json = JsonConvert.SerializeObject(expectedResult, TagHelperDeltaResultJsonConverter.Instance);
@@ -246,7 +248,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
             Delta: true,
             ResultId: 1,
             Added: ImmutableArray.Create(descriptor),
-            Removed: ImmutableArray.Create(descriptor));
+            Removed: ImmutableArray.Create(descriptor.GetChecksum()));
 
         // Act
         var json = JsonConvert.SerializeObject(expectedResult, TagHelperDeltaResultJsonConverter.Instance);

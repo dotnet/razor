@@ -4,9 +4,11 @@
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Serialization;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Remote.Razor.Test;
 using Xunit;
 using Xunit.Abstractions;
+using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -16,7 +18,7 @@ public class TagHelperDeltaResultTest(ITestOutputHelper testOutput) : TagHelperD
     public void Apply_Noop()
     {
         // Arrange
-        var delta = new TagHelperDeltaResult(Delta: true, ResultId: 1337, ImmutableArray<TagHelperDescriptor>.Empty, ImmutableArray<TagHelperDescriptor>.Empty);
+        var delta = new TagHelperDeltaResult(Delta: true, ResultId: 1337, ImmutableArray<TagHelperDescriptor>.Empty, ImmutableArray<Checksum>.Empty);
 
         // Act
         var tagHelpers = delta.Apply(Project1TagHelpers);
@@ -29,7 +31,7 @@ public class TagHelperDeltaResultTest(ITestOutputHelper testOutput) : TagHelperD
     public void Apply_Added()
     {
         // Arrange
-        var delta = new TagHelperDeltaResult(Delta: true, ResultId: 1337, Project1TagHelpers, ImmutableArray<TagHelperDescriptor>.Empty);
+        var delta = new TagHelperDeltaResult(Delta: true, ResultId: 1337, Project1TagHelpers, ImmutableArray<Checksum>.Empty);
 
         // Act
         var tagHelpers = delta.Apply(Project2TagHelpers);
@@ -42,7 +44,7 @@ public class TagHelperDeltaResultTest(ITestOutputHelper testOutput) : TagHelperD
     public void Apply_Removed()
     {
         // Arrange
-        var delta = new TagHelperDeltaResult(Delta: true, ResultId: 1337, ImmutableArray<TagHelperDescriptor>.Empty, Project1TagHelpers);
+        var delta = new TagHelperDeltaResult(Delta: true, ResultId: 1337, ImmutableArray<TagHelperDescriptor>.Empty, Project1TagHelpers.SelectAsArray(t => t.GetChecksum()));
 
         // Act
         var tagHelpers = delta.Apply(Project1AndProject2TagHelpers);
@@ -55,7 +57,7 @@ public class TagHelperDeltaResultTest(ITestOutputHelper testOutput) : TagHelperD
     public void Apply_AddAndRemoved()
     {
         // Arrange
-        var delta = new TagHelperDeltaResult(Delta: true, ResultId: 1337, Project1TagHelpers, Project2TagHelpers);
+        var delta = new TagHelperDeltaResult(Delta: true, ResultId: 1337, Project1TagHelpers, Project2TagHelpers.SelectAsArray(t => t.GetChecksum()));
 
         // Act
         var tagHelpers = delta.Apply(Project2TagHelpers);

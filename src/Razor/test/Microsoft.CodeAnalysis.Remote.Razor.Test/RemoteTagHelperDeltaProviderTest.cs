@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Remote.Razor.Test;
 using Xunit;
 using Xunit.Abstractions;
@@ -72,8 +73,8 @@ public class RemoteTagHelperDeltaProviderTest(ITestOutputHelper testOutput) : Ta
         // Assert
         Assert.True(delta.Delta);
         Assert.Empty(delta.Added);
-        var tagHelper = Assert.Single(delta.Removed);
-        Assert.Equal(TagHelper2_Project1, tagHelper);
+        var checksum = Assert.Single(delta.Removed);
+        Assert.Equal(TagHelper2_Project1.GetChecksum(), checksum);
     }
 
     [Fact]
@@ -151,10 +152,10 @@ public class RemoteTagHelperDeltaProviderTest(ITestOutputHelper testOutput) : Ta
         // Assert - 1
         Assert.True(delta1.Delta);
         Assert.Equal(new[] { TagHelper1_Project2 }, delta1.Added);
-        Assert.Equal(new[] { TagHelper2_Project1 }, delta1.Removed);
+        Assert.Equal(new[] { TagHelper2_Project1.GetChecksum() }, delta1.Removed);
         Assert.True(delta2.Delta);
         Assert.Equal(new[] { TagHelper2_Project1 }, delta2.Added);
-        Assert.Equal(new[] { TagHelper1_Project2 }, delta2.Removed);
+        Assert.Equal(new[] { TagHelper1_Project2.GetChecksum() }, delta2.Removed);
 
         // Act - 2 (restore to original state)
         delta1 = _provider.GetTagHelpersDelta(Project1Id, delta1.ResultId, Project1TagHelpers);
@@ -163,10 +164,10 @@ public class RemoteTagHelperDeltaProviderTest(ITestOutputHelper testOutput) : Ta
         // Assert - 2
         Assert.True(delta1.Delta);
         Assert.Equal(new[] { TagHelper2_Project1 }, delta1.Added);
-        Assert.Equal(new[] { TagHelper1_Project2 }, delta1.Removed);
+        Assert.Equal(new[] { TagHelper1_Project2.GetChecksum() }, delta1.Removed);
         Assert.True(delta2.Delta);
         Assert.Equal(new[] { TagHelper1_Project2 }, delta2.Added);
-        Assert.Equal(new[] { TagHelper2_Project1 }, delta2.Removed);
+        Assert.Equal(new[] { TagHelper2_Project1.GetChecksum() }, delta2.Removed);
 
         // Act - 3 (No-op)
         delta1 = _provider.GetTagHelpersDelta(Project1Id, delta1.ResultId, Project1TagHelpers);

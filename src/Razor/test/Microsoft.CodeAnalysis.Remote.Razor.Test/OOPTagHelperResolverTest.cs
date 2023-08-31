@@ -10,12 +10,14 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Telemetry;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.Test;
 using Moq;
 using Xunit;
 using Xunit.Abstractions;
+using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -144,7 +146,7 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
     {
         // Arrange
         var resolver = new TestResolver(_engineFactory, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance);
-        var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, ImmutableArray<TagHelperDescriptor>.Empty);
+        var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, ImmutableArray<Checksum>.Empty);
 
         // Act
         var tagHelpers = resolver.PublicProduceTagHelpersFromDelta(Project1Id, lastResultId: -1, initialDelta);
@@ -158,10 +160,10 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
     {
         // Arrange
         var resolver = new TestResolver(_engineFactory, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance);
-        var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, ImmutableArray<TagHelperDescriptor>.Empty);
+        var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, ImmutableArray<Checksum>.Empty);
         resolver.PublicProduceTagHelpersFromDelta(Project1Id, lastResultId: -1, initialDelta);
         var newTagHelperSet = ImmutableArray.Create(TagHelper1_Project1);
-        var failedDeltaApplication = new TagHelperDeltaResult(Delta: false, initialDelta.ResultId + 1, newTagHelperSet, ImmutableArray<TagHelperDescriptor>.Empty);
+        var failedDeltaApplication = new TagHelperDeltaResult(Delta: false, initialDelta.ResultId + 1, newTagHelperSet, ImmutableArray<Checksum>.Empty);
 
         // Act
         var tagHelpers = resolver.PublicProduceTagHelpersFromDelta(Project1Id, initialDelta.ResultId, failedDeltaApplication);
@@ -175,9 +177,9 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
     {
         // Arrange
         var resolver = new TestResolver(_engineFactory, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance);
-        var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, ImmutableArray<TagHelperDescriptor>.Empty);
+        var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, ImmutableArray<Checksum>.Empty);
         resolver.PublicProduceTagHelpersFromDelta(Project1Id, lastResultId: -1, initialDelta);
-        var noopDelta = new TagHelperDeltaResult(Delta: true, initialDelta.ResultId, ImmutableArray<TagHelperDescriptor>.Empty, ImmutableArray<TagHelperDescriptor>.Empty);
+        var noopDelta = new TagHelperDeltaResult(Delta: true, initialDelta.ResultId, ImmutableArray<TagHelperDescriptor>.Empty, ImmutableArray<Checksum>.Empty);
 
         // Act
         var tagHelpers = resolver.PublicProduceTagHelpersFromDelta(Project1Id, initialDelta.ResultId, noopDelta);
@@ -191,9 +193,9 @@ public partial class OOPTagHelperResolverTest : TagHelperDescriptorTestBase
     {
         // Arrange
         var resolver = new TestResolver(_engineFactory, ErrorReporter, _workspace, NoOpTelemetryReporter.Instance);
-        var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, ImmutableArray<TagHelperDescriptor>.Empty);
+        var initialDelta = new TagHelperDeltaResult(Delta: false, ResultId: 1, Project1TagHelpers, ImmutableArray<Checksum>.Empty);
         resolver.PublicProduceTagHelpersFromDelta(Project1Id, lastResultId: -1, initialDelta);
-        var changedDelta = new TagHelperDeltaResult(Delta: true, initialDelta.ResultId + 1, ImmutableArray.Create(TagHelper2_Project2), ImmutableArray.Create(TagHelper2_Project1));
+        var changedDelta = new TagHelperDeltaResult(Delta: true, initialDelta.ResultId + 1, ImmutableArray.Create(TagHelper2_Project2), ImmutableArray.Create(TagHelper2_Project1.GetChecksum()));
 
         // Act
         var tagHelpers = resolver.PublicProduceTagHelpersFromDelta(Project1Id, initialDelta.ResultId, changedDelta);
