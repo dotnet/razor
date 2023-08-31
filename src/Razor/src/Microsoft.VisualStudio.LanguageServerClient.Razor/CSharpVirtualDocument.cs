@@ -3,21 +3,22 @@
 
 using System;
 using System.Collections.Generic;
-#if DEBUG
+using System.Collections.Immutable;
 using System.Diagnostics;
-#endif
+using Microsoft.AspNetCore.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-internal class CSharpVirtualDocument(ProjectKey projectKey, Uri uri, ITextBuffer textBuffer)
+internal class CSharpVirtualDocument(ProjectKey projectKey, Uri uri, ITextBuffer textBuffer, ITelemetryReporter? telemetryReporter)
     : VirtualDocumentBase<CSharpVirtualDocumentSnapshot>(uri, textBuffer)
 {
     // NOTE: The base constructor calls GetUpdateSnapshot, so this only works because we're using primary constructors, which
     //       will initialize the field before calling the base constructor.
     private readonly ProjectKey _projectKey = projectKey;
+    private readonly ITelemetryReporter? _telemetryReporter = telemetryReporter;
 
     internal ProjectKey ProjectKey => _projectKey;
 
@@ -25,17 +26,29 @@ internal class CSharpVirtualDocument(ProjectKey projectKey, Uri uri, ITextBuffer
 
     public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object? state)
     {
-        var result = base.Update(changes, hostDocumentVersion, state);
+        var currentSnapshotLength = CurrentSnapshot.Snapshot.Length;
+        if (state is bool previousWasEmpty &&
+            previousWasEmpty != (currentSnapshotLength == 0))
+        {
+            Debug.Fail($"The language server is sending us changes for what it/we thought was an empty file, but their/our copy is not empty. Generated C# file may have corrupted file contents after this update.");
 
-#if DEBUG
-        var text = TextBuffer.CurrentSnapshot.GetText();
+            var recoverable = false;
+            if (previousWasEmpty && changes is [{ OldPosition: 0, OldEnd: 0 } change])
+            {
+                recoverable = true;
+                // The LSP server thought the file was empty, but we have some contents. That's not good, but we can recover
+                // by adjusting the range for the change (which would be (0,0)-(0,0) from the LSP server point of view) to
+                // cover the whole buffer, essentially just taking the LSP server as the source of truth.
+                changes = new[] { new VisualStudioTextChange(0, currentSnapshotLength, change.NewText) };
+            }
 
-        var generatedFileStartIndex = text.IndexOf("#pragma warning disable 1591");
-        var secondGeneratedFileStartIndex = text.IndexOf("#pragma warning disable 1591", generatedFileStartIndex + 20);
+            var data = ImmutableDictionary<string, object?>.Empty
+                .Add("version", hostDocumentVersion)
+                .Add("recoverable", recoverable);
 
-        Debug.Assert(secondGeneratedFileStartIndex == -1, "Generated C# file appears to have duplicated file contents. This could indicate a sync problem between language server and client.");
-#endif
+            _telemetryReporter?.ReportEvent("sync", Severity.High, data);
+        }
 
-        return result;
+        return base.Update(changes, hostDocumentVersion, state);
     }
 }
