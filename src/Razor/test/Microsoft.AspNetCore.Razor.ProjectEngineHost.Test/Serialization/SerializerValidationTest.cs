@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Serialization.Json;
-using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
+using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -42,7 +42,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : TestBase(t
         // Serialize to message pack
         var writer = new ArrayBufferWriter<byte>(initialCapacity: resourceBytes.Length);
 
-        using (var cachingOptions = new CachingOptions(options))
+        using (var cachingOptions = new SerializerCachingOptions(options))
         {
             MessagePackSerializer.Serialize(writer, originalProjectInfo, cachingOptions);
         }
@@ -50,7 +50,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : TestBase(t
         // Deserialize from message pack
         RazorProjectInfo actualProjectInfo;
 
-        using (var cachingOptions = new CachingOptions(options))
+        using (var cachingOptions = new SerializerCachingOptions(options))
         {
             actualProjectInfo = MessagePackSerializer.Deserialize<RazorProjectInfo>(writer.WrittenMemory, cachingOptions);
         }
@@ -85,7 +85,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : TestBase(t
         // Serialize to message pack
         var writer = new ArrayBufferWriter<byte>(initialCapacity: resourceBytes.Length);
 
-        using (var cachingOptions = new CachingOptions(options))
+        using (var cachingOptions = new SerializerCachingOptions(options))
         {
             MessagePackSerializer.Serialize(writer, originalTagHelpers, cachingOptions);
         }
@@ -93,7 +93,7 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : TestBase(t
         // Deserialize from message pack
         ImmutableArray<TagHelperDescriptor> actualTagHelpers;
 
-        using (var cachingOptions = new CachingOptions(options))
+        using (var cachingOptions = new SerializerCachingOptions(options))
         {
             actualTagHelpers = MessagePackSerializer.Deserialize<ImmutableArray<TagHelperDescriptor>>(writer.WrittenMemory, cachingOptions);
         }

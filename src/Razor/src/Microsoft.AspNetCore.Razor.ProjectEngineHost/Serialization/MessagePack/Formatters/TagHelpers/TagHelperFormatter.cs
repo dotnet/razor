@@ -6,27 +6,25 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal sealed class TagHelperFormatter : MessagePackFormatter<TagHelperDescriptor>
+internal sealed class TagHelperFormatter : ValueFormatter<TagHelperDescriptor>
 {
-    public static readonly MessagePackFormatter<TagHelperDescriptor> Instance = new TagHelperFormatter();
+    public static readonly ValueFormatter<TagHelperDescriptor> Instance = new TagHelperFormatter();
 
     private TagHelperFormatter()
     {
     }
 
-    public override TagHelperDescriptor Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    protected override TagHelperDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
-        var cache = options as CachingOptions;
-
         reader.ReadArrayHeaderAndVerify(12);
 
-        var kind = reader.ReadString(cache).AssumeNotNull();
-        var name = reader.ReadString(cache).AssumeNotNull();
-        var assemblyName = reader.ReadString(cache).AssumeNotNull();
+        var kind = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
+        var name = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
+        var assemblyName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
 
-        var displayName = reader.ReadString(cache);
+        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var documentationObject = reader.Deserialize<DocumentationObject>(options);
-        var tagOutputHint = reader.ReadString(cache);
+        var tagOutputHint = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var caseSensitive = reader.ReadBoolean();
 
         var tagMatchingRules = reader.Deserialize<TagMatchingRuleDescriptor[]>(options);
@@ -44,19 +42,17 @@ internal sealed class TagHelperFormatter : MessagePackFormatter<TagHelperDescrip
             metadata, diagnostics);
     }
 
-    public override void Serialize(ref MessagePackWriter writer, TagHelperDescriptor value, MessagePackSerializerOptions options)
+    protected override void Serialize(ref MessagePackWriter writer, TagHelperDescriptor value, SerializerCachingOptions options)
     {
-        var cache = options as CachingOptions;
-
         writer.WriteArrayHeader(12);
 
-        writer.Write(value.Kind, cache);
-        writer.Write(value.Name, cache);
-        writer.Write(value.AssemblyName, cache);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.Kind, options);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.Name, options);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.AssemblyName, options);
 
-        writer.Write(value.DisplayName, cache);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.DisplayName, options);
         writer.SerializeObject(value.DocumentationObject, options);
-        writer.Write(value.TagOutputHint, cache);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.TagOutputHint, options);
         writer.Write(value.CaseSensitive);
 
         writer.Serialize((TagMatchingRuleDescriptor[])value.TagMatchingRules, options);

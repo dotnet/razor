@@ -6,25 +6,23 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal sealed class BoundAttributeParameterFormatter : MessagePackFormatter<BoundAttributeParameterDescriptor>
+internal sealed class BoundAttributeParameterFormatter : ValueFormatter<BoundAttributeParameterDescriptor>
 {
-    public static readonly MessagePackFormatter<BoundAttributeParameterDescriptor> Instance = new BoundAttributeParameterFormatter();
+    public static readonly ValueFormatter<BoundAttributeParameterDescriptor> Instance = new BoundAttributeParameterFormatter();
 
     private BoundAttributeParameterFormatter()
     {
     }
 
-    public override BoundAttributeParameterDescriptor Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    protected override BoundAttributeParameterDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
-        var cache = options as CachingOptions;
-
         reader.ReadArrayHeaderAndVerify(9);
 
-        var kind = reader.ReadString(cache).AssumeNotNull();
-        var name = reader.ReadString(cache);
-        var typeName = reader.ReadString(cache);
+        var kind = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
+        var name = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var typeName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var isEnum = reader.ReadBoolean();
-        var displayName = reader.ReadString(cache);
+        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var documentationObject = reader.Deserialize<DocumentationObject>(options);
         var caseSensitive = reader.ReadBoolean();
 
@@ -37,17 +35,15 @@ internal sealed class BoundAttributeParameterFormatter : MessagePackFormatter<Bo
             metadata, diagnostics);
     }
 
-    public override void Serialize(ref MessagePackWriter writer, BoundAttributeParameterDescriptor value, MessagePackSerializerOptions options)
+    protected override void Serialize(ref MessagePackWriter writer, BoundAttributeParameterDescriptor value, SerializerCachingOptions options)
     {
-        var cache = options as CachingOptions;
-
         writer.WriteArrayHeader(9);
 
-        writer.Write(value.Kind, cache);
-        writer.Write(value.Name, cache);
-        writer.Write(value.TypeName, cache);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.Kind, options);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.Name, options);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.TypeName, options);
         writer.Write(value.IsEnum);
-        writer.Write(value.DisplayName, cache);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.DisplayName, options);
         writer.SerializeObject(value.DocumentationObject, options);
         writer.Write(value.CaseSensitive);
 

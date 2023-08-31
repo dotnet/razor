@@ -6,28 +6,26 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal sealed class BoundAttributeFormatter : MessagePackFormatter<BoundAttributeDescriptor>
+internal sealed class BoundAttributeFormatter : ValueFormatter<BoundAttributeDescriptor>
 {
-    public static readonly MessagePackFormatter<BoundAttributeDescriptor> Instance = new BoundAttributeFormatter();
+    public static readonly ValueFormatter<BoundAttributeDescriptor> Instance = new BoundAttributeFormatter();
 
     private BoundAttributeFormatter()
     {
     }
 
-    public override BoundAttributeDescriptor Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    protected override BoundAttributeDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
-        var cache = options as CachingOptions;
-
         reader.ReadArrayHeaderAndVerify(14);
 
-        var kind = reader.ReadString(cache).AssumeNotNull();
-        var name = reader.ReadString(cache);
-        var typeName = reader.ReadString(cache);
+        var kind = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
+        var name = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var typeName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var isEnum = reader.ReadBoolean();
         var hasIndexer = reader.ReadBoolean();
-        var indexerNamePrefix = reader.ReadString(cache);
-        var indexerTypeName = reader.ReadString(cache);
-        var displayName = reader.ReadString(cache);
+        var indexerNamePrefix = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var indexerTypeName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var documentationObject = reader.Deserialize<DocumentationObject>(options);
         var caseSensitive = reader.ReadBoolean();
         var isEditorRequired = reader.ReadBoolean();
@@ -43,20 +41,18 @@ internal sealed class BoundAttributeFormatter : MessagePackFormatter<BoundAttrib
             parameters, metadata, diagnostics);
     }
 
-    public override void Serialize(ref MessagePackWriter writer, BoundAttributeDescriptor value, MessagePackSerializerOptions options)
+    protected override void Serialize(ref MessagePackWriter writer, BoundAttributeDescriptor value, SerializerCachingOptions options)
     {
-        var cache = options as CachingOptions;
-
         writer.WriteArrayHeader(14);
 
-        writer.Write(value.Kind, cache);
-        writer.Write(value.Name, cache);
-        writer.Write(value.TypeName, cache);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.Kind, options);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.Name, options);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.TypeName, options);
         writer.Write(value.IsEnum);
         writer.Write(value.HasIndexer);
-        writer.Write(value.IndexerNamePrefix, cache);
-        writer.Write(value.IndexerTypeName, cache);
-        writer.Write(value.DisplayName, cache);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.IndexerNamePrefix, options);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.IndexerTypeName, options);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.DisplayName, options);
         writer.SerializeObject(value.DocumentationObject, options);
         writer.Write(value.CaseSensitive);
         writer.Write(value.IsEditorRequired);

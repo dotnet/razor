@@ -4,42 +4,37 @@
 using System.Collections.Immutable;
 using MessagePack;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
-internal sealed class TagHelperDeltaResultFormatter : MessagePackFormatter<TagHelperDeltaResult>
+internal sealed class TagHelperDeltaResultFormatter : TopLevelFormatter<TagHelperDeltaResult>
 {
-    public static readonly MessagePackFormatter<TagHelperDeltaResult> Instance = new TagHelperDeltaResultFormatter();
+    public static readonly TopLevelFormatter<TagHelperDeltaResult> Instance = new TagHelperDeltaResultFormatter();
 
     private TagHelperDeltaResultFormatter()
     {
     }
 
-    public override TagHelperDeltaResult Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    protected override TagHelperDeltaResult Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         reader.ReadArrayHeaderAndVerify(4);
 
-        using var cachingOptions = new CachingOptions(options);
-
         var delta = reader.ReadBoolean();
         var resultId = reader.ReadInt32();
-        var added = reader.Deserialize<ImmutableArray<TagHelperDescriptor>>(cachingOptions);
-        var removed = reader.Deserialize<ImmutableArray<Checksum>>(cachingOptions);
+        var added = reader.Deserialize<ImmutableArray<TagHelperDescriptor>>(options);
+        var removed = reader.Deserialize<ImmutableArray<Checksum>>(options);
 
         return new(delta, resultId, added, removed);
     }
 
-    public override void Serialize(ref MessagePackWriter writer, TagHelperDeltaResult value, MessagePackSerializerOptions options)
+    protected override void Serialize(ref MessagePackWriter writer, TagHelperDeltaResult value, SerializerCachingOptions options)
     {
         writer.WriteArrayHeader(4);
 
-        using var cachingOptions = new CachingOptions(options);
-
         writer.Write(value.Delta);
         writer.Write(value.ResultId);
-        writer.SerializeObject(value.Added, cachingOptions);
-        writer.SerializeObject(value.Removed, cachingOptions);
+        writer.SerializeObject(value.Added, options);
+        writer.SerializeObject(value.Removed, options);
     }
 }

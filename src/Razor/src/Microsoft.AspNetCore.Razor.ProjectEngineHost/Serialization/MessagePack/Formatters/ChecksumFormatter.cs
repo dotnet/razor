@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
-internal sealed class ChecksumFormatter : MessagePackFormatter<Checksum>
+internal sealed class ChecksumFormatter : NonCachingFormatter<Checksum>
 {
-    public static readonly MessagePackFormatter<Checksum> Instance = new ChecksumFormatter();
+    public static readonly NonCachingFormatter<Checksum> Instance = new ChecksumFormatter();
 
     private ChecksumFormatter()
     {

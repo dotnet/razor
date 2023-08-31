@@ -2,20 +2,11 @@
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
 using MessagePack;
-using MessagePack.Formatters;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
 internal static class Extensions
 {
-    private static readonly StringInterningFormatter s_stringFormatter = new();
-
-    public static string DeserializeString(this ref MessagePackReader reader, MessagePackSerializerOptions options)
-        => s_stringFormatter.Deserialize(ref reader, options).AssumeNotNull();
-
-    public static string? DeserializeStringOrNull(this ref MessagePackReader reader, MessagePackSerializerOptions options)
-        => s_stringFormatter.Deserialize(ref reader, options);
-
     public static void ReadArrayHeaderAndVerify(this ref MessagePackReader reader, int expectedCount)
     {
         if (reader.NextMessagePackType != MessagePackType.Array)

@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.Extensions.ObjectPool;
 
-namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
+namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
-internal partial class CachingOptions(MessagePackSerializerOptions copyFrom) : MessagePackSerializerOptions(copyFrom), IDisposable
+internal partial class SerializerCachingOptions(MessagePackSerializerOptions copyFrom) : MessagePackSerializerOptions(copyFrom), IDisposable
 {
     private static readonly ObjectPool<Dictionary<MetadataCollection, int>> s_metadataPool
         = DictionaryPool<MetadataCollection, int>.Default;

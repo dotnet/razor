@@ -10,22 +10,20 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal sealed class DocumentationObjectFormatter : MessagePackFormatter<DocumentationObject>
+internal sealed class DocumentationObjectFormatter : ValueFormatter<DocumentationObject>
 {
-    public static readonly MessagePackFormatter<DocumentationObject> Instance = new DocumentationObjectFormatter();
+    public static readonly ValueFormatter<DocumentationObject> Instance = new DocumentationObjectFormatter();
 
     private DocumentationObjectFormatter()
     {
     }
 
-    public override DocumentationObject Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    protected override DocumentationObject Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         if (reader.TryReadNil())
         {
             return default;
         }
-
-        var cache = options as CachingOptions;
 
         var count = reader.ReadArrayHeader();
 
@@ -40,7 +38,7 @@ internal sealed class DocumentationObjectFormatter : MessagePackFormatter<Docume
 
                 // Note: Each argument is stored as two values.
                 var args = count > 0
-                    ? ReadArgs(ref reader, count / 2, cache)
+                    ? ReadArgs(ref reader, count / 2, options)
                     : Array.Empty<object>();
 
                 return DocumentationDescriptor.From(id, args);
@@ -51,27 +49,27 @@ internal sealed class DocumentationObjectFormatter : MessagePackFormatter<Docume
                     throw new MessagePackSerializationException($"Expected array of 2 elements for string documentation, but it was {count}.");
                 }
 
-                return reader.ReadString(cache).AssumeNotNull();
+                return CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
 
             default:
                 throw new NotSupportedException(SR.FormatUnsupported_argument_kind(documentationKind));
         }
     }
 
-    private static object?[] ReadArgs(ref MessagePackReader reader, int count, CachingOptions? cache)
+    private static object?[] ReadArgs(ref MessagePackReader reader, int count, SerializerCachingOptions options)
     {
         using var builder = new PooledArrayBuilder<object?>(capacity: count);
 
         for (var i = 0; i < count; i++)
         {
-            var item = ReadArg(ref reader, cache);
+            var item = ReadArg(ref reader, options);
             builder.Add(item);
         }
 
         return builder.ToArray();
     }
 
-    private static object? ReadArg(ref MessagePackReader reader, CachingOptions? cache)
+    private static object? ReadArg(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         if (reader.TryReadNil())
         {
@@ -82,7 +80,7 @@ internal sealed class DocumentationObjectFormatter : MessagePackFormatter<Docume
 
         return argKind switch
         {
-            ArgKind.String => reader.ReadString(cache),
+            ArgKind.String => CachedStringFormatter.Instance.Deserialize(ref reader, options),
             ArgKind.Integer => reader.ReadInt32(),
             ArgKind.Boolean => reader.ReadBoolean(),
 
@@ -90,10 +88,8 @@ internal sealed class DocumentationObjectFormatter : MessagePackFormatter<Docume
         };
     }
 
-    public override void Serialize(ref MessagePackWriter writer, DocumentationObject value, MessagePackSerializerOptions options)
+    protected override void Serialize(ref MessagePackWriter writer, DocumentationObject value, SerializerCachingOptions options)
     {
-        var cache = options as CachingOptions;
-
         switch (value.Object)
         {
             case DocumentationDescriptor descriptor:
@@ -107,7 +103,7 @@ internal sealed class DocumentationObjectFormatter : MessagePackFormatter<Docume
 
                 foreach (var arg in args)
                 {
-                    WriteArg(ref writer, arg, cache);
+                    WriteArg(ref writer, arg, options);
                 }
 
                 break;
@@ -115,7 +111,7 @@ internal sealed class DocumentationObjectFormatter : MessagePackFormatter<Docume
             case string text:
                 writer.WriteArrayHeader(2);
                 writer.Write((int)DocumentationKind.String);
-                writer.Write(text, cache);
+                CachedStringFormatter.Instance.Serialize(ref writer, text, options);
                 break;
 
             case null:
@@ -127,13 +123,13 @@ internal sealed class DocumentationObjectFormatter : MessagePackFormatter<Docume
                 break;
         }
 
-        static void WriteArg(ref MessagePackWriter writer, object? value, CachingOptions? cache)
+        static void WriteArg(ref MessagePackWriter writer, object? value, SerializerCachingOptions options)
         {
             switch (value)
             {
                 case string s:
                     writer.Write((int)ArgKind.String);
-                    writer.Write(s, cache);
+                    CachedStringFormatter.Instance.Serialize(ref writer, s, options);
                     break;
 
                 case int i:

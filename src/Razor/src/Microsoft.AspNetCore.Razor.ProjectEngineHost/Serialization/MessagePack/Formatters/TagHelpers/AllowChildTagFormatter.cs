@@ -6,35 +6,31 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal sealed class AllowedChildTagFormatter : MessagePackFormatter<AllowedChildTagDescriptor>
+internal sealed class AllowedChildTagFormatter : ValueFormatter<AllowedChildTagDescriptor>
 {
-    public static readonly MessagePackFormatter<AllowedChildTagDescriptor> Instance = new AllowedChildTagFormatter();
+    public static readonly ValueFormatter<AllowedChildTagDescriptor> Instance = new AllowedChildTagFormatter();
 
     private AllowedChildTagFormatter()
     {
     }
 
-    public override AllowedChildTagDescriptor Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    protected override AllowedChildTagDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
-        var cache = options as CachingOptions;
-
         reader.ReadArrayHeaderAndVerify(3);
 
-        var name = reader.ReadString(cache);
-        var displayName = reader.ReadString(cache);
+        var name = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var diagnostics = reader.Deserialize<RazorDiagnostic[]>(options);
 
         return new DefaultAllowedChildTagDescriptor(name, displayName, diagnostics);
     }
 
-    public override void Serialize(ref MessagePackWriter writer, AllowedChildTagDescriptor value, MessagePackSerializerOptions options)
+    protected override void Serialize(ref MessagePackWriter writer, AllowedChildTagDescriptor value, SerializerCachingOptions options)
     {
-        var cache = options as CachingOptions;
-
         writer.WriteArrayHeader(3);
 
-        writer.Write(value.Name, cache);
-        writer.Write(value.DisplayName, cache);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.Name, options);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.DisplayName, options);
         writer.Serialize(value.Diagnostics, options);
     }
 }

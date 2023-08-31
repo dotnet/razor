@@ -8,15 +8,15 @@ using Microsoft.AspNetCore.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
-internal sealed class RazorProjectInfoFormatter : MessagePackFormatter<RazorProjectInfo>
+internal sealed class RazorProjectInfoFormatter : TopLevelFormatter<RazorProjectInfo>
 {
-    public static readonly MessagePackFormatter<RazorProjectInfo> Instance = new RazorProjectInfoFormatter();
+    public static readonly TopLevelFormatter<RazorProjectInfo> Instance = new RazorProjectInfoFormatter();
 
     private RazorProjectInfoFormatter()
     {
     }
 
-    public override RazorProjectInfo Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    protected override RazorProjectInfo Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         reader.ReadArrayHeaderAndVerify(7);
 
@@ -27,26 +27,26 @@ internal sealed class RazorProjectInfoFormatter : MessagePackFormatter<RazorProj
             throw new RazorProjectInfoSerializationException(SR.Unsupported_razor_project_info_version_encountered);
         }
 
-        var serializedFilePath = reader.DeserializeString(options);
-        var filePath = reader.DeserializeString(options);
+        var serializedFilePath = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
+        var filePath = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var configuration = reader.DeserializeOrNull<RazorConfiguration>(options);
         var projectWorkspaceState = reader.DeserializeOrNull<ProjectWorkspaceState>(options);
-        var rootNamespace = reader.DeserializeStringOrNull(options);
+        var rootNamespace = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var documents = reader.Deserialize<ImmutableArray<DocumentSnapshotHandle>>(options);
 
         return new RazorProjectInfo(serializedFilePath, filePath, configuration, rootNamespace, projectWorkspaceState, documents);
     }
 
-    public override void Serialize(ref MessagePackWriter writer, RazorProjectInfo value, MessagePackSerializerOptions options)
+    protected override void Serialize(ref MessagePackWriter writer, RazorProjectInfo value, SerializerCachingOptions options)
     {
         writer.WriteArrayHeader(7);
 
         writer.Write(SerializationFormat.Version);
-        writer.Write(value.SerializedFilePath);
-        writer.Write(value.FilePath);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.SerializedFilePath, options);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.FilePath, options);
         writer.Serialize(value.Configuration, options);
         writer.Serialize(value.ProjectWorkspaceState, options);
-        writer.Write(value.RootNamespace);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.RootNamespace, options);
         writer.SerializeObject(value.Documents, options);
     }
 }

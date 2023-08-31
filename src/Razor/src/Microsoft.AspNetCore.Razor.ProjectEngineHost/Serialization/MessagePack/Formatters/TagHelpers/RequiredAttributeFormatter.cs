@@ -7,26 +7,24 @@ using static Microsoft.AspNetCore.Razor.Language.RequiredAttributeDescriptor;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal sealed class RequiredAttributeFormatter : MessagePackFormatter<RequiredAttributeDescriptor>
+internal sealed class RequiredAttributeFormatter : ValueFormatter<RequiredAttributeDescriptor>
 {
-    public static readonly MessagePackFormatter<RequiredAttributeDescriptor> Instance = new RequiredAttributeFormatter();
+    public static readonly ValueFormatter<RequiredAttributeDescriptor> Instance = new RequiredAttributeFormatter();
 
     private RequiredAttributeFormatter()
     {
     }
 
-    public override RequiredAttributeDescriptor Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    protected override RequiredAttributeDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
-        var cache = options as CachingOptions;
-
         reader.ReadArrayHeaderAndVerify(8);
 
-        var name = reader.ReadString(cache);
+        var name = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var nameComparison = (NameComparisonMode)reader.ReadInt32();
         var caseSensitive = reader.ReadBoolean();
-        var value = reader.ReadString(cache);
+        var value = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var valueComparison = (ValueComparisonMode)reader.ReadInt32();
-        var displayName = reader.ReadString(cache);
+        var displayName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
 
         var metadata = reader.Deserialize<MetadataCollection>(options);
         var diagnostics = reader.Deserialize<RazorDiagnostic[]>(options);
@@ -38,18 +36,16 @@ internal sealed class RequiredAttributeFormatter : MessagePackFormatter<Required
             displayName!, diagnostics, metadata);
     }
 
-    public override void Serialize(ref MessagePackWriter writer, RequiredAttributeDescriptor value, MessagePackSerializerOptions options)
+    protected override void Serialize(ref MessagePackWriter writer, RequiredAttributeDescriptor value, SerializerCachingOptions options)
     {
-        var cache = options as CachingOptions;
-
         writer.WriteArrayHeader(8);
 
-        writer.Write(value.Name, cache);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.Name, options);
         writer.Write((int)value.NameComparison);
         writer.Write(value.CaseSensitive);
-        writer.Write(value.Value, cache);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.Value, options);
         writer.Write((int)value.ValueComparison);
-        writer.Write(value.DisplayName, cache);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.DisplayName, options);
 
         writer.Serialize((MetadataCollection)value.Metadata, options);
         writer.Serialize((RazorDiagnostic[])value.Diagnostics, options);

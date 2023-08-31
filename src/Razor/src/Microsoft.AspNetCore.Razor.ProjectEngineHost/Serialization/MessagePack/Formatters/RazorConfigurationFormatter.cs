@@ -7,20 +7,20 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
-internal sealed class RazorConfigurationFormatter : MessagePackFormatter<RazorConfiguration>
+internal sealed class RazorConfigurationFormatter : ValueFormatter<RazorConfiguration>
 {
-    public static readonly MessagePackFormatter<RazorConfiguration> Instance = new RazorConfigurationFormatter();
+    public static readonly ValueFormatter<RazorConfiguration> Instance = new RazorConfigurationFormatter();
 
     private RazorConfigurationFormatter()
     {
     }
 
-    public override RazorConfiguration Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    protected override RazorConfiguration Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         var count = reader.ReadArrayHeader();
 
-        var configurationName = reader.DeserializeString(options);
-        var languageVersionText = reader.DeserializeString(options);
+        var configurationName = CachedStringFormatter.Instance.Deserialize(ref reader, options);
+        var languageVersionText = CachedStringFormatter.Instance.Deserialize(ref reader, options);
 
         count -= 2;
 
@@ -28,7 +28,7 @@ internal sealed class RazorConfigurationFormatter : MessagePackFormatter<RazorCo
 
         for (var i = 0; i < count; i++)
         {
-            var extensionName = reader.DeserializeString(options);
+            var extensionName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
             builder.Add(new SerializedRazorExtension(extensionName));
         }
 
@@ -41,7 +41,7 @@ internal sealed class RazorConfigurationFormatter : MessagePackFormatter<RazorCo
         return RazorConfiguration.Create(languageVersion, configurationName, extensions);
     }
 
-    public override void Serialize(ref MessagePackWriter writer, RazorConfiguration value, MessagePackSerializerOptions options)
+    protected override void Serialize(ref MessagePackWriter writer, RazorConfiguration value, SerializerCachingOptions options)
     {
         // Write two values + one value per extension.
         var extensions = value.Extensions;
@@ -49,22 +49,22 @@ internal sealed class RazorConfigurationFormatter : MessagePackFormatter<RazorCo
 
         writer.WriteArrayHeader(count);
 
-        writer.Write(value.ConfigurationName);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.ConfigurationName, options);
 
         if (value.LanguageVersion == RazorLanguageVersion.Experimental)
         {
-            writer.Write(nameof(RazorLanguageVersion.Experimental));
+            CachedStringFormatter.Instance.Serialize(ref writer, nameof(RazorLanguageVersion.Experimental), options);
         }
         else
         {
-            writer.Write(value.LanguageVersion.ToString());
+            CachedStringFormatter.Instance.Serialize(ref writer, value.LanguageVersion.ToString(), options);
         }
 
         count -= 2;
 
         for (var i = 0; i < count; i++)
         {
-            writer.Write(extensions[i].ExtensionName);
+            CachedStringFormatter.Instance.Serialize(ref writer, extensions[i].ExtensionName, options);
         }
     }
 }

@@ -7,7 +7,7 @@ using MessagePack.Formatters;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
-internal abstract partial class MessagePackFormatter<T> : IMessagePackFormatter<T>
+internal abstract partial class NonCachingFormatter<T> : IMessagePackFormatter<T>
 {
     public static readonly Type TargetType = typeof(T);
 

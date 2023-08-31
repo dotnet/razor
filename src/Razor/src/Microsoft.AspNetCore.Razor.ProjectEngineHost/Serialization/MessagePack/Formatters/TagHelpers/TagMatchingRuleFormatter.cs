@@ -6,22 +6,20 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
-internal sealed class TagMatchingRuleFormatter : MessagePackFormatter<TagMatchingRuleDescriptor>
+internal sealed class TagMatchingRuleFormatter : ValueFormatter<TagMatchingRuleDescriptor>
 {
-    public static readonly MessagePackFormatter<TagMatchingRuleDescriptor> Instance = new TagMatchingRuleFormatter();
+    public static readonly ValueFormatter<TagMatchingRuleDescriptor> Instance = new TagMatchingRuleFormatter();
 
     private TagMatchingRuleFormatter()
     {
     }
 
-    public override TagMatchingRuleDescriptor Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    protected override TagMatchingRuleDescriptor Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
-        var cache = options as CachingOptions;
-
         reader.ReadArrayHeaderAndVerify(6);
 
-        var tagName = reader.ReadString(cache).AssumeNotNull();
-        var parentTag = reader.ReadString(cache);
+        var tagName = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
+        var parentTag = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var tagStructure = (TagStructure)reader.ReadInt32();
         var caseSensitive = reader.ReadBoolean();
         var attributes = reader.Deserialize<RequiredAttributeDescriptor[]>(options);
@@ -33,14 +31,12 @@ internal sealed class TagMatchingRuleFormatter : MessagePackFormatter<TagMatchin
             attributes, diagnostics);
     }
 
-    public override void Serialize(ref MessagePackWriter writer, TagMatchingRuleDescriptor value, MessagePackSerializerOptions options)
+    protected override void Serialize(ref MessagePackWriter writer, TagMatchingRuleDescriptor value, SerializerCachingOptions options)
     {
-        var cache = options as CachingOptions;
-
         writer.WriteArrayHeader(6);
 
-        writer.Write(value.TagName, cache);
-        writer.Write(value.ParentTag, cache);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.TagName, options);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.ParentTag, options);
         writer.Write((int)value.TagStructure);
         writer.Write(value.CaseSensitive);
         writer.Serialize((RequiredAttributeDescriptor[])value.Attributes, options);

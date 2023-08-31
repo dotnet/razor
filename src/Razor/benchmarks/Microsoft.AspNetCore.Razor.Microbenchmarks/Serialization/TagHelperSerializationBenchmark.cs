@@ -12,7 +12,7 @@ using MessagePack;
 using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Serialization.Json;
-using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
+using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks.Serialization;
@@ -111,14 +111,14 @@ public class TagHelperSerializationBenchmark
 
     private static ImmutableArray<TagHelperDescriptor> DeserializeTagHelpers_MessagePack(ReadOnlyMemory<byte> bytes)
     {
-        using var cachingOptions = new CachingOptions(s_options);
+        using var cachingOptions = new SerializerCachingOptions(s_options);
 
         return MessagePackSerializer.Deserialize<ImmutableArray<TagHelperDescriptor>>(bytes, cachingOptions);
     }
 
     private ReadOnlyMemory<byte> SerializeTagHelpers_MessagePack(ImmutableArray<TagHelperDescriptor> tagHelpers)
     {
-        using var cachingOptions = new CachingOptions(s_options);
+        using var cachingOptions = new SerializerCachingOptions(s_options);
 
         MessagePackSerializer.Serialize(_buffer, tagHelpers, cachingOptions);
 

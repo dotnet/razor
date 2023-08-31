@@ -8,23 +8,23 @@ using Microsoft.AspNetCore.Razor.Language;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
-internal sealed class RazorDiagnosticFormatter : MessagePackFormatter<RazorDiagnostic>
+internal sealed class RazorDiagnosticFormatter : ValueFormatter<RazorDiagnostic>
 {
-    public static readonly MessagePackFormatter<RazorDiagnostic> Instance = new RazorDiagnosticFormatter();
+    public static readonly ValueFormatter<RazorDiagnostic> Instance = new RazorDiagnosticFormatter();
 
     private RazorDiagnosticFormatter()
     {
     }
 
-    public override RazorDiagnostic Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    protected override RazorDiagnostic Deserialize(ref MessagePackReader reader, SerializerCachingOptions options)
     {
         reader.ReadArrayHeaderAndVerify(8);
 
-        var id = reader.DeserializeString(options);
+        var id = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
         var severity = (RazorDiagnosticSeverity)reader.ReadInt32();
-        var message = reader.DeserializeString(options);
+        var message = CachedStringFormatter.Instance.Deserialize(ref reader, options).AssumeNotNull();
 
-        var filePath = reader.DeserializeStringOrNull(options);
+        var filePath = CachedStringFormatter.Instance.Deserialize(ref reader, options);
         var absoluteIndex = reader.ReadInt32();
         var lineIndex = reader.ReadInt32();
         var characterIndex = reader.ReadInt32();
@@ -41,16 +41,16 @@ internal sealed class RazorDiagnosticFormatter : MessagePackFormatter<RazorDiagn
         }
     }
 
-    public override void Serialize(ref MessagePackWriter writer, RazorDiagnostic value, MessagePackSerializerOptions options)
+    protected override void Serialize(ref MessagePackWriter writer, RazorDiagnostic value, SerializerCachingOptions options)
     {
         writer.WriteArrayHeader(8);
 
-        writer.Write(value.Id);
+        CachedStringFormatter.Instance.Serialize(ref writer, value.Id, options);
         writer.Write((int)value.Severity);
-        writer.Write(value.GetMessage(CultureInfo.CurrentCulture));
+        CachedStringFormatter.Instance.Serialize(ref writer, value.GetMessage(CultureInfo.CurrentCulture), options);
 
         var span = value.Span;
-        writer.Write(span.FilePath);
+        CachedStringFormatter.Instance.Serialize(ref writer, span.FilePath, options);
         writer.Write(span.AbsoluteIndex);
         writer.Write(span.LineIndex);
         writer.Write(span.CharacterIndex);

@@ -9,8 +9,18 @@ namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 
 internal static class Extensions
 {
-    public static void Add<T>(this Dictionary<Type, object> map, MessagePackFormatter<T> formatter)
+    public static void Add<T>(this Dictionary<Type, object> map, NonCachingFormatter<T> formatter)
     {
-        map.Add(MessagePackFormatter<T>.TargetType, formatter);
+        map.Add(TopLevelFormatter<T>.TargetType, formatter);
+    }
+
+    public static void Add<T>(this Dictionary<Type, object> map, TopLevelFormatter<T> formatter)
+    {
+        map.Add(TopLevelFormatter<T>.TargetType, formatter);
+    }
+
+    public static void Add<T>(this Dictionary<Type, object> map, ValueFormatter<T> formatter)
+    {
+        map.Add(TopLevelFormatter<T>.TargetType, formatter);
     }
 }
