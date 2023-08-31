@@ -69,7 +69,7 @@ internal ref struct PooledArrayBuilder<T>
 
     public void AddRange(ImmutableArray<T> items)
     {
-        if (items.IsDefaultOrEmpty)
+        if (items.Length == 0)
         {
             return;
         }

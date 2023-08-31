@@ -135,7 +135,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         // `GetMatchingCSharpResponseAsync` that will cause us to retry in a bit.
         if (csharpResponse is null)
         {
-            _logger.LogWarning("Issue with retrieving C# response for Razor range: {razorRange}", razorRange);
+            _logger.LogWarning("Issue with retrieving C# response for Razor range: ({startLine},{startChar})-({endLine},{endChar})", razorRange.Start.Line, razorRange.Start.Character, razorRange.End.Line, razorRange.End.Character);
             return null;
         }
 
@@ -161,7 +161,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                 {
                     if (colorBackground)
                     {
-                        tokenModifiers |= (int)RazorSemanticTokensLegend.RazorTokenModifiers.RazorCode;
+                        tokenModifiers |= (int)RazorSemanticTokensLegend.RazorTokenModifiers.razorCode;
                         AddAdditionalCSharpWhitespaceRanges(razorRanges, textClassification, razorSource, previousRazorSemanticRange, originalRange, _logger);
                     }
 
@@ -192,7 +192,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                 Start = new Position(originalRange.Start.Line, previousRazorSemanticRange.End.Character),
                 End = originalRange.Start
             };
-            razorRanges.Add(new SemanticRange(textClassification, whitespaceRange, (int)RazorSemanticTokensLegend.RazorTokenModifiers.RazorCode, fromRazor: false));
+            razorRanges.Add(new SemanticRange(textClassification, whitespaceRange, (int)RazorSemanticTokensLegend.RazorTokenModifiers.razorCode, fromRazor: false));
         }
         else if (originalRange.Start.Character > 0 &&
             previousRazorSemanticRange?.End.Line != originalRange.Start.Line &&
@@ -205,7 +205,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
                 Start = new Position(originalRange.Start.Line, 0),
                 End = originalRange.Start
             };
-            razorRanges.Add(new SemanticRange(textClassification, whitespaceRange, (int)RazorSemanticTokensLegend.RazorTokenModifiers.RazorCode, fromRazor: false));
+            razorRanges.Add(new SemanticRange(textClassification, whitespaceRange, (int)RazorSemanticTokensLegend.RazorTokenModifiers.razorCode, fromRazor: false));
         }
     }
 
@@ -293,6 +293,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         {
             // No C# response or C# is out of sync with us. Unrecoverable, return null to indicate no change.
             // Once C# syncs up they'll send a refresh notification.
+            _logger.LogWarning("C# is out of sync. We are wanting {documentVersion} but C# is at {csharpResponse.HostDocumentSyncVersion}.", documentVersion, csharpResponse.HostDocumentSyncVersion);
             return null;
         }
 
