@@ -34,6 +34,7 @@ Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.WriteLine(string! 
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter.WriteLine(System.ReadOnlyMemory<char> value) -> Microsoft.AspNetCore.Razor.Language.CodeGeneration.CodeWriter!
 Microsoft.AspNetCore.Razor.Language.CodeGeneration.LinePragma.LinePragma() -> void
 Microsoft.AspNetCore.Razor.Language.CommonMetadata
+Microsoft.AspNetCore.Razor.Language.DirectiveTokenKind.IdentifierOrExpression = 7 -> Microsoft.AspNetCore.Razor.Language.DirectiveTokenKind
 Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeCollection.Enumerator.Enumerator() -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeReference.IntermediateNodeReference() -> void
 Microsoft.AspNetCore.Razor.Language.Intermediate.RenderModeIntermediateNode
@@ -88,6 +89,7 @@ virtual Microsoft.AspNetCore.Razor.Language.TagHelperDescriptorBuilder.TryGetMet
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetGloballyQualifiedTypeName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder, string globallyQualifiedTypeName) -> void
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilderExtensions.SetMetadata(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorBuilder builder, System.Collections.Generic.KeyValuePair<string, string> pair) -> void
 ~static Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptorExtensions.GetGloballyQualifiedTypeName(this Microsoft.AspNetCore.Razor.Language.BoundAttributeDescriptor attribute) -> string
+~static Microsoft.AspNetCore.Razor.Language.DirectiveDescriptorBuilderExtensions.AddIdentifierOrExpression(this Microsoft.AspNetCore.Razor.Language.IDirectiveDescriptorBuilder builder, string name, string description) -> Microsoft.AspNetCore.Razor.Language.IDirectiveDescriptorBuilder
 ~static Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNodeExtensions.IsDesignTimePropertyAccessHelper(this Microsoft.AspNetCore.Razor.Language.Intermediate.IntermediateNode tagHelper) -> bool
 ~static Microsoft.AspNetCore.Razor.Language.RazorCodeDocumentExtensions.GetPreTagHelperSyntaxTree(this Microsoft.AspNetCore.Razor.Language.RazorCodeDocument document) -> Microsoft.AspNetCore.Razor.Language.RazorSyntaxTree
 ~static Microsoft.AspNetCore.Razor.Language.RazorCodeDocumentExtensions.SetPreTagHelperSyntaxTree(this Microsoft.AspNetCore.Razor.Language.RazorCodeDocument document, Microsoft.AspNetCore.Razor.Language.RazorSyntaxTree syntaxTree) -> void

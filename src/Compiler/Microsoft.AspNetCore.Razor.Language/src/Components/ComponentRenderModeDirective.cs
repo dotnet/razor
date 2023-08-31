@@ -13,8 +13,7 @@ internal sealed class ComponentRenderModeDirective
        DirectiveKind.SingleLine,
        builder =>
        {
-           // https://github.com/dotnet/razor/issues/9181: we only support the identifier version right now
-           builder.AddNamespaceToken(ComponentResources.RenderModeDirective_Token_Name, ComponentResources.RenderModeDirective_Token_Description);
+           builder.AddIdentifierOrExpression(ComponentResources.RenderModeDirective_Token_Name, ComponentResources.RenderModeDirective_Token_Description);
            builder.Usage = DirectiveUsage.FileScopedSinglyOccurring;
            builder.Description = ComponentResources.RenderModeDirective_Documentation;
        });

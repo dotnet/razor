@@ -226,7 +226,7 @@
     <value>Specifies the render mode for this component.</value>
   </data>
   <data name="RenderModeDirective_Token_Description" xml:space="preserve">
-    <value>An identifier that resolves to a render mode that should be applied to this component.</value>
+    <value>An identifier or explicit razor expression that resolves to a render mode that should be applied to this component.</value>
   </data>
   <data name="RenderModeDirective_Token_Name" xml:space="preserve">
     <value>Render mode</value>

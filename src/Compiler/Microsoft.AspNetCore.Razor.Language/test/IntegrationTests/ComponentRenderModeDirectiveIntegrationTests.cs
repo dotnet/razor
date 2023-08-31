@@ -80,9 +80,9 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
             """);
 
         // Assert
-        // Error RZ1014: The 'rendermode' directive expects a namespace name.
+        // Error RZ1041: The 'rendermode' directive expects an identifier or explicit razor expression.
         var diagnostic = Assert.Single(compilationResult.Diagnostics);
-        Assert.Equal("RZ1014", diagnostic.Id);
+        Assert.Equal("RZ1041", diagnostic.Id);
     }
 
     [Fact]
@@ -235,5 +235,160 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
 
         var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: false);
         assemblyResult.Diagnostics.Verify();
+    }
+
+    [Fact]
+    public void RenderMode_With_SimpleExpression()
+    {
+        // Arrange & Act
+        var component = CompileToComponent("""
+            @rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.Server)
+            """);
+
+        // Assert
+        var attribute = Assert.Single(component.GetType().CustomAttributes);
+        Assert.EndsWith("PrivateComponentRenderModeAttribute", attribute.AttributeType.Name);
+
+        var attributeType = component.GetType().Assembly.GetTypes().Single(t => t.Name.EndsWith("PrivateComponentRenderModeAttribute", StringComparison.Ordinal));
+        Assert.NotNull(attributeType);
+
+        var modeProperty = attributeType.GetProperty("Mode");
+        Assert.NotNull(modeProperty);
+
+        var instance = Activator.CreateInstance(attributeType);
+        Assert.NotNull(instance);
+
+        var modeValue = modeProperty.GetValue(instance);
+        Assert.NotNull(modeValue);
+
+        var valueType = modeValue.GetType();
+        Assert.Equal("Microsoft.AspNetCore.Components.Web.ServerRenderMode", valueType.FullName);
+    }
+
+    [Fact]
+    public void RenderMode_With_NewExpression()
+    {
+        // Arrange & Act
+        var component = CompileToComponent("""
+            @rendermode @(new TestComponent.MyRenderMode("This is some text"))
+
+            @code
+            {
+            #pragma warning disable CS9113
+                public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }
+            }
+            """);
+
+        // Assert
+        var attribute = Assert.Single(component.GetType().CustomAttributes);
+        Assert.EndsWith("PrivateComponentRenderModeAttribute", attribute.AttributeType.Name);
+
+        var attributeType = component.GetType().Assembly.GetTypes().Single(t => t.Name.EndsWith("PrivateComponentRenderModeAttribute", StringComparison.Ordinal));
+        Assert.NotNull(attributeType);
+
+        var modeProperty = attributeType.GetProperty("Mode");
+        Assert.NotNull(modeProperty);
+
+        var instance = Activator.CreateInstance(attributeType);
+        Assert.NotNull(instance);
+
+        var modeValue = modeProperty.GetValue(instance);
+        Assert.NotNull(modeValue);
+
+        var valueType = modeValue.GetType();
+        Assert.Equal("Test.TestComponent+MyRenderMode", valueType.FullName);
+    }
+
+    [Fact]
+    public void RenderMode_With_NewExpression_Fails_Resolution()
+    {
+        // Arrange & Act
+        var csharpResult = CompileToCSharp("""
+            @rendermode @(new MyRenderMode("This is some text"))
+
+            @code
+            {
+            #pragma warning disable CS9113
+                public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }
+            }
+            """, throwOnFailure: false);
+
+        var assembly = CompileToAssembly(csharpResult, throwOnFailure: false);
+
+        // Assert
+        assembly.Diagnostics.Verify(
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,18): error CS0246: The type or namespace name 'MyRenderMode' could not be found (are you missing a using directive or an assembly reference?)
+            //              new MyRenderMode("This is some text")
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MyRenderMode").WithArguments("MyRenderMode").WithLocation(1, 18)
+            );
+    }
+
+    [Fact]
+    public void RenderMode_With_NewExpression_MultiLine()
+    {
+        // Arrange & Act
+        var component = CompileToComponent("""
+            @rendermode @(new TestComponent.MyRenderMode(@"This is
+            some
+            text"))
+
+            @code
+            {
+            #pragma warning disable CS9113
+                public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }
+            }
+            """);
+
+        // Assert
+        var attribute = Assert.Single(component.GetType().CustomAttributes);
+        Assert.EndsWith("PrivateComponentRenderModeAttribute", attribute.AttributeType.Name);
+
+        var attributeType = component.GetType().Assembly.GetTypes().Single(t => t.Name.EndsWith("PrivateComponentRenderModeAttribute", StringComparison.Ordinal));
+        Assert.NotNull(attributeType);
+
+        var modeProperty = attributeType.GetProperty("Mode");
+        Assert.NotNull(modeProperty);
+
+        var instance = Activator.CreateInstance(attributeType);
+        Assert.NotNull(instance);
+
+        var modeValue = modeProperty.GetValue(instance);
+        Assert.NotNull(modeValue);
+
+        var valueType = modeValue.GetType();
+        Assert.Equal("Test.TestComponent+MyRenderMode", valueType.FullName);
+    }
+
+    [Fact]
+    public void RenderMode_With_FunctionCall()
+    {
+        // Arrange & Act
+        var component = CompileToComponent("""
+            @rendermode @(TestComponent.GetRenderMode())
+
+            @code
+            {
+                public static Microsoft.AspNetCore.Components.IComponentRenderMode GetRenderMode() => Microsoft.AspNetCore.Components.Web.RenderMode.Server;
+            }
+            """);
+
+        // Assert
+        var attribute = Assert.Single(component.GetType().CustomAttributes);
+        Assert.EndsWith("PrivateComponentRenderModeAttribute", attribute.AttributeType.Name);
+
+        var attributeType = component.GetType().Assembly.GetTypes().Single(t => t.Name.EndsWith("PrivateComponentRenderModeAttribute", StringComparison.Ordinal));
+        Assert.NotNull(attributeType);
+
+        var modeProperty = attributeType.GetProperty("Mode");
+        Assert.NotNull(modeProperty);
+
+        var instance = Activator.CreateInstance(attributeType);
+        Assert.NotNull(instance);
+
+        var modeValue = modeProperty.GetValue(instance);
+        Assert.NotNull(modeValue);
+
+        var valueType = modeValue.GetType();
+        Assert.Equal("Microsoft.AspNetCore.Components.Web.ServerRenderMode", valueType.FullName);
     }
 }
