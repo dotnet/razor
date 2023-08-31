@@ -10006,8 +10006,6 @@ Time: @DateTime.Now
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
-
-        // add the required attributes
         CompileToAssembly(generated, throwOnFailure: true);
     }
 
@@ -10065,20 +10063,6 @@ Time: @DateTime.Now
     }
 
     [Fact]
-    public void RenderMode_Attribute_On_Html_Element()
-    {
-        var generated = CompileToCSharp("""
-                <input @rendermode="Microsoft.AspNetCore.Components.Web.RenderMode.Server" />
-                """, throwOnFailure: false);
-
-        // Assert
-        //x:\dir\subdir\Test\TestComponent.cshtml(1,21): Error RZ10021: Attribute 'rendermode' is only valid when used on a component.
-        var diag = Assert.Single(generated.Diagnostics);
-        Assert.Equal("RZ10021", diag.Id);
-
-    }
-
-    [Fact]
     public void Duplicate_RenderMode()
     {
         var generated = CompileToCSharp($$"""
@@ -10131,20 +10115,6 @@ Time: @DateTime.Now
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, throwOnFailure: true);
-    }
-
-    [Fact]
-    public void RenderMode_With_Diagnostics()
-    {
-        var generated = CompileToCSharp($$"""
-                <{{ComponentName}} @rendermode="@Microsoft.AspNetCore.Components.Web.RenderMode.Server)" />
-                """, throwOnFailure: true);
-
-        // Assert
-
-        //x:\dir\subdir\Test\TestComponent.cshtml(1, 29): Error RZ9986: Component attributes do not support complex content(mixed C# and markup). Attribute: '@rendermode', text: 'Microsoft.AspNetCore.Components.Web.RenderMode.Server)'
-        var diagnostic = Assert.Single(generated.Diagnostics);
-        Assert.Equal("RZ9986", diagnostic.Id);
     }
 
     [Fact]

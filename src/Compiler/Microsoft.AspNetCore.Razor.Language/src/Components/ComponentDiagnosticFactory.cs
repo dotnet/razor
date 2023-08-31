@@ -564,4 +564,19 @@ internal static class ComponentDiagnosticFactory
             attribute);
         return diagnostic;
     }
+
+    public static readonly RazorDiagnosticDescriptor RenderModeAttribute_ComponentDeclaredRenderMode =
+        new RazorDiagnosticDescriptor(
+        $"{DiagnosticPrefix}10022",
+        () => "Cannot override render mode for component '{0}' as it explicitly declares one.",
+        RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateRenderModeAttribute_ComponentDeclaredRenderMode(SourceSpan? source, string component)
+    {
+        var diagnostic = RazorDiagnostic.Create(
+            RenderModeAttribute_ComponentDeclaredRenderMode,
+            source ?? SourceSpan.Undefined,
+            component);
+        return diagnostic;
+    }
 }
