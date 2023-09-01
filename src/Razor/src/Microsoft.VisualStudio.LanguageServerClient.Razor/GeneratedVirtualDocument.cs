@@ -11,9 +11,9 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServerClient.Razor;
 
-internal abstract class GeneratedVirtualDocument<T>(Uri uri, ITextBuffer textBuffer, ITelemetryReporter? telemetryReporter) : VirtualDocumentBase<T>(uri, textBuffer) where T : VirtualDocumentSnapshot
+internal abstract class GeneratedVirtualDocument<T>(Uri uri, ITextBuffer textBuffer, ITelemetryReporter telemetryReporter) : VirtualDocumentBase<T>(uri, textBuffer) where T : VirtualDocumentSnapshot
 {
-    private readonly ITelemetryReporter? _telemetryReporter = telemetryReporter;
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
 
     public override VirtualDocumentSnapshot Update(IReadOnlyList<ITextChange> changes, int hostDocumentVersion, object? state)
     {
@@ -38,7 +38,7 @@ internal abstract class GeneratedVirtualDocument<T>(Uri uri, ITextBuffer textBuf
                 .Add("type", typeof(T).Name)
                 .Add("recoverable", recoverable);
 
-            _telemetryReporter?.ReportEvent("sync", Severity.High, data);
+            _telemetryReporter.ReportEvent("sync", Severity.High, data);
         }
 
         return base.Update(changes, hostDocumentVersion, state);
