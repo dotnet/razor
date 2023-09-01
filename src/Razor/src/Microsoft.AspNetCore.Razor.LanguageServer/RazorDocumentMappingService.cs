@@ -714,6 +714,12 @@ internal sealed class RazorDocumentMappingService : IRazorDocumentMappingService
 
         hostDocumentRange = default;
         var csharpSourceText = GetGeneratedSourceText(generatedDocument);
+
+        if (!IsRangeWithinDocument(generatedDocumentRange, csharpSourceText))
+        {
+            return false;
+        }
+
         var generatedRangeAsSpan = generatedDocumentRange.AsTextSpan(csharpSourceText);
         SourceMapping? mappingBeforeGeneratedRange = null;
         SourceMapping? mappingAfterGeneratedRange = null;

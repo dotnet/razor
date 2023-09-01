@@ -30,7 +30,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentRange_Strict_StartOnlyMaps_ReturnsFalse()
+    public void TryMapToHostDocumentRange_Strict_StartOnlyMaps_ReturnsFalse()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -57,7 +57,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentRange_Strict_EndOnlyMaps_ReturnsFalse()
+    public void TryMapToHostDocumentRange_Strict_EndOnlyMaps_ReturnsFalse()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -84,7 +84,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentRange_Strict_StartAndEndMap_ReturnsTrue()
+    public void TryMapToHostDocumentRange_Strict_StartAndEndMap_ReturnsTrue()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -116,7 +116,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentRange_Inclusive_DirectlyMaps_ReturnsTrue()
+    public void TryMapToHostDocumentRange_Inclusive_DirectlyMaps_ReturnsTrue()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -148,7 +148,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentRange_Inclusive_StartSinglyIntersects_ReturnsTrue()
+    public void TryMapToHostDocumentRange_Inclusive_StartSinglyIntersects_ReturnsTrue()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -180,7 +180,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentRange_Inclusive_EndSinglyIntersects_ReturnsTrue()
+    public void TryMapToHostDocumentRange_Inclusive_EndSinglyIntersects_ReturnsTrue()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -212,7 +212,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentRange_Inclusive_StartDoublyIntersects_ReturnsFalse()
+    public void TryMapToHostDocumentRange_Inclusive_StartDoublyIntersects_ReturnsFalse()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -243,7 +243,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentRange_Inclusive_EndDoublyIntersects_ReturnsFalse()
+    public void TryMapToHostDocumentRange_Inclusive_EndDoublyIntersects_ReturnsFalse()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -274,7 +274,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentRange_Inclusive_OverlapsSingleMapping_ReturnsTrue()
+    public void TryMapToHostDocumentRange_Inclusive_OverlapsSingleMapping_ReturnsTrue()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -306,7 +306,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentRange_Inclusive_OverlapsTwoMappings_ReturnsFalse()
+    public void TryMapToHostDocumentRange_Inclusive_OverlapsTwoMappings_ReturnsFalse()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -337,7 +337,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentRange_Inferred_DirectlyMaps_ReturnsTrue()
+    public void TryMapToHostDocumentRange_Inferred_DirectlyMaps_ReturnsTrue()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -369,7 +369,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentRange_Inferred_BeginningOfDocAndProjection_ReturnsFalse()
+    public void TryMapToHostDocumentRange_Inferred_BeginningOfDocAndProjection_ReturnsFalse()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -396,7 +396,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentRange_Inferred_InbetweenProjections_ReturnsTrue()
+    public void TryMapToHostDocumentRange_Inferred_InbetweenProjections_ReturnsTrue()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -431,7 +431,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentRange_Inferred_InbetweenProjectionAndEndOfDoc_ReturnsTrue()
+    public void TryMapToHostDocumentRange_Inferred_InbetweenProjectionAndEndOfDoc_ReturnsTrue()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -463,7 +463,33 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapToProjectedDocumentPosition_NotMatchingAnyMapping()
+    public void TryMapToHostDocumentRange_Inferred_OutsideDoc_ReturnsFalse()
+    {
+        // Arrange
+        var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
+        var codeDoc = CreateCodeDocumentWithCSharpProjection(
+            "@{ var abc = @<unclosed></unclosed>",
+            " var abc =  (__builder) => { }",
+            new[] { new SourceMapping(new SourceSpan(2, 11), new SourceSpan(0, 11)), });
+        var projectedRange = new Range()
+        {
+            Start = new Position(2, 12),
+            End = new Position(2, 29),
+        };
+
+        // Act
+        var result = service.TryMapToHostDocumentRange(
+            codeDoc.GetCSharpDocument(),
+            projectedRange,
+            MappingBehavior.Inferred,
+            out var originalRange);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void TryMapToGeneratedDocumentPosition_NotMatchingAnyMapping()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -486,7 +512,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapToProjectedDocumentPosition_CSharp_OnLeadingEdge()
+    public void TryMapToGeneratedDocumentPosition_CSharp_OnLeadingEdge()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -516,7 +542,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapToProjectedDocumentPosition_CSharp_InMiddle()
+    public void TryMapToGeneratedDocumentPosition_CSharp_InMiddle()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -541,12 +567,12 @@ public class RazorDocumentMappingServiceTest : TestBase
         }
         else
         {
-            Assert.False(true, "TryMapToProjectedDocumentPosition should have been true");
+            Assert.False(true, "TryMapToGeneratedDocumentPosition should have been true");
         }
     }
 
     [Fact]
-    public void TryMapToProjectedDocumentPosition_CSharp_OnTrailingEdge()
+    public void TryMapToGeneratedDocumentPosition_CSharp_OnTrailingEdge()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -571,12 +597,12 @@ public class RazorDocumentMappingServiceTest : TestBase
         }
         else
         {
-            Assert.True(false, "TryMapToProjectedDocumentPosition should have returned true");
+            Assert.True(false, "TryMapToGeneratedDocumentPosition should have returned true");
         }
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentPosition_NotMatchingAnyMapping()
+    public void TryMapToHostDocumentPosition_NotMatchingAnyMapping()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -599,7 +625,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentPosition_CSharp_OnLeadingEdge()
+    public void TryMapToHostDocumentPosition_CSharp_OnLeadingEdge()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -629,7 +655,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentPosition_CSharp_InMiddle()
+    public void TryMapToHostDocumentPosition_CSharp_InMiddle()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -659,7 +685,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapFromProjectedDocumentPosition_CSharp_OnTrailingEdge()
+    public void TryMapToHostDocumentPosition_CSharp_OnTrailingEdge()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -689,7 +715,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapToProjectedDocumentRange_CSharp()
+    public void TryMapToGeneratedDocumentRange_CSharp()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -720,7 +746,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapToProjectedDocumentRange_CSharp_MissingSourceMappings()
+    public void TryMapToGeneratedDocumentRange_CSharp_MissingSourceMappings()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);
@@ -744,7 +770,7 @@ public class RazorDocumentMappingServiceTest : TestBase
     }
 
     [Fact]
-    public void TryMapToProjectedDocumentRange_CSharp_End_LessThan_Start()
+    public void TryMapToGeneratedDocumentRange_CSharp_End_LessThan_Start()
     {
         // Arrange
         var service = new RazorDocumentMappingService(_filePathService, new TestDocumentContextFactory(), LoggerFactory);

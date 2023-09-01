@@ -55,6 +55,8 @@ internal partial class RazorCustomMessageTarget
         semanticTokensParams.TextDocument.Uri = csharpDoc.Uri;
         var textBuffer = csharpDoc.Snapshot.TextBuffer;
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         foreach (var range in semanticTokensParams.Ranges)
         {
             var task = Task.Run(async () =>
