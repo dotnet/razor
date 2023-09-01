@@ -106,6 +106,12 @@ internal partial class SolutionExplorerInProcess
         ErrorHandler.ThrowOnFailure(view.GetBuffer(out var textLines));
         ErrorHandler.ThrowOnFailure(view.GetCaretPos(out var line, out var column));
         ErrorHandler.ThrowOnFailure(textManager.NavigateToLineAndColumn(textLines, VSConstants.LOGVIEWID.Code_guid, line, column, line, column));
+
+        var fileExtension = Path.GetExtension(filePath);
+        if (fileExtension.Equals(".razor", StringComparison.OrdinalIgnoreCase) || fileExtension.Equals(".cshtml", StringComparison.OrdinalIgnoreCase))
+        {
+            await TestServices.RazorProjectSystem.WaitForCSharpVirtualDocumentAsync(filePath, cancellationToken);
+        }
     }
 
     /// <summary>
@@ -136,6 +142,12 @@ internal partial class SolutionExplorerInProcess
         }
 
         _ = project.ProjectItems.AddFromFile(filePath);
+
+        var fileExtension = Path.GetExtension(filePath);
+        if (fileExtension.Equals(".razor", StringComparison.OrdinalIgnoreCase) || fileExtension.Equals(".cshtml", StringComparison.OrdinalIgnoreCase))
+        {
+            await TestServices.RazorProjectSystem.WaitForRazorFileInProjectAsync(project.FileName, filePath, cancellationToken);
+        }
 
         if (open)
         {
