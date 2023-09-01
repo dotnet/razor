@@ -94,7 +94,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         return semanticFile.ReadAllText();
     }
 
-    private protected async Task<(ProvideSemanticTokensResponse, Dictionary<Range, int[]>?)> GetCSharpSemanticTokensResponseAsync(
+    private protected async Task<(ProvideSemanticTokensResponse, Dictionary<Range, int[]>)> GetCSharpSemanticTokensResponseAsync(
         string documentText, Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
     {
         var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);

@@ -570,7 +570,7 @@ public class RazorCustomMessageTargetTest : TestBase
 
         // Assert
         Assert.Equal(documentVersion, result.HostDocumentSyncVersion);
-        Assert.Equal(null, result.Tokens);
+        Assert.Null(result.Tokens);
     }
 
     private LSPDocumentSynchronizer GetDocumentSynchronizer(CSharpVirtualDocumentSnapshot csharpDoc = null, HtmlVirtualDocumentSnapshot htmlDoc = null)
