@@ -314,18 +314,9 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
         var sourceText = context.SourceText;
         var absoluteIndex = mappingSpan.Start;
 
-        if (mappingSpan.Length > 0)
-        {
-            // Slightly ugly hack to get around the behavior of LocateOwner.
-            // In some cases, using the start of a mapping doesn't work well
-            // because LocateOwner returns the previous node due to it owning the edge.
-            // So, if we can try to find the owner using a position that fully belongs to the current mapping.
-            absoluteIndex = mappingSpan.Start + 1;
-        }
-
-        var change = new SourceChange(absoluteIndex, 0, string.Empty);
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
-        var owner = syntaxTree.Root.LocateOwner(change);
+        var span = new Language.Syntax.TextSpan(mappingSpan.Start, mappingSpan.Length);
+        var owner = syntaxTree.Root.FindNode(span, getInnermostNodeForTie: true);
         if (owner is null)
         {
             // Can't determine owner of this position. Optimistically allow formatting.

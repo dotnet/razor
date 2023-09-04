@@ -224,8 +224,7 @@ internal class HtmlFormattingPass : FormattingPassBase
     private static bool IsPartOfHtmlTag(FormattingContext context, int position)
     {
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
-        var change = new SourceChange(position, 0, string.Empty);
-        var owner = syntaxTree.Root.LocateOwner(change);
+        var owner = syntaxTree.Root.FindInnermostNode(position, includeWhitespace: true);
         if (owner is null)
         {
             // Can't determine owner of this position.
