@@ -164,4 +164,13 @@ public class CSharpVirtualDocumentFactoryTest : TestBase
 
         public override TaskScheduler DispatcherScheduler => TaskScheduler.Default;
     }
+
+    private class TestDispatcher : ProjectSnapshotManagerDispatcher
+    {
+        // The tests run synchronously without the dispatcher, so just assert that
+        // we're always on the right thread
+        public override bool IsDispatcherThread => true;
+
+        public override TaskScheduler DispatcherScheduler => TaskScheduler.Default;
+    }
 }
