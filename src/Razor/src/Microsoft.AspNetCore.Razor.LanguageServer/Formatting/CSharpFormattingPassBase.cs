@@ -311,12 +311,8 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             return true;
         }
 
-        var sourceText = context.SourceText;
-        var absoluteIndex = mappingSpan.Start;
-
         var syntaxTree = context.CodeDocument.GetSyntaxTree();
-        var span = new Language.Syntax.TextSpan(mappingSpan.Start, mappingSpan.Length);
-        var owner = syntaxTree.Root.FindNode(span, getInnermostNodeForTie: true);
+        var owner = syntaxTree.Root.FindInnermostNode(mappingSpan.Start, includeWhitespace: true);
         if (owner is null)
         {
             // Can't determine owner of this position. Optimistically allow formatting.
@@ -324,7 +320,6 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             return true;
         }
 
-        owner = FixOwnerToWorkaroundCompilerQuirks(owner);
         foundOwner = owner;
 
         // Special case: If we're formatting implicit statements, we want to treat the `@attribute` directive and
@@ -338,7 +333,7 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             return true;
         }
 
-        if (IsRazorComment())
+        if (IsInsideRazorComment())
         {
             return false;
         }
@@ -363,7 +358,7 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             return false;
         }
 
-        if (IsImplicitExpression())
+        if (!allowImplicitStatements && IsImplicitExpression())
         {
             return false;
         }
@@ -378,11 +373,18 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             return false;
         }
 
+        if (IsInTemplateBlock())
+        {
+            return false;
+        }
+
         return true;
 
-        bool IsRazorComment()
+        bool IsInsideRazorComment()
         {
-            if (owner.IsCommentSpanKind())
+            // We don't want to format _in_ comments, but we do want to move the start `@*` to the right position
+            if (owner is RazorCommentBlockSyntax &&
+                mappingSpan.Start != owner.SpanStart)
             {
                 return true;
             }
@@ -503,6 +505,15 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             // `@|foo` - true
             //
             return owner.AncestorsAndSelf().Any(n => n is CSharpImplicitExpressionSyntax);
+        }
+
+        bool IsInTemplateBlock()
+        {
+            // E.g, (| is position)
+            //
+            // `RenderFragment(|@<Component>);` - true
+            //
+            return owner.AncestorsAndSelf().Any(n => n is CSharpTemplateBlockSyntax);
         }
 
         bool IsInSectionDirectiveCloseBrace()
