@@ -6,14 +6,14 @@
         UsingDirective - (97:4,1 [38] ) - global::System.Threading.Tasks
         UsingDirective - (136:5,1 [47] ) - global::Microsoft.AspNetCore.Components
         CSharpCode - 
-            IntermediateToken -  - CSharp - [global::Test.PrivateComponentRenderModeAttribute]
+            IntermediateToken -  - CSharp - [PrivateComponentRenderModeAttribute]
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
-        ClassDeclaration -  - file sealed - PrivateComponentRenderModeAttribute - global::Microsoft.AspNetCore.Components.RenderModeAttribute - 
-            CSharpCode - 
-                IntermediateToken -  - CSharp - private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
-                CSharpCode - (14:0,14 [53] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (14:0,14 [53] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.Web.RenderMode.Server
-                IntermediateToken -  - CSharp - ;
-            CSharpCode - 
-                IntermediateToken -  - CSharp - public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;
+            ClassDeclaration -  - private sealed - PrivateComponentRenderModeAttribute - global::Microsoft.AspNetCore.Components.RenderModeAttribute - 
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
+                    CSharpCode - (14:0,14 [53] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (14:0,14 [53] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.Web.RenderMode.Server
+                    IntermediateToken -  - CSharp - ;
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;

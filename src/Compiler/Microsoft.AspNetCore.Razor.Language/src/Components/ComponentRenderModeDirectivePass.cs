@@ -42,7 +42,7 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
             ClassName = GeneratedRenderModeAttributeName,
             BaseType = $"global::{ComponentsApi.RenderModeAttribute.FullTypeName}",
         };
-        classDecl.Modifiers.Add("file");
+        classDecl.Modifiers.Add("private");
         classDecl.Modifiers.Add("sealed");
         classDecl.Children.Add(new CSharpCodeIntermediateNode()
         {
@@ -85,26 +85,26 @@ internal sealed class ComponentRenderModeDirectivePass : IntermediateNodePassBas
                 }
             }
         });
+        @class.Children.Add(classDecl);
 
         // generate the attribute usage on top of the class
         var attributeNode = new CSharpCodeIntermediateNode();
         attributeNode.Children.Add(new IntermediateToken()
         {
             Kind = TokenKind.CSharp,
-            Content = $"[global::{@namespace.Content}.{GeneratedRenderModeAttributeName}]",
+            Content = $"[{GeneratedRenderModeAttributeName}]",
         });
 
-        // Insert the new attribute on top of the class, and the definition underneath it
+        // Insert the new attribute on top of the class
         var childCount = @namespace.Children.Count;
         for (var i = 0; i < childCount; i++)
         {
             if (object.ReferenceEquals(@namespace.Children[i], @class))
             {
                 @namespace.Children.Insert(i, attributeNode);
-                @namespace.Children.Insert(i + 2, classDecl);
                 break;
             }
         }
-        Debug.Assert(@namespace.Children.Count == childCount + 2);
+        Debug.Assert(@namespace.Children.Count == childCount + 1);
     }
 }

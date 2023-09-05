@@ -193,9 +193,9 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
 
         var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: false);
         assemblyResult.Diagnostics.Verify(
-            // x:\dir\subdir\Test\TestComponent.cshtml(1,13): error CS0103: The name 'myRenderMode' does not exist in the current context
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,13): error CS0120: An object reference is required for the non-static field, method, or property 'TestComponent.myRenderMode'
             //             myRenderMode
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "myRenderMode").WithArguments("myRenderMode").WithLocation(1, 13)
+            Diagnostic(ErrorCode.ERR_ObjectRequired, "myRenderMode").WithArguments("Test.TestComponent.myRenderMode").WithLocation(1, 13)
             );
     }
 
@@ -212,12 +212,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
 
         Assert.Empty(compilationResult.Diagnostics);
 
-        var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: false);
-        assemblyResult.Diagnostics.Verify(
-            // x:\dir\subdir\Test\TestComponent.cshtml(1,13): error CS0103: The name 'myRenderMode' does not exist in the current context
-            //             myRenderMode
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "myRenderMode").WithArguments("myRenderMode").WithLocation(1, 13)
-            );
+        var assemblyResult = CompileToAssembly(compilationResult, throwOnFailure: true);
     }
 
     [Fact]
@@ -266,7 +261,7 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     }
 
     [Fact]
-    public void RenderMode_With_NewExpression()
+    public void RenderMode_With_NewExpression_FullyQualified()
     {
         // Arrange & Act
         var component = CompileToComponent("""
@@ -300,10 +295,10 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
     }
 
     [Fact]
-    public void RenderMode_With_NewExpression_Fails_Resolution()
+    public void RenderMode_With_NewExpression()
     {
         // Arrange & Act
-        var csharpResult = CompileToCSharp("""
+        var component = CompileToComponent("""
             @rendermode @(new MyRenderMode("This is some text"))
 
             @code
@@ -311,16 +306,26 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
             #pragma warning disable CS9113
                 public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }
             }
-            """, throwOnFailure: false);
-
-        var assembly = CompileToAssembly(csharpResult, throwOnFailure: false);
+            """);
 
         // Assert
-        assembly.Diagnostics.Verify(
-            // x:\dir\subdir\Test\TestComponent.cshtml(1,19): error CS0246: The type or namespace name 'MyRenderMode' could not be found (are you missing a using directive or an assembly reference?)
-            //              new MyRenderMode("This is some text")
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MyRenderMode").WithArguments("MyRenderMode").WithLocation(1, 19)
-            );
+        var attribute = Assert.Single(component.GetType().CustomAttributes);
+        Assert.EndsWith("PrivateComponentRenderModeAttribute", attribute.AttributeType.Name);
+
+        var attributeType = component.GetType().Assembly.GetTypes().Single(t => t.Name.EndsWith("PrivateComponentRenderModeAttribute", StringComparison.Ordinal));
+        Assert.NotNull(attributeType);
+
+        var modeProperty = attributeType.GetProperty("Mode");
+        Assert.NotNull(modeProperty);
+
+        var instance = Activator.CreateInstance(attributeType);
+        Assert.NotNull(instance);
+
+        var modeValue = modeProperty.GetValue(instance);
+        Assert.NotNull(modeValue);
+
+        var valueType = modeValue.GetType();
+        Assert.Equal("Test.TestComponent+MyRenderMode", valueType.FullName);
     }
 
     [Fact]

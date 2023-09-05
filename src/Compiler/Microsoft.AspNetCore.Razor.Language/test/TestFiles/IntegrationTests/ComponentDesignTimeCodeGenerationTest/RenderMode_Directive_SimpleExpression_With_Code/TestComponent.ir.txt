@@ -6,7 +6,7 @@
         UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
         UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
         CSharpCode - 
-            IntermediateToken -  - CSharp - [global::Test.PrivateComponentRenderModeAttribute]
+            IntermediateToken -  - CSharp - [PrivateComponentRenderModeAttribute]
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             DesignTimeDirective - 
             CSharpCode - 
@@ -20,18 +20,18 @@
                     LazyIntermediateToken - (70:1,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
             CSharpCode - (80:3,1 [55] x:\dir\subdir\Test\TestComponent.cshtml)
                 LazyIntermediateToken - (80:3,1 [55] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public int Count { get; set; }\n
-        ClassDeclaration -  - file sealed - PrivateComponentRenderModeAttribute - global::Microsoft.AspNetCore.Components.RenderModeAttribute - 
-            DesignTimeDirective - 
-            CSharpCode - 
-                IntermediateToken -  - CSharp - #pragma warning disable 0414
-            CSharpCode - 
-                IntermediateToken -  - CSharp - private static object __o = null;
-            CSharpCode - 
-                IntermediateToken -  - CSharp - #pragma warning restore 0414
-            CSharpCode - 
-                IntermediateToken -  - CSharp - private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
-                CSharpCode - (14:0,14 [53] x:\dir\subdir\Test\TestComponent.cshtml)
-                    LazyIntermediateToken - (14:0,14 [53] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.Web.RenderMode.Server
-                IntermediateToken -  - CSharp - ;
-            CSharpCode - 
-                IntermediateToken -  - CSharp - public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;
+            ClassDeclaration -  - private sealed - PrivateComponentRenderModeAttribute - global::Microsoft.AspNetCore.Components.RenderModeAttribute - 
+                DesignTimeDirective - 
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - #pragma warning disable 0414
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - private static object __o = null;
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - #pragma warning restore 0414
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
+                    CSharpCode - (14:0,14 [53] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (14:0,14 [53] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Microsoft.AspNetCore.Components.Web.RenderMode.Server
+                    IntermediateToken -  - CSharp - ;
+                CSharpCode - 
+                    IntermediateToken -  - CSharp - public override global::Microsoft.AspNetCore.Components.IComponentRenderMode Mode => ModeImpl;
