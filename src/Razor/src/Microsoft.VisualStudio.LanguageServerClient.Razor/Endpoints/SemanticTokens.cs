@@ -20,7 +20,7 @@ internal partial class RazorCustomMessageTarget
 {
     // Called by the Razor Language Server to provide ranged semantic tokens from the platform.
     [JsonRpcMethod(CustomMessageNames.RazorProvideSemanticTokensRangeEndpoint, UseSingleObjectParameterDeserialization = true)]
-    public async Task<ProvideSemanticTokensResponse?> ProvideSemanticTokensRangesAsync(
+    public async Task<ProvideSemanticTokensResponse?> ProvideSemanticTokensAsync(
         ProvideSemanticTokensRangesParams semanticTokensParams,
         CancellationToken cancellationToken)
     {
@@ -64,7 +64,6 @@ internal partial class RazorCustomMessageTarget
                 var newParams = new SemanticTokensRangeParams
                 {
                     TextDocument = semanticTokensParams.TextDocument,
-                    PartialResultToken = semanticTokensParams.PartialResultToken,
                     Range = range,
                 };
 
@@ -79,7 +78,7 @@ internal partial class RazorCustomMessageTarget
                         newParams,
                         cancellationToken);
                 }
-            });
+            }, cancellationToken);
 
             requestTasks.Add(task);
         }

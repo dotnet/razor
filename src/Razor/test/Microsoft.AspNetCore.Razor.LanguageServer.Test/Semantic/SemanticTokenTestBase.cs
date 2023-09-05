@@ -98,7 +98,6 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         string documentText, Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
     {
         var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
-        int[][]? csharpTokens = null;
         var csharpDocumentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
         var csharpSourceText = codeDocument.GetCSharpSourceText();
 
@@ -127,7 +126,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
             }
         }
 
-        csharpTokens = responses.Select(r => r.Data).WithoutNull().ToArray();
+        var csharpTokens = responses.Select(r => r.Data).WithoutNull().ToArray();
         return (new ProvideSemanticTokensResponse(tokens: csharpTokens, hostDocumentSyncVersion), perRangeTokens);
     }
 
@@ -182,7 +181,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         var prevLength = 0;
         var lineIndex = 0;
         var lineOffset = 0;
-        for (var i = 0; i < data.Length; i += RazorSemanticTokensInfoService.TokenSize)
+        for (var i = 0; i < data.Length; i += 5)
         {
             var lineDelta = data[i];
             var charDelta = data[i + 1];

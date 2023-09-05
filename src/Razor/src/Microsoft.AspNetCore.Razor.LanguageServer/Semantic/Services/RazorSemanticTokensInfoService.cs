@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
 internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 {
-    public const int TokenSize = 5;
+    private const int TokenSize = 5;
 
     private readonly IRazorDocumentMappingService _documentMappingService;
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions;
@@ -75,7 +75,6 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             _logger.LogError(ex, "Error thrown while retrieving CSharp semantic range.");
         }
 
-        // If we have an incomplete view of the situation we should return null so we avoid flashing.
         // Didn't get any C# tokens, likely because the user kept typing and a future semantic tokens request will occur.
         // We return null (which to the LSP is a no-op) to prevent flashing of CSharp elements.
         if (csharpSemanticRanges is null)
@@ -332,6 +331,11 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         if (responseData is null || responseData.Length == 0)
         {
             return Array.Empty<int>();
+        }
+
+        if (responseData.Length == 1)
+        {
+            return responseData[0];
         }
 
         var count = responseData.Sum(r => r.Length);
