@@ -118,6 +118,8 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     {
         var generatedDocument = codeDocument.GetCSharpDocument();
         Range[]? csharpRanges = null;
+
+        // The following `if` statement checks if the feature flag is enabled and if so, tries to get the precise ranges.
         if (_languageServerFeatureOptions.UsePreciseSemanticTokenRanges)
         {
             if (!TryGetCSharpRanges(codeDocument, razorRange, out csharpRanges))
@@ -128,6 +130,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         }
         else
         {
+            // When the feature flag is disabled, we fallback to computing a single range for the entire document.
             // We'll try to call into the mapping service to map to the projected range for us. If that doesn't work,
             // we'll try to find the minimal range ourselves.
             if (!_documentMappingService.TryMapToGeneratedDocumentRange(generatedDocument, razorRange, out var csharpRange) &&
@@ -328,6 +331,9 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     // Internal for testing
     internal static int[] StitchSemanticTokenResponsesTogether(int[][]? responseData)
     {
+        // Each inner array in `responseData` represents a single C# document that is broken down into a list of tokens.
+        // This method stitches these lists of tokens together into a single, coherent list of semantic tokens.
+        // The resulting array is a flattened version of the input array, and is in the precise format expected by the Microsoft Language Server Protocol.
         if (responseData is null || responseData.Length == 0)
         {
             return Array.Empty<int>();

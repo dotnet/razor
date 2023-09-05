@@ -37,5 +37,5 @@ internal class DefaultLanguageServerFeatureOptions : LanguageServerFeatureOption
 
     public override bool IncludeProjectKeyInGeneratedFilePath => false;
 
-    public override bool UsePreciseSemanticTokenRanges => true;
+    public override bool UsePreciseSemanticTokenRanges => false;
 }
