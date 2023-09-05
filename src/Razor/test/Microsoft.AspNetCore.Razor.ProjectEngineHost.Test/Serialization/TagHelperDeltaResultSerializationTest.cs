@@ -31,7 +31,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
         var expectedResult = new TagHelperDeltaResult(
             Delta: true,
             ResultId: 1,
-            Added: tagHelpers,
+            Added: checksums,
             Removed: checksums);
 
         var serializer = new JsonSerializer { Converters = { TagHelperDeltaResultJsonConverter.Instance } };
@@ -100,7 +100,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
         var expectedResult = new TagHelperDeltaResult(
             Delta: true,
             ResultId: 1,
-            Added: ImmutableArray.Create(descriptor),
+            Added: ImmutableArray.Create(descriptor.GetChecksum()),
             Removed: ImmutableArray.Create(descriptor.GetChecksum()));
 
         // Act
@@ -150,7 +150,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
         var expectedResult = new TagHelperDeltaResult(
             Delta: true,
             ResultId: 1,
-            Added: ImmutableArray.Create(descriptor),
+            Added: ImmutableArray.Create(descriptor.GetChecksum()),
             Removed: ImmutableArray.Create(descriptor.GetChecksum()));
 
         // Act
@@ -198,7 +198,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
         var expectedResult = new TagHelperDeltaResult(
             Delta: true,
             ResultId: 1,
-            Added: ImmutableArray.Create(descriptor),
+            Added: ImmutableArray.Create(descriptor.GetChecksum()),
             Removed: ImmutableArray.Create(descriptor.GetChecksum()));
 
         // Act
@@ -247,7 +247,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
         var expectedResult = new TagHelperDeltaResult(
             Delta: true,
             ResultId: 1,
-            Added: ImmutableArray.Create(descriptor),
+            Added: ImmutableArray.Create(descriptor.GetChecksum()),
             Removed: ImmutableArray.Create(descriptor.GetChecksum()));
 
         // Act

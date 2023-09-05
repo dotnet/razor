@@ -3,8 +3,7 @@
 
 using System.Collections.Immutable;
 using MessagePack;
-using Microsoft.AspNetCore.Razor.Language;
-using Checksum = Microsoft.AspNetCore.Razor.Utilities.Checksum;
+using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 
@@ -22,7 +21,7 @@ internal sealed class TagHelperDeltaResultFormatter : TopLevelFormatter<TagHelpe
 
         var delta = reader.ReadBoolean();
         var resultId = reader.ReadInt32();
-        var added = reader.Deserialize<ImmutableArray<TagHelperDescriptor>>(options);
+        var added = reader.Deserialize<ImmutableArray<Checksum>>(options);
         var removed = reader.Deserialize<ImmutableArray<Checksum>>(options);
 
         return new(delta, resultId, added, removed);

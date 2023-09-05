@@ -114,7 +114,7 @@ internal static partial class ObjectReaders
 
     public static TagHelperDescriptor ReadTagHelperFromProperties(JsonDataReader reader, bool useCache)
     {
-        TagHelperDescriptor? descriptor;
+        TagHelperDescriptor? tagHelper;
         var checksumWasRead = false;
 
         // Try reading the optional checksum
@@ -123,10 +123,10 @@ internal static partial class ObjectReaders
             var checksum = ReadChecksum(reader);
             checksumWasRead = true;
 
-            if (useCache && TagHelperDescriptorCache.TryGetDescriptor(checksum, out descriptor))
+            if (useCache && TagHelperCache.Default.TryGet(checksum, out tagHelper))
             {
                 reader.ReadToEndOfCurrentObject();
-                return descriptor;
+                return tagHelper;
             }
         }
 
@@ -146,7 +146,7 @@ internal static partial class ObjectReaders
         var metadata = ReadMetadata(reader, nameof(TagHelperDescriptor.Metadata));
         var diagnostics = reader.ReadArrayOrEmpty(nameof(TagHelperDescriptor.Diagnostics), ReadDiagnostic);
 
-        descriptor = new DefaultTagHelperDescriptor(
+        tagHelper = new DefaultTagHelperDescriptor(
             Cached(kind), Cached(name), Cached(assemblyName),
             Cached(displayName)!, documentationObject,
             Cached(tagOutputHint), caseSensitive,
@@ -155,10 +155,10 @@ internal static partial class ObjectReaders
 
         if (useCache && checksumWasRead)
         {
-            TagHelperDescriptorCache.Set(descriptor.GetChecksum(), descriptor);
+            TagHelperCache.Default.TryAdd(tagHelper.GetChecksum(), tagHelper);
         }
 
-        return descriptor;
+        return tagHelper;
 
         static TagMatchingRuleDescriptor ReadTagMatchingRule(JsonDataReader reader)
         {

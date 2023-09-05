@@ -15,6 +15,8 @@ namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test;
 
 public class TagHelperDescriptorCacheTest(ITestOutputHelper testOutput) : TestBase(testOutput)
 {
+    private readonly TagHelperCache _tagHelperCache = new();
+
     [Fact]
     public void TagHelperDescriptorCache_TypeNameAffectsHash()
     {
@@ -42,10 +44,10 @@ public class TagHelperDescriptorCacheTest(ITestOutputHelper testOutput) : TestBa
         var stringTagHelper = stringTagHelperBuilder.Build();
 
         // Act
-        TagHelperDescriptorCache.Set(intTagHelper.GetChecksum(), intTagHelper);
+        _tagHelperCache.TryAdd(intTagHelper.GetChecksum(), intTagHelper);
 
         // Assert
-        Assert.False(TagHelperDescriptorCache.TryGetDescriptor(stringTagHelper.GetChecksum(), out var descriptor));
+        Assert.False(_tagHelperCache.TryGet(stringTagHelper.GetChecksum(), out _));
     }
 
     [Fact]

@@ -10,6 +10,7 @@ internal static class TopLevelResolvers
 {
     public static readonly ImmutableArray<IFormatterResolver> All = ImmutableArray.Create<IFormatterResolver>(
         ChecksumResolver.Instance,
+        FetchTagHelpersResultResolver.Instance,
         ProjectSnapshotHandleResolver.Instance,
         RazorProjectInfoResolver.Instance,
         TagHelperDeltaResultResolver.Instance);
