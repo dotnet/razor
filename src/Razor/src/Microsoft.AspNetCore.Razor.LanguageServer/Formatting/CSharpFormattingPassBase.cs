@@ -338,14 +338,42 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
             return true;
         }
 
-        if (IsRazorComment() ||
-            IsInBoundComponentAttributeName() ||
-            IsInHtmlAttributeValue() ||
-            IsInDirectiveWithNoKind() ||
-            IsInSingleLineDirective() ||
-            IsImplicitExpression() ||
-            IsInSectionDirectiveCloseBrace() ||
-            (!allowImplicitStatements && IsImplicitStatementStart()))
+        if (IsRazorComment())
+        {
+            return false;
+        }
+
+        if (IsInBoundComponentAttributeName())
+        {
+            return false;
+        }
+
+        if (IsInHtmlAttributeValue())
+        {
+            return false;
+        }
+
+        if (IsInDirectiveWithNoKind())
+        {
+            return false;
+        }
+
+        if (IsInSingleLineDirective())
+        {
+            return false;
+        }
+
+        if (IsImplicitExpression())
+        {
+            return false;
+        }
+
+        if (IsInSectionDirectiveCloseBrace())
+        {
+            return false;
+        }
+
+        if (!allowImplicitStatements && IsImplicitStatementStart())
         {
             return false;
         }
