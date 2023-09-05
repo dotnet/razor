@@ -540,26 +540,6 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
         }
     }
 
-    private static SyntaxNode FixOwnerToWorkaroundCompilerQuirks(SyntaxNode owner)
-    {
-        // Workaround for https://github.com/dotnet/aspnetcore/issues/36689
-        // A tags owner comes back as itself if it is preceeded by a HTML comment,
-        // because the whitespace between the comment and the tag is reported as not editable
-
-        // Get to the outermost node first. eg in "<span" we might be on the node for the "<", which is parented
-        // by some other intermediate node, which is parented by the actual start tag node. We need to get out to
-        // the start tag node, in order to reason about its siblings. The siblings of the "<" are not helpful :)
-        var outerNode = owner.GetOutermostNode();
-        if (outerNode is not null &&
-            outerNode.TryGetPreviousSibling(out var whiteSpace) && whiteSpace.ContainsOnlyWhitespace() &&
-            whiteSpace.TryGetPreviousSibling(out var comment) && comment is MarkupCommentBlockSyntax)
-        {
-            return whiteSpace;
-        }
-
-        return owner;
-    }
-
     private class IndentationData
     {
         private readonly int _offset;
