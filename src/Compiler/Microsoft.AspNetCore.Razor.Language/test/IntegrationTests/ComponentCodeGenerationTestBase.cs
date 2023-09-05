@@ -10010,6 +10010,38 @@ Time: @DateTime.Now
     }
 
     [Fact]
+    public void RenderMode_Directive_SimpleExpression()
+    {
+        var generated = CompileToCSharp("""
+                @rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.Server)
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Directive_NewExpression()
+    {
+        var generated = CompileToCSharp("""
+                    @rendermode @(new TestComponent.MyRenderMode("This is some text"))
+
+                    @code
+                    {
+                    #pragma warning disable CS9113
+                        public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }
+                    }
+                    """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
     public void RenderMode_Attribute_With_SimpleIdentifier()
     {
         var generated = CompileToCSharp($"""
