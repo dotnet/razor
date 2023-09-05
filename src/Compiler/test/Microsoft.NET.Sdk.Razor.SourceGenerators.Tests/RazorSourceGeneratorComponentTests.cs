@@ -515,6 +515,41 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/9204")]
+    public async Task ScriptTag()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Views/Home/Index.cshtml"] = """
+                1: <script>alert('hello')</script>
+                2: @{ var c = "alert('hello')"; }<script>@c</script>
+                3: <div>alert('hello')</div>
+                4: <script>
+                alert('hello')</script>
+                @(await Html.RenderComponentAsync<MyApp.Shared.Component1>(RenderMode.Static))
+                """,
+            ["Shared/Component1.razor"] = """
+                Component:
+                1: <script>alert('hello')</script>
+                2: @{ var c = "alert('hello')"; }<script>@c</script>
+                3: <div>alert('hello')</div>
+                4: <script>
+                alert('hello')</script>
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out compilation);
+
+        // Assert
+        result.Diagnostics.Verify();
+        Assert.Equal(2, result.GeneratedSources.Length);
+        await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/9051")]
     public async Task LineMapping()
     {
