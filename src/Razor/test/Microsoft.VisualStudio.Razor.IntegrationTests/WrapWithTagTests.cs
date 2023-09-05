@@ -20,11 +20,27 @@ public class WrapWithTagTests(ITestOutputHelper testOutputHelper) : AbstractRazo
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
         // Act
-        // % == Alt, + == Shift, so this is Alt+Shift+W
-        TestServices.Input.Send("%+w");
+        WrapWithTag();
 
         // Assert
         await TestServices.Editor.WaitForCurrentLineTextAsync("<div><h1>Counter</h1></div>", ControlledHangMitigatingCancellationToken);
+    }
+
+    [IdeFact]
+    public async Task WrapWithTag_CSharpImplicitStatement()
+    {
+        // Open the file
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.PlaceCaretAsync("current", charsOffset: -1, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
+
+        // Act
+        WrapWithTag();
+
+        // Assert
+        await TestServices.Editor.WaitForCurrentLineTextAsync("<p role=\"status\">Current count: <div>@currentCount</div></p>", ControlledHangMitigatingCancellationToken);
     }
 
     [IdeFact]
@@ -38,8 +54,7 @@ public class WrapWithTagTests(ITestOutputHelper testOutputHelper) : AbstractRazo
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
         // Act
-        // % == Alt, + == Shift, so this is Alt+Shift+W
-        TestServices.Input.Send("%+w");
+        WrapWithTag();
 
         // Assert
         await TestServices.Editor.WaitForCurrentLineTextAsync("<p><div><em>Loading...</em></div></p>", ControlledHangMitigatingCancellationToken);
@@ -74,8 +89,7 @@ public class WrapWithTagTests(ITestOutputHelper testOutputHelper) : AbstractRazo
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
         // Act
-        // % == Alt, + == Shift, so this is Alt+Shift+W
-        TestServices.Input.Send("%+w");
+        WrapWithTag();
 
         // Assert
         await TestServices.Editor.WaitForTextChangeAsync("""
@@ -110,10 +124,15 @@ public class WrapWithTagTests(ITestOutputHelper testOutputHelper) : AbstractRazo
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
         // Act
-        // % == Alt, + == Shift, so this is Alt+Shift+W
-        TestServices.Input.Send("%+w");
+        WrapWithTag();
 
         // Assert
         await TestServices.Editor.WaitForCurrentLineTextAsync("<div><SurveyPrompt Title=\"How is Blazor working for you?\" /></div>", ControlledHangMitigatingCancellationToken);
+    }
+
+    private void WrapWithTag()
+    {
+        // % == Alt, + == Shift, so this is Alt+Shift+W
+        TestServices.Input.Send("%+w");
     }
 }
