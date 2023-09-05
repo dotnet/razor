@@ -994,7 +994,7 @@ public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         // Arrange
         if (csResponse is null)
         {
-            csharpTokens = new ProvideSemanticTokensResponse(tokens: null, -1);
+            csResponse = new ProvideSemanticTokensResponse(tokens: null, -1);
         }
 
         var (documentContexts, textDocumentIdentifiers) = CreateDocumentContext(

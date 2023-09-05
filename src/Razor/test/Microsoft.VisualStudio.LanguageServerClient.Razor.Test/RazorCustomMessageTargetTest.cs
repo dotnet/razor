@@ -395,7 +395,7 @@ public class RazorCustomMessageTargetTest : TestBase
             correlationId: Guid.Empty);
 
         // Act
-        var result = await target.ProvideSemanticTokensRangesAsync(request, DisposalToken);
+        var result = await target.ProvideSemanticTokensAsync(request, DisposalToken);
 
         // Assert
         Assert.Null(result);
@@ -436,7 +436,7 @@ public class RazorCustomMessageTargetTest : TestBase
             correlationId: Guid.Empty);
 
         // Act
-        var result = await target.ProvideSemanticTokensRangesAsync(request, DisposalToken);
+        var result = await target.ProvideSemanticTokensAsync(request, DisposalToken);
 
         // Assert
         Assert.Null(result);
@@ -486,7 +486,7 @@ public class RazorCustomMessageTargetTest : TestBase
 
         var target = new RazorCustomMessageTarget(
             documentManager.Object, JoinableTaskContext, requestInvoker.Object,
-            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict), outputWindowLogger);
+            TestFormattingOptionsProvider.Default, _editorSettingsManager, documentSynchronizer.Object, csharpVirtualDocumentAddListener, telemetryReporter.Object, TestLanguageServerFeatureOptions.Instance, Mock.Of<ProjectSnapshotManagerAccessor>(MockBehavior.Strict));
         var request = new ProvideSemanticTokensRangesParams(
             textDocument: new TextDocumentIdentifier()
             {
@@ -497,7 +497,7 @@ public class RazorCustomMessageTargetTest : TestBase
             correlationId: Guid.Empty);
 
         // Act
-        var result = await target.ProvideSemanticTokensRangesAsync(request, DisposalToken);
+        var result = await target.ProvideSemanticTokensAsync(request, DisposalToken);
 
         // Assert
         Assert.Equal(documentVersion, result.HostDocumentSyncVersion);
@@ -560,7 +560,7 @@ public class RazorCustomMessageTargetTest : TestBase
         var expectedResults = new ProvideSemanticTokensResponse(null, documentVersion);
 
         // Act
-        var result = await target.ProvideSemanticTokensRangesAsync(request, DisposalToken);
+        var result = await target.ProvideSemanticTokensAsync(request, DisposalToken);
 
         // Assert
         Assert.Equal(documentVersion, result.HostDocumentSyncVersion);
