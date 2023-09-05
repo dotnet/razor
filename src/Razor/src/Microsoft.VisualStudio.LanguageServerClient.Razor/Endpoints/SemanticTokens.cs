@@ -45,7 +45,7 @@ internal partial class RazorCustomMessageTarget
         {
             // If we're unable to synchronize we won't produce useful results, but we have to indicate
             // it's due to out of sync by providing the old version
-            return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: -1);
+            return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion ?? -1);
         }
 
         // Ensure the C# ranges are sorted
@@ -89,7 +89,7 @@ internal partial class RazorCustomMessageTarget
         if (nonEmptyResults.Length != semanticTokensParams.Ranges.Length)
         {
             // Weren't able to re-invoke C# semantic tokens but we have to indicate it's due to out of sync by providing the old version
-            return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion);
+            return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion ?? -1);
         }
 
         return new ProvideSemanticTokensResponse(nonEmptyResults, semanticTokensParams.RequiredHostDocumentVersion);

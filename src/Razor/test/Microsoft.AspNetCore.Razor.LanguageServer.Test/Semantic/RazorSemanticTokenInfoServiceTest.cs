@@ -86,7 +86,7 @@ public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
                 """;
 
         var razorRange = GetRange(documentText);
-        var csResponse = new ProvideSemanticTokensResponse(tokens: Array.Empty<int[]>(), hostDocumentSyncVersion: null);
+        var csResponse = new ProvideSemanticTokensResponse(tokens: Array.Empty<int[]>(), hostDocumentSyncVersion: 1);
         var perRangeTokens = new Dictionary<Range, int[]>() { { razorRange, Array.Empty<int>() } };
         await AssertSemanticTokensAsync(documentText, isRazorFile: false, razorRange, csResponse, perRangeTokens, documentVersion: 1);
     }
@@ -994,7 +994,7 @@ public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
         // Arrange
         if (csResponse is null)
         {
-            csResponse = new ProvideSemanticTokensResponse(tokens: null, csResponse?.HostDocumentSyncVersion);
+            csharpTokens = new ProvideSemanticTokensResponse(tokens: null, -1);
         }
 
         var (documentContexts, textDocumentIdentifiers) = CreateDocumentContext(
