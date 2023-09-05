@@ -71,7 +71,7 @@ internal class WrapWithTagEndpoint : IRazorRequestHandler<WrapWithTagParams, Wra
         // Instead of C#, which certainly would be expected to go in an if statement, we'll see HTML, which obviously
         // is the better choice for this operation.
         var languageKind = _razorDocumentMappingService.GetLanguageKind(codeDocument, hostDocumentIndex, rightAssociative: true);
-        if (languageKind is RazorLanguageKind.CSharp)
+        if (languageKind is not RazorLanguageKind.Html)
         {
             // In general, we don't support C# for obvious reasons, but we can support implicit expressions. ie
             //
@@ -89,6 +89,7 @@ internal class WrapWithTagEndpoint : IRazorRequestHandler<WrapWithTagParams, Wra
                 (requestSpan == codeBlock.FullSpan || requestSpan.Length == 0))
             {
                 // Pretend we're in Html so the rest of the logic can continue
+                request.Range = codeBlock.FullSpan.AsRange(sourceText);
                 languageKind = RazorLanguageKind.Html;
             }
         }

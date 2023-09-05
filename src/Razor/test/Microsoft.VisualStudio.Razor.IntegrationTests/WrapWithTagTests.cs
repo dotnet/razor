@@ -44,6 +44,23 @@ public class WrapWithTagTests(ITestOutputHelper testOutputHelper) : AbstractRazo
     }
 
     [IdeFact]
+    public async Task WrapWithTag_Whole_CSharpImplicitStatement()
+    {
+        // Open the file
+        await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.PlaceCaretAsync("@currentCount", charsOffset: 0, occurrence: 1, extendSelection: false, selectBlock: true, ControlledHangMitigatingCancellationToken);
+
+        await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
+
+        // Act
+        WrapWithTag();
+
+        // Assert
+        await TestServices.Editor.WaitForCurrentLineTextAsync("<p role=\"status\">Current count: <div>@currentCount</div></p>", ControlledHangMitigatingCancellationToken);
+    }
+
+    [IdeFact]
     public async Task WrapWithTag_ChildElement()
     {
         // Open the file
