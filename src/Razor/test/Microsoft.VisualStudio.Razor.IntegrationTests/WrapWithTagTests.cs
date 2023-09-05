@@ -32,7 +32,7 @@ public class WrapWithTagTests(ITestOutputHelper testOutputHelper) : AbstractRazo
         // Open the file
         await TestServices.SolutionExplorer.OpenFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.CounterRazorFile, ControlledHangMitigatingCancellationToken);
 
-        await TestServices.Editor.PlaceCaretAsync("current", charsOffset: -1, ControlledHangMitigatingCancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("@current", charsOffset: 2, ControlledHangMitigatingCancellationToken);
 
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken);
 
