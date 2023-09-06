@@ -16,7 +16,7 @@ public class TagHelperDeltaResultTest(ITestOutputHelper testOutput) : TagHelperD
     public void Apply_Noop()
     {
         // Arrange
-        var delta = new TagHelperDeltaResult(Delta: true, ResultId: 1337, ImmutableArray<Checksum>.Empty, ImmutableArray<Checksum>.Empty);
+        var delta = new TagHelperDeltaResult(IsDelta: true, ResultId: 1337, ImmutableArray<Checksum>.Empty, ImmutableArray<Checksum>.Empty);
 
         // Act
         var checksums = delta.Apply(Project1TagHelperChecksums);
@@ -29,7 +29,7 @@ public class TagHelperDeltaResultTest(ITestOutputHelper testOutput) : TagHelperD
     public void Apply_Added()
     {
         // Arrange
-        var delta = new TagHelperDeltaResult(Delta: true, ResultId: 1337, Project1TagHelperChecksums, ImmutableArray<Checksum>.Empty);
+        var delta = new TagHelperDeltaResult(IsDelta: true, ResultId: 1337, Project1TagHelperChecksums, ImmutableArray<Checksum>.Empty);
 
         // Act
         var checksums = delta.Apply(Project2TagHelperChecksums);
@@ -42,7 +42,7 @@ public class TagHelperDeltaResultTest(ITestOutputHelper testOutput) : TagHelperD
     public void Apply_Removed()
     {
         // Arrange
-        var delta = new TagHelperDeltaResult(Delta: true, ResultId: 1337, ImmutableArray<Checksum>.Empty, Project1TagHelperChecksums);
+        var delta = new TagHelperDeltaResult(IsDelta: true, ResultId: 1337, ImmutableArray<Checksum>.Empty, Project1TagHelperChecksums);
 
         // Act
         var checksums = delta.Apply(Project1AndProject2TagHelperChecksums);
@@ -55,7 +55,7 @@ public class TagHelperDeltaResultTest(ITestOutputHelper testOutput) : TagHelperD
     public void Apply_AddAndRemoved()
     {
         // Arrange
-        var delta = new TagHelperDeltaResult(Delta: true, ResultId: 1337, Project1TagHelperChecksums, Project2TagHelperChecksums);
+        var delta = new TagHelperDeltaResult(IsDelta: true, ResultId: 1337, Project1TagHelperChecksums, Project2TagHelperChecksums);
 
         // Act
         var checksums = delta.Apply(Project2TagHelperChecksums);

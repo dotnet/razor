@@ -30,19 +30,19 @@ internal class RemoteTagHelperDeltaProvider
 
         if (cachedChecksums.Length < currentChecksums.Length)
         {
-            added = TagHelperDelta.Compute(cachedChecksums, currentChecksums);
+            added = Delta.Compute(cachedChecksums, currentChecksums);
 
             // No need to call TagHelperDelta.Compute again if we know there aren't any removed
             var anyRemoved = currentChecksums.Length - cachedChecksums.Length != added.Length;
-            removed = anyRemoved ? TagHelperDelta.Compute(currentChecksums, cachedChecksums) : ImmutableArray<Checksum>.Empty;
+            removed = anyRemoved ? Delta.Compute(currentChecksums, cachedChecksums) : ImmutableArray<Checksum>.Empty;
         }
         else
         {
-            removed = TagHelperDelta.Compute(currentChecksums, cachedChecksums);
+            removed = Delta.Compute(currentChecksums, cachedChecksums);
 
             // No need to call TagHelperDelta.Compute again if we know there aren't any added
             var anyAdded = cachedChecksums.Length - currentChecksums.Length != removed.Length;
-            added = anyAdded ? TagHelperDelta.Compute(cachedChecksums, currentChecksums) : ImmutableArray<Checksum>.Empty;
+            added = anyAdded ? Delta.Compute(cachedChecksums, currentChecksums) : ImmutableArray<Checksum>.Empty;
         }
 
         lock (_gate)

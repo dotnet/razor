@@ -13,7 +13,7 @@ internal partial class TagHelperDeltaResultJsonConverter : ObjectJsonConverter<T
 
     protected override TagHelperDeltaResult ReadFromProperties(JsonDataReader reader)
     {
-        var delta = reader.ReadBooleanOrTrue(nameof(TagHelperDeltaResult.Delta));
+        var delta = reader.ReadBooleanOrTrue(nameof(TagHelperDeltaResult.IsDelta));
         var resultId = reader.ReadInt32OrZero(nameof(TagHelperDeltaResult.ResultId));
         var added = reader.ReadImmutableArrayOrEmpty(nameof(TagHelperDeltaResult.Added), ObjectReaders.ReadChecksum);
         var removed = reader.ReadImmutableArrayOrEmpty(nameof(TagHelperDeltaResult.Removed), ObjectReaders.ReadChecksum);
@@ -23,7 +23,7 @@ internal partial class TagHelperDeltaResultJsonConverter : ObjectJsonConverter<T
 
     protected override void WriteProperties(JsonDataWriter writer, TagHelperDeltaResult value)
     {
-        writer.WriteIfNotTrue(nameof(value.Delta), value.Delta);
+        writer.WriteIfNotTrue(nameof(value.IsDelta), value.IsDelta);
         writer.WriteIfNotZero(nameof(value.ResultId), value.ResultId);
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.Added), value.Added, ObjectWriters.Write);
         writer.WriteArrayIfNotNullOrEmpty(nameof(value.Removed), value.Removed, ObjectWriters.Write);

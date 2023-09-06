@@ -198,14 +198,14 @@ internal class OOPTagHelperResolver : ITagHelperResolver
             checksums = ImmutableArray<Checksum>.Empty;
             fromCache = false;
 
-            if (deltaResult.Delta)
+            if (deltaResult.IsDelta)
             {
                 // We somehow failed to retrieve a cached object yet the server was able to apply a delta. This
                 // is entirely unexpected and means the server & client are catastrophically de-synchronized.
                 throw new InvalidOperationException("This should never happen. Razor server & client are de-synchronized. Tearing down");
             }
         }
-        else if (!deltaResult.Delta)
+        else if (!deltaResult.IsDelta)
         {
             // Not a delta based response, we should treat it as a "refresh"
             checksums = ImmutableArray<Checksum>.Empty;

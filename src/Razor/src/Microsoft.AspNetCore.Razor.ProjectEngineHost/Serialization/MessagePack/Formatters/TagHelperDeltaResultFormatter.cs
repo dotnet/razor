@@ -19,19 +19,19 @@ internal sealed class TagHelperDeltaResultFormatter : TopLevelFormatter<TagHelpe
     {
         reader.ReadArrayHeaderAndVerify(4);
 
-        var delta = reader.ReadBoolean();
+        var isDelta = reader.ReadBoolean();
         var resultId = reader.ReadInt32();
         var added = reader.Deserialize<ImmutableArray<Checksum>>(options);
         var removed = reader.Deserialize<ImmutableArray<Checksum>>(options);
 
-        return new(delta, resultId, added, removed);
+        return new(isDelta, resultId, added, removed);
     }
 
     protected override void Serialize(ref MessagePackWriter writer, TagHelperDeltaResult value, SerializerCachingOptions options)
     {
         writer.WriteArrayHeader(4);
 
-        writer.Write(value.Delta);
+        writer.Write(value.IsDelta);
         writer.Write(value.ResultId);
         writer.SerializeObject(value.Added, options);
         writer.SerializeObject(value.Removed, options);

@@ -14,7 +14,7 @@ using System.Diagnostics;
 namespace Microsoft.AspNetCore.Razor.Serialization;
 
 internal sealed record TagHelperDeltaResult(
-    bool Delta,
+    bool IsDelta,
     int ResultId,
     ImmutableArray<Checksum> Added,
     ImmutableArray<Checksum> Removed)
@@ -30,7 +30,7 @@ internal sealed record TagHelperDeltaResult(
         result.SetCapacityIfLarger(baseChecksums.Length + Added.Length - Removed.Length);
 
         result.AddRange(Added);
-        result.AddRange(TagHelperDelta.Compute(Removed, baseChecksums));
+        result.AddRange(Delta.Compute(Removed, baseChecksums));
 
 #if DEBUG
         // Ensure that there are no duplicate tag helpers in the result.
@@ -53,7 +53,7 @@ internal sealed record TagHelperDeltaResult(
             return false;
         }
 
-        return Delta == other.Delta &&
+        return IsDelta == other.IsDelta &&
                ResultId == other.ResultId &&
                Added.SequenceEqual(other.Added) &&
                Removed.SequenceEqual(other.Removed);
@@ -63,7 +63,7 @@ internal sealed record TagHelperDeltaResult(
     {
         var hash = HashCodeCombiner.Start();
 
-        hash.Add(Delta);
+        hash.Add(IsDelta);
         hash.Add(ResultId);
         hash.Add(Added);
         hash.Add(Removed);

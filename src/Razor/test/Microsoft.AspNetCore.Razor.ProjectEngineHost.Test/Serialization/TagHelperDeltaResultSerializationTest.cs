@@ -29,7 +29,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
         var checksums = tagHelpers.SelectAsArray(t => t.GetChecksum());
 
         var expectedResult = new TagHelperDeltaResult(
-            Delta: true,
+            IsDelta: true,
             ResultId: 1,
             Added: checksums,
             Removed: checksums);
@@ -98,7 +98,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
             });
 
         var expectedResult = new TagHelperDeltaResult(
-            Delta: true,
+            IsDelta: true,
             ResultId: 1,
             Added: ImmutableArray.Create(descriptor.GetChecksum()),
             Removed: ImmutableArray.Create(descriptor.GetChecksum()));
@@ -148,7 +148,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
             });
 
         var expectedResult = new TagHelperDeltaResult(
-            Delta: true,
+            IsDelta: true,
             ResultId: 1,
             Added: ImmutableArray.Create(descriptor.GetChecksum()),
             Removed: ImmutableArray.Create(descriptor.GetChecksum()));
@@ -196,7 +196,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
                     new RazorDiagnosticDescriptor("id", () => "Test Message", RazorDiagnosticSeverity.Error), new SourceSpan(null, 10, 20, 30, 40))));
 
         var expectedResult = new TagHelperDeltaResult(
-            Delta: true,
+            IsDelta: true,
             ResultId: 1,
             Added: ImmutableArray.Create(descriptor.GetChecksum()),
             Removed: ImmutableArray.Create(descriptor.GetChecksum()));
@@ -245,7 +245,7 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
                 .TagOutputHint("Hint"));
 
         var expectedResult = new TagHelperDeltaResult(
-            Delta: true,
+            IsDelta: true,
             ResultId: 1,
             Added: ImmutableArray.Create(descriptor.GetChecksum()),
             Removed: ImmutableArray.Create(descriptor.GetChecksum()));
