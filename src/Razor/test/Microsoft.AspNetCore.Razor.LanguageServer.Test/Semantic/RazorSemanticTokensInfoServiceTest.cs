@@ -708,7 +708,7 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
                 @* kdl
 
                 skd
-
+                    
                         sdfasdfasdf
                 slf*@
                 """;
