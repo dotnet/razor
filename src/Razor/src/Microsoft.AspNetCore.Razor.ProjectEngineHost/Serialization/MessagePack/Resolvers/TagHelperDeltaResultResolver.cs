@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using MessagePack;
 using MessagePack.Formatters;
 using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
-using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters.TagHelpers;
 
 namespace Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 
@@ -38,17 +37,7 @@ internal sealed class TagHelperDeltaResultResolver : IFormatterResolver
         private static readonly Dictionary<Type, object> s_map = new()
         {
             TagHelperDeltaResultFormatter.Instance,
-
-            // tag helpers
-            AllowedChildTagFormatter.Instance,
-            BoundAttributeFormatter.Instance,
-            BoundAttributeParameterFormatter.Instance,
-            DocumentationObjectFormatter.Instance,
-            MetadataCollectionFormatter.Instance,
-            RazorDiagnosticFormatter.Instance,
-            RequiredAttributeFormatter.Instance,
-            TagHelperFormatter.Instance,
-            TagMatchingRuleFormatter.Instance
+            ChecksumFormatter.Instance
         };
 
         public static object? GetFormatter(Type t)

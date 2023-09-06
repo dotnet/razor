@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT license. See License.txt in the project root for license information.
 
-using System.Buffers;
 using System.Collections.Immutable;
 using System.IO;
 using MessagePack;
@@ -10,7 +9,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.ProjectSystem;
 using Microsoft.AspNetCore.Razor.Serialization;
 using Microsoft.AspNetCore.Razor.Serialization.Json;
-using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Formatters;
 using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -32,28 +30,14 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : TestBase(t
         // Read tag helpers from JSON
         var originalProjectInfo = DeserializeProjectInfoFromJsonBytes(resourceBytes);
 
-        // Act
-
-        var options = MessagePackSerializerOptions.Standard.WithResolver(
-            CompositeResolver.Create(
+        var options = MessagePackSerializerOptions.Standard
+            .WithResolver(CompositeResolver.Create(
                 RazorProjectInfoResolver.Instance,
                 StandardResolver.Instance));
 
-        // Serialize to message pack
-        var writer = new ArrayBufferWriter<byte>(initialCapacity: resourceBytes.Length);
-
-        using (var cachingOptions = new SerializerCachingOptions(options))
-        {
-            MessagePackSerializer.Serialize(writer, originalProjectInfo, cachingOptions);
-        }
-
-        // Deserialize from message pack
-        RazorProjectInfo actualProjectInfo;
-
-        using (var cachingOptions = new SerializerCachingOptions(options))
-        {
-            actualProjectInfo = MessagePackSerializer.Deserialize<RazorProjectInfo>(writer.WrittenMemory, cachingOptions);
-        }
+        // Act
+        var bytes = MessagePackConvert.Serialize(originalProjectInfo, options);
+        var actualProjectInfo = MessagePackConvert.Deserialize<RazorProjectInfo>(bytes, options);
 
         // Assert
         Assert.Equal(originalProjectInfo.SerializedFilePath, actualProjectInfo.SerializedFilePath);
@@ -75,28 +59,14 @@ public class SerializerValidationTest(ITestOutputHelper testOutput) : TestBase(t
         // Read tag helpers from JSON
         var originalTagHelpers = ReadTagHelpersFromJsonBytes(resourceBytes);
 
-        // Act
-
         var options = MessagePackSerializerOptions.Standard.WithResolver(
             CompositeResolver.Create(
-                TagHelperDeltaResultResolver.Instance,
+                FetchTagHelpersResultResolver.Instance,
                 StandardResolver.Instance));
 
-        // Serialize to message pack
-        var writer = new ArrayBufferWriter<byte>(initialCapacity: resourceBytes.Length);
-
-        using (var cachingOptions = new SerializerCachingOptions(options))
-        {
-            MessagePackSerializer.Serialize(writer, originalTagHelpers, cachingOptions);
-        }
-
-        // Deserialize from message pack
-        ImmutableArray<TagHelperDescriptor> actualTagHelpers;
-
-        using (var cachingOptions = new SerializerCachingOptions(options))
-        {
-            actualTagHelpers = MessagePackSerializer.Deserialize<ImmutableArray<TagHelperDescriptor>>(writer.WrittenMemory, cachingOptions);
-        }
+        // Act
+        var bytes = MessagePackConvert.Serialize(originalTagHelpers, options);
+        var actualTagHelpers = MessagePackConvert.Deserialize<ImmutableArray<TagHelperDescriptor>>(bytes, options);
 
         // Assert
         Assert.Equal(originalTagHelpers, actualTagHelpers, TagHelperChecksumComparer.Instance);

@@ -4,15 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
-using System.Text;
+using MessagePack;
+using MessagePack.Resolvers;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Serialization;
-using Microsoft.AspNetCore.Razor.Serialization.Json.Converters;
+using Microsoft.AspNetCore.Razor.Serialization.MessagePack.Resolvers;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 using static Microsoft.AspNetCore.Razor.Language.CommonMetadata;
@@ -21,6 +20,11 @@ namespace Microsoft.AspNetCore.Razor.ProjectEngineHost.Test.Serialization;
 
 public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput) : TestBase(testOutput)
 {
+    private static readonly MessagePackSerializerOptions s_options = MessagePackSerializerOptions.Standard
+        .WithResolver(CompositeResolver.Create(
+            TagHelperDeltaResultResolver.Instance,
+            StandardResolver.Instance));
+
     [Fact]
     public void TagHelperResolutionResult_DefaultBlazorServerProject_RoundTrips()
     {
@@ -34,27 +38,13 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
             Added: checksums,
             Removed: checksums);
 
-        var serializer = new JsonSerializer { Converters = { TagHelperDeltaResultJsonConverter.Instance } };
-
         // Act
-        using var writeStream = new MemoryStream();
 
-        // Serialize the result to a stream
-        using (var writer = new StreamWriter(writeStream, Encoding.UTF8, bufferSize: 4096, leaveOpen: true))
-        {
-            serializer.Serialize(writer, expectedResult);
-        }
+        // Serialize the result to bytes
+        var bytes = MessagePackConvert.Serialize(expectedResult, s_options);
 
-        // Deserialize the result from the stream we just serialized to.
-        writeStream.Seek(0, SeekOrigin.Begin);
-
-        TagHelperDeltaResult? actualResult;
-
-        using (var reader = new StreamReader(writeStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, bufferSize: 4096, leaveOpen: true))
-        using (var jsonReader = new JsonTextReader(reader) { CloseInput = false })
-        {
-            actualResult = serializer.Deserialize<TagHelperDeltaResult>(jsonReader);
-        }
+        // Deserialize the bytes we just serialized.
+        var actualResult = MessagePackConvert.Deserialize<TagHelperDeltaResult?>(bytes, s_options);
 
         // Assert
         Assert.NotNull(actualResult);
@@ -104,8 +94,8 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
             Removed: ImmutableArray.Create(descriptor.GetChecksum()));
 
         // Act
-        var json = JsonConvert.SerializeObject(expectedResult, TagHelperDeltaResultJsonConverter.Instance);
-        var actualResult = JsonConvert.DeserializeObject<TagHelperDeltaResult>(json, TagHelperDeltaResultJsonConverter.Instance);
+        var bytes = MessagePackConvert.Serialize(expectedResult, s_options);
+        var actualResult = MessagePackConvert.Deserialize<TagHelperDeltaResult>(bytes, s_options);
 
         // Assert
         Assert.Equal(expectedResult, actualResult);
@@ -154,8 +144,8 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
             Removed: ImmutableArray.Create(descriptor.GetChecksum()));
 
         // Act
-        var json = JsonConvert.SerializeObject(expectedResult, TagHelperDeltaResultJsonConverter.Instance);
-        var actualResult = JsonConvert.DeserializeObject<TagHelperDeltaResult>(json, TagHelperDeltaResultJsonConverter.Instance);
+        var bytes = MessagePackConvert.Serialize(expectedResult, s_options);
+        var actualResult = MessagePackConvert.Deserialize<TagHelperDeltaResult>(bytes, s_options);
 
         // Assert
         Assert.Equal(expectedResult, actualResult);
@@ -202,9 +192,8 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
             Removed: ImmutableArray.Create(descriptor.GetChecksum()));
 
         // Act
-        var json = JsonConvert.SerializeObject(expectedResult, TagHelperDeltaResultJsonConverter.Instance);
-        var actualResult = JsonConvert.DeserializeObject<TagHelperDeltaResult>(json, TagHelperDeltaResultJsonConverter.Instance);
-
+        var bytes = MessagePackConvert.Serialize(expectedResult, s_options);
+        var actualResult = MessagePackConvert.Deserialize<TagHelperDeltaResult>(bytes, s_options);
         // Assert
         Assert.Equal(expectedResult, actualResult);
     }
@@ -251,8 +240,8 @@ public class TagHelperDeltaResultSerializationTest(ITestOutputHelper testOutput)
             Removed: ImmutableArray.Create(descriptor.GetChecksum()));
 
         // Act
-        var json = JsonConvert.SerializeObject(expectedResult, TagHelperDeltaResultJsonConverter.Instance);
-        var actualResult = JsonConvert.DeserializeObject<TagHelperDeltaResult>(json, TagHelperDeltaResultJsonConverter.Instance);
+        var bytes = MessagePackConvert.Serialize(expectedResult, s_options);
+        var actualResult = MessagePackConvert.Deserialize<TagHelperDeltaResult>(bytes, s_options);
 
         // Assert
         Assert.Equal(expectedResult, actualResult);
