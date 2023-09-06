@@ -119,7 +119,8 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         var generatedDocument = codeDocument.GetCSharpDocument();
         Range[]? csharpRanges = null;
 
-        // The following `if` statement checks if the feature flag is enabled and if so, tries to get the precise ranges.
+        // When the feature flag is enabled we try to get a list of precise ranges for the C# code embedded in the Razor document.
+        // The feature flag allows to make calls to Roslyn using multiple smaller and disjoint ranges of the document
         if (_languageServerFeatureOptions.UsePreciseSemanticTokenRanges)
         {
             if (!TryGetSortedCSharpRanges(codeDocument, razorRange, out csharpRanges))
@@ -131,6 +132,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         else
         {
             // When the feature flag is disabled, we fallback to computing a single range for the entire document.
+            // This single range is the minimal range that contains all of the C# code in the document.
             // We'll try to call into the mapping service to map to the projected range for us. If that doesn't work,
             // we'll try to find the minimal range ourselves.
             if (!_documentMappingService.TryMapToGeneratedDocumentRange(generatedDocument, razorRange, out var csharpRange) &&
