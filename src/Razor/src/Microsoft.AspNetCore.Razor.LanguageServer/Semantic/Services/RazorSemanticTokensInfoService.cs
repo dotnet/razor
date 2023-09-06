@@ -117,7 +117,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         string? previousResultId = null)
     {
         var generatedDocument = codeDocument.GetCSharpDocument();
-        Range[]? csharpRanges = null;
+        Range[]? csharpRanges;
 
         // When the feature flag is enabled we try to get a list of precise ranges for the C# code embedded in the Razor document.
         // The feature flag allows to make calls to Roslyn using multiple smaller and disjoint ranges of the document
@@ -387,6 +387,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
 
                     Debug.Assert(lastTokenCol >= 0);
                     data[dataIndex + 1] -= lastTokenCol;
+                    Debug.Assert(data[dataIndex + 1] >= 0);
                 }
             }
 

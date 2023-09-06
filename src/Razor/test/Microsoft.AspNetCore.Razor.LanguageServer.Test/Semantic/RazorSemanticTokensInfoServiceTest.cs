@@ -3,12 +3,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.LanguageServer.Common;
+using Microsoft.AspNetCore.Razor.LanguageServer.Extensions;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -881,6 +884,44 @@ public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
         await AssertSemanticTokensAsync(documentText, isRazorFile: true, razorRange, csharpTokens: csharpTokens, withCSharpBackground: true);
         Assert.NotNull(csharpTokens.Tokens);
         Assert.NotEmpty(csharpTokens.Tokens);
+    }
+
+    [Fact]
+    public void GetMappedCSharpRanges_MinimalRangeVsSmallDisjointRanges_DisjointRangesAreSmaller()
+    {
+        var documentText =
+            """
+                @using System
+                @functions {
+                    Action<object> abc = @<span></span>;
+                }
+                """;
+
+        var razorRange = GetRange(documentText);
+        var codeDocument = CreateCodeDocument(documentText, isRazorFile: true, DefaultTagHelpers);
+        var csharpDocumentUri = new Uri("C:\\TestSolution\\TestProject\\TestDocument.cs");
+        var csharpSourceText = codeDocument.GetCSharpSourceText();
+        var sourceText = codeDocument.GetSourceText();
+
+        if (UsePreciseSemanticTokenRanges)
+        {
+            var expectedCsharpRangeLengths = new int[] { 12, 27, 3 };
+            Assert.True(RazorSemanticTokensInfoService.TryGetSortedCSharpRanges(codeDocument, razorRange, out var csharpRanges));
+            Assert.Equal(3, csharpRanges.Length);
+            for (var i = 0; i < csharpRanges.Length; i++)
+            {
+                var csharpRange = csharpRanges[i];
+                var textSpan = csharpRange.AsTextSpan(csharpSourceText);
+                Assert.Equal(expectedCsharpRangeLengths[i], textSpan.Length);
+            }
+        }
+        else
+        {
+            var expectedCsharpRangeLength = 970;
+            Assert.True(RazorSemanticTokensInfoService.TryGetMinimalCSharpRange(codeDocument, razorRange, out var csharpRange));
+            var textSpan = csharpRange.AsTextSpan(csharpSourceText);
+            Assert.Equal(expectedCsharpRangeLength, textSpan.Length);
+        }
     }
 
     private async Task AssertSemanticTokensAsync(
