@@ -15,8 +15,7 @@ internal static class JsonConverterCollectionExtensions
         new JsonConverter[]
         {
             ChecksumJsonConverter.Instance,
-            RazorProjectInfoJsonConverter.Instance,
-            ProjectSnapshotHandleJsonConverter.Instance
+            RazorProjectInfoJsonConverter.Instance
         });
 
     public static void RegisterRazorConverters(this ICollection<JsonConverter> collection)

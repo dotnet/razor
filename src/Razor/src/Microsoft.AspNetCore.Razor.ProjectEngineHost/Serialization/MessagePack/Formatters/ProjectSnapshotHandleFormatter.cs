@@ -23,7 +23,7 @@ internal sealed class ProjectSnapshotHandleFormatter : TopLevelFormatter<Project
         var id = GuidFormatter.Instance.Deserialize(ref reader, options);
         var projectId = ProjectId.CreateFromSerialized(id);
 
-        var configuration = reader.Deserialize<RazorConfiguration>(options);
+        var configuration = reader.DeserializeOrNull<RazorConfiguration>(options);
         var rootNamespace = CachedStringFormatter.Instance.Deserialize(ref reader, options);
 
         return new(projectId, configuration, rootNamespace);
