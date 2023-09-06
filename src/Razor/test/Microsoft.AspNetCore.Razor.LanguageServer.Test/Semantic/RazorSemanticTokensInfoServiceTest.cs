@@ -18,9 +18,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Semantic;
 
-public abstract class RazorSemanticTokenInfoServiceTest : SemanticTokenTestBase
+public abstract class RazorSemanticTokensInfoServiceTest : SemanticTokenTestBase
 {
-    public RazorSemanticTokenInfoServiceTest(ITestOutputHelper testOutput, bool usePreciseSemanticTokenRanges)
+    public RazorSemanticTokensInfoServiceTest(ITestOutputHelper testOutput, bool usePreciseSemanticTokenRanges)
         : base(testOutput, usePreciseSemanticTokenRanges)
     {
     }
