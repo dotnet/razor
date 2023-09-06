@@ -16,26 +16,17 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Razor;
-using Newtonsoft.Json;
 
 namespace Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace;
 
 internal static class RazorProjectInfoSerializer
 {
-    private static readonly JsonSerializer s_serializer;
     private static readonly EmptyProjectEngineFactory s_fallbackProjectEngineFactory;
     private static readonly StringComparison s_stringComparison;
     private static readonly (IProjectEngineFactory Value, ICustomProjectEngineFactoryMetadata)[] s_projectEngineFactories;
 
     static RazorProjectInfoSerializer()
     {
-        s_serializer = new JsonSerializer()
-        {
-            Formatting = Formatting.Indented
-        };
-
-        s_serializer.Converters.RegisterRazorConverters();
-
         s_fallbackProjectEngineFactory = new EmptyProjectEngineFactory();
         s_stringComparison = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
             ? StringComparison.Ordinal
@@ -152,7 +143,7 @@ internal static class RazorProjectInfoSerializer
         // by the time we move the temp file into its place
         using (var writer = tempFileInfo.CreateText())
         {
-            s_serializer.Serialize(writer, projectInfo);
+            JsonDataConvert.SerializeObject(writer, projectInfo, ObjectWriters.WriteProperties);
         }
 
         var fileInfo = new FileInfo(publishFilePath);
