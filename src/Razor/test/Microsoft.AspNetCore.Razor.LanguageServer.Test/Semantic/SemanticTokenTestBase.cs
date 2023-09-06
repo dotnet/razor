@@ -94,7 +94,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
         return semanticFile.ReadAllText();
     }
 
-    private protected async Task<(ProvideSemanticTokensResponse, Dictionary<Range, int[]>)> GetCSharpSemanticTokensResponseAsync(
+    private protected async Task<ProvideSemanticTokensResponse> GetCSharpSemanticTokensResponseAsync(
         string documentText, Range razorRange, bool isRazorFile, int hostDocumentSyncVersion = 0)
     {
         var codeDocument = CreateCodeDocument(documentText, isRazorFile, DefaultTagHelpers);
@@ -106,7 +106,6 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
 
         var csharpRanges = GetMappedCSharpRanges(codeDocument, razorRange);
 
-        var perRangeTokens = new Dictionary<Range, int[]>();
         var responses = new SemanticTokens[csharpRanges.Length];
         for (var i = 0; i < csharpRanges.Length; i++)
         {
@@ -117,17 +116,10 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
                 DisposalToken);
 
             responses[i] = result;
-            if (result?.Data is not null)
-            {
-                if (!perRangeTokens.ContainsKey(range))
-                {
-                    perRangeTokens[range] = result.Data;
-                }
-            }
         }
 
         var csharpTokens = responses.Select(r => r.Data).WithoutNull().ToArray();
-        return (new ProvideSemanticTokensResponse(tokens: csharpTokens, hostDocumentSyncVersion), perRangeTokens);
+        return new ProvideSemanticTokensResponse(tokens: csharpTokens, hostDocumentSyncVersion);
     }
 
     protected Range[] GetMappedCSharpRanges(RazorCodeDocument codeDocument, Range razorRange)
@@ -136,7 +128,7 @@ public abstract class SemanticTokenTestBase : TagHelperServiceTestBase
             FilePathService, new TestDocumentContextFactory(), LoggerFactory);
         if (UsePreciseSemanticTokenRanges)
         {
-            if (!RazorSemanticTokensInfoService.TryGetCSharpRanges(codeDocument, razorRange, out var csharpRanges))
+            if (!RazorSemanticTokensInfoService.TryGetSortedCSharpRanges(codeDocument, razorRange, out var csharpRanges))
             {
                 // No C# in the range.
                 return Array.Empty<Range>();

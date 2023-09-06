@@ -122,7 +122,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
         // The following `if` statement checks if the feature flag is enabled and if so, tries to get the precise ranges.
         if (_languageServerFeatureOptions.UsePreciseSemanticTokenRanges)
         {
-            if (!TryGetCSharpRanges(codeDocument, razorRange, out csharpRanges))
+            if (!TryGetSortedCSharpRanges(codeDocument, razorRange, out csharpRanges))
             {
                 // There's no C# in the range.
                 return new List<SemanticRange>();
@@ -401,7 +401,7 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
     }
 
     // Internal for testing only
-    internal static bool TryGetCSharpRanges(RazorCodeDocument codeDocument, Range razorRange, [NotNullWhen(true)] out Range[]? ranges)
+    internal static bool TryGetSortedCSharpRanges(RazorCodeDocument codeDocument, Range razorRange, [NotNullWhen(true)] out Range[]? ranges)
     {
         using var _ = ListPool<Range>.GetPooledObject(out var csharpRanges);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
@@ -421,8 +421,16 @@ internal class RazorSemanticTokensInfoService : IRazorSemanticTokensInfoService
             }
         }
 
-        ranges = csharpRanges.Count > 0 ? csharpRanges.ToArray() : null;
-        return ranges != null;
+        if (csharpRanges.Count == 0)
+        {
+            ranges = null;
+            return false;
+        }
+
+        ranges = csharpRanges.ToArray();
+        // Ensure the C# ranges are sorted
+        Array.Sort(ranges, static (r1, r2) => r1.CompareTo(r2));
+        return true;
     }
 
     private static SemanticRange CSharpDataToSemanticRange(

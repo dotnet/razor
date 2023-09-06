@@ -48,8 +48,6 @@ internal partial class RazorCustomMessageTarget
             return new ProvideSemanticTokensResponse(tokens: null, hostDocumentSyncVersion: csharpDoc.HostDocumentSyncVersion ?? -1);
         }
 
-        // Ensure the C# ranges are sorted
-        Array.Sort(semanticTokensParams.Ranges, static (r1, r2) => r1.CompareTo(r2));
         using var _ = ListPool<Task<ReinvocationResponse<VSSemanticTokensResponse>?>>.GetPooledObject(out var requestTasks);
 
         semanticTokensParams.TextDocument.Uri = csharpDoc.Uri;
