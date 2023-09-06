@@ -18,7 +18,7 @@ namespace Test
         #pragma warning restore 1998
 #nullable restore
 #line 4 "x:\dir\subdir\Test\TestComponent.cshtml"
-
+ 
 #pragma warning disable CS9113
     public class MyRenderMode(string Text) : Microsoft.AspNetCore.Components.IComponentRenderMode { }
 
@@ -31,7 +31,7 @@ namespace Test
         private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 
 #nullable restore
 #line 1 "x:\dir\subdir\Test\TestComponent.cshtml"
-             new TestComponent.MyRenderMode("This is some text")
+              new TestComponent.MyRenderMode("This is some text")
 
 #line default
 #line hidden

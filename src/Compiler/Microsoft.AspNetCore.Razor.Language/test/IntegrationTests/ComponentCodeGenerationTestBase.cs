@@ -10023,6 +10023,43 @@ Time: @DateTime.Now
     }
 
     [Fact]
+    public void RenderMode_Directive_SimpleExpression_With_Code()
+    {
+        var generated = CompileToCSharp("""
+                @rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.Server)
+
+                @code
+                {
+                    [Parameter]
+                    public int Count { get; set; }
+                }
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
+    public void RenderMode_Directive_SimpleExpression_NotFirst()
+    {
+        var generated = CompileToCSharp("""
+                @code
+                {
+                    [Parameter]
+                    public int Count { get; set; }
+                }
+                @rendermode @(Microsoft.AspNetCore.Components.Web.RenderMode.Server)
+                """, throwOnFailure: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated, throwOnFailure: true);
+    }
+
+    [Fact]
     public void RenderMode_Directive_NewExpression()
     {
         var generated = CompileToCSharp("""

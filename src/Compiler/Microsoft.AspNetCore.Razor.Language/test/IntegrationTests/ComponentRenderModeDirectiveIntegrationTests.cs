@@ -317,9 +317,9 @@ public class ComponentRenderModeDirectiveIntegrationTests : RazorIntegrationTest
 
         // Assert
         assembly.Diagnostics.Verify(
-            // x:\dir\subdir\Test\TestComponent.cshtml(1,18): error CS0246: The type or namespace name 'MyRenderMode' could not be found (are you missing a using directive or an assembly reference?)
+            // x:\dir\subdir\Test\TestComponent.cshtml(1,19): error CS0246: The type or namespace name 'MyRenderMode' could not be found (are you missing a using directive or an assembly reference?)
             //              new MyRenderMode("This is some text")
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MyRenderMode").WithArguments("MyRenderMode").WithLocation(1, 18)
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MyRenderMode").WithArguments("MyRenderMode").WithLocation(1, 19)
             );
     }
 

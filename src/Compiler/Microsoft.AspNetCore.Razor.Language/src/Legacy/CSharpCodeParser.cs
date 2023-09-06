@@ -1562,7 +1562,9 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                         case DirectiveTokenKind.IdentifierOrExpression:
                             if (At(SyntaxKind.Transition) && NextIs(SyntaxKind.LeftParenthesis))
                             {
-                                EatCurrentToken();
+                                AcceptAndMoveNext();
+                                directiveBuilder.Add(OutputAsMetaCode(Output()));
+
                                 var expression = ParseExplicitExpressionBody();
                                 directiveBuilder.Add(expression);
                             }
