@@ -255,13 +255,16 @@ internal class CSharpFormatter
 
                 if (initializer.IsKind(CodeAnalysis.CSharp.SyntaxKind.ArrayInitializerExpression))
                 {
-                    // For array initializers we have don't want to ignore the open and close braces
+                    // For array initializers we don't want to ignore the open and close braces
                     // as the formatter does move them relative to the variable declaration they
                     // are part of, but doesn't otherwise touch them.
                     // This isn't true if they are part of other collection or object initializers, but
                     // fortunately we can ignore that because of the recursive nature of this method,
                     // I just wanted to mention it so you understood how annoying this is :)
-                    if (token == initializer.OpenBraceToken || token == initializer.CloseBraceToken)
+                    // This also isn't true for the close brace token of an _implicit_ array creation
+                    // expression, because Roslyn was designed to hurt me.
+                    if (token == initializer.OpenBraceToken ||
+                        (token == initializer.CloseBraceToken && initializer.Parent is not ImplicitArrayCreationExpressionSyntax))
                     {
                         return false;
                     }
